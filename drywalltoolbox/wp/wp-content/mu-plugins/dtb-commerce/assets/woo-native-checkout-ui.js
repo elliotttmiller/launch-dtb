@@ -14,6 +14,7 @@
 	const mobileViewport = window.matchMedia( '(max-width: 767px)' );
 	const checkoutRootSelector = '.wc-block-checkout';
 	const inactiveStepClass = 'is-dtb-checkout-step-inactive';
+	const storefrontLoginUrl = '/login?returnTo=%2Fcheckout';
 	const stepBodyClasses = [
 		'dtb-checkout-step-contact',
 		'dtb-checkout-step-shipping',
@@ -188,18 +189,6 @@
 		return nav;
 	}
 
-	function validateActiveStep() {
-		const candidates = stepElements( activeStep ).flatMap( ( section ) => Array.from( section.querySelectorAll( 'input, select, textarea' ) ) );
-		const invalid = candidates.find( ( control ) => ! control.disabled && control.offsetParent !== null && ! control.checkValidity() );
-		if ( invalid ) {
-			invalid.reportValidity();
-			invalid.focus( { preventScroll: true } );
-			invalid.scrollIntoView( { behavior: 'smooth', block: 'center' } );
-			return false;
-		}
-		return true;
-	}
-
 	function createActionBar() {
 		const wrapper = document.createElement( 'div' );
 		wrapper.className = 'dtb-mobile-checkout-actions';
@@ -222,9 +211,16 @@
 		next.type = 'button';
 		next.className = 'dtb-mobile-checkout-actions__next';
 		next.addEventListener( 'click', () => {
-			if ( activeStep >= steps.length - 1 || ! validateActiveStep() ) {
+			if ( activeStep >= steps.length - 1 ) {
 				return;
 			}
+
+			/*
+			 * Step navigation is presentation-only. WooCommerce remains the sole
+			 * validation authority and will surface required-field errors before order
+			 * submission. Blocking here previously trapped customers on Contact when
+			 * dynamically mounted Checkout Block controls were not discoverable yet.
+			 */
 			const nextStep = activeStep + 1;
 			highestVisitedStep = Math.max( highestVisitedStep, nextStep );
 			showStep( nextStep, true );
@@ -345,6 +341,18 @@
 		} );
 	}
 
+	function rewriteCheckoutLoginLinks() {
+		const root = checkoutRoot();
+		if ( ! root ) {
+			return;
+		}
+
+		root.querySelectorAll( 'a[href*="/my-account/"]' ).forEach( ( link ) => {
+			link.setAttribute( 'href', storefrontLoginUrl );
+			link.dataset.dtbStorefrontLogin = '1';
+		} );
+	}
+
 	function clearMobilePresentation() {
 		document.body.classList.remove( 'dtb-checkout-enhanced', 'dtb-mobile-checkout-enhanced', ...stepBodyClasses );
 		clearStepMarkers();
@@ -360,6 +368,7 @@
 			return false;
 		}
 
+		rewriteCheckoutLoginLinks();
 		syncContactIdentityFields();
 		if ( ! mobileViewport.matches ) {
 			clearMobilePresentation();
@@ -429,12 +438,25 @@
 		}
 	}
 
+	function handleStorefrontLoginClick( event ) {
+		if ( ! ( event.target instanceof Element ) ) {
+			return;
+		}
+		const link = event.target.closest( 'a[data-dtb-storefront-login="1"]' );
+		if ( ! link ) {
+			return;
+		}
+		event.preventDefault();
+		window.location.assign( storefrontLoginUrl );
+	}
+
 	function initialize() {
 		mobileViewport.addEventListener( 'change', () => {
 			activeStep = Math.min( activeStep, steps.length - 1 );
 			queueReconcile();
 		} );
 		document.addEventListener( 'focusin', handleFocusIn );
+		document.addEventListener( 'click', handleStorefrontLoginClick );
 
 		bodyObserver = new MutationObserver( () => {
 			const root = checkoutRoot();
