@@ -20,6 +20,12 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_WooNativeCheckoutRuntime {
 	public static function register(): void {
 		add_action( 'wp', [ __CLASS__, 'prepare_runtime' ], 1 );
+		/*
+		 * Re-assert the exception immediately before enqueue processing. This makes
+		 * the native checkout independent of theme hook-registration timing and
+		 * prevents the headless asset stripper from removing Woo/WP/Stripe assets.
+		 */
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'prepare_runtime' ], 0 );
 		add_filter( 'template_include', [ __CLASS__, 'template_include' ], 1000 );
 		add_action( 'send_headers', [ __CLASS__, 'send_private_headers' ], 20 );
 		add_action( 'woocommerce_store_api_checkout_order_processed', [ __CLASS__, 'persist_store_api_checkout_metadata' ], 100 );
