@@ -1,0 +1,73 @@
+@media (min-width: 1025px) {
+  /*
+   * Final desktop navigation integrity layer.
+   * Dropdown panels must be allowed to escape the header row and remain above
+   * page content. Search retains its own column/pointer surface without
+   * clipping or covering the navigation.
+   */
+  .site-header,
+  .site-header .site-header-inner,
+  .site-header .header-desktop-layout,
+  .site-header .header-desktop-nav-row,
+  .site-header .dtb-desktop-nav,
+  .site-header .dtb-desktop-nav-menu {
+    overflow: visible !important;
+  }
+
+  .site-header {
+    isolation: isolate;
+    z-index: 10020;
+  }
+
+  .site-header .header-desktop-nav-row,
+  .site-header .dtb-desktop-nav,
+  .site-header .dtb-desktop-nav-menu {
+    position: relative;
+    z-index: 10025;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown {
+    z-index: 10040;
+  }
+
+  .site-header .dtb-desktop-nav-tab {
+    min-width: max-content;
+    padding-inline: clamp(8px, 0.72vw, 14px);
+    font-size: clamp(0.9rem, 0.82vw, 1rem);
+    font-weight: 650;
+  }
+
+  .site-header .dtb-desktop-nav {
+    gap: clamp(0px, 0.25vw, 5px);
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__empty {
+    display: grid;
+    gap: 5px;
+    padding: 18px 14px;
+    color: rgba(226, 232, 240, 0.78);
+    line-height: 1.45;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__empty strong {
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 750;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__empty span {
+    font-size: 0.74rem;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1365px) {
+  .site-header .dtb-desktop-nav-tab {
+    padding-inline: clamp(6px, 0.55vw, 9px);
+    font-size: clamp(0.82rem, 0.78vw, 0.9rem);
+  }
+
+  .site-header .dtb-desktop-nav-tab svg {
+    width: 13px;
+    height: 13px;
+  }
+}
