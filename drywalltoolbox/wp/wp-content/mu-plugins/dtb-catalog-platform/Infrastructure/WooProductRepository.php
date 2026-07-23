@@ -12,8 +12,8 @@ defined( 'ABSPATH' ) || exit;
  * Falls back to the legacy cached server-side proxy only when the Woo controller
  * is unavailable so older operational environments remain recoverable.
  *
- * @param string               $route  wc/v3/products or wc/v3/products/{id}.
- * @param array<string,mixed>  $params Request parameters.
+ * @param string              $route  wc/v3/products or wc/v3/products/{id}.
+ * @param array<string,mixed> $params Request parameters.
  * @return WP_REST_Response|null
  */
 function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_REST_Response {
@@ -24,6 +24,14 @@ function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_R
 		$request    = new WP_REST_Request( 'GET', '/' . $route );
 
 		foreach ( $params as $key => $value ) {
+			/*
+			 * REST route sanitization normally converts comma-delimited include/exclude
+			 * values into integer arrays before controller execution. Because DTB calls
+			 * the controller in-process, normalize those parameters explicitly.
+			 */
+			if ( in_array( (string) $key, [ 'include', 'exclude' ], true ) && is_string( $value ) ) {
+				$value = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
+			}
 			$request->set_param( (string) $key, $value );
 		}
 
@@ -77,7 +85,7 @@ function dtb_catalog_wc_get_products_by_ids_response( array $ids ): ?WP_REST_Res
 	}
 
 	return dtb_catalog_wc_get_response( 'wc/v3/products', [
-		'include'  => implode( ',', $ids ),
+		'include'  => $ids,
 		'orderby'  => 'include',
 		'per_page' => count( $ids ),
 		'_fields'  => DTB_PRODUCT_DETAIL_FIELDS,
