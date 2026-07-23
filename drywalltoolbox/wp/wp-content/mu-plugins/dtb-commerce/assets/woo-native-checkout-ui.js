@@ -5,9 +5,10 @@
 	 * DTB checkout presentation controller.
 	 *
 	 * WooCommerce Checkout Block remains authoritative for field state, validation,
-	 * shipping, totals, payment selection, and submission. This controller only
-	 * applies a three-step mobile presentation, progress navigation, and non-submit
-	 * continue actions. It never clones, reparents, or recreates Woo/Stripe controls.
+	 * shipping, totals, payment selection, and submission. This controller applies
+	 * the three-step mobile presentation, mirrors supported contact identity fields
+	 * into WooCommerce's canonical address inputs, and provides non-submit step
+	 * navigation. It never clones or recreates Woo/Stripe controls.
 	 */
 
 	const mobileViewport = window.matchMedia( '(max-width: 767px)' );
@@ -17,6 +18,20 @@
 		'dtb-checkout-step-contact',
 		'dtb-checkout-step-shipping',
 		'dtb-checkout-step-payment',
+	];
+	const contactIdentityFields = [
+		{
+			id: 'dtb-checkout/contact-first-name',
+			nativeSelectors: [ '#shipping-first_name', '#billing-first_name', '[name="shipping_first_name"]', '[name="billing_first_name"]' ],
+		},
+		{
+			id: 'dtb-checkout/contact-last-name',
+			nativeSelectors: [ '#shipping-last_name', '#billing_last_name', '[name="shipping_last_name"]', '[name="billing_last_name"]' ],
+		},
+		{
+			id: 'dtb-checkout/contact-phone',
+			nativeSelectors: [ '#shipping-phone', '#billing-phone', '#shipping_phone', '#billing_phone', '[name="shipping_phone"]', '[name="billing_phone"]' ],
+		},
 	];
 
 	const steps = [
@@ -173,6 +188,18 @@
 		return nav;
 	}
 
+	function validateActiveStep() {
+		const candidates = stepElements( activeStep ).flatMap( ( section ) => Array.from( section.querySelectorAll( 'input, select, textarea' ) ) );
+		const invalid = candidates.find( ( control ) => ! control.disabled && control.offsetParent !== null && ! control.checkValidity() );
+		if ( invalid ) {
+			invalid.reportValidity();
+			invalid.focus( { preventScroll: true } );
+			invalid.scrollIntoView( { behavior: 'smooth', block: 'center' } );
+			return false;
+		}
+		return true;
+	}
+
 	function createActionBar() {
 		const wrapper = document.createElement( 'div' );
 		wrapper.className = 'dtb-mobile-checkout-actions';
@@ -181,11 +208,21 @@
 		const inner = document.createElement( 'div' );
 		inner.className = 'dtb-mobile-checkout-actions__inner';
 
+		const back = document.createElement( 'button' );
+		back.type = 'button';
+		back.className = 'dtb-mobile-checkout-actions__back';
+		back.textContent = 'Back';
+		back.addEventListener( 'click', () => {
+			if ( activeStep > 0 ) {
+				showStep( activeStep - 1, true );
+			}
+		} );
+
 		const next = document.createElement( 'button' );
 		next.type = 'button';
 		next.className = 'dtb-mobile-checkout-actions__next';
 		next.addEventListener( 'click', () => {
-			if ( activeStep >= steps.length - 1 ) {
+			if ( activeStep >= steps.length - 1 || ! validateActiveStep() ) {
 				return;
 			}
 			const nextStep = activeStep + 1;
@@ -193,7 +230,7 @@
 			showStep( nextStep, true );
 		} );
 
-		inner.append( next );
+		inner.append( back, next );
 		wrapper.append( inner );
 		return wrapper;
 	}
@@ -224,10 +261,17 @@
 		if ( ! actionBar ) {
 			return;
 		}
+		const back = actionBar.querySelector( '.dtb-mobile-checkout-actions__back' );
 		const next = actionBar.querySelector( '.dtb-mobile-checkout-actions__next' );
 		const onPayment = activeStep === steps.length - 1;
-		actionBar.hidden = onPayment || ! mobileViewport.matches;
+		actionBar.hidden = ! mobileViewport.matches;
+		actionBar.classList.toggle( 'is-payment-step', onPayment );
+		if ( back ) {
+			back.disabled = activeStep === 0;
+			back.setAttribute( 'aria-hidden', activeStep === 0 ? 'true' : 'false' );
+		}
 		if ( next ) {
+			next.hidden = onPayment;
 			next.textContent = activeStep === 0 ? 'Continue to shipping' : 'Continue to payment';
 		}
 	}
@@ -254,6 +298,53 @@
 		}
 	}
 
+	function setInputValue( input, value ) {
+		if ( ! input || input.value === value ) {
+			return;
+		}
+		const descriptor = Object.getOwnPropertyDescriptor( window.HTMLInputElement.prototype, 'value' );
+		descriptor?.set?.call( input, value );
+		input.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+		input.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+	}
+
+	function findContactInput( fieldId ) {
+		const safeId = window.CSS?.escape ? window.CSS.escape( fieldId ) : fieldId.replace( /([/])/g, '\\$1' );
+		const suffix = fieldId.split( '/' ).pop();
+		return document.querySelector( `[name="${ fieldId }"]` )
+			|| document.querySelector( `[data-field-id="${ fieldId }"] input` )
+			|| document.querySelector( `#${ safeId }` )
+			|| document.querySelector( `input[id*="${ suffix }"]` );
+	}
+
+	function syncContactIdentityFields() {
+		contactIdentityFields.forEach( ( field ) => {
+			const contactInput = findContactInput( field.id );
+			const nativeInputs = uniqueElements( field.nativeSelectors.flatMap( ( selector ) => Array.from( document.querySelectorAll( selector ) ) ) );
+			if ( ! contactInput ) {
+				return;
+			}
+
+			contactInput.closest( '.wc-block-components-text-input, .wc-block-components-checkout-step__container, .wc-block-components-address-form__field' )?.classList.add( 'dtb-contact-identity-field' );
+			nativeInputs.forEach( ( input ) => input.closest( '.wc-block-components-text-input, .wc-block-components-address-form__field' )?.classList.add( 'dtb-native-identity-field' ) );
+
+			if ( ! contactInput.value ) {
+				const existing = nativeInputs.find( ( input ) => input.value )?.value || '';
+				if ( existing ) {
+					setInputValue( contactInput, existing );
+				}
+			}
+
+			nativeInputs.forEach( ( input ) => setInputValue( input, contactInput.value || '' ) );
+			if ( ! contactInput.dataset.dtbIdentityBound ) {
+				contactInput.dataset.dtbIdentityBound = '1';
+				contactInput.addEventListener( 'input', () => {
+					nativeInputs.forEach( ( input ) => setInputValue( input, contactInput.value || '' ) );
+				} );
+			}
+		} );
+	}
+
 	function clearMobilePresentation() {
 		document.body.classList.remove( 'dtb-checkout-enhanced', 'dtb-mobile-checkout-enhanced', ...stepBodyClasses );
 		clearStepMarkers();
@@ -264,14 +355,15 @@
 	}
 
 	function mountProgressiveCheckout() {
-		if ( ! mobileViewport.matches ) {
-			clearMobilePresentation();
-			return true;
-		}
-
 		const root = checkoutRoot();
 		if ( ! root ) {
 			return false;
+		}
+
+		syncContactIdentityFields();
+		if ( ! mobileViewport.matches ) {
+			clearMobilePresentation();
+			return true;
 		}
 
 		document.body.classList.add( 'dtb-checkout-enhanced', 'dtb-mobile-checkout-enhanced' );
@@ -291,11 +383,10 @@
 
 	function reconcile() {
 		reconcileQueued = false;
-		if ( ! mobileViewport.matches ) {
-			clearMobilePresentation();
+		if ( ! mountProgressiveCheckout() ) {
 			return;
 		}
-		if ( ! mountProgressiveCheckout() ) {
+		if ( ! mobileViewport.matches ) {
 			return;
 		}
 		markStepElements();
@@ -348,6 +439,7 @@
 		bodyObserver = new MutationObserver( () => {
 			const root = checkoutRoot();
 			if ( root === observedRoot ) {
+				queueReconcile();
 				return;
 			}
 			bindRootObserver( root );
