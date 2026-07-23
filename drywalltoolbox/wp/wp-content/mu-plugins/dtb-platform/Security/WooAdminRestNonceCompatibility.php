@@ -1,14 +1,14 @@
 <?php
 /**
- * WooCommerce admin REST nonce compatibility.
+ * Native wp-admin REST nonce compatibility.
  *
- * Narrowly restores authenticated same-site wp-admin GET requests for official
- * WooCommerce payment-admin read endpoints when a stale wp_rest
+ * Narrowly restores authenticated same-site wp-admin GET requests for selected
+ * official WooCommerce and SiteGround admin read endpoints when a stale wp_rest
  * nonce causes WordPress REST cookie auth to fail.
  *
  * Disabled by default. Enable only with DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT
- * during a diagnosed Woo admin incident. This file never restores mutating
- * payment settings requests.
+ * during a diagnosed admin incident. This file never restores mutating settings
+ * requests and never bypasses capability checks for anonymous callers.
  *
  * @package drywall-toolbox
  */
@@ -16,6 +16,25 @@
 defined( 'ABSPATH' ) || exit;
 
 add_filter( 'rest_authentication_errors', 'dtb_woo_admin_rest_nonce_compat_restore_get_request', 116 );
+
+/**
+ * Native admin REST namespaces that must never be resolved through DTB storefront JWTs.
+ *
+ * This security file loads before Auth/AuthRoutes.php. Defining the shared helper
+ * here lets AuthRoutes reuse the same boundary via its function_exists() guard.
+ */
+if ( ! function_exists( 'dtb_jwt_wp_admin_rest_route_prefixes' ) ) {
+	function dtb_jwt_wp_admin_rest_route_prefixes(): array {
+		return [
+			'/wp/v2/',
+			'/wc-admin/',
+			'/wc-analytics/',
+			'/wc/v3/',
+			'/siteground-optimizer/',
+			'/sg-ai-studio/',
+		];
+	}
+}
 
 /**
  * Whether this compatibility layer is enabled.
@@ -49,7 +68,7 @@ function dtb_woo_admin_rest_nonce_compat_current_route(): string {
 }
 
 /**
- * Whether a route is an official WooCommerce admin payment read endpoint.
+ * Whether a route is an explicitly approved native-admin read endpoint.
  */
 function dtb_woo_admin_rest_nonce_compat_route_allowed( string $route, string $method ): bool {
 	if ( 'GET' !== $method ) {
@@ -63,6 +82,8 @@ function dtb_woo_admin_rest_nonce_compat_route_allowed( string $route, string $m
 		'/wc/v3/payments/settings',
 		'/wc/v3/payments/pm-promotions',
 		'/wc/v3/payments/deposits/overview-all',
+		'/siteground-optimizer/v1/fetch-options/frontend',
+		'/sg-ai-studio/settings-page/connected',
 	];
 
 	return in_array( $route, $allowed_get_routes, true );
@@ -125,6 +146,11 @@ function dtb_woo_admin_rest_nonce_compat_auth_user_id(): int {
 /**
  * Restore only authenticated same-site admin read requests after stale nonce failure.
  *
+ * Mutating methods intentionally remain protected by normal WordPress nonce and
+ * capability validation. This compatibility path only recovers read-only admin UI
+ * hydration when the root-mounted /wp-json endpoint and nested /wp/wp-admin session
+ * briefly disagree about a wp_rest nonce.
+ *
  * @param WP_Error|mixed $result Authentication result from previous handlers.
  * @return WP_Error|mixed|null
  */
@@ -154,7 +180,7 @@ function dtb_woo_admin_rest_nonce_compat_restore_get_request( $result ) {
 
 	if ( function_exists( 'dtb_security_log' ) ) {
 		dtb_security_log(
-			'woo_admin_get_rest_nonce_restored',
+			'native_admin_get_rest_nonce_restored',
 			[
 				'route'  => $route,
 				'method' => $method,
