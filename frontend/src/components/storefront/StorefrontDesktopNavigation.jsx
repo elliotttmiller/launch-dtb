@@ -2,10 +2,12 @@ import { useId, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
+import '../../styles/storefront-desktop-navigation-integrity.css';
 
 function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate }) {
   const triggerRef = useRef(null);
   const panelId = useId();
+  const entries = Array.isArray(item.items) ? item.items : [];
 
   const closeAndFocus = () => {
     onClose();
@@ -31,6 +33,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
         aria-controls={panelId}
         onClick={() => {
           if (!isOpen) onOpen();
+          else onClose();
         }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
@@ -59,14 +62,21 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
           <span>{item.description}</span>
         </div>
         <div className="dtb-desktop-nav-dropdown__scroller">
-          <div className={`dtb-desktop-nav-dropdown__links${item.columns === 2 ? ' is-two-column' : ''}`}>
-            {item.items.map((entry) => (
-              <Link key={entry.to} to={entry.to} className="dtb-desktop-nav-dropdown__link" onClick={onNavigate}>
-                <span>{entry.label}</span>
-                <ChevronRight size={14} aria-hidden="true" />
-              </Link>
-            ))}
-          </div>
+          {entries.length > 0 ? (
+            <div className={`dtb-desktop-nav-dropdown__links${item.columns === 2 ? ' is-two-column' : ''}`}>
+              {entries.map((entry) => (
+                <Link key={entry.to} to={entry.to} className="dtb-desktop-nav-dropdown__link" onClick={onNavigate}>
+                  <span>{entry.label}</span>
+                  <ChevronRight size={14} aria-hidden="true" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="dtb-desktop-nav-dropdown__empty" role="status">
+              <strong>{item.emptyTitle || `${item.label} temporarily unavailable`}</strong>
+              <span>{item.emptyMessage || 'Catalog navigation is still loading or the catalog service is temporarily unavailable.'}</span>
+            </div>
+          )}
         </div>
         <Link to={item.landingTo} className="dtb-desktop-nav-dropdown__footer" onClick={onNavigate}>
           <span>{item.landingLabel}</span>
@@ -80,7 +90,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
   return (
     <nav className="dtb-desktop-nav" aria-label="Primary navigation">
-      {items.map((item) => item.items?.length ? (
+      {items.map((item) => (item.hasDropdown || item.items?.length) ? (
         <DesktopNavDropdown
           key={item.id}
           item={item}
