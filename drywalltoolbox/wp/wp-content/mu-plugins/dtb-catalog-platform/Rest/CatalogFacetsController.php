@@ -44,6 +44,35 @@ final class DTB_CatalogFacetsController {
 			'is_parts'         => $request->get_param( 'is_parts' ),
 		];
 
-		return new WP_REST_Response( dtb_catalog_build_facets( $scope ), 200 );
+		$facets = dtb_catalog_build_facets( $scope );
+		$brands = is_array( $facets['brands'] ?? null ) ? $facets['brands'] : [];
+		$categories = is_array( $facets['categories'] ?? null ) ? $facets['categories'] : [];
+		$display_by_brand = is_array( $facets['displayCategoriesByBrand'] ?? null ) ? $facets['displayCategoriesByBrand'] : [];
+
+		/*
+		 * A production catalog with no facets is operationally indistinguishable from
+		 * an upstream Woo read failure to the customer. Fail explicitly instead of
+		 * returning a deceptive 200/empty payload that silently removes navigation,
+		 * filters, and brand selectors.
+		 */
+		if ( [] === $brands && [] === $categories && [] === $display_by_brand ) {
+			if ( class_exists( 'DTB_Logger' ) ) {
+				DTB_Logger::warning( 'Catalog facets unavailable or empty', [
+					'route' => '/dtb/v1/catalog/facets',
+					'scope' => array_filter( $scope, static fn ( $value ): bool => null !== $value && '' !== $value ),
+				] );
+			}
+
+			return new WP_REST_Response(
+				dtb_error_envelope(
+					'catalog_facets_unavailable',
+					'Catalog navigation data is temporarily unavailable.',
+					503
+				),
+				503
+			);
+		}
+
+		return new WP_REST_Response( $facets, 200 );
 	}
 }
