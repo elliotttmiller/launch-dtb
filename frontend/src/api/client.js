@@ -1,14 +1,12 @@
-/**
- * Canonical same-origin API client for the Drywall Toolbox storefront.
- *
- * Security invariants:
- * - Browser code never receives WooCommerce application passwords, consumer
- *   keys, consumer secrets, or integration API keys.
- * - Authentication uses the HttpOnly DTB cookie and an optional in-memory
- *   bearer token only.
- * - WooCommerce administrative REST calls are performed by server-side DTB
- *   proxy/controllers, never directly from the browser.
- */
+// Canonical same-origin API client for the Drywall Toolbox storefront.
+//
+// Security invariants:
+// - Browser code never receives WooCommerce application passwords, consumer
+//   keys, consumer secrets, or integration API keys.
+// - Authentication uses the HttpOnly DTB cookie and an optional in-memory
+//   bearer token only.
+// - WooCommerce administrative REST calls are performed by server-side DTB
+//   proxy/controllers, never directly from the browser.
 
 import axios from 'axios';
 import { getToken, clearToken } from '../auth/tokenStore.js';
@@ -37,10 +35,14 @@ function normalizeBaseUrl(value = '') {
   return String(value || '').replace(/\/+$/, '');
 }
 
-function uniqueUrls(urls) {
-  return Array.from(new Set(urls.filter(Boolean)));
-}
-
+/**
+ * Resolve a browser API endpoint to one authoritative URL.
+ *
+ * Production is root-mounted with WordPress core in /wp, but its public REST
+ * authority is the root /wp-json alias. Browser code must not probe
+ * /wp/wp-json: that path is not part of the production contract and retrying
+ * requests there hides the real canonical failure behind secondary 404 noise.
+ */
 function buildApiRequestUrls(endpoint) {
   if (/^https?:\/\//i.test(endpoint)) return [endpoint];
 
@@ -50,23 +52,11 @@ function buildApiRequestUrls(endpoint) {
   }
 
   const restPath = normalizedEndpoint.replace(/^\/wp-json/, '');
-  const bases = uniqueUrls([
-    normalizeBaseUrl(API_BASE_URL),
-    runtimeOrigin ? normalizeBaseUrl(runtimeOrigin) : '',
-  ]);
-  const urls = [];
+  const canonicalRestBase = configuredWpBase
+    ? normalizeBaseUrl(WP_API_BASE)
+    : `${normalizeBaseUrl(API_BASE_URL)}/wp-json`;
 
-  for (const base of bases) {
-    // Always try the canonical /wp-json alias first (public root alias).
-    urls.push(`${base}${normalizedEndpoint}`);
-    // Fall back to the explicit /wp sub-directory where WP is installed.
-    urls.push(`${base}/wp/wp-json${restPath}`);
-  }
-
-  // Explicit WP_API_BASE from env (e.g. REACT_APP_WP_BASE_URL) is the
-  // most authoritative candidate — append last so URL deduplication keeps it.
-  if (WP_API_BASE) urls.push(`${normalizeBaseUrl(WP_API_BASE)}${restPath}`);
-  return uniqueUrls(urls);
+  return [`${canonicalRestBase}${restPath}`];
 }
 
 function looksLikeJson(text = '') {
@@ -114,23 +104,6 @@ async function parseSuccessfulJsonResponse(response, url) {
       url,
     };
   }
-}
-
-function canRetryWpJsonCandidate(method, status, errorCode = '') {
-  if (IDEMPOTENT_HTTP_METHODS.has(method)) {
-    if ([404, 405].includes(status)) return true;
-    if (['non_json_response', 'invalid_json_response'].includes(errorCode)) return true;
-    // A generic error means the response had no usable JSON envelope, so an
-    // alternate WordPress base may still be valid. Named JSON errors came from
-    // the canonical route and must be returned without retrying a rewrite path.
-    return 'api_error' === errorCode && [500, 502, 503, 504].includes(status);
-  }
-
-  // Mutating requests may create orders, sessions, coupons, or payment state.
-  // Only retry when the candidate route is clearly absent; never retry 5xx,
-  // malformed JSON, or network ambiguity because the side effect may have
-  // reached WordPress/WooCommerce even when the browser did not get a response.
-  return [404, 405].includes(status);
 }
 
 async function shouldDispatchAuthExpired() {
@@ -226,8 +199,6 @@ export const credentialsReady = () => Promise.resolve();
  */
 export async function apiClient(endpoint, options = {}) {
   const requestUrls = buildApiRequestUrls(endpoint);
-  const endpointString = String(endpoint || '');
-  const isWpJsonRequest = endpointString.includes('/wp-json/');
   const method = (options.method || 'GET').toUpperCase();
   const headers = { ...(options.headers || {}) };
 
@@ -305,13 +276,6 @@ export async function apiClient(endpoint, options = {}) {
           status: response.status,
           url,
         };
-        if (
-          isWpJsonRequest
-          && requestUrls.length > 1
-          && canRetryWpJsonCandidate(method, response.status, lastError.code)
-        ) {
-          continue;
-        }
         throw lastError;
       }
 
@@ -321,13 +285,6 @@ export async function apiClient(endpoint, options = {}) {
         return await parseSuccessfulJsonResponse(response, url);
       } catch (error) {
         lastError = error;
-        if (
-          isWpJsonRequest
-          && requestUrls.length > 1
-          && canRetryWpJsonCandidate(method, error?.status || 0, error?.code)
-        ) {
-          continue;
-        }
         throw error;
       }
     }
