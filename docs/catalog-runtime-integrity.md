@@ -15,18 +15,22 @@ React storefront
   -> GET /wp-json/dtb/v1/catalog/products
      or GET /wp-json/dtb/v1/catalog/facets
   -> DTB catalog platform queries canonical published product IDs locally
-  -> DTB invokes the official WooCommerce REST product controller in-process
+  -> DTB ensures the official WooCommerce REST products controller is available
+  -> DTB invokes that controller in-process
   -> DTB normalizes Woo product data into catalog DTOs/facets
   -> frontend renders products, brands, categories, parts filters, and navigation
 ```
 
 `dtb/v1/catalog/*` public reads must not depend on `WC_PROXY_CONSUMER_KEY` or `WC_PROXY_CONSUMER_SECRET` when reading the local WooCommerce installation.
 
+The public catalog adapter must not fall back to the credential-bearing `drywall/v1` proxy if the Woo REST products controller has not yet been autoloaded. It explicitly loads the official Woo controller from `WC_ABSPATH` when necessary and returns a structured `503` if the local Woo product runtime is genuinely unavailable.
+
 The legacy `drywall/v1` server-side Woo REST proxy remains a separate compatibility/operational surface and may retain its server-only credential contract where explicitly required. Credentials must never be exposed to React, REST responses, logs, or generated assets.
 
 ## Source-level invariants
 
-- `Infrastructure/WooProductRepository.php` owns the in-process Woo product read adapter.
+- `Infrastructure/WooProductRepository.php` owns the in-process Woo product read adapter and explicitly ensures the official v3 products controller is loaded.
+- The local public catalog adapter never falls back to `dtb_cached_wc_get()` or another credential-bearing self-HTTP path.
 - `DTB_CatalogProductRepository` owns indexed/paginated WordPress ID selection and filtering.
 - `CatalogProductsController` uses local ID selection plus one batched in-process Woo read.
 - `CatalogFacetsController` builds scoped facets from the same local catalog authority and returns an explicit service error rather than silently converting an upstream/runtime failure into an empty catalog.
@@ -82,5 +86,7 @@ Expected results:
 - non-empty canonical brands where matching published products exist;
 - display categories grouped under canonical brand keys;
 - no `Store backend credentials are not configured` error on these public local catalog routes.
+
+If the local Woo product runtime cannot be loaded, the expected failure is a structured `503 catalog_runtime_unavailable`, never a missing-proxy-credentials error.
 
 Then verify `/products`, `/products/brands`, `/parts`, desktop catalog dropdowns, product detail, and search/filter navigation.
