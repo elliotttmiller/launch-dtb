@@ -22,10 +22,13 @@ React Store API cart
   -> WooCommerce Checkout Block boots with its native dependency graph
   -> official WooCommerce Stripe runtime boots
   -> DTB presentation observes the rendered checkout DOM
-  -> DTB progressive presentation enhancement activates only when required checkout surfaces exist
+  -> desktop remains continuous two-column checkout
+  -> mobile applies presentation-only Contact/Shipping/Payment steps
 ```
 
 DTB presentation JavaScript is intentionally isolated from `wc-blocks-checkout`. It must not declare Woo Checkout Block as a script dependency merely to wait for rendering. Presentation code must use DOM/runtime readiness observation and fail open when Woo does not mount.
+
+There is one mounted Checkout Block and one official Stripe payment surface across desktop and mobile. DTB must not clone, reparent, remount, or duplicate provider-owned payment controls to implement responsive UX.
 
 ## Source-level invariants
 
@@ -33,21 +36,24 @@ The owning checkout modules register the production-safe behavior directly:
 
 - `DTB_WooNativeCheckoutRuntime::prepare_runtime()` removes the React SPA enqueue, non-React asset stripper, and forced React template for native checkout at both the `wp` and enqueue boundaries.
 - `DTB_OfficialStripeNativeCheckout::enqueue_checkout_assets()` registers DTB presentation scripts with normal footer execution and no `wc-blocks-checkout` dependency.
-- `DTB_MobilePaymentSheet::enqueue_assets()` registers the DTB payment-sheet presentation script with normal footer execution and no custom `async`/`defer` strategy.
-- `WooNativeCheckoutPage.php` registers profile refinement JavaScript with normal footer execution and no custom strategy.
-- `DTB_CheckoutPerformance` is diagnostics/telemetry only. It does not register checkout queue suppression, speculative prewarm/preload hooks, noncritical asset dequeue policy, or custom script strategy.
+- `woo-native-checkout-steps.js` owns only mechanical boot/reveal behavior.
+- `woo-native-checkout-ui.js` owns presentation-only mobile step state, progress navigation, Continue actions, responsive cleanup, and validation-focus recovery.
+- `woo-native-checkout.css` is the single authoritative DTB checkout presentation stylesheet.
+- `DTB_CheckoutPerformance` is diagnostics/telemetry only. It does not register checkout queue suppression, speculative runtime mutation, or custom script strategy.
+
+The retired payment-sheet and downstream profile-refinement assets are not part of the runtime and must not be restored as parallel checkout layers.
 
 These source-level rules are authoritative. Runtime cleanup is not the normal operating mechanism.
 
 ## Hosting/cache optimizer boundary
 
-The checkout transaction surface must not be transformed by a hosting optimization layer in a way that changes registered JavaScript order.
+The checkout transaction surface must not be transformed by a hosting optimization layer in a way that changes registered JavaScript order or Stripe.js origin.
 
-`Payment/CheckoutRuntimeIntegrity.php` uses SiteGround Speed Optimizer exclusion filters to protect the critical checkout graph from async/defer, combine, and minify transformations and excludes `/checkout/*` from page caching. The exclusions preserve the dependency order registered by WordPress/WooCommerce; they do not add, reorder, or replace Woo dependencies.
+`Payment/CheckoutRuntimeIntegrity.php` uses SiteGround Speed Optimizer exclusion filters to protect the checkout graph from async/defer, combine, and minify transformations, keeps Stripe.js on `js.stripe.com`, and excludes `/checkout/*` from page caching. The exclusions preserve dependency order registered by WordPress/WooCommerce; they do not add, reorder, or replace Woo dependencies.
 
-Protected classes include the critical `wp-*` package globals, Woo Blocks checkout packages, Woo checkout vendor/runtime bundles, official Stripe checkout integration handles, and DTB presentation/diagnostic handles.
+Protected classes include critical `wp-*` package globals, Woo Blocks checkout packages, Woo checkout vendor/runtime bundles, official Stripe checkout integration handles, and DTB presentation/diagnostic handles.
 
-After any checkout deployment, SiteGround dynamic/static caches and PHP OPcache must be cleared so stale generated optimizer artifacts cannot mix dependency metadata or JavaScript generations.
+After checkout deployment, SiteGround generated optimizer caches and PHP OPcache must be cleared so stale generated assets cannot mix dependency metadata or JavaScript generations.
 
 ## Prohibited checkout optimizations
 
@@ -57,7 +63,8 @@ On the authoritative checkout surface DTB must not:
 - create dependency coupling that can propagate script strategy into Woo's critical graph;
 - dequeue or reorder checkout scripts/styles for speculative performance gains;
 - preload implementation JavaScript that changes or races native runtime behavior;
-- replace Woo Checkout Block state, fields, totals, payment controls, or submission behavior.
+- replace Woo Checkout Block state, fields, totals, payment controls, or submission behavior;
+- create a mobile-specific payment modal, duplicate Payment Element, or second provider runtime.
 
 Reliability and provider correctness take precedence over speculative checkout bootstrap optimization.
 
@@ -70,8 +77,6 @@ For DTB-owned scripts it verifies these handles:
 ```text
 dtb-woo-native-checkout-steps
 dtb-woo-native-checkout-ui
-dtb-woo-native-checkout-profile-refinements
-dtb-woo-native-checkout-payment-sheet
 dtb-woo-native-checkout-performance
 ```
 
@@ -79,7 +84,9 @@ The guard is expected to be a no-op during normal WordPress registration. If a f
 
 ## Performance policy
 
-`DTB_CheckoutPerformance` may record bounded, redacted runtime diagnostics and expose non-secret runtime-integrity metadata. It must not mutate the checkout asset queue or prewarm/preload implementation assets.
+`DTB_CheckoutPerformance` may record bounded, redacted runtime diagnostics and expose non-secret runtime-integrity metadata. It must not mutate the checkout asset queue or create a second payment implementation.
+
+On enhanced mobile checkout, provider readiness timeout monitoring begins when the inline Payment step is active. Desktop monitoring remains active for the continuous payment surface.
 
 Any future checkout optimization must prove that it cannot alter Woo/WordPress/Stripe dependency registration, execution order, package initialization, hydration, or payment-provider behavior.
 
@@ -94,6 +101,7 @@ After deployment:
 3. hard-refresh the browser or use a clean private session;
 4. verify zero fatal console errors from `wc-cart-checkout-vendors`, `wc-blocks-checkout`, `wc-checkout-block-frontend`, `wp-components`, `wp-data`, and `wp-element`;
 5. verify Checkout Block renders before evaluating DTB styling or Stripe payment behavior;
-6. smoke-test guest/authenticated checkout, shipping recalculation, Stripe card/Link/wallet eligibility, 3DS/SCA, successful order creation, and downstream DTB lifecycle dispatch.
+6. verify mobile Contact -> Shipping -> Payment with no duplicated controls or payment surfaces;
+7. smoke-test guest/authenticated checkout, shipping recalculation, Stripe card/Link/wallet eligibility, 3DS/SCA, successful order creation, and downstream DTB lifecycle dispatch.
 
-Rollback for this cleanup is scoped to the changed `dtb-commerce` checkout files. Do not roll back unrelated platform/catalog modules or the database for a presentation/runtime-only checkout incident.
+Rollback is scoped to the changed `dtb-commerce` checkout files. Do not roll back unrelated platform/catalog modules or the database for a presentation/runtime-only checkout incident.
