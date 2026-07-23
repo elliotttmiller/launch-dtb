@@ -26,6 +26,43 @@ function dtb_catalog_ensure_wc_products_controller(): bool {
 }
 
 /**
+ * Convert values returned by direct Woo controller calls into the same plain
+ * array/scalar shapes produced by the REST server serialization boundary.
+ *
+ * Direct controller invocation can leave WC_Meta_Data value objects inside the
+ * response payload. DTB catalog normalizers intentionally consume REST-shaped
+ * arrays, so normalize those objects before the payload crosses into the DTB
+ * read model.
+ *
+ * @param mixed $value Raw controller response value.
+ * @return mixed
+ */
+function dtb_catalog_normalize_wc_rest_value( $value ) {
+	if ( $value instanceof WC_Meta_Data ) {
+		$data = $value->get_data();
+		return [
+			'id'    => isset( $data['id'] ) ? absint( $data['id'] ) : 0,
+			'key'   => isset( $data['key'] ) ? (string) $data['key'] : '',
+			'value' => $data['value'] ?? '',
+		];
+	}
+
+	if ( is_array( $value ) ) {
+		$normalized = [];
+		foreach ( $value as $key => $entry ) {
+			$normalized[ $key ] = dtb_catalog_normalize_wc_rest_value( $entry );
+		}
+		return $normalized;
+	}
+
+	if ( $value instanceof JsonSerializable ) {
+		return dtb_catalog_normalize_wc_rest_value( $value->jsonSerialize() );
+	}
+
+	return $value;
+}
+
+/**
  * Execute a read-only WooCommerce product request in-process.
  *
  * Catalog reads run inside the same WordPress/WooCommerce installation and must
@@ -78,8 +115,15 @@ function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_R
 			$request->set_param( 'id', $product_id );
 			$response = $controller->get_item( $request );
 		} else {
+			/* Direct controller calls bypass REST route argument defaults. */
 			if ( ! $request->has_param( 'status' ) ) {
 				$request->set_param( 'status', 'publish' );
+			}
+			if ( ! $request->has_param( 'page' ) ) {
+				$request->set_param( 'page', 1 );
+			}
+			if ( ! $request->has_param( 'order' ) ) {
+				$request->set_param( 'order', 'desc' );
 			}
 			$response = $controller->get_items( $request );
 		}
@@ -102,10 +146,15 @@ function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_R
 		return rest_convert_error_to_response( $response );
 	}
 	if ( $response instanceof WP_REST_Response ) {
+		$response->set_data( dtb_catalog_normalize_wc_rest_value( $response->get_data() ) );
 		return $response;
 	}
 	if ( $response instanceof WP_HTTP_Response ) {
-		return new WP_REST_Response( $response->get_data(), $response->get_status(), $response->get_headers() );
+		return new WP_REST_Response(
+			dtb_catalog_normalize_wc_rest_value( $response->get_data() ),
+			$response->get_status(),
+			$response->get_headers()
+		);
 	}
 
 	return new WP_REST_Response(
