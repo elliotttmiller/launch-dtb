@@ -86,6 +86,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 		add_filter( 'sgo_js_async_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
 		add_filter( 'sgo_javascript_combine_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
 		add_filter( 'sgo_js_minify_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
+		add_filter( 'sgo_javascript_combine_excluded_external_paths', [ __CLASS__, 'exclude_checkout_external_scripts_from_combine' ] );
 		add_filter( 'sgo_javascript_combine_exclude_all_inline', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
 		add_filter( 'sgo_javascript_combine_exclude_all_inline_modules', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
 		add_filter( 'sgo_exclude_urls_from_cache', [ __CLASS__, 'exclude_checkout_urls_from_cache' ] );
@@ -182,6 +183,27 @@ final class DTB_CheckoutRuntimeIntegrity {
 		);
 
 		return array_values( array_unique( array_merge( $exclude_list, $handles ) ) );
+	}
+
+	/**
+	 * Keep Stripe.js on Stripe's origin and out of host-generated combined bundles.
+	 *
+	 * Stripe requires Stripe.js to execute directly from js.stripe.com. Combining
+	 * that external script into a same-origin SiteGround bundle changes its source
+	 * origin, can instantiate Stripe twice, and causes the official Woo Stripe
+	 * Blocks integration to reject the resulting Stripe object.
+	 *
+	 * @param mixed $exclude_list Existing SiteGround external-path exclusion list.
+	 * @return array<int,string>
+	 */
+	public static function exclude_checkout_external_scripts_from_combine( $exclude_list ): array {
+		$exclude_list = is_array( $exclude_list ) ? $exclude_list : [];
+		if ( ! self::is_primary_checkout_request() ) {
+			return $exclude_list;
+		}
+
+		$exclude_list[] = 'js.stripe.com';
+		return array_values( array_unique( $exclude_list ) );
 	}
 
 	/** @param mixed $exclude @return bool */
