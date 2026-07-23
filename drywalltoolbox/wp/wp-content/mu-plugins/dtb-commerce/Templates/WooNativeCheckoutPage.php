@@ -40,6 +40,16 @@ $storefront_home_url  = home_url( $storefront_base_path . '/' );
 		@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader,.dtb-native-checkout-loader__spinner:before{transition-duration:1ms;animation:none}}
 	</style>
 	<?php wp_head(); ?>
+	<!-- Provider surfaces stay mounted/measurable while visually inactive on mobile. -->
+	<style id="dtb-checkout-provider-mount-safety">
+		@media (max-width:767px){
+			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive,
+			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wp-block-woocommerce-checkout-express-payment-block,
+			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wc-block-components-express-payment{
+				display:block!important;position:absolute!important;left:-10000px!important;top:0!important;width:min(680px,calc(100vw - 32px))!important;max-width:calc(100vw - 32px)!important;height:auto!important;overflow:hidden!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;z-index:-1!important
+			}
+		}
+	</style>
 </head>
 <body <?php body_class( 'dtb-native-woocommerce-document' ); ?>>
 <?php wp_body_open(); ?>
