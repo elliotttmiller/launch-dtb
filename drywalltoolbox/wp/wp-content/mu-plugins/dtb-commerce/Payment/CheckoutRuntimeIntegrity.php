@@ -9,9 +9,9 @@
  * runtime assets.
  *
  * The owning checkout modules are expected to register cleanly by default. This
- * class remains as a defensive last-line invariant against future regressions.
- * It never mutates WooCommerce, WordPress, Stripe, payment-provider, or other
- * third-party runtime handles.
+ * class remains as a defensive last-line invariant against future regressions
+ * and hosting-layer optimizers that could otherwise combine/defer critical
+ * checkout dependencies out of their registered execution order.
  *
  * @package drywall-toolbox
  */
@@ -28,6 +28,39 @@ final class DTB_CheckoutRuntimeIntegrity {
 		'dtb-woo-native-checkout-performance',
 	];
 
+	/**
+	 * Critical registered handles whose native order must not be changed by a
+	 * hosting optimization layer. Unknown handles in this allowlist are harmless.
+	 */
+	private const CRITICAL_CHECKOUT_SCRIPT_HANDLES = [
+		'jquery',
+		'jquery-core',
+		'jquery-migrate',
+		'wp-api-fetch',
+		'wp-compose',
+		'wp-components',
+		'wp-data',
+		'wp-dom',
+		'wp-element',
+		'wp-hooks',
+		'wp-html-entities',
+		'wp-i18n',
+		'wp-keycodes',
+		'wp-plugins',
+		'wp-primitives',
+		'wc-settings',
+		'wc-blocks-data-store',
+		'wc-blocks-registry',
+		'wc-blocks-components',
+		'wc-cart-checkout-vendors',
+		'wc-blocks-checkout',
+		'wc-checkout-block-frontend',
+		'wc-stripe-blocks-integration',
+		'wc-stripe-upe-blocks',
+		'wc-stripe-express-checkout',
+		'wc-stripe-payment-request',
+	];
+
 	public static function register(): void {
 		/*
 		 * Enforce the headless-theme exception at both lifecycle boundaries. The
@@ -39,6 +72,19 @@ final class DTB_CheckoutRuntimeIntegrity {
 
 		/* Run after checkout modules have registered/enqueued their DTB-owned assets. */
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_dtb_checkout_script_invariants' ], PHP_INT_MAX );
+
+		/*
+		 * SiteGround Speed Optimizer provides these documented filters specifically
+		 * for scripts that must preserve execution order. Checkout is the authoritative
+		 * transactional surface, so critical Woo/WP/Stripe scripts and inline bootstrap
+		 * data are excluded from combine/minify/async transformations.
+		 */
+		add_filter( 'sgo_js_async_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
+		add_filter( 'sgo_javascript_combine_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
+		add_filter( 'sgo_js_minify_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
+		add_filter( 'sgo_javascript_combine_exclude_all_inline', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
+		add_filter( 'sgo_javascript_combine_exclude_all_inline_modules', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
+		add_filter( 'sgo_exclude_urls_from_cache', [ __CLASS__, 'exclude_checkout_urls_from_cache' ] );
 	}
 
 	/**
@@ -56,8 +102,8 @@ final class DTB_CheckoutRuntimeIntegrity {
 	}
 
 	/**
-	 * Enforce the DTB side of the checkout runtime contract without touching the
-	 * authoritative Woo/WordPress/Stripe graph.
+	 * Enforce the DTB side of the checkout runtime contract without changing the
+	 * authoritative Woo/WordPress/Stripe dependency graph.
 	 */
 	public static function enforce_dtb_checkout_script_invariants(): void {
 		if ( ! self::is_primary_checkout_request() ) {
@@ -81,10 +127,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 			}
 		}
 
-		/*
-		 * DTB's UI enhancer observes rendered DOM and must never depend directly on
-		 * WooCommerce Checkout Block internals.
-		 */
+		/* DTB observes rendered DOM and must never depend on Checkout Block internals. */
 		$ui = $wp_scripts->registered['dtb-woo-native-checkout-ui'] ?? null;
 		if ( is_object( $ui ) && isset( $ui->deps ) && is_array( $ui->deps ) ) {
 			$ui->deps = array_values(
@@ -94,6 +137,32 @@ final class DTB_CheckoutRuntimeIntegrity {
 				)
 			);
 		}
+	}
+
+	/** @param mixed $exclude_list @return array<int,string> */
+	public static function exclude_critical_scripts_from_optimizer( $exclude_list ): array {
+		$exclude_list = is_array( $exclude_list ) ? $exclude_list : [];
+		if ( ! self::is_native_checkout_request() ) {
+			return $exclude_list;
+		}
+
+		return array_values( array_unique( array_merge(
+			$exclude_list,
+			self::CRITICAL_CHECKOUT_SCRIPT_HANDLES,
+			self::DTB_CHECKOUT_SCRIPT_HANDLES
+		) ) );
+	}
+
+	/** @param mixed $exclude @return bool */
+	public static function exclude_checkout_inline_scripts_from_combine( $exclude ): bool {
+		return self::is_native_checkout_request() ? true : (bool) $exclude;
+	}
+
+	/** @param mixed $excluded_urls @return array<int,string> */
+	public static function exclude_checkout_urls_from_cache( $excluded_urls ): array {
+		$excluded_urls = is_array( $excluded_urls ) ? $excluded_urls : [];
+		$excluded_urls[] = '/checkout/*';
+		return array_values( array_unique( $excluded_urls ) );
 	}
 
 	private static function is_native_checkout_request(): bool {
