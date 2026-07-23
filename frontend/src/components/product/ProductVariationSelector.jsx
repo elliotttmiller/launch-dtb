@@ -1,0 +1,119 @@
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+
+function attributeLabel(attr) {
+  return (attr?.name || '').replace(/^pa_/i, '').replace(/[_-]+/g, ' ').trim();
+}
+
+export default function ProductVariationSelector({
+  variationAttributes,
+  variantOptionMeta,
+  selectedAttrs,
+  setSelectedAttrs,
+  variationsLoading,
+  selectedVariation,
+  hasCompleteSelection,
+}) {
+  if (!Array.isArray(variationAttributes) || variationAttributes.length === 0) return null;
+
+  const usesGenericOptionsLabel = variationAttributes.length === 1;
+
+  return (
+    <div className="product-variation-panel" aria-label="Product options">
+      {variationAttributes.map((attr) => {
+        const selectedValue = selectedAttrs?.[attr.name] || '';
+        const options = variantOptionMeta[attr.name] || [];
+        const label = usesGenericOptionsLabel ? 'Options' : attributeLabel(attr);
+
+        return (
+          <section key={attr.name} className="product-variation-group">
+            <div className="product-variation-group__header">
+              <span className="product-variation-group__label">{label}</span>
+            </div>
+
+            <div className="dtb-variant-rail">
+              {options.map((option) => {
+                const selected = `${selectedValue}` === `${option.value}`;
+                const soldOut = option.status === 'sold-out';
+                const unavailable = option.status === 'unavailable';
+                // Sold-out variations remain selectable so their media, SKU,
+                // price, and availability details can be inspected. Only a
+                // combination that does not exist is disabled.
+                const disabled = !variationsLoading && unavailable;
+
+                // Build aria-label and className independently for clarity.
+                let ariaLabel = option.value;
+                if (variationsLoading) ariaLabel += ' - loading';
+                else if (soldOut) ariaLabel += ' - sold out';
+                else if (unavailable) ariaLabel += ' - unavailable';
+
+                const pillClasses = ['dtb-variant-pill'];
+                if (selected) pillClasses.push('is-selected', 'dtb-variant-pill--selected');
+                if (!variationsLoading) {
+                  if (soldOut) pillClasses.push('is-sold-out');
+                  else if (unavailable) pillClasses.push('is-disabled', 'dtb-variant-pill--disabled');
+                } else {
+                  pillClasses.push('is-loading');
+                }
+
+                return (
+                  <Motion.button
+                    key={`${attr.name}-${option.value}`}
+                    type="button"
+                    onClick={() => setSelectedAttrs((prev) => ({ ...prev, [attr.name]: option.value }))}
+                    disabled={disabled}
+                    aria-pressed={selected}
+                    aria-disabled={disabled}
+                    aria-label={ariaLabel}
+                    className={pillClasses.join(' ')}
+                    whileTap={disabled ? undefined : { scale: 0.985 }}
+                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <AnimatePresence>
+                      {!variationsLoading && selected ? (
+                        <Motion.span
+                          className="dtb-variant-pill__selection-overlay"
+                          aria-hidden="true"
+                          initial={{ opacity: 0, scale: 0.92 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.96 }}
+                          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      ) : null}
+                    </AnimatePresence>
+                    <span className="dtb-variant-pill__label">{option.value}</span>
+                    {!variationsLoading && (soldOut || unavailable) ? (
+                      <span className="sr-only">Unavailable</span>
+                    ) : null}
+                  </Motion.button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+
+      <AnimatePresence>
+        {selectedVariation?.stock_status === 'outofstock' && (
+          <Motion.p 
+            className="product-variation-alert product-variation-alert--out-of-stock" 
+            initial={{ opacity: 0, y: -4 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -4 }}
+          >
+            This option is currently out of stock.
+          </Motion.p>
+        )}
+        {!variationsLoading && hasCompleteSelection && !selectedVariation && (
+          <Motion.p 
+            className="product-variation-alert product-variation-alert--unavailable" 
+            initial={{ opacity: 0, y: -4 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            exit={{ opacity: 0, y: -4 }}
+          >
+            This option combination is not available. Please try a different selection.
+          </Motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

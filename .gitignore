@@ -1,0 +1,155 @@
+node_modules/
+.DS_Store
+*.log
+
+# API test harness debug output — timestamped per-run, local only
+scripts/reports/
+
+# VS Code — ignore personal/local overrides but commit shared workspace settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+.idea/
+dist/
+dist-staging/
+build/
+*.tmp
+*.cache
+coverage/
+.amazonq
+.venv
+
+# ─── Environment Configuration Files ──────────────────────────────────────────
+# Sensitive credentials and environment-specific settings — NEVER committed.
+# GitHub Actions injects production credentials via Secrets, not .env files.
+#
+# Structure:
+#   Root-level (.env files for various scripts/workflows):
+#     /.env                 — Legacy single env file (if used)
+#     /.env.development     — Root dev env (if used)
+#     /.env.production      — Root prod env (if used)
+#
+#   Frontend (.env files with webpack DefinePlugin auto-detection):
+#     /frontend/.env                    — Legacy single env file (if used)
+#     /frontend/.env.development        — Used by: npm run dev
+#     /frontend/.env.production         — Used by: npm run build (local testing)
+#     /frontend/.env.*.local            — Any other local overrides
+#
+# Committed files (templates, no secrets):
+#     /frontend/.env.example            — Template for developers (no secrets)
+
+/.env
+/.env.development
+/.env.staging
+/.env.production
+frontend/.env
+frontend/.env.development
+frontend/.env.staging
+frontend/.env.production
+frontend/.env.*.local
+
+# frontend build artifacts
+frontend/dist/
+frontend/node_modules/
+
+# ---------------------------------------------------------------
+# WordPress — wp/ subdirectory (NEVER commit these files)
+# ---------------------------------------------------------------
+# WordPress core is installed in wp/ on the server, not tracked here.
+# Tracked: wp/wp-content/themes/, wp/wp-content/mu-plugins/, wp/wp-config-sample.php
+
+# WordPress core files (match anywhere in wp/ tree — wp-admin/, wp-includes/, etc.)
+wp-admin/
+wp-includes/
+wp-*.php
+xmlrpc.php
+license.txt
+readme.html
+
+# Keep sample configs (wp-*.php above would otherwise exclude them)
+!wp/wp-config-sample.php
+!*/wp/wp-config-sample.php
+
+# Sensitive configuration — configure manually on the server, never commit
+wp-config.php
+wp-config-local.php
+wp-config-*.php
+!wp/wp-config-sample.php
+!*/wp/wp-config-sample.php
+
+# WordPress server-side .env (real secrets — only .env.example is committed)
+wp/.env
+wp/.env.staging
+wp/.env.local
+
+# WordPress uploads (binary assets; use Media Library, not Git)
+wp-content/uploads/
+
+# WordPress object/page cache and generated files
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/advanced-cache.php
+wp-content/wp-cache-config.php
+wp/error_log
+
+# Mirrored live directory transient artifacts (do not track)
+drywalltoolbox/.ftpquota
+drywalltoolbox/error_log
+drywalltoolbox/wp/wp-content/updraft/backup_*.gz
+drywalltoolbox/wp/wp-content/updraft/log*.txt
+
+# SiteGround launch/live is a generated deployment overlay, not source.
+# Rebuild it from canonical repo paths; never stage runtime files or secrets.
+/launch/live/
+
+# A local WordPress/site snapshot under launch is runtime-owned. It may contain
+# a nested repository, WordPress core, plugins, uploads, logs, and secrets.
+/launch/wp/
+
+# WordPress content tracked in this repo (wp/wp-content/):
+#   wp/wp-content/themes/drywall-toolbox/           — legacy theme (kept until headless-base validated)
+#   wp/wp-content/themes/headless-base/             — active minimal headless theme (zero frontend output)
+#   wp/wp-content/mu-plugins/dtb-cors.php           — CORS mu-plugin (auto-loaded)
+#   wp/wp-content/mu-plugins/dtb-schematics-api.php — Schematic media manifest REST endpoint
+# All other installed themes and all plugins are installed on the server only.
+wp-content/themes/twenty*/
+wp-content/themes/yith*/
+wp-content/plugins/
+
+# Composer / PHP dependency directories
+vendor/
+
+# ---------------------------------------------------------------
+# Schematic images — managed via WordPress Media Library (WebP)
+# ---------------------------------------------------------------
+# Run scripts/convert_schematics_to_webp.py to convert PNG/JPG → WebP.
+# Run scripts/upload_schematics_to_wp.py to upload to WP Media Library.
+# After confirming all images are live in WP, delete the originals locally
+# and these gitignore patterns will prevent them from being re-added.
+#
+# The schematic_data.json metadata files ARE tracked (small JSON, no binary).
+public/brands/*/Schematics/**/*.png
+public/brands/*/Schematics/**/*.jpg
+public/brands/*/Schematics/**/*.jpeg
+public/brands/*/Schematics/**/*.webp
+
+# Local backup directories (large binary files — not needed in the repo)
+# The originals live here after scripts/convert_schematics_to_webp.py backs them up.
+# To restore: copy back from backups/ and re-run the upload script.
+backups/
+
+# Generated by scripts/process_catalog_images.py
+image-manifest.csv
+
+# OS artifacts
+ehthumbs.db
+Desktop.ini
+__pycache__/
+*.pyc
+*.zip
+*.pre-enrich-parts-*
+*.pre-enrich-*

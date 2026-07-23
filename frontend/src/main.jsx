@@ -1,0 +1,75 @@
+import './bootstrapRuntimeAssetBase.js'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { HelmetProvider } from 'react-helmet-async'
+import './index.css'
+import './styles/machined-design.css'
+import './styles/tool-selector.css'
+import './styles/technical-specifications.css'
+import './styles/product-detail-modern.css'
+import './styles/product-variation-selector-overlay.css'
+import './styles/reviews.css'
+import './styles/storefront-tokens.css'
+import './styles/storefront-shell.css'
+import './styles/storefront-sections.css'
+import './styles/product-page-search-removal.css'
+import './styles/storefront-product-card.css'
+import './styles/storefront-drawer.css'
+import './styles/storefront-search-product-cards.css'
+import './styles/account-hub.css'
+import './styles/account-hub-cta.css'
+import './styles/mobile-responsive.css'
+import './styles/mobile-product-typography.css'
+import './styles/mobile-liquid-typography.css'
+import './styles/schematic-page-tabs-responsive.css'
+import './styles/order-item-images.css'
+import './styles/product-compatible-schematics-cleanup.css'
+import './styles/order-tracking-layout-fixes.css'
+import './styles/mobile-account-order-layout-fixes.css'
+import './styles/order-checkout-font-consistency.css'
+import './styles/global-loading.css'
+import './styles/cart-interaction-feedback.css'
+import './styles/loading-transitions.css'
+import './components/catalog/products-selector-overrides.css'
+import './styles/mobile-fluid-viewport-authority.css'
+import './styles/mobile-auth-checkout-cards.css'
+import './styles/cart-drawer-checkout-fixes.css'
+import './styles/mobile-ui-polish.css'
+import App from './App.jsx'
+import ErrorBoundary from './components/errors/ErrorBoundary.jsx'
+import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js'
+import { installMobileSchematicNavRuntime } from './utils/mobileSchematicNavRuntime.js'
+import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js'
+import { installCustomerFacingCopyRuntime } from './utils/customerFacingCopyRuntime.js'
+import { prewarmCatalog } from './services/catalog.js';
+
+installSchematicPageLabelRuntime();
+installMobileSchematicNavRuntime();
+installRepairPackageSelectionRuntime();
+installCustomerFacingCopyRuntime();
+
+if (typeof window !== 'undefined') {
+  const pathname = window.location.pathname.replace(/^\/drywall-toolbox(?=\/|$)/, '') || '/';
+  const isCatalogRoute = pathname.startsWith('/products') || pathname.startsWith('/parts');
+  const isHomePage = pathname === '/';
+  const CATALOG_PREWARM_TIMEOUT_MS = 5000;
+
+  if (!isCatalogRoute) {
+    const scheduleCatalogPrewarm = () => prewarmCatalog();
+    if (isHomePage) {
+      scheduleCatalogPrewarm();
+    } else {
+      window.setTimeout(scheduleCatalogPrewarm, CATALOG_PREWARM_TIMEOUT_MS);
+    }
+  }
+}
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <HelmetProvider>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </HelmetProvider>
+  </StrictMode>,
+)

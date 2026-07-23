@@ -1,0 +1,168 @@
+import { useId, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  ChevronDown,
+  ChevronRight,
+  ShieldCheck,
+} from 'lucide-react';
+import { dedupeCatalogBrandEntries } from '../../utils/catalogFacets.js';
+import '../../styles/storefront-shop-mega-menu.css';
+import '../../styles/storefront-shop-mega-menu-rail-compact.css';
+
+const FALLBACK_CATEGORIES = [
+  { slug: 'automatic-tapers', to: '/products?category=automatic-tapers', label: 'Automatic Tapers' },
+  { slug: 'flat-boxes', to: '/products?category=flat-boxes', label: 'Flat Boxes' },
+  { slug: 'corner-finishers', to: '/products?category=corner-finishers', label: 'Corner Finishers' },
+  { slug: 'handles', to: '/products?category=handles', label: 'Handles' },
+  { slug: 'pumps-and-tubes', to: '/products?category=pumps-and-tubes', label: 'Pumps & Tubes' },
+  { slug: 'tool-sets', to: '/products?category=tool-sets', label: 'Tool Sets' },
+];
+
+const SYSTEM_LINKS = [
+  { to: '/products?category=automatic-tapers', label: 'Automatic Tapers', badge: 'Core' },
+  { to: '/products?category=flat-boxes', label: 'Flat Boxes' },
+  { to: '/products?category=corner-finishers', label: 'Corner Finishers' },
+  { to: '/products?category=compound-tubes', label: 'Compound Tubes' },
+  { to: '/products?category=pumps', label: 'Pumps' },
+  { to: '/products?category=stilts', label: 'Drywall Stilts' },
+];
+
+function MegaColumn({ title, children }) {
+  return (
+    <section className="storefront-shop-mega__column" aria-label={title}>
+      <h3 className="storefront-shop-mega__column-title">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function MegaTextLink({ to, label, badge, onNavigate }) {
+  return (
+    <Link to={to} className="storefront-shop-mega__text-link" onClick={onNavigate}>
+      <span>{label}</span>
+      {badge ? <span className="storefront-shop-mega__badge">{badge}</span> : null}
+    </Link>
+  );
+}
+
+function RailLink({ to, title, onNavigate }) {
+  return (
+    <Link to={to} className="storefront-shop-mega__rail-link" onClick={onNavigate}>
+      <span className="storefront-shop-mega__rail-title">{title}</span>
+      <ChevronRight size={16} className="storefront-shop-mega__rail-chevron" />
+    </Link>
+  );
+}
+
+export default function StorefrontShopMegaMenu({
+  isOpen,
+  isActive,
+  onOpen,
+  onClose,
+  onMouseEnter,
+  onMouseLeave,
+  onNavigate,
+  categoryLinks,
+  brandLinks,
+}) {
+  const triggerRef = useRef(null);
+  const panelId = useId();
+  const triggerId = useId();
+  const categories = (Array.isArray(categoryLinks) && categoryLinks.length > 0 ? categoryLinks : FALLBACK_CATEGORIES).slice(0, 8);
+  const brands = dedupeCatalogBrandEntries(brandLinks)
+    .map((brand) => ({ ...brand, to: `/products/brands/${brand.slug}` }))
+    .slice(0, 6);
+
+  const closeAndFocusTrigger = () => {
+    onClose();
+    triggerRef.current?.focus();
+  };
+
+  const handlePanelKeyDown = (event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    closeAndFocusTrigger();
+  };
+
+  const wrapperClassName = ['header-mega', 'storefront-shop-mega', isOpen ? 'is-open' : ''].filter(Boolean).join(' ');
+  const panelClassName = ['storefront-shop-mega__panel', isOpen ? 'is-open' : ''].filter(Boolean).join(' ');
+
+  return (
+    <div className={wrapperClassName} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+      <button
+        ref={triggerRef}
+        id={triggerId}
+        className={`nav-link header-nav-trigger storefront-shop-mega__trigger ${isActive ? 'active' : ''}`}
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        onClick={() => (isOpen ? onClose() : onOpen())}
+        onKeyDown={(event) => {
+          if (event.key !== 'Escape') return;
+          event.preventDefault();
+          closeAndFocusTrigger();
+        }}
+      >
+        <span>Shop</span>
+        <ChevronDown size={14} className="header-nav-trigger__chevron" />
+      </button>
+
+      <div
+        id={panelId}
+        className={panelClassName}
+        role="region"
+        aria-labelledby={triggerId}
+        onKeyDown={handlePanelKeyDown}
+      >
+        <div className="storefront-shop-mega__topline" />
+        <div className="storefront-shop-mega__shell">
+          <aside className="storefront-shop-mega__rail" aria-label="Shop shortcuts">
+            <RailLink to="/products" title="All Products" onNavigate={onNavigate} />
+            <RailLink to="/products/brands" title="Shop by Brand" onNavigate={onNavigate} />
+            <RailLink to="/parts" title="Parts Library" onNavigate={onNavigate} />
+            <RailLink to="/schematics" title="Schematics" onNavigate={onNavigate} />
+            <RailLink to="/repairs" title="Repair Services" onNavigate={onNavigate} />
+          </aside>
+
+          <div className="storefront-shop-mega__content">
+            <MegaColumn title="Categories">
+              <div className="storefront-shop-mega__link-list">
+                {categories.map(({ slug, to, label }, index) => (
+                  <MegaTextLink key={slug || to || label} to={to} label={label} badge={index < 2 ? 'Popular' : ''} onNavigate={onNavigate} />
+                ))}
+              </div>
+            </MegaColumn>
+
+            <MegaColumn title="Brands">
+              <div className="storefront-shop-mega__link-list">
+                {brands.length > 0 ? brands.map(({ slug, to, name }, index) => (
+                  <MegaTextLink key={slug} to={to} label={name} badge={index === 0 ? 'Featured' : ''} onNavigate={onNavigate} />
+                )) : (
+                  <MegaTextLink to="/products/brands" label="Browse All Brands" onNavigate={onNavigate} />
+                )}
+              </div>
+            </MegaColumn>
+
+            <MegaColumn title="Tool Systems">
+              <div className="storefront-shop-mega__link-list">
+                {SYSTEM_LINKS.map((item) => (
+                  <MegaTextLink key={item.to} {...item} onNavigate={onNavigate} />
+                ))}
+              </div>
+            </MegaColumn>
+          </div>
+        </div>
+
+        <div className="storefront-shop-mega__footer">
+          <div className="storefront-shop-mega__footer-note">
+            <ShieldCheck size={16} /> Built for professional drywall finishing tools, parts, schematics, and service workflows.
+          </div>
+          <div className="storefront-shop-mega__footer-actions">
+            <Link to="/products" className="storefront-shop-mega__cta storefront-shop-mega__cta--primary" onClick={onNavigate}>View All Products</Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
