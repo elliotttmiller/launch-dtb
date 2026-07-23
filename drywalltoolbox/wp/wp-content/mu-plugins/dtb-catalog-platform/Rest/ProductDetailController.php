@@ -7,8 +7,7 @@
  *   GET /wp-json/dtb/v1/catalog/products/:id/variations
  *
  * Returns a normalized parent product + full variation matrix + computed
- * default-variation context.  This is the canonical product detail endpoint
- * that ProductDetailPage should use.
+ * default-variation context. This is the canonical product detail endpoint.
  *
  * @package drywall-toolbox
  */
@@ -44,12 +43,16 @@ final class DTB_ProductDetailController {
 			return new WP_REST_Response( dtb_error_envelope( 'invalid_slug', 'Product slug is required.', 400 ), 400 );
 		}
 
-		$parent_response = dtb_cached_wc_get( 'wc/v3/products', [
+		$parent_response = dtb_catalog_wc_get_response( 'wc/v3/products', [
 			'slug'    => $slug,
+			'status'  => 'publish',
 			'_fields' => DTB_PRODUCT_DETAIL_FIELDS,
 		] );
 
-		if ( $parent_response->get_status() !== 200 ) {
+		if ( ! $parent_response instanceof WP_REST_Response ) {
+			return new WP_REST_Response( dtb_error_envelope( 'upstream_error', 'Product catalog is temporarily unavailable.', 503 ), 503 );
+		}
+		if ( 200 !== $parent_response->get_status() ) {
 			return $parent_response;
 		}
 
@@ -97,16 +100,7 @@ final class DTB_ProductDetailController {
 		], 200 );
 	}
 
-	/**
-	 * Build the public PDP merchandising rail from WooCommerce relationships.
-	 *
-	 * Curated upsells take precedence. WooCommerce's category/tag related-product
-	 * algorithm fills any remaining slots. Products are visibility-checked before
-	 * the single batched catalog read so this public route cannot expose drafts or
-	 * catalog-hidden records.
-	 *
-	 * @return array[]
-	 */
+	/** Build the public PDP merchandising rail from WooCommerce relationships. */
 	private static function get_related_products( int $product_id ): array {
 		$source_product = wc_get_product( $product_id );
 		if ( ! $source_product ) {
@@ -146,8 +140,11 @@ final class DTB_ProductDetailController {
 			return new WP_REST_Response( dtb_error_envelope( 'invalid_id', 'Valid product ID required.', 400 ), 400 );
 		}
 
-		$parent_response = dtb_cached_wc_get( 'wc/v3/products/' . $product_id, [] );
-		if ( $parent_response->get_status() !== 200 ) {
+		$parent_response = dtb_catalog_wc_get_response( 'wc/v3/products/' . $product_id, [] );
+		if ( ! $parent_response instanceof WP_REST_Response ) {
+			return new WP_REST_Response( dtb_error_envelope( 'upstream_error', 'Product catalog is temporarily unavailable.', 503 ), 503 );
+		}
+		if ( 200 !== $parent_response->get_status() ) {
 			return $parent_response;
 		}
 
@@ -168,5 +165,4 @@ final class DTB_ProductDetailController {
 			'diagnostics' => $variation_diagnostics,
 		], 200 );
 	}
-
 }
