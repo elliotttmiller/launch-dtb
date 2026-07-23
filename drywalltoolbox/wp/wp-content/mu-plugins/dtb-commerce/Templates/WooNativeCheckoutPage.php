@@ -40,9 +40,13 @@ $storefront_home_url  = home_url( $storefront_base_path . '/' );
 		@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader,.dtb-native-checkout-loader__spinner:before{transition-duration:1ms;animation:none}}
 	</style>
 	<?php wp_head(); ?>
-	<!-- Provider surfaces stay mounted/measurable while visually inactive on mobile. -->
-	<style id="dtb-checkout-provider-mount-safety">
+	<!-- Critical responsive/provider invariants load after the presentation stylesheet. -->
+	<style id="dtb-checkout-responsive-runtime-safety">
 		@media (max-width:767px){
+			body.dtb-mobile-checkout-enhanced.dtb-checkout-step-contact .wc-block-components-main,
+			body.dtb-mobile-checkout-enhanced.dtb-checkout-step-contact .wc-block-checkout__main{order:-1!important}
+			body.dtb-mobile-checkout-enhanced.dtb-checkout-step-contact .wc-block-components-sidebar,
+			body.dtb-mobile-checkout-enhanced.dtb-checkout-step-contact .wc-block-checkout__sidebar{order:1!important}
 			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive,
 			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wp-block-woocommerce-checkout-express-payment-block,
 			body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wc-block-components-express-payment{
