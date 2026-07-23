@@ -77,7 +77,7 @@ final class DTB_CatalogFacetsController {
 				'is_parts'         => self::normalize_optional_bool( $scope['is_parts'] ?? null ),
 				'page'             => $page,
 				'per_page'         => $per_page,
-				'sort'             => 'name-asc',
+				'sort'             => 'az',
 			] );
 
 			$ids = array_values( array_filter( array_map( 'absint', (array) ( $query['ids'] ?? [] ) ) ) );
@@ -106,10 +106,10 @@ final class DTB_CatalogFacetsController {
 					continue;
 				}
 
-				$dto     = dtb_catalog_normalize_product( $raw );
-				$brand   = self::canonical_brand( $dto['brand'] ?? [] );
+				$dto      = dtb_catalog_normalize_product( $raw );
+				$brand    = self::canonical_brand( $dto['brand'] ?? [] );
 				$category = is_array( $dto['category'] ?? null ) ? $dto['category'] : [];
-				$display = self::customer_display_category( $dto );
+				$display  = self::customer_display_category( $dto );
 
 				if ( '' !== $brand['key'] ) {
 					if ( ! isset( $brands[ $brand['key'] ] ) ) {
@@ -161,7 +161,7 @@ final class DTB_CatalogFacetsController {
 			$total_pages = max( 1, absint( $query['totalPages'] ?? 1 ) );
 		} while ( $page <= $total_pages );
 
-		$brands = array_values( $brands );
+		$brands     = array_values( $brands );
 		$categories = array_values( $categories );
 		usort( $brands, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 		usort( $categories, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
@@ -189,7 +189,7 @@ final class DTB_CatalogFacetsController {
 
 	/** @param array<string,mixed> $brand */
 	private static function canonical_brand( array $brand ): array {
-		$source = trim( (string) ( $brand['label'] ?? $brand['key'] ?? $brand['slug'] ?? '' ) );
+		$source     = trim( (string) ( $brand['label'] ?? $brand['key'] ?? $brand['slug'] ?? '' ) );
 		$normalized = DTB_BrandNormalizer::normalize( $source );
 		return [
 			'key'   => sanitize_key( (string) ( $normalized['key'] ?? '' ) ),
