@@ -1,0 +1,95 @@
+@media (min-width: 1025px) {
+  /*
+   * The primary nav owns dropdown panels that intentionally extend below the
+   * 88px header row. Do not clip this subtree: clipping the flex/grid wrappers
+   * makes the menu state change correctly while rendering the panel invisible.
+   */
+  .site-header .header-desktop-nav-row,
+  .site-header .dtb-desktop-nav {
+    overflow: visible;
+  }
+
+  .site-header .header-desktop-nav-row {
+    z-index: 4;
+  }
+
+  .site-header .dtb-desktop-nav {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: clamp(2px, 0.28vw, 6px);
+  }
+
+  .site-header .dtb-desktop-nav-menu,
+  .site-header .dtb-desktop-nav > .dtb-desktop-nav-tab {
+    flex: 0 0 auto;
+  }
+
+  .site-header .dtb-desktop-nav-tab {
+    gap: clamp(4px, 0.3vw, 6px);
+    padding-inline: clamp(7px, 0.62vw, 12px);
+    font-size: clamp(0.82rem, 0.74vw, 0.95rem);
+    font-weight: 650;
+    letter-spacing: -0.012em;
+  }
+
+  .site-header .dtb-desktop-nav-tab svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+/*
+ * Mid-size desktop: preserve readable navigation before sacrificing search
+ * width. The previous emergency compression reduced labels to ~11px, which
+ * solved overlap by making the navigation visually undersized.
+ */
+@media (min-width: 1281px) and (max-width: 1500px) {
+  .site-header .header-desktop-layout {
+    grid-template-columns:
+      clamp(148px, 10.5vw, 176px)
+      minmax(0, 1fr)
+      clamp(210px, 16vw, 250px)
+      auto;
+    gap: clamp(9px, 0.75vw, 13px);
+  }
+
+  .site-header .dtb-desktop-nav-tab {
+    padding-inline: clamp(5px, 0.42vw, 8px);
+    font-size: clamp(0.78rem, 0.72vw, 0.86rem);
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .site-header .site-header-inner {
+    padding-inline: 14px !important;
+  }
+
+  .site-header .header-desktop-layout {
+    grid-template-columns:
+      clamp(124px, 10.5vw, 144px)
+      minmax(0, 1fr)
+      clamp(150px, 14vw, 178px)
+      auto;
+    gap: 7px;
+  }
+
+  .site-header .logo-image {
+    max-width: 144px;
+  }
+
+  .site-header .dtb-desktop-nav {
+    gap: 0;
+  }
+
+  .site-header .dtb-desktop-nav-tab {
+    gap: 3px;
+    padding-inline: 3px;
+    font-size: clamp(0.71rem, 0.78vw, 0.77rem);
+    letter-spacing: -0.018em;
+  }
+
+  .site-header .dtb-desktop-nav-tab svg {
+    width: 10px;
+    height: 10px;
+  }
+}
