@@ -2,15 +2,36 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Ensure WooCommerce's v3 products REST controller is available for in-process
+ * catalog reads.
+ *
+ * Normal storefront catalog reads must never fall back to a credential-bearing
+ * self-HTTP request. WooCommerce is installed in the same WordPress runtime, so
+ * DTB loads the official controller directly when the autoloader has not done so
+ * yet and fails explicitly if the local Woo runtime is unavailable.
+ */
+function dtb_catalog_ensure_wc_products_controller(): bool {
+	if ( class_exists( 'WC_REST_Products_Controller' ) ) {
+		return true;
+	}
+
+	if ( defined( 'WC_ABSPATH' ) ) {
+		$controller_file = trailingslashit( WC_ABSPATH ) . 'includes/rest-api/Controllers/Version3/class-wc-rest-products-controller.php';
+		if ( is_readable( $controller_file ) ) {
+			require_once $controller_file;
+		}
+	}
+
+	return class_exists( 'WC_REST_Products_Controller' );
+}
+
+/**
  * Execute a read-only WooCommerce product request in-process.
  *
  * Catalog reads run inside the same WordPress/WooCommerce installation and must
  * not depend on self-HTTP requests or WooCommerce consumer credentials. The
  * official Woo REST products controller remains the schema authority while DTB
  * avoids network latency, credential drift, and recursive HTTP failure modes.
- *
- * Falls back to the legacy cached server-side proxy only when the Woo controller
- * is unavailable so older operational environments remain recoverable.
  *
  * @param string              $route  wc/v3/products or wc/v3/products/{id}.
  * @param array<string,mixed> $params Request parameters.
@@ -19,57 +40,63 @@ defined( 'ABSPATH' ) || exit;
 function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_REST_Response {
 	$route = trim( $route, '/' );
 
-	if ( preg_match( '#^wc/v3/products(?:/(?P<id>\d+))?$#', $route, $matches ) && class_exists( 'WC_REST_Products_Controller' ) ) {
-		$controller = new WC_REST_Products_Controller();
-		$request    = new WP_REST_Request( 'GET', '/' . $route );
-
-		foreach ( $params as $key => $value ) {
-			/*
-			 * REST route sanitization normally converts comma-delimited include/exclude
-			 * values into integer arrays before controller execution. Because DTB calls
-			 * the controller in-process, normalize those parameters explicitly.
-			 */
-			if ( in_array( (string) $key, [ 'include', 'exclude' ], true ) && is_string( $value ) ) {
-				$value = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
-			}
-			$request->set_param( (string) $key, $value );
-		}
-
-		$product_id = ! empty( $matches['id'] ) ? absint( $matches['id'] ) : 0;
-		if ( $product_id > 0 ) {
-			/* Public catalog routes must never expose drafts/private products by ID. */
-			if ( 'publish' !== get_post_status( $product_id ) ) {
-				return new WP_REST_Response(
-					dtb_error_envelope( 'not_found', 'Product not found.', 404 ),
-					404
-				);
-			}
-			$request->set_param( 'id', $product_id );
-			$response = $controller->get_item( $request );
-		} else {
-			if ( ! $request->has_param( 'status' ) ) {
-				$request->set_param( 'status', 'publish' );
-			}
-			$response = $controller->get_items( $request );
-		}
-
-		if ( is_wp_error( $response ) ) {
-			return rest_convert_error_to_response( $response );
-		}
-		if ( $response instanceof WP_REST_Response ) {
-			return $response;
-		}
-		if ( $response instanceof WP_HTTP_Response ) {
-			return new WP_REST_Response( $response->get_data(), $response->get_status(), $response->get_headers() );
-		}
+	if ( ! preg_match( '#^wc/v3/products(?:/(?P<id>\d+))?$#', $route, $matches ) ) {
+		return new WP_REST_Response(
+			dtb_error_envelope( 'catalog_route_not_supported', 'Unsupported local catalog read route.', 500 ),
+			500
+		);
 	}
 
-	if ( function_exists( 'dtb_cached_wc_get' ) ) {
-		$response = dtb_cached_wc_get( $route, $params );
-		return $response instanceof WP_REST_Response ? $response : null;
+	if ( ! dtb_catalog_ensure_wc_products_controller() ) {
+		return new WP_REST_Response(
+			dtb_error_envelope( 'catalog_runtime_unavailable', 'WooCommerce product runtime is unavailable.', 503 ),
+			503
+		);
 	}
 
-	return null;
+	$controller = new WC_REST_Products_Controller();
+	$request    = new WP_REST_Request( 'GET', '/' . $route );
+
+	foreach ( $params as $key => $value ) {
+		$key = (string) $key;
+		if ( in_array( $key, [ 'include', 'exclude' ], true ) && is_string( $value ) ) {
+			$value = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
+		}
+		$request->set_param( $key, $value );
+	}
+
+	$product_id = ! empty( $matches['id'] ) ? absint( $matches['id'] ) : 0;
+	if ( $product_id > 0 ) {
+		/* Public catalog routes must never expose drafts/private products by ID. */
+		if ( 'publish' !== get_post_status( $product_id ) ) {
+			return new WP_REST_Response(
+				dtb_error_envelope( 'not_found', 'Product not found.', 404 ),
+				404
+			);
+		}
+		$request->set_param( 'id', $product_id );
+		$response = $controller->get_item( $request );
+	} else {
+		if ( ! $request->has_param( 'status' ) ) {
+			$request->set_param( 'status', 'publish' );
+		}
+		$response = $controller->get_items( $request );
+	}
+
+	if ( is_wp_error( $response ) ) {
+		return rest_convert_error_to_response( $response );
+	}
+	if ( $response instanceof WP_REST_Response ) {
+		return $response;
+	}
+	if ( $response instanceof WP_HTTP_Response ) {
+		return new WP_REST_Response( $response->get_data(), $response->get_status(), $response->get_headers() );
+	}
+
+	return new WP_REST_Response(
+		dtb_error_envelope( 'catalog_runtime_invalid_response', 'Unexpected response from local WooCommerce product runtime.', 502 ),
+		502
+	);
 }
 
 /**
