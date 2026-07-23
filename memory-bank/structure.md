@@ -1,6 +1,6 @@
 # Structure
 
-Last verified against active source: 2026-07-21.
+Last verified against active source: 2026-07-23.
 
 ## Architecture truth
 
@@ -20,7 +20,6 @@ Generated `dist/` output is not a source editing target.
 ```text
 drywall-toolbox/
 ├─ .github/
-│  ├─ copilot-instructions.md
 │  └─ workflows/
 │     ├─ ci-build.yml
 │     └─ deploy.yml
@@ -30,22 +29,17 @@ drywall-toolbox/
 │  ├─ .htaccess                           domain-root routing/security/cache policy
 │  ├─ logos/
 │  └─ wp/
-│     ├─ .htaccess                        WordPress-subdirectory routing policy
+│     ├─ .htaccess
 │     ├─ index.php
 │     └─ wp-content/
 │        ├─ mu-plugins/                    canonical DTB backend platform
 │        └─ themes/                        headless/backend-support themes
 ├─ frontend/                              React storefront source
-├─ launch/                                SiteGround assembly/release tooling
-│  └─ live/                               generated runtime-safe deployment overlay
+├─ launch/live/                           generated runtime-safe deployment overlay
 ├─ memory-bank/                           durable project context
-│  ├─ product.md
-│  ├─ structure.md
-│  └─ tech.md
 ├─ products/                              catalog/media/source/launch operations workspace
 ├─ scripts/                               operational and validation tooling
 ├─ AGENTS.md                              repository engineering authority contract
-├─ coming-soon.html
 └─ README.md
 ```
 
@@ -55,7 +49,7 @@ drywall-toolbox/
 SiteGround document root for elliottm4.sg-host.com
 ├─ index.html                             React application shell
 ├─ assets/                                compiled React assets
-├─ .htaccess                              HTTPS, WP/REST aliases, native checkout routing, SPA fallback
+├─ .htaccess                              native WP/checkout routes before SPA fallback
 ├─ logos/
 ├─ staging/{id}/                          staging React build roots where deployed
 └─ wp/                                    WordPress + WooCommerce runtime
@@ -84,11 +78,7 @@ Browser
      -> existing static file / React index.html for SPA routes
   -> React route in frontend/src/App.jsx
   -> frontend/src/api/*, hooks, contexts, analytics
-  -> /wp-json/dtb/v1/*
-     /wp-json/drywall/v1/*
-     /wp-json/headless/v1/*
-     /wp-json/wc/store/v1/*
-  -> WordPress REST server / WooCommerce Store API
+  -> WordPress REST / Woo Store API
   -> DTB controller/service/repository or WooCommerce runtime
   -> WooCommerce, DTB persistence, Action Scheduler, Veeqo, QuickBooks
 ```
@@ -101,44 +91,24 @@ Checkout is intentionally a native WordPress/WooCommerce document, not a React p
 
 ```text
 frontend/
-├─ public/                        copied static/public assets
-├─ scripts/                       build-safety and artifact-cleanup scripts
-├─ server/                        local review/dev support
+├─ public/
+├─ scripts/
+├─ server/
 ├─ src/
-│  ├─ analytics/                  ecommerce/client instrumentation
-│  ├─ api/                        canonical browser data-access layer
-│  ├─ assets/
-│  ├─ auth/                       auth provider/session/token behavior
+│  ├─ analytics/
+│  ├─ api/                        canonical browser data access
+│  ├─ auth/
 │  ├─ components/
-│  │  ├─ account/
-│  │  ├─ calculators/
-│  │  │  └─ report/               canonical calculator report/PDF presentation
-│  │  ├─ cart/
-│  │  ├─ catalog/
-│  │  ├─ dashboard/
-│  │  ├─ errors/
-│  │  ├─ product/
-│  │  ├─ repairs/
-│  │  ├─ routing/
-│  │  ├─ schematics/
-│  │  ├─ shared/
-│  │  ├─ shell/
-│  │  ├─ storefront/
-│  │  ├─ system/
-│  │  └─ ui/
-│  ├─ constants/
 │  ├─ context/
-│  ├─ data/
 │  ├─ hooks/
-│  ├─ motion/
-│  ├─ pages/                      route-level screens
-│  ├─ services/                   compatibility/facade layer; do not expand
+│  ├─ pages/
+│  ├─ services/                   compatibility/facade only
 │  ├─ styles/
 │  ├─ utils/
-│  │  ├─ checkoutPrewarm.js       low-priority static checkout asset prewarm
-│  │  └─ checkoutUrl.js           native checkout URL/handoff helpers
-│  ├─ App.jsx                     providers and route composition
-│  └─ main.jsx                    browser bootstrap
+│  │  ├─ checkoutPrewarm.js
+│  │  └─ checkoutUrl.js
+│  ├─ App.jsx
+│  └─ main.jsx
 ├─ package.json
 └─ webpack.config.cjs
 ```
@@ -156,99 +126,20 @@ frontend/
 
 ## Public route groups
 
-Current `frontend/src/App.jsx` includes these route families:
-
-### Storefront/catalog
-
-- `/`
-- `/products`
-- `/products/brands`
-- `/products/brands/:brandSlug`
-- `/products/brands/:brandSlug/categories/:categorySlug`
-- `/products/:slug`
-- `/products/:slug/variations/:variationId`
-- `/category/:slug`
-- compatibility redirect `/all-products`
-
-### Parts/schematics
-
-- `/parts`
-- `/product/:partNumber`
-- `/schematics`
-
-### Repairs
-
-- `/repairs`
-- `/repairs/start`
-- `/repairs/packages`
-- `/repairs/track`
-- `/repairs/status/:id`
-- authenticated `/dashboard/repairs/:id`
-
-### Commerce
-
-- `/cart`
-- `/checkout` — compatibility handoff only
-- `/checkout/complete`
-- `/checkout/payment-failed`
-- `/checkout/payment-cancelled`
-- `/checkout/order-received/:id`
-- `/order/:id`
-- `/order-tracking/:id`
-
-Native `/checkout/`, order-pay, order-received, and provider callback routes are owned by WordPress/WooCommerce routing before SPA fallback.
-
-### Returns/support
-
-- `/returns`
-- `/returns/status/:id`
-- `/return-policy`
-- `/contact`
-- `/support/status/:id`
-
-### Account/auth
-
-- `/login`
-- `/register`
-- `/forgot-password`
-- `/reset-password`
-- `/dashboard`
-- `/orders` -> dashboard tab redirect
-- `/rewards` -> gated dashboard redirect
-- `/account-settings` -> dashboard tab redirect
-- `/addresses` -> dashboard tab redirect
-- `/notifications` -> dashboard tab redirect
-- protected `/settings/woocommerce`
-
-### Content/tools
-
-- `/calculators`
-- `/faq`
-- `/shipping-policy`
-- `/policies`
-- `/preview/technical-specifications`
-
-The public toolset-builder route remains commented out/disabled in `App.jsx`.
-
-## Calculator report structure
-
-Canonical customer-facing report/export code:
+Important commerce routes include:
 
 ```text
-frontend/src/components/calculators/report/
-├─ CalculatorReport.jsx
-├─ calculatorReportModel.js
-├─ calculator-report.css
-└─ README.md
+/cart
+/checkout                           React compatibility handoff only
+/checkout/complete
+/checkout/payment-failed
+/checkout/payment-cancelled
+/checkout/order-received/:id
+/order/:id
+/order-tracking/:id
 ```
 
-`calculatorReportModel.js` is the canonical presentation mapper from calculator summary state into the report model. Summary and printable output must consume that model rather than maintaining parallel export calculations.
-
-The report layer formats existing calculator outputs. It does not own calculation authority.
-
-The PDF workflow uses browser print/Save-as-PDF with scoped print isolation. It does not add a WordPress PDF endpoint or external PDF service.
-
-The historical `calc-pdf/files/` reference directory has been removed from current source.
+Native `/checkout/`, order-pay, order-received, and provider callback routes are owned by WordPress/WooCommerce routing before SPA fallback.
 
 ## Backend composition
 
@@ -272,28 +163,6 @@ Canonical loader-managed order:
 10. `dtb-support/`
 11. `dtb-returns/`
 
-### `dtb-platform/`
-
-Shared configuration, support primitives, origin/CORS policy, API security, authentication/session behavior, cache/health/observability, account/history APIs, Command Center, System Manager, and platform administration.
-
-### `dtb-catalog-platform/`
-
-Catalog domain models, Woo/product repositories, normalization, facets, variation read models, product relationships, compatible/universal parts, inventory intelligence, validation, REST controllers, CLI/admin tools.
-
-Current repository layering includes the active product repository implementation under:
-
-```text
-dtb-catalog-platform/Infrastructure/CatalogProductRepository.php
-```
-
-A historical duplicate `Services/CatalogProductRepository.php` was removed. Do not recreate parallel repository authorities.
-
-Primary React PDP read model remains:
-
-```text
-GET /wp-json/dtb/v1/catalog/products/{slug}/detail
-```
-
 ### `dtb-commerce/`
 
 Owns:
@@ -303,12 +172,10 @@ Owns:
 - native Woo checkout runtime exception for the headless theme;
 - storefront return-context routing metadata;
 - official Stripe checkout readiness/capability metadata;
-- native checkout presentation and supported Stripe Appearance configuration;
-- mobile payment-sheet presentation/accessibility hardening;
-- checkout performance/static prewarm metadata/runtime telemetry;
+- unified responsive checkout presentation and supported Stripe Appearance configuration;
+- checkout performance/runtime telemetry;
 - checkout order tagging and non-secret paid-reference mirroring;
 - DTB shipping method/policy;
-- order-type/query and branded email support;
 - commerce-facing REST/admin surfaces.
 
 Key checkout files:
@@ -317,60 +184,39 @@ Key checkout files:
 dtb-commerce/Payment/WooNativeCheckoutRuntime.php
 dtb-commerce/Payment/StorefrontReturnContext.php
 dtb-commerce/Payment/OfficialStripeNativeCheckout.php
-dtb-commerce/Payment/MobilePaymentSheet.php
 dtb-commerce/Payment/CheckoutPerformance.php
+dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
 dtb-commerce/Templates/WooNativeCheckoutPage.php
 ```
 
-Key checkout assets:
+Canonical checkout assets:
 
 ```text
 dtb-commerce/assets/woo-native-checkout.css
 dtb-commerce/assets/woo-native-checkout-steps.js
 dtb-commerce/assets/woo-native-checkout-ui.js
+dtb-commerce/assets/woo-native-checkout-performance.js
+```
+
+Retired checkout presentation files are intentionally absent and must not be recreated as parallel layers:
+
+```text
+dtb-commerce/Payment/MobilePaymentSheet.php
 dtb-commerce/assets/woo-native-checkout-payment-sheet.css
 dtb-commerce/assets/woo-native-checkout-payment-sheet.js
 dtb-commerce/assets/woo-native-checkout-profile-refinements.css
 dtb-commerce/assets/woo-native-checkout-profile-refinements.js
-dtb-commerce/assets/woo-native-checkout-performance.js
 ```
 
 ### `dtb-order-platform/`
 
-Owns:
-
-- order lifecycle/status domain;
-- append-only event ledger;
-- integration-state persistence;
-- `dtb-orders` Action Scheduler queue/retry;
-- order write boundary and duplicate containment;
-- captured-payment lifecycle observation;
-- atomic initial downstream-dispatch barrier;
-- refund lifecycle keyed by concrete Woo `refund_id`;
-- customer/operator tracking projections and order REST/admin surfaces.
-
-The retired custom checkout-session repository is not part of the active native Checkout Block runtime.
-
-### `dtb-schematics/` and `dtb-media/`
-
-Schematic mapping/editor/runtime APIs plus image/media synchronization, validation, registration, repair, and operator workflows.
-
-### `dtb-repair-service/`, `dtb-support/`, `dtb-returns/`
-
-Independent bounded lifecycle modules. Each owns its domain statuses, persistence, authorization, customer endpoints, operator queues/workbench, notifications, and lifecycle events.
-
-### `dtb-integrations/`
-
-Server-side integration adapters/orchestration for WooCommerce, Veeqo, QuickBooks, notifications, and marketplace channels.
-
-Order-related external side effects must respect the order-platform queue/write-boundary/idempotency contracts.
+Owns order lifecycle/status domain, append-only event ledger, integration state, `dtb-orders` queue/retry, order write boundary, duplicate containment, captured-payment lifecycle observation, atomic downstream dispatch, refund lifecycle keyed by concrete Woo `refund_id`, and customer/operator tracking projections.
 
 ## Checkout and fulfillment flow
 
 ```text
 React cart / cart drawer
   -> WooCommerce Store API cookie-backed cart session + Nonce
-  -> successful cart engagement may schedule low-priority static prewarm
   -> canonical full-document /checkout/
   -> root .htaccess routes request to WordPress
   -> WooNativeCheckoutRuntime preserves native Woo/plugin runtime
@@ -389,61 +235,47 @@ Only WooCommerce Checkout Block may create storefront orders.
 
 Legacy raw Woo order creation, DTB-owned checkout session/finalization, browser-created Stripe payment flows, and competing parallel gateways remain retired/disallowed.
 
-## Mobile payment-sheet boundary
+## Responsive checkout boundary
 
-The mobile bottom sheet is a presentation shell over the existing Woo Checkout Block payment section.
+There is one mounted Woo Checkout Block and one official Stripe payment surface across all viewports.
 
-It may manage dialog chrome, focus containment, viewport adaptation, and a read-only total sourced from `wc/store/cart`.
+Desktop:
 
-It must not:
+```text
+left rail: Express -> Contact -> Shipping -> Payment -> Place Order
+right rail: sticky canonical Woo Order Summary
+```
 
-- move/clone provider payment controls;
-- create payment objects;
-- calculate authoritative totals;
-- replace Woo Place Order submission;
-- become a second checkout route or payment authority.
+Mobile:
+
+```text
+1 Contact: eligible Express Checkout first + Woo contact/account controls
+2 Shipping: Woo address/billing/delivery controls
+3 Payment: inline official Woo/Stripe payment surface + native Place Order
+```
+
+The mobile step controller owns presentation only. It may hide/reveal existing top-level Woo sections, provide progress navigation, and provide non-submit Continue actions. It must not clone/reparent/remount payment controls, create payment objects, calculate totals, replace Woo validation, or replace Woo submission.
+
+The retired bottom payment sheet is not part of the current architecture.
 
 ## Checkout performance/stability boundary
 
-`CheckoutPerformance.php` and `woo-native-checkout-performance.js` own checkout-specific performance/diagnostics behavior.
+`CheckoutPerformance.php`, `CheckoutRuntimeIntegrity.php`, and `woo-native-checkout-performance.js` own checkout-specific diagnostics/runtime safety.
 
-The storefront prewarm source is:
+Rules:
 
-```text
-frontend/src/utils/checkoutPrewarm.js
-```
-
-Current rules:
-
-- low-priority/fail-open only;
-- server-provided asset manifest;
-- same-origin/backend-origin static DTB assets only plus approved Stripe preconnect origins;
-- no prefetch/cache of private `/checkout/` HTML;
-- explicit noncritical asset suppression only;
-- bounded runtime diagnostics;
-- no duplicate authoritative form state;
-- no fallback payment flow.
+- no cache of private `/checkout/` HTML;
+- bounded runtime diagnostics only;
+- no duplicate authoritative form/payment state;
+- no fallback payment flow;
+- SiteGround optimization must not reorder Woo/WordPress/Stripe dependencies or rehost Stripe.js;
+- provider timeout recovery may only reload or point to an actually rendered eligible express surface.
 
 Diagnostics route:
 
 ```text
 POST /wp-json/dtb/v1/checkout/runtime-telemetry
 ```
-
-## Data and operations structure
-
-`products/` and `scripts/` are production-relevant application/operations assets.
-
-### Current catalog authority anchors
-
-- taxonomy policy: `products/Production/catalogs/config/production_taxonomy_policy.json`;
-- production catalog workspace: `products/Production/catalogs/`;
-- launch/reference workspace: `products/launch/`;
-- scripts must inspect current path layout rather than relying on historical `products/Production/launch/` assumptions.
-
-Recent repository reorganization moved numerous launch/reference assets out of `products/Production/launch/` into `products/launch/` and consolidated catalog/source/report materials under `products/Production/catalogs/`.
-
-Preserve stable business identifiers and provenance during future moves.
 
 ## System authority map
 
@@ -456,47 +288,21 @@ Preserve stable business identifiers and provenance during future moves.
 
 ## CI and deployment structure
 
-### CI
+`.github/workflows/ci-build.yml` runs for pull requests to `main`, pushes to `main`, and manual dispatch. It installs dependencies, lints/builds the frontend, validates custom PHP syntax and active origin wiring, assembles the bounded payload, and rejects forbidden runtime content.
 
-`.github/workflows/ci-build.yml` runs for:
+`.github/workflows/deploy.yml` defines controlled SiteGround deploy/restore with exact confirmation, protected environment approval, managed-surface backup, bounded upload, HTTP smoke checks, rollback, and explicit restore.
 
-- pull requests to `main`;
-- pushes to `main`;
-- manual dispatch.
-
-Current build job:
-
-1. checkout;
-2. Node 20 setup;
-3. `npm ci --include=dev`;
-4. frontend lint;
-5. frontend production build;
-6. custom MU-plugin/theme PHP syntax validation;
-7. active-source legacy-origin rejection;
-8. assemble bounded `deploy-root` payload;
-9. validate required payload shape and reject forbidden runtime content.
-
-CI does not deploy production.
-
-### Deployment workflow current state
-
-`.github/workflows/deploy.yml` defines a manual, full-payload SiteGround release and managed-file restore contract. It requires exact `DEPLOY`/`RESTORE` confirmation, protected `siteground-production` approval, and SiteGround SFTP secrets. Deploy builds and validates an immutable artifact, snapshots the exact DTB-managed remote paths, uploads only the public SPA/root routing plus canonical MU-plugin/theme paths, runs root/DTB-health/checkout HTTP smoke checks, and automatically restores the managed surface on failure. Standalone restore requires the exact backup run and artifact name.
-
-The release never uploads or deletes WordPress core, regular plugins, uploads, cache, upgrade state, `wp-config.php`, `sgs_encrypt_key.php`, logs, or database content. Merge is not deployment, and successful file smoke is not payment/integration acceptance.
+Merge is not deployment. Passing HTTP smoke does not prove Stripe, webhook, Veeqo, QuickBooks, or shopper-session acceptance.
 
 ## Navigation model for engineers
 
-When locating logic:
-
 - UI/UX route bug: `frontend/src/pages/*`, then `frontend/src/components/*`;
 - frontend server access: `frontend/src/api/*`;
-- cart/session/handoff: `frontend/src/context/CartContext.jsx`, `frontend/src/api/cart.js`, checkout URL/navigation utilities;
-- calculator report/export: `frontend/src/components/calculators/report/*`;
+- cart/session/handoff: cart context/API and checkout URL/navigation utilities;
 - backend business logic/API: `drywalltoolbox/wp/wp-content/mu-plugins/*`;
-- native checkout/payment presentation/readiness: `dtb-commerce/Payment/*` and `dtb-commerce/assets/woo-native-checkout*`;
+- native checkout/payment presentation/readiness: `dtb-commerce/Payment/*`, `dtb-commerce/Templates/*`, and `dtb-commerce/assets/woo-native-checkout*`;
 - order lifecycle/queues/idempotency: `dtb-order-platform/*`;
 - integrations: `dtb-integrations/*`;
-- catalog operational rules/data: `products/Production/catalogs/*`, `products/launch/*`, and `scripts/*`;
 - routing/deployment boundaries: `drywalltoolbox/.htaccess`, `drywalltoolbox/wp/.htaccess`, `.github/workflows/*`.
 
-Always inspect the active source before editing; this structure map is durable orientation, not a substitute for source verification.
+Always inspect active source before editing; this structure map is durable orientation, not a substitute for source verification.
