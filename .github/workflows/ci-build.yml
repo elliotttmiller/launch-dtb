@@ -74,6 +74,10 @@ jobs:
           find drywalltoolbox/wp/wp-content/mu-plugins drywalltoolbox/wp/wp-content/themes -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
+      - name: Validate checkout presentation contract
+        shell: pwsh
+        run: ./scripts/smoke-dtb-checkout-ui.ps1
+
       - name: Reject legacy production origins in active runtime source
         shell: bash
         run: |
