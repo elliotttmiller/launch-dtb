@@ -54,33 +54,48 @@ function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_R
 		);
 	}
 
-	$controller = new WC_REST_Products_Controller();
-	$request    = new WP_REST_Request( 'GET', '/' . $route );
+	try {
+		$controller = new WC_REST_Products_Controller();
+		$request    = new WP_REST_Request( 'GET', '/' . $route );
 
-	foreach ( $params as $key => $value ) {
-		$key = (string) $key;
-		if ( in_array( $key, [ 'include', 'exclude' ], true ) && is_string( $value ) ) {
-			$value = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
+		foreach ( $params as $key => $value ) {
+			$key = (string) $key;
+			if ( in_array( $key, [ 'include', 'exclude' ], true ) && is_string( $value ) ) {
+				$value = array_values( array_filter( array_map( 'absint', explode( ',', $value ) ) ) );
+			}
+			$request->set_param( $key, $value );
 		}
-		$request->set_param( $key, $value );
-	}
 
-	$product_id = ! empty( $matches['id'] ) ? absint( $matches['id'] ) : 0;
-	if ( $product_id > 0 ) {
-		/* Public catalog routes must never expose drafts/private products by ID. */
-		if ( 'publish' !== get_post_status( $product_id ) ) {
-			return new WP_REST_Response(
-				dtb_error_envelope( 'not_found', 'Product not found.', 404 ),
-				404
-			);
+		$product_id = ! empty( $matches['id'] ) ? absint( $matches['id'] ) : 0;
+		if ( $product_id > 0 ) {
+			/* Public catalog routes must never expose drafts/private products by ID. */
+			if ( 'publish' !== get_post_status( $product_id ) ) {
+				return new WP_REST_Response(
+					dtb_error_envelope( 'not_found', 'Product not found.', 404 ),
+					404
+				);
+			}
+			$request->set_param( 'id', $product_id );
+			$response = $controller->get_item( $request );
+		} else {
+			if ( ! $request->has_param( 'status' ) ) {
+				$request->set_param( 'status', 'publish' );
+			}
+			$response = $controller->get_items( $request );
 		}
-		$request->set_param( 'id', $product_id );
-		$response = $controller->get_item( $request );
-	} else {
-		if ( ! $request->has_param( 'status' ) ) {
-			$request->set_param( 'status', 'publish' );
+	} catch ( Throwable $error ) {
+		if ( class_exists( 'DTB_Logger' ) ) {
+			DTB_Logger::error( 'Local Woo catalog runtime failed', [
+				'route'     => $route,
+				'exception' => get_class( $error ),
+				'message'   => sanitize_text_field( $error->getMessage() ),
+			] );
 		}
-		$response = $controller->get_items( $request );
+
+		return new WP_REST_Response(
+			dtb_error_envelope( 'catalog_runtime_failure', 'The local WooCommerce catalog runtime failed.', 503 ),
+			503
+		);
 	}
 
 	if ( is_wp_error( $response ) ) {
