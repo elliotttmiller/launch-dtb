@@ -5,10 +5,9 @@
  * This template intentionally delegates checkout rendering to the page content
  * and WooCommerce. It does not manually instantiate Checkout Block, payment
  * methods, Stripe fields, order creation, or endpoint handlers.
- * DTB_OfficialStripeNativeCheckout owns the canonical checkout integration
- * assets and dependencies; this document loads only a presentation companion
- * that keeps authoritative Woo customer fields visible and refines express
- * wallet framing without replacing provider-owned controls.
+ * DTB_OfficialStripeNativeCheckout owns the canonical checkout presentation
+ * assets while WooCommerce and the official Stripe extension retain runtime
+ * authority.
  *
  * @package drywall-toolbox
  */
@@ -19,21 +18,6 @@ $storefront_base_path = function_exists( 'dtb_detect_storefront_base_path' )
 	? dtb_detect_storefront_base_path()
 	: '';
 $storefront_home_url  = home_url( $storefront_base_path . '/' );
-$checkout_refinement_version = '2026.07.23.1';
-
-wp_enqueue_style(
-	'dtb-woo-native-checkout-profile-refinements',
-	content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-profile-refinements.css' ),
-	[ 'dtb-woo-native-checkout' ],
-	$checkout_refinement_version
-);
-wp_enqueue_script(
-	'dtb-woo-native-checkout-profile-refinements',
-	content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-profile-refinements.js' ),
-	[ 'dtb-woo-native-checkout-ui' ],
-	$checkout_refinement_version,
-	true
-);
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -43,14 +27,14 @@ wp_enqueue_script(
 	<!-- Critical boot guard runs before checkout assets and fails open after eight seconds. -->
 	<script>document.documentElement.classList.add('dtb-native-checkout-booting');window.setTimeout(function(){document.documentElement.classList.remove('dtb-native-checkout-booting');},8000);</script>
 	<style>
-		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
+		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f6f8fc;color:#101828;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
 		html.dtb-native-checkout-booting .dtb-native-checkout-loader{display:flex}
 		html.dtb-native-checkout-ready .dtb-native-checkout-loader{opacity:0;pointer-events:none}
 		html.dtb-native-checkout-booting .dtb-native-woocommerce-document{overflow:hidden}
 		html.dtb-native-checkout-booting .dtb-checkout-header,html.dtb-native-checkout-booting .dtb-native-woocommerce-main{opacity:0}
 		.dtb-native-checkout-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
 		.dtb-native-checkout-loader__spinner{display:grid;width:46px;height:46px;border:1px solid #dbe3ee;border-radius:999px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.1);place-items:center}
-		.dtb-native-checkout-loader__spinner:before{width:20px;height:20px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:999px;content:"";animation:dtb-native-checkout-spin .9s cubic-bezier(.45,0,.55,1) infinite}
+		.dtb-native-checkout-loader__spinner:before{width:20px;height:20px;border:2px solid #bfdbfe;border-top-color:#2f5bea;border-radius:999px;content:"";animation:dtb-native-checkout-spin .9s cubic-bezier(.45,0,.55,1) infinite}
 		.dtb-native-checkout-loader__content p{margin:0;color:#475569;font:650 14px/1.5 system-ui,sans-serif}
 		@keyframes dtb-native-checkout-spin{to{transform:rotate(360deg)}}
 		@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader,.dtb-native-checkout-loader__spinner:before{transition-duration:1ms;animation:none}}
