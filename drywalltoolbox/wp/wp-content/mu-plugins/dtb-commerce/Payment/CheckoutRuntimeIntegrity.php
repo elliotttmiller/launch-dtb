@@ -29,8 +29,10 @@ final class DTB_CheckoutRuntimeIntegrity {
 	];
 
 	/**
-	 * Critical registered handles whose native order must not be changed by a
-	 * hosting optimization layer. Unknown handles in this allowlist are harmless.
+	 * Critical registered handles retained as an explicit contract/documentation
+	 * set. The SiteGround boundary below additionally excludes every registered
+	 * checkout script because the optimizer has proven capable of combining
+	 * transitive WordPress/Woo dependencies under generated handles.
 	 */
 	private const CRITICAL_CHECKOUT_SCRIPT_HANDLES = [
 		'jquery',
@@ -74,14 +76,16 @@ final class DTB_CheckoutRuntimeIntegrity {
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_dtb_checkout_script_invariants' ], PHP_INT_MAX );
 
 		/*
-		 * SiteGround Speed Optimizer provides these documented filters specifically
-		 * for scripts that must preserve execution order. Checkout is the authoritative
-		 * transactional surface, so critical Woo/WP/Stripe scripts and inline bootstrap
-		 * data are excluded from combine/minify/async transformations.
+		 * Native checkout is a transactional runtime, not a generic content page.
+		 * SiteGround-generated combined bundles have been observed executing React,
+		 * WordPress packages, Woo Blocks and Stripe code outside their registered
+		 * dependency order. On primary checkout we therefore exclude the complete
+		 * registered script graph from combine/minify/async transforms. This is
+		 * intentionally page-scoped; storefront pages remain optimizer-eligible.
 		 */
-		add_filter( 'sgo_js_async_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
-		add_filter( 'sgo_javascript_combine_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
-		add_filter( 'sgo_js_minify_exclude', [ __CLASS__, 'exclude_critical_scripts_from_optimizer' ] );
+		add_filter( 'sgo_js_async_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
+		add_filter( 'sgo_javascript_combine_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
+		add_filter( 'sgo_js_minify_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
 		add_filter( 'sgo_javascript_combine_exclude_all_inline', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
 		add_filter( 'sgo_javascript_combine_exclude_all_inline_modules', [ __CLASS__, 'exclude_checkout_inline_scripts_from_combine' ] );
 		add_filter( 'sgo_exclude_urls_from_cache', [ __CLASS__, 'exclude_checkout_urls_from_cache' ] );
@@ -139,23 +143,50 @@ final class DTB_CheckoutRuntimeIntegrity {
 		}
 	}
 
-	/** @param mixed $exclude_list @return array<int,string> */
-	public static function exclude_critical_scripts_from_optimizer( $exclude_list ): array {
+	/**
+	 * Exclude the complete registered script graph from SiteGround JS transforms
+	 * on the primary native checkout request.
+	 *
+	 * Handle-by-handle allowlists are insufficient here because Woo/WordPress
+	 * versions can introduce transitive handles and SiteGround may emit generated
+	 * combined bundles for any non-excluded dependency. Excluding every registered
+	 * handle only on checkout preserves WordPress's dependency resolver as the sole
+	 * execution-order authority without changing registration or enqueue state.
+	 *
+	 * @param mixed $exclude_list Existing SiteGround exclusion list.
+	 * @return array<int,string>
+	 */
+	public static function exclude_checkout_scripts_from_optimizer( $exclude_list ): array {
 		$exclude_list = is_array( $exclude_list ) ? $exclude_list : [];
-		if ( ! self::is_native_checkout_request() ) {
+		if ( ! self::is_primary_checkout_request() ) {
 			return $exclude_list;
 		}
 
-		return array_values( array_unique( array_merge(
-			$exclude_list,
+		$handles = array_merge(
 			self::CRITICAL_CHECKOUT_SCRIPT_HANDLES,
 			self::DTB_CHECKOUT_SCRIPT_HANDLES
-		) ) );
+		);
+
+		global $wp_scripts;
+		if ( $wp_scripts instanceof WP_Scripts ) {
+			$handles = array_merge(
+				$handles,
+				array_keys( $wp_scripts->registered ),
+				array_values( $wp_scripts->queue )
+			);
+		}
+
+		$handles = array_filter(
+			array_map( 'strval', $handles ),
+			static fn ( string $handle ): bool => '' !== $handle
+		);
+
+		return array_values( array_unique( array_merge( $exclude_list, $handles ) ) );
 	}
 
 	/** @param mixed $exclude @return bool */
 	public static function exclude_checkout_inline_scripts_from_combine( $exclude ): bool {
-		return self::is_native_checkout_request() ? true : (bool) $exclude;
+		return self::is_primary_checkout_request() ? true : (bool) $exclude;
 	}
 
 	/** @param mixed $excluded_urls @return array<int,string> */
