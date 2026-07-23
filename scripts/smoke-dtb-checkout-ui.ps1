@@ -60,6 +60,9 @@ foreach ($requiredStep in @("id: 'contact'", "id: 'shipping'", "id: 'payment'"))
 
 Assert-True ($ui.Contains("'Continue to shipping'")) 'Mobile checkout UI must expose the Contact -> Shipping continue action.'
 Assert-True ($ui.Contains("'Continue to payment'")) 'Mobile checkout UI must expose the Shipping -> Payment continue action.'
+Assert-True ($ui.Contains("const storefrontLoginUrl = '/login?returnTo=%2Fcheckout';")) 'Checkout login must route through the DTB storefront login page with a safe checkout return target.'
+Assert-True ($ui.Contains('Step navigation is presentation-only. WooCommerce remains the sole')) 'Mobile step navigation must not become a second checkout validation authority.'
+Assert-True (-not $ui.Contains('validateActiveStep()')) 'Mobile step navigation must not block on DOM-discovered validation controls.'
 Assert-True (-not $ui.Contains('dtb-payment-sheet')) 'Mobile checkout UI must not restore payment-sheet state.'
 Assert-True (-not $ui.Contains('cloneNode(')) 'Checkout presentation must not clone Woo/Stripe controls.'
 Assert-True (-not $ui.Contains('replaceWith(')) 'Checkout presentation must not replace Woo/Stripe controls.'
