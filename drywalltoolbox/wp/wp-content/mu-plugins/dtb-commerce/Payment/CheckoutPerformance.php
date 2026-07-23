@@ -1,11 +1,11 @@
 <?php
 /**
- * Checkout performance, stability telemetry, and non-critical asset policy.
+ * Checkout runtime telemetry and diagnostics.
  *
- * WooCommerce and the official WooCommerce Stripe extension remain authoritative
- * for checkout/payment runtime behavior. This layer only prewarms DTB-owned
- * static assets, suppresses known non-essential marketing/tracking resources on
- * checkout, and records bounded non-secret runtime diagnostics.
+ * WooCommerce Checkout Block and the official WooCommerce Stripe extension own
+ * the complete checkout/payment runtime graph. This class records bounded,
+ * non-secret diagnostics only; it never dequeues, preloads, reprioritizes, or
+ * changes execution strategy for checkout assets.
  *
  * @package drywall-toolbox
  */
@@ -13,71 +13,14 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutPerformance {
-	private const ASSET_VERSION = '2026.07.21.1';
+	private const ASSET_VERSION = '2026.07.23.1';
 	private const TELEMETRY_NONCE_ACTION = 'dtb_checkout_runtime_telemetry';
 	private const PAYMENT_SURFACE_TIMEOUT_MS = 15000;
 	private const TELEMETRY_EVENT_TTL = 10 * MINUTE_IN_SECONDS;
 
-	/**
-	 * These versions intentionally mirror the owning enqueue sites. A mismatch is
-	 * fail-soft: it only forfeits a speculative cache hit and never changes runtime
-	 * payment behavior.
-	 */
-	private const CORE_CHECKOUT_ASSET_VERSION = '2026.07.20.16';
-	private const PAYMENT_SHEET_ASSET_VERSION = '2026.07.20.1';
-	private const PROFILE_REFINEMENT_ASSET_VERSION = '2026.07.20.2';
-
-	private const NONCRITICAL_HANDLE_TOKENS = [
-		'google-analytics',
-		'google_analytics',
-		'googletagmanager',
-		'google-tag-manager',
-		'gtag',
-		'facebook-pixel',
-		'facebook_pixel',
-		'fb-pixel',
-		'meta-pixel',
-		'hotjar',
-		'clarity',
-		'tiktok-pixel',
-		'pinterest-tag',
-		'linkedin-insight',
-		'optimizely',
-		'visual-website-optimizer',
-		'vwo',
-		'hubspot',
-		'intercom',
-		'mailchimp-popup',
-		'loyalty-widget',
-		'rewards-widget',
-	];
-
-	private const NONCRITICAL_HOSTS = [
-		'www.googletagmanager.com',
-		'googletagmanager.com',
-		'www.google-analytics.com',
-		'google-analytics.com',
-		'connect.facebook.net',
-		'static.hotjar.com',
-		'script.hotjar.com',
-		'www.clarity.ms',
-		'clarity.ms',
-		'bat.bing.com',
-		'snap.licdn.com',
-		'analytics.tiktok.com',
-		's.pinimg.com',
-		'cdn.optimizely.com',
-		'dev.visualwebsiteoptimizer.com',
-		'static.ads-twitter.com',
-		'js.hs-scripts.com',
-		'widget.intercom.io',
-	];
-
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_runtime_asset' ], 40 );
-		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'suppress_noncritical_checkout_assets' ], 9990 );
-		add_action( 'wp_head', [ __CLASS__, 'print_early_resource_hints' ], 1 );
 		add_filter( 'rest_request_after_callbacks', [ __CLASS__, 'augment_checkout_capabilities' ], 20, 3 );
 	}
 
@@ -105,7 +48,7 @@ final class DTB_CheckoutPerformance {
 			self::ASSET_VERSION,
 			true
 		);
-		wp_script_add_data( 'dtb-woo-native-checkout-performance', 'strategy', 'defer' );
+
 		wp_localize_script(
 			'dtb-woo-native-checkout-performance',
 			'DTB_CHECKOUT_PERFORMANCE',
@@ -118,65 +61,8 @@ final class DTB_CheckoutPerformance {
 	}
 
 	/**
-	 * Remove only known non-essential marketing/analytics assets from checkout.
-	 * Unknown plugin assets are left untouched; payment and Woo dependencies are
-	 * never heuristically dequeued.
-	 */
-	public static function suppress_noncritical_checkout_assets(): void {
-		if ( ! self::is_primary_checkout_request() ) {
-			return;
-		}
-
-		$explicit_handles = apply_filters( 'dtb_checkout_noncritical_asset_handles', [] );
-		$explicit_handles = is_array( $explicit_handles )
-			? array_map( 'sanitize_key', $explicit_handles )
-			: [];
-
-		global $wp_scripts, $wp_styles;
-
-		if ( isset( $wp_scripts->queue, $wp_scripts->registered ) && is_array( $wp_scripts->queue ) ) {
-			foreach ( array_values( $wp_scripts->queue ) as $handle ) {
-				$registered = $wp_scripts->registered[ $handle ] ?? null;
-				$src = is_object( $registered ) ? (string) ( $registered->src ?? '' ) : '';
-				if ( self::is_noncritical_asset( (string) $handle, $src, $explicit_handles ) ) {
-					wp_dequeue_script( $handle );
-				}
-			}
-		}
-
-		if ( isset( $wp_styles->queue, $wp_styles->registered ) && is_array( $wp_styles->queue ) ) {
-			foreach ( array_values( $wp_styles->queue ) as $handle ) {
-				$registered = $wp_styles->registered[ $handle ] ?? null;
-				$src = is_object( $registered ) ? (string) ( $registered->src ?? '' ) : '';
-				if ( self::is_noncritical_asset( (string) $handle, $src, $explicit_handles ) ) {
-					wp_dequeue_style( $handle );
-				}
-			}
-		}
-	}
-
-	/**
-	 * Restore the most useful resource hints that the headless theme intentionally
-	 * removes for normal SPA pages. Checkout is a separate native runtime.
-	 */
-	public static function print_early_resource_hints(): void {
-		if ( ! self::is_primary_checkout_request() ) {
-			return;
-		}
-
-		foreach ( [ 'https://js.stripe.com', 'https://m.stripe.network' ] as $origin ) {
-			printf( '<link rel="preconnect" href="%s" crossorigin>\n', esc_url( $origin ) );
-		}
-		echo '<link rel="dns-prefetch" href="//js.stripe.com">' . "\n";
-
-		foreach ( self::prewarm_manifest()['styles'] as $href ) {
-			printf( '<link rel="preload" href="%s" as="style">\n', esc_url( $href ) );
-		}
-	}
-
-	/**
-	 * Add read-only performance/prewarm metadata to the existing capabilities
-	 * route. This performs no external calls and exposes no credentials.
+	 * Add read-only runtime-integrity metadata to the existing capabilities route.
+	 * This performs no external calls and exposes no credentials.
 	 *
 	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error $response REST response.
 	 * @param array                                      $handler  Route handler.
@@ -194,12 +80,12 @@ final class DTB_CheckoutPerformance {
 		}
 
 		$data['performance'] = [
-			'asset_prewarm'              => self::prewarm_manifest(),
-			'noncritical_asset_policy'   => 'known_marketing_tracking_suppressed',
 			'checkout_runtime_telemetry' => true,
 			'payment_surface_timeout_ms' => self::PAYMENT_SURFACE_TIMEOUT_MS,
-			'below_fold_image_policy'    => 'viewport_aware_lazy_async',
 			'checkout_document_cache'    => 'private_no_store',
+			'runtime_asset_authority'    => 'woocommerce_wordpress_stripe',
+			'dtb_asset_queue_mutation'   => false,
+			'dtb_asset_prewarm'          => false,
 		];
 		$response->set_data( $data );
 		return $response;
@@ -275,51 +161,6 @@ final class DTB_CheckoutPerformance {
 		}
 
 		return new WP_REST_Response( [ 'accepted' => true ], 202 );
-	}
-
-	private static function prewarm_manifest(): array {
-		return [
-			'styles' => [
-				add_query_arg( 'ver', self::CORE_CHECKOUT_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout.css' ) ),
-				add_query_arg( 'ver', self::PAYMENT_SHEET_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-payment-sheet.css' ) ),
-				add_query_arg( 'ver', self::PROFILE_REFINEMENT_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-profile-refinements.css' ) ),
-			],
-			'scripts' => [
-				add_query_arg( 'ver', self::CORE_CHECKOUT_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js' ) ),
-				add_query_arg( 'ver', self::CORE_CHECKOUT_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js' ) ),
-				add_query_arg( 'ver', self::PAYMENT_SHEET_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-payment-sheet.js' ) ),
-				add_query_arg( 'ver', self::PROFILE_REFINEMENT_ASSET_VERSION, content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-profile-refinements.js' ) ),
-			],
-			'preconnect' => [
-				'https://js.stripe.com',
-				'https://m.stripe.network',
-			],
-		];
-	}
-
-	private static function is_noncritical_asset( string $handle, string $src, array $explicit_handles ): bool {
-		$normalized_handle = sanitize_key( $handle );
-		if ( in_array( $normalized_handle, $explicit_handles, true ) ) {
-			return true;
-		}
-
-		$haystack = strtolower( $handle . ' ' . $src );
-		foreach ( self::NONCRITICAL_HANDLE_TOKENS as $token ) {
-			if ( false !== strpos( $haystack, $token ) ) {
-				return true;
-			}
-		}
-
-		$host = strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) );
-		if ( '' === $host ) {
-			return false;
-		}
-		foreach ( self::NONCRITICAL_HOSTS as $blocked_host ) {
-			if ( $host === $blocked_host || str_ends_with( $host, '.' . $blocked_host ) ) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private static function request_origin_is_same_site(): bool {
