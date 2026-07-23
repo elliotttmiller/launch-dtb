@@ -19,7 +19,7 @@ $storefront_base_path = function_exists( 'dtb_detect_storefront_base_path' )
 	? dtb_detect_storefront_base_path()
 	: '';
 $storefront_home_url  = home_url( $storefront_base_path . '/' );
-$checkout_refinement_version = '2026.07.20.2';
+$checkout_refinement_version = '2026.07.23.1';
 
 wp_enqueue_style(
 	'dtb-woo-native-checkout-profile-refinements',
@@ -34,14 +34,13 @@ wp_enqueue_script(
 	$checkout_refinement_version,
 	true
 );
-wp_script_add_data( 'dtb-woo-native-checkout-profile-refinements', 'strategy', 'defer' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 	<meta name="robots" content="noindex,nofollow">
-	<!-- Critical boot guard must run before deferred checkout assets and fail open after eight seconds. -->
+	<!-- Critical boot guard runs before checkout assets and fails open after eight seconds. -->
 	<script>document.documentElement.classList.add('dtb-native-checkout-booting');window.setTimeout(function(){document.documentElement.classList.remove('dtb-native-checkout-booting');},8000);</script>
 	<style>
 		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
