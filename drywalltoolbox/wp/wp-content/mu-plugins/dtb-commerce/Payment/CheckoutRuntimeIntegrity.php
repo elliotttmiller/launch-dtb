@@ -10,8 +10,8 @@
  *
  * The owning checkout modules are expected to register cleanly by default. This
  * class remains as a defensive last-line invariant against future regressions.
- * It touches DTB-owned script handles only and never mutates WooCommerce,
- * WordPress, Stripe, payment-provider, or third-party runtime handles.
+ * It never mutates WooCommerce, WordPress, Stripe, payment-provider, or other
+ * third-party runtime handles.
  *
  * @package drywall-toolbox
  */
@@ -29,8 +29,30 @@ final class DTB_CheckoutRuntimeIntegrity {
 	];
 
 	public static function register(): void {
+		/*
+		 * Enforce the headless-theme exception at both lifecycle boundaries. The
+		 * native runtime adapter already removes these callbacks during `wp`; these
+		 * guards make checkout fail-safe if theme hook timing changes later.
+		 */
+		add_action( 'wp', [ __CLASS__, 'enforce_native_theme_exception' ], PHP_INT_MAX );
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_native_theme_exception' ], 0 );
+
 		/* Run after checkout modules have registered/enqueued their DTB-owned assets. */
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_dtb_checkout_script_invariants' ], PHP_INT_MAX );
+	}
+
+	/**
+	 * Ensure the headless SPA theme cannot strip or replace the authoritative
+	 * native checkout runtime.
+	 */
+	public static function enforce_native_theme_exception(): void {
+		if ( ! self::is_native_checkout_request() ) {
+			return;
+		}
+
+		remove_action( 'wp_enqueue_scripts', 'dtb_enqueue_react_app', 10 );
+		remove_action( 'wp_enqueue_scripts', 'dtb_dequeue_non_react_assets', 9999 );
+		remove_filter( 'template_include', 'dtb_force_react_template', 99 );
 	}
 
 	/**
@@ -53,10 +75,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 				continue;
 			}
 
-			/*
-			 * Defensive only: owning modules should not set a strategy. Remove it if a
-			 * future regression reintroduces one on a DTB-owned checkout script.
-			 */
+			/* Defensive only: owning modules must not set async/defer strategy. */
 			if ( isset( $registered->extra ) && is_array( $registered->extra ) ) {
 				unset( $registered->extra['strategy'] );
 			}
@@ -64,8 +83,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 
 		/*
 		 * DTB's UI enhancer observes rendered DOM and must never depend directly on
-		 * WooCommerce Checkout Block internals. Keep this guard even though the owning
-		 * enqueue method now registers the clean dependency list itself.
+		 * WooCommerce Checkout Block internals.
 		 */
 		$ui = $wp_scripts->registered['dtb-woo-native-checkout-ui'] ?? null;
 		if ( is_object( $ui ) && isset( $ui->deps ) && is_array( $ui->deps ) ) {
@@ -78,8 +96,24 @@ final class DTB_CheckoutRuntimeIntegrity {
 		}
 	}
 
+	private static function is_native_checkout_request(): bool {
+		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return false;
+		}
+
+		if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+			return true;
+		}
+
+		$request_uri = isset( $_SERVER['REQUEST_URI'] )
+			? (string) wp_unslash( $_SERVER['REQUEST_URI'] )
+			: '';
+		$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+		return (bool) preg_match( '#/(?:staging/[A-Za-z0-9_-]+/)?checkout(?:/|$)#i', $path );
+	}
+
 	private static function is_primary_checkout_request(): bool {
-		if ( is_admin() || ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		if ( ! self::is_native_checkout_request() ) {
 			return false;
 		}
 
