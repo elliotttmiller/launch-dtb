@@ -23,8 +23,6 @@ final class DTB_CheckoutRuntimeIntegrity {
 	private const DTB_CHECKOUT_SCRIPT_HANDLES = [
 		'dtb-woo-native-checkout-steps',
 		'dtb-woo-native-checkout-ui',
-		'dtb-woo-native-checkout-profile-refinements',
-		'dtb-woo-native-checkout-payment-sheet',
 		'dtb-woo-native-checkout-performance',
 	];
 
