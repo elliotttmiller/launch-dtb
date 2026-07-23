@@ -1,6 +1,6 @@
 # Drywall Toolbox Intelligence and Engineering Authority
 
-Last verified against active source: 2026-07-21.
+Last verified against active source: 2026-07-23.
 
 ## 1. Mission and accountability
 
@@ -249,33 +249,38 @@ Mandatory invariants:
 - Legacy raw storefront order creation remains retired, including `POST /drywall/v1/orders`.
 - Do not restore DTB-owned checkout session/finalize/payment iframe flows, WooPayments, Payment Plugins for Stripe, copied gateway internals, or fake Apple Pay/Google Pay/Link controls as parallel authorities.
 
-### Mobile payment sheet
+### Responsive checkout presentation
 
-The DTB mobile payment sheet is presentation only.
+Desktop and mobile use exactly one mounted WooCommerce Checkout Block and one official Stripe payment surface.
 
-Owning source:
+Desktop keeps a continuous two-column checkout with Express Checkout, Contact, Shipping, Payment, Place Order, and the canonical sticky Woo Order Summary.
+
+Below the mobile breakpoint, `woo-native-checkout-ui.js` applies presentation-only progressive steps:
 
 ```text
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/MobilePaymentSheet.php
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-payment-sheet.js
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-payment-sheet.css
+1. Contact
+   -> eligible official Express Checkout first
+   -> Woo contact/account controls
+   -> Continue to shipping
+2. Shipping
+   -> Woo shipping/billing address controls
+   -> Woo delivery/shipping methods
+   -> Continue to payment
+3. Payment
+   -> inline official Woo/Stripe payment surface
+   -> Woo terms/order notes/actions
+   -> authoritative Woo Place Order submission
 ```
 
-It may add accessible dialog chrome, focus containment, responsive/`visualViewport` handling, supported Woo label changes, and a read-only total projection from Woo Blocks `wc/store/cart` state.
+The mobile step controller may hide/reveal existing Woo top-level checkout sections for presentation and navigate among already visited steps. It must not clone, move, reparent, remount, or duplicate provider-owned payment controls; create/confirm PaymentIntents or Checkout Sessions; calculate authoritative totals independently; replace WooCommerce Place Order submission; or intercept Stripe-owned challenge/modal behavior.
 
-It must not:
+The retired DTB mobile payment bottom sheet and profile-refinement override assets are not part of the current runtime and must not be restored as parallel presentation layers.
 
-- clone, move, or reparent provider-owned payment controls;
-- create/confirm PaymentIntents or Checkout Sessions;
-- calculate authoritative payable totals independently;
-- replace WooCommerce Place Order submission;
-- intercept Stripe-owned challenge/modal focus behavior.
-
-The authoritative final submit remains WooCommerce's Place Order control, presented as `Pay now` on the supported mobile UI path.
+The authoritative final submit remains WooCommerce's native Place Order control. DTB may style it but must not replace its behavior.
 
 ### Checkout capabilities/readiness
 
-`GET /wp-json/dtb/v1/checkout/capabilities` is public/read-safe metadata only. It may expose non-secret local readiness/performance state, including official-gateway presence, checkout-block readiness, payment-sheet presentation metadata, capture mode, competing-authority detection, asset-prewarm manifest, and telemetry capability.
+`GET /wp-json/dtb/v1/checkout/capabilities` is public/read-safe metadata only. It may expose non-secret local readiness/performance state, including official-gateway presence, checkout-block readiness, capture mode, competing-authority detection, and telemetry capability.
 
 It must not trigger slow external Stripe calls or expose secret keys, webhook secrets, client secrets, tokens, raw provider credentials, or payment state mutation surfaces.
 
@@ -293,13 +298,12 @@ Performance changes are fail-open and must never create a second cart/checkout/p
 
 Current contract:
 
-- after successful cart engagement, schedule one low-priority prewarm using `requestIdleCallback` with bounded fallback;
-- prewarm reads the server-provided `performance.asset_prewarm` manifest;
-- only allowlisted static DTB checkout assets and approved Stripe preconnect origins may be warmed;
 - never prefetch/cache the private session-owned `/checkout/` HTML document;
-- known non-essential marketing/tracking assets may be suppressed by explicit policy; unknown assets are not heuristically removed;
+- known non-essential marketing/tracking assets may be suppressed only by explicit verified policy; unknown assets are not heuristically removed;
 - checkout runtime telemetry records bounded non-secret diagnostics and must not reconstruct Woo form state;
-- payment-surface recovery UI may reload options or point to an actually eligible express surface, but must not create fallback payment objects.
+- provider-surface timeout recovery may reload options or point to an actually eligible express surface, but must not create fallback payment objects;
+- on enhanced mobile checkout, provider timeout monitoring begins when the inline Payment step is active;
+- SiteGround/host optimization must not rehost Stripe.js or reorder WordPress/Woo/Stripe checkout dependencies.
 
 Diagnostics route:
 
@@ -524,12 +528,15 @@ Targeted checkout/backend validation should include changed PHP syntax plus the 
 - native Checkout Block routing/rendering;
 - same-origin cart/session continuity;
 - official Stripe readiness and single-authority enforcement;
+- desktop continuous checkout and mobile Contact -> Shipping -> Payment presentation;
+- Express Checkout first on the mobile Contact step when provider eligible;
 - card success/decline and 3DS/SCA success/cancel/failure;
 - eligible/ineligible express-wallet behavior;
-- mobile payment-sheet focus/keyboard/viewport behavior;
+- inline mobile payment surface with no duplicate Stripe runtime or payment container;
 - authoritative total parity;
 - checkout root/form-state stability;
 - payment-surface timeout recovery without a second payment flow;
+- responsive mobile -> desktop -> mobile cleanup without stale hidden sections or overlays;
 - webhook replay tolerance;
 - order creation exactly once;
 - captured-payment downstream gating;
