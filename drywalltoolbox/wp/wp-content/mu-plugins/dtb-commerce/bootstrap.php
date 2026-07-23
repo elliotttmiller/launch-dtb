@@ -23,6 +23,7 @@ require_once __DIR__ . '/Payment/StorefrontReturnContext.php';
 require_once __DIR__ . '/Payment/OfficialStripeNativeCheckout.php';
 require_once __DIR__ . '/Payment/MobilePaymentSheet.php';
 require_once __DIR__ . '/Payment/CheckoutPerformance.php';
+require_once __DIR__ . '/Payment/CheckoutRuntimeIntegrity.php';
 require_once __DIR__ . '/Shipping/DTBShippingMethod.php';
 require_once __DIR__ . '/Email/WooCommerceBrandedEmails.php';
 require_once __DIR__ . '/Email/WooCommerceAdminBrandedEmails.php';
