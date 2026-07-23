@@ -25,6 +25,17 @@ React Store API cart
 
 DTB presentation JavaScript is intentionally isolated from `wc-blocks-checkout`. It must not declare Woo Checkout Block as a script dependency merely to wait for rendering. Presentation code must use DOM/runtime readiness observation and fail open when Woo does not mount.
 
+## Source-level invariants
+
+The owning checkout modules now register the production-safe behavior directly:
+
+- `DTB_OfficialStripeNativeCheckout::enqueue_checkout_assets()` registers DTB presentation scripts with normal footer execution and no `wc-blocks-checkout` dependency.
+- `DTB_MobilePaymentSheet::enqueue_assets()` registers the DTB payment-sheet presentation script with normal footer execution and no custom `async`/`defer` strategy.
+- `WooNativeCheckoutPage.php` registers profile refinement JavaScript with normal footer execution and no custom strategy.
+- `DTB_CheckoutPerformance` is diagnostics/telemetry only. It no longer registers checkout queue suppression, speculative prewarm/preload hooks, noncritical asset dequeue policy, or custom script strategy.
+
+These source-level rules are authoritative. Runtime cleanup is not the normal operating mechanism.
+
 ## Prohibited checkout optimizations
 
 On the authoritative checkout surface DTB must not:
@@ -37,9 +48,11 @@ On the authoritative checkout surface DTB must not:
 
 Reliability and provider correctness take precedence over speculative checkout bootstrap optimization.
 
-## DTB-owned presentation scripts
+## Defensive integrity boundary
 
-The runtime integrity boundary normalizes only these DTB-owned handles:
+`Payment/CheckoutRuntimeIntegrity.php` remains loaded after the owning checkout modules as a last-line invariant against future regressions.
+
+It inspects only these DTB-owned handles:
 
 ```text
 dtb-woo-native-checkout-steps
@@ -49,11 +62,13 @@ dtb-woo-native-checkout-payment-sheet
 dtb-woo-native-checkout-performance
 ```
 
-It removes DTB execution-strategy metadata and removes the unnecessary `wc-blocks-checkout` dependency from `dtb-woo-native-checkout-ui`. It never mutates registered WooCommerce, WordPress, Stripe, or third-party handles.
+The guard is expected to be a no-op during normal operation. If a future change reintroduces execution-strategy metadata on a DTB-owned checkout script, it removes that metadata. If `dtb-woo-native-checkout-ui` is accidentally coupled back to `wc-blocks-checkout`, it removes that dependency edge. It never mutates registered WooCommerce, WordPress, Stripe, payment-provider, or third-party handles.
 
 ## Performance policy
 
-`DTB_CheckoutPerformance` may retain bounded diagnostics/telemetry, but its checkout queue-suppression and speculative resource-prewarm hooks are disabled by the runtime integrity boundary. Any future checkout optimization must prove that it cannot alter Woo/WordPress/Stripe dependency registration, execution order, or hydration.
+`DTB_CheckoutPerformance` may record bounded, redacted runtime diagnostics and expose non-secret runtime-integrity metadata. It must not mutate the checkout asset queue or prewarm/preload implementation assets.
+
+Any future checkout optimization must prove that it cannot alter Woo/WordPress/Stripe dependency registration, execution order, package initialization, hydration, or payment-provider behavior.
 
 ## Deployment and rollback
 
@@ -68,4 +83,4 @@ After deployment:
 5. verify Checkout Block renders before evaluating DTB styling or Stripe payment behavior;
 6. smoke-test guest/authenticated checkout, shipping recalculation, Stripe card/Link/wallet eligibility, 3DS/SCA, successful order creation, and downstream DTB lifecycle dispatch.
 
-Rollback is limited to removing `Payment/CheckoutRuntimeIntegrity.php` and its bootstrap require line; WooCommerce/Stripe authority and order/payment persistence are otherwise unchanged.
+Rollback for this cleanup is scoped to the changed `dtb-commerce` checkout files. Do not roll back unrelated platform/catalog modules or the database for a presentation/runtime-only checkout incident.
