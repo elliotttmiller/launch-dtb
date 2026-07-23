@@ -74,6 +74,14 @@ jobs:
           find drywalltoolbox/wp/wp-content/mu-plugins drywalltoolbox/wp/wp-content/themes -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
+      - name: Validate checkout JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js
+          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js
+          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js
+
       - name: Validate checkout presentation contract
         shell: pwsh
         run: ./scripts/smoke-dtb-checkout-ui.ps1
