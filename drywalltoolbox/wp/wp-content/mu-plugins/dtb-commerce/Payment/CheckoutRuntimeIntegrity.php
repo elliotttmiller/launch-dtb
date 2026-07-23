@@ -5,8 +5,13 @@
  * WooCommerce Checkout Block and the official WooCommerce Stripe extension own
  * their complete JavaScript dependency graph and execution order. DTB checkout
  * presentation may enhance the DOM only after Woo has mounted; it must never
- * impose async/defer strategy, dependency coupling, dequeue policy, or preload
- * behavior on Woo/WordPress checkout runtime assets.
+ * impose async/defer strategy or dependency coupling on Woo/WordPress checkout
+ * runtime assets.
+ *
+ * The owning checkout modules are expected to register cleanly by default. This
+ * class remains as a defensive last-line invariant against future regressions.
+ * It touches DTB-owned script handles only and never mutates WooCommerce,
+ * WordPress, Stripe, payment-provider, or third-party runtime handles.
  *
  * @package drywall-toolbox
  */
@@ -24,27 +29,15 @@ final class DTB_CheckoutRuntimeIntegrity {
 	];
 
 	public static function register(): void {
-		/*
-		 * Checkout stability is more important than speculative optimization.
-		 * Disable DTB queue mutation and resource prewarming entirely. This does not
-		 * affect WooCommerce/Stripe-owned enqueueing, caching, or provider behavior.
-		 */
-		if ( class_exists( 'DTB_CheckoutPerformance' ) ) {
-			remove_action( 'wp_enqueue_scripts', [ 'DTB_CheckoutPerformance', 'suppress_noncritical_checkout_assets' ], 9990 );
-			remove_action( 'wp_head', [ 'DTB_CheckoutPerformance', 'print_early_resource_hints' ], 1 );
-		}
-
-		/* Run after all checkout modules have registered/enqueued their own assets. */
-		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'stabilize_dtb_checkout_scripts' ], PHP_INT_MAX );
+		/* Run after checkout modules have registered/enqueued their DTB-owned assets. */
+		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_dtb_checkout_script_invariants' ], PHP_INT_MAX );
 	}
 
 	/**
-	 * Isolate DTB presentation scripts from Woo's critical script graph.
-	 *
-	 * This method intentionally touches DTB-owned handles only. It never mutates
-	 * wc-*, wp-*, Stripe, payment-provider, or third-party registered scripts.
+	 * Enforce the DTB side of the checkout runtime contract without touching the
+	 * authoritative Woo/WordPress/Stripe graph.
 	 */
-	public static function stabilize_dtb_checkout_scripts(): void {
+	public static function enforce_dtb_checkout_script_invariants(): void {
 		if ( ! self::is_primary_checkout_request() ) {
 			return;
 		}
@@ -61,8 +54,8 @@ final class DTB_CheckoutRuntimeIntegrity {
 			}
 
 			/*
-			 * WordPress strategy propagation can alter dependency execution semantics.
-			 * DTB checkout enhancement scripts deliberately use normal footer execution.
+			 * Defensive only: owning modules should not set a strategy. Remove it if a
+			 * future regression reintroduces one on a DTB-owned checkout script.
 			 */
 			if ( isset( $registered->extra ) && is_array( $registered->extra ) ) {
 				unset( $registered->extra['strategy'] );
@@ -70,10 +63,9 @@ final class DTB_CheckoutRuntimeIntegrity {
 		}
 
 		/*
-		 * The UI enhancer observes the rendered Checkout Block DOM and does not call
-		 * Woo internals. A hard dependency on wc-blocks-checkout is therefore both
-		 * unnecessary and unsafe because it couples DTB strategy resolution to Woo's
-		 * critical vendor/package graph.
+		 * DTB's UI enhancer observes rendered DOM and must never depend directly on
+		 * WooCommerce Checkout Block internals. Keep this guard even though the owning
+		 * enqueue method now registers the clean dependency list itself.
 		 */
 		$ui = $wp_scripts->registered['dtb-woo-native-checkout-ui'] ?? null;
 		if ( is_object( $ui ) && isset( $ui->deps ) && is_array( $ui->deps ) ) {
