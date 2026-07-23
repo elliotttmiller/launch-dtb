@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
 import './products-selector.css';
 
 const ALL_PRODUCTS_CATEGORY = {
@@ -8,6 +9,9 @@ const ALL_PRODUCTS_CATEGORY = {
   name: 'All Products',
   isAllProducts: true,
 };
+
+const ALL_PRODUCTS_PREVIEW_LIMIT = 8;
+const ALL_PRODUCTS_SLIDE_INTERVAL_MS = 3800;
 
 const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'automatic_tapers': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_taper_04-scaled.webp',
@@ -60,7 +64,6 @@ const CATEGORY_IMAGE_OVERRIDES = {
   'columbia-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'columbia-taping-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'platinum-drywall-tools': {
-    // Show a flat box handle — not the mini box handle — for this category card
     'handles': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/platinum_pt_bh34_01.webp',
     'handles-extensions': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/platinum_pt_bh34_01.webp',
   },
@@ -125,15 +128,79 @@ function resolvePreviewImageMeta(src = '') {
   };
 }
 
-function ProductCategoryCard({ brand, category, index, onSelectCategory }) {
-  const resolvedImage = resolveCategoryImage(brand, category);
+function primaryProductImage(product = {}) {
+  return product?.media?.image
+    || product?.cardProduct?.image
+    || product?.image
+    || '';
+}
+
+function AllProductsSlideshow({ brand, images }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [failedImages, setFailedImages] = useState(() => new Set());
+  const availableImages = useMemo(
+    () => images.filter((src) => src && !failedImages.has(src)),
+    [failedImages, images],
+  );
+
+  useEffect(() => {
+    setActiveIndex(0);
+    setFailedImages(new Set());
+  }, [brand, images]);
+
+  useEffect(() => {
+    if (availableImages.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+
+    const advance = () => {
+      if (document.visibilityState !== 'visible') return;
+      setActiveIndex((current) => (current + 1) % availableImages.length);
+    };
+    const timer = window.setInterval(advance, ALL_PRODUCTS_SLIDE_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [availableImages.length]);
+
+  useEffect(() => {
+    if (availableImages.length < 2) return;
+    const nextImage = new Image();
+    nextImage.src = availableImages[(activeIndex + 1) % availableImages.length];
+  }, [activeIndex, availableImages]);
+
+  if (availableImages.length === 0) return null;
+
+  return (
+    <div className="product-category-card__slideshow" aria-hidden="true">
+      {availableImages.map((src, index) => {
+        const preview = resolvePreviewImageMeta(src);
+        return (
+          <img
+            key={src}
+            src={preview.src}
+            srcSet={preview.srcSet}
+            sizes={preview.sizes}
+            alt=""
+            className={`product-category-card__slide${index === activeIndex % availableImages.length ? ' is-active' : ''}`}
+            width={640}
+            height={427}
+            loading={index === 0 ? 'eager' : 'lazy'}
+            fetchPriority={index === 0 ? 'high' : 'low'}
+            decoding="async"
+            onError={() => setFailedImages((current) => new Set(current).add(src))}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function ProductCategoryCard({ brand, category, index, onSelectCategory, allProductsImages = [] }) {
+  const isAllProducts = Boolean(category?.isAllProducts);
+  const resolvedImage = isAllProducts ? '' : resolveCategoryImage(brand, category);
   const [failedImage, setFailedImage] = useState({ key: '', src: '' });
   const previewImage = resolvePreviewImageMeta(resolvedImage);
   const imageKey = `${toBrandSlug(brand)}:${category.key || category.slug || category.name}:${previewImage.src}`;
   const cardImage = failedImage.key === imageKey && failedImage.src === previewImage.src ? '' : previewImage.src;
-  const isAllProducts = Boolean(category?.isAllProducts);
-  const cardClassName = `product-category-card${cardImage ? '' : ' product-category-card--no-image'}${isAllProducts ? ' product-category-card--all-products' : ''}`;
-  const imageClassName = `product-category-card__image${isAllProducts ? ' product-category-card__image--logo' : ''}`;
+  const hasSlideshow = isAllProducts && allProductsImages.length > 0;
+  const cardClassName = `product-category-card${cardImage || hasSlideshow ? '' : ' product-category-card--no-image'}${isAllProducts ? ' product-category-card--all-products' : ''}`;
   const cardStyle = {
     animationDelay: `${(index + 1) * 0.07}s`,
     ...(cardImage ? { '--selector-card-image': toCssUrl(cardImage) } : {}),
@@ -146,13 +213,14 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory }) {
       style={cardStyle}
       onClick={() => onSelectCategory(category)}
     >
+      {hasSlideshow && <AllProductsSlideshow brand={brand} images={allProductsImages} />}
       {cardImage && (
         <img
           src={cardImage}
           srcSet={previewImage.srcSet}
           sizes={previewImage.sizes}
-          alt={isAllProducts ? `${brand} logo` : category.name}
-          className={imageClassName}
+          alt={category.name}
+          className="product-category-card__image"
           width={640}
           height={427}
           loading={index < 4 ? 'eager' : 'lazy'}
@@ -180,14 +248,44 @@ export default function ProductsCategorySelector({
   onSelectCategory,
   onBack,
 }) {
+  const [allProductsImages, setAllProductsImages] = useState([]);
   const normalizedCategories = Array.isArray(categories) ? categories : [];
   const categoryProductCount = normalizedCategories.reduce((sum, category) => (
     sum + Number(category?.count || category?.productCount || 0)
   ), 0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadPreviews = async () => {
+      try {
+        const response = await fetchCatalogProducts({
+          brands: [brand],
+          page: 1,
+          perPage: ALL_PRODUCTS_PREVIEW_LIMIT,
+          sort: 'popular',
+        });
+        if (cancelled) return;
+        const images = Array.from(new Set(
+          (Array.isArray(response?.items) ? response.items : [])
+            .map(primaryProductImage)
+            .map(normalizePreviewImageUrl)
+            .filter((src) => src && !src.endsWith('.svg')),
+        )).slice(0, ALL_PRODUCTS_PREVIEW_LIMIT);
+        setAllProductsImages(images);
+      } catch {
+        if (!cancelled) setAllProductsImages([]);
+      }
+    };
+
+    if (brand) loadPreviews();
+    else setAllProductsImages([]);
+    return () => { cancelled = true; };
+  }, [brand]);
+
   const allProductsCard = {
     ...ALL_PRODUCTS_CATEGORY,
     count: categoryProductCount,
-    image: brandLogo || '',
+    image: '',
   };
   const displayCategories = [
     allProductsCard,
@@ -225,6 +323,7 @@ export default function ProductsCategorySelector({
             category={category}
             index={index}
             onSelectCategory={onSelectCategory}
+            allProductsImages={category.isAllProducts ? allProductsImages : []}
           />
         ))}
       </div>
