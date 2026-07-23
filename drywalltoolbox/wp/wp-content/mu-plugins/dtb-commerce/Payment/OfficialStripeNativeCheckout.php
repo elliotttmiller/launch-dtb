@@ -19,7 +19,7 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
 	private const STRIPE_GATEWAY_ID = 'stripe';
-	private const ASSET_VERSION     = '2026.07.20.16';
+	private const ASSET_VERSION     = '2026.07.23.1';
 	private const STRIPE_APPEARANCE_VERSION = '2026.07.20.2';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
@@ -101,6 +101,12 @@ final class DTB_OfficialStripeNativeCheckout {
 			self::ASSET_VERSION
 		);
 
+		/*
+		 * DTB presentation scripts use normal footer execution and observe the
+		 * rendered checkout DOM. They intentionally do not depend on, defer, async,
+		 * reprioritize, or otherwise participate in WooCommerce's critical Checkout
+		 * Block JavaScript dependency graph.
+		 */
 		wp_enqueue_script(
 			'dtb-woo-native-checkout-steps',
 			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js' ),
@@ -111,12 +117,10 @@ final class DTB_OfficialStripeNativeCheckout {
 		wp_enqueue_script(
 			'dtb-woo-native-checkout-ui',
 			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js' ),
-			[ 'dtb-woo-native-checkout-steps', 'wc-blocks-checkout' ],
+			[ 'dtb-woo-native-checkout-steps' ],
 			self::ASSET_VERSION,
 			true
 		);
-		wp_script_add_data( 'dtb-woo-native-checkout-steps', 'strategy', 'defer' );
-		wp_script_add_data( 'dtb-woo-native-checkout-ui', 'strategy', 'defer' );
 	}
 
 	public static function body_class( array $classes ): array {
