@@ -18,9 +18,9 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CHECKOUT_GATEWAY = 'woo_native_stripe';
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
-	private const STRIPE_GATEWAY_ID = 'stripe';
-	private const ASSET_VERSION     = '2026.07.23.1';
-	private const STRIPE_APPEARANCE_VERSION = '2026.07.20.2';
+	private const STRIPE_GATEWAY_ID         = 'stripe';
+	private const ASSET_VERSION             = '2026.07.23.2';
+	private const STRIPE_APPEARANCE_VERSION = '2026.07.23.1';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
 	public static function register(): void {
@@ -51,7 +51,8 @@ final class DTB_OfficialStripeNativeCheckout {
 
 	public static function checkout_capabilities(): WP_REST_Response {
 		$main_gateway = self::payment_gateways()[ self::STRIPE_GATEWAY_ID ] ?? null;
-		$gateways = [];
+		$gateways     = [];
+
 		foreach ( self::payment_gateways() as $gateway ) {
 			if ( ! self::is_official_stripe_gateway_instance( $gateway ) ) {
 				continue;
@@ -75,15 +76,15 @@ final class DTB_OfficialStripeNativeCheckout {
 				'provider' => 'woocommerce_stripe',
 				'gateways' => $gateways,
 				'readiness' => [
-					'stripe_extension_active' => self::is_official_stripe_extension_active(),
-					'stripe_extension_version' => defined( 'WC_STRIPE_VERSION' ) ? sanitize_text_field( (string) WC_STRIPE_VERSION ) : '',
-					'stripe_gateway_enabled'  => self::is_official_stripe_gateway_enabled(),
-					'optimized_checkout_enabled' => self::gateway_option_enabled( $main_gateway, 'optimized_checkout_element' ),
-					'adaptive_pricing_configured' => self::gateway_option_enabled( $main_gateway, 'adaptive_pricing' ),
+					'stripe_extension_active'          => self::is_official_stripe_extension_active(),
+					'stripe_extension_version'         => defined( 'WC_STRIPE_VERSION' ) ? sanitize_text_field( (string) WC_STRIPE_VERSION ) : '',
+					'stripe_gateway_enabled'           => self::is_official_stripe_gateway_enabled(),
+					'optimized_checkout_enabled'       => self::gateway_option_enabled( $main_gateway, 'optimized_checkout_element' ),
+					'adaptive_pricing_configured'      => self::gateway_option_enabled( $main_gateway, 'adaptive_pricing' ),
 					'adaptive_pricing_runtime_enabled' => self::adaptive_pricing_runtime_enabled(),
-					'checkout_block'          => self::checkout_page_has_supported_content(),
-					'https'                   => is_ssl(),
-					'competing_woopayments'   => self::is_gateway_enabled( 'woocommerce_payments' ),
+					'checkout_block'                   => self::checkout_page_has_supported_content(),
+					'https'                            => is_ssl(),
+					'competing_woopayments'            => self::is_gateway_enabled( 'woocommerce_payments' ),
 				],
 			]
 		);
@@ -134,81 +135,91 @@ final class DTB_OfficialStripeNativeCheckout {
 
 	/**
 	 * Configure the provider-hosted Payment Element through Stripe's supported
-	 * Appearance API. Payment method rendering and behavior remain Stripe-owned.
+	 * Appearance API. Payment rendering and behavior remain Stripe-owned.
 	 */
 	public static function stripe_upe_params( $stripe_params ) {
 		if ( ! is_array( $stripe_params ) ) {
 			return $stripe_params;
 		}
 
-		$existing            = isset( $stripe_params['blocksAppearance'] ) ? (array) $stripe_params['blocksAppearance'] : [];
-		$existing_variables  = isset( $existing['variables'] ) ? (array) $existing['variables'] : [];
-		$existing_rules      = isset( $existing['rules'] ) ? (array) $existing['rules'] : [];
+		$existing           = isset( $stripe_params['blocksAppearance'] ) ? (array) $stripe_params['blocksAppearance'] : [];
+		$existing_variables = isset( $existing['variables'] ) ? (array) $existing['variables'] : [];
+		$existing_rules     = isset( $existing['rules'] ) ? (array) $existing['rules'] : [];
+
 		$appearance_variables = [
-			'colorPrimary'          => '#2457e6',
-			'colorBackground'       => '#ffffff',
-			'colorText'             => '#101828',
-			'colorTextSecondary'    => '#667085',
-			'colorDanger'           => '#b91c1c',
-			'fontFamily'            => 'ui-rounded, "SF Pro Rounded", "Avenir Next", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif',
-			'borderRadius'          => '10px',
-			'gridColumnSpacing'     => '10px',
-			'gridRowSpacing'        => '0px',
-			'tabSpacing'            => '8px',
-			'tabIconColor'          => '#334155',
-			'tabIconHoverColor'     => '#2457e6',
-			'tabIconSelectedColor'  => '#2457e6',
-			'tabLogoColor'          => 'dark',
-			'tabLogoSelectedColor'  => 'dark',
+			'colorPrimary'         => '#2f5bea',
+			'colorBackground'      => '#ffffff',
+			'colorText'            => '#101828',
+			'colorTextSecondary'   => '#667085',
+			'colorDanger'          => '#b42318',
+			'fontFamily'           => 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+			'fontSizeBase'         => '15px',
+			'borderRadius'         => '12px',
+			'spacingUnit'          => '4px',
+			'gridColumnSpacing'    => '12px',
+			'gridRowSpacing'       => '12px',
+			'tabSpacing'           => '10px',
+			'tabIconColor'         => '#475467',
+			'tabIconHoverColor'    => '#2f5bea',
+			'tabIconSelectedColor' => '#2f5bea',
+			'tabLogoColor'         => 'dark',
+			'tabLogoSelectedColor' => 'dark',
 		];
+
 		$appearance_rules = [
 			'.Tab' => (object) [
-				'backgroundColor' => '#f8fafc',
-				'border'          => '1px solid transparent',
+				'backgroundColor' => '#ffffff',
+				'border'          => '1px solid #e2e8f0',
+				'borderRadius'    => '12px',
 				'boxShadow'       => 'none',
-				'padding'         => '10px 12px',
-				'transition'      => 'background-color 160ms ease, border-color 160ms ease, color 160ms ease',
+				'padding'         => '12px 14px',
+				'transition'      => 'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease',
 			],
 			'.Tab:hover' => (object) [
-				'backgroundColor' => '#f1f5f9',
-				'border'          => '1px solid #cbd5e1',
+				'backgroundColor' => '#f9fbff',
+				'border'          => '1px solid #b8c4d6',
 			],
 			'.Tab:focus' => (object) [
-				'outline'       => '2px solid #93c5fd',
+				'outline'       => '2px solid #9db4ff',
 				'outlineOffset' => '2px',
 			],
 			'.Tab--selected' => (object) [
-				'backgroundColor' => '#eff6ff',
-				'border'          => '1px solid #2457e6',
-				'boxShadow'       => 'none',
+				'backgroundColor' => '#eef3ff',
+				'border'          => '1px solid #2f5bea',
+				'boxShadow'       => '0 0 0 1px rgba(47,91,234,.06)',
 			],
 			'.TabLabel' => (object) [
 				'fontWeight' => '600',
 			],
-			'.TabIcon' => (object) [
-				'paddingBottom' => '4px',
-			],
 			'.Input' => (object) [
-				'backgroundColor' => 'transparent',
-				'border'          => 'none',
-				'boxShadow'       => 'inset 0 -1px 0 #d0d5dd',
-				'padding'         => '12px 0',
+				'backgroundColor' => '#ffffff',
+				'border'          => '1px solid #cbd5e1',
+				'borderRadius'    => '12px',
+				'boxShadow'       => 'none',
+				'padding'         => '14px 14px',
+			],
+			'.Input:hover' => (object) [
+				'border' => '1px solid #94a3b8',
 			],
 			'.Input:focus' => (object) [
-				'border'    => 'none',
-				'boxShadow' => 'inset 0 -2px 0 #2457e6',
+				'border'    => '1px solid #2f5bea',
+				'boxShadow' => '0 0 0 4px rgba(47,91,234,.12)',
 			],
 			'.Input--invalid' => (object) [
-				'border'    => 'none',
-				'boxShadow' => 'inset 0 -2px 0 #b91c1c',
+				'border'    => '1px solid #b42318',
+				'boxShadow' => '0 0 0 4px rgba(180,35,24,.10)',
+			],
+			'.Label' => (object) [
+				'color'      => '#475467',
+				'fontWeight' => '500',
 			],
 		];
 
 		$stripe_params['blocksAppearance'] = (object) array_merge(
 			$existing,
 			[
-				'theme'     => 'flat',
-				'inputs'    => 'condensed',
+				'theme'     => 'stripe',
+				'inputs'    => 'spaced',
 				'labels'    => 'floating',
 				'variables' => (object) array_merge( $existing_variables, $appearance_variables ),
 				'rules'     => (object) array_merge( $existing_rules, $appearance_rules ),
@@ -318,9 +329,6 @@ final class DTB_OfficialStripeNativeCheckout {
 	/**
 	 * Determine whether a payment gateway ID currently belongs to an instance
 	 * loaded from the official WooCommerce Stripe extension.
-	 *
-	 * This deliberately avoids treating every `stripe_*` ID as official because
-	 * third-party Stripe plugins use overlapping ID prefixes.
 	 */
 	public static function is_official_gateway_id( string $gateway_id ): bool {
 		$gateway_id = sanitize_key( $gateway_id );
