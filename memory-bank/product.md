@@ -1,6 +1,6 @@
 # Product
 
-Last verified against active source: 2026-07-21.
+Last verified against active source: 2026-07-23.
 
 ## Product definition
 
@@ -57,7 +57,6 @@ Current path:
 ```text
 React cart / cart drawer
   -> WooCommerce Store API cookie-backed cart session + Nonce
-  -> optional low-priority prewarm of DTB static checkout assets
   -> full-document /checkout/
   -> WordPress/WooCommerce Checkout Block
   -> official WooCommerce Stripe Payment Gateway
@@ -78,32 +77,42 @@ Current product behavior includes:
 - customer order confirmation/tracking return flows after successful checkout;
 - canonical root checkout even when the shopper originated from a staging storefront path.
 
-### Mobile checkout payment sheet
+### Unified responsive checkout experience
 
-DTB now provides a mobile bottom-sheet presentation around the existing native Woo/official-Stripe checkout payment surface.
+DTB presents one native Woo/official-Stripe checkout runtime differently by viewport without creating duplicate commerce or payment state.
 
-This is presentation state only. It may provide:
+Desktop uses a continuous, Stripe-inspired two-column checkout:
 
-- accessible dialog chrome and focus containment;
-- mobile viewport/keyboard handling;
-- a read-only total projection from Woo Blocks `wc/store/cart` state;
-- supported mobile `Pay now` presentation for the authoritative Woo Place Order action;
-- non-secret readiness diagnostics.
+```text
+Left: Express Checkout -> Contact -> Shipping -> Payment -> Place Order
+Right: canonical sticky Woo Order Summary
+```
 
-It does not create PaymentIntents, Checkout Sessions, card fields, wallet buttons, or a second order/payment submission path. Provider-owned controls remain mounted and Stripe/WooCommerce retain payment/order authority.
+Mobile uses a presentation-only three-step flow over the same mounted Checkout Block:
+
+```text
+1. Contact
+   -> eligible Express Checkout first
+   -> contact/account controls
+2. Shipping
+   -> address and delivery methods
+3. Payment
+   -> inline official Woo/Stripe payment surface
+   -> native Woo Place Order action
+```
+
+The mobile progress/navigation UI may hide and reveal existing Woo sections for clarity, but it does not create a second form, payment modal, bottom sheet, Payment Element, PaymentIntent, Checkout Session, or submit path. Provider-owned payment controls remain in the WooCommerce React tree and payment/order authority stays with WooCommerce and the official Stripe extension.
 
 ### Checkout performance and resilience
 
 The native checkout has a dedicated performance/stability layer that:
 
-- prewarms only allowlisted DTB static checkout assets after successful cart engagement;
-- restores useful Stripe resource hints on native checkout;
-- suppresses only known non-essential marketing/tracking assets by explicit policy;
-- applies below-fold order-summary image loading policy;
 - records bounded checkout runtime diagnostics for JS/resource failures, payment-surface timeout, unexpected checkout-root replacement, layout/performance signals, and third-party budget warnings;
-- provides recovery presentation if the official payment surface does not become available within the bounded timeout.
+- applies below-fold order-summary image loading policy;
+- provides provider-safe recovery presentation if the official payment surface does not become available within the bounded timeout;
+- preserves checkout-specific SiteGround optimizer exclusions so WordPress/Woo/Stripe dependency order and Stripe.js origin remain intact.
 
-Performance behavior is fail-open. It never prefetches/caches private `/checkout/` HTML, reconstructs authoritative form state, or creates fallback payment objects.
+Performance behavior is fail-open. It never caches private `/checkout/` HTML, reconstructs authoritative form state, or creates fallback payment objects.
 
 Diagnostics endpoint:
 
@@ -234,7 +243,7 @@ Operational data paths have evolved. Current code/scripts must be inspected befo
 - WordPress/WooCommerce owns native checkout/order creation and operational commerce persistence.
 - Mu-plugin modules are the canonical home for backend business logic.
 - The official WooCommerce Stripe Payment Gateway owns storefront payment-method rendering and payment execution.
-- DTB mobile payment-sheet/performance layers are presentation/diagnostics only and cannot become payment authorities.
+- DTB responsive checkout/performance layers are presentation/diagnostics only and cannot become payment authorities.
 - WooCommerce owns products, customers, Store API cart/session, orders, and refunds.
 - DTB owns domain policy, verified lifecycle observation, eventing, projections, queues, checkout routing support, services, and integration policy.
 - Veeqo owns inventory and fulfillment truth.
@@ -249,6 +258,7 @@ Operational data paths have evolved. Current code/scripts must be inspected befo
 - copying/mounting private payment-plugin React/build internals inside the SPA;
 - custom DTB Stripe Checkout Sessions or PaymentIntents for storefront checkout while the official WooCommerce Stripe gateway is authoritative;
 - fake or independently orchestrated Apple Pay/Google Pay/Link UI;
+- mobile-specific duplicate payment modals, sheets, or payment runtimes;
 - caching/prefetching session-owned checkout HTML for performance;
 - reconstructing Woo checkout form/payment state from duplicate browser state;
 - building a separate admin SPA when wp-admin workbenches own operations;
