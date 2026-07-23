@@ -15,6 +15,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+add_filter( 'determine_current_user', 'dtb_native_admin_restore_cookie_user', 24 );
 add_filter( 'rest_authentication_errors', 'dtb_woo_admin_rest_nonce_compat_restore_get_request', 116 );
 
 /**
@@ -65,6 +66,44 @@ function dtb_woo_admin_rest_nonce_compat_current_route(): string {
 
 	$route = substr( $path, $offset + strlen( $marker ) );
 	return '' === $route ? '/' : ( '/' === $route[0] ? $route : '/' . $route );
+}
+
+/**
+ * Whether the current request targets a native admin REST namespace.
+ */
+function dtb_native_admin_rest_namespace_request(): bool {
+	$route = dtb_woo_admin_rest_nonce_compat_current_route();
+	if ( '' === $route ) {
+		return false;
+	}
+
+	foreach ( dtb_jwt_wp_admin_rest_route_prefixes() as $prefix ) {
+		if ( 0 === strpos( $route, $prefix ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Restore a valid native WordPress admin cookie identity before the DTB JWT bridge.
+ *
+ * This does not bypass REST nonce or capability checks. It only ensures that a
+ * root-mounted /wp-json request can recover the same authenticated WordPress user
+ * represented by the signed wp-admin cookies when the core resolver leaves the
+ * request anonymous under the nested /wp/wp-admin + root /wp-json topology.
+ *
+ * @param int|false $user_id Current resolved user id.
+ * @return int|false
+ */
+function dtb_native_admin_restore_cookie_user( $user_id ) {
+	if ( ! dtb_woo_admin_rest_nonce_compat_enabled() || ! empty( $user_id ) || ! dtb_native_admin_rest_namespace_request() ) {
+		return $user_id;
+	}
+
+	$resolved = dtb_woo_admin_rest_nonce_compat_auth_user_id();
+	return $resolved > 0 ? $resolved : $user_id;
 }
 
 /**
