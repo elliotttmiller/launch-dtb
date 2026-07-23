@@ -36,37 +36,6 @@
   height: auto;
 }
 
-.dtb-footer-template__summary {
-  margin: 22px 0 20px;
-  color: rgba(226, 232, 240, 0.7);
-  font-size: 0.875rem;
-  line-height: 1.65;
-}
-
-.dtb-footer-template__contact {
-  display: inline-flex;
-  min-height: 40px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 18px !important;
-  border-radius: 9px;
-  background: #2563eb;
-  color: #fff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-decoration: none;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.2);
-  transition: background-color 180ms var(--dtb-ease, ease), box-shadow 180ms var(--dtb-ease, ease), transform 180ms var(--dtb-ease, ease);
-}
-
-.dtb-footer-template__contact:hover,
-.dtb-footer-template__contact:focus-visible {
-  outline: 0;
-  background: #1d4ed8;
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.28);
-  transform: translateY(-1px);
-}
-
 .dtb-footer-template__heading {
   margin: 0 0 20px;
   color: #fff;
@@ -195,12 +164,6 @@
     margin: 0 auto;
   }
 
-  .dtb-footer-template__summary {
-    max-width: 420px;
-    margin-right: auto;
-    margin-left: auto;
-  }
-
   .dtb-footer-template__bottom {
     flex-direction: column;
     justify-content: center;
@@ -226,7 +189,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dtb-footer-template__contact,
   .dtb-footer-template__link,
   .dtb-footer-template__social {
     transition: none;
