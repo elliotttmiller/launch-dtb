@@ -30,6 +30,25 @@ export default function StorefrontMobileDrawer({ isOpen, onClose, labelledBy = '
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, onClose]);
 
+  const handlePanelClick = (event) => {
+    const row = event.target.closest('.storefront-mobile-drawer__row');
+    if (!row) return;
+
+    // The title remains the navigation target. The chevron keeps its native
+    // button handler, while the rest of the row proxies to that same control.
+    if (
+      event.target.closest('.storefront-mobile-drawer__row-label')
+      || event.target.closest('.storefront-mobile-drawer__row-toggle')
+    ) {
+      return;
+    }
+
+    const toggle = row.querySelector('.storefront-mobile-drawer__row-toggle');
+    if (toggle instanceof HTMLButtonElement && !toggle.disabled) {
+      toggle.click();
+    }
+  };
+
   return (
     <div className="storefront-mobile-drawer" data-open={isOpen ? 'true' : 'false'}>
       <MotionPresence mode="wait" initial={false}>
@@ -47,6 +66,7 @@ export default function StorefrontMobileDrawer({ isOpen, onClose, labelledBy = '
               aria-modal="true"
               aria-labelledby={labelledBy}
               aria-label="Mobile navigation"
+              onClick={handlePanelClick}
             >
               <button
                 ref={closeRef}
