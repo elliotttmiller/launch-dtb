@@ -13,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutPerformance {
-	private const ASSET_VERSION = '2026.07.23.1';
+	private const ASSET_VERSION = '2026.07.23.2';
 	private const TELEMETRY_NONCE_ACTION = 'dtb_checkout_runtime_telemetry';
 	private const PAYMENT_SURFACE_TIMEOUT_MS = 15000;
 	private const TELEMETRY_EVENT_TTL = 10 * MINUTE_IN_SECONDS;
