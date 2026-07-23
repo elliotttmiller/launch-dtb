@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
 import '../../styles/storefront-desktop-navigation-integrity.css';
 
+const RESILIENT_DROPDOWN_IDS = new Set(['products', 'brands', 'parts', 'repairs', 'schematics']);
+
 function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate }) {
   const triggerRef = useRef(null);
   const panelId = useId();
@@ -90,7 +92,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
   return (
     <nav className="dtb-desktop-nav" aria-label="Primary navigation">
-      {items.map((item) => (item.hasDropdown || item.items?.length) ? (
+      {items.map((item) => (item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length) ? (
         <DesktopNavDropdown
           key={item.id}
           item={item}
