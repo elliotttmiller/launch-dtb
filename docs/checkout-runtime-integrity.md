@@ -15,7 +15,9 @@ The native checkout path is:
 ```text
 React Store API cart
   -> full-document /checkout/ navigation
-  -> DTB_WooNativeCheckoutRuntime disables the SPA override
+  -> DTB_WooNativeCheckoutRuntime disables the SPA override at `wp`
+  -> DTB_WooNativeCheckoutRuntime reasserts the exception at `wp_enqueue_scripts` priority 0
+  -> headless theme React enqueue/asset-strip callbacks are absent for checkout
   -> WordPress executes the assigned WooCommerce Checkout page
   -> WooCommerce Checkout Block boots with its native dependency graph
   -> official WooCommerce Stripe runtime boots
@@ -27,14 +29,25 @@ DTB presentation JavaScript is intentionally isolated from `wc-blocks-checkout`.
 
 ## Source-level invariants
 
-The owning checkout modules now register the production-safe behavior directly:
+The owning checkout modules register the production-safe behavior directly:
 
+- `DTB_WooNativeCheckoutRuntime::prepare_runtime()` removes the React SPA enqueue, non-React asset stripper, and forced React template for native checkout at both the `wp` and enqueue boundaries.
 - `DTB_OfficialStripeNativeCheckout::enqueue_checkout_assets()` registers DTB presentation scripts with normal footer execution and no `wc-blocks-checkout` dependency.
 - `DTB_MobilePaymentSheet::enqueue_assets()` registers the DTB payment-sheet presentation script with normal footer execution and no custom `async`/`defer` strategy.
 - `WooNativeCheckoutPage.php` registers profile refinement JavaScript with normal footer execution and no custom strategy.
-- `DTB_CheckoutPerformance` is diagnostics/telemetry only. It no longer registers checkout queue suppression, speculative prewarm/preload hooks, noncritical asset dequeue policy, or custom script strategy.
+- `DTB_CheckoutPerformance` is diagnostics/telemetry only. It does not register checkout queue suppression, speculative prewarm/preload hooks, noncritical asset dequeue policy, or custom script strategy.
 
 These source-level rules are authoritative. Runtime cleanup is not the normal operating mechanism.
+
+## Hosting/cache optimizer boundary
+
+The checkout transaction surface must not be transformed by a hosting optimization layer in a way that changes registered JavaScript order.
+
+`Payment/CheckoutRuntimeIntegrity.php` uses SiteGround Speed Optimizer exclusion filters to protect the critical checkout graph from async/defer, combine, and minify transformations and excludes `/checkout/*` from page caching. The exclusions preserve the dependency order registered by WordPress/WooCommerce; they do not add, reorder, or replace Woo dependencies.
+
+Protected classes include the critical `wp-*` package globals, Woo Blocks checkout packages, Woo checkout vendor/runtime bundles, official Stripe checkout integration handles, and DTB presentation/diagnostic handles.
+
+After any checkout deployment, SiteGround dynamic/static caches and PHP OPcache must be cleared so stale generated optimizer artifacts cannot mix dependency metadata or JavaScript generations.
 
 ## Prohibited checkout optimizations
 
@@ -50,9 +63,9 @@ Reliability and provider correctness take precedence over speculative checkout b
 
 ## Defensive integrity boundary
 
-`Payment/CheckoutRuntimeIntegrity.php` remains loaded after the owning checkout modules as a last-line invariant against future regressions.
+`Payment/CheckoutRuntimeIntegrity.php` remains loaded after the owning checkout modules as a last-line invariant against future regressions and hosting-layer transformations.
 
-It inspects only these DTB-owned handles:
+For DTB-owned scripts it verifies these handles:
 
 ```text
 dtb-woo-native-checkout-steps
@@ -62,7 +75,7 @@ dtb-woo-native-checkout-payment-sheet
 dtb-woo-native-checkout-performance
 ```
 
-The guard is expected to be a no-op during normal operation. If a future change reintroduces execution-strategy metadata on a DTB-owned checkout script, it removes that metadata. If `dtb-woo-native-checkout-ui` is accidentally coupled back to `wc-blocks-checkout`, it removes that dependency edge. It never mutates registered WooCommerce, WordPress, Stripe, payment-provider, or third-party handles.
+The guard is expected to be a no-op during normal WordPress registration. If a future change reintroduces execution-strategy metadata on a DTB-owned checkout script, it removes that metadata. If `dtb-woo-native-checkout-ui` is accidentally coupled back to `wc-blocks-checkout`, it removes that dependency edge. It never rewrites registered WooCommerce, WordPress, Stripe, payment-provider, or third-party dependencies.
 
 ## Performance policy
 
@@ -78,7 +91,7 @@ After deployment:
 
 1. clear SiteGround dynamic/static caches as applicable;
 2. clear PHP OPcache;
-3. hard-refresh the browser;
+3. hard-refresh the browser or use a clean private session;
 4. verify zero fatal console errors from `wc-cart-checkout-vendors`, `wc-blocks-checkout`, `wc-checkout-block-frontend`, `wp-components`, `wp-data`, and `wp-element`;
 5. verify Checkout Block renders before evaluating DTB styling or Stripe payment behavior;
 6. smoke-test guest/authenticated checkout, shipping recalculation, Stripe card/Link/wallet eligibility, 3DS/SCA, successful order creation, and downstream DTB lifecycle dispatch.
