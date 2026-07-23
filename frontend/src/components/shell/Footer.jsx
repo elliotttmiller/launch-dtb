@@ -75,10 +75,6 @@ export default function Footer() {
             <Link to="/" aria-label="Drywall Toolbox home">
               <img className="dtb-footer-template__logo" src={LogoWhite} alt="Drywall Toolbox" />
             </Link>
-            <p className="dtb-footer-template__summary">
-              The New Standard in Drywall.
-            </p>
-            <Link className="dtb-footer-template__contact" to="/contact">Contact us</Link>
           </section>
 
           {FOOTER_GROUPS.map((group) => <FooterLinkGroup key={group.title} {...group} />)}
