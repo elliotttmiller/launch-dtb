@@ -316,6 +316,10 @@
 		}
 		rootObserver?.disconnect();
 		observedRoot = root;
+		rootObserver = null;
+		if ( ! root ) {
+			return;
+		}
 		rootObserver = new MutationObserver( queueReconcile );
 		rootObserver.observe( root, { childList: true, subtree: true } );
 	}
@@ -343,13 +347,15 @@
 
 		bodyObserver = new MutationObserver( () => {
 			const root = checkoutRoot();
-			if ( root && root !== observedRoot ) {
-				bindRootObserver( root );
+			if ( root === observedRoot ) {
+				return;
 			}
+			bindRootObserver( root );
 			queueReconcile();
 		} );
 		bodyObserver.observe( document.body, { childList: true, subtree: true } );
 
+		bindRootObserver( checkoutRoot() );
 		queueReconcile();
 		window.setTimeout( queueReconcile, 400 );
 		window.setTimeout( queueReconcile, 1200 );
