@@ -2,6 +2,7 @@ import { useId, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
+import '../../styles/storefront-desktop-navigation-fixes.css';
 
 function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate }) {
   const triggerRef = useRef(null);
