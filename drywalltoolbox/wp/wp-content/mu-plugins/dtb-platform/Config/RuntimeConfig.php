@@ -10,10 +10,24 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Build the default DTB product-webhook delivery URL without calling rest_url().
+ *
+ * dtb_get_config() may be reached from determine_current_user while plugins are
+ * still loading (for example JWT resolution triggered by WooCommerce capability
+ * checks). At that point WordPress has not necessarily initialized $wp_rewrite,
+ * so rest_url() can fatally dereference a null rewrite object. The public DTB
+ * REST contract is root-mounted at /wp-json/ even though WordPress core lives in
+ * /wp, so home_url() is the safe bootstrap-time authority for this default.
+ */
+function dtb_default_webhook_delivery_url(): string {
+	return home_url( '/wp-json/drywall/v1/webhooks/products' );
+}
+
+/**
  * Return all DTB wp-config.php constants as a single associative array.
  *
  * Calling defined() once here (at first use) is cheaper than scattering
- * individual defined() checks throughout every route callback.  The result
+ * individual defined() checks throughout every route callback. The result
  * is stored in $GLOBALS so the check runs at most once per request.
  *
  * Keys:
@@ -51,7 +65,7 @@ function dtb_get_config(): array {
 		'csv_filenames'    => $csv_config['filenames'],
 		'csv_source'       => $csv_config['source'],
 		'csv_missing'      => $csv_config['missing'],
-		'webhook_delivery' => defined( 'DTB_WEBHOOK_DELIVERY_URL' ) ? DTB_WEBHOOK_DELIVERY_URL : rest_url( 'drywall/v1/webhooks/products' ),
+		'webhook_delivery' => defined( 'DTB_WEBHOOK_DELIVERY_URL' ) ? DTB_WEBHOOK_DELIVERY_URL : dtb_default_webhook_delivery_url(),
 	];
 
 	return $GLOBALS['_dtb_config_cache'];
