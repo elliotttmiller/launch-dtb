@@ -40,10 +40,10 @@
   }
 
   .site-header .header-center--desktop-search {
-    grid-column: 2 / 4;
+    grid-column: 3;
     grid-row: 1;
     display: flex;
-    justify-content: flex-end;
+    justify-content: stretch;
     width: 100%;
     min-width: 0;
     justify-self: stretch;
@@ -52,10 +52,14 @@
   }
 
   .site-header .dtb-desktop-search--header {
-    width: clamp(240px, 20vw, 390px);
-    max-width: 100%;
+    width: 100%;
+    max-width: 390px;
+    min-width: 0;
+    margin-left: auto;
     pointer-events: auto;
-    transition: width 420ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition:
+      max-width 420ms cubic-bezier(0.22, 1, 0.36, 1),
+      width 420ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .site-header .dtb-desktop-search--header .dtb-desktop-search-pill {
@@ -63,8 +67,13 @@
     max-width: none;
   }
 
+  .site-header .header-desktop-layout.is-desktop-search-open .header-center--desktop-search {
+    grid-column: 2 / 4;
+  }
+
   .site-header .header-desktop-layout.is-desktop-search-open .dtb-desktop-search--header {
     width: 100%;
+    max-width: 100%;
   }
 
   .site-header .dtb-desktop-search--header[data-results-open="false"] .dtb-desktop-search-input:focus {
@@ -76,7 +85,7 @@
   }
 
   .site-header .header-right {
-    grid-column: auto;
+    grid-column: 4;
     gap: clamp(18px, 1.4vw, 24px);
     margin-left: 0;
     padding-right: 0;
@@ -107,6 +116,7 @@
     width: 100%;
     padding: 0;
     border: 0;
+    overflow: hidden;
     opacity: 1;
     visibility: visible;
     transition:
@@ -129,7 +139,9 @@
     justify-content: flex-start;
     gap: clamp(0px, 0.18vw, 4px);
     width: 100%;
+    min-width: 0;
     height: 100%;
+    overflow: hidden;
   }
 
   .dtb-desktop-nav-menu {
@@ -137,6 +149,8 @@
     display: flex;
     align-items: stretch;
     height: 100%;
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   .dtb-desktop-nav-tab {
@@ -146,6 +160,7 @@
     align-items: center;
     justify-content: center;
     gap: 5px;
+    min-width: 0;
     min-height: 100%;
     padding: 0 clamp(6px, 0.62vw, 12px);
     border: 0;
@@ -346,31 +361,30 @@
   }
 }
 
-@media (min-width: 1025px) and (max-width: 1240px) {
+@media (min-width: 1025px) and (max-width: 1500px) {
   .site-header .site-header-inner {
-    padding-right: 18px !important;
-    padding-left: 18px !important;
+    padding-right: clamp(14px, 1.5vw, 24px) !important;
+    padding-left: clamp(14px, 1.5vw, 24px) !important;
   }
 
   .site-header .header-desktop-layout {
     grid-template-columns:
-      clamp(150px, 14vw, 174px)
+      clamp(132px, 10vw, 176px)
       minmax(0, 1fr)
-      clamp(200px, 18vw, 230px)
+      clamp(180px, 17vw, 260px)
       auto;
-    gap: 10px;
+    gap: clamp(8px, 0.8vw, 14px);
   }
 
   .site-header .logo-image {
-    width: 100%;
-    height: auto;
-    max-width: 174px;
+    max-width: 176px;
   }
 
   .dtb-desktop-nav-tab {
-    padding-right: 4px;
-    padding-left: 4px;
-    font-size: 0.72rem;
+    gap: 4px;
+    padding-right: clamp(3px, 0.35vw, 7px);
+    padding-left: clamp(3px, 0.35vw, 7px);
+    font-size: clamp(0.69rem, 0.72vw, 0.84rem);
   }
 
   .dtb-desktop-nav-tab svg {
@@ -379,14 +393,14 @@
   }
 }
 
-@media (min-width: 1025px) and (max-width: 1220px) {
+@media (min-width: 1025px) and (max-width: 1280px) {
   .site-header .header-desktop-layout {
-    grid-template-columns: 128px minmax(0, 1fr) clamp(168px, 16vw, 195px) auto;
-    gap: 8px;
+    grid-template-columns: 122px minmax(0, 1fr) clamp(158px, 15vw, 190px) auto;
+    gap: 7px;
   }
 
   .site-header .logo-image {
-    max-width: 128px;
+    max-width: 122px;
   }
 
   .dtb-desktop-nav {
@@ -394,15 +408,16 @@
   }
 
   .dtb-desktop-nav-tab {
-    gap: 3px;
-    padding-right: 3px;
-    padding-left: 3px;
-    font-size: clamp(0.67rem, 0.94vw, 0.72rem);
+    gap: 2px;
+    padding-right: 2px;
+    padding-left: 2px;
+    font-size: clamp(0.61rem, 0.75vw, 0.68rem);
+    letter-spacing: -0.02em;
   }
 
   .dtb-desktop-nav-tab svg {
-    width: 10px;
-    height: 10px;
+    width: 9px;
+    height: 9px;
   }
 }
 
