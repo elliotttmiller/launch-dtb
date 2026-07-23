@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
 import './products-selector.css';
+import './products-selector-slideshow.css';
 
 const ALL_PRODUCTS_CATEGORY = {
   key: 'all-products',
