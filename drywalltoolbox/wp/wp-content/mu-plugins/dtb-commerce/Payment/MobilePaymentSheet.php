@@ -4,8 +4,8 @@
  *
  * WooCommerce and the official WooCommerce Stripe Payment Gateway retain all
  * checkout, payment-method, tokenization, authentication, and submission
- * authority. This class only loads DTB presentation hardening and exposes
- * non-secret local readiness signals for operators.
+ * authority. This class loads DTB-owned presentation assets with normal footer
+ * execution and exposes non-secret local readiness signals for operators.
  *
  * @package drywall-toolbox
  */
@@ -40,7 +40,6 @@ final class DTB_MobilePaymentSheet {
 			self::ASSET_VERSION,
 			true
 		);
-		wp_script_add_data( 'dtb-woo-native-checkout-payment-sheet', 'strategy', 'defer' );
 	}
 
 	/**
