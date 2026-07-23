@@ -24,8 +24,8 @@ function dtb_commerce_register_shipping_method(): void {
 		 * WooCommerce shipping method: DTB Shipping Policy.
 		 *
 		 * Shows Standard, Express, and Overnight options calculated from the
-		 * cart total and total weight. Free shipping is applied automatically
-		 * for domestic orders >= $500.
+		 * cart total and total weight. Free standard shipping is applied
+		 * automatically for domestic orders >= $50.
 		 */
 		class DTB_Shipping_Method extends WC_Shipping_Method {
 
@@ -213,6 +213,49 @@ function dtb_commerce_add_policy_rates_when_missing( array $rates, array $packag
 add_filter( 'woocommerce_package_rates', 'dtb_commerce_add_policy_rates_when_missing', 100, 2 );
 
 /**
+ * Remove WooCommerce's overlapping Free Shipping rate when DTB policy rates are
+ * present for the package.
+ *
+ * DTB is the shipping-policy authority and already emits a free standard tier
+ * for eligible domestic carts. Keeping Woo's separate `free_shipping` method
+ * exposes two equivalent zero-cost choices with different labels and can persist
+ * an obsolete selected rate in the cart session. We therefore suppress only the
+ * conflicting core Free Shipping method, and only when at least one DTB policy
+ * rate is present. Other third-party or pickup methods are preserved.
+ *
+ * @param array<string,WC_Shipping_Rate> $rates   Calculated package rates.
+ * @param array<string,mixed>            $package Active shipping package.
+ * @return array<string,WC_Shipping_Rate>
+ */
+function dtb_commerce_remove_overlapping_free_shipping_rate( array $rates, array $package ): array {
+	$has_dtb_rate = false;
+
+	foreach ( $rates as $rate ) {
+		if ( ! $rate instanceof WC_Shipping_Rate ) {
+			continue;
+		}
+
+		if ( DTB_SHIPPING_METHOD_ID === (string) $rate->get_method_id() ) {
+			$has_dtb_rate = true;
+			break;
+		}
+	}
+
+	if ( ! $has_dtb_rate ) {
+		return $rates;
+	}
+
+	foreach ( $rates as $rate_id => $rate ) {
+		if ( $rate instanceof WC_Shipping_Rate && 'free_shipping' === (string) $rate->get_method_id() ) {
+			unset( $rates[ $rate_id ] );
+		}
+	}
+
+	return $rates;
+}
+add_filter( 'woocommerce_package_rates', 'dtb_commerce_remove_overlapping_free_shipping_rate', 110, 2 );
+
+/**
  * Clear WooCommerce's request/session package-rate cache.
  *
  * @param array<int,array<string,mixed>> $packages Current cart shipping packages.
@@ -259,32 +302,29 @@ function dtb_commerce_zone_matches_us( WC_Shipping_Zone $zone ): bool {
  * zones are created on first admin visit even if woocommerce_init ran too
  * early during a non-WC request).
  *
- * The version gate prevents repeated DB writes on every request.  When the
+ * The version gate prevents repeated DB writes on every request. When the
  * constant version is bumped the migration re-runs once and updates the option.
  *
  * SELF-HEALING: Even when the version matches, we do a lightweight check for
- * the Rest-of-World zone (zone 0) having a DTB method.  This catches the case
+ * the Rest-of-World zone (zone 0) having a DTB method. This catches the case
  * where an admin accidentally removed the method without triggering a version
  * bump.
  */
 add_action( 'woocommerce_init', 'dtb_bootstrap_shipping_zones', 20 );
-add_action( 'admin_init',       'dtb_bootstrap_shipping_zones'       );
+add_action( 'admin_init', 'dtb_bootstrap_shipping_zones' );
 
 function dtb_bootstrap_shipping_zones(): void {
-	// WooCommerce shipping zone classes must be available.
 	if ( ! class_exists( 'WC_Shipping_Zones' ) || ! class_exists( 'WC_Shipping_Zone' ) ) {
 		return;
 	}
 
 	$version_match = DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION === (string) get_option( 'dtb_shipping_zones_bootstrapped' );
 
-	// Fast-path: version matches and the Rest-of-World zone already has the method.
 	if ( $version_match ) {
 		$row_zone = new WC_Shipping_Zone( 0 );
 		if ( dtb_commerce_zone_has_shipping_method( $row_zone ) ) {
 			return;
 		}
-		// Fall through to self-heal.
 	}
 
 	$has_us_zone = false;
@@ -300,7 +340,6 @@ function dtb_bootstrap_shipping_zones(): void {
 		}
 	}
 
-	// Create a US zone if none exists.
 	if ( ! $has_us_zone ) {
 		$us_zone = new WC_Shipping_Zone();
 		$us_zone->set_zone_name( 'United States' );
@@ -310,7 +349,6 @@ function dtb_bootstrap_shipping_zones(): void {
 		$us_zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
 	}
 
-	// Always ensure the Rest-of-World (zone 0) catch-all has the DTB method.
 	$row_zone = new WC_Shipping_Zone( 0 );
 	if ( ! dtb_commerce_zone_has_shipping_method( $row_zone ) ) {
 		$row_zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
