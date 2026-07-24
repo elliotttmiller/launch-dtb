@@ -3,7 +3,8 @@
  * Admin/operator boundary for Veeqo inventory reconciliation.
  *
  * Full catalog reconciliation performs external pagination and WooCommerce writes,
- * so interactive REST requests only enqueue work and return immediately.
+ * so interactive REST requests only enqueue work and return immediately. Legacy
+ * mapping/pull routes are preserved as compatibility aliases to the same queue.
  *
  * @package drywall-toolbox
  */
@@ -13,22 +14,24 @@ defined( 'ABSPATH' ) || exit;
 add_action(
 	'rest_api_init',
 	static function (): void {
-		register_rest_route(
-			'dtb/v1',
-			'/veeqo/admin/inventory/reconcile',
-			[
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => 'dtb_veeqo_inventory_admin_enqueue_reconciliation',
-				'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
-			],
-			true
-		);
+		$definition = [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'callback'            => 'dtb_veeqo_inventory_admin_enqueue_reconciliation',
+			'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
+		];
+
+		register_rest_route( 'dtb/v1', '/veeqo/admin/inventory/reconcile', $definition, true );
+		// Compatibility aliases: the old implementations performed N external API
+		// calls or writes inside the interactive request. They now enqueue the same
+		// batched reconciliation worker instead.
+		register_rest_route( 'dtb/v1', '/veeqo/map-skus', $definition, true );
+		register_rest_route( 'dtb/v1', '/veeqo/inventory/pull', $definition, true );
 	},
 	40
 );
 
 function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $request ): WP_REST_Response {
-	unset( $request );
+	$route = sanitize_text_field( (string) $request->get_route() );
 	$readiness = function_exists( 'dtb_veeqo_inventory_readiness' ) ? dtb_veeqo_inventory_readiness() : [ 'ready' => false, 'missing' => [ 'inventory_projection' ] ];
 	if ( empty( $readiness['ready'] ) ) {
 		return new WP_REST_Response(
@@ -49,7 +52,7 @@ function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $requ
 		? as_has_scheduled_action( DTB_VEEQO_INVENTORY_RECONCILE_HOOK, [], DTB_VEEQO_INVENTORY_ACTION_GROUP )
 		: false;
 	if ( $already ) {
-		return new WP_REST_Response( [ 'success' => true, 'status' => 'already_queued', 'message' => 'A Veeqo inventory reconciliation is already scheduled.' ], 202 );
+		return new WP_REST_Response( [ 'success' => true, 'status' => 'already_queued', 'message' => 'A Veeqo inventory reconciliation is already scheduled.', 'route' => $route ], 202 );
 	}
 
 	$action_id = as_enqueue_async_action(
@@ -66,6 +69,7 @@ function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $requ
 		dtb_veeqo_log( 'info', 'inventory_reconciliation_queued', 'Operator queued a full Veeqo inventory reconciliation.', [
 			'action_id'   => (int) $action_id,
 			'operator_id' => get_current_user_id(),
+			'route'       => $route,
 		] );
 	}
 
@@ -75,6 +79,7 @@ function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $requ
 			'status'    => 'queued',
 			'action_id' => (int) $action_id,
 			'message'   => 'Veeqo inventory reconciliation queued.',
+			'route'     => $route,
 		],
 		202
 	);
