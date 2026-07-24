@@ -110,7 +110,7 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 	}
 
 	$method = isset( $_SERVER['REQUEST_METHOD'] )
-		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) )
+		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) )
 		: 'GET';
 	if ( ! in_array( $method, [ 'GET', 'POST' ], true ) ) {
 		return false;
