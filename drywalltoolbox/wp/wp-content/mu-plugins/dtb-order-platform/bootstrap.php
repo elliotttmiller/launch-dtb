@@ -44,6 +44,7 @@ require_once $_dtb_order . '/Rest/OrderDetailController.php';
 require_once $_dtb_order . '/Rest/OrderTrackingController.php';
 require_once $_dtb_order . '/Rest/OrderEventStreamController.php';
 require_once $_dtb_order . '/Rest/OrderHealthController.php';
+require_once $_dtb_order . '/Rest/CheckoutConfirmationIntegrity.php';
 require_once $_dtb_order . '/Admin/OrderAdminColumns.php';
 require_once $_dtb_order . '/Admin/OrderAdminMenu.php';
 require_once $_dtb_order . '/Admin/OrderTimelinePanel.php';
