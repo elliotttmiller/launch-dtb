@@ -25,10 +25,10 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 };
 
 /*
- * One ordered presentation stack: base design -> wrapper refinements -> responsive
- * flow -> runtime context -> contact styling -> one consolidated UI controller ->
- * login handoff. No theme asset creates/replaces payment controls or owns checkout
- * submission/business persistence.
+ * Theme presentation is intentionally one ordered stack: base design -> wrapper
+ * refinements -> responsive flow -> live context -> contact presentation -> narrow
+ * payment interaction hardening. No theme asset creates/replaces payment controls or
+ * owns checkout submit/business persistence.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -60,6 +60,12 @@ wp_enqueue_style(
 	[ 'dtb-checkout-theme-runtime-context' ],
 	$asset_version( 'assets/checkout/checkout-contact-identity.css' )
 );
+wp_enqueue_style(
+	'dtb-checkout-theme-payment-interaction',
+	$theme_uri . '/assets/checkout/checkout-payment-interaction.css',
+	[ 'dtb-checkout-theme-contact-identity' ],
+	$asset_version( 'assets/checkout/checkout-payment-interaction.css' )
+);
 
 wp_enqueue_script(
 	'dtb-checkout-theme-boot',
@@ -73,6 +79,13 @@ wp_enqueue_script(
 	$theme_uri . '/assets/checkout/checkout-ui.js',
 	[ 'dtb-checkout-theme-boot', 'wp-data', 'wc-blocks-data-store' ],
 	$asset_version( 'assets/checkout/checkout-ui.js' ),
+	true
+);
+wp_enqueue_script(
+	'dtb-checkout-theme-payment-runtime',
+	$theme_uri . '/assets/checkout/checkout-payment-runtime.js',
+	[ 'dtb-checkout-theme-ui' ],
+	$asset_version( 'assets/checkout/checkout-payment-runtime.js' ),
 	true
 );
 wp_enqueue_script(
