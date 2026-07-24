@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 
 import SEOHead from '../components/shared/SEOHead.jsx';
 import { navigateDocument } from '../utils/documentNavigation.js';
 import { getWooCheckoutFallbackUrl, getWooCheckoutUrl } from '../utils/checkoutUrl.js';
+import '../styles/secure-checkout-spinner.css';
 
 const HANDOFF_MARKER = 'dtb:native-checkout-handoff:v1';
 const HANDOFF_LOOP_WINDOW_MS = 15000;
@@ -51,13 +51,14 @@ export default function WooNativeCheckout() {
     <div className="dtb-checkout-handoff-screen">
       <SEOHead noindex title="Checkout" />
       <div className="dtb-checkout-handoff-screen__content" role="status" aria-live="polite">
-        <span className="dtb-checkout-handoff-screen__spinner">
-          <Loader2
-            size={20}
-            className="dtb-checkout-handoff-screen__spinner-icon"
-            aria-hidden="true"
-          />
-        </span>
+        <svg
+          className="dtb-secure-checkout-spinner"
+          viewBox="25 25 50 50"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle className="dtb-secure-checkout-spinner__circle" r="20" cy="50" cx="50" />
+        </svg>
         <p>Preparing your secure checkout…</p>
       </div>
     </div>
