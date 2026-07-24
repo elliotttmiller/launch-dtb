@@ -31,20 +31,22 @@ final class DTB_VeeqoHealthCheck {
 			? (array) get_option( DTB_VEEQO_INVENTORY_DIAGNOSTICS, [] )
 			: [];
 		$last_inventory_sync = class_exists( 'DTB_VeeqoSyncJob' ) ? DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
-		$inventory_stale = $last_inventory_sync > 0 && ( time() - $last_inventory_sync ) > 2 * HOUR_IN_SECONDS;
+		$inventory_initialized = $last_inventory_sync > 0;
+		$inventory_stale = ! $inventory_initialized || ( time() - $last_inventory_sync ) > 2 * HOUR_IN_SECONDS;
 
 		return [
 			'ok'                       => ! empty( $order_ready['ready'] ) && ! empty( $inventory_ready['ready'] ) && ! $inventory_stale,
 			'configured'               => $config,
 			'production_readiness'     => $order_ready,
 			'inventory_readiness'      => $inventory_ready,
+			'inventory_initialized'    => $inventory_initialized,
 			'inventory_last_sync_at'   => $last_inventory_sync,
 			'inventory_stale'          => $inventory_stale,
 			'inventory_last_run'       => [
-				'completed_at'      => sanitize_text_field( (string) ( $inventory_diagnostics['completed_at'] ?? '' ) ),
-				'updated'           => absint( $inventory_diagnostics['updated'] ?? 0 ),
-				'unmapped_count'    => count( (array) ( $inventory_diagnostics['unmapped_skus'] ?? [] ) ),
-				'duplicate_count'   => count( (array) ( $inventory_diagnostics['duplicate_skus'] ?? [] ) ),
+				'completed_at'       => sanitize_text_field( (string) ( $inventory_diagnostics['completed_at'] ?? '' ) ),
+				'updated'            => absint( $inventory_diagnostics['updated'] ?? 0 ),
+				'unmapped_count'     => count( (array) ( $inventory_diagnostics['unmapped_skus'] ?? [] ) ),
+				'duplicate_count'    => count( (array) ( $inventory_diagnostics['duplicate_skus'] ?? [] ) ),
 				'missing_stock_count'=> count( (array) ( $inventory_diagnostics['missing_warehouse_entries'] ?? [] ) ),
 			],
 			'request_function'          => function_exists( 'dtb_veeqo_request' ),
