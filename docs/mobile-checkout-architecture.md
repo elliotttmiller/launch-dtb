@@ -1,45 +1,50 @@
 # Mobile Checkout Architecture
 
-Last verified against source: 2026-07-23.
+Last verified against source: 2026-07-24.
 
 ## Ownership
 
-Drywall Toolbox does not own payment processing. React owns cart UX and the full-document checkout handoff only.
+Drywall Toolbox does not own payment processing. React owns cart UX and full-document checkout handoff only.
 
-The production checkout authority is:
+Production authority:
 
 ```text
 React cart / cart drawer
   -> full-document navigation to /checkout/
-  -> assigned WordPress WooCommerce Checkout page
-  -> WooCommerce Checkout Block
+  -> native Woo checkout runtime exception
+  -> active theme checkout template/presentation
+  -> assigned WooCommerce Checkout Block
   -> official WooCommerce Stripe Payment Gateway
   -> WooCommerce order/payment lifecycle
   -> DTB event ledger + dtb-orders queue
 ```
 
-WooCommerce owns cart/session continuity, customer/address validation, shipping/tax/totals, checkout submission, and order creation. The official WooCommerce Stripe Payment Gateway owns embedded payment fields, payment-method eligibility, express methods, Link, tokenization, 3DS/SCA, payment execution, and webhook-backed reconciliation.
+WooCommerce owns cart/session continuity, customer/address validation, shipping/tax/totals, checkout submission, and order creation.
 
-DTB owns checkout shell presentation, responsive layout, mobile step navigation, visual tokens, readiness telemetry, and provider-safe styling only.
+The official WooCommerce Stripe Payment Gateway owns embedded payment fields, payment-method eligibility, express methods, Link, tokenization, 3DS/SCA, payment execution, and webhook-backed reconciliation.
+
+The active `drywall-toolbox` theme owns checkout document presentation, responsive layout, visual tokens, mobile step navigation, same-origin wrapper styling, and non-authoritative presentation behavior.
+
+MU-plugins own runtime/security/domain policy, not checkout UI rendering.
 
 ## Unified responsive contract
 
-There is exactly one checkout runtime and one payment surface at every viewport:
+There is exactly one Checkout Block and one official Stripe payment surface at every viewport:
 
 ```text
 WooCommerce Checkout Block
   -> one mounted official Stripe payment surface
-  -> desktop: continuous two-column checkout
+  -> desktop: continuous checkout
   -> mobile: three-step presentation of the same mounted checkout
 ```
 
-DTB must not clone, move, reparent, duplicate, or remount WooCommerce or Stripe payment controls to create a mobile-specific payment implementation.
+DTB must not clone, move, reparent, duplicate, or remount WooCommerce/Stripe payment controls.
 
-The retired mobile payment bottom sheet is no longer part of the checkout architecture.
+There is no mobile payment sheet, modal, duplicate Payment Element, or alternate payment container.
 
 ## Mobile customer flow
 
-Below the mobile breakpoint, DTB presents the existing Checkout Block as three progressive visual steps:
+Below the mobile breakpoint:
 
 ```text
 1. Contact
@@ -53,40 +58,38 @@ Below the mobile breakpoint, DTB presents the existing Checkout Block as three p
    -> Continue to payment
 
 3. Payment
-   -> Woo/Stripe payment methods inline
+   -> inline official Woo/Stripe payment methods
    -> Woo terms/order notes/actions
-   -> authoritative Woo Place Order submission
+   -> authoritative Woo Place Order
 ```
 
-The step controller changes presentation state only. It does not create a second form state machine, validate commerce rules independently, calculate totals, select shipping methods, initialize Stripe, or submit orders.
+The step controller changes presentation state only. It does not create a second form state machine, validate commerce rules independently, calculate totals, initialize Stripe, or submit orders.
 
 ### Contact
 
-The official WooCommerce Stripe Express Checkout block remains first when the provider reports an eligible wallet or accelerated method. Apple Pay, Google Pay, Link, and other eligible express methods remain provider-owned.
+Eligible Apple Pay, Google Pay, Link, and other express methods remain provider-owned.
 
-DTB may style the outer express container and responsive spacing, but it must not fabricate wallet buttons, change wallet eligibility, or manipulate provider iframe internals.
+The theme may style only same-origin Woo wrappers and spacing around those controls.
 
-The native Woo contact/account blocks follow Express Checkout. Guest and authenticated users both remain in WooCommerce's authoritative customer/session model.
+DTB contact First name, Last name, and Phone fields are mirrored into Woo's canonical billing/shipping address inputs. Native duplicates remain mounted for Woo validation/integrations and are hidden from duplicate shopper presentation only after classification.
 
 ### Shipping
 
-The Shipping step contains Woo-owned shipping address, billing relationship/address, delivery/shipping methods, and pickup controls when available.
+WooCommerce owns address state, saved addresses, billing relationship, shipping rates, taxes, totals, and validation.
 
-Saved addresses, field hydration, validation, rate selection, shipping recalculation, taxes, and totals remain WooCommerce-owned.
-
-DTB styles shipping-rate rows as selectable visual cards while preserving the original radio controls, rate identifiers, labels, prices, keyboard behavior, and change events.
+Theme styling must preserve original control semantics, rate IDs, keyboard behavior, and Woo change events.
 
 ### Payment
 
-Payment is an inline third step. There is no DTB payment modal, bottom sheet, duplicate Payment Element, or alternate payment container.
+Payment remains inline on the third step.
 
-The existing official Stripe/Woo payment surface stays in the canonical WooCommerce React tree and becomes visible when the Payment step is active.
+The official Woo/Stripe payment surface stays in the canonical Woo React tree. Provider-sensitive inactive surfaces may be kept measurable offscreen so provider initialization is not destroyed by display/remount cycles.
 
-The authoritative WooCommerce Place Order control remains the only standard checkout submission control. DTB may style it but must not intercept or replace its submission behavior.
+Woo's native Place Order control is the only standard checkout submission action.
 
 ## Desktop customer flow
 
-At desktop widths, DTB does not apply progressive step hiding. The checkout remains a continuous WooCommerce document with a Stripe-inspired presentation:
+Desktop retains the existing continuous DTB checkout UI:
 
 ```text
 Left content rail
@@ -98,123 +101,120 @@ Left content rail
   -> Place Order
 
 Right summary rail
-  -> sticky canonical Woo Order Summary
+  -> canonical Woo Order Summary
 ```
 
-Desktop and mobile use the same visual tokens, form-control treatment, shipping selection treatment, payment styling, and trust language. Only responsive information architecture changes.
+No mobile step hiding applies on desktop.
 
 ## Mobile progress navigation
 
-`woo-native-checkout-ui.js` inserts a presentation-only three-step progress control above the native checkout.
+`themes/drywall-toolbox/assets/checkout/checkout-ui.js` owns presentation-only step state.
 
 Rules:
 
 - Contact, Shipping, and Payment are the only steps.
-- Future steps remain disabled until reached through the forward Continue action.
-- Previously visited steps may be revisited without clearing Woo state.
-- Continue actions do not submit checkout and do not create payment state.
-- On Payment, the custom Continue bar is removed and Woo's native Place Order action remains authoritative.
-- If WooCommerce focuses a control owned by a different step during validation/recovery, presentation follows that focused control so the error is visible.
-- Crossing the mobile breakpoint removes DTB step hiding and restores normal continuous desktop flow.
+- Future steps remain disabled until reached through forward Continue actions.
+- Previously visited steps can be revisited without clearing Woo state.
+- Continue actions do not submit checkout.
+- On Payment, the custom Continue action is hidden and Woo Place Order remains authoritative.
+- If Woo focuses an invalid control owned by another step, presentation may reveal that owning step.
+- Crossing the breakpoint removes progressive hiding and restores continuous desktop flow.
 
 ## Canonical presentation assets
 
 ```text
-dtb-commerce/assets/woo-native-checkout.css
-  -> single authoritative checkout visual system
-  -> design tokens, shell, desktop two-column layout, cards, fields,
-     express checkout framing, shipping selectors, payment framing,
-     order summary, mobile progress UI, and mobile Continue bar
+themes/drywall-toolbox/templates/checkout/native-checkout.php
+  -> native checkout document shell and theme asset enqueue
 
-dtb-commerce/assets/woo-native-checkout-steps.js
+themes/drywall-toolbox/assets/checkout/checkout.css
+  -> existing DTB checkout visual design
+
+themes/drywall-toolbox/assets/checkout/checkout-refinements.css
+  -> same-origin Woo wrapper normalization and contact-field presentation
+
+themes/drywall-toolbox/assets/checkout/checkout-flow.css
+  -> mobile progress, step visibility, provider-safe offscreen mounting,
+     sticky Back/Continue controls
+
+themes/drywall-toolbox/assets/checkout/checkout-boot.js
   -> mechanical boot/reveal only
 
-dtb-commerce/assets/woo-native-checkout-ui.js
-  -> presentation-only mobile three-step state, progress navigation,
-     Continue actions, dynamic Woo block classification, responsive cleanup,
-     and validation-focus recovery
-dtb-commerce/Payment/CheckoutPerformance.php
-  -> telemetry permission/write boundary and runtime capability metadata
-dtb-commerce/assets/woo-native-checkout-performance.js
-  -> scoped diagnostics, provider timeout detection, CWV observation,
-     third-party audit, image policy, and checkout-root replacement signals
+themes/drywall-toolbox/assets/checkout/checkout-ui.js
+  -> responsive presentation controller, step navigation, field mirroring,
+     duplicate summary containment, single-gateway presentation marker
+
+themes/drywall-toolbox/assets/checkout/checkout-profile.css
+
+themes/drywall-toolbox/assets/checkout/checkout-profile.js
+  -> signed-in profile presentation refinements
 ```
 
-The retired files are intentionally absent:
+Backend runtime/diagnostics remain in `dtb-commerce`:
 
 ```text
-dtb-commerce/Payment/MobilePaymentSheet.php
-dtb-commerce/assets/woo-native-checkout-payment-sheet.js
-dtb-commerce/assets/woo-native-checkout-payment-sheet.css
-dtb-commerce/assets/woo-native-checkout-profile-refinements.js
-dtb-commerce/assets/woo-native-checkout-profile-refinements.css
+dtb-commerce/Payment/WooNativeCheckoutRuntime.php
+dtb-commerce/Payment/OfficialStripeNativeCheckout.php
+dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
+dtb-commerce/Payment/CheckoutPerformance.php
+dtb-commerce/assets/woo-native-checkout-performance.js
+dtb-commerce/Validation/CheckoutFieldPolicy.php
 ```
 
-New checkout presentation belongs in the single authoritative `woo-native-checkout.css`. New responsive presentation behavior belongs in `woo-native-checkout-ui.js`. Do not recreate downstream override stylesheets or another payment presentation state machine.
+## Retired presentation implementations
+
+These are intentionally absent:
+
+```text
+themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
+themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
+
+dtb-commerce/assets/woo-native-checkout.css
+dtb-commerce/assets/woo-native-checkout-refinements.css
+dtb-commerce/assets/woo-native-checkout-ui.js
+dtb-commerce/assets/woo-native-checkout-steps.js
+dtb-commerce/Templates/WooNativeCheckoutPage.php
+```
+
+Do not restore a mobile payment sheet or a second MU-plugin presentation layer.
 
 ## Stripe-safe mounting contract
 
-The official Stripe runtime may initialize before the customer reaches Payment.
-
 DTB must:
 
-- leave provider-owned payment nodes inside the WooCommerce React tree;
-- never clone Stripe iframes or Payment Element containers;
+- leave provider-owned payment nodes inside WooCommerce's React tree;
+- never clone or reparent Stripe iframes/Payment Element containers;
 - never create a second Stripe object, PaymentIntent flow, or Checkout Session;
-- never fabricate wallet buttons;
-- never change provider eligibility logic;
-- use the official gateway's supported Appearance configuration for Stripe-owned visual surfaces;
-- keep SiteGround/host optimization exclusions that preserve Stripe.js origin and WordPress/Woo dependency ordering.
+- never fabricate wallet buttons or alter provider eligibility;
+- style Stripe-owned surfaces only through supported gateway Appearance configuration;
+- preserve hosting/runtime exclusions that keep Stripe.js on `js.stripe.com` and protect WordPress/Woo dependency ordering.
 
-## Validation and error behavior
+## Validation and failure behavior
 
 WooCommerce remains final validation authority.
 
-- DTB step controls change presentation state only.
-- Woo-required fields and checkout validation remain authoritative.
-- If Woo focuses an invalid control in Contact or Shipping, DTB reveals the owning step.
-- Payment-specific errors remain inline with the official payment surface.
-- 3DS/SCA remains Stripe-owned and must return to the same Woo payment state on failure/cancel.
-- Successful payment follows WooCommerce order-received and existing DTB return/tracking behavior.
-- A DTB presentation or telemetry failure must fail open to the native Woo checkout.
-
-## Checkout performance and stability
-
-`dtb-commerce/Payment/CheckoutPerformance.php` and `dtb-commerce/assets/woo-native-checkout-performance.js` remain diagnostics-only.
-
-The provider timeout watch runs continuously on desktop and when the Payment step is active on the enhanced mobile checkout. It must never create a fallback payment implementation.
-
-Diagnostics route:
-
-```text
-POST /wp-json/dtb/v1/checkout/runtime-telemetry
-```
-
-It remains nonce protected, same-origin checked, rate limited, deduplicated, allowlisted, bounded, sanitized, and sensitive-value redacted.
+- Theme step controls change presentation state only.
+- Woo-required field validation remains authoritative.
+- Payment errors stay inline with the official payment surface.
+- 3DS/SCA remains Stripe-owned.
+- Presentation/telemetry failure must fail open to native Woo checkout behavior.
 
 ## Verification
 
-Release acceptance requires session-preserving browser validation against the canonical checkout route.
+Minimum release matrix:
 
-Minimum matrix:
-
-1. Desktop continuous checkout renders Express, Contact, Shipping, Payment, Place Order, and one canonical sticky Order Summary.
+1. Desktop continuous checkout preserves existing DTB UI and one canonical Order Summary.
 2. Mobile starts on Contact with eligible Express Checkout first.
-3. Contact -> Continue to shipping -> Shipping without losing Woo field/session state.
-4. Shipping -> Continue to payment -> inline official Stripe payment surface.
-5. Progress navigation returns only to already visited steps.
+3. Contact -> Shipping retains Woo field/session state.
+4. Shipping -> Payment reveals inline official Stripe payment without a modal/sheet.
+5. Progress navigation returns only to visited steps.
 6. Guest and authenticated checkout.
-7. Saved and edited addresses.
-8. Shipping-rate changes update Woo totals and summary correctly.
-9. Apple Pay eligibility on Safari/iPhone where configured.
-10. Google Pay eligibility on supported Chrome/Android where configured.
-11. Card success, decline, 3DS challenge/cancel/failure.
-12. Cash App Pay, Affirm, Klarna, or other enabled methods remain provider controlled and render only when eligible.
-13. Woo validation reveals the owning mobile step for invalid controls.
-14. Resize mobile -> desktop -> mobile without duplicated controls, overlays, stale hidden sections, or lost state.
-15. Exactly one Stripe runtime and one payment surface; no duplicate Stripe.js load.
-16. SiteGround optimization does not combine/rehost Stripe.js or reorder checkout dependencies.
-17. Runtime telemetry records bounded/redacted diagnostics and rejects invalid nonce/origin/rate-limit cases.
-18. Successful checkout follows the Woo order-received -> DTB tracking/return contract.
-19. Duplicate submit/reload/webhook replay does not duplicate orders or downstream jobs.
-20. Mobile and desktop accessibility checks cover keyboard focus, visible focus state, touch targets, labels, contrast, and reduced-motion behavior.
+7. Contact identity fields persist to canonical Woo order/address properties.
+8. Saved/edited addresses and shipping-rate changes update totals correctly.
+9. Apple Pay/Google Pay/Link eligibility on supported devices.
+10. Card success, decline, 3DS challenge/cancel/failure.
+11. Mobile -> desktop -> mobile without duplicate controls, overlays, or lost state.
+12. Exactly one Stripe runtime/payment surface and no duplicate Stripe.js load.
+13. SiteGround does not combine/rehost Stripe.js or reorder checkout dependencies.
+14. Successful checkout follows Woo order-received and DTB downstream lifecycle.
+15. Duplicate submit/reload/webhook replay does not duplicate orders/jobs.
+16. Keyboard/focus/touch-target/contrast/reduced-motion accessibility checks pass.
