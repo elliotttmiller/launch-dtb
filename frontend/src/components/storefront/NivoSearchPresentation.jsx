@@ -1,6 +1,6 @@
 import { Search, X, ArrowRight } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchWithNivo } from '../../api/nivoSearch.js';
 import { searchProducts } from '../../services/catalog.js';
@@ -331,36 +331,6 @@ function MobileSearch() {
   }, [close, navigate]);
   const selectSuggestion = useCallback((suggestion) => viewAll(suggestion.value || suggestion.label), [viewAll]);
 
-  const dock = (
-    <div className="dtb-nivo-mobile-dock">
-      <div className="dtb-nivo-search__input-shell">
-        <Search size={16} aria-hidden="true" />
-        <input
-          type="search"
-          value={query}
-          onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') { event.preventDefault(); viewAll(); }
-            if (event.key === 'Escape') { event.preventDefault(); close(); event.currentTarget.blur(); }
-          }}
-          placeholder="Search products, brands, SKU..."
-          aria-label="Search products"
-          role="combobox"
-          aria-autocomplete="list"
-          aria-expanded={open}
-          aria-controls="dtb-nivo-mobile-results"
-          autoComplete="off"
-        />
-        {open ? (
-          <button type="button" className="dtb-nivo-search__clear" onClick={close} aria-label="Close search">
-            <X size={16} />
-          </button>
-        ) : null}
-      </div>
-    </div>
-  );
-
   const overlay = open ? (
     <div className="dtb-nivo-mobile-overlay" data-source={source}>
       <button type="button" className="dtb-nivo-mobile-overlay__backdrop" onClick={close} aria-label="Close search" />
@@ -386,12 +356,42 @@ function MobileSearch() {
     </div>
   ) : null;
 
-  return { dock, overlay };
+  return (
+    <>
+      <div className="dtb-nivo-mobile-dock">
+        <div className="dtb-nivo-search__input-shell">
+          <Search size={16} aria-hidden="true" />
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') { event.preventDefault(); viewAll(); }
+              if (event.key === 'Escape') { event.preventDefault(); close(); event.currentTarget.blur(); }
+            }}
+            placeholder="Search products, brands, SKU..."
+            aria-label="Search products"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={open}
+            aria-controls="dtb-nivo-mobile-results"
+            autoComplete="off"
+          />
+          {open ? (
+            <button type="button" className="dtb-nivo-search__clear" onClick={close} aria-label="Close search">
+              <X size={16} />
+            </button>
+          ) : null}
+        </div>
+      </div>
+      {overlay ? createPortal(overlay, document.body) : null}
+    </>
+  );
 }
 
 export default function NivoSearchPresentation() {
   const targets = useSearchTargets();
-  const mobile = useMemo(() => <MobileSearch />, []);
 
   useEffect(() => {
     document.documentElement.classList.add('dtb-nivo-search-active');
@@ -401,7 +401,7 @@ export default function NivoSearchPresentation() {
   return (
     <>
       {targets.desktop ? createPortal(<DesktopSearch />, targets.desktop) : null}
-      {targets.mobile ? createPortal(mobile, targets.mobile) : null}
+      {targets.mobile ? createPortal(<MobileSearch />, targets.mobile) : null}
     </>
   );
 }
