@@ -21,4 +21,5 @@ function dtb_catalog_platform_register_routes(): void {
 	DTB_ToolsetOptionsController::register_routes();
 	DTB_ToolsetValidationController::register_routes();
 	DTB_InventoryIntelligenceController::register_routes();
+	DTB_NivoSearchConfigController::register_routes();
 }
