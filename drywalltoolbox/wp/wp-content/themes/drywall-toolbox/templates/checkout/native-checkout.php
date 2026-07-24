@@ -26,8 +26,8 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 
 /*
  * Checkout presentation is theme-owned. These handles are intentionally narrow:
- * base visual system, final same-origin Woo wrapper normalization, mechanical boot
- * reveal, responsive presentation controller, and signed-in profile refinement.
+ * base visual system, same-origin Woo wrapper normalization, responsive flow,
+ * mechanical boot reveal, presentation controller, and signed-in profile polish.
  * No theme asset creates/replaces payment controls or owns checkout submission.
  */
 wp_enqueue_style(
@@ -43,9 +43,15 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout-refinements.css' )
 );
 wp_enqueue_style(
+	'dtb-checkout-theme-flow',
+	$theme_uri . '/assets/checkout/checkout-flow.css',
+	[ 'dtb-checkout-theme-refinements' ],
+	$asset_version( 'assets/checkout/checkout-flow.css' )
+);
+wp_enqueue_style(
 	'dtb-checkout-theme-profile',
 	$theme_uri . '/assets/checkout/checkout-profile.css',
-	[ 'dtb-checkout-theme-refinements' ],
+	[ 'dtb-checkout-theme-flow' ],
 	$asset_version( 'assets/checkout/checkout-profile.css' )
 );
 
