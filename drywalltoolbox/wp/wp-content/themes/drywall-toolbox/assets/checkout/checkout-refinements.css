@@ -30,21 +30,34 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-bu
   box-shadow: none !important;
 }
 
-/* Express Checkout: provider buttons are the visual surfaces; Woo list wrappers
- * are layout-only. */
+/* Express Checkout: only provider-owned wallet buttons remain visible as button
+ * surfaces. Every same-origin Woo wrapper between the section and provider mount is
+ * layout-only so there is no card around the group or around each wallet. */
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__content {
   min-height: 0 !important;
+  margin: 0 !important;
   padding: 0 !important;
   overflow: visible !important;
+  border: 0 !important;
   border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
+  margin: 0 !important;
   padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div > div {
   min-width: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -56,6 +69,7 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-bu
 }
 
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div > div,
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons iframe {
   display: block;
   width: 100% !important;
@@ -68,13 +82,16 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-
   background: transparent !important;
 }
 
-/* Order Summary: keep one canonical content hierarchy without an empty outer
- * shell/card. Row dividers and actual controls remain intact. */
+/* Order Summary: flatten Woo's responsive fill/sidebar wrappers as well as the
+ * summary block itself. The disclosure row, product rows and totals remain the
+ * meaningful UI; there is no pale outer card around another white card. */
 body.dtb-official-stripe-checkout .wc-block-components-sidebar,
 body.dtb-official-stripe-checkout .wc-block-checkout__sidebar,
+body.dtb-official-stripe-checkout .checkout-order-summary-block-fill-wrapper,
 body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block,
 body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary-block,
 body.dtb-official-stripe-checkout .wc-block-components-order-summary {
+  margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 0 !important;
@@ -82,8 +99,15 @@ body.dtb-official-stripe-checkout .wc-block-components-order-summary {
   box-shadow: none !important;
 }
 
-body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
+body.dtb-official-stripe-checkout .checkout-order-summary-block-fill-wrapper > *,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block > * {
+  max-width: 100%;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary__button,
+body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary__title {
   min-height: 54px;
+  margin: 0 !important;
   padding: 10px 0 !important;
   border: 0 !important;
   border-bottom: 1px solid var(--dtb-checkout-line) !important;
@@ -187,7 +211,8 @@ body.dtb-official-stripe-checkout .is-dtb-order-summary-duplicate {
     min-height: 46px;
   }
 
-  body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary__button,
+  body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary__title {
     min-height: 52px;
     padding: 9px 0 !important;
   }
