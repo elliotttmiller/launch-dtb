@@ -90,9 +90,11 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
 }
 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
+  const desktopItems = items.filter((item) => item.id !== 'support');
+
   return (
     <nav className="dtb-desktop-nav" aria-label="Primary navigation">
-      {items.map((item) => (item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length) ? (
+      {desktopItems.map((item) => (item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length) ? (
         <DesktopNavDropdown
           key={item.id}
           item={item}
