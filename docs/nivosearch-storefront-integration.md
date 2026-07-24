@@ -2,42 +2,39 @@
 
 ## Authority
 
-Drywall Toolbox uses NivoSearch preset `930` as the primary predictive-search execution authority for the global storefront search experience.
+Drywall Toolbox uses NivoSearch preset `930` as the predictive-search execution authority for the global storefront search experience.
 
 NivoSearch owns:
 
 - AJAX query execution and product indexing
-- typo correction and fuzzy fallback emitted by the installed plugin
-- preset search fields, result limit, and minimum characters
+- typo correction and fuzzy fallback provided by the installed plugin
+- preset search fields, result limit, minimum characters, and related search policy
 - SKU / variation-SKU matching supported by the plugin
 - category/tag matches and `did_you_mean` output
 - NivoSearch result caching and index invalidation
 
 DTB owns:
 
-- the existing React desktop expandable search bar
-- the existing React mobile search dock and search overlay
+- the existing React desktop expandable search input and dropdown
+- the existing React mobile search dock and overlay
 - storefront routing and product navigation
 - accessibility and responsive interaction states
-- normalization of Nivo results into DTB presentation DTOs
-- bounded catalog-facet suggestions/correction fallback when the installed Nivo index does not emit a correction
-- graceful product-search fallback when NivoSearch is unavailable
+- bounded catalog-facet suggestion/correction enrichment
+- graceful fallback to the existing DTB catalog search only when NivoSearch is unavailable or a confirmed corrected term still needs product resolution
 - the read-safe runtime integration boundary
 
-Do not enable NivoSearch **Replace theme search form** for the React storefront. Do not render the Nivo shortcode/widget as a competing storefront UI and do not modify vendor plugin files.
+Do not enable NivoSearch **Replace theme search form** for the React storefront. Do not render the Nivo shortcode/widget in the React header. Do not modify vendor plugin files to customize DTB presentation.
 
 ## Runtime Flow
 
 ```text
-Existing DTB desktop/mobile search input
+StorefrontHeader desktop/mobile controlled input
         |
-        v
-NivoSearchRuntimeBridge (headless presentation adapter)
-        |
+        | one owning debounced effect per surface
         v
 GET /wp-json/dtb/v1/catalog/search/nivo-config
         |
-        | preset 930 + WC AJAX endpoint + WP nonce
+        | preset 930 + WC AJAX endpoint + short-lived WP nonce
         v
 POST ?wc-ajax=nivo_search
         |
@@ -47,16 +44,19 @@ NivoSearch preset 930 / search algorithm / index
         v
 products + categories + tags + did_you_mean
         |
-        +---- if Nivo emits correction ----> execute corrected term once through Nivo
+        +--> bounded DTB catalog-facet suggestion/correction enrichment
         |
-        +---- if no correction/results ----> bounded DTB catalog-facet spelling candidate
-        |                                    then execute candidate once through Nivo
         v
-Existing DTB results containers
-Products + Suggestions + Did-you-mean
+StorefrontHeader state
+        |
+        +--> existing desktop dropdown: Products + Suggestions
+        |
+        +--> existing mobile StorefrontSearchOverlay: Products + Suggestions
 ```
 
-The browser never receives WooCommerce application passwords, consumer secrets, or integration credentials. The exposed WordPress nonce is the anti-CSRF token required by NivoSearch's public AJAX search action; it is not an authentication credential.
+There is no standalone NivoSearch runtime bridge and no second per-keystroke search effect. `StorefrontHeader.jsx` is the single interactive search owner for both presentation and request lifecycle.
+
+The browser never receives WooCommerce application passwords, consumer secrets, or integration credentials. The exposed WordPress nonce is the anti-CSRF token required by NivoSearch's public unauthenticated AJAX search action; it is not an authentication credential.
 
 ## Backend Integration
 
@@ -76,85 +76,84 @@ The route is intentionally read-safe and same-origin guarded. It returns non-cac
 
 The route must remain `Cache-Control: no-store` because it returns a WordPress nonce.
 
-Search execution is not duplicated in DTB. The React client posts to the NivoSearch WooCommerce AJAX action returned by the configuration route. DTB's bounded catalog-term correction exists only as resilience when the installed Nivo index does not emit `did_you_mean`; corrected product execution still goes back through Nivo first.
+Search execution is not reimplemented in DTB. `StorefrontHeader` calls the NivoSearch WooCommerce AJAX action through `frontend/src/api/nivoSearch.js`.
 
-## Frontend Integration
+## Frontend Ownership
 
-Nivo client:
-
-```text
-frontend/src/api/nivoSearch.js
-```
-
-Catalog suggestion fallback:
-
-```text
-frontend/src/api/searchSuggestions.js
-```
-
-Runtime presentation adapter:
-
-```text
-frontend/src/components/storefront/NivoSearchRuntimeBridge.jsx
-frontend/src/styles/storefront-nivo-runtime-bridge.css
-```
-
-Existing UI authority remains:
+Primary owner:
 
 ```text
 frontend/src/components/storefront/StorefrontHeader.jsx
-frontend/src/components/storefront/StorefrontSearchDock.jsx
+```
+
+Supporting search client/intelligence:
+
+```text
+frontend/src/api/nivoSearch.js
+frontend/src/api/searchSuggestions.js
+```
+
+Mobile presentation:
+
+```text
 frontend/src/components/storefront/StorefrontSearchOverlay.jsx
 ```
 
-Mount point:
+Search-result styling:
 
 ```text
-frontend/src/components/shell/Header.jsx
+frontend/src/styles/storefront-nivo-runtime-bridge.css
+frontend/src/styles/storefront-nivo-vendor-suppression.css
 ```
 
-The bridge does **not** create another search input, backdrop, fullscreen overlay, or header shell. It observes the established DTB desktop/mobile inputs, executes NivoSearch, and portals only result content into the established DTB results containers. This preserves the existing desktop expansion animation, mobile dock styling, overlay geometry, and close/navigation behavior.
+The `storefront-nivo-runtime-bridge.css` filename is retained as a compatibility stylesheet name, but there is no runtime bridge component. Its classes now style DTB-owned result content rendered directly by `StorefrontHeader` and `StorefrontSearchOverlay`.
 
-The retired `NivoSearchPresentation.jsx` replacement surface and its styling were removed because they competed with the established DTB search presentation and caused the mobile/header takeover regression.
+## Request, Concurrency, and Failure Contract
 
-## Suggestions and typo behavior
+Desktop and mobile each have exactly one debounced request effect in `StorefrontHeader`.
 
-Suggestion order is bounded and deduplicated:
+Each surface:
 
-1. Nivo `did_you_mean`
-2. Nivo category matches
-3. Nivo tag matches
-4. categories attached to returned Nivo products
-5. DTB catalog facet terms used only to fill missing suggestion coverage
+1. increments a request generation ID;
+2. aborts the previous Nivo request with `AbortController`;
+3. waits its established debounce interval;
+4. executes one Nivo request;
+5. rejects stale/aborted responses before state mutation;
+6. follows at most one Nivo/catalog correction inside the Nivo client;
+7. falls back to DTB catalog search only on Nivo failure or confirmed corrected-term product resolution;
+8. never runs the retired legacy search effect in parallel with a second Nivo bridge request.
 
-For a typo such as `collumbia`:
+A stale Nivo nonce is refreshed once and retried once. There is no unbounded retry loop.
 
-1. Nivo is queried with the original term.
-2. If Nivo emits `did_you_mean`, that correction is authoritative and is executed once.
-3. If Nivo returns no products and no correction, DTB compares the query only against the bounded catalog brand/category facet vocabulary (including individual words in multiword labels).
-4. A close candidate such as `Columbia` is executed once through Nivo.
-5. If the corrected Nivo query still has no product rows but the correction is valid, DTB's cached catalog search may supply product rows while preserving the correction and suggestion set.
+## Suggestions and Typo Handling
 
-This is intentionally not a general-purpose fuzzy search engine. It is a bounded resilience layer over catalog-controlled terms so Nivo remains the primary search engine.
+Suggestion priority is:
+
+1. Nivo `did_you_mean` correction;
+2. Nivo categories;
+3. Nivo tags;
+4. categories attached to Nivo product results;
+5. bounded backend-owned catalog brand/category/display-category terms.
+
+The bounded DTB correction helper does not replace Nivo fuzzy search. It exists only for known catalog vocabulary when Nivo's index does not emit a correction. Multiword facet labels are compared by both full label and individual significant tokens, so a known brand such as `Columbia Tools` can resolve a one-edit typo such as `collumbia` to `Columbia` before the corrected query is executed through Nivo.
 
 ## Failure and Rollback
 
 Failure behavior:
 
-1. NivoSearch config unavailable -> existing DTB catalog product fallback remains usable.
-2. NivoSearch request fails -> DTB catalog product fallback.
-3. Stale/invalid Nivo nonce -> refresh config once and retry once.
-4. Catalog facets unavailable -> Nivo still operates; supplemental suggestions/correction fallback is skipped.
-5. Both product paths fail -> empty/error-safe result state; checkout, catalog browsing, and product pages remain unaffected.
+1. NivoSearch config unavailable -> use DTB catalog fallback.
+2. NivoSearch request fails -> use DTB catalog fallback.
+3. Stale/invalid Nivo nonce -> refresh config once and retry.
+4. Corrected Nivo term has no products -> resolve the confirmed corrected term against the existing DTB catalog cache/service.
+5. All search paths fail -> render an empty/error-safe result state; checkout, catalog browsing, and product pages remain unaffected.
 
-Rollback is file-level and non-destructive. Removing `NivoSearchRuntimeBridge` from `frontend/src/components/shell/Header.jsx` restores the pre-Nivo runtime behavior without changing catalog data.
+Rollback is file-level and non-destructive. Restoring the prior `StorefrontHeader` search effects does not require catalog data migration.
 
 ## Operational Requirements
 
 - Keep NivoSearch plugin activated.
 - Keep preset `930` published.
 - Keep **Replace theme search form** disabled for the React storefront.
-- Keep Nivo AJAX enabled and `Did You Mean` enabled in Nivo settings.
-- Rebuild the NivoSearch product index after large catalog imports or search-field changes.
+- Rebuild the NivoSearch product index after large catalog imports when required by the plugin.
 - Purge frontend/static caches after deploying a rebuilt React bundle.
 - Do not edit NivoSearch vendor files; plugin updates must remain replaceable.
