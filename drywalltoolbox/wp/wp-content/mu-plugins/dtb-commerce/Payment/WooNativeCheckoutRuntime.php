@@ -2,15 +2,14 @@
 /**
  * Native WooCommerce checkout runtime adapter for the headless DTB theme.
  *
- * The active public theme normally forces every frontend request into the React
- * SPA and strips non-React assets. Checkout is the deliberate exception:
- * WooCommerce must own the server-rendered document so Checkout Block and the
- * official Stripe extension can enqueue their supported scripts/styles and run
- * their native endpoint lifecycle.
+ * The active public theme normally forces frontend requests into the React SPA
+ * and strips non-React assets. Checkout is the deliberate exception: WooCommerce
+ * must own the server-rendered runtime so Checkout Block and the official Stripe
+ * extension can enqueue their supported assets and execute native endpoint state.
  *
- * This adapter does not render payment methods or checkout blocks itself. It
- * only stops the headless-theme SPA override and supplies a standard WordPress
- * page host that executes the assigned Checkout page content.
+ * Presentation belongs to the active theme's checkout template/assets. This
+ * adapter owns only the runtime exception boundary and never renders payment
+ * methods, checkout blocks, or a competing presentation implementation itself.
  *
  * @package drywall-toolbox
  */
@@ -20,11 +19,8 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_WooNativeCheckoutRuntime {
 	public static function register(): void {
 		add_action( 'wp', [ __CLASS__, 'prepare_runtime' ], 1 );
-		/*
-		 * Re-assert the exception immediately before enqueue processing. This makes
-		 * the native checkout independent of theme hook-registration timing and
-		 * prevents the headless asset stripper from removing Woo/WP/Stripe assets.
-		 */
+		/* Re-assert immediately before enqueue processing so theme hook timing cannot
+		 * restore the SPA asset stripper on a transactional checkout request. */
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'prepare_runtime' ], 0 );
 		add_filter( 'template_include', [ __CLASS__, 'template_include' ], 1000 );
 		add_action( 'send_headers', [ __CLASS__, 'send_private_headers' ], 20 );
@@ -36,12 +32,19 @@ final class DTB_WooNativeCheckoutRuntime {
 			return;
 		}
 
-		// The active headless theme normally enqueues React and then strips every
-		// other frontend asset. Neither behavior is valid on Woo checkout/payment
-		// endpoints because Checkout Block and Stripe own their runtime assets.
+		/* The React shell is not authoritative on Woo checkout/payment endpoints. */
 		remove_action( 'wp_enqueue_scripts', 'dtb_enqueue_react_app', 10 );
 		remove_action( 'wp_enqueue_scripts', 'dtb_dequeue_non_react_assets', 9999 );
 		remove_filter( 'template_include', 'dtb_force_react_template', 99 );
+
+		/* Presentation is theme-owned. Prevent the superseded MU-plugin presentation
+		 * layer from enqueueing a second CSS/JS controller over the theme checkout. */
+		if ( class_exists( 'DTB_OfficialStripeNativeCheckout' ) ) {
+			remove_action( 'wp_enqueue_scripts', [ 'DTB_OfficialStripeNativeCheckout', 'enqueue_checkout_assets' ], 20 );
+		}
+		if ( class_exists( 'DTB_CheckoutFieldPolicy' ) ) {
+			remove_action( 'wp_enqueue_scripts', [ 'DTB_CheckoutFieldPolicy', 'enqueue_checkout_refinements' ], 30 );
+		}
 	}
 
 	public static function template_include( string $template ): string {
@@ -49,8 +52,12 @@ final class DTB_WooNativeCheckoutRuntime {
 			return $template;
 		}
 
-		$native_template = dirname( __DIR__ ) . '/Templates/WooNativeCheckoutPage.php';
-		return is_readable( $native_template ) ? $native_template : $template;
+		/* The active theme is the presentation owner. Fail open to Woo/WordPress's
+		 * resolved template if the expected theme template is unavailable. */
+		$theme_template = locate_template( 'templates/checkout/native-checkout.php', false, false );
+		return is_string( $theme_template ) && '' !== $theme_template && is_readable( $theme_template )
+			? $theme_template
+			: $template;
 	}
 
 	public static function send_private_headers(): void {
