@@ -6,8 +6,9 @@
  * tax, shipping, and order creation. The official WooCommerce Stripe Payment
  * Gateway owns embedded payment methods, eligible express wallets, tokenization,
  * payment processing, challenge flows, and webhook-backed payment status. DTB
- * owns checkout presentation assets, readiness diagnostics, checkout-order
- * tagging, and verified lifecycle observation only.
+ * owns readiness diagnostics, supported Stripe Appearance configuration,
+ * checkout-order tagging, and verified lifecycle observation only. Checkout
+ * document structure and presentation assets belong to the active theme.
  *
  * @package drywall-toolbox
  */
@@ -19,13 +20,11 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
 	private const STRIPE_GATEWAY_ID         = 'stripe';
-	private const ASSET_VERSION             = '2026.07.23.2';
 	private const STRIPE_APPEARANCE_VERSION = '2026.07.23.1';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
-		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_checkout_assets' ], 20 );
 		add_action( 'init', [ __CLASS__, 'maybe_refresh_stripe_appearance_cache' ], 20 );
 		add_filter( 'body_class', [ __CLASS__, 'body_class' ] );
 		add_filter( 'wc_stripe_upe_params', [ __CLASS__, 'stripe_upe_params' ], 100 );
@@ -87,40 +86,6 @@ final class DTB_OfficialStripeNativeCheckout {
 					'competing_woopayments'            => self::is_gateway_enabled( 'woocommerce_payments' ),
 				],
 			]
-		);
-	}
-
-	public static function enqueue_checkout_assets(): void {
-		if ( ! self::is_primary_checkout_request() ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			'dtb-woo-native-checkout',
-			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout.css' ),
-			[],
-			self::ASSET_VERSION
-		);
-
-		/*
-		 * DTB presentation scripts use normal footer execution and observe the
-		 * rendered checkout DOM. They intentionally do not depend on, defer, async,
-		 * reprioritize, or otherwise participate in WooCommerce's critical Checkout
-		 * Block JavaScript dependency graph.
-		 */
-		wp_enqueue_script(
-			'dtb-woo-native-checkout-steps',
-			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js' ),
-			[],
-			self::ASSET_VERSION,
-			true
-		);
-		wp_enqueue_script(
-			'dtb-woo-native-checkout-ui',
-			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js' ),
-			[ 'dtb-woo-native-checkout-steps' ],
-			self::ASSET_VERSION,
-			true
 		);
 	}
 
@@ -326,10 +291,7 @@ final class DTB_OfficialStripeNativeCheckout {
 		}
 	}
 
-	/**
-	 * Determine whether a payment gateway ID currently belongs to an instance
-	 * loaded from the official WooCommerce Stripe extension.
-	 */
+	/** Determine whether a gateway ID belongs to the official Stripe extension. */
 	public static function is_official_gateway_id( string $gateway_id ): bool {
 		$gateway_id = sanitize_key( $gateway_id );
 		if ( '' === $gateway_id || ! self::is_official_stripe_extension_active() ) {
