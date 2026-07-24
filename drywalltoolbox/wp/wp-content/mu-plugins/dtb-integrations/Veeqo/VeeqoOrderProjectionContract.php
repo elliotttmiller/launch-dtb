@@ -60,9 +60,12 @@ if ( ! function_exists( 'dtb_veeqo_sync_order' ) ) {
 				throw new DTB_Order_Integration_Exception( 'Veeqo order payload could not be built. Check configuration, line-item SKUs, sellable mappings, and shipping address.', false, 422 );
 			}
 
-			// Stable per-Woo-order correlation key is also used by VeeqoClient.php as
-			// the Idempotency-Key header for POST /orders.
-			$payload['order']['channel_order_number'] = $correlation_key;
+			// Preserve the human/operator-visible Woo order number in Veeqo. The
+			// request helper derives its POST /orders Idempotency-Key from this stable
+			// channel_order_number; the DTB correlation key is persisted separately.
+			if ( empty( $payload['order']['channel_order_number'] ) ) {
+				$payload['order']['channel_order_number'] = ltrim( (string) $order->get_order_number(), '#' );
+			}
 			$result = dtb_veeqo_request( 'POST', '/orders', [], $payload );
 			if ( empty( $result['ok'] ) ) {
 				$status = (int) ( $result['status'] ?? 0 );
