@@ -3,9 +3,8 @@ name: Apply launch catalog normalization
 on:
   push:
     branches:
-      - dtb-launch-catalog-stock-sawed-off
+      - main
     paths:
-      - scripts/apply_launch_catalog_normalization.py
       - .github/workflows/apply-launch-catalog-normalization.yml
   workflow_dispatch:
 
@@ -21,10 +20,10 @@ jobs:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout branch
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
-          ref: dtb-launch-catalog-stock-sawed-off
+          ref: main
           fetch-depth: 0
 
       - name: Set up Python
@@ -36,8 +35,8 @@ jobs:
         run: python scripts/apply_launch_catalog_normalization.py
 
       - name: Verify launch catalog and Veeqo import
-        shell: python
         run: |
+          python - <<'PY'
           import csv
           from decimal import Decimal
           from pathlib import Path
@@ -89,6 +88,7 @@ jobs:
               assert not (media_dir / old).exists(), f'Old media filename remains: {old}'
 
           print(f'Validated {len(catalog)} Woo rows and {len(veeqo)} Veeqo rows.')
+          PY
 
       - name: Verify category containment source
         run: |
@@ -111,7 +111,7 @@ jobs:
 
       - name: Commit normalized launch assets
         run: |
-          if git diff --quiet; then
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard 'products/dev/media/Sawed Off Taper')" ]; then
             echo 'No changes to commit.'
             exit 0
           fi
@@ -124,4 +124,4 @@ jobs:
             drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Services/CategoryNormalizer.php \
             frontend/src/services/catalogPlatformCache.js
           git commit -m 'Normalize launch inventory and automatic taper catalog'
-          git push origin HEAD:dtb-launch-catalog-stock-sawed-off
+          git push origin HEAD:main
