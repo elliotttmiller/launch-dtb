@@ -5,7 +5,7 @@
  * the Veeqo API key (DTB_VEEQO_API_KEY) is never exposed to the browser.
  *
  * PUBLIC PROXY METHODS (no authentication required from the browser):
- *   getShippingRates(destination, items)  → POST /wp-json/dtb/v1/veeqo/shipping-rates
+ *   getShippingRates(destination, items)  → compatibility delegate to POST /wp-json/dtb/v1/repairs/shipping-quote
  *   submitRepairRequest(formData)         → POST /wp-json/dtb/v1/repairs/submit
  *   checkInventoryAvailability(cartItems) → POST /wp-json/dtb/v1/veeqo/cart-availability
  *
@@ -17,6 +17,7 @@
 
 import { FREE_SHIP_THRESHOLD } from '../constants/shipping.js';
 import { submitRepair } from '../api/repairs.js';
+import { quoteRepairShipping } from '../api/repairShipping.js';
 
 // Server-side proxy base (Veeqo API key kept on the WordPress server).
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname : '';
@@ -134,33 +135,19 @@ function normalizeAvailabilityItem( item = {} ) {
 
 class VeeqoService {
   /**
-   * Fetch shipping rates for a destination address and item list.
+   * Fetch server-authoritative repair return-shipping options.
    *
-   * The rate calculation runs on the WordPress server via dtb/v1. Current
-   * checkout rates are DTB tiered/normalized rates; post-order label/carrier
-   * and tracking workflows are owned by Veeqo.
+   * This compatibility method delegates to the owning repair-service API. It no
+   * longer calls the storefront cart shipping endpoint and does not require a
+   * WooCommerce cart/session. Browser item price/weight values are non-authoritative.
    *
    * @param {{ address: string, city: string, state: string, zip: string, country: string }} destination
    * @param {Array<{ id: number, sku: string, name: string, quantity: number, price: number, weight: number, category: string }>} items
    * @returns {Promise<Array<{ id: string, name: string, price: number, currency: string }>>}
    */
   async getShippingRates( destination, items ) {
-    const url = `${ DTB_PROXY_BASE }/veeqo/shipping-rates`;
-    const res = await fetch( url, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify( { destination, items } ),
-    } );
-
-    if ( !res.ok ) {
-      let msg = `Shipping rates error ${ res.status }`;
-      try { const e = await res.json(); if ( e.message ) msg = e.message; } catch { /**/ }
-      throw new Error( msg );
-    }
-
-    const data = await res.json();
-    return normalizeFreeShippingRates( data.rates || [], destination, items );
+    const rates = await quoteRepairShipping( destination, items );
+    return normalizeFreeShippingRates( rates, destination, items );
   }
 
   /**
