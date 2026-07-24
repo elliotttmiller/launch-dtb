@@ -43,7 +43,9 @@ WordPress core lives under `/wp`, while `/checkout/`, `/wp-json/`, and `/wp-admi
 
 `/checkout/` is not a React checkout runtime. When login or registration was initiated from checkout, successful authentication must return with full-document navigation to the canonical WooCommerce checkout URL. React Router must not render `/checkout` as an intermediate post-auth destination.
 
-The frontend login/registration flow waits for `/auth/validate` before returning. For a checkout return, navigation is allowed only when the server reports `session.native_checkout.ready=true`; blocked privileged conflicts or cookie-emission failures remain on the auth screen instead of navigating into an ambiguous checkout state.
+The frontend login/registration flow waits for `/auth/validate` before returning. Same-origin checkout navigation is allowed only when the server reports `session.native_checkout.ready=true`; blocked privileged conflicts or cookie-emission failures remain on the auth screen instead of navigating into an ambiguous checkout state.
+
+Cross-origin preview builds cannot pre-mint a first-party native WordPress cookie through their API request. They may still perform the full-document handoff to the backend checkout origin after DTB JWT validation; `NativeCheckoutIdentityBridge.php` verifies the backend-origin `dtb_auth` cookie and establishes session-scoped native compatibility there.
 
 ## Native customer-session convergence
 
@@ -86,7 +88,7 @@ customer identity mismatch
 
 Cart continuity is intentionally sacrificed on a cross-customer identity conflict because privacy/data isolation outranks cart preservation.
 
-A valid native administrator/operator session is different: storefront auth must never clear, replace, demote, or convert it. If a non-privileged `dtb_auth` customer conflicts with a privileged native WordPress identity, the native privileged session is preserved, native-checkout readiness is false, and checkout-aware login/registration fails closed before redirecting.
+A valid native administrator/operator session is different: storefront auth must never clear, replace, demote, or convert it. New storefront login/registration requests are rejected before JWT issuance/account creation while that privileged native session is active. If an older split state already exists, `/auth/validate` preserves the privileged native session, clears the conflicting `dtb_auth` cookie through the canonical auth helper, returns storefront authentication as false, and records redacted diagnostics.
 
 ## Normal guest-to-customer cart transition
 
@@ -100,7 +102,7 @@ After login/logout, the React `CartContext` serializes a Store API cart refresh 
 
 `POST /wp-json/dtb/v1/auth/validate` is part of normal storefront auth bootstrap. A valid same-origin DTB customer session that predates native-cookie convergence can establish the missing native WordPress customer compatibility cookie once.
 
-Cross-origin preview/development sessions do not receive a native WordPress auth cookie through this bridge.
+Cross-origin preview/development sessions do not receive a native WordPress auth cookie on the cross-origin REST response; native checkout can self-heal on the backend origin after full-document navigation if the verified `dtb_auth` cookie is available there.
 
 A direct checkout request with no valid DTB storefront session cannot rely on a stale non-privileged native compatibility cookie: the bridge clears that stale compatibility cookie and allows the request to proceed without treating it as persistent customer storefront authentication. Privileged native sessions remain untouched.
 
@@ -119,7 +121,8 @@ drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/AuthRoutes.php
   -> credentials, JWT issuance/validation, dtb_auth cookie ownership
 
 drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/AuthCookieRuntimeHardening.php
-  -> no-store response hardening, native-cookie convergence, redacted diagnostics
+  -> auth preflight conflict blocking, no-store response hardening,
+     native-cookie convergence, fail-closed split-identity containment
 
 drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/SessionService.php
   -> logout cart-preserving rotation and privacy-safe identity-conflict discard
@@ -135,7 +138,7 @@ frontend/src/context/CartContext.jsx
 
 frontend/src/pages/Login.jsx
 frontend/src/pages/Register.jsx
-  -> checkout-aware, readiness-gated full-document return after auth
+  -> checkout-aware full-document return; same-origin handoff is readiness-gated
 
 frontend/src/pages/WooNativeCheckout.jsx
 frontend/src/utils/checkoutUrl.js
@@ -148,6 +151,7 @@ frontend/src/utils/checkoutUrl.js
 - Never trust caller-supplied customer IDs for checkout ownership.
 - Never carry authenticated customer session/cart data across a conflicting identity boundary.
 - Never clear/replace a valid privileged native WordPress session from storefront customer auth.
+- Never allow a privileged native WordPress identity and a different DTB customer identity to remain simultaneously active as competing storefront authorities.
 - Never manually copy arbitrary Woo session rows or make browser storage a second cart authority.
 - Do not manually invoke `wp_login` as a substitute for WooCommerce session initialization.
 - Do not mint privileged WordPress sessions through storefront customer auth.
@@ -162,15 +166,15 @@ Before release validate at minimum:
 
 1. Guest cart -> login -> authenticated cart preserves expected items through Woo's native migration.
 2. Existing authenticated customer can open `/checkout/` without a blank document or cart/session loss.
-3. Checkout `Log in` -> storefront login -> successful auth returns by readiness-gated full-document navigation to native checkout.
-4. Checkout registration follows the same readiness-gated full-document return contract.
+3. Checkout `Log in` -> storefront login -> successful auth returns by same-origin readiness-gated full-document navigation to native checkout.
+4. Checkout registration follows the same same-origin readiness-gated full-document return contract.
 5. Existing DTB-only customer session is repaired through `/auth/validate` and then opens native checkout correctly.
 6. Direct `/checkout/` with a valid DTB-only customer cookie self-heals session-scoped native auth without a second login.
 7. Expired/invalid DTB auth does not leave a non-privileged native compatibility cookie as a second persistent storefront identity.
 8. Deliberate customer A/native-cookie + customer B/DTB-cookie conflict discards the conflicting Woo browser session rather than transferring cart/customer data.
-9. A privileged native admin/operator cookie conflicting with storefront customer auth is preserved and checkout return fails closed.
-10. Cross-origin preview auth does not mint a native WordPress cookie.
-11. Privileged admin/operator storefront auth does not mint a native WordPress auth session.
+9. A privileged native admin/operator session blocks new customer storefront login/registration and an existing split identity is failed closed without clearing the privileged native session.
+10. Cross-origin preview auth does not mint a native WordPress cookie on the REST response and can self-heal only after navigation to the backend checkout origin.
+11. Privileged admin/operator storefront auth does not mint a native WordPress customer compatibility session.
 12. Logout preserves only the intended guest cart payload while removing former-customer contact/address/payment/session state and does not mutate privileged native sessions.
 13. Login/logout refreshes the Store API cart and Nonce before subsequent mutations.
 14. Woo cart contents, selected customer, shipping/tax totals and order ownership remain correct across the handoff.
