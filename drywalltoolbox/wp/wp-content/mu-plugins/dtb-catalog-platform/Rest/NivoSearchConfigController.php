@@ -51,9 +51,7 @@ final class DTB_NivoSearchConfigController {
 			is_array( $general ) ? $general : [],
 			is_array( $query ) ? $query : []
 		);
-
 		$min_chars = max( 1, min( 10, absint( $settings['min_chars'] ?? 2 ) ) );
-		$delay     = max( 100, min( 1000, absint( $settings['delay'] ?? 200 ) ) );
 
 		if ( class_exists( 'WC_AJAX' ) && is_callable( [ 'WC_AJAX', 'get_endpoint' ] ) ) {
 			$endpoint = WC_AJAX::get_endpoint( 'nivo_search' );
@@ -67,7 +65,6 @@ final class DTB_NivoSearchConfigController {
 			'endpoint' => esc_url_raw( $endpoint ),
 			'nonce'    => wp_create_nonce( 'nivo_search_nonce' ),
 			'minChars' => $min_chars,
-			'delayMs'  => $delay,
 		], 200 );
 	}
 
