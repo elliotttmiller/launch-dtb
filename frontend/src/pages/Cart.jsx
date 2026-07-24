@@ -6,6 +6,7 @@
  * WooCommerce Checkout Block + official WooCommerce Stripe Payment Gateway.
  */
 
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
@@ -21,19 +22,10 @@ import {
 
 import SEOHead from '../components/shared/SEOHead';
 import { useCart } from '../context/CartContext';
+import { useAuthContext } from '../auth/AuthContext.js';
+import { getCart } from '../api/cart.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
-
-const CHECKOUT_HREF = getWooCheckoutUrl();
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: (index) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.055 },
-  }),
-  exit: { opacity: 0, x: -28, scale: 0.97, transition: { duration: 0.2 } },
-};
+import { navigateDocument } from '../utils/documentNavigation.js';
 
 function parseStoreMoney(value, minorUnit) {
   const raw = Number(value);
@@ -44,6 +36,8 @@ function parseStoreMoney(value, minorUnit) {
 
 export default function Cart() {
   const { cart, cartItems, updateQuantity, removeFromCart, isMutating } = useCart();
+  const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
+  const [checkoutPending, setCheckoutPending] = useState(false);
 
   const localSubtotal = cartItems.reduce(
     (sum, item) => sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1),
@@ -54,9 +48,36 @@ export default function Cart() {
     cart?.totals?.currency_minor_unit
   );
   const subtotal = serverSubtotal ?? localSubtotal;
+  const checkoutDisabled = isMutating || checkoutPending;
 
-  const preventUnsafeCheckout = (event) => {
-    if (isMutating) event.preventDefault();
+  const handleCheckout = async (event) => {
+    event.preventDefault();
+    if (checkoutDisabled) return;
+
+    setCheckoutPending(true);
+    try {
+      // Signed-in customers must converge DTB auth to native WordPress/Woo identity
+      // before native checkout owns the document. This prevents a customer cart from
+      // being handed to /checkout/ while the browser still presents a stale/guest
+      // native identity.
+      if (isAuthenticated) {
+        await ensureNativeCheckoutReady();
+      }
+
+      // Prove the authoritative Woo cart still contains items after any auth/session
+      // convergence. Never trust only the React snapshot when crossing runtimes.
+      const authoritativeCart = await getCart();
+      if (!Array.isArray(authoritativeCart?.items) || authoritativeCart.items.length === 0) {
+        window.alert('Your checkout cart could not be confirmed. Please refresh your cart and try again.');
+        return;
+      }
+
+      navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
+    } catch (error) {
+      window.alert(error?.message || 'We could not confirm your signed-in checkout session. Please try again.');
+    } finally {
+      setCheckoutPending(false);
+    }
   };
 
   if (cartItems.length === 0) {
@@ -128,11 +149,10 @@ export default function Cart() {
                   <Motion.div
                     key={itemKey}
                     layout
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    custom={index}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -28, scale: 0.97, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.055 }}
                     className="dtb-cart-item-card group bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_rgba(15,23,42,0.05)] hover:shadow-[0_4px_20px_rgba(15,23,42,0.09)] transition-shadow"
                   >
                     <div className="dtb-cart-item-card__inner p-4 sm:p-5 flex gap-4">
@@ -221,13 +241,13 @@ export default function Cart() {
                 </p>
 
                 <a
-                  href={CHECKOUT_HREF}
-                  onClick={preventUnsafeCheckout}
-                  aria-disabled={isMutating ? 'true' : undefined}
-                  className={`dtb-cart-summary-card__checkout w-full inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${isMutating ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}
+                  href={getWooCheckoutUrl()}
+                  onClick={handleCheckout}
+                  aria-disabled={checkoutDisabled ? 'true' : undefined}
+                  className={`dtb-cart-summary-card__checkout w-full inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${checkoutDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}
                 >
                   <Lock size={14} strokeWidth={2.5} />
-                  {isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
+                  {checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </a>
               </div>
