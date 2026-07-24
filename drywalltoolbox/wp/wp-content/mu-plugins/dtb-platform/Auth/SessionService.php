@@ -85,6 +85,44 @@ final class DTB_SessionService {
 		}
 	}
 
+	/**
+	 * Discard a Woo session when two authenticated identities conflict.
+	 *
+	 * This intentionally does not preserve cart/customer/session data. Carrying a
+	 * cart from one authenticated customer into another identity would be a data-
+	 * isolation violation. The next request may create/migrate a fresh session for
+	 * the verified storefront customer through WooCommerce's native lifecycle.
+	 */
+	public static function discard_woocommerce_session_for_identity_conflict(): void {
+		$previous_user_id = function_exists( 'get_current_user_id' ) ? (int) get_current_user_id() : 0;
+
+		try {
+			if ( function_exists( 'wp_set_current_user' ) ) {
+				wp_set_current_user( 0 );
+			}
+
+			if ( function_exists( 'WC' ) && WC() && is_object( WC()->session ) && is_callable( [ WC()->session, 'destroy_session' ] ) ) {
+				WC()->session->destroy_session();
+			}
+		} catch ( Throwable $error ) {
+			if ( function_exists( 'wc_get_logger' ) ) {
+				wc_get_logger()->warning(
+					'WooCommerce session cleanup encountered an error while containing an auth identity conflict.',
+					[
+						'source'      => 'dtb-auth',
+						'error_class' => get_class( $error ),
+					]
+				);
+			}
+		} finally {
+			self::expire_woocommerce_session_cookie();
+			self::expire_cart_marker_cookies();
+			if ( $previous_user_id > 0 && function_exists( 'wp_set_current_user' ) ) {
+				wp_set_current_user( $previous_user_id );
+			}
+		}
+	}
+
 	/** Expire the current Woo session cookie without exposing its contents. */
 	private static function expire_woocommerce_session_cookie(): void {
 		if ( ! defined( 'COOKIEHASH' ) ) {
@@ -104,6 +142,24 @@ final class DTB_SessionService {
 			] );
 		}
 		unset( $_COOKIE[ $cookie_name ] );
+	}
+
+	/** Expire Woo's non-authoritative cart marker cookies after identity conflict. */
+	private static function expire_cart_marker_cookies(): void {
+		foreach ( [ 'woocommerce_cart_hash', 'woocommerce_items_in_cart' ] as $cookie_name ) {
+			if ( function_exists( 'wc_setcookie' ) ) {
+				wc_setcookie( $cookie_name, '', time() - YEAR_IN_SECONDS );
+			} else {
+				setcookie( $cookie_name, '', [
+					'expires'  => time() - YEAR_IN_SECONDS,
+					'path'     => defined( 'COOKIEPATH' ) && COOKIEPATH ? COOKIEPATH : '/',
+					'secure'   => is_ssl(),
+					'httponly' => false,
+					'samesite' => 'Lax',
+				] );
+			}
+			unset( $_COOKIE[ $cookie_name ] );
+		}
 	}
 
 	public static function is_cross_origin_request(): bool {
