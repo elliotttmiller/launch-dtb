@@ -56,13 +56,13 @@ The checkout runtime adapter lives at:
 dtb-commerce/Payment/WooNativeCheckoutRuntime.php
 ```
 
-It prevents the headless theme from forcing checkout into the React SPA or stripping Woo/plugin assets. It then delegates native checkout document presentation to the active theme:
+It prevents the headless theme from forcing checkout into the React SPA or stripping Woo/plugin assets. It delegates checkout document presentation to:
 
 ```text
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 ```
 
-The adapter fails open to Woo/WordPress's resolved template if the expected active-theme checkout template is unavailable. It never manually creates Checkout Block state, Stripe fields, PaymentIntents, Stripe Checkout Sessions, or orders.
+The adapter fails open to Woo/WordPress's resolved template if the expected theme checkout template is unavailable. It never manually creates Checkout Block state, Stripe fields, PaymentIntents, Stripe Checkout Sessions, or orders.
 
 Official Stripe integration lives at:
 
@@ -72,7 +72,7 @@ dtb-commerce/Payment/OfficialStripeNativeCheckout.php
 
 It owns:
 
-- official extension/gateway identity verification rather than trusting arbitrary `stripe_*` IDs;
+- official extension/gateway identity verification;
 - read-safe local checkout capability/readiness metadata;
 - supported `wc_stripe_upe_params` / `blocksAppearance` configuration;
 - checkout contract metadata tagging;
@@ -99,9 +99,9 @@ drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ref
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-flow.css
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.css
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.js
 ```
+
+The active theme owns one ordered presentation stack only. `checkout-ui.js` is the sole theme controller for responsive step state, canonical contact-field mirroring, duplicate summary containment, and single-gateway presentation markers.
 
 Retired competing checkout presentation files are intentionally absent:
 
@@ -114,9 +114,11 @@ dtb-commerce/Templates/WooNativeCheckoutPage.php
 
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
+themes/drywall-toolbox/assets/checkout/checkout-profile.js
+themes/drywall-toolbox/assets/checkout/checkout-profile.css
 ```
 
-Do not recreate a second MU-plugin presentation layer or a mobile payment sheet.
+Do not recreate a second MU-plugin presentation layer, mobile payment sheet, or second theme profile/field-state controller.
 
 Checkout performance/stability diagnostics live at:
 
