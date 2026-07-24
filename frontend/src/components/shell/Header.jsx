@@ -1,9 +1,7 @@
 import { Phone } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import StorefrontHeader from '../storefront/StorefrontHeader';
-import NivoSearchPresentation from '../storefront/NivoSearchPresentation.jsx';
 import '../../styles/storefront-top-banner.css';
-import '../../styles/storefront-nivo-search-compat.css';
 
 const STORE_PHONE_DISPLAY = '(609) 866-5269';
 const STORE_PHONE_HREF = 'tel:+16098665269';
@@ -31,7 +29,6 @@ export default function Header(props) {
         </div>
       ) : null}
       <StorefrontHeader {...props} hasTopTicker={hasTopTicker} />
-      <NivoSearchPresentation />
     </div>
   );
 }
