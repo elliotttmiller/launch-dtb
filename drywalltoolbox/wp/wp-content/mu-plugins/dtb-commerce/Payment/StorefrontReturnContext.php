@@ -65,11 +65,20 @@ final class DTB_StorefrontReturnContext {
 	 * Route a successful DTB storefront checkout back to the originating React
 	 * order-tracking surface while keeping WooCommerce/gateway payment ownership.
 	 *
+	 * A Checkout Block `checkout-draft` is not a completed purchase. Never issue a
+	 * customer-facing success redirect until Woo/Stripe has produced authoritative
+	 * captured-payment evidence (or a legitimate zero-total order has finalized).
+	 *
 	 * @param string        $return_url WooCommerce's default order-received URL.
 	 * @param WC_Order|null $order      Processed order, when available.
 	 */
 	public static function filter_success_return_url( string $return_url, $order = null ): string {
 		if ( ! $order instanceof WC_Order || ! self::is_dtb_checkout_order( $order ) ) {
+			return $return_url;
+		}
+
+		if ( ! self::is_confirmable_order( $order ) ) {
+			self::log_unverified_success_redirect( $order );
 			return $return_url;
 		}
 
@@ -84,6 +93,32 @@ final class DTB_StorefrontReturnContext {
 			],
 			$url
 		);
+	}
+
+	private static function is_confirmable_order( WC_Order $order ): bool {
+		if ( function_exists( 'dtb_checkout_handoff_has_captured_payment' ) && dtb_checkout_handoff_has_captured_payment( $order ) ) {
+			return true;
+		}
+
+		$status = sanitize_key( (string) $order->get_status() );
+		return (float) $order->get_total() <= 0
+			&& ! in_array( $status, [ 'checkout-draft', 'draft', 'auto-draft', 'pending', 'failed', 'cancelled', 'refunded', 'trash' ], true );
+	}
+
+	private static function log_unverified_success_redirect( WC_Order $order ): void {
+		$context = [
+			'source'   => 'dtb-checkout',
+			'event'    => 'checkout_success_redirect_blocked_unverified_order',
+			'order_id' => (int) $order->get_id(),
+			'status'   => sanitize_key( (string) $order->get_status() ),
+		];
+
+		if ( function_exists( 'dtb_security_log' ) ) {
+			dtb_security_log( 'checkout_success_redirect_blocked_unverified_order', $context );
+			return;
+		}
+
+		error_log( (string) wp_json_encode( $context, JSON_UNESCAPED_SLASHES ) );
 	}
 
 	private static function persist_order_context( WC_Order $order ): void {
