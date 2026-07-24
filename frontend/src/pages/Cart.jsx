@@ -217,7 +217,7 @@ export default function Cart() {
                   <span className="font-semibold text-slate-900 tabular-nums">${subtotal.toFixed(2)}</span>
                 </div>
                 <p className="mb-5 border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">
-                  Shipping, discounts, and taxes are calculated by WooCommerce from your checkout details before payment.
+                  Shipping, discounts, and taxes are calculated at checkout.
                 </p>
 
                 <a
@@ -230,10 +230,6 @@ export default function Cart() {
                   {isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </a>
-
-                <p className="mt-4 text-center text-[11px] leading-relaxed text-slate-400">
-                  Payment is collected on our same-domain WooCommerce checkout by the official Stripe gateway.
-                </p>
               </div>
             </div>
           </Motion.div>
