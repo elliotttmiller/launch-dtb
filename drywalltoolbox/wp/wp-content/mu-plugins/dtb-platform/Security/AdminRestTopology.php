@@ -1,58 +1,63 @@
 <?php
 /**
- * Native wp-admin REST topology.
+ * Native wp-admin topology guard.
  *
- * Drywall Toolbox serves the public SPA from WP_HOME at the document root while
- * WordPress core lives at WP_SITEURL under /wp. Native wp-admin applications
- * (WooCommerce Admin, WooPayments, and hosting-admin integrations) must reach
- * the physical WordPress runtime without depending on a public-root rewrite.
+ * Drywall Toolbox serves the public origin from WP_HOME while WordPress core
+ * lives physically under WP_SITEURL (/wp). The supported operator contract is
+ * the root aliases (/wp-admin/, /wp-login.php, /wp-json/*) so WordPress auth
+ * cookies, REST nonces, WooCommerce Admin, and DTB admin routes share one
+ * browser-visible origin and cookie scope.
  *
- * The live /wp/.htaccess does not expose a /wp/wp-json/* pretty-permalink route,
- * so native wp-admin REST URLs use WordPress' canonical query-string form:
- *   /wp/index.php?rest_route=/namespace/route
+ * Never rewrite generated REST URLs to /wp/index.php here. WordPress must emit
+ * its canonical REST URL from WP_HOME and the root rewrite layer owns routing
+ * that request into the physical /wp runtime.
  *
- * Storefront/public REST URLs remain unchanged. This filter only changes REST
- * URLs generated while rendering native wp-admin requests; REST requests
- * themselves are never rewritten by this module.
- *
- * @package drywall-toolbox
+ * @package drywalltoolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
-add_filter( 'rest_url', 'dtb_native_admin_canonical_rest_url', 20, 4 );
+add_action( 'admin_init', 'dtb_native_admin_redirect_physical_admin_alias', 1 );
 
 /**
- * Return the physical WordPress REST runtime URL for native wp-admin generation.
+ * Redirect accidental GET/HEAD access to the physical /wp/wp-admin path back
+ * to the supported root /wp-admin alias.
  *
- * @param string   $url     Generated REST URL.
- * @param string   $path    Requested REST path.
- * @param int|null $blog_id Blog ID.
- * @param string   $scheme  URL scheme context.
- * @return string
+ * Mutating requests are never redirected so request bodies cannot be lost or
+ * replayed. AJAX, cron, REST, and CLI execution are also excluded.
  */
-function dtb_native_admin_canonical_rest_url( string $url, string $path, $blog_id, string $scheme ): string {
-	unset( $blog_id, $scheme );
-
-	// Do not alter public/storefront REST URLs, AJAX, cron, CLI, or REST requests.
-	if ( ! is_admin() || wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
-		return $url;
+function dtb_native_admin_redirect_physical_admin_alias(): void {
+	if (
+		wp_doing_ajax()
+		|| wp_doing_cron()
+		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+		|| ( defined( 'WP_CLI' ) && WP_CLI )
+	) {
+		return;
 	}
 
-	$index_url = site_url( '/index.php', 'https' );
-	if ( '' === $index_url ) {
-		return $url;
+	$method = isset( $_SERVER['REQUEST_METHOD'] )
+		? strtoupper( sanitize_text_field( (string) wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		: '';
+	if ( ! in_array( $method, [ 'GET', 'HEAD' ], true ) ) {
+		return;
 	}
 
-	$route = '/' . ltrim( $path, '/' );
+	$request_uri = isset( $_SERVER['REQUEST_URI'] )
+		? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		: '';
+	$path = '' !== $request_uri ? (string) wp_parse_url( $request_uri, PHP_URL_PATH ) : '';
+	if ( '' === $path || 0 !== strpos( $path, '/wp/wp-admin' ) ) {
+		return;
+	}
 
-	// Use query-string REST routing because the physical /wp runtime does not
-	// expose /wp/wp-json/* as a directly routable pretty-permalink endpoint.
-	return esc_url_raw(
-		add_query_arg(
-			'rest_route',
-			$route,
-			$index_url
-		)
-	);
+	$relative = ltrim( substr( $path, strlen( '/wp/wp-admin' ) ), '/' );
+	$target   = home_url( '/wp-admin/' . $relative );
+	$query    = '' !== $request_uri ? (string) wp_parse_url( $request_uri, PHP_URL_QUERY ) : '';
+	if ( '' !== $query ) {
+		$target .= '?' . $query;
+	}
+
+	wp_safe_redirect( $target, 302, 'Drywall Toolbox Admin Topology' );
+	exit;
 }
