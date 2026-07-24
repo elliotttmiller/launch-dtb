@@ -30,7 +30,6 @@ $uiPath = Join-Path $theme 'assets/checkout/checkout-ui.js'
 $cssPath = Join-Path $theme 'assets/checkout/checkout.css'
 $refinementsPath = Join-Path $theme 'assets/checkout/checkout-refinements.css'
 $flowPath = Join-Path $theme 'assets/checkout/checkout-flow.css'
-$profilePath = Join-Path $theme 'assets/checkout/checkout-profile.js'
 
 $bootstrap = Read-RequiredText $bootstrapPath
 $performance = Read-RequiredText $performancePath
@@ -43,7 +42,6 @@ $ui = Read-RequiredText $uiPath
 $css = Read-RequiredText $cssPath
 $refinements = Read-RequiredText $refinementsPath
 $flow = Read-RequiredText $flowPath
-$profile = Read-RequiredText $profilePath
 
 $retiredPaths = @(
     (Join-Path $commerce 'Payment/MobilePaymentSheet.php'),
@@ -57,7 +55,9 @@ $retiredPaths = @(
     (Join-Path $commerce 'assets/woo-native-checkout-steps.js'),
     (Join-Path $commerce 'Templates/WooNativeCheckoutPage.php'),
     (Join-Path $theme 'assets/checkout/checkout-payment-sheet.js'),
-    (Join-Path $theme 'assets/checkout/checkout-payment-sheet.css')
+    (Join-Path $theme 'assets/checkout/checkout-payment-sheet.css'),
+    (Join-Path $theme 'assets/checkout/checkout-profile.js'),
+    (Join-Path $theme 'assets/checkout/checkout-profile.css')
 )
 foreach ($retiredPath in $retiredPaths) {
     Assert-True (-not (Test-Path -LiteralPath $retiredPath)) "Retired/competing checkout artifact must remain deleted: $retiredPath"
@@ -75,6 +75,7 @@ Assert-True ($template.Contains("'dtb-checkout-theme-refinements'")) 'Theme chec
 Assert-True ($template.Contains("'dtb-checkout-theme-flow'")) 'Theme checkout template must enqueue responsive inline checkout flow styles.'
 Assert-True ($template.Contains("'dtb-checkout-theme-ui'")) 'Theme checkout template must enqueue the presentation controller.'
 Assert-True (-not $template.Contains('checkout-payment-sheet')) 'Theme checkout template must not enqueue a mobile payment sheet.'
+Assert-True (-not $template.Contains('checkout-profile')) 'Theme checkout template must not enqueue the retired competing profile presentation layer.'
 Assert-True ($template.Contains('the_content();')) 'Theme checkout template must delegate checkout rendering to the assigned Woo Checkout page.'
 
 foreach ($requiredStep in @("id: 'contact'", "id: 'shipping'", "id: 'payment'")) {
@@ -100,9 +101,12 @@ Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme refinements mu
 Assert-True ($flow.Contains('[data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive')) 'Mobile flow must keep the inactive provider payment surface mounted/measurable.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-progress')) 'Theme flow stylesheet must include the three-step progress UI.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-actions')) 'Theme flow stylesheet must include non-submit mobile navigation controls.'
+Assert-True ($flow.Contains('top: auto !important')) 'Theme flow must reset legacy sticky progress positioning.'
+Assert-True ($flow.Contains('content: none !important')) 'Theme flow must suppress legacy duplicate progress chevrons.'
 Assert-True (-not $flow.Contains('dtb-payment-sheet')) 'Theme flow stylesheet must not restore payment-sheet selectors.'
 
 Assert-True ($runtimeIntegrity.Contains("'dtb-checkout-theme-ui'")) 'Runtime integrity must recognize the theme-owned checkout UI handle.'
+Assert-True (-not $runtimeIntegrity.Contains('dtb-checkout-theme-profile')) 'Runtime integrity must not retain the retired theme profile handle.'
 Assert-True (-not $runtimeIntegrity.Contains('dtb-woo-native-checkout-ui')) 'Runtime integrity must not retain the retired MU presentation handle.'
 Assert-True ($performance.Contains("document.body.classList.contains( 'dtb-checkout-step-payment' )")) 'Checkout telemetry must arm provider timeout monitoring from the inline Payment step.'
 Assert-True (-not $performance.Contains('dtb-payment-sheet-open')) 'Checkout telemetry must not depend on retired payment-sheet state.'
@@ -112,6 +116,5 @@ Assert-True ($officialStripe.Contains("'blocksAppearance'")) 'Official Stripe in
 Assert-True ($officialStripe -match "'theme'\s*=>\s*'stripe'") 'Stripe Appearance theme must match the unified checkout design contract.'
 
 Assert-True ($css.Contains('.wc-block-components-express-payment')) 'Base theme checkout stylesheet must retain Express Checkout presentation support.'
-Assert-True ($profile.Length -gt 0) 'Signed-in checkout profile refinement asset must remain present.'
 
 Write-Host 'DTB checkout presentation static smoke checks passed.' -ForegroundColor Green
