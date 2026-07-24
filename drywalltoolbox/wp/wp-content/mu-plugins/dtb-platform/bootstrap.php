@@ -5,7 +5,7 @@
  * Loads all platform modules in dependency order.
  * This file is required by 00-dtb-loader.php.
  *
- * @package drywall-toolbox
+ * @package drywalltoolbox
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -52,6 +52,7 @@ require_once $_dtb_platform . '/Auth/CurrentUserResolver.php';
 require_once $_dtb_platform . '/Auth/TokenService.php';
 require_once $_dtb_platform . '/Auth/AuthController.php';
 require_once $_dtb_platform . '/Auth/NativeCheckoutIdentityBridge.php';
+require_once $_dtb_platform . '/Auth/CheckoutSessionContinuityGuard.php';
 require_once $_dtb_platform . '/Auth/AuthRoutes.php';
 require_once $_dtb_platform . '/Auth/AuthCookieRuntimeHardening.php';
 
