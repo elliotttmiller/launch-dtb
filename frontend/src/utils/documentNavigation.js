@@ -1,5 +1,4 @@
 const DOCUMENT_FADE_MS = 180;
-const CHECKOUT_HANDOFF_MS = 320;
 
 let navigationPending = false;
 
@@ -22,8 +21,14 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Navigates outside the React router after fading the current document.
- * Use only for intentional full-document transfers such as React -> WooCommerce.
+ * Navigates outside the React router.
+ *
+ * Checkout transfers deliberately do not fade or hide the current document. A native
+ * WooCommerce checkout request can be delayed by authentication/session convergence;
+ * hiding the SPA before the browser commits the destination produces a misleading
+ * blank screen while the address bar still shows the cart route. Keep the current
+ * document visible and let the browser replace it only after the checkout response is
+ * ready to commit.
  */
 export function navigateDocument(url, { replace = false, transition = 'fade' } = {}) {
   if (typeof window === 'undefined' || navigationPending) return;
@@ -38,14 +43,11 @@ export function navigateDocument(url, { replace = false, transition = 'fade' } =
     }
   };
 
-  if (prefersReducedMotion()) {
+  if (transition === 'checkout' || prefersReducedMotion()) {
     commitNavigation();
     return;
   }
 
-  const isCheckoutHandoff = transition === 'checkout';
-  document.documentElement.classList.add(
-    isCheckoutHandoff ? 'dtb-checkout-handoff-active' : 'dtb-document-transition-active'
-  );
-  window.setTimeout(commitNavigation, isCheckoutHandoff ? CHECKOUT_HANDOFF_MS : DOCUMENT_FADE_MS);
+  document.documentElement.classList.add('dtb-document-transition-active');
+  window.setTimeout(commitNavigation, DOCUMENT_FADE_MS);
 }
