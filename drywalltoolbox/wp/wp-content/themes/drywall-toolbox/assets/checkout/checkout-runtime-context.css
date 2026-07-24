@@ -1,10 +1,10 @@
 /*
  * Checkout runtime context presentation.
  *
- * Loaded after checkout-flow.css. This narrow final layer styles only DTB-owned
- * progressive navigation status and the read-only live shipping/tax context that
- * checkout-ui.js derives from WooCommerce block data stores. It never styles or
- * manipulates Stripe/provider-owned iframe internals or replaces Woo totals.
+ * Loaded after checkout-flow.css. This final layer owns only DTB progressive
+ * navigation/read-only live context plus safe same-origin payment-wrapper
+ * normalization. Stripe/Woo remain authoritative for payment controls, iframe
+ * contents, validation and submission; no provider iframe descendants are styled.
  */
 
 body.dtb-official-stripe-checkout .dtb-checkout-live-context {
@@ -76,11 +76,90 @@ body.dtb-official-stripe-checkout .dtb-checkout-live-context__row > strong {
   overflow-wrap: anywhere;
 }
 
+/*
+ * Payment interaction safety.
+ *
+ * The official Stripe Payment Element can resize and manage focus/touch inside its
+ * iframe. DTB must not clip it, cover it with decorative Woo wrappers, or leave a
+ * transparent navigation layer over it. These rules affect same-origin mounting
+ * wrappers only; iframe internals remain completely provider-owned.
+ */
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method,
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-option,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content,
+body.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+body.dtb-official-stripe-checkout .wc-stripe-upe-element,
+body.dtb-official-stripe-checkout .wcstripe-payment-element,
+body.dtb-official-stripe-checkout .StripeElement {
+  max-height: none !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content,
+body.dtb-official-stripe-checkout .wc-stripe-upe-element,
+body.dtb-official-stripe-checkout .wcstripe-payment-element,
+body.dtb-official-stripe-checkout .StripeElement {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method iframe,
+body.dtb-official-stripe-checkout .wc-stripe-upe-element iframe,
+body.dtb-official-stripe-checkout .wcstripe-payment-element iframe,
+body.dtb-official-stripe-checkout .StripeElement iframe {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control::before,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control::after,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option::before,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option::after {
+  pointer-events: none !important;
+}
+
 @media (max-width: 767px) {
-  /* The fixed action bar occupies only its visible content area, so it can safely
-   * receive pointer events directly. This avoids iOS/Safari descendant hit-testing
-   * failures caused by a pointer-events:none fixed ancestor. */
+  /* Keep Contact/Shipping CTA immediately tappable on mobile Safari. */
   body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions {
+    pointer-events: auto !important;
+  }
+
+  /* Payment is provider-owned. Remove the fixed DTB navigation shell entirely on
+   * this step so it cannot cover Stripe methods, wallet controls, consent, or the
+   * native Woo Place Order action. Completed progress steps remain available above. */
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .dtb-mobile-checkout-actions {
+    display: none !important;
+  }
+
+  body.dtb-checkout-step-payment.dtb-mobile-checkout-enhanced {
+    padding-bottom: max(28px, env(safe-area-inset-bottom)) !important;
+  }
+
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-checkout__payment-method,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
     pointer-events: auto !important;
   }
 
