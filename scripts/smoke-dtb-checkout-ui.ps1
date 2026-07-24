@@ -25,16 +25,20 @@ function Read-RequiredText {
 $bootstrapPath = Join-Path $commerce 'bootstrap.php'
 $uiPath = Join-Path $commerce 'assets/woo-native-checkout-ui.js'
 $cssPath = Join-Path $commerce 'assets/woo-native-checkout.css'
+$refinementsPath = Join-Path $commerce 'assets/woo-native-checkout-refinements.css'
 $performancePath = Join-Path $commerce 'assets/woo-native-checkout-performance.js'
 $runtimeIntegrityPath = Join-Path $commerce 'Payment/CheckoutRuntimeIntegrity.php'
+$nativeRuntimePath = Join-Path $commerce 'Payment/WooNativeCheckoutRuntime.php'
 $officialStripePath = Join-Path $commerce 'Payment/OfficialStripeNativeCheckout.php'
 $templatePath = Join-Path $commerce 'Templates/WooNativeCheckoutPage.php'
 
 $bootstrap = Read-RequiredText $bootstrapPath
 $ui = Read-RequiredText $uiPath
 $css = Read-RequiredText $cssPath
+$refinements = Read-RequiredText $refinementsPath
 $performance = Read-RequiredText $performancePath
 $runtimeIntegrity = Read-RequiredText $runtimeIntegrityPath
+$nativeRuntime = Read-RequiredText $nativeRuntimePath
 $officialStripe = Read-RequiredText $officialStripePath
 $template = Read-RequiredText $templatePath
 
@@ -71,6 +75,17 @@ Assert-True ($css.Contains('.dtb-mobile-checkout-progress')) 'Checkout styleshee
 Assert-True ($css.Contains('.dtb-mobile-checkout-actions')) 'Checkout stylesheet must include mobile non-submit continue actions.'
 Assert-True ($css.Contains('.wc-block-components-express-payment__event-buttons')) 'Checkout stylesheet must retain provider-owned Express Checkout framing.'
 Assert-True (-not $css.Contains('.dtb-payment-sheet')) 'Checkout stylesheet must not contain retired payment-sheet selectors.'
+
+Assert-True ($refinements.Contains('.wc-block-components-express-payment__content')) 'Checkout refinements must normalize the Express Checkout outer wrapper.'
+Assert-True ($refinements.Contains('.wc-block-components-express-payment__event-buttons > li')) 'Checkout refinements must keep wallet list items layout-only.'
+Assert-True ($refinements.Contains('.wp-block-woocommerce-checkout-order-summary-block')) 'Checkout refinements must normalize the Woo order-summary shell.'
+Assert-True ($refinements.Contains('background: transparent !important')) 'Checkout refinements must flatten redundant same-origin wrapper backgrounds.'
+Assert-True ($refinements.Contains('border: 0 !important')) 'Checkout refinements must flatten redundant same-origin wrapper borders.'
+Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Checkout refinements must not target descendants inside provider iframes.'
+
+Assert-True ($nativeRuntime.Contains("remove_action( 'wp_enqueue_scripts', 'dtb_enqueue_react_app', 10 )")) 'Native checkout must disable React asset ownership on the checkout document.'
+Assert-True ($nativeRuntime.Contains("remove_action( 'wp_enqueue_scripts', 'dtb_dequeue_non_react_assets', 9999 )")) 'Native checkout must preserve Woo/WP/Stripe assets from the headless theme stripper.'
+Assert-True ($nativeRuntime.Contains("'/Templates/WooNativeCheckoutPage.php'")) 'Native checkout must remain hosted by the canonical dtb-commerce template, not legacy theme checkout assets.'
 
 Assert-True ($performance.Contains("document.body.classList.contains( 'dtb-checkout-step-payment' )")) 'Checkout telemetry must arm mobile provider timeout monitoring from the inline Payment step.'
 Assert-True (-not $performance.Contains('dtb-payment-sheet-open')) 'Checkout telemetry must not depend on retired payment-sheet state.'
