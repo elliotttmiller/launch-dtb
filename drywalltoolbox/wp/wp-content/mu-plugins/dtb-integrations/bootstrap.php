@@ -11,7 +11,11 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! function_exists( 'dtb_integrations_require_files' ) ) {
-	/** @param string[] $relative_paths Paths relative to wp-content/mu-plugins. */
+	/**
+	 * Require a list of integration module files in-order.
+	 *
+	 * @param string[] $relative_paths Paths relative to wp-content/mu-plugins.
+	 */
 	function dtb_integrations_require_files( array $relative_paths ): void {
 		foreach ( $relative_paths as $path ) {
 			dtb_module_require( $path );
@@ -20,12 +24,23 @@ if ( ! function_exists( 'dtb_integrations_require_files' ) ) {
 }
 
 if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
+	/** Register major integration health checks with DTB health registry. */
 	function dtb_integrations_register_health_checks(): void {
-		if ( class_exists( 'DTB_WooCommerceHealthCheck' ) ) { DTB_WooCommerceHealthCheck::register(); }
-		if ( class_exists( 'DTB_VeeqoHealthCheck' ) ) { DTB_VeeqoHealthCheck::register(); }
-		if ( class_exists( 'DTB_QuickBooksHealthCheck' ) ) { DTB_QuickBooksHealthCheck::register(); }
-		if ( class_exists( 'DTB_AmazonHealthCheck' ) ) { DTB_AmazonHealthCheck::register(); }
-		if ( class_exists( 'DTB_EbayHealthCheck' ) ) { DTB_EbayHealthCheck::register(); }
+		if ( class_exists( 'DTB_WooCommerceHealthCheck' ) ) {
+			DTB_WooCommerceHealthCheck::register();
+		}
+		if ( class_exists( 'DTB_VeeqoHealthCheck' ) ) {
+			DTB_VeeqoHealthCheck::register();
+		}
+		if ( class_exists( 'DTB_QuickBooksHealthCheck' ) ) {
+			DTB_QuickBooksHealthCheck::register();
+		}
+		if ( class_exists( 'DTB_AmazonHealthCheck' ) ) {
+			DTB_AmazonHealthCheck::register();
+		}
+		if ( class_exists( 'DTB_EbayHealthCheck' ) ) {
+			DTB_EbayHealthCheck::register();
+		}
 	}
 }
 
@@ -46,7 +61,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceHealthCheck.php',
 ] );
 
-// 3) Veeqo module-layer files. Production configuration loads before inventory/order projection.
+// 3) Veeqo module-layer files.
 dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoConfig.php',
 	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
@@ -84,7 +99,12 @@ dtb_integrations_require_files( [
 	'dtb-integrations/OperationalPipeline/PipelinePayloadPreview.php',
 ] );
 
-// Rewards module intentionally omitted for launch.
+// Rewards module intentionally omitted for launch:
+// - RewardsService.php
+// - RewardsIssueJob.php
+// - RewardsAdjustmentController.php
+// - RewardsBalanceController.php
+// - RewardsHealthCheck.php
 
 // 5) Notifications last (cross-integration consumers).
 dtb_integrations_require_files( [
@@ -163,4 +183,5 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Admin/MarketplaceSettingsPage.php',
 ] );
 
+// Register existing lightweight integration diagnostics.
 dtb_integrations_register_health_checks();
