@@ -22,7 +22,6 @@ final class DTB_CheckoutRuntimeIntegrity {
 	private const DTB_CHECKOUT_SCRIPT_HANDLES = [
 		'dtb-checkout-theme-boot',
 		'dtb-checkout-theme-ui',
-		'dtb-checkout-theme-profile',
 		'dtb-woo-native-checkout-performance',
 	];
 
@@ -62,16 +61,10 @@ final class DTB_CheckoutRuntimeIntegrity {
 	];
 
 	public static function register(): void {
-		/* Enforce the headless SPA exception at both lifecycle boundaries. */
 		add_action( 'wp', [ __CLASS__, 'enforce_native_theme_exception' ], PHP_INT_MAX );
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_native_theme_exception' ], 0 );
-
-		/* Run after checkout modules/theme have registered their DTB-owned assets. */
 		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enforce_dtb_checkout_script_invariants' ], PHP_INT_MAX );
 
-		/* Native checkout is transactional. Preserve WordPress dependency ordering and
-		 * keep Stripe.js on its required origin by excluding checkout from SiteGround
-		 * combine/minify/async transforms and public page caching. */
 		add_filter( 'sgo_js_async_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
 		add_filter( 'sgo_javascript_combine_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
 		add_filter( 'sgo_js_minify_exclude', [ __CLASS__, 'exclude_checkout_scripts_from_optimizer' ] );
@@ -130,18 +123,11 @@ final class DTB_CheckoutRuntimeIntegrity {
 			return $exclude_list;
 		}
 
-		$handles = array_merge(
-			self::CRITICAL_CHECKOUT_SCRIPT_HANDLES,
-			self::DTB_CHECKOUT_SCRIPT_HANDLES
-		);
+		$handles = array_merge( self::CRITICAL_CHECKOUT_SCRIPT_HANDLES, self::DTB_CHECKOUT_SCRIPT_HANDLES );
 
 		global $wp_scripts;
 		if ( $wp_scripts instanceof WP_Scripts ) {
-			$handles = array_merge(
-				$handles,
-				array_keys( $wp_scripts->registered ),
-				array_values( $wp_scripts->queue )
-			);
+			$handles = array_merge( $handles, array_keys( $wp_scripts->registered ), array_values( $wp_scripts->queue ) );
 		}
 
 		$handles = array_filter(
