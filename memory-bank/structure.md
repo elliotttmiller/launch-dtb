@@ -206,20 +206,17 @@ drywalltoolbox/wp/wp-content/themes/drywall-toolbox/
    ├─ checkout-refinements.css
    ├─ checkout-flow.css
    ├─ checkout-boot.js
-   ├─ checkout-ui.js
-   ├─ checkout-profile.css
-   └─ checkout-profile.js
+   └─ checkout-ui.js
 ```
 
 Ownership:
 
-- `native-checkout.php` — document shell and theme asset enqueue, then `the_content()` for the assigned Woo Checkout page;
+- `native-checkout.php` — document shell and ordered theme asset enqueue, then `the_content()` for the assigned Woo Checkout page;
 - `checkout.css` — existing DTB checkout visual design;
 - `checkout-refinements.css` — final same-origin Woo wrapper/Express/order-summary/contact presentation normalization;
-- `checkout-flow.css` — responsive mobile Contact/Shipping/Payment presentation and provider-safe inactive mounting;
+- `checkout-flow.css` — final responsive mobile Contact/Shipping/Payment cascade and provider-safe inactive mounting;
 - `checkout-boot.js` — mechanical reveal;
-- `checkout-ui.js` — presentation-only step/navigation/field-mirroring/duplicate-summary/single-gateway markers;
-- `checkout-profile.*` — signed-in presentation refinements.
+- `checkout-ui.js` — sole presentation controller for step/navigation/field-mirroring/duplicate-summary/single-gateway markers.
 
 Theme code may style same-origin Woo wrappers but must not own authoritative validation, persistence, payment execution, order submission, provider eligibility, or iframe internals.
 
@@ -236,9 +233,11 @@ dtb-commerce/Templates/WooNativeCheckoutPage.php
 
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
+themes/drywall-toolbox/assets/checkout/checkout-profile.css
+themes/drywall-toolbox/assets/checkout/checkout-profile.js
 ```
 
-Do not recreate a second MU-plugin presentation layer or mobile payment sheet.
+Do not recreate a second MU-plugin presentation layer, mobile payment sheet, or second theme profile/field-state controller.
 
 ### `dtb-order-platform/`
 
@@ -300,8 +299,8 @@ Provider-sensitive inactive payment/Express surfaces may remain measurable offsc
 - protects checkout from SiteGround async/combine/minify transforms;
 - keeps Stripe.js executing directly from `js.stripe.com`;
 - excludes checkout URLs from public page caching;
-- recognizes current theme presentation handles plus DTB telemetry;
-- does not retain retired MU presentation handles.
+- recognizes current theme boot/UI handles plus DTB telemetry;
+- does not retain retired MU/profile presentation handles.
 
 `dtb-commerce/Payment/CheckoutPerformance.php` and `assets/woo-native-checkout-performance.js` provide bounded diagnostics only and cannot mutate commerce state.
 
