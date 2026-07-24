@@ -37,6 +37,7 @@ $cssPath = Join-Path $theme 'assets/checkout/checkout.css'
 $refinementsPath = Join-Path $theme 'assets/checkout/checkout-refinements.css'
 $flowPath = Join-Path $theme 'assets/checkout/checkout-flow.css'
 $loginPath = Join-Path $frontend 'src/pages/Login.jsx'
+$registerPath = Join-Path $frontend 'src/pages/Register.jsx'
 $useAuthPath = Join-Path $frontend 'src/auth/useAuth.js'
 $cartContextPath = Join-Path $frontend 'src/context/CartContext.jsx'
 
@@ -55,6 +56,7 @@ $css = Read-RequiredText $cssPath
 $refinements = Read-RequiredText $refinementsPath
 $flow = Read-RequiredText $flowPath
 $login = Read-RequiredText $loginPath
+$register = Read-RequiredText $registerPath
 $useAuth = Read-RequiredText $useAuthPath
 $cartContext = Read-RequiredText $cartContextPath
 $wpConfigSample = Read-RequiredText $wpConfigSamplePath
@@ -138,17 +140,23 @@ Assert-True (-not $flow.Contains('dtb-payment-sheet')) 'Theme flow stylesheet mu
 
 Assert-True ($login.Contains('navigateDocument(getWooCheckoutUrl()')) 'Checkout login return must use a full-document handoff directly to native Woo checkout.'
 Assert-True ($login.Contains('isCheckoutReturnTarget')) 'Login return handling must distinguish the native checkout transaction surface from SPA routes.'
+Assert-True ($login.Contains('nativeCheckoutReady !== true')) 'Checkout login return must fail closed unless native checkout auth convergence was confirmed.'
+Assert-True ($register.Contains('navigateDocument(getWooCheckoutUrl()')) 'Checkout registration return must use a full-document handoff directly to native Woo checkout.'
+Assert-True ($register.Contains('nativeCheckoutReady !== true')) 'Checkout registration return must fail closed unless native checkout auth convergence was confirmed.'
 Assert-True ($authHardening.Contains('wp_validate_auth_cookie')) 'Native customer-cookie convergence must validate the cookie instead of trusting cookie presence.'
 Assert-True ($authHardening.Contains('wp_set_auth_cookie')) 'Same-origin customer storefront auth must establish native WordPress auth for Woo checkout compatibility.'
+Assert-True ($authHardening.Contains("wp_set_auth_cookie( (int) `$user->ID, false")) 'Native customer compatibility cookies must be session-scoped, not a second persistent storefront auth authority.'
 Assert-True (-not $authHardening.Contains("do_action( 'wp_login'")) 'DTB must not manually replay the wp_login lifecycle; Woo owns native session migration during session initialization.'
 Assert-True (-not $authHardening.Contains('dtb_auth_refresh_cookie_from_response')) 'Auth hardening must not regenerate or overwrite the dtb_auth JWT owned by AuthRoutes.'
 Assert-True ($authHardening.Contains('identity_conflict_contained')) 'Auth handoff must expose redacted identity-conflict containment diagnostics.'
-Assert-True ($authHardening.Contains("user_can( `$user, 'manage_options' )")) 'Storefront auth must not mint privileged administrator/operator native sessions.'
+Assert-True ($authHardening.Contains('blocked_native_privileged_conflict')) 'Storefront auth must fail closed rather than clear/replace a privileged native WordPress session.'
 Assert-True ($sessionService.Contains('discard_woocommerce_session_for_identity_conflict')) 'Identity mismatch handling must discard, not transfer, Woo customer session/cart state.'
-Assert-True (-not $sessionService.Contains('get_current_user_id')) 'Identity-conflict cleanup may run during determine_current_user and must not recursively resolve the current user.'
+Assert-True (-not $sessionService.Contains("function_exists( 'get_current_user_id' )")) 'Identity-conflict cleanup may run during determine_current_user and must not recursively resolve the current user.'
+Assert-True ($sessionService.Contains("user_can( `$current_user, 'manage_options' )")) 'Storefront logout must not rotate/destroy a privileged native WordPress session.'
 Assert-True ($nativeIdentity.Contains('discard_woocommerce_session_for_identity_conflict')) 'Native checkout must fail closed on conflicting customer identities without cross-customer cart transfer.'
-Assert-True ($nativeIdentity.Contains('wp_set_auth_cookie')) 'A verified DTB-only customer reaching native checkout directly must be able to converge to native cookie auth.'
-Assert-True ($nativeIdentity.Contains("user_can( `$user, 'manage_options' )")) 'Native checkout identity fallback must exclude privileged users.'
+Assert-True ($nativeIdentity.Contains("wp_set_auth_cookie( `$resolved, false")) 'Direct native checkout self-healing must use a session-scoped compatibility cookie.'
+Assert-True ($nativeIdentity.Contains('native_checkout_privileged_identity_conflict_blocked')) 'Native checkout must preserve and report privileged native identity conflicts instead of replacing them.'
+Assert-True ($nativeIdentity.Contains('dtb_native_checkout_clear_stale_customer_cookie')) 'Native checkout must clear stale non-privileged compatibility auth when no valid DTB session exists.'
 Assert-True (-not $nativeIdentity.Contains('dtb_security_log(')) 'determine_current_user bridge must not call a logger that recursively resolves the current user.'
 Assert-True ($nativeIdentity.Contains('dtb_native_checkout_log_security_event')) 'Native checkout identity conflicts must retain redacted recursion-safe observability.'
 Assert-True ($useAuth.Contains('nativeCheckoutReady')) 'Frontend auth must retain non-secret native checkout handoff readiness returned by the server.'
