@@ -120,7 +120,12 @@ export async function getCatalogSearchSuggestions(query, { limit = 8 } = {}) {
     .filter((term) => term.score > 0)
     .sort((a, b) => b.score - a.score || a.distance - b.distance || a.label.localeCompare(b.label))
     .slice(0, Math.max(1, Math.min(12, Number(limit) || 8)))
-    .map(({ score, distance, ...term }) => term);
+    .map((term) => ({
+      id: term.id,
+      type: term.type,
+      label: term.label,
+      value: term.value,
+    }));
 }
 
 export async function inferCatalogCorrection(query) {
