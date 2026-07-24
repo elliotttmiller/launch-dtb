@@ -2,7 +2,7 @@
 
 # Drywall Toolbox MU-Plugin Architecture and Runtime Contract
 
-Last verified against source: 2026-07-23.
+Last verified against source: 2026-07-24.
 
 Source code and the active loader are authoritative for `drywalltoolbox/wp/wp-content/mu-plugins/`. When this document and implementation diverge, correct the document in the same change.
 
@@ -38,15 +38,17 @@ Catalog/product/variation/brand/taxonomy models and normalization, relationships
 
 - WooCommerce Store API cart extension data;
 - toolset/order-line metadata;
-- native Woo checkout runtime exception for the headless theme;
+- native Woo checkout runtime exception for the headless storefront;
+- checkout field/domain policy;
 - official WooCommerce Stripe gateway readiness/capability metadata;
-- unified responsive checkout presentation with a continuous desktop flow and presentation-only three-step mobile flow;
-- checkout performance/runtime stability telemetry and provider-surface recovery presentation;
-- checkout-order contract tagging and non-secret paid reference mirroring;
 - official Stripe Appearance API configuration;
+- checkout runtime integrity/performance telemetry;
+- checkout-order contract tagging and non-secret paid-reference mirroring;
 - DTB shipping policy method;
 - order-type/query and branded email support;
 - commerce-facing REST/admin surfaces.
+
+`dtb-commerce` does **not** own a parallel checkout presentation template/CSS/JS system.
 
 The checkout runtime adapter lives at:
 
@@ -54,58 +56,85 @@ The checkout runtime adapter lives at:
 dtb-commerce/Payment/WooNativeCheckoutRuntime.php
 ```
 
-It prevents the headless theme from forcing checkout into React or stripping Woo/plugin assets, then hosts the assigned Checkout page content using:
+It prevents the headless theme from forcing checkout into the React SPA or stripping Woo/plugin assets. It then delegates native checkout document presentation to the active theme:
 
 ```text
-dtb-commerce/Templates/WooNativeCheckoutPage.php
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 ```
 
-It does not manually create Checkout Block state, Stripe fields, PaymentIntents, Stripe Checkout Sessions, or orders.
+The adapter fails open to Woo/WordPress's resolved template if the expected active-theme checkout template is unavailable. It never manually creates Checkout Block state, Stripe fields, PaymentIntents, Stripe Checkout Sessions, or orders.
 
-Official Stripe observation/readiness lives at:
+Official Stripe integration lives at:
 
 ```text
 dtb-commerce/Payment/OfficialStripeNativeCheckout.php
 ```
 
-DTB verifies official gateway origin rather than trusting arbitrary `stripe_*` IDs.
+It owns:
 
-Canonical checkout presentation lives at:
+- official extension/gateway identity verification rather than trusting arbitrary `stripe_*` IDs;
+- read-safe local checkout capability/readiness metadata;
+- supported `wc_stripe_upe_params` / `blocksAppearance` configuration;
+- checkout contract metadata tagging;
+- verified paid-lifecycle non-secret payment reference mirroring;
+- readiness/HTTPS/competing-gateway operator notices.
+
+It owns no checkout CSS/JS.
+
+Checkout field policy lives at:
+
+```text
+dtb-commerce/Validation/CheckoutFieldPolicy.php
+```
+
+It owns Checkout Block contact-field registration, optional phone policy, and defensive server-side synchronization into canonical Woo billing/shipping properties. It owns no presentation assets.
+
+Theme-owned presentation source:
+
+```text
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
+
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-refinements.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-flow.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.js
+```
+
+Retired competing checkout presentation files are intentionally absent:
 
 ```text
 dtb-commerce/assets/woo-native-checkout.css
-dtb-commerce/assets/woo-native-checkout-steps.js
+dtb-commerce/assets/woo-native-checkout-refinements.css
 dtb-commerce/assets/woo-native-checkout-ui.js
+dtb-commerce/assets/woo-native-checkout-steps.js
+dtb-commerce/Templates/WooNativeCheckoutPage.php
+
+themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
+themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
 ```
 
-The stylesheet is the single authoritative DTB checkout visual bundle. `woo-native-checkout-steps.js` owns only the mechanical boot/reveal path. `woo-native-checkout-ui.js` owns presentation-only mobile Contact/Shipping/Payment state, progress navigation, Continue actions, responsive cleanup, and invalid-control focus recovery.
-
-The retired mobile payment bottom-sheet and downstream profile override assets are intentionally absent. Do not recreate them as parallel presentation layers:
-
-```text
-dtb-commerce/Payment/MobilePaymentSheet.php
-dtb-commerce/assets/woo-native-checkout-payment-sheet.js
-dtb-commerce/assets/woo-native-checkout-payment-sheet.css
-dtb-commerce/assets/woo-native-checkout-profile-refinements.js
-dtb-commerce/assets/woo-native-checkout-profile-refinements.css
-```
+Do not recreate a second MU-plugin presentation layer or a mobile payment sheet.
 
 Checkout performance/stability diagnostics live at:
 
 ```text
 dtb-commerce/Payment/CheckoutPerformance.php
+dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
 dtb-commerce/assets/woo-native-checkout-performance.js
 ```
 
-They own scoped checkout runtime diagnostics, provider-surface timeout recovery presentation, below-fold order-summary image policy, CWV observation, third-party resource auditing, root-replacement/state-loss signals, and the nonce/origin/rate-limited telemetry write boundary. They do not cache private checkout HTML, reconstruct Woo form state, or create payment/order state.
+They own scoped diagnostics, provider-surface timeout observation, CWV/third-party/root-replacement signals, nonce/origin/rate-limited telemetry, hosting optimizer exclusions, Stripe.js origin protection, and checkout cache exclusion. They do not reconstruct Woo form state or create payment/order state.
 
-The diagnostics-only route is:
+Diagnostics route:
 
 ```text
 POST /wp-json/dtb/v1/checkout/runtime-telemetry
 ```
 
-It requires the dedicated checkout telemetry nonce, same-origin validation when Origin is present, rate limiting, event deduplication, allowlisted event kinds, bounded/sanitized fields, and sensitive-value redaction. It never accepts authoritative cart/order/payment writes.
+It requires a dedicated nonce, same-origin validation when Origin is present, rate limiting, event deduplication, allowlisted event kinds, bounded/sanitized fields, and sensitive-value redaction. It never accepts authoritative cart/order/payment writes.
 
 ### `dtb-order-platform`
 
@@ -116,8 +145,6 @@ It requires the dedicated checkout telemetry nonce, same-origin validation when 
 - captured-payment lifecycle observation;
 - refund lifecycle projection keyed by concrete Woo refund ID;
 - customer/operator tracking projections and order REST/admin surfaces.
-
-The retired custom checkout-session repository is not part of the native Checkout Block runtime.
 
 ### `dtb-schematics` / `dtb-media`
 
@@ -150,8 +177,9 @@ React cart / cart drawer
   -> WooCommerce Store API same-origin cookie session
   -> full-document /checkout/
   -> domain-root routing to WordPress
-  -> DTB native checkout runtime exempts request from React theme override
-  -> assigned WooCommerce Checkout page
+  -> DTB native checkout runtime exempts request from React SPA ownership
+  -> active theme native-checkout.php presentation host
+  -> assigned WooCommerce Checkout page via the_content()
   -> WooCommerce Checkout Block
   -> official WooCommerce Stripe Payment Gateway
   -> WooCommerce order/payment lifecycle
@@ -165,11 +193,11 @@ Authority rules:
 - WooCommerce owns cart/session/customer/address/shipping/tax/totals/order creation and authoritative order/payment status.
 - Official WooCommerce Stripe Payment Gateway owns Stripe payment rendering, eligible wallets/Link, tokenization, 3DS/SCA, payment execution, and webhook synchronization.
 - React owns cart UX/handoff only and must not render payment fields, wallet iframes, fake buttons, or create payment/order objects.
-- DTB may style, diagnose, tag, and observe checkout but does not impersonate the gateway.
+- The active theme owns checkout document/layout/styling/presentation behavior only.
+- MU plugins own backend runtime/security/domain policy, readiness, lifecycle observation, telemetry, and integration boundaries.
 - Desktop and mobile use one mounted Woo Checkout Block and one official Stripe payment surface.
-- Mobile Contact/Shipping/Payment steps are presentation state only; they never create a second checkout or payment state machine.
-- Express Checkout remains provider owned and is visually presented first on the mobile Contact step when eligible.
-- The Payment step remains inline. There is no DTB payment modal or bottom sheet.
+- Mobile Contact/Shipping/Payment is presentation state only; there is no payment modal/sheet or second payment state machine.
+- Express Checkout remains provider-owned and is shown when eligible.
 - Checkout telemetry observes failures/performance only and never becomes a cart/order/payment write path.
 - Veeqo owns fulfillment truth; QuickBooks owns accounting projection only.
 
@@ -193,7 +221,7 @@ non-secret transaction/payment reference is present
 
 Authorization-only/manual-capture state is not fulfillable. Launch should use automatic capture unless a reviewed manual-capture workflow is explicitly approved and tested.
 
-Initial downstream processing dispatch is protected by an atomic per-order `add_option()` barrier.
+Initial downstream processing dispatch is protected by an atomic per-order barrier.
 
 ## 5. Refund contract
 
@@ -211,9 +239,9 @@ Server-only secrets include Woo application credentials, JWT signing secrets, of
 
 The React storefront does not require a Stripe key for the current architecture.
 
-The public checkout capabilities endpoint may expose only non-secret readiness/performance metadata. It must not return Stripe keys, webhook secrets, PaymentIntent/Checkout Session client secrets, tokens, raw webhook data, or payment credentials. Readiness checks on that public request must remain local/non-blocking and must not trigger external Stripe calls.
+The public checkout capabilities endpoint may expose only non-secret readiness/performance metadata. It must not return Stripe keys, webhook secrets, PaymentIntent/Checkout Session client secrets, tokens, raw webhook data, or payment credentials. Readiness checks must remain local/non-blocking.
 
-Checkout runtime telemetry must never persist raw form values, email addresses, order keys, bearer/JWT tokens, Stripe keys/webhook secrets/client secrets, or Checkout Session secrets. The server sanitizes/redacts telemetry before logging; client-side source URLs omit query strings.
+Checkout runtime telemetry must never persist raw form values, email addresses, order keys, bearer/JWT tokens, Stripe keys/webhook secrets/client secrets, or Checkout Session secrets. The server sanitizes/redacts telemetry before logging; client source URLs omit query strings.
 
 ## 7. Routing/cache contract
 
@@ -231,7 +259,7 @@ Root routing must send these to WordPress before SPA fallback:
 
 Checkout, callbacks, session-owned pages, and payment endpoints are private/no-store. Host cache-bypass cookies must be added without replacing WordPress/WooCommerce `Set-Cookie` headers.
 
-SiteGround/host JavaScript optimization must not rehost Stripe.js or reorder WordPress/Woo/Stripe checkout dependencies. Checkout-scoped optimizer exclusions in `CheckoutRuntimeIntegrity.php` preserve the provider/runtime ordering boundary.
+SiteGround/host JavaScript optimization must not rehost Stripe.js or reorder WordPress/Woo/Stripe checkout dependencies. `CheckoutRuntimeIntegrity.php` preserves this boundary.
 
 ## 8. Async/integration contract
 
@@ -239,7 +267,7 @@ Order-related external effects use `dtb_order_enqueue_job()` and Action Schedule
 
 New work must define owner, hook/args, idempotency/deduplication, retries/terminal failure, observability, and recovery. Slow Veeqo/QuickBooks calls must not occur synchronously during checkout or Stripe webhook acknowledgement.
 
-Checkout runtime telemetry is a local bounded log write. It must not make slow external calls during checkout.
+Checkout telemetry is a local bounded log write and must not make slow external calls during checkout.
 
 ## 9. Deployment contract
 
@@ -260,14 +288,24 @@ npm run lint
 npm run build
 ```
 
-Targeted backend/source validation:
+Checkout/backend:
 
 ```powershell
+.\scripts\smoke-dtb-checkout-ui.ps1
+.\scripts\smoke-dtb-mu-modules.ps1
+```
+
+Targeted PHP syntax:
+
+```powershell
+php -l drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/WooNativeCheckoutRuntime.php
 php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/OfficialStripeNativeCheckout.php
 php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/CheckoutPerformance.php
 php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
-php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Templates/WooNativeCheckoutPage.php
+php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php
 ```
 
-Then run the repository backend/security/wiring smoke checks that exist in active source and complete session-preserving checkout browser validation for desktop and mobile.
+Then complete session-preserving browser validation for desktop/mobile checkout, official Stripe methods, shipping/totals, 3DS/SCA, order-pay/order-received, duplicate containment, and downstream exactly-once effects.
+
+Do not claim smoke, syntax, browser, payment, webhook, integration, CI, or deployment checks passed unless they actually ran and produced evidence.
