@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Apply the reviewed launch-catalog stock, taxonomy, and Sawed-Off Taper changes.
+"""Apply reviewed launch-catalog stock, taxonomy, and Sawed-Off Taper changes.
 
-This script is intentionally deterministic and idempotent. It operates only on the
-launch catalog/import assets and the two catalog-filter source files identified by
-the production audit.
+The operation is deterministic, idempotent, and restricted to launch catalog/import
+assets plus the catalog-filter sources identified by the production audit.
 """
 
 from __future__ import annotations
@@ -30,8 +29,8 @@ MEDIA_RENAMES = {
 
 STAPER_URLS = [f"{MEDIA_BASE_URL}/{name}" for name in MEDIA_RENAMES.values()]
 
-# Functional storefront category corrections. Predator Family remains a product
-# family/tag concept; functional display categories must drive category filters.
+# Functional storefront category corrections. Predator Family remains a family/tag
+# concept; functional display categories drive category filtering.
 CATEGORY_FIXES = {
     "PTAPER": ("automatic-tapers", "automatic_tapers"),
     "PHMP": ("pumps", "pumps"),
@@ -95,8 +94,8 @@ def normalize_catalog() -> dict[str, int]:
         sku = (row.get("SKU") or "").strip()
         product_type = (row.get("Type") or "").strip().lower()
 
-        # Remove the duplicate Predator Sawed Off product completely. STAPER remains
-        # the single canonical Sawed Off 39 in. variation under COL-AUTOMATIC-TAPER.
+        # Remove the duplicate Predator Sawed Off product. STAPER remains the single
+        # canonical Sawed Off 39 in. variation under COL-AUTOMATIC-TAPER.
         if sku == "SPTAPER":
             continue
 
@@ -179,31 +178,43 @@ def normalize_veeqo(sellable_stock: dict[str, int]) -> None:
     write_csv(VEEQO, fieldnames, normalized)
 
 
-def replace_once(text: str, old: str, new: str, label: str) -> str:
-    count = text.count(old)
-    if count != 1:
-        raise RuntimeError(f"Expected exactly one {label} replacement, found {count}")
-    return text.replace(old, new, 1)
+def replace_once_or_assert(text: str, old: str, new: str, label: str) -> str:
+    old_count = text.count(old)
+    if old_count == 1:
+        return text.replace(old, new, 1)
+    if old_count > 1:
+        raise RuntimeError(f"Expected at most one {label} source fragment, found {old_count}")
+    if new in text:
+        return text
+    raise RuntimeError(f"Could not find either old or normalized {label} fragment")
+
+
+def remove_once_or_assert_absent(text: str, fragment: str, label: str) -> str:
+    count = text.count(fragment)
+    if count == 1:
+        return text.replace(fragment, "", 1)
+    if count > 1:
+        raise RuntimeError(f"Expected at most one {label} fragment, found {count}")
+    return text
 
 
 def fix_category_normalizer() -> None:
     text = CATEGORY_NORMALIZER.read_text(encoding="utf-8")
-    text = replace_once(
+    text = replace_once_or_assert(
         text,
         "\t\t'predator_family'       => 'Automatic Tapers',",
         "\t\t'predator_family'       => 'Predator Family',",
         "Predator Family display label",
     )
-    text = replace_once(
+    text = replace_once_or_assert(
         text,
         "\t\t'predator_family'           => 'automatic_tapers',\n\t\t'predator'                  => 'automatic_tapers',",
         "\t\t'predator_family'           => 'predator_family',\n\t\t'predator'                  => 'predator_family',",
         "Predator Family alias",
     )
-    text = replace_once(
+    text = remove_once_or_assert_absent(
         text,
         "\n\t\t\t'predator_family', 'predator family', 'Predator Family',\n\t\t\t'predator-family', 'Predator-Family', 'predator', 'Predator',",
-        "",
         "Predator leakage from automatic_tapers raw forms",
     )
     CATEGORY_NORMALIZER.write_text(text, encoding="utf-8")
@@ -211,11 +222,16 @@ def fix_category_normalizer() -> None:
 
 def fix_catalog_cache_authority() -> None:
     text = CATALOG_CACHE.read_text(encoding="utf-8")
-    text = replace_once(text, "const CACHE_VERSION = 'v9';", "const CACHE_VERSION = 'v10';", "catalog cache version")
+    text = replace_once_or_assert(
+        text,
+        "const CACHE_VERSION = 'v9';",
+        "const CACHE_VERSION = 'v10';",
+        "catalog cache version",
+    )
 
     old = """export function fetchCatalogProducts(query = {}) {\n  const key = sortedKey(buildCatalogProductParams(query));\n  const cached = getCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX);\n  if (cached?.data) return Promise.resolve(cached.data);\n\n  if (!productInflight.has(key)) {\n    productInflight.set(\n      key,\n      fetchCatalogProductSnapshot(query)\n        .then((snapshot) => snapshot || apiClient(buildCatalogProductsUrl(query)))\n        .then((data) => setCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX, data))\n        .finally(() => {\n          productInflight.delete(key);\n        }),\n    );\n  }\n\n  return productInflight.get(key);\n}\n"""
     new = """export function fetchCatalogProducts(query = {}) {\n  const key = sortedKey(buildCatalogProductParams(query));\n\n  // Static snapshots are warm-start data only. The live catalog endpoint is the\n  // authority and must revalidate every requested scope so stale generated\n  // category membership cannot become the final rendered result.\n  if (!productInflight.has(key)) {\n    productInflight.set(\n      key,\n      apiClient(buildCatalogProductsUrl(query))\n        .then((data) => setCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX, data))\n        .finally(() => {\n          productInflight.delete(key);\n        }),\n    );\n  }\n\n  return productInflight.get(key);\n}\n"""
-    text = replace_once(text, old, new, "live catalog authority")
+    text = replace_once_or_assert(text, old, new, "live catalog authority")
     CATALOG_CACHE.write_text(text, encoding="utf-8")
 
 
