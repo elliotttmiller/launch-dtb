@@ -1,6 +1,6 @@
-import { apiClient } from './client.js';
+import { API_BASE_URL } from './client.js';
 
-const CONFIG_ENDPOINT = '/wp-json/dtb/v1/catalog/search/nivo-config';
+const CONFIG_ENDPOINT = `${API_BASE_URL}/wp-json/dtb/v1/catalog/search/nivo-config`;
 const CONFIG_MAX_AGE_MS = 5 * 60 * 1000;
 
 let cachedConfig = null;
@@ -49,12 +49,13 @@ function normalizeProduct(product) {
 }
 
 function normalizeSuggestion(item, type) {
-  if (!item?.title) return null;
+  const label = item?.title || item?.name || '';
+  if (!label) return null;
   return {
-    id: `${type}:${item.id || item.title}`,
+    id: `${type}:${item.id || label}`,
     type,
-    label: String(item.title),
-    value: String(item.title),
+    label: String(label),
+    value: String(label),
     count: Number(item.count || 0),
   };
 }
@@ -73,26 +74,48 @@ function dedupeSuggestions(items) {
 function normalizeResponse(query, payload) {
   const data = payload?.data && typeof payload.data === 'object' ? payload.data : {};
   const didYouMean = typeof data.did_you_mean === 'string' ? data.did_you_mean.trim() : '';
+  const products = Array.isArray(data.products) ? data.products.map(normalizeProduct).filter(Boolean) : [];
   const categories = Array.isArray(data.categories)
     ? data.categories.map((item) => normalizeSuggestion(item, 'category')).filter(Boolean)
     : [];
   const tags = Array.isArray(data.tags)
     ? data.tags.map((item) => normalizeSuggestion(item, 'tag')).filter(Boolean)
     : [];
+  const productCategories = products.flatMap((product) => (
+    Array.isArray(product.categories)
+      ? product.categories.map((item) => normalizeSuggestion(item, 'category')).filter(Boolean)
+      : []
+  ));
   const suggestions = dedupeSuggestions([
     ...(didYouMean ? [{ id: `correction:${didYouMean}`, type: 'correction', label: didYouMean, value: didYouMean }] : []),
     ...categories,
     ...tags,
+    ...productCategories,
   ]).slice(0, 8);
 
   return {
     query,
     source: 'nivo',
     didYouMean,
-    products: Array.isArray(data.products) ? data.products.map(normalizeProduct).filter(Boolean) : [],
+    products,
     suggestions,
     settings: data.settings && typeof data.settings === 'object' ? data.settings : {},
   };
+}
+
+async function fetchConfig() {
+  const response = await fetch(CONFIG_ENDPOINT, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    const error = new Error(`NivoSearch config request failed with status ${response.status}.`);
+    error.status = response.status;
+    throw error;
+  }
+  return response.json();
 }
 
 async function loadConfig({ force = false } = {}) {
@@ -100,11 +123,7 @@ async function loadConfig({ force = false } = {}) {
   if (!force && fresh) return cachedConfig;
   if (!force && configPromise) return configPromise;
 
-  configPromise = apiClient(CONFIG_ENDPOINT, {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-    cache: 'no-store',
-  }).then((config) => {
+  configPromise = fetchConfig().then((config) => {
     cachedConfig = config;
     cachedConfigAt = Date.now();
     return config;
