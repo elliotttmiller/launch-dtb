@@ -1,4 +1,5 @@
 import { API_BASE_URL } from './client.js';
+import { getCatalogSearchSuggestions, inferCatalogCorrection } from './searchSuggestions.js';
 
 const CONFIG_ENDPOINT = `${API_BASE_URL}/wp-json/dtb/v1/catalog/search/nivo-config`;
 const CONFIG_MAX_AGE_MS = 5 * 60 * 1000;
@@ -179,8 +180,8 @@ async function executeNivoSearch(query, config, signal) {
   return normalizeResponse(query, payload);
 }
 
-function correctedResult(originalQuery, firstResult, corrected) {
-  const correction = firstResult.didYouMean;
+function correctedResult(originalQuery, firstResult, corrected, correctionSource = 'nivo') {
+  const correction = firstResult.didYouMean || corrected.query;
   const suggestions = dedupeSuggestions([
     ...(correction ? [{ id: `correction:${correction}`, type: 'correction', label: correction, value: correction }] : []),
     ...(Array.isArray(corrected.suggestions) ? corrected.suggestions : []),
@@ -192,17 +193,24 @@ function correctedResult(originalQuery, firstResult, corrected) {
     query: originalQuery,
     didYouMean: correction,
     suggestions,
-    source: 'nivo-corrected',
+    source: correctionSource === 'nivo' ? 'nivo-corrected' : 'nivo-catalog-corrected',
   };
 }
 
 async function executeWithCorrection(query, config, signal) {
   const firstResult = await executeNivoSearch(query, config, signal);
-  const correction = String(firstResult.didYouMean || '').trim();
+  let correction = String(firstResult.didYouMean || '').trim();
+  let correctionSource = 'nivo';
 
-  // Nivo 2.0.2 may return a fuzzy/dictionary correction without automatically
-  // returning the corrected query's product set. Resolve that correction once so
-  // typo-tolerant searches behave as users expect while Nivo remains authoritative.
+  // Nivo 2.0.2 can return a correction separately from its first product set.
+  // Follow that correction exactly once. If the installed Nivo index does not
+  // emit a correction, use a bounded catalog-facet spelling candidate only as a
+  // fallback, then execute the corrected term through Nivo again.
+  if (firstResult.products.length === 0 && !correction && !signal?.aborted) {
+    correction = String(await inferCatalogCorrection(query) || '').trim();
+    correctionSource = 'catalog';
+  }
+
   if (
     firstResult.products.length === 0
     && correction
@@ -210,10 +218,21 @@ async function executeWithCorrection(query, config, signal) {
     && !signal?.aborted
   ) {
     const corrected = await executeNivoSearch(correction, config, signal);
-    return correctedResult(query, firstResult, corrected);
+    return correctedResult(query, { ...firstResult, didYouMean: correction }, corrected, correctionSource);
   }
 
   return firstResult;
+}
+
+async function enrichSuggestions(query, result) {
+  const supplemental = await getCatalogSearchSuggestions(query, { limit: 8 });
+  return {
+    ...result,
+    suggestions: dedupeSuggestions([
+      ...(Array.isArray(result.suggestions) ? result.suggestions : []),
+      ...supplemental,
+    ]).slice(0, 8),
+  };
 }
 
 /**
@@ -238,7 +257,8 @@ export async function searchWithNivo(query, { signal } = {}) {
   }
 
   try {
-    return await executeWithCorrection(normalizedQuery, config, signal);
+    const result = await executeWithCorrection(normalizedQuery, config, signal);
+    return signal?.aborted ? result : enrichSuggestions(normalizedQuery, result);
   } catch (error) {
     if (signal?.aborted) throw error;
     if (error?.status !== 403 && error?.code !== 'invalid_nivo_response') throw error;
@@ -247,7 +267,8 @@ export async function searchWithNivo(query, { signal } = {}) {
     // once, then retry the same idempotent search request.
     config = await loadConfig({ force: true });
     if (!config?.enabled || !config?.nonce) throw error;
-    return executeWithCorrection(normalizedQuery, config, signal);
+    const result = await executeWithCorrection(normalizedQuery, config, signal);
+    return signal?.aborted ? result : enrichSuggestions(normalizedQuery, result);
   }
 }
 
