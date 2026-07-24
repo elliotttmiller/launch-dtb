@@ -4,9 +4,12 @@
  *
  * Drywall Toolbox serves the public SPA from WP_HOME at the document root while
  * WordPress core lives at WP_SITEURL under /wp. Native wp-admin applications
- * (WooCommerce Admin, WooPayments, and hosting-admin integrations) must use the
- * physical WordPress REST origin so WordPress cookie authentication and
- * X-WP-Nonce validation travel through one canonical WordPress runtime path.
+ * (WooCommerce Admin, WooPayments, and hosting-admin integrations) must reach
+ * the physical WordPress runtime without depending on a public-root rewrite.
+ *
+ * The live /wp/.htaccess does not expose a /wp/wp-json/* pretty-permalink route,
+ * so native wp-admin REST URLs use WordPress' canonical query-string form:
+ *   /wp/index.php?rest_route=/namespace/route
  *
  * Storefront/public REST URLs remain unchanged. This filter only changes REST
  * URLs generated while rendering native wp-admin requests; REST requests
@@ -20,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
 add_filter( 'rest_url', 'dtb_native_admin_canonical_rest_url', 20, 4 );
 
 /**
- * Return the physical WordPress REST URL for native wp-admin page generation.
+ * Return the physical WordPress REST runtime URL for native wp-admin generation.
  *
  * @param string   $url     Generated REST URL.
  * @param string   $path    Requested REST path.
@@ -36,13 +39,20 @@ function dtb_native_admin_canonical_rest_url( string $url, string $path, $blog_i
 		return $url;
 	}
 
-	$site_url = site_url( '/', 'https' );
-	if ( '' === $site_url ) {
+	$index_url = site_url( '/index.php', 'https' );
+	if ( '' === $index_url ) {
 		return $url;
 	}
 
-	$base = trailingslashit( $site_url ) . rest_get_url_prefix() . '/';
-	$path = ltrim( $path, '/' );
+	$route = '/' . ltrim( $path, '/' );
 
-	return esc_url_raw( $base . $path );
+	// Use query-string REST routing because the physical /wp runtime does not
+	// expose /wp/wp-json/* as a directly routable pretty-permalink endpoint.
+	return esc_url_raw(
+		add_query_arg(
+			'rest_route',
+			$route,
+			$index_url
+		)
+	);
 }
