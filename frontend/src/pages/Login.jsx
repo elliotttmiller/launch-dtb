@@ -87,13 +87,16 @@ export default function Login() {
     setSubmitting(true);
 
     try {
-      await login(email.trim(), password);
+      const result = await login(email.trim(), password);
 
       // Native Woo checkout is a full-document transaction surface. Never route a
-      // post-login checkout return through React Router first: doing so can leave a
-      // blank SPA handoff document or race the newly issued HttpOnly auth/session
-      // cookies. Navigate directly to the canonical Woo checkout document instead.
+      // post-login checkout return through React Router first. The server must also
+      // confirm native-cookie convergence before the browser leaves the SPA so a
+      // blocked/conflicting session cannot become a blank or mis-owned checkout.
       if (isCheckoutReturnTarget(returnTarget)) {
+        if (result?.nativeCheckoutReady !== true) {
+          throw new Error('Your account was signed in, but the secure checkout session could not be prepared. Refresh this page or sign out of any WordPress administrator session before trying checkout again.');
+        }
         navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
         return;
       }
