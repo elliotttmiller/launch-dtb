@@ -3,7 +3,7 @@
  * DTB auth cookie and native-checkout session hardening.
  *
  * AuthRoutes.php remains the single owner of the HttpOnly `dtb_auth` JWT cookie.
- * This compatibility layer owns only cache headers plus convergence of verified,
+ * This compatibility layer owns cache headers and convergence of verified,
  * same-origin storefront customer sessions into WordPress's native HttpOnly auth
  * cookie so WooCommerce can execute its supported customer/session lifecycle.
  *
@@ -12,7 +12,50 @@
 
 defined( 'ABSPATH' ) || exit;
 
+add_filter( 'rest_pre_dispatch', 'dtb_auth_block_privileged_native_storefront_auth', 15, 3 );
 add_filter( 'rest_post_dispatch', 'dtb_auth_harden_rest_response', 20, 3 );
+
+/**
+ * Block storefront login/registration while a privileged native WP session exists.
+ *
+ * A browser must never simultaneously establish a customer storefront identity and
+ * retain a different administrator/operator native identity. Reject before the auth
+ * route can issue a new DTB JWT or create a customer record.
+ *
+ * @param mixed           $result  Pre-dispatch result.
+ * @param WP_REST_Server  $server  REST server.
+ * @param WP_REST_Request $request REST request.
+ * @return mixed
+ */
+function dtb_auth_block_privileged_native_storefront_auth( $result, $server, $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	if ( null !== $result || ! $request instanceof WP_REST_Request ) {
+		return $result;
+	}
+
+	$route = (string) $request->get_route();
+	if ( ! in_array( $route, [ '/dtb/v1/auth/login', '/dtb/v1/auth/register' ], true ) ) {
+		return $result;
+	}
+
+	if ( function_exists( 'dtb_is_cross_origin_request' ) && dtb_is_cross_origin_request() ) {
+		return $result;
+	}
+
+	$current_user = wp_get_current_user();
+	if ( ! $current_user instanceof WP_User || ! $current_user->exists() || ! dtb_auth_user_is_privileged( $current_user ) ) {
+		return $result;
+	}
+
+	if ( function_exists( 'dtb_security_log' ) ) {
+		dtb_security_log( 'storefront_auth_blocked_by_privileged_native_session', [ 'route' => $route ] );
+	}
+
+	return new WP_Error(
+		'dtb_auth_native_session_conflict',
+		'A conflicting WordPress administrator session is active in this browser. Use a separate/private browser session for customer storefront sign-in.',
+		[ 'status' => 409 ]
+	);
+}
 
 /**
  * Harden DTB auth REST responses before WordPress sends them.
@@ -42,6 +85,7 @@ function dtb_auth_harden_rest_response( $response, $server, $request ) { // phpc
 
 	if ( in_array( $route, [ '/dtb/v1/auth/login', '/dtb/v1/auth/register', '/dtb/v1/auth/validate' ], true ) ) {
 		$state = dtb_auth_reconcile_native_customer_session_from_response( $response, $route );
+		dtb_auth_fail_closed_on_privileged_native_conflict( $response, $state, $route );
 		dtb_auth_attach_native_session_state( $response, $state );
 	}
 
@@ -59,8 +103,8 @@ function dtb_auth_harden_rest_response( $response, $server, $request ) { // phpc
  * WordPress/WooCommerce session migration is intentionally not reimplemented
  * here. WooCommerce's native session handler migrates a guest session when the
  * current WordPress user is known before session initialization. This layer only
- * establishes durable native cookie identity for subsequent full-document
- * checkout requests and contains conflicting identities without cart transfer.
+ * establishes native cookie compatibility for subsequent full-document checkout
+ * requests and contains conflicting identities without cross-customer cart transfer.
  *
  * @param WP_REST_Response|WP_HTTP_Response $response REST response.
  * @param string                            $route    Auth route.
@@ -92,7 +136,7 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 
 	/* A failed/expired DTB validation must not leave a non-privileged native cookie
 	 * as a longer-lived second storefront authentication authority. */
-	if ( '/dtb/v1/auth/validate' === $route && ( isset( $data['authenticated'] ) && false === $data['authenticated'] ) ) {
+	if ( '/dtb/v1/auth/validate' === $route && isset( $data['authenticated'] ) && false === $data['authenticated'] ) {
 		dtb_auth_clear_native_customer_cookie();
 		$state['status'] = 'native_customer_cookie_cleared';
 		return $state;
@@ -115,7 +159,6 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 		return $state;
 	}
 
-	/* Never mint an administrator/operator browser session from storefront auth. */
 	if ( dtb_auth_user_is_privileged( $user ) ) {
 		$state['status'] = 'skipped_privileged_user';
 		return $state;
@@ -165,7 +208,7 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 
 	wp_set_current_user( (int) $user->ID );
 	/* Compatibility cookie is session-scoped; persistent storefront identity remains
-	 * the 7-day HttpOnly dtb_auth JWT. A later /validate remints native continuity. */
+	 * the HttpOnly dtb_auth JWT. A later /validate remints native continuity. */
 	wp_set_auth_cookie( (int) $user->ID, false, is_ssl() );
 	dtb_auth_signal_session_mutation();
 
@@ -175,17 +218,46 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 	return $state;
 }
 
+/**
+ * Convert an existing DTB/native privileged split identity into logged-out DTB state.
+ *
+ * The privileged native WordPress session is preserved. The stale/conflicting DTB
+ * cookie is cleared through AuthRoutes' canonical cookie helper and `/validate`
+ * becomes unauthenticated, preventing React/Store API from presenting customer B
+ * while WordPress/WooCommerce are operating as privileged native user A.
+ */
+function dtb_auth_fail_closed_on_privileged_native_conflict( $response, array $state, string $route ): void {
+	if ( 'blocked_native_privileged_conflict' !== ( $state['status'] ?? '' ) || '/dtb/v1/auth/validate' !== $route ) {
+		return;
+	}
+
+	if ( function_exists( 'dtb_clear_auth_cookie' ) ) {
+		dtb_clear_auth_cookie();
+	}
+
+	if ( ! ( $response instanceof WP_REST_Response || $response instanceof WP_HTTP_Response ) ) {
+		return;
+	}
+
+	$data = $response->get_data();
+	if ( ! is_array( $data ) ) {
+		return;
+	}
+
+	$data['success']       = true;
+	$data['authenticated'] = false;
+	$data['user']          = null;
+	$data['message']       = 'A conflicting WordPress administrator session is active in this browser. Customer storefront authentication was cleared for safety.';
+	$response->set_data( $data );
+	dtb_auth_signal_session_mutation();
+}
+
 /** Whether a user is privileged beyond the storefront-customer boundary. */
 function dtb_auth_user_is_privileged( WP_User $user ): bool {
 	return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 }
 
-/**
- * Resolve a valid native WordPress logged-in cookie user ID.
- *
- * Cookie presence alone is insufficient because an expired/stale cookie must not
- * suppress a required customer-session bridge.
- */
+/** Resolve a cryptographically valid native WordPress logged-in cookie user ID. */
 function dtb_auth_valid_native_cookie_user_id(): int {
 	if ( ! defined( 'LOGGED_IN_COOKIE' ) || empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) || ! function_exists( 'wp_validate_auth_cookie' ) ) {
 		return 0;
@@ -220,7 +292,7 @@ function dtb_auth_attach_native_session_state( $response, array $state ): void {
 }
 
 /**
- * Clear the same-origin native customer cookie established by storefront auth.
+ * Clear the same-origin native customer compatibility cookie.
  *
  * Privileged native admin/operator sessions are deliberately left to the normal
  * WordPress administrative logout lifecycle.
