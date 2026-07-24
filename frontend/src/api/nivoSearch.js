@@ -17,6 +17,13 @@ function stripHtml(value = '') {
   return (node.textContent || '').trim();
 }
 
+function parsePrice(value = '') {
+  const text = stripHtml(value).replace(/[^0-9.,-]/g, '').replace(/,/g, '');
+  const match = text.match(/-?\d+(?:\.\d+)?/);
+  const numeric = match ? Number(match[0]) : NaN;
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 function productSlugFromUrl(value = '') {
   try {
     const url = new URL(value, window.location.origin);
@@ -32,6 +39,10 @@ function productSlugFromUrl(value = '') {
 function normalizeProduct(product) {
   if (!product?.id) return null;
   const slug = productSlugFromUrl(product.url);
+  const rawPrice = product.current_price || product.price || '';
+  const priceText = stripHtml(rawPrice);
+  const price = parsePrice(rawPrice);
+  const stockStatus = String(product.stock_status || (product.is_in_stock === false ? 'outofstock' : 'instock'));
   return {
     id: Number(product.id),
     name: String(product.title || ''),
@@ -39,11 +50,14 @@ function normalizeProduct(product) {
     slug,
     sku: String(product.sku || ''),
     image: String(product.image || ''),
-    priceText: stripHtml(product.current_price || product.price || ''),
-    priceHtml: String(product.current_price || product.price || ''),
+    image_thumbnail: String(product.image || ''),
+    price: price ?? 0,
+    priceText,
+    priceHtml: String(rawPrice),
     url: String(product.url || ''),
     categories: Array.isArray(product.categories) ? product.categories : [],
-    stockStatus: String(product.stock_status || ''),
+    stockStatus,
+    stock_status: stockStatus,
     inStock: Boolean(product.is_in_stock),
     source: 'nivo',
   };
