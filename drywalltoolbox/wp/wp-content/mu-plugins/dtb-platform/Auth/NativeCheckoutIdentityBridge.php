@@ -3,18 +3,18 @@
  * Native checkout identity bridge.
  *
  * The React storefront authenticates customers with the HttpOnly `dtb_auth` JWT.
- * WooCommerce Store API requests already resolve that identity before creating a
- * user-owned Woo session. Native checkout is a normal document request, so it
- * must resolve the same verified customer before WooCommerce validates/loads its
- * session cookie. Otherwise Woo sees a registered-user session on a logged-out
- * request and invalidates the cart.
+ * Native WooCommerce checkout is a full WordPress document, so the same verified
+ * customer must be resolved before WooCommerce initializes its cookie-backed
+ * session. WooCommerce can then perform its own supported guest-session-to-user
+ * migration without DTB copying, decoding, or fabricating session rows.
  *
- * This bridge is intentionally narrow: native WordPress cookie auth wins, only
- * Woo checkout/payment document requests are eligible, no WordPress auth cookie
- * is minted, no capabilities are elevated, and no Woo session rows are decoded,
- * queried, copied, or injected.
+ * Native WordPress cookie auth normally wins. If a stale native customer cookie
+ * conflicts with the verified storefront JWT on checkout, the conflict is
+ * contained without cart transfer and the verified storefront customer becomes
+ * the converged native identity for subsequent requests. Privileged users are
+ * never minted or elevated through this storefront bridge.
  *
- * @package drywall-toolbox
+ * @package drywalltoolbox
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -28,7 +28,7 @@ add_filter( 'determine_current_user', 'dtb_native_checkout_resolve_current_user'
  * @return int|false
  */
 function dtb_native_checkout_resolve_current_user( $user_id ) {
-	if ( ! empty( $user_id ) || ! dtb_native_checkout_identity_bridge_request() ) {
+	if ( ! dtb_native_checkout_identity_bridge_request() ) {
 		return $user_id;
 	}
 
@@ -49,14 +49,44 @@ function dtb_native_checkout_resolve_current_user( $user_id ) {
 		return $user_id;
 	}
 
-	return (int) $user->ID;
+	/* Storefront JWT compatibility must never mint/assume an administrator or
+	 * operator WordPress browser session. Native admin auth remains authoritative. */
+	if ( user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' ) ) {
+		return $user_id;
+	}
+
+	$native_user_id = ! empty( $user_id ) ? absint( $user_id ) : 0;
+	if ( $native_user_id > 0 && $native_user_id !== $resolved ) {
+		/* Identity conflict: never expose customer A's cart/session to customer B.
+		 * Discard the browser's Woo session and replace only the native auth cookie. */
+		if ( class_exists( 'DTB_SessionService' ) ) {
+			DTB_SessionService::discard_woocommerce_session_for_identity_conflict();
+		}
+		if ( ! headers_sent() ) {
+			wp_clear_auth_cookie();
+			wp_set_auth_cookie( $resolved, true, is_ssl() );
+		}
+		if ( function_exists( 'dtb_security_log' ) ) {
+			dtb_security_log( 'native_checkout_identity_conflict_contained', [] );
+		}
+		return $resolved;
+	}
+
+	/* A DTB-only customer may arrive directly at checkout before an auth validate
+	 * request has established native cookie continuity. Queue the supported native
+	 * WordPress cookie now; WooCommerce still owns session migration on this request. */
+	if ( 0 === $native_user_id && ! headers_sent() ) {
+		wp_set_auth_cookie( $resolved, true, is_ssl() );
+	}
+
+	return $resolved;
 }
 
 /**
  * Whether this request is a native Woo checkout/payment document request.
  *
- * REST requests continue to use AuthRoutes.php's existing resolver. wp-admin,
- * AJAX, cron and unrelated frontend pages are deliberately excluded.
+ * REST requests continue to use AuthRoutes.php's resolver. wp-admin, AJAX, cron
+ * and unrelated frontend pages are deliberately excluded.
  */
 function dtb_native_checkout_identity_bridge_request(): bool {
 	if ( is_admin() || wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
@@ -92,10 +122,10 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 /**
  * Verify the existing DTB HS256 cookie contract and return its WordPress user ID.
  *
- * AuthRoutes.php is intentionally REST/admin-scoped, so its helper functions are
- * not available during a public checkout document request. This verifier mirrors
- * only the established signed-cookie trust boundary required before Woo session
- * initialization; it does not accept bearer tokens or caller-supplied identities.
+ * AuthRoutes.php is REST/admin-scoped, so its procedural helpers are not defined
+ * during a normal checkout document request. This verifier mirrors only the
+ * signed-cookie trust boundary needed before WooCommerce session initialization;
+ * it does not accept bearer tokens or caller-supplied customer identities.
  */
 function dtb_native_checkout_verify_user_id( string $token ): int {
 	$parts = explode( '.', $token );
@@ -145,17 +175,13 @@ function dtb_native_checkout_verify_user_id( string $token ): int {
 	return $sub;
 }
 
-/**
- * Strict base64url decode.
- *
- * @return string|null
- */
+/** Strict base64url decode. */
 function dtb_native_checkout_base64url_decode( string $value ): ?string {
 	if ( '' === $value || ! preg_match( '/^[A-Za-z0-9_-]+$/', $value ) ) {
 		return null;
 	}
 
-	$padded = $value . str_repeat( '=', ( 4 - ( strlen( $value ) % 4 ) ) % 4 );
+	$padded  = $value . str_repeat( '=', ( 4 - ( strlen( $value ) % 4 ) ) % 4 );
 	$decoded = base64_decode( strtr( $padded, '-_', '+/' ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 	return false === $decoded ? null : $decoded;
 }
