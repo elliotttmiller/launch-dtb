@@ -23,7 +23,11 @@ function editDistance(a, b) {
     curr[0] = i;
     for (let j = 1; j <= right.length; j += 1) {
       const cost = left[i - 1] === right[j - 1] ? 0 : 1;
-      curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + cost);
+      curr[j] = Math.min(
+        curr[j - 1] + 1,
+        prev[j] + 1,
+        prev[j - 1] + cost,
+      );
     }
     for (let j = 0; j <= right.length; j += 1) prev[j] = curr[j];
   }
@@ -31,21 +35,14 @@ function editDistance(a, b) {
   return prev[right.length];
 }
 
-function comparableValues(label) {
-  const normalizedLabel = normalize(label);
-  return [normalizedLabel, ...normalizedLabel.split(/[^a-z0-9]+/).filter((token) => token.length >= 3)];
+function termTokens(value = '') {
+  return normalize(value).split(/[^a-z0-9]+/).filter((token) => token.length >= 3);
 }
 
-function bestDistance(query, label) {
-  return Math.min(...comparableValues(label).map((value) => editDistance(query, value)));
-}
-
-function bestCorrectionValue(query, label) {
+function closestDistance(query, label) {
   const normalizedQuery = normalize(query);
-  const values = comparableValues(label)
-    .filter((value) => value !== normalizedQuery)
-    .sort((a, b) => editDistance(normalizedQuery, a) - editDistance(normalizedQuery, b));
-  return values[0] || String(label || '').trim();
+  const candidates = [normalize(label), ...termTokens(label)];
+  return candidates.reduce((best, candidate) => Math.min(best, editDistance(normalizedQuery, candidate)), Number.POSITIVE_INFINITY);
 }
 
 function pushLabel(target, seen, value, type) {
@@ -63,9 +60,11 @@ function collectFacetTerms(facets) {
   (Array.isArray(facets?.brands) ? facets.brands : []).forEach((brand) => {
     pushLabel(terms, seen, brand?.label || brand?.name || brand?.key || brand, 'brand');
   });
+
   (Array.isArray(facets?.categories) ? facets.categories : []).forEach((category) => {
     pushLabel(terms, seen, category?.label || category?.name || category?.key || category, 'category');
   });
+
   Object.values(facets?.displayCategoriesByBrand || {}).forEach((categories) => {
     (Array.isArray(categories) ? categories : []).forEach((category) => {
       pushLabel(terms, seen, category?.label || category?.name || category?.key || category, 'category');
@@ -86,7 +85,9 @@ async function loadFacetTerms() {
       return cache;
     })
     .catch(() => [])
-    .finally(() => { inflight = null; });
+    .finally(() => {
+      inflight = null;
+    });
 
   return inflight;
 }
@@ -99,14 +100,17 @@ export async function getCatalogSearchSuggestions(query, { limit = 8 } = {}) {
   return terms
     .map((term) => {
       const normalizedLabel = normalize(term.label);
-      const values = comparableValues(term.label);
-      const starts = values.some((value) => value.startsWith(normalizedQuery) || normalizedQuery.startsWith(value));
-      const contains = values.some((value) => value.includes(normalizedQuery));
-      const distance = normalizedQuery.length >= 4 ? bestDistance(normalizedQuery, normalizedLabel) : Number.POSITIVE_INFINITY;
+      const tokens = termTokens(term.label);
+      const starts = normalizedLabel.startsWith(normalizedQuery)
+        || normalizedQuery.startsWith(normalizedLabel)
+        || tokens.some((token) => token.startsWith(normalizedQuery) || normalizedQuery.startsWith(token));
+      const contains = normalizedLabel.includes(normalizedQuery)
+        || tokens.some((token) => token.includes(normalizedQuery));
+      const distance = normalizedQuery.length >= 4 ? closestDistance(normalizedQuery, normalizedLabel) : Number.POSITIVE_INFINITY;
       const maxDistance = normalizedQuery.length >= 8 ? 2 : 1;
 
       let score = 0;
-      if (normalizedLabel === normalizedQuery) score = 100;
+      if (normalizedLabel === normalizedQuery || tokens.includes(normalizedQuery)) score = 100;
       else if (starts) score = 80;
       else if (contains) score = 70;
       else if (distance <= maxDistance) score = 60 - distance;
@@ -124,7 +128,22 @@ export async function inferCatalogCorrection(query) {
   if (normalizedQuery.length < 4) return '';
 
   const suggestions = await getCatalogSearchSuggestions(query, { limit: 4 });
-  const maxDistance = normalizedQuery.length >= 8 ? 2 : 1;
-  const fuzzy = suggestions.find((item) => bestDistance(normalizedQuery, item.label) <= maxDistance);
-  return fuzzy ? bestCorrectionValue(query, fuzzy.label) : '';
+  const fuzzy = suggestions.find((item) => {
+    const normalizedLabel = normalize(item.label);
+    return normalizedLabel !== normalizedQuery
+      && closestDistance(normalizedQuery, normalizedLabel) <= (normalizedQuery.length >= 8 ? 2 : 1);
+  });
+
+  if (!fuzzy) return '';
+
+  const bestToken = termTokens(fuzzy.label)
+    .map((token) => ({ token, distance: editDistance(normalizedQuery, token) }))
+    .sort((a, b) => a.distance - b.distance)[0];
+
+  if (bestToken && bestToken.distance <= (normalizedQuery.length >= 8 ? 2 : 1)) {
+    const labelToken = String(fuzzy.label).split(/[^A-Za-z0-9]+/).find((token) => normalize(token) === bestToken.token);
+    return labelToken || bestToken.token;
+  }
+
+  return fuzzy.value || '';
 }
