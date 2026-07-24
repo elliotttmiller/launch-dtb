@@ -11,6 +11,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/VeeqoInventorySchedulePolicy.php';
+
 function dtb_veeqo_verified_webhooks_enabled(): bool {
 	return defined( 'DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS' )
 		&& true === DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS
