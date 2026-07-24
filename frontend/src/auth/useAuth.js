@@ -184,10 +184,14 @@ export function useAuth() {
       try {
         const payload = JSON.parse(event.newValue);
         if (payload?.type === 'logout') {
-          void logout({ remote: false, publish: false }).finally(emitLocalAuthChanged);
+          void logout({ remote: false, publish: false })
+            .catch(() => null)
+            .finally(emitLocalAuthChanged);
         }
         if (payload?.type === 'login') {
-          void validateSession({ retries: 2 }).finally(emitLocalAuthChanged);
+          void validateSession({ retries: 2 })
+            .catch(() => null)
+            .finally(emitLocalAuthChanged);
         }
       } catch { /** ignore */ }
     };
