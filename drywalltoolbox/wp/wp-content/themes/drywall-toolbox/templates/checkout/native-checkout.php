@@ -77,7 +77,7 @@ wp_enqueue_script(
 	<script>document.documentElement.classList.add('dtb-native-checkout-booting');window.setTimeout(function(){document.documentElement.classList.remove('dtb-native-checkout-booting');},8000);</script>
 	<style>
 		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
-		html.dtb-native-checkout-booting .dtb-native-checkout-loader{display:flex}html.dtb-native-checkout-ready .dtb-native-checkout-loader{opacity:0;pointer-events:none}html.dtb-native-checkout-booting .dtb-native-woocommerce-document{overflow:hidden}html.dtb-native-checkout-booting .dtb-checkout-header,html.dtb-native-checkout-booting .dtb-native-woocommerce-main{opacity:0}.dtb-native-checkout-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}.dtb-native-checkout-loader__spinner{display:grid;width:46px;height:46px;border:1px solid #dbe3ee;border-radius:999px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.1);place-items:center}.dtb-native-checkout-loader__spinner:before{width:20px;height:20px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:999px;content:"";animation:dtb-native-checkout-spin .9s cubic-bezier(.45,0,.55,1) infinite}.dtb-native-checkout-loader__content p{margin:0;color:#475569;font:650 14px/1.5 system-ui,sans-serif}@keyframes dtb-native-checkout-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader,.dtb-native-checkout-loader__spinner:before{transition-duration:1ms;animation:none}}
+		html.dtb-native-checkout-booting .dtb-native-checkout-loader{display:flex}html.dtb-native-checkout-ready .dtb-native-checkout-loader{opacity:0;pointer-events:none}html.dtb-native-checkout-booting .dtb-native-woocommerce-document{overflow:hidden}html.dtb-native-checkout-booting .dtb-checkout-header,html.dtb-native-checkout-booting .dtb-native-woocommerce-main{opacity:0}.dtb-native-checkout-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}.dtb-secure-checkout-spinner{display:block;width:3.25em;height:3.25em;transform-origin:center;animation:dtb-secure-checkout-rotate 2s linear infinite}.dtb-secure-checkout-spinner__circle{fill:none;stroke:hsl(214,97%,59%);stroke-width:2;stroke-dasharray:1,200;stroke-dashoffset:0;stroke-linecap:round;animation:dtb-secure-checkout-dash 1.5s ease-in-out infinite}.dtb-native-checkout-loader__content p{margin:0;color:#475569;font:650 14px/1.5 system-ui,sans-serif}@keyframes dtb-secure-checkout-rotate{100%{transform:rotate(360deg)}}@keyframes dtb-secure-checkout-dash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px}100%{stroke-dashoffset:-125px}}@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader{transition-duration:1ms}.dtb-secure-checkout-spinner,.dtb-secure-checkout-spinner__circle{animation:none}.dtb-secure-checkout-spinner__circle{stroke-dasharray:90,200;stroke-dashoffset:-35px}}
 	</style>
 	<?php wp_head(); ?>
 </head>
@@ -85,7 +85,9 @@ wp_enqueue_script(
 <?php wp_body_open(); ?>
 	<div class="dtb-native-checkout-loader" role="status" aria-live="polite">
 		<div class="dtb-native-checkout-loader__content">
-			<span class="dtb-native-checkout-loader__spinner" aria-hidden="true"></span>
+			<svg class="dtb-secure-checkout-spinner" viewBox="25 25 50 50" aria-hidden="true" focusable="false">
+				<circle class="dtb-secure-checkout-spinner__circle" r="20" cy="50" cx="50"></circle>
+			</svg>
 			<p><?php esc_html_e( 'Preparing your secure checkout…', 'drywall-toolbox' ); ?></p>
 		</div>
 	</div>
