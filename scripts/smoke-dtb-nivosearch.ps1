@@ -20,16 +20,19 @@ $routesPath = Join-Path $RepoRoot 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-c
 $bootstrapPath = Join-Path $RepoRoot 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/bootstrap.php'
 $clientPath = Join-Path $RepoRoot 'frontend/src/api/nivoSearch.js'
 $suggestionsPath = Join-Path $RepoRoot 'frontend/src/api/searchSuggestions.js'
-$bridgePath = Join-Path $RepoRoot 'frontend/src/components/storefront/NivoSearchRuntimeBridge.jsx'
 $headerPath = Join-Path $RepoRoot 'frontend/src/components/shell/Header.jsx'
 $storefrontHeaderPath = Join-Path $RepoRoot 'frontend/src/components/storefront/StorefrontHeader.jsx'
+$overlayPath = Join-Path $RepoRoot 'frontend/src/components/storefront/StorefrontSearchOverlay.jsx'
 $dockPath = Join-Path $RepoRoot 'frontend/src/components/storefront/StorefrontSearchDock.jsx'
-$bridgeCssPath = Join-Path $RepoRoot 'frontend/src/styles/storefront-nivo-runtime-bridge.css'
+$resultCssPath = Join-Path $RepoRoot 'frontend/src/styles/storefront-nivo-runtime-bridge.css'
+$vendorCssPath = Join-Path $RepoRoot 'frontend/src/styles/storefront-nivo-vendor-suppression.css'
+$retiredBridgePath = Join-Path $RepoRoot 'frontend/src/components/storefront/NivoSearchRuntimeBridge.jsx'
 $retiredPresentationPath = Join-Path $RepoRoot 'frontend/src/components/storefront/NivoSearchPresentation.jsx'
 
-foreach ($path in @($controllerPath, $routesPath, $bootstrapPath, $clientPath, $suggestionsPath, $bridgePath, $headerPath, $storefrontHeaderPath, $dockPath, $bridgeCssPath)) {
+foreach ($path in @($controllerPath, $routesPath, $bootstrapPath, $clientPath, $suggestionsPath, $headerPath, $storefrontHeaderPath, $overlayPath, $dockPath, $resultCssPath, $vendorCssPath)) {
     Assert-True (Test-Path $path) "Required NivoSearch integration file exists: $path"
 }
+Assert-True (-not (Test-Path $retiredBridgePath)) 'Parallel NivoSearch runtime bridge is retired.'
 Assert-True (-not (Test-Path $retiredPresentationPath)) 'Competing NivoSearch replacement presentation is retired.'
 
 $controller = Get-Content $controllerPath -Raw
@@ -37,11 +40,12 @@ $routes = Get-Content $routesPath -Raw
 $bootstrap = Get-Content $bootstrapPath -Raw
 $client = Get-Content $clientPath -Raw
 $suggestions = Get-Content $suggestionsPath -Raw
-$bridge = Get-Content $bridgePath -Raw
 $header = Get-Content $headerPath -Raw
 $storefrontHeader = Get-Content $storefrontHeaderPath -Raw
+$overlay = Get-Content $overlayPath -Raw
 $dock = Get-Content $dockPath -Raw
-$bridgeCss = Get-Content $bridgeCssPath -Raw
+$resultCss = Get-Content $resultCssPath -Raw
+$vendorCss = Get-Content $vendorCssPath -Raw
 
 Assert-True ($controller.Contains("private const PRESET_ID = 930;")) 'NivoSearch preset 930 is the configured search authority.'
 Assert-True ($controller.Contains('/catalog/search/nivo-config')) 'Read-safe NivoSearch runtime config route is registered.'
@@ -53,21 +57,28 @@ Assert-True ($bootstrap.Contains('/Rest/NivoSearchConfigController.php')) 'Catal
 Assert-True ($client.Contains("body.set('preset_id', String(config.presetId));")) 'Frontend sends the configured preset ID to NivoSearch.'
 Assert-True ($client.Contains("body.set('nonce', String(config.nonce));")) 'Frontend sends the NivoSearch nonce.'
 Assert-True ($client.Contains("credentials: 'include'")) 'NivoSearch browser requests preserve same-origin session semantics.'
-Assert-True ($client.Contains("WC_AJAX::get_endpoint") -or $controller.Contains("WC_AJAX::get_endpoint( 'nivo_search' )")) 'Integration uses the WooCommerce AJAX endpoint owned by NivoSearch.'
-Assert-True ($client.Contains('executeWithCorrection')) 'NivoSearch did-you-mean corrections are resolved once before an empty result is rendered.'
-Assert-True ($client.Contains('inferCatalogCorrection')) 'Bounded catalog-term correction is available when the installed Nivo index emits no correction.'
-Assert-True ($suggestions.Contains('editDistance')) 'Catalog typo fallback is explicit and bounded.'
+Assert-True ($controller.Contains("WC_AJAX::get_endpoint( 'nivo_search' )")) 'Integration uses the WooCommerce AJAX endpoint owned by NivoSearch.'
+Assert-True ($client.Contains('executeWithCorrection')) 'NivoSearch correction is resolved within the single search client lifecycle.'
+Assert-True ($client.Contains('inferCatalogCorrection')) 'Bounded catalog-term correction is available when Nivo emits no correction.'
+Assert-True ($client.Contains('stock_status')) 'Nivo product normalization supports native DTB product presentation.'
+Assert-True ($suggestions.Contains('closestDistance')) 'Catalog typo fallback compares full labels and significant tokens.'
 Assert-True ($suggestions.Contains('FACETS_ENDPOINT')) 'Suggestion fallback is constrained to backend-owned catalog facets.'
 
-Assert-True ($bridge.Contains('searchWithNivo')) 'Runtime bridge executes NivoSearch against the existing DTB inputs.'
-Assert-True ($bridge.Contains('searchProducts')) 'DTB catalog product search remains graceful degradation/resolution only.'
-Assert-True ($bridge.Contains('Suggestions')) 'Desktop/mobile result presentation includes Suggestions.'
-Assert-True ($bridge.Contains('createPortal')) 'Only result content is portaled into existing DTB result containers.'
-Assert-True ($header.Contains('<NivoSearchRuntimeBridge />')) 'Global storefront header mounts the headless Nivo runtime bridge.'
-Assert-True (-not $header.Contains('NivoSearchPresentation')) 'Global header does not mount a competing Nivo search bar or overlay.'
+Assert-True ($storefrontHeader.Contains("import { searchWithNivo } from '../../api/nivoSearch.js';")) 'StorefrontHeader directly owns NivoSearch execution.'
+Assert-True ($storefrontHeader.Contains('desktopSearchAbortRef')) 'Desktop search owns explicit abortable request lifecycle.'
+Assert-True ($storefrontHeader.Contains('mobileSearchAbortRef')) 'Mobile search owns explicit abortable request lifecycle.'
+Assert-True ($storefrontHeader.Contains('setDesktopSearchSuggestions')) 'Desktop search owns Suggestions state.'
+Assert-True ($storefrontHeader.Contains('setMobileSearchSuggestions')) 'Mobile search owns Suggestions state.'
+Assert-True ($storefrontHeader.Contains('searchWithNivo(query')) 'StorefrontHeader executes Nivo within its established debounced effects.'
+Assert-True ($storefrontHeader.Contains("console.warn('[search] NivoSearch unavailable; using DTB catalog fallback.'")) 'DTB product search is failure fallback, not a parallel primary request.'
 Assert-True ($storefrontHeader.Contains('dtb-desktop-search--header')) 'Established DTB desktop expandable search remains the presentation owner.'
 Assert-True ($dock.Contains('storefront-search-dock')) 'Established DTB mobile search dock remains the presentation owner.'
-Assert-True ($bridgeCss.Contains('.dtb-nivo-runtime-owned > :not(.dtb-nivo-runtime-layer)')) 'Nivo results replace result content without replacing the search shell.'
-Assert-True (-not $bridgeCss.Contains('backdrop-filter: blur')) 'Nivo runtime bridge does not introduce a competing blurred overlay.'
+Assert-True ($overlay.Contains('termSuggestions')) 'Mobile overlay distinguishes query suggestions from product results.'
+Assert-True ($overlay.Contains('onSuggestionSelect')) 'Mobile suggestions feed the existing controlled DTB search input.'
+Assert-True (-not $header.Contains('NivoSearchRuntimeBridge')) 'Global header no longer mounts a parallel Nivo runtime bridge.'
+Assert-True (-not $header.Contains('NivoSearchPresentation')) 'Global header does not mount a competing Nivo search bar or overlay.'
+Assert-True ($resultCss.Contains('.dtb-nivo-runtime__suggestions')) 'DTB result styling includes the Suggestions presentation.'
+Assert-True ($vendorCss.Contains('.nivo-mobile-overlay')) 'Vendor Nivo mobile presentation remains explicitly suppressed.'
+Assert-True (-not $storefrontHeader.Contains('createPortal')) 'Search results render directly from StorefrontHeader state without portal bridge ownership.'
 
 Write-Host 'NivoSearch storefront integration smoke checks passed.'
