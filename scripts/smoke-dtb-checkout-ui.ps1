@@ -36,6 +36,7 @@ $uiPath = Join-Path $theme 'assets/checkout/checkout-ui.js'
 $cssPath = Join-Path $theme 'assets/checkout/checkout.css'
 $refinementsPath = Join-Path $theme 'assets/checkout/checkout-refinements.css'
 $flowPath = Join-Path $theme 'assets/checkout/checkout-flow.css'
+$runtimeContextPath = Join-Path $theme 'assets/checkout/checkout-runtime-context.css'
 $loginPath = Join-Path $frontend 'src/pages/Login.jsx'
 $registerPath = Join-Path $frontend 'src/pages/Register.jsx'
 $useAuthPath = Join-Path $frontend 'src/auth/useAuth.js'
@@ -55,6 +56,7 @@ $ui = Read-RequiredText $uiPath
 $css = Read-RequiredText $cssPath
 $refinements = Read-RequiredText $refinementsPath
 $flow = Read-RequiredText $flowPath
+$runtimeContext = Read-RequiredText $runtimeContextPath
 $login = Read-RequiredText $loginPath
 $register = Read-RequiredText $registerPath
 $useAuth = Read-RequiredText $useAuthPath
@@ -97,6 +99,8 @@ foreach ($rootCookieConstant in @("define( 'COOKIEPATH', '/' );", "define( 'SITE
 Assert-True ($template.Contains("'dtb-checkout-theme'")) 'Theme checkout template must enqueue the authoritative base checkout stylesheet.'
 Assert-True ($template.Contains("'dtb-checkout-theme-refinements'")) 'Theme checkout template must enqueue same-origin wrapper refinements.'
 Assert-True ($template.Contains("'dtb-checkout-theme-flow'")) 'Theme checkout template must enqueue responsive inline checkout flow styles.'
+Assert-True ($template.Contains("'dtb-checkout-theme-runtime-context'")) 'Theme checkout template must enqueue the final live-context/touch layer after checkout flow.'
+Assert-True ($template.Contains("[ 'dtb-checkout-theme-boot', 'wp-data', 'wc-blocks-data-store' ]")) 'Checkout UI must load after the official Woo block data store and wp.data dependencies.'
 Assert-True ($template.Contains("'dtb-checkout-theme-ui'")) 'Theme checkout template must enqueue the presentation controller.'
 Assert-True (-not $template.Contains('checkout-payment-sheet')) 'Theme checkout template must not enqueue a mobile payment sheet.'
 Assert-True (-not $template.Contains('checkout-profile')) 'Theme checkout template must not enqueue the retired competing profile presentation layer.'
@@ -112,7 +116,19 @@ Assert-True ($ui.Contains("next.addEventListener( 'click'")) 'Mobile checkout fo
 Assert-True ($ui.Contains("back.addEventListener( 'click'")) 'Mobile checkout Back CTA must bind directly to the rendered button.'
 Assert-True ($ui.Contains("button.addEventListener( 'click'")) 'Mobile progress controls must bind directly to their rendered buttons.'
 Assert-True (-not $ui.Contains('handleDocumentClick')) 'Checkout step navigation must not depend on a global delegated click interceptor.'
+Assert-True ($ui.Contains('blockSelectors')) 'Step ownership must prefer stable Woo Checkout inner-block wrappers instead of broad internal implementation selectors.'
+Assert-True ($ui.Contains('validateVisibleStepInputs')) 'Forward mobile navigation must surface invalid visible fields before hiding the current Woo section.'
+Assert-True ($ui.Contains('shippingStepIsReady')) 'Shipping -> Payment navigation must wait for Woo shipping calculation readiness.'
+Assert-True ($ui.Contains('getHasCalculatedShipping')) 'Shipping readiness must be read from WooCommerce cart state, not inferred from presentation text.'
+Assert-True ($ui.Contains("callSelector( checkoutStore, 'isCalculating'")) 'Navigation must respect Woo checkout recalculation state.'
 Assert-True ($ui.Contains('syncContactIdentityFields')) 'Theme controller must preserve contact-to-canonical-address synchronization.'
+Assert-True ($ui.Contains('nativeInputsForField( field )')) 'Contact mirroring must resolve current Woo address inputs after Checkout Block rerenders.'
+Assert-True ($ui.Contains('window.wp?.data')) 'Live checkout context must read the registered Woo block data stores through wp.data.'
+Assert-True ($ui.Contains('getCartTotals')) 'Live checkout context must use authoritative Woo cart totals.'
+Assert-True ($ui.Contains('getCustomerData')) 'Live checkout context must use authoritative Woo customer/shipping context.'
+Assert-True ($ui.Contains('data-dtb-checkout-live-context')) 'Order summary must include one DTB read-only live shipping/tax context mount.'
+Assert-True ($ui.Contains("totals.total_shipping")) 'Live order summary must track authoritative shipping totals.'
+Assert-True ($ui.Contains("totals.total_tax")) 'Live order summary must track authoritative tax totals.'
 Assert-True (-not $ui.Contains('paymentSheet')) 'Theme checkout UI must not implement payment-sheet state.'
 Assert-True (-not $ui.Contains('openPaymentSheet')) 'Theme checkout UI must not open a custom payment sheet.'
 Assert-True (-not $ui.Contains('cloneNode(')) 'Checkout presentation must not clone Woo/Stripe controls.'
@@ -132,11 +148,14 @@ Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme refinements mu
 Assert-True ($flow.Contains('[data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive')) 'Mobile flow must keep the inactive provider payment surface mounted/measurable.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-progress')) 'Theme flow stylesheet must include the three-step progress UI.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-actions')) 'Theme flow stylesheet must include non-submit mobile navigation controls.'
-Assert-True ($flow.Contains('pointer-events: none !important')) 'Fixed mobile action shell must not create an invisible page-blocking hit target.'
 Assert-True ($flow.Contains('touch-action: manipulation')) 'Mobile checkout controls must use responsive touch interaction semantics.'
 Assert-True ($flow.Contains('top: auto !important')) 'Theme flow must reset legacy sticky progress positioning.'
 Assert-True ($flow.Contains('content: none !important')) 'Theme flow must suppress legacy duplicate progress chevrons.'
 Assert-True (-not $flow.Contains('dtb-payment-sheet')) 'Theme flow stylesheet must not restore payment-sheet selectors.'
+Assert-True ($runtimeContext.Contains('.dtb-checkout-live-context')) 'Final runtime-context stylesheet must style the live shipping/tax summary context.'
+Assert-True ($runtimeContext.Contains('pointer-events: auto !important')) 'Final mobile action shell must remain directly tappable on iOS/Safari.'
+Assert-True ($runtimeContext.Contains('.dtb-mobile-checkout-actions__status')) 'Mobile navigation must expose visible calculation/validation status.'
+Assert-True (-not ($runtimeContext -match 'iframe\s+[.#\[]')) 'Runtime-context styling must never target descendants inside provider iframes.'
 
 Assert-True ($login.Contains('navigateDocument(getWooCheckoutUrl()')) 'Checkout login return must use a full-document handoff directly to native Woo checkout.'
 Assert-True ($login.Contains('isCheckoutReturnTarget')) 'Login return handling must distinguish the native checkout transaction surface from SPA routes.'
@@ -177,4 +196,4 @@ Assert-True ($officialStripe -match "'theme'\s*=>\s*'stripe'") 'Stripe Appearanc
 
 Assert-True ($css.Contains('.wc-block-components-express-payment')) 'Base theme checkout stylesheet must retain Express Checkout presentation support.'
 
-Write-Host 'DTB checkout presentation/session static smoke checks passed.' -ForegroundColor Green
+Write-Host 'DTB checkout presentation/session/live-context static smoke checks passed.' -ForegroundColor Green
