@@ -1,0 +1,244 @@
+/*
+ * Responsive checkout flow presentation.
+ *
+ * This file styles the theme-owned Contact -> Shipping -> Payment navigation over
+ * the single mounted WooCommerce Checkout Block. It never creates a second form,
+ * payment surface, or submission path.
+ */
+
+.dtb-mobile-checkout-progress,
+.dtb-mobile-checkout-actions {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  body.dtb-mobile-checkout-enhanced {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-sidebar-layout {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-sidebar,
+  body.dtb-official-stripe-checkout .wc-block-checkout__sidebar {
+    position: static !important;
+    order: -1;
+    margin: 0 0 18px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-main,
+  body.dtb-official-stripe-checkout .wc-block-checkout__main {
+    order: 1;
+  }
+
+  .dtb-mobile-checkout-progress {
+    display: block;
+    position: relative;
+    z-index: 2;
+    margin: 0 0 24px;
+  }
+
+  .dtb-mobile-checkout-progress__track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--dtb-checkout-line);
+    border-radius: 12px;
+    background: #fff;
+    list-style: none;
+  }
+
+  .dtb-mobile-checkout-progress__item {
+    position: relative;
+    min-width: 0;
+  }
+
+  .dtb-mobile-checkout-progress__item + .dtb-mobile-checkout-progress__item::before {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 0;
+    width: 1px;
+    height: 28px;
+    background: var(--dtb-checkout-line);
+    content: "";
+    transform: translateY(-50%);
+  }
+
+  .dtb-mobile-checkout-progress__button {
+    display: flex;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    min-height: 54px;
+    padding: 9px 7px;
+    border: 0;
+    background: transparent;
+    color: var(--dtb-checkout-muted);
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 680;
+    cursor: pointer;
+  }
+
+  .dtb-mobile-checkout-progress__button:disabled {
+    cursor: default;
+  }
+
+  .dtb-mobile-checkout-progress__button.is-current {
+    background: var(--dtb-checkout-blue-soft);
+    color: var(--dtb-checkout-ink);
+  }
+
+  .dtb-mobile-checkout-progress__button.is-complete {
+    color: var(--dtb-checkout-copy);
+  }
+
+  .dtb-mobile-checkout-progress__number {
+    display: inline-grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 24px;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: var(--dtb-checkout-muted);
+    place-items: center;
+    font-size: 11px;
+    font-weight: 760;
+  }
+
+  .dtb-mobile-checkout-progress__button.is-current .dtb-mobile-checkout-progress__number {
+    background: var(--dtb-checkout-blue);
+    color: #fff;
+  }
+
+  .dtb-mobile-checkout-progress__button.is-complete .dtb-mobile-checkout-progress__number {
+    background: #dcfce7;
+    color: var(--dtb-checkout-success);
+  }
+
+  /* Normal inactive sections can be removed from layout. Provider-owned payment
+   * and Express surfaces remain mounted/measurable offscreen so Stripe/Woo can
+   * initialize once without DOM cloning, reparenting, or remounting. */
+  body.dtb-mobile-checkout-enhanced .is-dtb-checkout-step-inactive {
+    display: none !important;
+  }
+
+  body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive,
+  body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wp-block-woocommerce-checkout-express-payment-block,
+  body.dtb-mobile-checkout-enhanced [data-dtb-checkout-step="contact"].is-dtb-checkout-step-inactive.wc-block-components-express-payment {
+    display: block !important;
+    position: absolute !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: min(680px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    height: auto !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+  }
+
+  .dtb-mobile-checkout-actions {
+    display: block;
+    position: fixed;
+    z-index: 1000;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(226, 232, 240, .92);
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 -4px 14px rgba(15, 23, 42, .05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .dtb-mobile-checkout-actions[hidden] {
+    display: none !important;
+  }
+
+  .dtb-mobile-checkout-actions__inner {
+    display: grid;
+    width: min(100%, 640px);
+    margin-inline: auto;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .dtb-mobile-checkout-actions.is-payment-step .dtb-mobile-checkout-actions__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .dtb-mobile-checkout-actions__back,
+  .dtb-mobile-checkout-actions__next {
+    min-height: 44px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 720;
+    line-height: 1.1;
+    cursor: pointer;
+  }
+
+  .dtb-mobile-checkout-actions__back {
+    border: 1px solid var(--dtb-checkout-line-strong);
+    background: #fff;
+    color: var(--dtb-checkout-copy);
+  }
+
+  .dtb-mobile-checkout-actions__back:disabled {
+    opacity: .38;
+    cursor: default;
+  }
+
+  .dtb-mobile-checkout-actions__next {
+    width: 100%;
+    border: 1px solid var(--dtb-checkout-blue);
+    background: var(--dtb-checkout-blue);
+    color: #fff;
+  }
+
+  .dtb-mobile-checkout-actions__next[hidden] {
+    display: none !important;
+  }
+
+  body.dtb-checkout-step-payment .wc-block-components-checkout-place-order-button {
+    width: 100% !important;
+    min-height: 54px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .dtb-mobile-checkout-progress__button {
+    padding-inline: 5px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .dtb-mobile-checkout-progress__number {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+    grid-template-columns: 1fr !important;
+  }
+}
