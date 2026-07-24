@@ -52,6 +52,14 @@ function isCheckoutReturnTarget(target) {
   }
 }
 
+function requiresPreconfirmedNativeCheckout(checkoutUrl) {
+  try {
+    return new URL(checkoutUrl, window.location.origin).origin === window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
 function SubmitLoader() {
   return (
     <span className="dtb-auth-template__loader" aria-label="Signing in">
@@ -89,15 +97,17 @@ export default function Login() {
     try {
       const result = await login(email.trim(), password);
 
-      // Native Woo checkout is a full-document transaction surface. Never route a
-      // post-login checkout return through React Router first. The server must also
-      // confirm native-cookie convergence before the browser leaves the SPA so a
-      // blocked/conflicting session cannot become a blank or mis-owned checkout.
+      // Native Woo checkout is a full-document transaction surface. Same-origin
+      // checkout requires confirmed native-cookie convergence before leaving the
+      // SPA. Cross-origin preview builds cannot pre-mint native WP cookies; their
+      // verified dtb_auth cookie is resolved by the native checkout bridge after
+      // navigation to the backend origin.
       if (isCheckoutReturnTarget(returnTarget)) {
-        if (result?.nativeCheckoutReady !== true) {
+        const checkoutUrl = getWooCheckoutUrl();
+        if (requiresPreconfirmedNativeCheckout(checkoutUrl) && result?.nativeCheckoutReady !== true) {
           throw new Error('Your account was signed in, but the secure checkout session could not be prepared. Refresh this page or sign out of any WordPress administrator session before trying checkout again.');
         }
-        navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
+        navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });
         return;
       }
 
