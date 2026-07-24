@@ -27,35 +27,33 @@ DTB does not create Stripe PaymentIntents, Stripe Checkout Sessions, wallet toke
 
 ## Presentation ownership
 
-Checkout presentation is owned by the active theme:
+Checkout presentation is owned by one active-theme stack:
 
 ```text
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css
-  -> base checkout visual system
+  -> existing DTB checkout visual design
 
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-refinements.css
-  -> same-origin Woo wrapper normalization and contact-field presentation
+  -> final same-origin Woo wrapper/contact/Express/order-summary normalization
 
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-flow.css
-  -> responsive Contact -> Shipping -> Payment presentation
+  -> responsive Contact -> Shipping -> Payment presentation and provider-safe mounting
 
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
   -> mechanical checkout reveal only
 
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
-  -> presentation-only responsive controller and canonical field mirroring
-
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.css
-
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.js
-  -> signed-in profile presentation refinements
+  -> presentation-only responsive controller, field mirroring, duplicate-summary
+     containment, and single-gateway presentation markers
 ```
+
+There is no downstream theme profile override layer and no theme payment-sheet layer.
 
 The theme may style same-origin WooCommerce wrappers, layout, typography, spacing, order summary, shipping selectors, progress navigation, and non-submit Continue controls.
 
-The theme must not create or replace payment controls, initialize Stripe, create payment intents, clone/reparent provider controls, intercept authoritative Woo submission, or style descendants inside provider iframes.
+The theme must not create/replace payment controls, initialize Stripe, create payment intents, clone/reparent provider controls, intercept authoritative Woo submission, or style descendants inside provider iframes.
 
 ## Headless-theme checkout exception
 
@@ -63,7 +61,7 @@ The theme must not create or replace payment controls, initialize Stripe, create
 
 It:
 
-- removes the normal React SPA enqueue/asset-stripper/template override on native checkout;
+- removes normal React SPA enqueue/asset-stripper/template ownership on native checkout;
 - resolves `templates/checkout/native-checkout.php` from the active theme;
 - fails open to Woo/WordPress's resolved template if the expected theme checkout template is unavailable;
 - sends private/no-store checkout headers;
@@ -92,13 +90,13 @@ It owns no checkout presentation assets.
 
 It owns no presentation CSS/JS.
 
-`dtb-commerce/Payment/CheckoutRuntimeIntegrity.php` protects the WordPress/Woo/Stripe runtime graph from SiteGround combine/minify/async transforms and recognizes only the active theme presentation handles plus the DTB telemetry script.
+`dtb-commerce/Payment/CheckoutRuntimeIntegrity.php` protects the WordPress/Woo/Stripe runtime graph from SiteGround combine/minify/async transforms and recognizes only current theme presentation handles plus the DTB telemetry script.
 
 `dtb-commerce/Payment/CheckoutPerformance.php` and `dtb-commerce/assets/woo-native-checkout-performance.js` remain diagnostics-only.
 
 ## Retired competing presentation implementations
 
-The following presentation paths are retired and intentionally absent:
+The following are intentionally absent:
 
 ```text
 dtb-commerce/assets/woo-native-checkout.css
@@ -109,9 +107,11 @@ dtb-commerce/Templates/WooNativeCheckoutPage.php
 
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
+themes/drywall-toolbox/assets/checkout/checkout-profile.js
+themes/drywall-toolbox/assets/checkout/checkout-profile.css
 ```
 
-Do not restore a second MU-plugin checkout presentation layer or a mobile payment sheet.
+Do not restore a second MU-plugin checkout presentation layer, mobile payment sheet, or downstream profile controller/style layer.
 
 ## Responsive presentation policy
 
@@ -165,13 +165,15 @@ DTB registers First name, Last name, and Phone in the Checkout Block contact loc
 
 The theme controller mirrors those values into WooCommerce's native canonical billing/shipping inputs so Woo validation, shipping, tax, fraud checks, orders, customers, and integrations continue to consume standard Woo fields.
 
-The native duplicates remain mounted and synchronized but are hidden from duplicate shopper presentation only after classification.
+Native duplicates remain mounted/synchronized but are hidden from duplicate shopper presentation only after classification.
 
 The server-side `CheckoutFieldPolicy` copy is a defensive idempotent persistence boundary.
 
 ## Express Checkout and payment styling
 
 Same-origin Woo wrappers may be flattened so provider buttons/fields are the meaningful visual surfaces.
+
+Final wrapper normalization lives in `checkout-refinements.css`, which loads after the existing `checkout.css` design layer. No later generic profile stylesheet may reintroduce Express/order-summary card shells.
 
 Stripe-owned payment internals are styled only through the official gateway's supported Appearance API configuration in `OfficialStripeNativeCheckout.php`.
 
@@ -185,7 +187,7 @@ Never:
 
 ## Cart/session continuity
 
-Production and staging are same-origin with WordPress/WooCommerce. React uses WooCommerce's cookie-backed Store API session as primary cart authority and the Store API `Nonce` for mutations.
+Production and staging are same-origin with WordPress/WooCommerce. React uses WooCommerce's cookie-backed Store API session as primary cart authority and Store API `Nonce` for mutations.
 
 `Cart-Token` is compatibility-only for genuinely cross-origin clients. Same-origin React must not maintain a second persisted cart authority.
 
@@ -209,7 +211,7 @@ _dtb_payment_captured = 1 when WooCommerce date_paid is present
 _dtb_payment_lifecycle_source = woocommerce_stripe_lifecycle
 ```
 
-Fulfillment/accounting eligibility still requires the existing captured-payment gate before `dtb-orders` side effects are enqueued.
+Fulfillment/accounting eligibility still requires the captured-payment gate before `dtb-orders` side effects are enqueued.
 
 ## Shipping and totals
 
@@ -233,8 +235,9 @@ Before live payment acceptance verify at minimum:
 
 - guest and authenticated checkout;
 - existing desktop continuous checkout UI;
-- mobile Contact -> Shipping -> Payment with inline payment, no payment sheet;
+- mobile Contact -> Shipping -> Payment with inline payment and no payment sheet;
 - eligible Express Checkout on supported devices;
+- no profile/payment-sheet/second-MU presentation assets in the rendered page;
 - breakpoint mobile -> desktop -> mobile without duplicated controls or lost state;
 - exactly one Stripe runtime and payment surface;
 - contact identity values mirror correctly into canonical Woo order/address properties;
