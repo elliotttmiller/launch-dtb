@@ -20,6 +20,10 @@ function dtb_veeqo_verified_webhooks_enabled(): bool {
 		&& '' !== trim( (string) DTB_VEEQO_WEBHOOK_SECRET );
 }
 
+// Product saves must not synchronously call Veeqo. The canonical inventory
+// reconciliation maps exact SKUs and projects stock asynchronously in batches.
+remove_action( 'woocommerce_update_product', 'dtb_veeqo_map_product_sku', 20 );
+
 // The legacy client attempted webhook registration automatically. Production is
 // fail-closed until the upstream signing contract is explicitly verified.
 if ( ! dtb_veeqo_verified_webhooks_enabled() ) {
