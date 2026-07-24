@@ -6,6 +6,7 @@ $commerce = Join-Path $repoRoot 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-com
 $platform = Join-Path $repoRoot 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform'
 $theme = Join-Path $repoRoot 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox'
 $frontend = Join-Path $repoRoot 'frontend'
+$wpConfigSamplePath = Join-Path $repoRoot 'drywalltoolbox/wp/wp-config-sample.php'
 
 function Assert-True {
     param(
@@ -28,12 +29,16 @@ $nativeRuntimePath = Join-Path $commerce 'Payment/WooNativeCheckoutRuntime.php'
 $officialStripePath = Join-Path $commerce 'Payment/OfficialStripeNativeCheckout.php'
 $fieldPolicyPath = Join-Path $commerce 'Validation/CheckoutFieldPolicy.php'
 $authHardeningPath = Join-Path $platform 'Auth/AuthCookieRuntimeHardening.php'
+$sessionServicePath = Join-Path $platform 'Auth/SessionService.php'
+$nativeIdentityPath = Join-Path $platform 'Auth/NativeCheckoutIdentityBridge.php'
 $templatePath = Join-Path $theme 'templates/checkout/native-checkout.php'
 $uiPath = Join-Path $theme 'assets/checkout/checkout-ui.js'
 $cssPath = Join-Path $theme 'assets/checkout/checkout.css'
 $refinementsPath = Join-Path $theme 'assets/checkout/checkout-refinements.css'
 $flowPath = Join-Path $theme 'assets/checkout/checkout-flow.css'
 $loginPath = Join-Path $frontend 'src/pages/Login.jsx'
+$useAuthPath = Join-Path $frontend 'src/auth/useAuth.js'
+$cartContextPath = Join-Path $frontend 'src/context/CartContext.jsx'
 
 $bootstrap = Read-RequiredText $bootstrapPath
 $performance = Read-RequiredText $performancePath
@@ -42,12 +47,17 @@ $nativeRuntime = Read-RequiredText $nativeRuntimePath
 $officialStripe = Read-RequiredText $officialStripePath
 $fieldPolicy = Read-RequiredText $fieldPolicyPath
 $authHardening = Read-RequiredText $authHardeningPath
+$sessionService = Read-RequiredText $sessionServicePath
+$nativeIdentity = Read-RequiredText $nativeIdentityPath
 $template = Read-RequiredText $templatePath
 $ui = Read-RequiredText $uiPath
 $css = Read-RequiredText $cssPath
 $refinements = Read-RequiredText $refinementsPath
 $flow = Read-RequiredText $flowPath
 $login = Read-RequiredText $loginPath
+$useAuth = Read-RequiredText $useAuthPath
+$cartContext = Read-RequiredText $cartContextPath
+$wpConfigSample = Read-RequiredText $wpConfigSamplePath
 
 $retiredPaths = @(
     (Join-Path $commerce 'Payment/MobilePaymentSheet.php'),
@@ -75,6 +85,12 @@ Assert-True (-not $fieldPolicy.Contains('wp_enqueue_style')) 'Checkout field pol
 Assert-True ($nativeRuntime.Contains("locate_template( 'templates/checkout/native-checkout.php'")) 'Native checkout runtime must delegate document presentation to the active theme.'
 Assert-True ($nativeRuntime.Contains("remove_action( 'wp_enqueue_scripts', 'dtb_enqueue_react_app', 10 )")) 'Native checkout must disable React asset ownership on the checkout document.'
 Assert-True ($nativeRuntime.Contains("remove_action( 'wp_enqueue_scripts', 'dtb_dequeue_non_react_assets', 9999 )")) 'Native checkout must preserve Woo/WP/Stripe assets from the headless theme stripper.'
+
+Assert-True ($wpConfigSample.Contains("define( 'WP_HOME',    'https://elliottm4.sg-host.com' );")) 'Tracked redacted config must preserve the public root WP_HOME contract.'
+Assert-True ($wpConfigSample.Contains("define( 'WP_SITEURL', 'https://elliottm4.sg-host.com/wp' );")) 'Tracked redacted config must preserve WordPress core under /wp.'
+foreach ($rootCookieConstant in @("define( 'COOKIEPATH', '/' );", "define( 'SITECOOKIEPATH', '/' );", "define( 'ADMIN_COOKIE_PATH', '/' );")) {
+    Assert-True ($wpConfigSample.Contains($rootCookieConstant)) "Native auth cookies must remain valid across the public root checkout/API aliases: $rootCookieConstant"
+}
 
 Assert-True ($template.Contains("'dtb-checkout-theme'")) 'Theme checkout template must enqueue the authoritative base checkout stylesheet.'
 Assert-True ($template.Contains("'dtb-checkout-theme-refinements'")) 'Theme checkout template must enqueue same-origin wrapper refinements.'
@@ -122,9 +138,20 @@ Assert-True (-not $flow.Contains('dtb-payment-sheet')) 'Theme flow stylesheet mu
 
 Assert-True ($login.Contains('navigateDocument(getWooCheckoutUrl()')) 'Checkout login return must use a full-document handoff directly to native Woo checkout.'
 Assert-True ($login.Contains('isCheckoutReturnTarget')) 'Login return handling must distinguish the native checkout transaction surface from SPA routes.'
+Assert-True ($authHardening.Contains('wp_validate_auth_cookie')) 'Native customer-cookie convergence must validate the cookie instead of trusting cookie presence.'
 Assert-True ($authHardening.Contains('wp_set_auth_cookie')) 'Same-origin customer storefront auth must establish native WordPress auth for Woo checkout compatibility.'
-Assert-True ($authHardening.Contains("do_action( 'wp_login'")) 'Native customer auth synchronization must invoke the standard WordPress login lifecycle for Woo session reconciliation.'
+Assert-True (-not $authHardening.Contains("do_action( 'wp_login'")) 'DTB must not manually replay the wp_login lifecycle; Woo owns native session migration during session initialization.'
+Assert-True (-not $authHardening.Contains('dtb_auth_refresh_cookie_from_response')) 'Auth hardening must not regenerate or overwrite the dtb_auth JWT owned by AuthRoutes.'
+Assert-True ($authHardening.Contains('identity_conflict_contained')) 'Auth handoff must expose redacted identity-conflict containment diagnostics.'
 Assert-True ($authHardening.Contains("user_can( `$user, 'manage_options' )")) 'Storefront auth must not mint privileged administrator/operator native sessions.'
+Assert-True ($sessionService.Contains('discard_woocommerce_session_for_identity_conflict')) 'Identity mismatch handling must discard, not transfer, Woo customer session/cart state.'
+Assert-True ($nativeIdentity.Contains('discard_woocommerce_session_for_identity_conflict')) 'Native checkout must fail closed on conflicting customer identities without cross-customer cart transfer.'
+Assert-True ($nativeIdentity.Contains('wp_set_auth_cookie')) 'A verified DTB-only customer reaching native checkout directly must be able to converge to native cookie auth.'
+Assert-True ($nativeIdentity.Contains("user_can( `$user, 'manage_options' )")) 'Native checkout identity fallback must exclude privileged users.'
+Assert-True ($useAuth.Contains('nativeCheckoutReady')) 'Frontend auth must retain non-secret native checkout handoff readiness returned by the server.'
+Assert-True ($cartContext.Contains("window.addEventListener('dtb:auth-changed'")) 'Cart state must reconcile after login/logout identity transitions.'
+Assert-True ($cartContext.Contains('mutationQueueRef.current')) 'Auth-driven cart reconciliation must serialize with cart mutations.'
+Assert-True ($cartContext.Contains('return refreshCart();')) 'Auth-driven cart reconciliation must refresh Woo Store API cart and nonce state.'
 
 Assert-True ($runtimeIntegrity.Contains("'dtb-checkout-theme-ui'")) 'Runtime integrity must recognize the theme-owned checkout UI handle.'
 Assert-True (-not $runtimeIntegrity.Contains('dtb-checkout-theme-profile')) 'Runtime integrity must not retain the retired theme profile handle.'
@@ -138,4 +165,4 @@ Assert-True ($officialStripe -match "'theme'\s*=>\s*'stripe'") 'Stripe Appearanc
 
 Assert-True ($css.Contains('.wc-block-components-express-payment')) 'Base theme checkout stylesheet must retain Express Checkout presentation support.'
 
-Write-Host 'DTB checkout presentation static smoke checks passed.' -ForegroundColor Green
+Write-Host 'DTB checkout presentation/session static smoke checks passed.' -ForegroundColor Green
