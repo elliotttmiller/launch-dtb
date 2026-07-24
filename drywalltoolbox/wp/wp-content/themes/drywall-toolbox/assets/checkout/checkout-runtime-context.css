@@ -1,0 +1,125 @@
+/*
+ * Checkout runtime context presentation.
+ *
+ * Loaded after checkout-flow.css. This narrow final layer styles only DTB-owned
+ * progressive navigation status and the read-only live shipping/tax context that
+ * checkout-ui.js derives from WooCommerce block data stores. It never styles or
+ * manipulates Stripe/provider-owned iframe internals or replaces Woo totals.
+ */
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px solid var(--dtb-checkout-line);
+  border-bottom: 1px solid var(--dtb-checkout-line);
+  background: transparent;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__header,
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__header {
+  padding: 0 0 10px;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__header > strong {
+  color: var(--dtb-checkout-ink);
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__status {
+  display: inline-flex;
+  min-height: 22px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #166534;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context.is-updating .dtb-checkout-live-context__status {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__row {
+  padding: 5px 0;
+  color: var(--dtb-checkout-copy);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__row > span {
+  color: var(--dtb-checkout-muted);
+  font-weight: 590;
+}
+
+body.dtb-official-stripe-checkout .dtb-checkout-live-context__row > strong {
+  max-width: 260px;
+  color: var(--dtb-checkout-ink);
+  font-weight: 680;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  /* The fixed action bar occupies only its visible content area, so it can safely
+   * receive pointer events directly. This avoids iOS/Safari descendant hit-testing
+   * failures caused by a pointer-events:none fixed ancestor. */
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions {
+    pointer-events: auto !important;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions__status {
+    width: min(100%, 640px);
+    margin: 0 auto 7px;
+    padding: 7px 10px;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1e3a8a;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.35;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions__status[hidden] {
+    display: none !important;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions__status[data-kind="error"] {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #991b1b;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions.is-calculating .dtb-mobile-checkout-actions__next,
+  body.dtb-official-stripe-checkout .dtb-mobile-checkout-actions.is-calculating .dtb-mobile-checkout-actions__back {
+    cursor: wait;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-checkout-live-context {
+    padding: 13px 0;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-checkout-live-context__row > strong {
+    max-width: 210px;
+    font-size: 12.5px;
+  }
+}
