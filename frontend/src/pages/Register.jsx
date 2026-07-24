@@ -5,6 +5,8 @@ import { AlertCircle, Eye, EyeOff, LockKeyhole, Mail, Ticket, UserRound } from '
 
 import { useAuthContext } from '../auth/AuthContext.js';
 import { dtbDuration, dtbEase } from '../motion/dtbMotion.js';
+import { navigateDocument } from '../utils/documentNavigation.js';
+import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import '../styles/auth-form-templates.css';
 
 const STRENGTH_META = [
@@ -56,6 +58,15 @@ function safeReturnTarget(location) {
   if (!candidate.startsWith('/') || candidate.startsWith('//')) return '/dashboard';
   if (candidate.startsWith('/login') || candidate.startsWith('/register')) return '/dashboard';
   return candidate;
+}
+
+function isCheckoutReturnTarget(target) {
+  try {
+    const parsed = new URL(target, window.location.origin);
+    return parsed.origin === window.location.origin && /^\/checkout\/?$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 function SubmitLoader() {
@@ -155,13 +166,22 @@ export default function Register() {
 
     setSubmitting(true);
     try {
-      await register({
+      const result = await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim(),
         password,
         referralCode: referralCode.trim() || undefined,
       });
+
+      if (isCheckoutReturnTarget(returnTarget)) {
+        if (result?.nativeCheckoutReady !== true) {
+          throw new Error('Your account was created, but the secure checkout session could not be prepared. Refresh this page before continuing to checkout.');
+        }
+        navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
+        return;
+      }
+
       navigate(returnTarget, { replace: true });
     } catch (error) {
       setSubmitError(error?.message || 'Registration failed. Please try again.');
