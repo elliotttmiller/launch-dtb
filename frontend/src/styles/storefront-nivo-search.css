@@ -1,0 +1,411 @@
+/*
+ * DTB NivoSearch presentation.
+ * NivoSearch owns query execution/indexing; React owns the storefront surface.
+ */
+
+html.dtb-nivo-search-active .header-center--desktop-search > .dtb-desktop-search,
+html.dtb-nivo-search-active .header-mobile-search-dock > .storefront-search-dock {
+  display: none !important;
+}
+
+.dtb-nivo-search,
+.dtb-nivo-mobile-dock {
+  width: 100%;
+  min-width: 0;
+}
+
+.dtb-nivo-search--desktop {
+  position: relative;
+  z-index: 10002;
+}
+
+.dtb-nivo-search__input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.74);
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.dtb-nivo-search__input-shell:focus-within {
+  border-color: rgba(147, 197, 253, 0.72);
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.13);
+}
+
+.dtb-nivo-search__input-shell > svg {
+  position: absolute;
+  left: 15px;
+  pointer-events: none;
+}
+
+.dtb-nivo-search__input-shell input {
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  margin: 0;
+  padding: 0 42px 0 43px !important;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  font-size: 14px !important;
+  box-shadow: none;
+  appearance: none;
+}
+
+.dtb-nivo-search__input-shell input::placeholder {
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.dtb-nivo-search__clear {
+  position: absolute;
+  right: 8px;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+}
+
+.dtb-nivo-search__clear:hover,
+.dtb-nivo-search__clear:focus-visible {
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+}
+
+.dtb-nivo-search__panel {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  width: min(760px, calc(100vw - 40px));
+  max-height: min(620px, calc(100vh - var(--header-height, 112px) - 34px));
+  overflow: hidden;
+  transform: translateX(-50%);
+  border: 1px solid rgba(226, 232, 240, 0.96);
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.28), 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.dtb-nivo-search__panel[hidden] {
+  display: none;
+}
+
+.dtb-nivo-search__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(210px, 0.85fr);
+  max-height: 520px;
+}
+
+.dtb-nivo-search__products,
+.dtb-nivo-search__suggestions {
+  min-width: 0;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.dtb-nivo-search__suggestions {
+  border-left: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.dtb-nivo-search__eyebrow {
+  margin: 0 0 10px;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dtb-nivo-search__product {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: transparent;
+  color: #0f172a;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.dtb-nivo-search__product:last-child {
+  border-bottom: 0;
+}
+
+.dtb-nivo-search__product:hover,
+.dtb-nivo-search__product:focus-visible,
+.dtb-nivo-search__product.is-active {
+  background: #f8fafc;
+  outline: none;
+}
+
+.dtb-nivo-search__thumb {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  color: #94a3b8;
+}
+
+.dtb-nivo-search__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.dtb-nivo-search__product-copy {
+  min-width: 0;
+}
+
+.dtb-nivo-search__product-copy strong,
+.dtb-nivo-search__product-copy small {
+  display: block;
+}
+
+.dtb-nivo-search__product-copy strong {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtb-nivo-search__product-copy small {
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dtb-nivo-search__price {
+  align-self: center;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.dtb-nivo-search__suggestion-list {
+  display: grid;
+  gap: 2px;
+}
+
+.dtb-nivo-search__suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dtb-nivo-search__suggestion:hover,
+.dtb-nivo-search__suggestion:focus-visible,
+.dtb-nivo-search__suggestion.is-active {
+  background: #eaf2ff;
+  color: #1d4ed8;
+  outline: none;
+}
+
+.dtb-nivo-search__suggestion small {
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.dtb-nivo-search__empty {
+  margin: 18px 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.dtb-nivo-search__view-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.dtb-nivo-search__view-all:hover,
+.dtb-nivo-search__view-all:focus-visible {
+  background: #f8fafc;
+  outline: none;
+}
+
+.dtb-nivo-mobile-dock {
+  display: none;
+}
+
+.dtb-nivo-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .dtb-nivo-mobile-dock {
+    display: block;
+    width: 100%;
+  }
+
+  .dtb-nivo-mobile-dock .dtb-nivo-search__input-shell {
+    min-height: 44px;
+    border-color: #dbe3ee;
+    background: #fff;
+    color: #64748b;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  }
+
+  .dtb-nivo-mobile-dock .dtb-nivo-search__input-shell input {
+    height: 44px;
+    color: #0f172a;
+    font-size: 16px !important;
+  }
+
+  .dtb-nivo-mobile-dock .dtb-nivo-search__input-shell input::placeholder {
+    color: #94a3b8;
+  }
+
+  .dtb-nivo-mobile-overlay {
+    display: block;
+  }
+
+  .dtb-nivo-mobile-overlay__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: rgba(15, 23, 42, 0.46);
+    backdrop-filter: blur(7px);
+  }
+
+  .dtb-nivo-mobile-overlay__sheet {
+    position: absolute;
+    inset: var(--header-height, 104px) 0 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    background: #fff;
+    color: #0f172a;
+  }
+
+  .dtb-nivo-mobile-overlay__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 50px;
+    padding: 0 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dtb-nivo-mobile-overlay__header strong {
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .dtb-nivo-mobile-overlay__header button {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #0f172a;
+  }
+
+  .dtb-nivo-mobile-overlay .dtb-nivo-search__suggestions {
+    flex: 0 0 auto;
+    max-height: 210px;
+    padding: 14px 16px;
+    border: 0;
+    border-bottom: 1px solid #e5e7eb;
+    overflow-y: auto;
+  }
+
+  .dtb-nivo-mobile-overlay__products {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 14px 12px;
+    overflow-y: auto;
+  }
+
+  .dtb-nivo-mobile-overlay .dtb-nivo-search__product {
+    grid-template-columns: 54px minmax(0, 1fr) auto;
+    padding: 10px 4px;
+  }
+
+  .dtb-nivo-mobile-overlay .dtb-nivo-search__thumb {
+    width: 54px;
+    height: 54px;
+  }
+
+  .dtb-nivo-search__view-all--mobile {
+    flex: 0 0 auto;
+    min-height: calc(54px + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (min-width: 1025px) {
+  .dtb-nivo-search--desktop {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-nivo-search__input-shell,
+  .dtb-nivo-search__product {
+    transition: none;
+  }
+}
