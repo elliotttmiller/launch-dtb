@@ -105,7 +105,7 @@ export default function Login() {
       if (isCheckoutReturnTarget(returnTarget)) {
         const checkoutUrl = getWooCheckoutUrl();
         if (requiresPreconfirmedNativeCheckout(checkoutUrl) && result?.nativeCheckoutReady !== true) {
-          throw new Error('Your account was signed in, but the secure checkout session could not be prepared. Refresh this page or sign out of any WordPress administrator session before trying checkout again.');
+          throw new Error('Your account was signed in, but checkout could not be prepared. Refresh the page and try again.');
         }
         navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });
         return;
