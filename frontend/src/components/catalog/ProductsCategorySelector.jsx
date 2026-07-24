@@ -17,6 +17,8 @@ const ALL_PRODUCTS_SLIDE_INTERVAL_MS = 3800;
 const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'automatic_tapers': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_taper_04-scaled.webp',
   'automatic-tapers': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_taper_04-scaled.webp',
+  'compound_tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01-scaled.webp',
+  'compound-tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01-scaled.webp',
   'corner_tools': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',
   'corner-tools': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',
   'finishing_boxes': 'https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia_tools_10ffba_01.webp',
