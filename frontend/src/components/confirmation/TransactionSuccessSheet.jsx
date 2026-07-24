@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Check, PackageCheck, RotateCcw, Wrench } from 'lucide-react';
 import '../../styles/transaction-success-sheet.css';
+import '../../styles/transaction-success-sheet-embedded.css';
 
 const VARIANTS = {
   order: {
@@ -51,13 +52,15 @@ export default function TransactionSuccessSheet({
   secondaryAction,
   details = [],
   children,
+  embedded = false,
 }) {
   const variant = VARIANTS[type] || VARIANTS.default;
   const Icon = variant.Icon;
   const visibleDetails = details.filter((item) => item?.label && item?.value);
+  const className = `dtb-success-sheet dtb-success-sheet--${type}${embedded ? ' dtb-success-sheet--embedded' : ''}`;
 
   return (
-    <section className={`dtb-success-sheet dtb-success-sheet--${type}`} role="status" aria-live="polite" aria-labelledby={titleId}>
+    <section className={className} role="status" aria-live="polite" aria-labelledby={titleId}>
       <div className="dtb-success-sheet__hero">
         <div className="dtb-success-sheet__mark-wrap" aria-hidden="true">
           <span className="dtb-success-sheet__pulse" />
