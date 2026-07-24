@@ -5,6 +5,8 @@ import { AlertCircle, Eye, EyeOff, UserRound } from 'lucide-react';
 
 import { useAuthContext } from '../auth/AuthContext.js';
 import { dtbDuration, dtbEase } from '../motion/dtbMotion.js';
+import { navigateDocument } from '../utils/documentNavigation.js';
+import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import '../styles/auth-form-templates.css';
 
 const cardVariants = {
@@ -39,6 +41,15 @@ function safeReturnTarget(location) {
   if (!candidate.startsWith('/') || candidate.startsWith('//')) return '/dashboard';
   if (candidate.startsWith('/login') || candidate.startsWith('/register')) return '/dashboard';
   return candidate;
+}
+
+function isCheckoutReturnTarget(target) {
+  try {
+    const parsed = new URL(target, window.location.origin);
+    return parsed.origin === window.location.origin && /^\/checkout\/?$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 function SubmitLoader() {
@@ -77,6 +88,16 @@ export default function Login() {
 
     try {
       await login(email.trim(), password);
+
+      // Native Woo checkout is a full-document transaction surface. Never route a
+      // post-login checkout return through React Router first: doing so can leave a
+      // blank SPA handoff document or race the newly issued HttpOnly auth/session
+      // cookies. Navigate directly to the canonical Woo checkout document instead.
+      if (isCheckoutReturnTarget(returnTarget)) {
+        navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
+        return;
+      }
+
       navigate(returnTarget, { replace: true });
     } catch (error) {
       setSubmitError(error?.message || 'Login failed. Please try again.');
