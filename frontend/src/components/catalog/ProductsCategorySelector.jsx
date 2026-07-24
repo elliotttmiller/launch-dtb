@@ -138,18 +138,13 @@ function primaryProductImage(product = {}) {
     || '';
 }
 
-function AllProductsSlideshow({ brand, images }) {
+function AllProductsSlideshow({ images }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [failedImages, setFailedImages] = useState(() => new Set());
   const availableImages = useMemo(
     () => images.filter((src) => src && !failedImages.has(src)),
     [failedImages, images],
   );
-
-  useEffect(() => {
-    setActiveIndex(0);
-    setFailedImages(new Set());
-  }, [brand, images]);
 
   useEffect(() => {
     if (availableImages.length < 2) return undefined;
@@ -203,6 +198,7 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory, allProd
   const imageKey = `${toBrandSlug(brand)}:${category.key || category.slug || category.name}:${previewImage.src}`;
   const cardImage = failedImage.key === imageKey && failedImage.src === previewImage.src ? '' : previewImage.src;
   const hasSlideshow = isAllProducts && allProductsImages.length > 0;
+  const slideshowKey = `${toBrandSlug(brand)}:${allProductsImages.join('|')}`;
   const cardClassName = `product-category-card${cardImage || hasSlideshow ? '' : ' product-category-card--no-image'}${isAllProducts ? ' product-category-card--all-products' : ''}`;
   const cardStyle = {
     animationDelay: `${(index + 1) * 0.07}s`,
@@ -216,7 +212,7 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory, allProd
       style={cardStyle}
       onClick={() => onSelectCategory(category)}
     >
-      {hasSlideshow && <AllProductsSlideshow brand={brand} images={allProductsImages} />}
+      {hasSlideshow && <AllProductsSlideshow key={slideshowKey} images={allProductsImages} />}
       {cardImage && (
         <img
           src={cardImage}
@@ -251,13 +247,16 @@ export default function ProductsCategorySelector({
   onSelectCategory,
   onBack,
 }) {
-  const [allProductsImages, setAllProductsImages] = useState([]);
+  const [previewState, setPreviewState] = useState({ brand: '', images: [] });
   const normalizedCategories = Array.isArray(categories) ? categories : [];
   const categoryProductCount = normalizedCategories.reduce((sum, category) => (
     sum + Number(category?.count || category?.productCount || 0)
   ), 0);
+  const allProductsImages = previewState.brand === brand ? previewState.images : [];
 
   useEffect(() => {
+    if (!brand) return undefined;
+
     let cancelled = false;
     const loadPreviews = async () => {
       try {
@@ -274,14 +273,13 @@ export default function ProductsCategorySelector({
             .map(normalizePreviewImageUrl)
             .filter((src) => src && !src.endsWith('.svg')),
         )).slice(0, ALL_PRODUCTS_PREVIEW_LIMIT);
-        setAllProductsImages(images);
+        setPreviewState({ brand, images });
       } catch {
-        if (!cancelled) setAllProductsImages([]);
+        if (!cancelled) setPreviewState({ brand, images: [] });
       }
     };
 
-    if (brand) loadPreviews();
-    else setAllProductsImages([]);
+    loadPreviews();
     return () => { cancelled = true; };
   }, [brand]);
 
