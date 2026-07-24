@@ -58,12 +58,19 @@
   text-shadow: none;
 }
 
-.storefront-top-banner__phone {
+.storefront-top-banner__utilities {
   grid-column: 3;
   justify-self: end;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 14px;
+  min-height: 32px;
+}
+
+.storefront-top-banner__phone,
+.storefront-top-banner__support {
+  display: inline-flex;
+  align-items: center;
   min-height: 32px;
   color: inherit;
   font-weight: 720;
@@ -72,19 +79,42 @@
   transition: opacity 140ms ease;
 }
 
+.storefront-top-banner__phone {
+  gap: 6px;
+}
+
+.storefront-top-banner__support {
+  position: relative;
+  padding-left: 14px;
+}
+
+.storefront-top-banner__support::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 1px;
+  height: 14px;
+  background: rgba(15, 23, 42, 0.28);
+  transform: translateY(-50%);
+}
+
 .storefront-top-banner__phone:hover,
-.storefront-top-banner__phone:focus-visible {
+.storefront-top-banner__phone:focus-visible,
+.storefront-top-banner__support:hover,
+.storefront-top-banner__support:focus-visible {
   opacity: 0.72;
 }
 
-.storefront-top-banner__phone:focus-visible {
+.storefront-top-banner__phone:focus-visible,
+.storefront-top-banner__support:focus-visible {
   outline: 2px solid #0f172a;
   outline-offset: -3px;
   border-radius: 4px;
 }
 
-/* Contact support now lives in the utility bar on the homepage instead of
-   occupying a primary desktop-header action slot. */
+/* Contact support lives in the desktop utility bar instead of occupying a
+   primary desktop navigation slot. */
 .header-contact-icon {
   display: none !important;
 }
@@ -101,10 +131,18 @@
     letter-spacing: 0.015em;
   }
 
+  .storefront-top-banner__utilities {
+    min-height: 28px;
+  }
+
   .storefront-top-banner__phone {
     min-height: 28px;
     gap: 4px;
     font-size: 10.5px;
+  }
+
+  .storefront-top-banner__support {
+    display: none;
   }
 }
 
@@ -143,7 +181,7 @@
     justify-self: center;
   }
 
-  .storefront-top-banner__phone {
+  .storefront-top-banner__utilities {
     grid-column: 2;
   }
 }
