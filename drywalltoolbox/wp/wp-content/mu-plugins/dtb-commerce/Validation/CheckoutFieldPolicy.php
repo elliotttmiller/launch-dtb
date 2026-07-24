@@ -8,6 +8,9 @@
  * properties so orders, customers, tax, shipping, fraud checks, and integrations
  * continue to consume standard WooCommerce fields.
  *
+ * Checkout presentation belongs to the active theme; this class intentionally
+ * owns no CSS/JS or rendering behavior.
+ *
  * @package drywall-toolbox
  */
 
@@ -17,39 +20,17 @@ final class DTB_CheckoutFieldPolicy {
 	private const FIELD_FIRST_NAME = 'dtb-checkout/contact-first-name';
 	private const FIELD_LAST_NAME  = 'dtb-checkout/contact-last-name';
 	private const FIELD_PHONE      = 'dtb-checkout/contact-phone';
-	private const ASSET_VERSION    = '2026.07.24.1';
 
 	public static function register(): void {
 		add_filter( 'option_woocommerce_checkout_phone_field', [ __CLASS__, 'optional_phone' ] );
 		add_filter( 'default_option_woocommerce_checkout_phone_field', [ __CLASS__, 'optional_phone' ] );
 		add_action( 'woocommerce_init', [ __CLASS__, 'register_contact_fields' ] );
 		add_action( 'woocommerce_store_api_checkout_update_order_meta', [ __CLASS__, 'sync_contact_fields_to_order' ], 20, 1 );
-		add_action( 'wp_enqueue_scripts', [ __CLASS__, 'enqueue_checkout_refinements' ], 30 );
 	}
 
 	/** Keep the standard WooCommerce phone field visible but optional. */
 	public static function optional_phone( $value ): string {
 		return 'optional';
-	}
-
-	/** Load the narrow presentation layer after the base checkout stylesheet. */
-	public static function enqueue_checkout_refinements(): void {
-		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-			return;
-		}
-		if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
-			return;
-		}
-		if ( function_exists( 'is_wc_endpoint_url' ) && ( is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) ) {
-			return;
-		}
-
-		wp_enqueue_style(
-			'dtb-woo-native-checkout-refinements',
-			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-refinements.css' ),
-			[ 'dtb-woo-native-checkout' ],
-			self::ASSET_VERSION
-		);
 	}
 
 	/** Register identity fields in the supported Checkout Block contact location. */
@@ -106,9 +87,9 @@ final class DTB_CheckoutFieldPolicy {
 	/**
 	 * Copy supported contact fields into canonical order address properties.
 	 *
-	 * The browser presentation also mirrors these fields into Woo's native address
-	 * state before submission. This server-side copy is a defensive persistence
-	 * boundary and is idempotent for repeated checkout-draft updates.
+	 * The browser presentation mirrors these fields into Woo's native address state
+	 * before submission. This server-side copy is a defensive persistence boundary
+	 * and is idempotent for repeated checkout-draft updates.
 	 */
 	public static function sync_contact_fields_to_order( WC_Order $order ): void {
 		if ( ! class_exists( '\\Automattic\\WooCommerce\\Blocks\\Package' ) ) {
