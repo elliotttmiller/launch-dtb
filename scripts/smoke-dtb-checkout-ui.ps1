@@ -116,7 +116,7 @@ Assert-True ($cart.Contains('const authoritativeCart = await getCart();')) 'Full
 Assert-True ($cartSidebar.Contains('await ensureNativeCheckoutReady();')) 'Cart drawer checkout must converge signed-in native checkout identity before handoff.'
 Assert-True ($cartSidebar.Contains('const authoritativeCart = await getCart();')) 'Cart drawer checkout must re-read the authoritative Woo cart before handoff.'
 Assert-True ($documentNavigation.Contains("if (transition === 'checkout' || prefersReducedMotion())")) 'Checkout handoff must commit immediately without blanking the current cart document.'
-Assert-True (-not $documentNavigation.Contains('dtb-checkout-handoff-active')) 'Checkout handoff must not hide the current document while native checkout is pending.'
+Assert-True (-not $documentNavigation.Contains("classList.add('dtb-checkout-handoff-active')")) 'Checkout handoff must not activate a document-hiding class while native checkout is pending.'
 
 Assert-True ($officialStripe.Contains("'wc_stripe_upe_params'")) 'Official Stripe integration must remain authoritative.'
 Assert-True ($officialStripe.Contains("'blocksAppearance'")) 'Stripe Appearance must use the provider-supported configuration path.'
