@@ -28,13 +28,7 @@ function fallbackProduct(product) {
 }
 
 function useTargets() {
-  const [targets, setTargets] = useState({
-    desktopInput: null,
-    desktopResults: null,
-    mobileInput: null,
-    mobileBody: null,
-    mobileOverlay: null,
-  });
+  const [targets, setTargets] = useState({ desktopInput: null, desktopResults: null, mobileInput: null, mobileBody: null, mobileOverlay: null });
 
   useEffect(() => {
     const resolve = () => {
@@ -45,9 +39,7 @@ function useTargets() {
         mobileBody: document.querySelector('.storefront-search-overlay__body'),
         mobileOverlay: document.querySelector('.storefront-search-overlay'),
       };
-      setTargets((current) => (
-        Object.keys(next).every((key) => current[key] === next[key]) ? current : next
-      ));
+      setTargets((current) => (Object.keys(next).every((key) => current[key] === next[key]) ? current : next));
     };
 
     resolve();
@@ -66,7 +58,6 @@ function useNivoSurface(input, delay) {
 
   useEffect(() => {
     if (!input) return undefined;
-
     const sync = () => setState((current) => ({ ...current, query: String(input.value || '') }));
     sync();
     input.addEventListener('input', sync);
@@ -96,12 +87,27 @@ function useNivoSurface(input, delay) {
       try {
         const result = await searchWithNivo(query, { signal: controller.signal });
         if (controller.signal.aborted || requestId !== requestIdRef.current) return;
+
+        let products = result.products.slice(0, MAX_PRODUCTS);
+        let source = result.source || 'nivo';
+
+        // Nivo remains the primary engine and owns typo/correction intelligence.
+        // Some catalogs do not expose brand metadata through Nivo's configured
+        // fields. When a correction was identified but Nivo still has no product
+        // rows, resolve that corrected term through DTB's cached catalog without
+        // dropping the Nivo/canonical suggestions.
+        if (products.length === 0 && result.didYouMean) {
+          products = (await searchProducts(result.didYouMean)).slice(0, MAX_PRODUCTS).map(fallbackProduct);
+          if (products.length > 0) source = `${source}+dtb-products`;
+        }
+
+        if (controller.signal.aborted || requestId !== requestIdRef.current) return;
         setState((current) => ({
           ...current,
-          products: result.products.slice(0, MAX_PRODUCTS),
+          products,
           suggestions: result.suggestions.slice(0, MAX_SUGGESTIONS),
           loading: false,
-          source: result.source || 'nivo',
+          source,
         }));
       } catch (error) {
         if (controller.signal.aborted || requestId !== requestIdRef.current) return;
