@@ -172,10 +172,48 @@ async function executeNivoSearch(query, config, signal) {
   if (!payload?.success) {
     const error = new Error(payload?.data?.message || 'NivoSearch request was rejected.');
     error.code = 'nivo_search_rejected';
+    error.payload = payload?.data || null;
     throw error;
   }
 
   return normalizeResponse(query, payload);
+}
+
+function correctedResult(originalQuery, firstResult, corrected) {
+  const correction = firstResult.didYouMean;
+  const suggestions = dedupeSuggestions([
+    ...(correction ? [{ id: `correction:${correction}`, type: 'correction', label: correction, value: correction }] : []),
+    ...(Array.isArray(corrected.suggestions) ? corrected.suggestions : []),
+    ...(Array.isArray(firstResult.suggestions) ? firstResult.suggestions : []),
+  ]).slice(0, 8);
+
+  return {
+    ...corrected,
+    query: originalQuery,
+    didYouMean: correction,
+    suggestions,
+    source: 'nivo-corrected',
+  };
+}
+
+async function executeWithCorrection(query, config, signal) {
+  const firstResult = await executeNivoSearch(query, config, signal);
+  const correction = String(firstResult.didYouMean || '').trim();
+
+  // Nivo 2.0.2 may return a fuzzy/dictionary correction without automatically
+  // returning the corrected query's product set. Resolve that correction once so
+  // typo-tolerant searches behave as users expect while Nivo remains authoritative.
+  if (
+    firstResult.products.length === 0
+    && correction
+    && correction.localeCompare(query, undefined, { sensitivity: 'accent' }) !== 0
+    && !signal?.aborted
+  ) {
+    const corrected = await executeNivoSearch(correction, config, signal);
+    return correctedResult(query, firstResult, corrected);
+  }
+
+  return firstResult;
 }
 
 /**
@@ -200,7 +238,7 @@ export async function searchWithNivo(query, { signal } = {}) {
   }
 
   try {
-    return await executeNivoSearch(normalizedQuery, config, signal);
+    return await executeWithCorrection(normalizedQuery, config, signal);
   } catch (error) {
     if (signal?.aborted) throw error;
     if (error?.status !== 403 && error?.code !== 'invalid_nivo_response') throw error;
@@ -209,7 +247,7 @@ export async function searchWithNivo(query, { signal } = {}) {
     // once, then retry the same idempotent search request.
     config = await loadConfig({ force: true });
     if (!config?.enabled || !config?.nonce) throw error;
-    return executeNivoSearch(normalizedQuery, config, signal);
+    return executeWithCorrection(normalizedQuery, config, signal);
   }
 }
 
