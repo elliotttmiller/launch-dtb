@@ -10,8 +10,8 @@ export default function CheckoutReturn({ fallbackState = 'complete' }) {
 	const failed = fallbackState === 'failed' || fallbackState === 'cancelled';
 	const title = failed ? 'Checkout was not completed' : 'Checkout status';
 	const description = failed
-		? 'Return to the WooCommerce checkout page to retry with the official Stripe payment form.'
-		: 'WooCommerce handles checkout confirmation and order-received pages. Use your account dashboard or order email for final order details.';
+		? 'Return to checkout to try your payment again.'
+		: 'Use your account dashboard or order email for final order details.';
 
 	if (!failed) {
 		return (
@@ -38,7 +38,7 @@ export default function CheckoutReturn({ fallbackState = 'complete' }) {
 				<div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">
 					<CheckCircle className="h-12 w-12 text-primary-600" strokeWidth={1.8} />
 				</div>
-				<p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-primary-600">WooCommerce checkout</p>
+				<p className="mb-2 text-[10px] font-black uppercase tracking-[0.18em] text-primary-600">Secure checkout</p>
 				<h1 className="mb-3 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">{title}</h1>
 				<p className="mx-auto mb-6 max-w-md text-sm leading-relaxed text-slate-600">{description}</p>
 
