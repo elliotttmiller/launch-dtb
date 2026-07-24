@@ -7,16 +7,27 @@ function unique(values) {
   return Array.from(new Set(values.filter(Boolean)));
 }
 
+function originRoot(value) {
+  if (typeof window === 'undefined') return '';
+  try {
+    return new URL(String(value || ''), window.location.origin).origin.replace(/\/+$/, '');
+  } catch {
+    return '';
+  }
+}
+
 function apiCandidates() {
   if (typeof window === 'undefined') return [];
-  const bases = unique([
-    String(API_BASE_URL || '').replace(/\/+$/, ''),
+
+  // REST is publicly mounted at /wp-json/. API_BASE_URL may point at the physical
+  // WordPress /wp directory, so never append /wp-json to that path verbatim or we
+  // generate the invalid /wp/wp-json topology seen in production diagnostics.
+  const roots = unique([
+    originRoot(API_BASE_URL),
     window.location.origin.replace(/\/+$/, ''),
   ]);
-  return unique(bases.flatMap((base) => [
-    `${base}/wp-json/dtb/v1/checkout/capabilities`,
-    `${base}/wp/wp-json/dtb/v1/checkout/capabilities`,
-  ]));
+
+  return roots.map((root) => `${root}/wp-json/dtb/v1/checkout/capabilities`);
 }
 
 function hasHint(signature) {
