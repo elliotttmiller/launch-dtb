@@ -27,6 +27,10 @@ $officialStripePath = Join-Path $commerce 'Payment/OfficialStripeNativeCheckout.
 $nativeRuntimePath = Join-Path $commerce 'Payment/WooNativeCheckoutRuntime.php'
 $nativeIdentityPath = Join-Path $platform 'Auth/NativeCheckoutIdentityBridge.php'
 $loginPath = Join-Path $frontend 'src/pages/Login.jsx'
+$cartPath = Join-Path $frontend 'src/pages/Cart.jsx'
+$cartSidebarPath = Join-Path $frontend 'src/components/shell/CartSidebar.jsx'
+$authHookPath = Join-Path $frontend 'src/auth/useAuth.js'
+$documentNavigationPath = Join-Path $frontend 'src/utils/documentNavigation.js'
 
 $template = Read-RequiredText $templatePath
 $ui = Read-RequiredText $uiPath
@@ -38,6 +42,10 @@ $officialStripe = Read-RequiredText $officialStripePath
 $nativeRuntime = Read-RequiredText $nativeRuntimePath
 $nativeIdentity = Read-RequiredText $nativeIdentityPath
 $login = Read-RequiredText $loginPath
+$cart = Read-RequiredText $cartPath
+$cartSidebar = Read-RequiredText $cartSidebarPath
+$authHook = Read-RequiredText $authHookPath
+$documentNavigation = Read-RequiredText $documentNavigationPath
 
 $retiredPaths = @(
     (Join-Path $commerce 'Payment/MobilePaymentSheet.php'),
@@ -98,6 +106,17 @@ Assert-True ($nativeIdentity.Contains('dtb_native_checkout_expire_woocommerce_br
 Assert-True ($login.Contains("const checkoutUrl = getWooCheckoutUrl();")) 'Checkout login return must resolve the canonical Woo checkout URL.'
 Assert-True ($login.Contains("navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });")) 'Checkout login return must use a full-document Woo checkout handoff.'
 Assert-True ($login.Contains('if (isCheckoutReturnTarget(returnTarget))')) 'Full-document checkout handoff must be scoped to checkout return targets.'
+
+# Signed-in users who enter checkout from an already-authenticated cart must converge
+# native Woo identity before the document transfer and then prove the authoritative cart.
+Assert-True ($authHook.Contains('ensureNativeCheckoutReady')) 'Auth hook must expose a native checkout readiness guard.'
+Assert-True ($authHook.Contains('nativeCheckoutReadyRef.current !== true')) 'Checkout readiness guard must fail closed when native convergence is incomplete.'
+Assert-True ($cart.Contains('await ensureNativeCheckoutReady();')) 'Full cart checkout must converge signed-in native checkout identity before handoff.'
+Assert-True ($cart.Contains('const authoritativeCart = await getCart();')) 'Full cart checkout must re-read the authoritative Woo cart before handoff.'
+Assert-True ($cartSidebar.Contains('await ensureNativeCheckoutReady();')) 'Cart drawer checkout must converge signed-in native checkout identity before handoff.'
+Assert-True ($cartSidebar.Contains('const authoritativeCart = await getCart();')) 'Cart drawer checkout must re-read the authoritative Woo cart before handoff.'
+Assert-True ($documentNavigation.Contains("if (transition === 'checkout' || prefersReducedMotion())")) 'Checkout handoff must commit immediately without blanking the current cart document.'
+Assert-True (-not $documentNavigation.Contains('dtb-checkout-handoff-active')) 'Checkout handoff must not hide the current document while native checkout is pending.'
 
 Assert-True ($officialStripe.Contains("'wc_stripe_upe_params'")) 'Official Stripe integration must remain authoritative.'
 Assert-True ($officialStripe.Contains("'blocksAppearance'")) 'Stripe Appearance must use the provider-supported configuration path.'
