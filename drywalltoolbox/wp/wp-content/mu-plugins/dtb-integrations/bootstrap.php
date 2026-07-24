@@ -46,13 +46,14 @@ dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceHealthCheck.php',
 ] );
 
-// 3) Veeqo module-layer files. Production configuration loads before inventory projection.
+// 3) Veeqo module-layer files. Production configuration loads before inventory/order projection.
 dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoConfig.php',
 	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryService.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryProjectionService.php',
 	'dtb-integrations/Veeqo/VeeqoRuntimePolicy.php',
+	'dtb-integrations/Veeqo/VeeqoOrderProjectionContract.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryBoundary.php',
 	'dtb-integrations/Veeqo/VeeqoShippingService.php',
 	'dtb-integrations/Veeqo/VeeqoSyncJob.php',
