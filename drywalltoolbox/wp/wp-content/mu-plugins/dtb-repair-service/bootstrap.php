@@ -28,6 +28,7 @@ require_once __DIR__ . '/Services/RepairWorkflowTransitionMap.php';
 require_once __DIR__ . '/Services/RepairIdempotencyService.php';
 require_once __DIR__ . '/Services/RepairProjectionService.php';
 require_once __DIR__ . '/Services/RepairQuoteService.php';
+require_once __DIR__ . '/Services/RepairShippingQuoteService.php';
 require_once __DIR__ . '/Services/RepairPublicTokenService.php';
 require_once __DIR__ . '/Services/RepairSlaService.php';
 require_once __DIR__ . '/Services/RepairOpsQueryService.php';
@@ -57,6 +58,7 @@ require_once __DIR__ . '/Tracking/RepairOperatorTimeline.php';
 
 // REST
 require_once __DIR__ . '/Rest/SubmitRepairController.php';
+require_once __DIR__ . '/Rest/RepairShippingQuoteController.php';
 require_once __DIR__ . '/Rest/RepairCustomerListController.php';
 require_once __DIR__ . '/Rest/RepairStatusController.php';
 require_once __DIR__ . '/Rest/RepairMediaController.php';
