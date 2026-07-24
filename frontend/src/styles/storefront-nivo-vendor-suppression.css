@@ -1,0 +1,20 @@
+/*
+ * DTB React storefront owns every visible search surface. NivoSearch is used as
+ * a headless AJAX/search-intelligence provider only. These selectors suppress
+ * vendor-created mobile/fullscreen presentation if its frontend script is
+ * enqueued by WordPress or another plugin integration path.
+ */
+
+.nivo-mobile-overlay,
+.nivo-mobile-search-wrap,
+.nivo-mobile-results,
+.nivo-ajax-search-container,
+.nivo-search-results {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.nivo-mobile-open {
+  overflow: auto !important;
+}
