@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useCart } from '../../context/CartContext';
+import { useAuthContext } from '../../auth/AuthContext.js';
 import { getCart } from '../../api/cart.js';
 import StorefrontCartSheet from '../storefront/StorefrontCartSheet';
 import { getWooCheckoutUrl } from '../../utils/checkoutUrl.js';
@@ -14,6 +15,7 @@ function sleep(ms) {
 
 export default function CartSidebar({ isOpen, onClose }) {
   const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal, isMutating } = useCart();
+  const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
   const isMutatingRef = useRef(isMutating);
   const checkoutPendingRef = useRef(false);
 
@@ -57,6 +59,14 @@ export default function CartSidebar({ isOpen, onClose }) {
           return;
         }
 
+        // A customer who signed in before opening checkout must first converge the
+        // DTB HttpOnly session to native WordPress/Woo identity. Do this before the
+        // final Store API read so the cart proof and the document handoff share the
+        // same authenticated session boundary.
+        if (isAuthenticated) {
+          await ensureNativeCheckoutReady();
+        }
+
         // Re-read WooCommerce immediately before document navigation. The visual
         // cart snapshot is never sufficient proof that the server-side session
         // has the same items/quantities.
@@ -69,8 +79,8 @@ export default function CartSidebar({ isOpen, onClose }) {
 
         navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
         onClose?.();
-      } catch {
-        window.alert('We could not confirm your cart for checkout. Please try again.');
+      } catch (error) {
+        window.alert(error?.message || 'We could not confirm your signed-in checkout session. Please try again.');
         anchor.focus?.();
       } finally {
         checkoutPendingRef.current = false;
@@ -79,7 +89,7 @@ export default function CartSidebar({ isOpen, onClose }) {
 
     document.addEventListener('click', interceptCheckout, true);
     return () => document.removeEventListener('click', interceptCheckout, true);
-  }, [isOpen, onClose]);
+  }, [ensureNativeCheckoutReady, isAuthenticated, isOpen, onClose]);
 
   return (
     <StorefrontCartSheet
