@@ -29,6 +29,21 @@ add_action(
 
 		register_rest_route(
 			'dtb/v1',
+			'/veeqo/inventory',
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => 'dtb_veeqo_inventory_admin_projected_inventory',
+				'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
+				'args'                => [
+					'page'     => [ 'type' => 'integer', 'minimum' => 1, 'default' => 1 ],
+					'per_page' => [ 'type' => 'integer', 'minimum' => 1, 'maximum' => 100, 'default' => 50 ],
+				],
+			],
+			true
+		);
+
+		register_rest_route(
+			'dtb/v1',
 			'/veeqo/admin/inventory/diagnostics',
 			[
 				'methods'             => WP_REST_Server::READABLE,
@@ -94,6 +109,49 @@ function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $requ
 		],
 		202
 	);
+}
+
+/**
+ * Read the authoritative checkout-facing Woo projection; never fan out to Veeqo
+ * from an interactive admin request.
+ */
+function dtb_veeqo_inventory_admin_projected_inventory( WP_REST_Request $request ): WP_REST_Response {
+	$page     = max( 1, absint( $request->get_param( 'page' ) ?: 1 ) );
+	$per_page = min( 100, max( 1, absint( $request->get_param( 'per_page' ) ?: 50 ) ) );
+	$query    = wc_get_products( [
+		'status'   => 'publish',
+		'limit'    => $per_page,
+		'page'     => $page,
+		'type'     => [ 'simple', 'variation' ],
+		'return'   => 'objects',
+		'paginate' => true,
+	] );
+	$products = is_object( $query ) && isset( $query->products ) ? (array) $query->products : (array) $query;
+	$rows = [];
+	foreach ( $products as $product ) {
+		if ( ! $product instanceof WC_Product ) {
+			continue;
+		}
+		$rows[] = [
+			'product_id'     => $product->get_id(),
+			'parent_id'      => $product->get_parent_id(),
+			'sku'            => $product->get_sku(),
+			'manage_stock'   => $product->managing_stock(),
+			'stock_quantity' => $product->get_stock_quantity(),
+			'stock_status'   => $product->get_stock_status(),
+			'is_in_stock'    => $product->is_in_stock(),
+			'veeqo_sellable_id' => absint( $product->get_meta( '_veeqo_sellable_id', true ) ),
+			'veeqo_mapped_sku'  => sanitize_text_field( (string) $product->get_meta( '_veeqo_mapped_sku', true ) ),
+		];
+	}
+	return new WP_REST_Response( [
+		'source'   => 'woocommerce_stock_projection_from_veeqo',
+		'page'     => $page,
+		'per_page' => $per_page,
+		'total'    => is_object( $query ) && isset( $query->total ) ? (int) $query->total : count( $rows ),
+		'pages'    => is_object( $query ) && isset( $query->max_num_pages ) ? (int) $query->max_num_pages : 1,
+		'items'    => $rows,
+	], 200 );
 }
 
 function dtb_veeqo_inventory_admin_diagnostics(): WP_REST_Response {
