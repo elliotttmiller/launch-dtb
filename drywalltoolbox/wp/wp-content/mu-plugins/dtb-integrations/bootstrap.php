@@ -63,6 +63,7 @@ dtb_integrations_require_files( [
 // 3) Veeqo module-layer files.
 dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoConfig.php',
+	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryService.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryBoundary.php',
 	'dtb-integrations/Veeqo/VeeqoShippingService.php',
