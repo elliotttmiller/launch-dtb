@@ -11,7 +11,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Whether verified Veeqo webhook ingress is explicitly enabled. */
 function dtb_veeqo_verified_webhooks_enabled(): bool {
 	return defined( 'DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS' )
 		&& true === DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS
@@ -19,13 +18,25 @@ function dtb_veeqo_verified_webhooks_enabled(): bool {
 		&& '' !== trim( (string) DTB_VEEQO_WEBHOOK_SECRET );
 }
 
-// VeeqoClient.php historically attempted webhook discovery/registration on every
-// runtime after a transient expired. Production policy is fail-closed until the
-// upstream signing contract is verified. Remove only that legacy registration
-// hook; the verified webhook controller remains available behind its auth guard.
+// The legacy client attempted webhook registration automatically. Production is
+// fail-closed until the upstream signing contract is explicitly verified.
 if ( ! dtb_veeqo_verified_webhooks_enabled() ) {
 	remove_action( 'init', 'dtb_veeqo_ensure_webhooks', 30 );
 }
+
+/** Queue one deduplicated inventory reconciliation after production settings save. */
+function dtb_veeqo_queue_inventory_reconciliation_after_configuration(): void {
+	if ( ! function_exists( 'dtb_veeqo_inventory_readiness' ) || empty( dtb_veeqo_inventory_readiness()['ready'] ) || ! function_exists( 'as_enqueue_async_action' ) ) {
+		return;
+	}
+	$already = function_exists( 'as_has_scheduled_action' )
+		? as_has_scheduled_action( DTB_VEEQO_INVENTORY_RECONCILE_HOOK, [], DTB_VEEQO_INVENTORY_ACTION_GROUP )
+		: false;
+	if ( ! $already ) {
+		as_enqueue_async_action( DTB_VEEQO_INVENTORY_RECONCILE_HOOK, [], DTB_VEEQO_INVENTORY_ACTION_GROUP, true );
+	}
+}
+add_action( 'woocommerce_update_options_integration_dtb_veeqo', 'dtb_veeqo_queue_inventory_reconciliation_after_configuration', 100 );
 
 /** Return a single redacted operational readiness snapshot. */
 function dtb_veeqo_runtime_readiness(): array {
