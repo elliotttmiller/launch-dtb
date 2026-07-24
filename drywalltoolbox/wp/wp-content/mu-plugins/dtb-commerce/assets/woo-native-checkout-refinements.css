@@ -1,18 +1,21 @@
 /*
  * DTB checkout component refinements.
  *
- * Loaded after the authoritative checkout stylesheet. This file only flattens
- * redundant Woo wrapper surfaces, styles supported contact fields, and defines
- * the compact sticky mobile step controls. WooCommerce and Stripe retain runtime
- * and form ownership.
+ * Loaded after the authoritative checkout stylesheet. This layer normalizes
+ * same-origin WooCommerce wrapper chrome observed in the live theme/runtime,
+ * preserves provider-owned Stripe surfaces, styles supported contact fields,
+ * and defines compact mobile step controls. WooCommerce and Stripe retain
+ * validation, payment, iframe, tokenization, order creation, and submission.
  */
 
-/* Remove redundant card-within-card wrappers around checkout components. */
+/* --------------------------------------------------------------------------
+ * Flat top-level section contract
+ * -------------------------------------------------------------------------- */
 body.dtb-official-stripe-checkout .wc-block-components-checkout-step,
 body.dtb-official-stripe-checkout .wc-block-components-express-payment,
 body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-express-payment-block,
 body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block {
-	margin-bottom: 22px !important;
+	margin: 0 0 26px !important;
 	padding: 0 !important;
 	border: 0 !important;
 	border-radius: 0 !important;
@@ -20,25 +23,59 @@ body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block {
 	box-shadow: none !important;
 }
 
+body.dtb-official-stripe-checkout .wc-block-components-checkout-step__container,
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__content,
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
 body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
-	padding: 0 !important;
 	border: 0 !important;
 	background: transparent !important;
 	box-shadow: none !important;
 }
 
-/* Keep provider-owned wallet buttons distinct without a large outer shell. */
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li {
-	overflow: hidden;
-	border: 1px solid var(--dtb-checkout-line) !important;
-	border-radius: 13px !important;
-	background: #fff !important;
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__content,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
+	min-height: 0 !important;
+	padding: 0 !important;
+	overflow: visible !important;
+}
+
+/* --------------------------------------------------------------------------
+ * Express Checkout
+ * -------------------------------------------------------------------------- */
+/* Wallet list items are layout-only. The actual Apple Pay / Google Pay controls
+ * remain gateway/provider-owned; no selector reaches into iframe descendants. */
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
+	width: 100% !important;
+	min-width: 0 !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	overflow: visible !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	background: transparent !important;
 	box-shadow: none !important;
 }
 
-/* Flatten the order-summary shell; retain only its meaningful content dividers. */
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div > div {
+	display: block;
+	width: 100% !important;
+	max-width: 100% !important;
+	min-width: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-rule {
+	margin: 24px 0 18px !important;
+	background: transparent !important;
+}
+
+/* --------------------------------------------------------------------------
+ * Order summary
+ * -------------------------------------------------------------------------- */
+/* Flatten every known same-origin summary shell while keeping meaningful row
+ * separators and the native expand/collapse control intact. */
 body.dtb-official-stripe-checkout .wc-block-components-sidebar,
 body.dtb-official-stripe-checkout .wc-block-checkout__sidebar,
 body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block,
@@ -52,7 +89,8 @@ body.dtb-official-stripe-checkout .wc-block-components-order-summary {
 }
 
 body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
-	padding: 12px 0 !important;
+	min-height: 54px;
+	padding: 10px 0 !important;
 	border: 0 !important;
 	border-bottom: 1px solid var(--dtb-checkout-line) !important;
 	border-radius: 0 !important;
@@ -65,9 +103,11 @@ body.dtb-official-stripe-checkout .wc-block-components-totals-wrapper {
 	padding-inline: 0 !important;
 }
 
-/* The contact identity fields are canonical DTB contact inputs. Native address
- * duplicates stay mounted and synchronized for Woo validation/integrations but
- * are not rendered twice to the shopper. */
+/* --------------------------------------------------------------------------
+ * Contact identity fields
+ * -------------------------------------------------------------------------- */
+/* DTB contact identity fields are the visible supported inputs. Native address
+ * duplicates remain mounted and synchronized for Woo validation/integrations. */
 body.dtb-official-stripe-checkout .dtb-native-identity-field {
 	display: none !important;
 }
@@ -92,9 +132,32 @@ body.dtb-official-stripe-checkout .dtb-contact-identity-field:last-of-type {
 	grid-column: 1 / -1;
 }
 
+/* --------------------------------------------------------------------------
+ * Mobile rhythm and sticky step controls
+ * -------------------------------------------------------------------------- */
 @media (max-width: 767px) {
 	body.dtb-mobile-checkout-enhanced {
 		padding-bottom: calc(68px + env(safe-area-inset-bottom)) !important;
+	}
+
+	.dtb-native-woocommerce-main {
+		padding-bottom: 34px;
+	}
+
+	.dtb-mobile-checkout-progress {
+		margin-bottom: 22px;
+	}
+
+	body.dtb-official-stripe-checkout .wc-block-components-checkout-step,
+	body.dtb-official-stripe-checkout .wc-block-components-express-payment,
+	body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-express-payment-block,
+	body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block {
+		margin-bottom: 24px !important;
+		padding: 0 !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+		background: transparent !important;
+		box-shadow: none !important;
 	}
 
 	body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-contact-information-block .wc-block-components-checkout-step__container,
@@ -107,6 +170,37 @@ body.dtb-official-stripe-checkout .dtb-contact-identity-field:last-of-type {
 		grid-column: 1 / -1;
 	}
 
+	body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+		gap: 10px !important;
+	}
+
+	body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
+	body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
+		min-height: 46px;
+		border: 0 !important;
+		border-radius: 0 !important;
+		background: transparent !important;
+		box-shadow: none !important;
+	}
+
+	body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block,
+	body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary-block,
+	body.dtb-official-stripe-checkout .wc-block-components-order-summary {
+		border: 0 !important;
+		border-radius: 0 !important;
+		background: transparent !important;
+		box-shadow: none !important;
+	}
+
+	body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
+		min-height: 52px;
+		padding: 9px 0 !important;
+	}
+
+	body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-rule {
+		margin: 22px 0 16px !important;
+	}
+
 	.dtb-mobile-checkout-actions {
 		display: block;
 		position: fixed;
@@ -116,8 +210,8 @@ body.dtb-official-stripe-checkout .dtb-contact-identity-field:last-of-type {
 		left: 0;
 		padding: 7px 12px calc(7px + env(safe-area-inset-bottom));
 		border-top: 1px solid rgba(226, 232, 240, .92);
-		background: rgba(255, 255, 255, .94);
-		box-shadow: 0 -6px 18px rgba(15, 23, 42, .06);
+		background: rgba(255, 255, 255, .97);
+		box-shadow: 0 -4px 14px rgba(15, 23, 42, .05);
 		backdrop-filter: blur(12px);
 		-webkit-backdrop-filter: blur(12px);
 	}
