@@ -66,9 +66,7 @@ function dtb_native_checkout_resolve_current_user( $user_id ) {
 			wp_clear_auth_cookie();
 			wp_set_auth_cookie( $resolved, true, is_ssl() );
 		}
-		if ( function_exists( 'dtb_security_log' ) ) {
-			dtb_security_log( 'native_checkout_identity_conflict_contained', [] );
-		}
+		dtb_native_checkout_log_security_event( 'native_checkout_identity_conflict_contained' );
 		return $resolved;
 	}
 
@@ -83,6 +81,24 @@ function dtb_native_checkout_resolve_current_user( $user_id ) {
 }
 
 /**
+ * Log a redacted event without calling get_current_user_id().
+ *
+ * This bridge runs inside `determine_current_user`; invoking the normal security
+ * logger there would recurse because that logger resolves the current user.
+ */
+function dtb_native_checkout_log_security_event( string $event ): void {
+	error_log(
+		(string) wp_json_encode(
+			[
+				'source' => 'dtb-security',
+				'event'  => sanitize_key( $event ),
+			],
+			JSON_UNESCAPED_SLASHES
+		)
+	);
+}
+
+/**
  * Whether this request is a native Woo checkout/payment document request.
  *
  * REST requests continue to use AuthRoutes.php's resolver. wp-admin, AJAX, cron
@@ -94,7 +110,7 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 	}
 
 	$method = isset( $_SERVER['REQUEST_METHOD'] )
-		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) )
+		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) )
 		: 'GET';
 	if ( ! in_array( $method, [ 'GET', 'POST' ], true ) ) {
 		return false;
