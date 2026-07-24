@@ -27,8 +27,9 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 /*
  * Theme presentation is intentionally one ordered stack: base design -> wrapper
  * refinements -> responsive flow -> narrow live-context/touch layer -> canonical
- * mobile contact identity presentation -> mechanical boot/UI. No theme asset
- * creates/replaces payment controls or owns checkout submit/business persistence.
+ * mobile contact identity presentation -> mechanical boot/UI/login handoff. No
+ * theme asset creates/replaces payment controls or owns checkout submit/business
+ * persistence.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -80,6 +81,13 @@ wp_enqueue_script(
 	$theme_uri . '/assets/checkout/checkout-contact-identity.js',
 	[ 'dtb-checkout-theme-ui', 'wp-data', 'wc-blocks-data-store' ],
 	$asset_version( 'assets/checkout/checkout-contact-identity.js' ),
+	true
+);
+wp_enqueue_script(
+	'dtb-checkout-theme-login-handoff',
+	$theme_uri . '/assets/checkout/checkout-login-handoff.js',
+	[ 'dtb-checkout-theme-ui' ],
+	$asset_version( 'assets/checkout/checkout-login-handoff.js' ),
 	true
 );
 ?><!doctype html>
