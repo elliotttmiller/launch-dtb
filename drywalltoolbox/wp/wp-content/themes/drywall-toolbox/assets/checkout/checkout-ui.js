@@ -5,26 +5,31 @@
 	 * Theme-owned checkout presentation controller.
 	 *
 	 * WooCommerce Checkout Block remains authoritative for field state, validation,
-	 * shipping, totals, payment selection, and submission. This controller only
-	 * applies responsive presentation, mirrors supported contact identity fields
-	 * into WooCommerce canonical address inputs, and provides non-submit step
-	 * navigation. It never clones, reparents, replaces, or recreates Woo/Stripe
-	 * controls and it does not implement a mobile payment sheet.
+	 * shipping, totals, payment selection, and submission. This controller owns only
+	 * responsive presentation, canonical contact-field mirroring, and non-submit
+	 * Contact -> Shipping -> Payment navigation. It never clones, reparents, replaces,
+	 * or recreates Woo/Stripe controls and it never implements a payment sheet.
 	 */
 
 	const mobileViewport = window.matchMedia( '(max-width: 767px)' );
 	const checkoutRootSelector = '.wc-block-checkout';
 	const inactiveStepClass = 'is-dtb-checkout-step-inactive';
-	const storefrontLoginUrl = '/login?returnTo=%2Fcheckout';
 	const stepBodyClasses = [
 		'dtb-checkout-step-contact',
 		'dtb-checkout-step-shipping',
 		'dtb-checkout-step-payment',
 	];
+	const storefrontBasePath = ( () => {
+		const params = new URLSearchParams( window.location.search || '' );
+		const candidate = String( params.get( 'dtb_storefront_base_path' ) || '' ).replace( /\/+$/, '' );
+		return /^\/staging\/[A-Za-z0-9_-]+$/.test( candidate ) ? candidate : '';
+	} )();
+	const storefrontLoginUrl = `${ storefrontBasePath }/login?returnTo=%2Fcheckout`;
+
 	const contactIdentityFields = [
 		{
 			id: 'dtb-checkout/contact-first-name',
-			nativeSelectors: [ '#shipping-first_name', '#billing-first_name', '[name="shipping_first_name"]', '[name="billing_first_name"]' ],
+			nativeSelectors: [ '#shipping-first_name', '#billing_first_name', '[name="shipping_first_name"]', '[name="billing_first_name"]' ],
 		},
 		{
 			id: 'dtb-checkout/contact-last-name',
@@ -35,6 +40,7 @@
 			nativeSelectors: [ '#shipping-phone', '#billing-phone', '#shipping_phone', '#billing_phone', '[name="shipping_phone"]', '[name="billing_phone"]' ],
 		},
 	];
+
 	const steps = [
 		{
 			id: 'contact',
@@ -54,6 +60,7 @@
 			selectors: [
 				'.wp-block-woocommerce-checkout-shipping-address-block',
 				'.wc-block-checkout__shipping-fields',
+				'.wc-block-checkout__shipping-address',
 				'[data-block-name="woocommerce/checkout-shipping-address-block"]',
 				'.wp-block-woocommerce-checkout-billing-address-block',
 				'.wc-block-checkout__billing-fields',
@@ -203,129 +210,6 @@
 		} );
 	}
 
-	function createProgress() {
-		const nav = document.createElement( 'nav' );
-		nav.className = 'dtb-mobile-checkout-progress';
-		nav.setAttribute( 'aria-label', 'Checkout progress' );
-
-		const list = document.createElement( 'ol' );
-		list.className = 'dtb-mobile-checkout-progress__track';
-		steps.forEach( ( step, index ) => {
-			const item = document.createElement( 'li' );
-			item.className = 'dtb-mobile-checkout-progress__item';
-
-			const button = document.createElement( 'button' );
-			button.type = 'button';
-			button.className = 'dtb-mobile-checkout-progress__button';
-			button.dataset.dtbCheckoutStepTarget = String( index );
-			button.setAttribute( 'aria-label', `${ step.label } checkout step` );
-
-			const number = document.createElement( 'span' );
-			number.className = 'dtb-mobile-checkout-progress__number';
-			number.setAttribute( 'aria-hidden', 'true' );
-			number.textContent = String( index + 1 );
-
-			const label = document.createElement( 'span' );
-			label.className = 'dtb-mobile-checkout-progress__label';
-			label.textContent = step.label;
-
-			button.append( number, label );
-			item.append( button );
-			list.append( item );
-		} );
-		nav.append( list );
-		return nav;
-	}
-
-	function createActionBar() {
-		const wrapper = document.createElement( 'div' );
-		wrapper.className = 'dtb-mobile-checkout-actions';
-		wrapper.setAttribute( 'data-dtb-mobile-checkout-actions', '1' );
-
-		const inner = document.createElement( 'div' );
-		inner.className = 'dtb-mobile-checkout-actions__inner';
-
-		const back = document.createElement( 'button' );
-		back.type = 'button';
-		back.className = 'dtb-mobile-checkout-actions__back';
-		back.dataset.dtbCheckoutAction = 'back';
-		back.textContent = 'Back';
-
-		const next = document.createElement( 'button' );
-		next.type = 'button';
-		next.className = 'dtb-mobile-checkout-actions__next';
-		next.dataset.dtbCheckoutAction = 'next';
-
-		inner.append( back, next );
-		wrapper.append( inner );
-		return wrapper;
-	}
-
-	function updateControls() {
-		progress?.querySelectorAll( '[data-dtb-checkout-step-target]' ).forEach( ( button ) => {
-			const index = Number( button.dataset.dtbCheckoutStepTarget );
-			const current = index === activeStep;
-			const complete = index < activeStep;
-			const item = button.closest( '.dtb-mobile-checkout-progress__item' );
-			const number = button.querySelector( '.dtb-mobile-checkout-progress__number' );
-
-			button.disabled = index > highestVisitedStep;
-			button.classList.toggle( 'is-current', current );
-			button.classList.toggle( 'is-complete', complete );
-			item?.classList.toggle( 'is-current', current );
-			item?.classList.toggle( 'is-complete', complete );
-			if ( number ) {
-				number.textContent = complete ? '✓' : String( index + 1 );
-			}
-			if ( current ) {
-				button.setAttribute( 'aria-current', 'step' );
-			} else {
-				button.removeAttribute( 'aria-current' );
-			}
-		} );
-
-		if ( ! actionBar ) {
-			return;
-		}
-		const back = actionBar.querySelector( '.dtb-mobile-checkout-actions__back' );
-		const next = actionBar.querySelector( '.dtb-mobile-checkout-actions__next' );
-		const onPayment = activeStep === steps.length - 1;
-		actionBar.hidden = ! mobileViewport.matches;
-		actionBar.classList.toggle( 'is-payment-step', onPayment );
-		if ( back ) {
-			back.disabled = activeStep === 0;
-			back.setAttribute( 'aria-hidden', activeStep === 0 ? 'true' : 'false' );
-		}
-		if ( next ) {
-			next.disabled = false;
-			next.hidden = onPayment;
-			next.textContent = activeStep === 0 ? 'Continue to shipping' : 'Continue to payment';
-		}
-	}
-
-	function setBodyStepClass() {
-		document.body.classList.remove( ...stepBodyClasses );
-		if ( mobileViewport.matches ) {
-			document.body.classList.add( `dtb-checkout-step-${ steps[ activeStep ].id }` );
-		}
-	}
-
-	function showStep( requestedStep, shouldScroll = false ) {
-		activeStep = Math.max( 0, Math.min( requestedStep, steps.length - 1 ) );
-		highestVisitedStep = Math.max( highestVisitedStep, activeStep );
-		setBodyStepClass();
-		markStepElements();
-		markSingleGatewayPresentation();
-		updateControls();
-
-		if ( shouldScroll && progress ) {
-			progress.scrollIntoView( {
-				behavior: window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ? 'auto' : 'smooth',
-				block: 'start',
-			} );
-		}
-	}
-
 	function setInputValue( input, value ) {
 		if ( ! input || input.value === value ) {
 			return;
@@ -382,6 +266,157 @@
 			link.setAttribute( 'href', storefrontLoginUrl );
 			link.dataset.dtbStorefrontLogin = '1';
 		} );
+	}
+
+	function setBodyStepClass() {
+		document.body.classList.remove( ...stepBodyClasses );
+		if ( mobileViewport.matches ) {
+			document.body.classList.add( `dtb-checkout-step-${ steps[ activeStep ].id }` );
+		}
+	}
+
+	function updateControls() {
+		progress?.querySelectorAll( '[data-dtb-checkout-step-target]' ).forEach( ( button ) => {
+			const index = Number( button.dataset.dtbCheckoutStepTarget );
+			const current = index === activeStep;
+			const complete = index < activeStep;
+			const item = button.closest( '.dtb-mobile-checkout-progress__item' );
+			const number = button.querySelector( '.dtb-mobile-checkout-progress__number' );
+
+			button.disabled = index > highestVisitedStep;
+			button.classList.toggle( 'is-current', current );
+			button.classList.toggle( 'is-complete', complete );
+			item?.classList.toggle( 'is-current', current );
+			item?.classList.toggle( 'is-complete', complete );
+			if ( number ) {
+				number.textContent = complete ? '✓' : String( index + 1 );
+			}
+			if ( current ) {
+				button.setAttribute( 'aria-current', 'step' );
+			} else {
+				button.removeAttribute( 'aria-current' );
+			}
+		} );
+
+		if ( ! actionBar ) {
+			return;
+		}
+		const back = actionBar.querySelector( '.dtb-mobile-checkout-actions__back' );
+		const next = actionBar.querySelector( '.dtb-mobile-checkout-actions__next' );
+		const onPayment = activeStep === steps.length - 1;
+		actionBar.hidden = ! mobileViewport.matches;
+		actionBar.classList.toggle( 'is-payment-step', onPayment );
+		if ( back ) {
+			back.disabled = activeStep === 0;
+			back.setAttribute( 'aria-hidden', activeStep === 0 ? 'true' : 'false' );
+		}
+		if ( next ) {
+			next.disabled = false;
+			next.hidden = onPayment;
+			next.textContent = activeStep === 0 ? 'Continue to shipping' : 'Continue to payment';
+		}
+	}
+
+	function showStep( requestedStep, shouldScroll = false ) {
+		if ( ! mobileViewport.matches ) {
+			return;
+		}
+		activeStep = Math.max( 0, Math.min( requestedStep, steps.length - 1 ) );
+		highestVisitedStep = Math.max( highestVisitedStep, activeStep );
+		setBodyStepClass();
+		markStepElements();
+		markSingleGatewayPresentation();
+		updateControls();
+
+		if ( shouldScroll && progress ) {
+			progress.scrollIntoView( {
+				behavior: window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ? 'auto' : 'smooth',
+				block: 'start',
+			} );
+		}
+	}
+
+	function goToNextStep() {
+		if ( ! mobileViewport.matches || activeStep >= steps.length - 1 ) {
+			return;
+		}
+		syncContactIdentityFields();
+		showStep( activeStep + 1, true );
+		queueReconcile();
+	}
+
+	function createProgress() {
+		const nav = document.createElement( 'nav' );
+		nav.className = 'dtb-mobile-checkout-progress';
+		nav.setAttribute( 'aria-label', 'Checkout progress' );
+
+		const list = document.createElement( 'ol' );
+		list.className = 'dtb-mobile-checkout-progress__track';
+		steps.forEach( ( step, index ) => {
+			const item = document.createElement( 'li' );
+			item.className = 'dtb-mobile-checkout-progress__item';
+
+			const button = document.createElement( 'button' );
+			button.type = 'button';
+			button.className = 'dtb-mobile-checkout-progress__button';
+			button.dataset.dtbCheckoutStepTarget = String( index );
+			button.setAttribute( 'aria-label', `${ step.label } checkout step` );
+			button.addEventListener( 'click', ( event ) => {
+				event.preventDefault();
+				if ( index <= highestVisitedStep ) {
+					showStep( index, true );
+				}
+			} );
+
+			const number = document.createElement( 'span' );
+			number.className = 'dtb-mobile-checkout-progress__number';
+			number.setAttribute( 'aria-hidden', 'true' );
+			number.textContent = String( index + 1 );
+
+			const label = document.createElement( 'span' );
+			label.className = 'dtb-mobile-checkout-progress__label';
+			label.textContent = step.label;
+
+			button.append( number, label );
+			item.append( button );
+			list.append( item );
+		} );
+		nav.append( list );
+		return nav;
+	}
+
+	function createActionBar() {
+		const wrapper = document.createElement( 'div' );
+		wrapper.className = 'dtb-mobile-checkout-actions';
+		wrapper.setAttribute( 'data-dtb-mobile-checkout-actions', '1' );
+
+		const inner = document.createElement( 'div' );
+		inner.className = 'dtb-mobile-checkout-actions__inner';
+
+		const back = document.createElement( 'button' );
+		back.type = 'button';
+		back.className = 'dtb-mobile-checkout-actions__back';
+		back.dataset.dtbCheckoutAction = 'back';
+		back.textContent = 'Back';
+		back.addEventListener( 'click', ( event ) => {
+			event.preventDefault();
+			if ( activeStep > 0 ) {
+				showStep( activeStep - 1, true );
+			}
+		} );
+
+		const next = document.createElement( 'button' );
+		next.type = 'button';
+		next.className = 'dtb-mobile-checkout-actions__next';
+		next.dataset.dtbCheckoutAction = 'next';
+		next.addEventListener( 'click', ( event ) => {
+			event.preventDefault();
+			goToNextStep();
+		} );
+
+		inner.append( back, next );
+		wrapper.append( inner );
+		return wrapper;
 	}
 
 	function clearMobilePresentation() {
@@ -470,76 +505,27 @@
 		}
 	}
 
-	function handleDocumentClick( event ) {
-		if ( ! ( event.target instanceof Element ) ) {
-			return;
-		}
-
-		const loginLink = event.target.closest( 'a[data-dtb-storefront-login="1"]' );
-		if ( loginLink ) {
-			event.preventDefault();
-			window.location.assign( storefrontLoginUrl );
-			return;
-		}
-
-		const stepTarget = event.target.closest( '[data-dtb-checkout-step-target]' );
-		if ( stepTarget && mobileViewport.matches ) {
-			const requestedStep = Number( stepTarget.dataset.dtbCheckoutStepTarget );
-			if ( Number.isInteger( requestedStep ) && requestedStep <= highestVisitedStep ) {
-				event.preventDefault();
-				showStep( requestedStep, true );
-			}
-			return;
-		}
-
-		const action = event.target.closest( '[data-dtb-checkout-action]' );
-		if ( ! action || ! mobileViewport.matches ) {
-			return;
-		}
-
-		event.preventDefault();
-		event.stopPropagation();
-
-		if ( action.dataset.dtbCheckoutAction === 'back' ) {
-			if ( activeStep > 0 ) {
-				showStep( activeStep - 1, true );
-			}
-			return;
-		}
-
-		if ( action.dataset.dtbCheckoutAction === 'next' && activeStep < steps.length - 1 ) {
-			/* Keep canonical Woo address properties synchronized before changing only the
-			 * presentation step. This does not submit checkout or replace Woo validation. */
-			syncContactIdentityFields();
-			const nextStep = activeStep + 1;
-			highestVisitedStep = Math.max( highestVisitedStep, nextStep );
-			showStep( nextStep, true );
-		}
-	}
-
 	function initialize() {
 		mobileViewport.addEventListener( 'change', () => {
 			activeStep = Math.min( activeStep, steps.length - 1 );
 			queueReconcile();
 		} );
 		document.addEventListener( 'focusin', handleFocusIn );
-		document.addEventListener( 'click', handleDocumentClick, true );
 
 		bodyObserver = new MutationObserver( () => {
 			const root = checkoutRoot();
-			if ( root === observedRoot ) {
-				queueReconcile();
-				return;
+			if ( root !== observedRoot ) {
+				bindRootObserver( root );
 			}
-			bindRootObserver( root );
 			queueReconcile();
 		} );
 		bodyObserver.observe( document.body, { childList: true, subtree: true } );
 
 		bindRootObserver( checkoutRoot() );
 		queueReconcile();
-		window.setTimeout( queueReconcile, 400 );
-		window.setTimeout( queueReconcile, 1200 );
+		window.setTimeout( queueReconcile, 250 );
+		window.setTimeout( queueReconcile, 750 );
+		window.setTimeout( queueReconcile, 1500 );
 	}
 
 	if ( document.readyState === 'loading' ) {
