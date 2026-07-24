@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
+const NATIVE_CHECKOUT_SYNC_ERROR = 'Sign-in succeeded, but the secure checkout session was not ready. Please try again before continuing to checkout.';
 const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800];
 const PUBLIC_ENV = {
   REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL,
@@ -40,6 +41,15 @@ function baseUrl() {
 function authUrl(path) {
   const suffix = String(path || '').startsWith('/') ? path : `/${path}`;
   return `${baseUrl()}${AUTH_BASE_PATH}${suffix}`;
+}
+
+function isSameOriginAuthRuntime() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return new URL(baseUrl() || window.location.origin, window.location.origin).origin === window.location.origin;
+  } catch {
+    return false;
+  }
 }
 
 async function authJson(path, options = {}) {
@@ -80,9 +90,14 @@ async function authJson(path, options = {}) {
 
 const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-function emitAuthChanged(type) {
+function emitLocalAuthChanged() {
   if (typeof window === 'undefined') return;
   window.dispatchEvent(new Event('dtb:auth-changed'));
+}
+
+function emitAuthChanged(type) {
+  if (typeof window === 'undefined') return;
+  emitLocalAuthChanged();
   try { window.localStorage.setItem('dtb:auth-sync', JSON.stringify({ type, at: Date.now() })); }
   catch { /** storage may be unavailable */ }
 }
@@ -92,6 +107,7 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const epochRef = useRef(0);
+  const nativeCheckoutReadyRef = useRef(false);
 
   const validateSession = useCallback(async ({ retries = 0, publish = false, epoch = null } = {}) => {
     const activeEpoch = epoch ?? epochRef.current;
@@ -103,6 +119,7 @@ export function useAuth() {
 
       const data = await authJson('/validate', { method: 'POST' });
       const nextUser = data?.authenticated === false ? null : data?.user || null;
+      nativeCheckoutReadyRef.current = data?.session?.native_checkout?.ready === true;
       if (nextUser) {
         if (epochRef.current === activeEpoch) {
           setUser(nextUser);
@@ -112,6 +129,7 @@ export function useAuth() {
       }
     }
 
+    nativeCheckoutReadyRef.current = false;
     if (epochRef.current === activeEpoch) {
       setUser(null);
       if (publish) emitAuthChanged('logout');
@@ -142,6 +160,7 @@ export function useAuth() {
         }
       }
 
+      nativeCheckoutReadyRef.current = false;
       if (epochRef.current === epoch) {
         setUser(null);
         if (publish) emitAuthChanged('logout');
@@ -174,8 +193,12 @@ export function useAuth() {
       if (event.key !== 'dtb:auth-sync' || !event.newValue) return;
       try {
         const payload = JSON.parse(event.newValue);
-        if (payload?.type === 'logout') void logout({ remote: false, publish: false });
-        if (payload?.type === 'login') void validateSession({ retries: 2 });
+        if (payload?.type === 'logout') {
+          void logout({ remote: false, publish: false }).finally(emitLocalAuthChanged);
+        }
+        if (payload?.type === 'login') {
+          void validateSession({ retries: 2 }).finally(emitLocalAuthChanged);
+        }
       } catch { /** ignore */ }
     };
     window.addEventListener('storage', handler);
@@ -194,6 +217,9 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Login failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
       if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
+      if (isSameOriginAuthRuntime() && nativeCheckoutReadyRef.current !== true) {
+        throw new Error(NATIVE_CHECKOUT_SYNC_ERROR);
+      }
       return { ...data, user: confirmed };
     } catch (err) {
       if (epochRef.current === epoch) {
@@ -218,6 +244,9 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Registration failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
       if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
+      if (isSameOriginAuthRuntime() && nativeCheckoutReadyRef.current !== true) {
+        throw new Error(NATIVE_CHECKOUT_SYNC_ERROR);
+      }
       return { ...data, user: confirmed };
     } catch (err) {
       if (epochRef.current === epoch) {
