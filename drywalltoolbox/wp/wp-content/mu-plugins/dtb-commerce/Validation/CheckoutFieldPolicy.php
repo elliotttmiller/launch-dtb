@@ -17,7 +17,7 @@ final class DTB_CheckoutFieldPolicy {
 	private const FIELD_FIRST_NAME = 'dtb-checkout/contact-first-name';
 	private const FIELD_LAST_NAME  = 'dtb-checkout/contact-last-name';
 	private const FIELD_PHONE      = 'dtb-checkout/contact-phone';
-	private const ASSET_VERSION    = '2026.07.23.1';
+	private const ASSET_VERSION    = '2026.07.24.1';
 
 	public static function register(): void {
 		add_filter( 'option_woocommerce_checkout_phone_field', [ __CLASS__, 'optional_phone' ] );
