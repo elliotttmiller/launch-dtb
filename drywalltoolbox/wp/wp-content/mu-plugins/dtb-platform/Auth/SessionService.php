@@ -21,10 +21,22 @@ final class DTB_SessionService {
 	 * coupon, payment, or checkout state available to the next guest using the
 	 * browser. Preserve only the cart payload required for checkout continuity.
 	 *
+	 * Privileged native WordPress sessions are outside the storefront customer
+	 * logout boundary and are never rotated or destroyed here.
+	 *
 	 * @return bool True when the cart was preserved; false when the session was
-	 *              cleared without a cart or WooCommerce was unavailable.
+	 *              untouched/cleared without a cart or WooCommerce was unavailable.
 	 */
 	public static function rotate_woocommerce_session_to_guest(): bool {
+		$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
+		if (
+			$current_user instanceof WP_User
+			&& $current_user->exists()
+			&& ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'edit_users' ) )
+		) {
+			return false;
+		}
+
 		if ( ! function_exists( 'WC' ) || ! WC() ) {
 			self::expire_woocommerce_session_cookie();
 			return false;
@@ -86,7 +98,7 @@ final class DTB_SessionService {
 	}
 
 	/**
-	 * Discard a Woo session when two authenticated identities conflict.
+	 * Discard a Woo session when two authenticated customer identities conflict.
 	 *
 	 * This intentionally does not preserve cart/customer/session data. Carrying a
 	 * cart from one authenticated customer into another identity would be a data-
