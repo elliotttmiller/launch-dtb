@@ -36,15 +36,6 @@ final class DTB_WooNativeCheckoutRuntime {
 		remove_action( 'wp_enqueue_scripts', 'dtb_enqueue_react_app', 10 );
 		remove_action( 'wp_enqueue_scripts', 'dtb_dequeue_non_react_assets', 9999 );
 		remove_filter( 'template_include', 'dtb_force_react_template', 99 );
-
-		/* Presentation is theme-owned. Prevent the superseded MU-plugin presentation
-		 * layer from enqueueing a second CSS/JS controller over the theme checkout. */
-		if ( class_exists( 'DTB_OfficialStripeNativeCheckout' ) ) {
-			remove_action( 'wp_enqueue_scripts', [ 'DTB_OfficialStripeNativeCheckout', 'enqueue_checkout_assets' ], 20 );
-		}
-		if ( class_exists( 'DTB_CheckoutFieldPolicy' ) ) {
-			remove_action( 'wp_enqueue_scripts', [ 'DTB_CheckoutFieldPolicy', 'enqueue_checkout_refinements' ], 30 );
-		}
 	}
 
 	public static function template_include( string $template ): string {
