@@ -97,11 +97,13 @@ The Contact step may visually contain Woo's email/account controls and Express C
 
 First name, last name, phone, shipping address, and billing address remain canonical Woo customer/address properties. DTB does not maintain duplicated required contact-field registrations for those values.
 
-The historical JavaScript compatibility lookup for retired `dtb-checkout/contact-*` fields is non-authoritative and may be removed after deployment/caches prove those legacy fields no longer render. It must never be used as a wallet or order data authority.
+Theme-rendered mobile first/last/phone controls are presentation proxies only. They synchronize to the currently mounted canonical Woo address inputs and must never become a second persistence or validation authority.
 
 ## Shipping/tax state
 
 WooCommerce is the only source of truth for shipping and tax.
+
+Drywall Toolbox's tax sourcing policy is explicitly **shipping-destination based**. `DTB_CheckoutTaxReadiness` forces Woo's `woocommerce_tax_based_on` option to `shipping`, while the actual Minnesota rate remains operator-managed in WooCommerce > Settings > Tax. DTB does not hard-code a percentage or calculate tax in JavaScript/PHP outside Woo's tax engine.
 
 The theme may subscribe read-only to Woo's registered block stores for presentation:
 
@@ -117,6 +119,25 @@ checkoutStore.isCalculating()
 The DTB `Delivery & tax` context is read-only. It must not replace Woo totals or calculate its own shipping/tax values.
 
 Mobile forward navigation must not advance Shipping -> Payment while Woo reports address/rate recalculation in progress or before required shipping has been calculated.
+
+## Payment interaction contract
+
+The Payment step is provider-owned once revealed.
+
+```text
+DTB step controller
+  -> reveals the already-mounted Woo Payment block
+  -> removes DTB fixed navigation overlap
+  -> classifies redundant same-origin single-gateway shell only
+
+WooCommerce Stripe
+  -> owns Optimized Checkout / Payment Element
+  -> owns payment-method selection
+  -> owns iframe contents and focus/touch behavior
+  -> owns validation / confirmation / SCA
+```
+
+`checkout-payment-runtime.js` and `checkout-payment-interaction.css` are narrow same-origin hardening layers. They may remove `inert`/overlap/clipping from Woo wrapper nodes and normalize a redundant single-gateway selector, but they must never inspect iframe contents, synthesize provider clicks, select a payment method, clone/reparent provider nodes, or create a second payment surface.
 
 ## Express Checkout address contract
 
@@ -149,13 +170,22 @@ themes/drywall-toolbox/assets/checkout/checkout-flow.css
   -> responsive mobile step visibility/progress/actions
 
 themes/drywall-toolbox/assets/checkout/checkout-runtime-context.css
-  -> live read-only shipping/tax context and final touch/hit-area corrections
+  -> live read-only shipping/tax context and general touch/hit-area corrections
+
+themes/drywall-toolbox/assets/checkout/checkout-contact-identity.css
+  -> mobile contact presentation proxy styling
+
+themes/drywall-toolbox/assets/checkout/checkout-payment-interaction.css
+  -> final same-origin payment wrapper/hit-test hardening
 
 themes/drywall-toolbox/assets/checkout/checkout-boot.js
   -> mechanical reveal only
 
 themes/drywall-toolbox/assets/checkout/checkout-ui.js
   -> responsive presentation controller and read-only Woo block-store context
+
+themes/drywall-toolbox/assets/checkout/checkout-payment-runtime.js
+  -> narrow payment-step overlap/single-gateway/provider-mount hardening
 ```
 
 Backend runtime/diagnostics remain in `dtb-commerce`:
@@ -166,6 +196,7 @@ dtb-commerce/Payment/OfficialStripeNativeCheckout.php
 dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
 dtb-commerce/Payment/CheckoutPerformance.php
 dtb-commerce/Validation/CheckoutFieldPolicy.php
+dtb-commerce/Validation/CheckoutTaxReadiness.php
 ```
 
 ## Retired implementations
@@ -192,15 +223,17 @@ Minimum release matrix:
 1. Guest checkout and authenticated checkout both render one canonical Woo Checkout Block.
 2. Mobile Contact -> Shipping -> Payment works with direct touch interaction and no duplicate controls.
 3. Shipping/address edits update Woo shipping rates, tax, and totals before Payment is reachable.
-4. Apple Pay and Google Pay accept valid supported shipping addresses and return applicable shipping rates without DTB duplicate-field validation failures.
-5. Wallet-selected address/name values remain canonical and are not overwritten by legacy `dtb-checkout/contact-*` metadata.
-6. Standard manual checkout captures Woo canonical first/last/phone/address values correctly.
-7. Order customer/address fields match the canonical Woo checkout state.
-8. Order Summary live context matches Woo native totals; it never calculates independent values.
-9. Apple Pay/Google Pay/Link eligibility remains provider-owned.
-10. Card success, decline, 3DS challenge/cancel/failure remain official Stripe/Woo flows.
-11. Mobile -> desktop -> mobile does not duplicate controls or lose state.
-12. Exactly one Stripe runtime/payment surface exists.
-13. SiteGround does not combine/rehost Stripe.js or reorder critical checkout dependencies.
-14. Successful checkout follows Woo order-received and DTB downstream lifecycle exactly once.
-15. Run `scripts/smoke-dtb-checkout-ui.ps1`, `scripts/smoke-dtb-express-checkout-address.ps1`, and `scripts/smoke-dtb-mu-modules.ps1` before deployment.
+4. Minnesota tax configured in Woo admin is sourced from the canonical shipping destination and appears in Woo `total_tax`; non-Minnesota behavior follows the configured Woo rates.
+5. Apple Pay and Google Pay accept valid supported shipping addresses and return applicable shipping rates without DTB duplicate-field validation failures.
+6. Wallet-selected address/name values remain canonical and are not overwritten by legacy `dtb-checkout/contact-*` metadata.
+7. Standard manual checkout captures Woo canonical first/last/phone/address values correctly.
+8. Order customer/address fields match the canonical Woo checkout state.
+9. Order Summary live context matches Woo native totals; it never calculates independent values.
+10. Payment-method options remain selectable/tappable on a real mobile device and the DTB fixed action shell is absent on Payment.
+11. Apple Pay/Google Pay/Link eligibility remains provider-owned.
+12. Card success, decline, 3DS challenge/cancel/failure remain official Stripe/Woo flows.
+13. Mobile -> desktop -> mobile does not duplicate controls or lose state.
+14. Exactly one Stripe runtime/payment surface exists.
+15. SiteGround does not combine/rehost Stripe.js or reorder critical checkout dependencies.
+16. Successful checkout follows Woo order-received and DTB downstream lifecycle exactly once.
+17. Run `scripts/smoke-dtb-checkout-payment-ui.ps1`, `scripts/smoke-dtb-checkout-ui.ps1`, `scripts/smoke-dtb-express-checkout-address.ps1`, and `scripts/smoke-dtb-mu-modules.ps1` before deployment.
