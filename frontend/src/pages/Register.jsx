@@ -5,8 +5,6 @@ import { AlertCircle, Eye, EyeOff, LockKeyhole, Mail, Ticket, UserRound } from '
 
 import { useAuthContext } from '../auth/AuthContext.js';
 import { dtbDuration, dtbEase } from '../motion/dtbMotion.js';
-import { navigateDocument } from '../utils/documentNavigation.js';
-import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import '../styles/auth-form-templates.css';
 
 const STRENGTH_META = [
@@ -58,15 +56,6 @@ function safeReturnTarget(location) {
   if (!candidate.startsWith('/') || candidate.startsWith('//')) return '/dashboard';
   if (candidate.startsWith('/login') || candidate.startsWith('/register')) return '/dashboard';
   return candidate;
-}
-
-function isCheckoutReturnTarget(target) {
-  try {
-    const parsed = new URL(target, window.location.origin);
-    return parsed.origin === window.location.origin && /^\/checkout\/?$/.test(parsed.pathname);
-  } catch {
-    return false;
-  }
 }
 
 function SubmitLoader() {
@@ -173,12 +162,6 @@ export default function Register() {
         password,
         referralCode: referralCode.trim() || undefined,
       });
-
-      if (isCheckoutReturnTarget(returnTarget)) {
-        navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
-        return;
-      }
-
       navigate(returnTarget, { replace: true });
     } catch (error) {
       setSubmitError(error?.message || 'Registration failed. Please try again.');
@@ -244,33 +227,35 @@ export default function Register() {
         </AnimatePresence>
 
         <form className="dtb-auth-template__form" onSubmit={handleSubmit}>
-          <div className="dtb-auth-template__row">
+          <div className="dtb-auth-template__name-grid">
             <FloatingField
               id="signup-first-name"
               label="First name"
-              icon={<UserRound size={18} />}
+              icon={<UserRound size={16} />}
               type="text"
               value={firstName}
               onChange={(event) => setFirstName(event.target.value)}
               autoComplete="given-name"
               disabled={busy}
+              required
             />
             <FloatingField
               id="signup-last-name"
               label="Last name"
-              icon={<UserRound size={18} />}
+              icon={<UserRound size={16} />}
               type="text"
               value={lastName}
               onChange={(event) => setLastName(event.target.value)}
               autoComplete="family-name"
               disabled={busy}
+              required
             />
           </div>
 
           <FloatingField
             id="signup-email"
-            label="Email address"
-            icon={<Mail size={18} />}
+            label="Email"
+            icon={<Mail size={16} />}
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
@@ -280,46 +265,62 @@ export default function Register() {
             required
           />
 
-          <FloatingField
-            id="signup-password"
-            label="Password"
-            icon={<LockKeyhole size={18} />}
-            action={passwordAction}
-            type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password"
-            disabled={busy}
-            required
-          />
+          <div>
+            <FloatingField
+              id="signup-password"
+              label="Password"
+              icon={<LockKeyhole size={16} />}
+              action={passwordAction}
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              disabled={busy}
+              required
+            />
+            <AnimatePresence>{password ? <PasswordStrength password={password} /> : null}</AnimatePresence>
+          </div>
 
-          <AnimatePresence initial={false}>
-            <PasswordStrength password={password} />
-          </AnimatePresence>
+          <div>
+            <FloatingField
+              id="signup-confirm-password"
+              label="Confirm password"
+              icon={<LockKeyhole size={16} />}
+              action={confirmationAction}
+              type={showConfirmation ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              autoComplete="new-password"
+              aria-invalid={confirmationMismatch}
+              aria-describedby={confirmationMismatch ? 'signup-confirm-message' : undefined}
+              disabled={busy}
+              required
+            />
+            <AnimatePresence initial={false}>
+              {confirmationMismatch ? (
+                <Motion.p
+                  id="signup-confirm-message"
+                  className="dtb-auth-template__field-message"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  Passwords don&apos;t match
+                </Motion.p>
+              ) : null}
+            </AnimatePresence>
+          </div>
 
           <FloatingField
-            id="signup-confirm-password"
-            label="Confirm password"
-            icon={<LockKeyhole size={18} />}
-            action={confirmationAction}
-            className={confirmationMismatch ? 'is-invalid' : ''}
-            type={showConfirmation ? 'text' : 'password'}
-            value={confirmPassword}
-            onChange={(event) => setConfirmPassword(event.target.value)}
-            autoComplete="new-password"
-            disabled={busy}
-            required
-            aria-invalid={confirmationMismatch ? 'true' : undefined}
-          />
-
-          <FloatingField
-            id="signup-referral-code"
+            id="signup-referral"
             label="Referral code (optional)"
-            icon={<Ticket size={18} />}
+            icon={<Ticket size={16} />}
             type="text"
             value={referralCode}
             onChange={(event) => setReferralCode(event.target.value)}
             autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
             disabled={busy}
           />
 
@@ -327,6 +328,10 @@ export default function Register() {
             {busy ? <SubmitLoader /> : 'Create Account'}
           </button>
         </form>
+
+        <p className="dtb-auth-template__legal">
+          By creating an account you agree to our terms of service and privacy policy.
+        </p>
 
         <footer className="dtb-auth-template__footer">
           <p>
