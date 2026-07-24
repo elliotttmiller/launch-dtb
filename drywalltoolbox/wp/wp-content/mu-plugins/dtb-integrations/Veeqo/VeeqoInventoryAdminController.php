@@ -26,6 +26,17 @@ add_action(
 		// batched reconciliation worker instead.
 		register_rest_route( 'dtb/v1', '/veeqo/map-skus', $definition, true );
 		register_rest_route( 'dtb/v1', '/veeqo/inventory/pull', $definition, true );
+
+		register_rest_route(
+			'dtb/v1',
+			'/veeqo/admin/inventory/diagnostics',
+			[
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => 'dtb_veeqo_inventory_admin_diagnostics',
+				'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
+			],
+			true
+		);
 	},
 	40
 );
@@ -82,5 +93,19 @@ function dtb_veeqo_inventory_admin_enqueue_reconciliation( WP_REST_Request $requ
 			'route'     => $route,
 		],
 		202
+	);
+}
+
+function dtb_veeqo_inventory_admin_diagnostics(): WP_REST_Response {
+	$last_sync_at = class_exists( 'DTB_VeeqoSyncJob' ) ? DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
+	return new WP_REST_Response(
+		[
+			'readiness'    => function_exists( 'dtb_veeqo_inventory_readiness' ) ? dtb_veeqo_inventory_readiness() : [ 'ready' => false ],
+			'last_run'     => defined( 'DTB_VEEQO_INVENTORY_DIAGNOSTICS' ) ? (array) get_option( DTB_VEEQO_INVENTORY_DIAGNOSTICS, [] ) : [],
+			'last_sync_at' => $last_sync_at,
+			'stale'        => $last_sync_at <= 0 || ( time() - $last_sync_at ) > 2 * HOUR_IN_SECONDS,
+			'coverage'     => function_exists( 'dtb_veeqo_inventory_coverage_audit' ) ? dtb_veeqo_inventory_coverage_audit() : [],
+		],
+		200
 	);
 }
