@@ -1,0 +1,80 @@
+/*
+ * Mobile canonical contact identity presentation.
+ *
+ * These controls are theme-owned proxies for WooCommerce canonical customer/address
+ * properties. They never register or persist a second checkout-field model.
+ */
+
+@media (max-width: 767px) {
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-grid {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 12px;
+    width: 100%;
+    margin: 14px 0 0;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field {
+    position: relative;
+    min-width: 0;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field:last-child {
+    grid-column: 1 / -1;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field label {
+    position: absolute;
+    z-index: 1;
+    top: 11px;
+    left: 16px;
+    margin: 0;
+    color: var(--dtb-checkout-muted);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    pointer-events: none;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field input {
+    width: 100%;
+    min-height: 64px;
+    box-sizing: border-box;
+    padding: 28px 16px 10px;
+    border: 1px solid #475569;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--dtb-checkout-ink);
+    font: inherit;
+    font-size: 17px;
+    line-height: 1.35;
+    box-shadow: none;
+    outline: none;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field input:focus {
+    border-color: #2f5bea;
+    box-shadow: 0 0 0 3px rgba(47, 91, 234, 0.12);
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field input:invalid:not(:focus):not(:placeholder-shown) {
+    border-color: #b42318;
+  }
+
+  body.dtb-official-stripe-checkout.dtb-checkout-step-contact .dtb-mobile-checkout-actions__next:disabled {
+    opacity: 1 !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+}
+
+@media (max-width: 430px) {
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-proxy-field:last-child {
+    grid-column: auto;
+  }
+}
