@@ -25,9 +25,9 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 };
 
 /*
- * Theme presentation is intentionally one ordered stack: base design -> final
- * same-origin wrapper refinements -> responsive flow -> mechanical boot/UI.
- * No theme asset creates/replaces payment controls or owns checkout submission.
+ * Theme presentation is intentionally one ordered stack: base design -> wrapper
+ * refinements -> responsive flow -> narrow live-context/touch layer -> mechanical
+ * boot/UI. No theme asset creates/replaces payment controls or owns checkout submit.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -47,6 +47,12 @@ wp_enqueue_style(
 	[ 'dtb-checkout-theme-refinements' ],
 	$asset_version( 'assets/checkout/checkout-flow.css' )
 );
+wp_enqueue_style(
+	'dtb-checkout-theme-runtime-context',
+	$theme_uri . '/assets/checkout/checkout-runtime-context.css',
+	[ 'dtb-checkout-theme-flow' ],
+	$asset_version( 'assets/checkout/checkout-runtime-context.css' )
+);
 
 wp_enqueue_script(
 	'dtb-checkout-theme-boot',
@@ -58,7 +64,7 @@ wp_enqueue_script(
 wp_enqueue_script(
 	'dtb-checkout-theme-ui',
 	$theme_uri . '/assets/checkout/checkout-ui.js',
-	[ 'dtb-checkout-theme-boot' ],
+	[ 'dtb-checkout-theme-boot', 'wp-data', 'wc-blocks-data-store' ],
 	$asset_version( 'assets/checkout/checkout-ui.js' ),
 	true
 );
