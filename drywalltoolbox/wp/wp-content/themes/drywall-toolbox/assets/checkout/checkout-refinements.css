@@ -1,0 +1,203 @@
+/*
+ * Drywall Toolbox checkout refinements.
+ *
+ * Loaded after checkout.css. This file owns only same-origin WooCommerce wrapper
+ * normalization and DTB contact-field presentation. WooCommerce and the official
+ * Stripe gateway retain checkout/payment/runtime ownership. Never target provider
+ * iframe internals or recreate payment controls here.
+ */
+
+/* Top-level Woo sections are layout regions, not nested cards. */
+body.dtb-official-stripe-checkout .wc-block-components-checkout-step,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-express-payment-block,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method {
+  margin: 0 0 24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-checkout-step__container,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__content,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Express Checkout: provider buttons are the visual surfaces; Woo list wrappers
+ * are layout-only. */
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__content {
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border-radius: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+  padding: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons iframe {
+  display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-rule {
+  margin: 24px 0 18px !important;
+  background: transparent !important;
+}
+
+/* Order Summary: keep one canonical content hierarchy without an empty outer
+ * shell/card. Row dividers and actual controls remain intact. */
+body.dtb-official-stripe-checkout .wc-block-components-sidebar,
+body.dtb-official-stripe-checkout .wc-block-checkout__sidebar,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block,
+body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary-block,
+body.dtb-official-stripe-checkout .wc-block-components-order-summary {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
+  min-height: 54px;
+  padding: 10px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--dtb-checkout-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item,
+body.dtb-official-stripe-checkout .wc-block-components-totals-wrapper {
+  padding-inline: 0 !important;
+}
+
+/* Canonical contact identity fields are shown once. Native address duplicates stay
+ * mounted and synchronized for Woo validation, tax/shipping, fraud checks, and
+ * integrations but are not rendered twice. */
+body.dtb-official-stripe-checkout .dtb-native-identity-field {
+  display: none !important;
+}
+
+body.dtb-official-stripe-checkout .dtb-contact-identity-field {
+  min-width: 0;
+}
+
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-contact-information-block .wc-block-components-checkout-step__container,
+body.dtb-official-stripe-checkout .wc-block-checkout__contact-fields .wc-block-components-checkout-step__container {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 12px;
+}
+
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-contact-information-block .wc-block-components-checkout-step__container > :not(.dtb-contact-identity-field),
+body.dtb-official-stripe-checkout .wc-block-checkout__contact-fields .wc-block-components-checkout-step__container > :not(.dtb-contact-identity-field) {
+  grid-column: 1 / -1;
+}
+
+body.dtb-official-stripe-checkout .dtb-contact-identity-field:last-of-type {
+  grid-column: 1 / -1;
+}
+
+/* A single gateway does not need a redundant radio-list shell. The actual official
+ * Stripe Payment Element remains mounted and provider-owned. */
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control.is-dtb-single-gateway {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .is-dtb-order-summary-duplicate {
+  display: none !important;
+}
+
+@media (max-width: 767px) {
+  .dtb-native-woocommerce-main {
+    padding-bottom: 34px;
+  }
+
+  .dtb-mobile-checkout-progress {
+    margin-bottom: 24px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-checkout-step,
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment,
+  body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-express-payment-block,
+  body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+  body.dtb-official-stripe-checkout .wc-block-checkout__payment-method {
+    margin-bottom: 24px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-contact-information-block .wc-block-components-checkout-step__container,
+  body.dtb-official-stripe-checkout .wc-block-checkout__contact-fields .wc-block-components-checkout-step__container {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  body.dtb-official-stripe-checkout .dtb-contact-identity-field {
+    grid-column: 1 / -1;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+    gap: 12px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
+    min-height: 46px;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary__button {
+    min-height: 52px;
+    padding: 9px 0 !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-rule {
+    margin: 22px 0 16px !important;
+  }
+
+  .dtb-mobile-checkout-actions {
+    background: rgba(255, 255, 255, .97) !important;
+    box-shadow: 0 -4px 14px rgba(15, 23, 42, .05) !important;
+  }
+}
