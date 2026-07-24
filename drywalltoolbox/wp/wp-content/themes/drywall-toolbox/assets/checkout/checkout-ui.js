@@ -217,13 +217,8 @@
 			const button = document.createElement( 'button' );
 			button.type = 'button';
 			button.className = 'dtb-mobile-checkout-progress__button';
-			button.dataset.step = String( index );
+			button.dataset.dtbCheckoutStepTarget = String( index );
 			button.setAttribute( 'aria-label', `${ step.label } checkout step` );
-			button.addEventListener( 'click', () => {
-				if ( index <= highestVisitedStep ) {
-					showStep( index, true );
-				}
-			} );
 
 			const number = document.createElement( 'span' );
 			number.className = 'dtb-mobile-checkout-progress__number';
@@ -253,27 +248,13 @@
 		const back = document.createElement( 'button' );
 		back.type = 'button';
 		back.className = 'dtb-mobile-checkout-actions__back';
+		back.dataset.dtbCheckoutAction = 'back';
 		back.textContent = 'Back';
-		back.addEventListener( 'click', () => {
-			if ( activeStep > 0 ) {
-				showStep( activeStep - 1, true );
-			}
-		} );
 
 		const next = document.createElement( 'button' );
 		next.type = 'button';
 		next.className = 'dtb-mobile-checkout-actions__next';
-		next.addEventListener( 'click', () => {
-			if ( activeStep >= steps.length - 1 ) {
-				return;
-			}
-
-			/* Presentation-only navigation. WooCommerce remains the sole validation
-			 * authority and surfaces authoritative errors on native submission. */
-			const nextStep = activeStep + 1;
-			highestVisitedStep = Math.max( highestVisitedStep, nextStep );
-			showStep( nextStep, true );
-		} );
+		next.dataset.dtbCheckoutAction = 'next';
 
 		inner.append( back, next );
 		wrapper.append( inner );
@@ -281,8 +262,8 @@
 	}
 
 	function updateControls() {
-		progress?.querySelectorAll( '[data-step]' ).forEach( ( button ) => {
-			const index = Number( button.dataset.step );
+		progress?.querySelectorAll( '[data-dtb-checkout-step-target]' ).forEach( ( button ) => {
+			const index = Number( button.dataset.dtbCheckoutStepTarget );
 			const current = index === activeStep;
 			const complete = index < activeStep;
 			const item = button.closest( '.dtb-mobile-checkout-progress__item' );
@@ -316,6 +297,7 @@
 			back.setAttribute( 'aria-hidden', activeStep === 0 ? 'true' : 'false' );
 		}
 		if ( next ) {
+			next.disabled = false;
 			next.hidden = onPayment;
 			next.textContent = activeStep === 0 ? 'Continue to shipping' : 'Continue to payment';
 		}
@@ -488,16 +470,51 @@
 		}
 	}
 
-	function handleStorefrontLoginClick( event ) {
+	function handleDocumentClick( event ) {
 		if ( ! ( event.target instanceof Element ) ) {
 			return;
 		}
-		const link = event.target.closest( 'a[data-dtb-storefront-login="1"]' );
-		if ( ! link ) {
+
+		const loginLink = event.target.closest( 'a[data-dtb-storefront-login="1"]' );
+		if ( loginLink ) {
+			event.preventDefault();
+			window.location.assign( storefrontLoginUrl );
 			return;
 		}
+
+		const stepTarget = event.target.closest( '[data-dtb-checkout-step-target]' );
+		if ( stepTarget && mobileViewport.matches ) {
+			const requestedStep = Number( stepTarget.dataset.dtbCheckoutStepTarget );
+			if ( Number.isInteger( requestedStep ) && requestedStep <= highestVisitedStep ) {
+				event.preventDefault();
+				showStep( requestedStep, true );
+			}
+			return;
+		}
+
+		const action = event.target.closest( '[data-dtb-checkout-action]' );
+		if ( ! action || ! mobileViewport.matches ) {
+			return;
+		}
+
 		event.preventDefault();
-		window.location.assign( storefrontLoginUrl );
+		event.stopPropagation();
+
+		if ( action.dataset.dtbCheckoutAction === 'back' ) {
+			if ( activeStep > 0 ) {
+				showStep( activeStep - 1, true );
+			}
+			return;
+		}
+
+		if ( action.dataset.dtbCheckoutAction === 'next' && activeStep < steps.length - 1 ) {
+			/* Keep canonical Woo address properties synchronized before changing only the
+			 * presentation step. This does not submit checkout or replace Woo validation. */
+			syncContactIdentityFields();
+			const nextStep = activeStep + 1;
+			highestVisitedStep = Math.max( highestVisitedStep, nextStep );
+			showStep( nextStep, true );
+		}
 	}
 
 	function initialize() {
@@ -506,7 +523,7 @@
 			queueReconcile();
 		} );
 		document.addEventListener( 'focusin', handleFocusIn );
-		document.addEventListener( 'click', handleStorefrontLoginClick );
+		document.addEventListener( 'click', handleDocumentClick, true );
 
 		bodyObserver = new MutationObserver( () => {
 			const root = checkoutRoot();
