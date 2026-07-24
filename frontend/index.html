@@ -51,10 +51,12 @@
       #dtb-checkout-route-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center}
       html.dtb-checkout-route-booting #dtb-checkout-route-loader{display:flex}
       .dtb-checkout-route-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
-      .dtb-checkout-route-loader__spinner{display:grid;width:46px;height:46px;border:1px solid #dbe3ee;border-radius:999px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.1);place-items:center}
-      .dtb-checkout-route-loader__spinner:before{width:20px;height:20px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:999px;content:"";animation:dtb-route-spin .9s cubic-bezier(.45,0,.55,1) infinite}
+      .dtb-secure-checkout-spinner{display:block;width:3.25em;height:3.25em;transform-origin:center;animation:dtb-secure-checkout-rotate 2s linear infinite}
+      .dtb-secure-checkout-spinner__circle{fill:none;stroke:hsl(214,97%,59%);stroke-width:2;stroke-dasharray:1,200;stroke-dashoffset:0;stroke-linecap:round;animation:dtb-secure-checkout-dash 1.5s ease-in-out infinite}
       .dtb-checkout-route-loader__content p{margin:0;color:#475569;font:650 14px/1.5 system-ui,sans-serif}
-      @keyframes dtb-route-spin{to{transform:rotate(360deg)}}
+      @keyframes dtb-secure-checkout-rotate{100%{transform:rotate(360deg)}}
+      @keyframes dtb-secure-checkout-dash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px}100%{stroke-dashoffset:-125px}}
+      @media (prefers-reduced-motion:reduce){.dtb-secure-checkout-spinner,.dtb-secure-checkout-spinner__circle{animation:none}.dtb-secure-checkout-spinner__circle{stroke-dasharray:90,200;stroke-dashoffset:-35px}}
     </style>
     <script>
       if (/\/checkout\/?$/.test(window.location.pathname)) {
@@ -105,7 +107,9 @@
   <body>
     <div id="dtb-checkout-route-loader" aria-live="polite" role="status">
       <div class="dtb-checkout-route-loader__content">
-        <span class="dtb-checkout-route-loader__spinner" aria-hidden="true"></span>
+        <svg class="dtb-secure-checkout-spinner" viewBox="25 25 50 50" aria-hidden="true" focusable="false">
+          <circle class="dtb-secure-checkout-spinner__circle" r="20" cy="50" cx="50"></circle>
+        </svg>
         <p>Preparing your secure checkout…</p>
       </div>
     </div>
