@@ -93,13 +93,13 @@ React owns cart page/drawer and checkout CTA/handoff only. `frontend/src/pages/W
 
 `dtb-commerce/Payment/WooNativeCheckoutRuntime.php` preserves native WooCommerce/plugin runtime behavior under the otherwise headless React storefront.
 
-It removes the normal React SPA asset/template ownership on native checkout, then resolves the active theme template:
+It removes normal React SPA asset/template ownership on native checkout, then resolves:
 
 ```text
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 ```
 
-If that template is unavailable, it fails open to Woo/WordPress's resolved template rather than rendering a second MU-plugin checkout document.
+If unavailable, it fails open to Woo/WordPress's resolved template rather than rendering a second MU-plugin checkout document.
 
 It also preserves private/no-store response behavior and durable Store API checkout metadata persistence.
 
@@ -115,18 +115,15 @@ drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ref
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-flow.css
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.css
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-profile.js
 ```
 
 Responsibilities:
 
 - `checkout.css` — existing DTB checkout visual design, desktop layout, fields, selectors, summary, payment/Express outer presentation;
 - `checkout-refinements.css` — final same-origin Woo wrapper normalization, Express/order-summary de-boxing, contact identity presentation, single-gateway shell normalization;
-- `checkout-flow.css` — mobile progress, responsive step visibility, provider-safe offscreen mounting, sticky Back/Continue controls;
+- `checkout-flow.css` — final mobile cascade, progress, responsive step visibility, provider-safe offscreen mounting, sticky Back/Continue controls;
 - `checkout-boot.js` — mechanical reveal only;
-- `checkout-ui.js` — presentation-only Contact/Shipping/Payment state, visited-step navigation, non-submit Continue actions, contact-to-canonical-Woo field mirroring, duplicate summary containment, single-gateway marker;
-- `checkout-profile.*` — signed-in presentation refinements.
+- `checkout-ui.js` — presentation-only Contact/Shipping/Payment state, visited-step navigation, non-submit Continue actions, contact-to-canonical-Woo field mirroring, duplicate summary containment, single-gateway marker.
 
 Desktop remains a continuous checkout. Mobile presents:
 
@@ -155,7 +152,11 @@ dtb-commerce/Templates/WooNativeCheckoutPage.php
 
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.js
 themes/drywall-toolbox/assets/checkout/checkout-payment-sheet.css
+themes/drywall-toolbox/assets/checkout/checkout-profile.js
+themes/drywall-toolbox/assets/checkout/checkout-profile.css
 ```
+
+The retired theme profile layer is not merely unused: it previously reintroduced generic Express Checkout card shells after final refinements and ran a second mobile signed-in field/visibility controller. It must remain removed so one presentation controller and one final cascade own checkout UI state.
 
 ### Official Stripe integration
 
@@ -210,7 +211,7 @@ dtb-commerce/assets/woo-native-checkout-performance.js
 
 `CheckoutRuntimeIntegrity.php` protects the checkout script graph from SiteGround async/combine/minify transformations, excludes checkout from public page cache, and keeps Stripe.js executing from `js.stripe.com`.
 
-It recognizes active theme checkout script handles plus the DTB telemetry script; retired MU presentation handles are not part of the runtime contract.
+It recognizes the active theme boot/UI handles plus the DTB telemetry script; retired MU/profile presentation handles are not part of the runtime contract.
 
 Provider-surface timeout monitoring runs continuously on desktop and when the inline mobile Payment step is active.
 
@@ -340,6 +341,7 @@ Runtime staging acceptance must prove:
 - existing desktop checkout UI;
 - mobile Contact -> Shipping -> Payment with inline payment and no payment sheet;
 - eligible Express Checkout;
+- no retired profile/payment-sheet/MU presentation assets rendered;
 - contact identity persistence to canonical Woo order/address properties;
 - shipping/totals parity;
 - card success/decline and 3DS/SCA success/cancel/failure;
