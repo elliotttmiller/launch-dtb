@@ -78,6 +78,11 @@ Assert-True ($overlay.Contains('onSuggestionSelect')) 'Mobile suggestions feed t
 Assert-True (-not $header.Contains('NivoSearchRuntimeBridge')) 'Global header no longer mounts a parallel Nivo runtime bridge.'
 Assert-True (-not $header.Contains('NivoSearchPresentation')) 'Global header does not mount a competing Nivo search bar or overlay.'
 Assert-True ($resultCss.Contains('.dtb-nivo-runtime__suggestions')) 'DTB result styling includes the Suggestions presentation.'
+Assert-True ($resultCss.Contains('background: #ffffff;')) 'Desktop predictive product rows use the same white-card visual language as mobile search results.'
+Assert-True ($resultCss.Contains('border-radius: 13px;')) 'Desktop predictive product rows preserve the responsive search-card radius.'
+Assert-True ($resultCss.Contains('color: #0f172a;')) 'Desktop predictive product typography has explicit readable commerce contrast.'
+Assert-True ($resultCss.Contains(':has(.dtb-nivo-runtime__suggestions)')) 'Desktop layout responds explicitly to the presence of Suggestions.'
+Assert-True ($resultCss.Contains(':not(:has(.dtb-nivo-runtime__suggestions))')) 'Desktop products expand to full panel width when Suggestions are absent.'
 Assert-True ($vendorCss.Contains('.nivo-mobile-overlay')) 'Vendor Nivo mobile presentation remains explicitly suppressed.'
 Assert-True (-not $storefrontHeader.Contains('createPortal')) 'Search results render directly from StorefrontHeader state without portal bridge ownership.'
 
