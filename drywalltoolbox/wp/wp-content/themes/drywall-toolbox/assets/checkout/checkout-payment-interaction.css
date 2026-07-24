@@ -1,0 +1,116 @@
+/*
+ * Mobile payment interaction hardening.
+ *
+ * Loaded last in the checkout presentation cascade. WooCommerce and the official
+ * Stripe extension remain authoritative for payment-method state, iframe contents,
+ * validation and submission. This file only removes same-origin hit-test/clipping
+ * hazards around the mounted provider surface.
+ */
+
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method,
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+body.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content,
+body.dtb-official-stripe-checkout .wc-stripe-upe-element,
+body.dtb-official-stripe-checkout .wcstripe-payment-element,
+body.dtb-official-stripe-checkout .StripeElement {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  max-height: none !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content,
+body.dtb-official-stripe-checkout .wc-stripe-upe-element,
+body.dtb-official-stripe-checkout .wcstripe-payment-element,
+body.dtb-official-stripe-checkout .StripeElement,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method iframe {
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
+  touch-action: auto !important;
+}
+
+/* A single Woo gateway does not need an interactive gateway-selector row above
+ * Stripe's own Optimized Checkout/payment-method chooser. Keep the actual Stripe
+ * content mounted and interactive; only neutralize the redundant Woo selector. */
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway,
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway > .wc-block-components-radio-control__option,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway > .wc-block-components-radio-control-accordion-option > .wc-block-components-radio-control__option {
+  min-height: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway .wc-block-components-radio-control__input,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway .wc-block-components-payment-method-label {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway .wc-block-components-payment-method-content,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control.is-dtb-single-gateway .wc-block-components-radio-control-accordion-content,
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set .wc-block-components-payment-method-content {
+  position: relative !important;
+  z-index: 20 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  pointer-events: auto !important;
+}
+
+@media (max-width: 767px) {
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .dtb-mobile-checkout-actions {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-payment-block,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-checkout__payment-method,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-payment-method-content,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    isolation: isolate;
+    pointer-events: auto !important;
+  }
+
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-block-checkout__payment-method iframe,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wc-stripe-upe-element iframe,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .wcstripe-payment-element iframe,
+  body.dtb-checkout-step-payment.dtb-official-stripe-checkout .StripeElement iframe {
+    position: relative !important;
+    z-index: 30 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    pointer-events: auto !important;
+    touch-action: auto !important;
+  }
+}
