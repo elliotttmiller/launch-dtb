@@ -153,11 +153,12 @@ define( 'DTB_ADMIN_EMAIL', 'info@drywalltoolbox.com' );
  * validates them against the Veeqo API and auto-selects only when exactly one
  * unambiguous candidate exists. Multiple candidates require explicit selection.
  *
- * Keep DTB_VEEQO_WEBHOOK_SECRET empty unless the exact upstream Veeqo webhook
- * authentication/signature contract has been verified for the live account.
+ * Webhook ingress is fail-closed. Keep both webhook constants disabled/empty
+ * unless Veeqo's exact live signing contract has been independently verified.
  */
 define( 'DTB_VEEQO_API_KEY', '' );
 define( 'DTB_VEEQO_WEBHOOK_SECRET', '' );
+define( 'DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS', false );
 define( 'DTB_VEEQO_WAREHOUSE_ID', 0 );
 define( 'DTB_VEEQO_CHANNEL_ID', 0 );
 define( 'DTB_VEEQO_DELIVERY_METHOD_ID', 0 );
