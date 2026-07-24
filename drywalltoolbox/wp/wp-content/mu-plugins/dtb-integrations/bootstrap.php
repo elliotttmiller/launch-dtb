@@ -52,6 +52,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryService.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryProjectionService.php',
+	'dtb-integrations/Veeqo/VeeqoInventoryAdminController.php',
 	'dtb-integrations/Veeqo/VeeqoRuntimePolicy.php',
 	'dtb-integrations/Veeqo/VeeqoOrderProjectionContract.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryBoundary.php',
