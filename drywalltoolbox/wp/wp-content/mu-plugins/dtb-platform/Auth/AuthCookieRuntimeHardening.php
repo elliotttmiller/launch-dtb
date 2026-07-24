@@ -85,7 +85,20 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 	}
 
 	$data = $response->get_data();
-	if ( ! is_array( $data ) || empty( $data['user']['id'] ) ) {
+	if ( ! is_array( $data ) ) {
+		$state['status'] = 'invalid_response';
+		return $state;
+	}
+
+	/* A failed/expired DTB validation must not leave a non-privileged native cookie
+	 * as a longer-lived second storefront authentication authority. */
+	if ( '/dtb/v1/auth/validate' === $route && ( isset( $data['authenticated'] ) && false === $data['authenticated'] ) ) {
+		dtb_auth_clear_native_customer_cookie();
+		$state['status'] = 'native_customer_cookie_cleared';
+		return $state;
+	}
+
+	if ( empty( $data['user']['id'] ) ) {
 		$state['status'] = 'no_authenticated_user';
 		return $state;
 	}
@@ -102,9 +115,8 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 		return $state;
 	}
 
-	/* Never mint or replace an administrator/operator browser session from the
-	 * storefront JWT compatibility path. */
-	if ( user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' ) ) {
+	/* Never mint an administrator/operator browser session from storefront auth. */
+	if ( dtb_auth_user_is_privileged( $user ) ) {
 		$state['status'] = 'skipped_privileged_user';
 		return $state;
 	}
@@ -115,6 +127,19 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 		$state['native_checkout_ready']       = true;
 		$state['native_cookie_already_valid'] = true;
 		return $state;
+	}
+
+	/* A pre-existing privileged native session is never cleared or replaced by the
+	 * storefront compatibility bridge. Report checkout-not-ready and fail closed. */
+	if ( $native_user_id > 0 ) {
+		$native_user = get_user_by( 'id', $native_user_id );
+		if ( $native_user instanceof WP_User && dtb_auth_user_is_privileged( $native_user ) ) {
+			$state['status'] = 'blocked_native_privileged_conflict';
+			if ( function_exists( 'dtb_security_log' ) ) {
+				dtb_security_log( 'native_privileged_identity_conflict_blocked', [ 'route' => $route ] );
+			}
+			return $state;
+		}
 	}
 
 	if ( headers_sent() ) {
@@ -139,13 +164,20 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 	}
 
 	wp_set_current_user( (int) $user->ID );
-	wp_set_auth_cookie( (int) $user->ID, true, is_ssl() );
+	/* Compatibility cookie is session-scoped; persistent storefront identity remains
+	 * the 7-day HttpOnly dtb_auth JWT. A later /validate remints native continuity. */
+	wp_set_auth_cookie( (int) $user->ID, false, is_ssl() );
 	dtb_auth_signal_session_mutation();
 
 	$state['status']                = $state['identity_conflict_contained'] ? 'conflict_replaced' : 'bridged';
 	$state['native_checkout_ready'] = true;
 	$state['native_cookie_queued']  = true;
 	return $state;
+}
+
+/** Whether a user is privileged beyond the storefront-customer boundary. */
+function dtb_auth_user_is_privileged( WP_User $user ): bool {
+	return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 }
 
 /**
@@ -201,7 +233,7 @@ function dtb_auth_clear_native_customer_cookie(): void {
 	$native_user_id = dtb_auth_valid_native_cookie_user_id();
 	if ( $native_user_id > 0 ) {
 		$user = get_user_by( 'id', $native_user_id );
-		if ( $user instanceof WP_User && ( user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' ) ) ) {
+		if ( $user instanceof WP_User && dtb_auth_user_is_privileged( $user ) ) {
 			return;
 		}
 	}
