@@ -4,9 +4,9 @@
  *
  * Normalizes storefront auth REST responses so shared hosting/page caches do not
  * retain auth state and so the HttpOnly DTB session cookie is emitted with a
- * reliable same-origin SameSite policy. For same-origin customer logins only, it
+ * reliable same-origin SameSite policy. For same-origin customer sessions, it
  * also establishes WordPress's native HttpOnly auth cookie so WooCommerce native
- * checkout can resolve the same customer through its supported session lifecycle.
+ * checkout resolves the same customer through its supported session lifecycle.
  *
  * @package drywall-toolbox
  */
@@ -43,6 +43,12 @@ function dtb_auth_harden_rest_response( $response, $server, $request ) { // phpc
 
 	if ( '/dtb/v1/auth/login' === $route || '/dtb/v1/auth/register' === $route ) {
 		dtb_auth_refresh_cookie_from_response( $response );
+		dtb_auth_sync_native_customer_cookie_from_response( $response );
+	}
+
+	/* Existing DTB-only sessions created before this compatibility boundary also
+	 * receive the native customer cookie on their normal /validate bootstrap. */
+	if ( '/dtb/v1/auth/validate' === $route ) {
 		dtb_auth_sync_native_customer_cookie_from_response( $response );
 	}
 
@@ -98,9 +104,9 @@ function dtb_auth_refresh_cookie_from_response( $response ): void {
  * Establish native WordPress customer auth for the same-origin storefront.
  *
  * WooCommerce's server-rendered checkout is intentionally outside the React SPA.
- * A verified DTB customer login must therefore also be recognizable by WordPress's
- * native document/session stack. Using WordPress's own HttpOnly auth-cookie API is
- * safer and more compatible than relying on browser-visible tokens or synthetic
+ * A verified DTB customer session must therefore also be recognizable by
+ * WordPress's native document/session stack. Using WordPress's own HttpOnly auth
+ * cookie is safer and more compatible than browser-visible tokens or synthetic
  * checkout identities. Privileged operator/admin users are deliberately excluded.
  *
  * @param WP_REST_Response|WP_HTTP_Response $response REST response.
@@ -115,7 +121,14 @@ function dtb_auth_sync_native_customer_cookie_from_response( $response ): void {
 	}
 
 	$data = $response->get_data();
-	if ( empty( $data['success'] ) || empty( $data['user']['id'] ) ) {
+	if ( empty( $data['user']['id'] ) ) {
+		return;
+	}
+
+	/* /validate uses { authenticated: true, user: ... }; login/register use
+	 * { success: true, user: ... }. Reject every other response shape. */
+	$authenticated = ! empty( $data['success'] ) || ! empty( $data['authenticated'] );
+	if ( ! $authenticated ) {
 		return;
 	}
 
@@ -130,11 +143,16 @@ function dtb_auth_sync_native_customer_cookie_from_response( $response ): void {
 		return;
 	}
 
+	$had_native_cookie = defined( 'LOGGED_IN_COOKIE' ) && ! empty( $_COOKIE[ LOGGED_IN_COOKIE ] );
+	if ( $had_native_cookie ) {
+		return;
+	}
+
 	wp_set_current_user( (int) $user->ID );
 	wp_set_auth_cookie( (int) $user->ID, true, is_ssl() );
 
-	/* Match the native WordPress login lifecycle so WooCommerce can reconcile its
-	 * customer/session hooks before the subsequent full-document checkout request. */
+	/* Run the native login lifecycle exactly once when bridging a DTB-only session
+	 * so WooCommerce can reconcile customer/session hooks before checkout. */
 	do_action( 'wp_login', $user->user_login, $user );
 	dtb_auth_signal_session_mutation();
 }
