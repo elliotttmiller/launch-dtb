@@ -64,8 +64,6 @@ define( 'NONCE_SALT',       'put your unique phrase here' );
  *
  * You can have multiple installations in one database if you give each
  * a unique prefix. Only numbers, letters, and underscores please!
- *
- * At the installation time, database tables are created with the specified prefix.
  * Changing this value after WordPress is installed will make your site think
  * it has not been installed.
  *
@@ -79,9 +77,6 @@ $table_prefix = 'wp_';
  * Change this to true to enable the display of notices during development.
  * It is strongly recommended that plugin and theme developers use WP_DEBUG
  * in their development environments.
- *
- * For information on other constants that can be used for debugging,
- * visit the documentation.
  *
  * @link https://developer.wordpress.org/advanced-administration/debug/debug-wordpress/
  */
@@ -148,8 +143,18 @@ define( 'DTB_ADMIN_EMAIL', 'info@drywalltoolbox.com' );
 /**
  * Veeqo integration constants.
  *
- * Start IDs at 0 unless the live values have already been confirmed by the
- * Veeqo settings auto-discovery flow.
+ * DTB_VEEQO_API_KEY is a server-side secret. Never paste the live value into
+ * source control, React environment variables, WordPress options, logs, or REST
+ * responses. Configure the real value only in the live server wp-config.php or
+ * an equivalent server-side secret injection layer.
+ *
+ * Channel, warehouse, and delivery-method IDs may be left at 0 while initially
+ * connecting. WooCommerce > Settings > Integrations > Drywall Toolbox Veeqo
+ * validates them against the Veeqo API and auto-selects only when exactly one
+ * unambiguous candidate exists. Multiple candidates require explicit selection.
+ *
+ * Keep DTB_VEEQO_WEBHOOK_SECRET empty unless the exact upstream Veeqo webhook
+ * authentication/signature contract has been verified for the live account.
  */
 define( 'DTB_VEEQO_API_KEY', '' );
 define( 'DTB_VEEQO_WEBHOOK_SECRET', '' );

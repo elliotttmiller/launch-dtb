@@ -25,11 +25,15 @@ final class DTB_VeeqoHealthCheck {
 	 * @return array<string,mixed>
 	 */
 	public static function run(): array {
-		$config = class_exists( 'DTB_VeeqoConfig' ) ? DTB_VeeqoConfig::redacted() : [];
+		$config    = class_exists( 'DTB_VeeqoConfig' ) ? DTB_VeeqoConfig::redacted() : [];
+		$readiness = function_exists( 'dtb_veeqo_production_readiness' )
+			? dtb_veeqo_production_readiness()
+			: [ 'ready' => false, 'missing' => [ 'production_configuration_module' ] ];
 
 		return [
-			'ok'                    => ! empty( $config['api_key_configured'] ),
+			'ok'                    => ! empty( $readiness['ready'] ),
 			'configured'            => $config,
+			'production_readiness'  => $readiness,
 			'request_function'       => function_exists( 'dtb_veeqo_request' ),
 			'route_registration'     => function_exists( 'dtb_veeqo_register_routes' ),
 			'webhook_controller'     => function_exists( 'dtb_operational_pipeline_veeqo_webhook_order' ),
