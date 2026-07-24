@@ -13,6 +13,7 @@ export default function AnimatedOrderSuccess({
 
   return (
     <TransactionSuccessSheet
+      embedded
       type="order"
       title={title}
       titleId={titleId}
