@@ -26,6 +26,28 @@ if ( ! dtb_veeqo_verified_webhooks_enabled() ) {
 	remove_action( 'init', 'dtb_veeqo_ensure_webhooks', 30 );
 }
 
+// Also fail closed at ingress. Merely setting a secret is not sufficient to
+// activate a signature scheme that has not been verified against Veeqo's live contract.
+add_filter(
+	'rest_pre_dispatch',
+	static function ( $result, $server, WP_REST_Request $request ) {
+		unset( $server );
+		if ( null !== $result || '/dtb/v1/veeqo/webhooks/order' !== (string) $request->get_route() ) {
+			return $result;
+		}
+		if ( dtb_veeqo_verified_webhooks_enabled() ) {
+			return $result;
+		}
+		return new WP_Error(
+			'veeqo_webhook_disabled',
+			'Veeqo webhook ingress is disabled until the upstream authentication contract is verified.',
+			[ 'status' => 503 ]
+		);
+	},
+	-60,
+	3
+);
+
 /** Queue one deduplicated inventory reconciliation after production settings save. */
 function dtb_veeqo_queue_inventory_reconciliation_after_configuration(): void {
 	if ( ! function_exists( 'dtb_veeqo_inventory_readiness' ) || empty( dtb_veeqo_inventory_readiness()['ready'] ) || ! function_exists( 'as_enqueue_async_action' ) ) {
