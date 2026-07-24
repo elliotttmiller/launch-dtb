@@ -15,28 +15,20 @@ final class DTB_SessionService {
 	}
 
 	/**
-	 * Rotate an authenticated Woo session to an anonymous cart-only session.
+	 * Rotate the current Woo session to an anonymous cart-only session.
 	 *
-	 * Logout must not leave the former customer's contact, address, shipping,
-	 * coupon, payment, or checkout state available to the next guest using the
-	 * browser. Preserve only the cart payload required for checkout continuity.
+	 * This method is called only from the explicit DTB storefront logout route. It
+	 * deliberately rotates the Woo shopper session even when a native WordPress
+	 * administrator cookie also exists in the browser; the native admin cookie is a
+	 * separate authority and must not cause Woo to leave behind a customer-bound
+	 * shopper session that later becomes invalid when the browser is anonymous.
 	 *
-	 * Privileged native WordPress sessions are outside the storefront customer
-	 * logout boundary and are never rotated or destroyed here.
+	 * Preserve only cart contents. Never preserve contact, address, shipping,
+	 * coupon, payment, or checkout state across logout.
 	 *
-	 * @return bool True when the cart was preserved; false when the session was
-	 *              untouched/cleared without a cart or WooCommerce was unavailable.
+	 * @return bool True when the cart was preserved; false otherwise.
 	 */
 	public static function rotate_woocommerce_session_to_guest(): bool {
-		$current_user = function_exists( 'wp_get_current_user' ) ? wp_get_current_user() : null;
-		if (
-			$current_user instanceof WP_User
-			&& $current_user->exists()
-			&& ( user_can( $current_user, 'manage_options' ) || user_can( $current_user, 'edit_users' ) )
-		) {
-			return false;
-		}
-
 		if ( ! function_exists( 'WC' ) || ! WC() ) {
 			self::expire_woocommerce_session_cookie();
 			return false;
@@ -62,9 +54,9 @@ final class DTB_SessionService {
 			$cart = is_array( $cart ) ? $cart : [];
 
 			/*
-			 * WC_Session_Handler generates the replacement customer ID according to
-			 * the current WordPress user. This request has already been authorized,
-			 * so transition it to user 0 before destroying the customer-owned session.
+			 * WC_Session_Handler chooses the replacement customer ID from the current
+			 * WordPress user. Explicit storefront logout must therefore transition to
+			 * user 0 before destroying the customer-owned Woo session.
 			 */
 			wp_set_current_user( 0 );
 			$session->destroy_session();
