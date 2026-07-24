@@ -345,6 +345,9 @@ export function CartProvider({ children }) {
     setIsLoading(true);
     setError(null);
     try {
+      // A fresh Store API cart bootstrap also refreshes the user-bound Nonce after
+      // login/logout so subsequent mutations cannot reuse a nonce from the prior
+      // identity/session boundary.
       const initialized = await initCart();
       applyServerCart(initialized);
       return initialized;
@@ -380,6 +383,30 @@ export function CartProvider({ children }) {
       });
     return () => { mounted = false; };
   }, [applyServerCart]);
+
+  useEffect(() => {
+    let active = true;
+
+    const reconcileAuthSession = () => {
+      // Serialize identity-bound cart reconciliation behind any in-flight cart
+      // mutation. Later mutations also wait for this refresh, preventing a stale
+      // pre-login/pre-logout Store API nonce or cart snapshot from winning a race.
+      const queued = mutationQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (!active) return null;
+          return refreshCart();
+        });
+      mutationQueueRef.current = queued.catch(() => undefined);
+      void queued.catch(() => undefined);
+    };
+
+    window.addEventListener('dtb:auth-changed', reconcileAuthSession);
+    return () => {
+      active = false;
+      window.removeEventListener('dtb:auth-changed', reconcileAuthSession);
+    };
+  }, [refreshCart]);
 
   const addToCart = useCallback(async (product, quantity = 1) => {
     if (!product?.id) return null;
