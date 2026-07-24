@@ -6,9 +6,11 @@
  * official WooCommerce and SiteGround admin read endpoints when a stale wp_rest
  * nonce causes WordPress REST cookie auth to fail.
  *
- * Disabled by default. Enable only with DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT
- * during a diagnosed admin incident. This file never restores mutating settings
- * requests and never bypasses capability checks for anonymous callers.
+ * Enabled by default because Drywall Toolbox runs WordPress in /wp while REST is
+ * also exposed through root /wp-json aliases. The compatibility path is limited
+ * to read-only requests, requires a valid signed native WordPress auth cookie,
+ * requires WooCommerce/admin capability, and never bypasses mutation nonces.
+ * Set DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT=false only for incident isolation.
  *
  * @package drywall-toolbox
  */
@@ -42,14 +44,22 @@ if ( ! function_exists( 'dtb_jwt_wp_admin_rest_route_prefixes' ) ) {
  */
 function dtb_woo_admin_rest_nonce_compat_enabled(): bool {
 	return function_exists( 'dtb_feature_enabled' )
-		? dtb_feature_enabled( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', false )
-		: false;
+		? dtb_feature_enabled( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', true )
+		: true;
 }
 
 /**
- * Extract the current REST route from a /wp-json request URI.
+ * Extract the current REST route from either pretty /wp-json URLs or the
+ * query-string rest_route form used by internal rewrite fallbacks.
  */
 function dtb_woo_admin_rest_nonce_compat_current_route(): string {
+	if ( isset( $_GET['rest_route'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$route = sanitize_text_field( wp_unslash( (string) $_GET['rest_route'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( '' !== $route ) {
+			return '/' === $route[0] ? $route : '/' . $route;
+		}
+	}
+
 	$request_uri = isset( $_SERVER['REQUEST_URI'] )
 		? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		: '';

@@ -20,7 +20,7 @@ final class DTB_FeatureFlags {
 			'DTB_ENABLE_PROXY_RATE_LIMIT'             => self::enabled( 'DTB_ENABLE_PROXY_RATE_LIMIT', true ),
 			'DTB_ENABLE_LOGIN_RATE_LIMIT'             => self::enabled( 'DTB_ENABLE_LOGIN_RATE_LIMIT', true ),
 			'DTB_ENABLE_WOO_ADMIN_PAYMENTS_ASSET_GUARD' => self::enabled( 'DTB_ENABLE_WOO_ADMIN_PAYMENTS_ASSET_GUARD', false ),
-			'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT'  => self::enabled( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', false ),
+			'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT'  => self::enabled( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', true ),
 		];
 	}
 }
