@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import StorefrontHeader from '../storefront/StorefrontHeader';
 import NivoSearchRuntimeBridge from '../storefront/NivoSearchRuntimeBridge.jsx';
 import '../../styles/storefront-top-banner.css';
+import '../../styles/storefront-nivo-vendor-suppression.css';
 
 const STORE_PHONE_DISPLAY = '(609) 866-5269';
 const STORE_PHONE_HREF = 'tel:+16098665269';
