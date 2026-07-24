@@ -95,7 +95,9 @@ Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme CSS must not t
 Assert-True ($nativeIdentity.Contains('static $resolving = false')) 'Native identity bridge must retain recursion protection.'
 Assert-True (-not $nativeIdentity.Contains('discard_woocommerce_session_for_identity_conflict')) 'determine_current_user must not initialize/destroy Woo sessions.'
 Assert-True ($nativeIdentity.Contains('dtb_native_checkout_expire_woocommerce_browser_state')) 'Identity conflicts must use side-effect-light browser-state containment.'
-Assert-True ($login.Contains('navigateDocument(getWooCheckoutUrl()')) 'Checkout login return must use a full-document Woo checkout handoff.'
+Assert-True ($login.Contains("const checkoutUrl = getWooCheckoutUrl();")) 'Checkout login return must resolve the canonical Woo checkout URL.'
+Assert-True ($login.Contains("navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });")) 'Checkout login return must use a full-document Woo checkout handoff.'
+Assert-True ($login.Contains('if (isCheckoutReturnTarget(returnTarget))')) 'Full-document checkout handoff must be scoped to checkout return targets.'
 
 Assert-True ($officialStripe.Contains("'wc_stripe_upe_params'")) 'Official Stripe integration must remain authoritative.'
 Assert-True ($officialStripe.Contains("'blocksAppearance'")) 'Stripe Appearance must use the provider-supported configuration path.'
