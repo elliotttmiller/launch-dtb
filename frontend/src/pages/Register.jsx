@@ -69,6 +69,14 @@ function isCheckoutReturnTarget(target) {
   }
 }
 
+function requiresPreconfirmedNativeCheckout(checkoutUrl) {
+  try {
+    return new URL(checkoutUrl, window.location.origin).origin === window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
 function SubmitLoader() {
   return (
     <span className="dtb-auth-template__loader" aria-label="Creating account">
@@ -175,10 +183,11 @@ export default function Register() {
       });
 
       if (isCheckoutReturnTarget(returnTarget)) {
-        if (result?.nativeCheckoutReady !== true) {
+        const checkoutUrl = getWooCheckoutUrl();
+        if (requiresPreconfirmedNativeCheckout(checkoutUrl) && result?.nativeCheckoutReady !== true) {
           throw new Error('Your account was created, but the secure checkout session could not be prepared. Refresh this page before continuing to checkout.');
         }
-        navigateDocument(getWooCheckoutUrl(), { replace: true, transition: 'checkout' });
+        navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });
         return;
       }
 
