@@ -47,6 +47,23 @@ The frontend login/registration flow waits for `/auth/validate` before returning
 
 Cross-origin preview builds cannot pre-mint a first-party native WordPress cookie through their API request. They may still perform the full-document handoff to the backend checkout origin after DTB JWT validation; `NativeCheckoutIdentityBridge.php` verifies the backend-origin `dtb_auth` cookie and establishes session-scoped native compatibility there.
 
+## Cart-to-checkout preflight contract
+
+A shopper may already be authenticated before opening the cart. In that case the cart CTA must not navigate directly to `/checkout/` based only on React authentication state.
+
+For same-origin signed-in checkout, both the full cart page and cart drawer perform this sequence before document transfer:
+
+```text
+cart mutation queue settled
+  -> POST /dtb/v1/auth/validate
+  -> require session.native_checkout.ready = true
+  -> GET authoritative Woo Store API cart
+  -> require at least one authoritative cart item
+  -> full-document /checkout/
+```
+
+If native checkout convergence fails or Woo no longer confirms the cart, navigation is blocked and the current cart document remains visible. The checkout handoff must never fade/hide the current document before the browser commits the native checkout response; doing so creates a misleading blank page while a slow or failed checkout request is still pending.
+
 ## Native customer-session convergence
 
 `AuthCookieRuntimeHardening.php` does not regenerate or overwrite `dtb_auth`. `AuthRoutes.php` is the single JWT-cookie owner.
@@ -122,10 +139,14 @@ drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/NativeCheckoutIdentity
   -> verified DTB identity resolution/self-healing on native checkout documents
 
 frontend/src/auth/useAuth.js
-  -> cookie confirmation, cross-tab auth synchronization, handoff readiness capture
+  -> cookie confirmation, cross-tab auth synchronization, native checkout readiness guard
 
 frontend/src/context/CartContext.jsx
   -> authoritative Store API cart/nonce reconciliation after auth transitions
+
+frontend/src/pages/Cart.jsx
+frontend/src/components/shell/CartSidebar.jsx
+  -> signed-in checkout preflight, authoritative cart proof, native document handoff
 
 frontend/src/pages/Login.jsx
 frontend/src/pages/Register.jsx
@@ -133,7 +154,8 @@ frontend/src/pages/Register.jsx
 
 frontend/src/pages/WooNativeCheckout.jsx
 frontend/src/utils/checkoutUrl.js
-  -> compatibility handoff and canonical native checkout URL construction
+frontend/src/utils/documentNavigation.js
+  -> compatibility handoff, canonical native checkout URL construction, fail-visible document navigation
 ```
 
 ## Security invariants
@@ -149,6 +171,8 @@ frontend/src/utils/checkoutUrl.js
 - Keep checkout and auth responses private/no-store and vary cache behavior on Cookie/Authorization/Origin as applicable.
 - Root cookie scope (`/`) is a deployment invariant for the current `/wp` core + root storefront topology.
 - Code running inside `determine_current_user` must not initialize/destroy Woo sessions or recursively resolve current-user state.
+- Signed-in cart CTAs must prove native checkout readiness and re-read the authoritative Woo cart before leaving the SPA.
+- Checkout document handoff must remain fail-visible: never hide the current cart document while waiting for native checkout to commit.
 
 ## Verification
 
@@ -157,11 +181,14 @@ Before release validate at minimum:
 1. Guest cart -> checkout preserves the same Woo session and items.
 2. Guest cart -> login -> authenticated cart preserves expected items through Woo's native migration.
 3. Existing authenticated customer can open `/checkout/` without a blank document or cart/session loss.
-4. Checkout `Log in` -> storefront login -> successful auth returns by same-origin readiness-gated full-document navigation to native checkout.
-5. Explicit storefront logout preserves cart contents as an anonymous cart-only session.
-6. A browser with a native administrator cookie but no DTB customer uses guest shopper identity on public Store API/checkout requests.
-7. A browser with a native administrator cookie plus valid DTB customer uses the DTB customer as shopper identity without mutating the administrator cookie.
-8. Deliberate customer A/native-cookie + customer B/DTB-cookie conflict never transfers A's private customer/session state to B.
-9. Login/logout refreshes the Store API cart and Nonce before subsequent mutations.
-10. Woo cart contents, selected customer, shipping/tax totals and order ownership remain correct across the handoff.
-11. PHP logs contain only redacted event/status diagnostics and no auth/session token values.
+4. Signed-in full-cart CTA runs native-session readiness validation and authoritative cart proof before navigation.
+5. Signed-in cart-drawer CTA runs the same readiness/cart proof sequence.
+6. A failed/slow native checkout request leaves the current cart page visible rather than a blank document.
+7. Checkout `Log in` -> storefront login -> successful auth returns by same-origin readiness-gated full-document navigation to native checkout.
+8. Explicit storefront logout preserves cart contents as an anonymous cart-only session.
+9. A browser with a native administrator cookie but no DTB customer uses guest shopper identity on public Store API/checkout requests.
+10. A browser with a native administrator cookie plus valid DTB customer uses the DTB customer as shopper identity without mutating the administrator cookie.
+11. Deliberate customer A/native-cookie + customer B/DTB-cookie conflict never transfers A's private customer/session state to B.
+12. Login/logout refreshes the Store API cart and Nonce before subsequent mutations.
+13. Woo cart contents, selected customer, shipping/tax totals and order ownership remain correct across the handoff.
+14. PHP logs contain only redacted event/status diagnostics and no auth/session token values.
