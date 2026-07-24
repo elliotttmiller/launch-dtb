@@ -2,10 +2,11 @@
 /**
  * Drywall Toolbox native WooCommerce Checkout Block document.
  *
- * Presentation ownership lives in this theme. WooCommerce remains authoritative
- * for checkout fields, cart/session state, validation, shipping, tax, totals and
- * order creation. The official WooCommerce Stripe gateway remains authoritative
- * for payment UI, tokenization, authentication and payment execution.
+ * The active theme owns checkout document structure and presentation assets.
+ * WooCommerce remains authoritative for checkout fields, cart/session state,
+ * validation, shipping, tax, totals, order creation, and submission. The official
+ * WooCommerce Stripe gateway remains authoritative for payment UI, wallets,
+ * tokenization, authentication, and payment execution.
  *
  * @package drywall-toolbox
  */
@@ -23,6 +24,12 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 	return is_readable( $path ) ? (string) filemtime( $path ) : DTB_VERSION;
 };
 
+/*
+ * Checkout presentation is theme-owned. These handles are intentionally narrow:
+ * base visual system, final same-origin Woo wrapper normalization, mechanical boot
+ * reveal, responsive presentation controller, and signed-in profile refinement.
+ * No theme asset creates/replaces payment controls or owns checkout submission.
+ */
 wp_enqueue_style(
 	'dtb-checkout-theme',
 	$theme_uri . '/assets/checkout/checkout.css',
@@ -30,16 +37,16 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout.css' )
 );
 wp_enqueue_style(
-	'dtb-checkout-theme-profile',
-	$theme_uri . '/assets/checkout/checkout-profile.css',
+	'dtb-checkout-theme-refinements',
+	$theme_uri . '/assets/checkout/checkout-refinements.css',
 	[ 'dtb-checkout-theme' ],
-	$asset_version( 'assets/checkout/checkout-profile.css' )
+	$asset_version( 'assets/checkout/checkout-refinements.css' )
 );
 wp_enqueue_style(
-	'dtb-checkout-theme-payment-sheet',
-	$theme_uri . '/assets/checkout/checkout-payment-sheet.css',
-	[ 'dtb-checkout-theme' ],
-	$asset_version( 'assets/checkout/checkout-payment-sheet.css' )
+	'dtb-checkout-theme-profile',
+	$theme_uri . '/assets/checkout/checkout-profile.css',
+	[ 'dtb-checkout-theme-refinements' ],
+	$asset_version( 'assets/checkout/checkout-profile.css' )
 );
 
 wp_enqueue_script(
@@ -52,7 +59,7 @@ wp_enqueue_script(
 wp_enqueue_script(
 	'dtb-checkout-theme-ui',
 	$theme_uri . '/assets/checkout/checkout-ui.js',
-	[ 'dtb-checkout-theme-boot', 'wc-blocks-checkout' ],
+	[ 'dtb-checkout-theme-boot' ],
 	$asset_version( 'assets/checkout/checkout-ui.js' ),
 	true
 );
@@ -63,16 +70,6 @@ wp_enqueue_script(
 	$asset_version( 'assets/checkout/checkout-profile.js' ),
 	true
 );
-wp_enqueue_script(
-	'dtb-checkout-theme-payment-sheet',
-	$theme_uri . '/assets/checkout/checkout-payment-sheet.js',
-	[ 'dtb-checkout-theme-ui' ],
-	$asset_version( 'assets/checkout/checkout-payment-sheet.js' ),
-	true
-);
-foreach ( [ 'dtb-checkout-theme-boot', 'dtb-checkout-theme-ui', 'dtb-checkout-theme-profile', 'dtb-checkout-theme-payment-sheet' ] as $handle ) {
-	wp_script_add_data( $handle, 'strategy', 'defer' );
-}
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
