@@ -1,10 +1,10 @@
 /*
  * Drywall Toolbox checkout refinements.
  *
- * Loaded after checkout.css. This file owns only same-origin WooCommerce wrapper
- * normalization and DTB contact-field presentation. WooCommerce and the official
- * Stripe gateway retain checkout/payment/runtime ownership. Never target provider
- * iframe internals or recreate payment controls here.
+ * Loaded after checkout.css. This file owns same-origin WooCommerce wrapper
+ * normalization and checkout-specific presentation only. WooCommerce and the
+ * official Stripe gateway retain checkout/payment/runtime ownership. Never target
+ * descendants inside provider iframes or recreate payment controls here.
  */
 
 /* Top-level Woo sections are layout regions, not nested cards. */
@@ -21,19 +21,25 @@ body.dtb-official-stripe-checkout .wc-block-checkout__payment-method {
   box-shadow: none !important;
 }
 
-body.dtb-official-stripe-checkout .wc-block-components-checkout-step__container,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__content,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
+body.dtb-official-stripe-checkout .wc-block-components-checkout-step__container {
   border: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
 }
 
-/* Express Checkout: only provider-owned wallet buttons remain visible as button
- * surfaces. Every same-origin Woo wrapper between the section and provider mount is
- * layout-only so there is no card around the group or around each wallet. */
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__content {
+/*
+ * Express Checkout
+ *
+ * Provider buttons are the only visual button surfaces. Flatten every known
+ * same-origin Woo/provider-mount wrapper while deliberately excluding actual
+ * button and iframe elements from generic wrapper resets.
+ */
+body.dtb-official-stripe-checkout .wc-block-components-express-payment,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-express-payment-block,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__content,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
+  min-width: 0 !important;
   min-height: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -44,20 +50,10 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment__content 
   box-shadow: none !important;
 }
 
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container {
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div > div {
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > *,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > * > :not(button):not(iframe),
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container > *,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons-container > * > :not(button):not(iframe) {
   min-width: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -68,9 +64,12 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-bu
   box-shadow: none !important;
 }
 
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li > div,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div > div,
-body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons iframe {
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+  gap: 12px !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons iframe,
+body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons button {
   display: block;
   width: 100% !important;
   max-width: 100% !important;
@@ -82,15 +81,20 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-
   background: transparent !important;
 }
 
-/* Order Summary: flatten Woo's responsive fill/sidebar wrappers as well as the
- * summary block itself. The disclosure row, product rows and totals remain the
- * meaningful UI; there is no pale outer card around another white card. */
+/*
+ * Order Summary
+ *
+ * Woo responsive fill/sidebar wrappers are layout-only. The disclosure row,
+ * product rows and totals remain semantic content without an outer card shell.
+ */
 body.dtb-official-stripe-checkout .wc-block-components-sidebar,
 body.dtb-official-stripe-checkout .wc-block-checkout__sidebar,
 body.dtb-official-stripe-checkout .checkout-order-summary-block-fill-wrapper,
 body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block,
 body.dtb-official-stripe-checkout .wc-block-components-checkout-order-summary-block,
-body.dtb-official-stripe-checkout .wc-block-components-order-summary {
+body.dtb-official-stripe-checkout .wc-block-components-order-summary,
+body.dtb-official-stripe-checkout .checkout-order-summary-block-fill-wrapper > div,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block > div {
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
@@ -121,9 +125,8 @@ body.dtb-official-stripe-checkout .wc-block-components-totals-wrapper {
   padding-inline: 0 !important;
 }
 
-/* Canonical contact identity fields are shown once. Native address duplicates stay
- * mounted and synchronized for Woo validation, tax/shipping, fraud checks, and
- * integrations but are not rendered twice. */
+/* Canonical contact identity fields are shown once. Native Woo address duplicates
+ * stay mounted and synchronized for validation, shipping/tax and integrations. */
 body.dtb-official-stripe-checkout .dtb-native-identity-field {
   display: none !important;
 }
@@ -148,16 +151,9 @@ body.dtb-official-stripe-checkout .dtb-contact-identity-field:last-of-type {
   grid-column: 1 / -1;
 }
 
-/* A single gateway does not need a redundant radio-list shell. The actual official
- * Stripe Payment Element remains mounted and provider-owned. */
-body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control.is-dtb-single-gateway {
-  overflow: visible !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
+/* One gateway does not need a redundant radio-list card. The official Stripe
+ * Payment Element remains mounted and provider-owned. */
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control.is-dtb-single-gateway,
 body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set {
   overflow: visible !important;
   border: 0 !important;
@@ -203,12 +199,12 @@ body.dtb-official-stripe-checkout .is-dtb-order-summary-duplicate {
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 12px !important;
   }
 
-  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > li,
-  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > div {
-    min-height: 46px;
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons > * {
+    min-height: 48px !important;
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-order-summary__button,
@@ -221,8 +217,110 @@ body.dtb-official-stripe-checkout .is-dtb-order-summary-duplicate {
     margin: 22px 0 16px !important;
   }
 
+  /* Mobile summary product rows mirror the compact cart-drawer hierarchy without
+   * quantity steppers: thumbnail, product identity, and a single line total. */
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: 72px minmax(0, 1fr) auto !important;
+    grid-template-areas: "image description total" !important;
+    gap: 12px !important;
+    align-items: start !important;
+    padding: 16px 0 !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image {
+    position: relative;
+    grid-area: image;
+    width: 72px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+    display: block;
+    width: 72px !important;
+    height: 72px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 12px !important;
+    background: #fff !important;
+    object-fit: contain !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__quantity {
+    position: absolute !important;
+    top: -7px !important;
+    right: -7px !important;
+    z-index: 2;
+    display: grid !important;
+    width: 22px !important;
+    min-width: 22px !important;
+    height: 22px !important;
+    padding: 0 !important;
+    border: 2px solid #fff !important;
+    border-radius: 999px !important;
+    background: var(--dtb-checkout-ink) !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    place-items: center;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__description {
+    grid-area: description;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 2px 0 0 !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-product-name {
+    display: block;
+    margin: 0 !important;
+    color: var(--dtb-checkout-ink) !important;
+    font-size: 15px !important;
+    font-weight: 720 !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__individual-prices,
+  body.dtb-official-stripe-checkout .wc-block-components-product-price {
+    display: none !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__total-price {
+    grid-area: total;
+    min-width: max-content;
+    margin: 0 !important;
+    padding: 2px 0 0 !important;
+    color: var(--dtb-checkout-ink) !important;
+    font-size: 15px !important;
+    font-weight: 780 !important;
+    line-height: 1.35 !important;
+    text-align: right;
+    white-space: nowrap;
+  }
+
   .dtb-mobile-checkout-actions {
     background: rgba(255, 255, 255, .97) !important;
     box-shadow: 0 -4px 14px rgba(15, 23, 42, .05) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  body.dtb-official-stripe-checkout .wc-block-components-express-payment__event-buttons {
+    grid-template-columns: 1fr !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item {
+    grid-template-columns: 64px minmax(0, 1fr) auto !important;
+    gap: 10px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image,
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+    width: 64px !important;
+    height: 64px !important;
   }
 }
