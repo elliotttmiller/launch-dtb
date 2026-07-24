@@ -313,27 +313,3 @@ function dtb_veeqo_inventory_scheduled_run( int $attempt = 0 ): void {
 	}
 }
 
-add_action( 'rest_api_init', static function (): void {
-	register_rest_route( 'dtb/v1', '/veeqo/admin/inventory/reconcile', [
-		'methods' => 'POST',
-		'callback' => static function ( WP_REST_Request $request ): WP_REST_Response {
-			$dry_run = rest_sanitize_boolean( $request->get_param( 'dry_run' ) );
-			$result  = dtb_veeqo_inventory_reconcile_all( $dry_run );
-			if ( is_wp_error( $result ) ) {
-				$status = (int) ( $result->get_error_data()['status'] ?? 502 );
-				return new WP_REST_Response( [ 'success' => false, 'code' => $result->get_error_code(), 'message' => $result->get_error_message() ], $status );
-			}
-			return new WP_REST_Response( [ 'success' => true, 'report' => $result ], 200 );
-		},
-		'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
-	] );
-	register_rest_route( 'dtb/v1', '/veeqo/admin/inventory/diagnostics', [
-		'methods' => 'GET',
-		'callback' => static fn(): WP_REST_Response => new WP_REST_Response( [
-			'readiness' => dtb_veeqo_inventory_readiness(),
-			'last_run' => (array) get_option( DTB_VEEQO_INVENTORY_DIAGNOSTICS, [] ),
-			'last_sync_at' => class_exists( 'DTB_VeeqoSyncJob' ) ? DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0,
-		], 200 ),
-		'permission_callback' => static fn(): bool => current_user_can( 'manage_woocommerce' ),
-	] );
-}, 30 );
