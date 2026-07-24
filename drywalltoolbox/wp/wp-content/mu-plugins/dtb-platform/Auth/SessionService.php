@@ -92,9 +92,14 @@ final class DTB_SessionService {
 	 * cart from one authenticated customer into another identity would be a data-
 	 * isolation violation. The next request may create/migrate a fresh session for
 	 * the verified storefront customer through WooCommerce's native lifecycle.
+	 *
+	 * This method can run from `determine_current_user`; therefore it must never call
+	 * get_current_user_id(), which would recursively invoke current-user resolution.
 	 */
 	public static function discard_woocommerce_session_for_identity_conflict(): void {
-		$previous_user_id = function_exists( 'get_current_user_id' ) ? (int) get_current_user_id() : 0;
+		$previous_user_id = isset( $GLOBALS['current_user'] ) && $GLOBALS['current_user'] instanceof WP_User
+			? (int) $GLOBALS['current_user']->ID
+			: 0;
 
 		try {
 			if ( function_exists( 'wp_set_current_user' ) ) {
