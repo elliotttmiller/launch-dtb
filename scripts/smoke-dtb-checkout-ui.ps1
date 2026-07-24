@@ -83,6 +83,9 @@ foreach ($requiredStep in @("id: 'contact'", "id: 'shipping'", "id: 'payment'"))
 }
 Assert-True ($ui.Contains("'Continue to shipping'")) 'Mobile checkout UI must expose Contact -> Shipping navigation.'
 Assert-True ($ui.Contains("'Continue to payment'")) 'Mobile checkout UI must expose Shipping -> Payment navigation.'
+Assert-True ($ui.Contains("data.dtbCheckoutAction = 'next'")) 'Mobile checkout must mark the forward CTA with the delegated navigation action contract.'
+Assert-True ($ui.Contains("document.addEventListener( 'click', handleDocumentClick, true )")) 'Mobile checkout controls must use delegated capture-phase click handling so Woo rerenders cannot detach navigation behavior.'
+Assert-True ($ui.Contains("event.stopPropagation();")) 'Mobile checkout action handling must contain the non-submit navigation event before Woo descendants can reinterpret it.'
 Assert-True ($ui.Contains("const storefrontLoginUrl = '/login?returnTo=%2Fcheckout';")) 'Checkout login must route through the storefront login with a safe checkout return target.'
 Assert-True (-not $ui.Contains('paymentSheet')) 'Theme checkout UI must not implement payment-sheet state.'
 Assert-True (-not $ui.Contains('openPaymentSheet')) 'Theme checkout UI must not open a custom payment sheet.'
@@ -93,7 +96,8 @@ Assert-True ($ui.Contains('is-dtb-single-gateway')) 'Single-gateway presentation
 Assert-True ($ui.Contains('syncContactIdentityFields')) 'Theme controller must preserve contact-to-canonical-address synchronization.'
 
 Assert-True ($refinements.Contains('.wc-block-components-express-payment__content')) 'Theme refinements must normalize the Express Checkout outer wrapper.'
-Assert-True ($refinements.Contains('.wc-block-components-express-payment__event-buttons > li')) 'Theme refinements must keep wallet list items layout-only.'
+Assert-True ($refinements.Contains('.wc-block-components-express-payment__event-buttons > li > div')) 'Theme refinements must flatten same-origin per-wallet wrappers without styling provider iframe internals.'
+Assert-True ($refinements.Contains('.checkout-order-summary-block-fill-wrapper')) 'Theme refinements must flatten Woo responsive order-summary fill wrappers.'
 Assert-True ($refinements.Contains('.wp-block-woocommerce-checkout-order-summary-block')) 'Theme refinements must normalize the Woo order-summary shell.'
 Assert-True ($refinements.Contains('.dtb-native-identity-field')) 'Theme refinements must hide synchronized native identity duplicates only after classification.'
 Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme refinements must not target descendants inside provider iframes.'
@@ -101,6 +105,8 @@ Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme refinements mu
 Assert-True ($flow.Contains('[data-dtb-checkout-step="payment"].is-dtb-checkout-step-inactive')) 'Mobile flow must keep the inactive provider payment surface mounted/measurable.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-progress')) 'Theme flow stylesheet must include the three-step progress UI.'
 Assert-True ($flow.Contains('.dtb-mobile-checkout-actions')) 'Theme flow stylesheet must include non-submit mobile navigation controls.'
+Assert-True ($flow.Contains('pointer-events: none !important')) 'Fixed mobile action shell must not create an invisible page-blocking hit target.'
+Assert-True ($flow.Contains('touch-action: manipulation')) 'Mobile checkout controls must use responsive touch interaction semantics.'
 Assert-True ($flow.Contains('top: auto !important')) 'Theme flow must reset legacy sticky progress positioning.'
 Assert-True ($flow.Contains('content: none !important')) 'Theme flow must suppress legacy duplicate progress chevrons.'
 Assert-True (-not $flow.Contains('dtb-payment-sheet')) 'Theme flow stylesheet must not restore payment-sheet selectors.'
