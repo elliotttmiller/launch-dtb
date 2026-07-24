@@ -1,12 +1,10 @@
 /*
- * NivoSearch runtime bridge.
- * Nivo owns query execution; DTB's established desktop/mobile search shells own
- * geometry, overlay behavior, animation, and visual presentation.
+ * Canonical DTB storefront search result presentation.
+ * NivoSearch owns search intelligence only. DTB owns all desktop/mobile UI.
+ *
+ * Desktop intentionally reuses the same compact white list-card visual language
+ * as the responsive mobile search results instead of Nivo/legacy transparent rows.
  */
-
-.dtb-nivo-runtime-owned > :not(.dtb-nivo-runtime-layer) {
-  display: none !important;
-}
 
 .dtb-nivo-runtime-layer {
   width: 100%;
@@ -16,16 +14,28 @@
 
 .dtb-nivo-runtime__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(210px, 0.85fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(220px, 0.85fr);
   min-width: 0;
-  max-height: min(520px, calc(100dvh - var(--header-height, 112px) - 90px));
+  max-height: min(590px, calc(100dvh - var(--header-height, 112px) - 82px));
+}
+
+/* When Nivo has no suggestion terms, product cards own the full panel width. */
+.dtb-nivo-runtime__layout:not(:has(.dtb-nivo-runtime__suggestions)) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .dtb-nivo-runtime__products,
 .dtb-nivo-runtime__suggestions {
   min-width: 0;
-  padding: 16px;
+  padding: 14px;
   overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.dtb-nivo-runtime__products {
+  display: grid;
+  align-content: start;
+  gap: 9px;
 }
 
 .dtb-nivo-runtime__suggestions {
@@ -34,8 +44,8 @@
 }
 
 .dtb-nivo-runtime__eyebrow {
-  margin: 0 0 10px;
-  color: rgba(203, 213, 225, 0.68);
+  margin: 0 0 3px;
+  color: rgba(203, 213, 225, 0.72);
   font-size: 0.67rem;
   font-weight: 800;
   line-height: 1;
@@ -43,48 +53,64 @@
   text-transform: uppercase;
 }
 
+/*
+ * Product result card.
+ * Mirrors the responsive search-card treatment: white card, isolated product
+ * media, dark commerce typography, rounded corners and compact SKU/price stack.
+ */
 .dtb-nivo-runtime__product {
   display: grid;
-  grid-template-columns: 54px minmax(0, 1fr) auto;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 11px;
+  gap: 13px;
   width: 100%;
   min-width: 0;
-  padding: 9px 7px;
-  border: 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.11);
-  background: transparent;
-  color: inherit;
+  min-height: 98px;
+  padding: 7px 14px 7px 7px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 13px;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgba(2, 6, 23, 0.1);
+  color: #0f172a;
   text-align: left;
   cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .dtb-nivo-runtime__product:hover,
 .dtb-nivo-runtime__product:focus-visible {
-  background: rgba(96, 165, 250, 0.08);
+  transform: translateY(-1px);
+  border-color: rgba(96, 165, 250, 0.48);
+  box-shadow: 0 8px 22px rgba(2, 6, 23, 0.14);
   outline: none;
 }
 
 .dtb-nivo-runtime__thumb {
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: 88px;
+  height: 84px;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  border-radius: 9px;
-  background: #fff;
+  border-right: 1px solid rgba(226, 232, 240, 0.86);
+  border-radius: 9px 0 0 9px;
+  background: #ffffff;
   color: #94a3b8;
 }
 
 .dtb-nivo-runtime__thumb img {
   width: 100%;
   height: 100%;
+  padding: 6px;
   object-fit: contain;
 }
 
 .dtb-nivo-runtime__product-copy {
   min-width: 0;
+  align-self: center;
 }
 
 .dtb-nivo-runtime__product-copy strong,
@@ -93,34 +119,40 @@
 }
 
 .dtb-nivo-runtime__product-copy strong {
+  display: -webkit-box;
   overflow: hidden;
-  color: inherit;
-  font-size: 0.84rem;
-  font-weight: 720;
-  line-height: 1.35;
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 780;
+  line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dtb-nivo-runtime__product-copy small {
+  margin-top: 5px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.dtb-nivo-runtime__product-copy small,
-.dtb-nivo-runtime__suggestion small {
-  margin-top: 3px;
-  color: rgba(148, 163, 184, 0.78);
-  font-size: 0.63rem;
-  font-weight: 650;
-  text-transform: capitalize;
-}
-
 .dtb-nivo-runtime__price {
-  color: inherit;
-  font-size: 0.78rem;
-  font-weight: 780;
+  align-self: end;
+  padding-bottom: 8px;
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 820;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .dtb-nivo-runtime__suggestion-list {
   display: grid;
-  gap: 3px;
+  gap: 4px;
 }
 
 .dtb-nivo-runtime__suggestion {
@@ -129,27 +161,37 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
-  padding: 9px 8px;
-  border: 0;
-  border-radius: 8px;
+  min-height: 38px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
   background: transparent;
-  color: inherit;
-  font-size: 0.78rem;
-  font-weight: 650;
+  color: #e2e8f0;
+  font-size: 0.79rem;
+  font-weight: 680;
   text-align: left;
   cursor: pointer;
 }
 
+.dtb-nivo-runtime__suggestion small {
+  margin-left: auto;
+  color: rgba(148, 163, 184, 0.82);
+  font-size: 0.61rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
 .dtb-nivo-runtime__suggestion:hover,
 .dtb-nivo-runtime__suggestion:focus-visible {
+  border-color: rgba(96, 165, 250, 0.18);
   background: rgba(96, 165, 250, 0.1);
-  color: #bfdbfe;
+  color: #dbeafe;
   outline: none;
 }
 
 .dtb-nivo-runtime__empty {
-  margin: 16px 0;
-  color: rgba(203, 213, 225, 0.64);
+  margin: 14px 0;
+  color: rgba(203, 213, 225, 0.68);
   font-size: 0.8rem;
 }
 
@@ -158,13 +200,14 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  width: calc(100% - 24px);
   min-height: 46px;
+  margin: 0 12px 12px;
   padding: 0 16px;
-  border: 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.12);
-  background: rgba(37, 99, 235, 0.1);
-  color: #bfdbfe;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 11px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #dbeafe;
   font-size: 0.76rem;
   font-weight: 800;
   cursor: pointer;
@@ -172,45 +215,53 @@
 
 .dtb-nivo-runtime__view-all:hover,
 .dtb-nivo-runtime__view-all:focus-visible {
-  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(96, 165, 250, 0.42);
+  background: rgba(37, 99, 235, 0.2);
   outline: none;
 }
 
-.storefront-search-overlay[data-dtb-nivo-runtime="true"] .storefront-search-overlay__footer {
-  display: none !important;
+@media (min-width: 1025px) {
+  .site-header .dtb-desktop-search-dropdown .dtb-nivo-runtime__products {
+    gap: 9px;
+    padding: 14px;
+  }
+
+  .site-header .dtb-desktop-search-dropdown .dtb-nivo-runtime__eyebrow {
+    margin-bottom: 5px;
+  }
+
+  .site-header .dtb-desktop-search-dropdown .dtb-nivo-runtime__product {
+    max-width: none;
+  }
+
+  /* Preserve a readable card width when Suggestions is present. */
+  .site-header .dtb-nivo-runtime__layout:has(.dtb-nivo-runtime__suggestions) .dtb-nivo-runtime__products {
+    min-width: 0;
+  }
 }
 
 @media (max-width: 1024px) {
-  .dtb-nivo-runtime-layer--mobile {
-    min-height: 100%;
-  }
-
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__layout {
+  .dtb-nivo-runtime__layout {
     display: flex;
     flex-direction: column;
     max-height: none;
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__suggestions {
+  .dtb-nivo-runtime__suggestions {
     order: -1;
-    padding: 0 0 14px;
+    padding: 0 0 12px;
     border: 0;
     border-bottom: 1px solid rgba(148, 163, 184, 0.12);
     background: transparent;
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__products {
-    padding: 14px 0 0;
-    overflow: visible;
-  }
-
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__suggestion-list {
+  .dtb-nivo-runtime__suggestion-list {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__suggestion {
+  .dtb-nivo-runtime__suggestion {
     width: auto;
     min-height: 34px;
     padding: 7px 10px;
@@ -219,23 +270,54 @@
     background: rgba(37, 99, 235, 0.08);
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__suggestion small {
+  .dtb-nivo-runtime__suggestion small {
     display: none;
   }
+}
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__product {
-    grid-template-columns: 52px minmax(0, 1fr) auto;
-    padding: 10px 2px;
+@media (max-width: 767px) {
+  .dtb-nivo-runtime__products {
+    gap: 8px;
+    padding: 0;
+    overflow: visible;
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__thumb {
-    width: 52px;
-    height: 52px;
+  /* The mobile overlay renders StorefrontProductTile list cards. These fallback
+     runtime selectors remain aligned for empty/fallback states only. */
+  .dtb-nivo-runtime__product {
+    grid-template-columns: clamp(84px, 25vw, 100px) minmax(0, 1fr);
+    min-height: clamp(104px, 29vw, 116px);
+    padding: 0;
+    border-radius: 13px;
   }
 
-  .dtb-nivo-runtime-layer--mobile .dtb-nivo-runtime__view-all {
+  .dtb-nivo-runtime__thumb {
+    width: 100%;
+    height: 100%;
+    min-height: clamp(104px, 29vw, 116px);
+    border-radius: 13px 0 0 13px;
+  }
+
+  .dtb-nivo-runtime__product-copy {
+    padding: 9px 10px 28px 11px;
+  }
+
+  .dtb-nivo-runtime__price {
+    position: absolute;
+    right: 10px;
+    bottom: 12px;
+    padding: 0;
+  }
+
+  .dtb-nivo-runtime__view-all {
     margin-top: 10px;
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    border-radius: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-nivo-runtime__product,
+  .dtb-nivo-runtime__suggestion,
+  .dtb-nivo-runtime__view-all {
+    transition-duration: 1ms !important;
   }
 }
