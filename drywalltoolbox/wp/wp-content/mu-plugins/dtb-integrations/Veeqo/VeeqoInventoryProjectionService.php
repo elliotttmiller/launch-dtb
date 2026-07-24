@@ -104,17 +104,53 @@ function dtb_veeqo_inventory_normalize_stock_entry( array $entry ): ?array {
 	return [ 'available' => max( 0, $available ), 'infinite' => false ];
 }
 
-/** Return duplicate Woo product IDs for an exact SKU, if any. */
-function dtb_veeqo_inventory_woo_ids_for_sku( string $sku ): array {
+/**
+ * Return exact Woo product IDs for a page of SKUs in one indexed lookup.
+ *
+ * Results preserve ascending product-ID order and are capped at three IDs per
+ * SKU, matching the previous duplicate-detection contract without N+1 queries.
+ *
+ * @param string[] $skus Exact SKU values from the current Veeqo page.
+ * @return array<string,int[]>
+ */
+function dtb_veeqo_inventory_woo_ids_for_skus( array $skus ): array {
 	global $wpdb;
-	if ( '' === $sku || empty( $wpdb->wc_product_meta_lookup ) ) {
+
+	if ( empty( $wpdb->wc_product_meta_lookup ) ) {
 		return [];
 	}
-	$ids = $wpdb->get_col( $wpdb->prepare(
-		"SELECT product_id FROM {$wpdb->wc_product_meta_lookup} WHERE sku = %s ORDER BY product_id ASC LIMIT 3",
-		$sku
-	) );
-	return array_values( array_filter( array_map( 'absint', (array) $ids ) ) );
+
+	$skus = array_values( array_unique( array_filter( array_map(
+		static fn( $sku ): string => trim( (string) $sku ),
+		$skus
+	), static fn( string $sku ): bool => '' !== $sku ) ) );
+	if ( empty( $skus ) ) {
+		return [];
+	}
+
+	$placeholders = implode( ', ', array_fill( 0, count( $skus ), '%s' ) );
+	$query        = $wpdb->prepare(
+		"SELECT sku, product_id FROM {$wpdb->wc_product_meta_lookup} WHERE sku IN ({$placeholders}) ORDER BY sku ASC, product_id ASC",
+		...$skus
+	);
+	$rows = $wpdb->get_results( $query, ARRAY_A );
+	$map  = [];
+
+	foreach ( (array) $rows as $row ) {
+		$sku        = (string) ( $row['sku'] ?? '' );
+		$product_id = absint( $row['product_id'] ?? 0 );
+		if ( '' === $sku || $product_id <= 0 ) {
+			continue;
+		}
+		if ( ! isset( $map[ $sku ] ) ) {
+			$map[ $sku ] = [];
+		}
+		if ( count( $map[ $sku ] ) < 3 ) {
+			$map[ $sku ][] = $product_id;
+		}
+	}
+
+	return $map;
 }
 
 /**
@@ -141,6 +177,23 @@ function dtb_veeqo_inventory_reconcile_page( int $page = 1, int $per_page = 100,
 		'missing_warehouse_entries' => [], 'invalid_stock_entries' => [], 'parent_ids' => [],
 	];
 	$warehouse_id = (int) $readiness['warehouse_id'];
+	$page_skus     = [];
+
+	foreach ( $result['data'] as $veeqo_product ) {
+		if ( ! is_array( $veeqo_product ) ) {
+			continue;
+		}
+		foreach ( (array) ( $veeqo_product['sellables'] ?? [] ) as $sellable ) {
+			if ( ! is_array( $sellable ) ) {
+				continue;
+			}
+			$sku = trim( sanitize_text_field( (string) ( $sellable['sku_code'] ?? '' ) ) );
+			if ( '' !== $sku ) {
+				$page_skus[] = $sku;
+			}
+		}
+	}
+	$woo_ids_by_sku = dtb_veeqo_inventory_woo_ids_for_skus( $page_skus );
 
 	foreach ( $result['data'] as $veeqo_product ) {
 		if ( ! is_array( $veeqo_product ) ) {
@@ -155,12 +208,12 @@ function dtb_veeqo_inventory_reconcile_page( int $page = 1, int $per_page = 100,
 			if ( '' === $sku ) {
 				continue;
 			}
-			$woo_ids = dtb_veeqo_inventory_woo_ids_for_sku( $sku );
+			$woo_ids = (array) ( $woo_ids_by_sku[ $sku ] ?? [] );
 			if ( count( $woo_ids ) > 1 ) {
 				$report['duplicate_skus'][ $sku ] = $woo_ids;
 				continue;
 			}
-			$product_id = ! empty( $woo_ids[0] ) ? (int) $woo_ids[0] : absint( wc_get_product_id_by_sku( $sku ) );
+			$product_id = ! empty( $woo_ids[0] ) ? (int) $woo_ids[0] : 0;
 			if ( $product_id <= 0 ) {
 				$report['unmapped_skus'][] = $sku;
 				continue;
@@ -312,4 +365,3 @@ function dtb_veeqo_inventory_scheduled_run( int $attempt = 0 ): void {
 		dtb_veeqo_log( 'error', 'inventory_reconciliation_failed', 'Veeqo inventory reconciliation failed.', [ 'attempt' => $attempt, 'retryable' => $retryable, 'status' => $status, 'error' => $result->get_error_message() ] );
 	}
 }
-
