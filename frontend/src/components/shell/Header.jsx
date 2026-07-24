@@ -1,7 +1,6 @@
 import { Phone } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import StorefrontHeader from '../storefront/StorefrontHeader';
-import NivoSearchRuntimeBridge from '../storefront/NivoSearchRuntimeBridge.jsx';
 import '../../styles/storefront-top-banner.css';
 import '../../styles/storefront-nivo-vendor-suppression.css';
 
@@ -31,7 +30,6 @@ export default function Header(props) {
         </div>
       ) : null}
       <StorefrontHeader {...props} hasTopTicker={hasTopTicker} />
-      <NivoSearchRuntimeBridge />
     </div>
   );
 }
