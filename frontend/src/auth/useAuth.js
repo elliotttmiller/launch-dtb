@@ -9,7 +9,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
-const NATIVE_CHECKOUT_SYNC_ERROR = 'Sign-in succeeded, but the secure checkout session was not ready. Please try again before continuing to checkout.';
 const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800];
 const PUBLIC_ENV = {
   REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL,
@@ -41,15 +40,6 @@ function baseUrl() {
 function authUrl(path) {
   const suffix = String(path || '').startsWith('/') ? path : `/${path}`;
   return `${baseUrl()}${AUTH_BASE_PATH}${suffix}`;
-}
-
-function isSameOriginAuthRuntime() {
-  if (typeof window === 'undefined') return false;
-  try {
-    return new URL(baseUrl() || window.location.origin, window.location.origin).origin === window.location.origin;
-  } catch {
-    return false;
-  }
 }
 
 async function authJson(path, options = {}) {
@@ -217,10 +207,7 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Login failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
       if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
-      if (isSameOriginAuthRuntime() && nativeCheckoutReadyRef.current !== true) {
-        throw new Error(NATIVE_CHECKOUT_SYNC_ERROR);
-      }
-      return { ...data, user: confirmed };
+      return { ...data, user: confirmed, nativeCheckoutReady: nativeCheckoutReadyRef.current };
     } catch (err) {
       if (epochRef.current === epoch) {
         setUser(null);
@@ -244,10 +231,7 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Registration failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
       if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
-      if (isSameOriginAuthRuntime() && nativeCheckoutReadyRef.current !== true) {
-        throw new Error(NATIVE_CHECKOUT_SYNC_ERROR);
-      }
-      return { ...data, user: confirmed };
+      return { ...data, user: confirmed, nativeCheckoutReady: nativeCheckoutReadyRef.current };
     } catch (err) {
       if (epochRef.current === epoch) {
         setUser(null);
