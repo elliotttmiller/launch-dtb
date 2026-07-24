@@ -152,7 +152,7 @@ function AllProductsSlideshow({ brand, images }) {
   }, [brand, images]);
 
   useEffect(() => {
-    if (availableImages.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    if (availableImages.length < 2) return undefined;
 
     const advance = () => {
       if (document.visibilityState !== 'visible') return;
