@@ -50,9 +50,10 @@ function dtb_repair_rest_events_stream( WP_REST_Request $request ): void {
 	echo "retry: 3000\n\n";
 	flush();
 
-	$started_at      = microtime( true );
-	$last_heartbeat  = microtime( true );
-	$terminal_types  = [ 'repair.completed', 'repair.closed', 'repair.cancelled', 'repair.quote_declined' ];
+	$started_at     = microtime( true );
+	$last_heartbeat = microtime( true );
+	$terminal_types = [ 'repair.completed', 'repair.closed', 'repair.cancelled', 'repair.quote_declined' ];
+	$terminal_states = [ 'completed', 'closed', 'cancelled', 'quote_declined' ];
 
 	do {
 		if ( connection_aborted() ) {
@@ -60,11 +61,12 @@ function dtb_repair_rest_events_stream( WP_REST_Request $request ): void {
 		}
 		$events = dtb_repair_stream_events_after( $repair_id, $cursor );
 		foreach ( $events as $event ) {
-			$cursor   = max( $cursor, (int) $event->id );
-			$payload  = ! empty( $event->payload_json ) ? json_decode( (string) $event->payload_json, true ) : [];
-			$type     = sanitize_key( (string) $event->event_type );
-			$terminal = in_array( $type, $terminal_types, true );
-			$data     = [
+			$cursor    = max( $cursor, (int) $event->id );
+			$payload   = ! empty( $event->payload_json ) ? json_decode( (string) $event->payload_json, true ) : [];
+			$type      = substr( preg_replace( '/[^a-z0-9._-]/', '', strtolower( (string) $event->event_type ) ) ?: '', 0, 100 );
+			$to_status = sanitize_key( (string) $event->to_status );
+			$terminal  = in_array( $type, $terminal_types, true ) || in_array( $to_status, $terminal_states, true );
+			$data      = [
 				'id'          => (int) $event->id,
 				'type'        => $type,
 				'from_status' => $event->from_status,
