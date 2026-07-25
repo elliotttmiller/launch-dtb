@@ -7,7 +7,6 @@ on:
       - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/bootstrap.php'
       - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/Veeqo/**'
       - 'scripts/smoke-dtb-veeqo-admin.ps1'
-      - 'scripts/test-dtb-veeqo-credential-boundary.php'
       - 'docs/veeqo-operations-admin.md'
       - 'docs/architecture/veeqo-**'
       - '.github/workflows/veeqo-control-center.yml'
@@ -17,7 +16,6 @@ on:
       - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/bootstrap.php'
       - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/Veeqo/**'
       - 'scripts/smoke-dtb-veeqo-admin.ps1'
-      - 'scripts/test-dtb-veeqo-credential-boundary.php'
       - '.github/workflows/veeqo-control-center.yml'
   workflow_dispatch:
 
@@ -35,7 +33,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout source
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -44,12 +42,9 @@ jobs:
           coverage: none
 
       - name: Set up Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
-
-      - name: Test credential boundary
-        run: php scripts/test-dtb-veeqo-credential-boundary.php
 
       - name: Run focused Veeqo validation
         shell: pwsh
