@@ -348,7 +348,7 @@
     const locked = source === 'server_constant';
     const rows = Array.isArray(candidates) ? candidates : [];
     const input = rows.length ? `<select name="${esc(name)}" ${locked?'disabled':''}><option value="0">Select a Veeqo resource</option>${rows.map((item)=>`<option value="${Number(item.id)}" ${Number(value)===Number(item.id)?'selected':''}>${esc(item.name)} (#${Number(item.id)})</option>`).join('')}</select>` : `<input type="number" min="0" name="${esc(name)}" value="${Number(value||0)}" ${locked?'disabled':''}>`;
-    return `<div class="dtb-veeqo-field"><label>${esc(label)}<span class="dtb-veeqo-field-description">${esc(description)}</span></label><div>${input}<span class="dtb-veeqo-field-description">Source: ${esc(source||'wordpress_option')}${locked?' — change the server constant to modify.':''}</span></div></div>`;
+    return `<div class="dtb-veeqo-field"><label for="dtb-${esc(name)}">${esc(label)}<span class="dtb-veeqo-field-description">${esc(description)}</span></label><div>${input}<span class="dtb-veeqo-field-description">Source: ${esc(source||'wordpress_option')}${locked?' — change the server constant to modify.':''}</span></div></div>`;
   }
 
   async function saveSettings(event) {
