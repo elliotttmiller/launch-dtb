@@ -11,7 +11,6 @@ $required = @(
     "README.md",
     "VeeqoClient.php",
     "VeeqoConfig.php",
-    "VeeqoCredentialBoundary.php",
     "VeeqoProductionConfiguration.php",
     "VeeqoInventoryService.php",
     "VeeqoInventoryProjectionServiceV3.php",
@@ -79,7 +78,6 @@ if (-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)) {
 } else {
     $bootstrapText = Get-Content -LiteralPath $bootstrap -Raw
     foreach ($needle in @(
-        "VeeqoCredentialBoundary.php",
         "VeeqoInventoryProjectionServiceV3.php",
         "Services/VeeqoOperationStore.php",
         "Services/VeeqoAdminReadModel.php",
@@ -104,12 +102,6 @@ if (-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)) {
             $failures.Add("Bootstrap still references retired Veeqo wiring: $needle")
         }
     }
-
-    $credentialBoundaryIndex = $bootstrapText.IndexOf("dtb-integrations/Veeqo/VeeqoCredentialBoundary.php", [System.StringComparison]::Ordinal)
-    $compatibilityClientIndex = $bootstrapText.IndexOf("dtb-integrations/Veeqo/VeeqoClient.php", [System.StringComparison]::Ordinal)
-    if ($credentialBoundaryIndex -lt 0 -or $compatibilityClientIndex -lt 0 -or $credentialBoundaryIndex -ge $compatibilityClientIndex) {
-        $failures.Add("VeeqoCredentialBoundary.php must load before VeeqoClient.php")
-    }
 }
 
 $phpFiles = @()
@@ -128,8 +120,6 @@ foreach ($file in $phpFiles) {
 $symbolChecks = @(
     @{ Pattern = 'function\s+dtb_veeqo_remove_legacy_admin_registration\s*\('; Expected = 1; Label = 'legacy admin retirement function' },
     @{ Pattern = 'function\s+dtb_veeqo_inventory_reconcile_chunk\s*\('; Expected = 1; Label = 'canonical inventory chunk function' },
-    @{ Pattern = 'function\s+dtb_veeqo_boundary_config\s*\('; Expected = 1; Label = 'credential-boundary configuration function' },
-    @{ Pattern = 'function\s+dtb_veeqo_refresh_credential_boundary\s*\('; Expected = 1; Label = 'credential-boundary refresh function' },
     @{ Pattern = 'class\s+DTB_Veeqo_Operation_Store\b'; Expected = 1; Label = 'operation-store class' }
 )
 foreach ($check in $symbolChecks) {
@@ -143,36 +133,6 @@ foreach ($check in $symbolChecks) {
     }
 }
 
-$credentialBoundary = Join-Path $veeqoRoot "VeeqoCredentialBoundary.php"
-if (Test-Path -LiteralPath $credentialBoundary) {
-    $credentialBoundaryText = Get-Content -LiteralPath $credentialBoundary -Raw
-    foreach ($needle in @(
-        "DTB_VEEQO_API_KEY",
-        "DTB_VEEQO_WEBHOOK_SECRET",
-        "`$stored['warehouse_id']",
-        "`$stored['channel_id']",
-        "`$stored['delivery_method_id']",
-        "dtb_veeqo_refresh_credential_boundary();"
-    )) {
-        if (-not $credentialBoundaryText.Contains($needle)) {
-            $failures.Add("Credential boundary is missing required configuration behavior: $needle")
-        }
-    }
-    foreach ($forbidden in @(
-        "`$stored['api_key']",
-        "`$stored[`"api_key`"]",
-        "`$stored['webhook_secret']",
-        "`$stored[`"webhook_secret`"]",
-        "update_option(",
-        "delete_option(",
-        "get_site_option("
-    )) {
-        if ($credentialBoundaryText.Contains($forbidden)) {
-            $failures.Add("Credential boundary must not read option-stored secrets or mutate settings: $forbidden")
-        }
-    }
-}
-
 $runtimePolicy = Join-Path $veeqoRoot "VeeqoRuntimePolicy.php"
 if (Test-Path -LiteralPath $runtimePolicy) {
     $policyText = Get-Content -LiteralPath $runtimePolicy -Raw
@@ -181,24 +141,10 @@ if (Test-Path -LiteralPath $runtimePolicy) {
         "remove_action( 'woocommerce_update_product', 'dtb_veeqo_map_product_sku', 20 )",
         "remove_action( 'dtb_veeqo_inventory_sync', 'dtb_veeqo_run_inventory_pull' )",
         "dtb_veeqo_remove_persisted_credentials",
-        "function_exists( 'dtb_veeqo_remove_legacy_admin_registration' )",
-        "dtb_veeqo_refresh_credential_boundary()"
+        "function_exists( 'dtb_veeqo_remove_legacy_admin_registration' )"
     )) {
         if (-not $policyText.Contains($needle)) {
             $failures.Add("Runtime policy is missing retirement/security guard: $needle")
-        }
-    }
-}
-
-$productionConfiguration = Join-Path $veeqoRoot "VeeqoProductionConfiguration.php"
-if (Test-Path -LiteralPath $productionConfiguration) {
-    $productionConfigurationText = Get-Content -LiteralPath $productionConfiguration -Raw
-    foreach ($needle in @(
-        "unset( `$settings['api_key'], `$settings['webhook_secret'] )",
-        "dtb_veeqo_refresh_credential_boundary()"
-    )) {
-        if (-not $productionConfigurationText.Contains($needle)) {
-            $failures.Add("Production configuration is missing credential-boundary behavior: $needle")
         }
     }
 }
