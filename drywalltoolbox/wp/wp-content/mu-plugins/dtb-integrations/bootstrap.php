@@ -44,10 +44,13 @@ if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
 	}
 }
 
-// 1) Core bridges/clients first. VeeqoClient is compatibility-only infrastructure;
-// VeeqoRuntimePolicy removes its historical route/schedule/admin ownership below.
+// 1) Core bridges/clients first. The Veeqo credential boundary must load before
+// VeeqoClient so the compatibility helper can resolve configuration only from
+// server-side constants. VeeqoRuntimePolicy removes its historical route,
+// schedule, settings, product-save, and webhook ownership below.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceBridge.php',
+	'dtb-integrations/Veeqo/VeeqoCredentialBoundary.php',
 	'dtb-integrations/Veeqo/VeeqoClient.php',
 	'dtb-integrations/QuickBooks/QuickBooksClient.php',
 ] );
