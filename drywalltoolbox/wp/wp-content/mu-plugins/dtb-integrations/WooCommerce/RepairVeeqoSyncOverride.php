@@ -74,11 +74,15 @@ function dtb_repair_job_sync_veeqo_integrated( int $repair_id, array $args = [] 
 				'last_error_at'   => gmdate( 'c' ),
 			] );
 		}
-		if ( function_exists( 'dtb_repair_append_event' ) ) {
-			dtb_repair_append_event( $repair_id, 'integration.veeqo.failed', [
-				'visibility' => 'operator',
-				'payload'    => [ 'action' => $action, 'order_id' => $order_id ?: null, 'error' => $error ],
-			] );
+		$error_marker = hash( 'sha256', $action . '|' . $order_id . '|' . $error );
+		if ( $error_marker !== (string) get_post_meta( $repair_id, '_repair_veeqo_error_marker', true ) ) {
+			update_post_meta( $repair_id, '_repair_veeqo_error_marker', $error_marker );
+			if ( function_exists( 'dtb_repair_append_event' ) ) {
+				dtb_repair_append_event( $repair_id, 'integration.veeqo.failed', [
+					'visibility' => 'operator',
+					'payload'    => [ 'action' => $action, 'order_id' => $order_id ?: null, 'error' => $error ],
+				] );
+			}
 		}
 		if ( function_exists( 'dtb_repair_retry_job' ) ) {
 			dtb_repair_retry_job( 'dtb_repair_sync_veeqo', $repair_id, $args );
@@ -100,8 +104,13 @@ function dtb_repair_order_has_fulfillable_lines( WC_Order $order ): bool {
 }
 
 function dtb_repair_veeqo_mark_synced( int $repair_id, int $order_id, int $veeqo_order_id, string $action, string $status ): void {
+	$marker = hash( 'sha256', $action . '|' . $order_id . '|' . $veeqo_order_id . '|' . $status );
+	$event_required = ! hash_equals( (string) get_post_meta( $repair_id, '_repair_veeqo_sync_marker', true ) ?: str_repeat( '0', 64 ), $marker );
+
 	update_post_meta( $repair_id, '_repair_veeqo_sync_status', $status );
 	update_post_meta( $repair_id, '_repair_veeqo_order_id', $veeqo_order_id );
+	update_post_meta( $repair_id, '_repair_veeqo_sync_marker', $marker );
+	delete_post_meta( $repair_id, '_repair_veeqo_error_marker' );
 	if ( function_exists( 'dtb_update_repair_integration_state' ) ) {
 		dtb_update_repair_integration_state( $repair_id, 'veeqo', [
 			'state'           => 'synced',
@@ -110,11 +119,10 @@ function dtb_repair_veeqo_mark_synced( int $repair_id, int $order_id, int $veeqo
 			'last_error_code' => null,
 		] );
 	}
-	if ( function_exists( 'dtb_repair_append_event' ) ) {
+	if ( $event_required && function_exists( 'dtb_repair_append_event' ) ) {
 		dtb_repair_append_event( $repair_id, 'integration.veeqo.synced', [
-			'visibility'      => 'operator',
-			'idempotency_key' => 'repair-veeqo-sync:' . hash( 'sha256', $repair_id . '|' . $action . '|' . $veeqo_order_id . '|' . $status ),
-			'payload'         => [
+			'visibility' => 'operator',
+			'payload'    => [
 				'action'         => $action,
 				'status'         => $status,
 				'order_id'       => $order_id,
