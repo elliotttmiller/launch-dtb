@@ -2,10 +2,10 @@
 /**
  * Veeqo runtime authority and retirement policy.
  *
- * The historical Veeqo client remains a compatibility library for its API,
- * payload, logging, repair, and shipping helpers. It no longer owns REST route
- * registration, inventory scheduling, product-save mapping, settings UI, or
- * automatic webhook registration.
+ * The historical Veeqo client remains compatibility infrastructure for its API,
+ * order-payload, logging, repair, and shipping helpers. It no longer owns REST
+ * route registration, inventory scheduling, product-save mapping, settings UI,
+ * or automatic webhook registration.
  *
  * @package drywall-toolbox
  */
@@ -22,7 +22,34 @@ function dtb_veeqo_verified_webhooks_enabled(): bool {
 		&& '' !== trim( (string) DTB_VEEQO_WEBHOOK_SECRET );
 }
 
-// Retire legacy runtime ownership before WordPress dispatches any of these hooks.
+/** Remove the anonymous historical WooCommerce integration registration. */
+function dtb_veeqo_remove_legacy_admin_registration(): void {
+	global $wp_filter;
+	$hook = $wp_filter['woocommerce_integrations'] ?? null;
+	if ( ! $hook instanceof WP_Hook || ! is_array( $hook->callbacks ) ) {
+		return;
+	}
+	foreach ( $hook->callbacks as $priority => $callbacks ) {
+		foreach ( $callbacks as $callback ) {
+			$function = $callback['function'] ?? null;
+			if ( ! $function instanceof Closure ) {
+				continue;
+			}
+			try {
+				$reflection = new ReflectionFunction( $function );
+				$filename   = wp_normalize_path( (string) $reflection->getFileName() );
+			} catch ( ReflectionException $exception ) {
+				continue;
+			}
+			if ( str_ends_with( $filename, '/dtb-integrations/Veeqo/VeeqoClient.php' ) ) {
+				remove_filter( 'woocommerce_integrations', $function, (int) $priority );
+			}
+		}
+	}
+}
+dtb_veeqo_remove_legacy_admin_registration();
+
+// Retire legacy runtime ownership before WordPress dispatches these hooks.
 remove_action( 'rest_api_init', 'dtb_veeqo_register_routes', 10 );
 remove_action( 'woocommerce_update_product', 'dtb_veeqo_map_product_sku', 20 );
 remove_filter( 'cron_schedules', 'dtb_veeqo_register_cron_intervals' );
@@ -30,12 +57,7 @@ remove_action( 'init', 'dtb_veeqo_schedule_inventory_pull', 25 );
 remove_action( 'dtb_veeqo_inventory_sync', 'dtb_veeqo_run_inventory_pull' );
 remove_action( 'init', 'dtb_veeqo_ensure_webhooks', 30 );
 
-/**
- * Delete credential fields left by historical settings screens.
- *
- * Secrets are valid only as server constants. This migration is idempotent and
- * never logs or reads the secret values into an operator response.
- */
+/** Remove credential fields left by historical settings screens. */
 function dtb_veeqo_remove_persisted_credentials(): void {
 	$settings = (array) get_option( 'woocommerce_dtb_veeqo_settings', [] );
 	if ( ! array_key_exists( 'api_key', $settings ) && ! array_key_exists( 'webhook_secret', $settings ) ) {
@@ -92,27 +114,6 @@ add_filter(
 	-60,
 	3
 );
-
-/** Queue one deduplicated reconciliation after a validated configuration change. */
-function dtb_veeqo_queue_inventory_reconciliation_after_configuration(): void {
-	if ( ! function_exists( 'dtb_veeqo_inventory_readiness' ) || empty( dtb_veeqo_inventory_readiness()['ready'] ) ) {
-		return;
-	}
-	if ( class_exists( 'DTB_Veeqo_Operation_Store' ) ) {
-		DTB_Veeqo_Operation_Store::enqueue( false );
-		return;
-	}
-	if ( ! function_exists( 'as_enqueue_async_action' ) ) {
-		return;
-	}
-	$already = function_exists( 'as_has_scheduled_action' )
-		? as_has_scheduled_action( DTB_VEEQO_INVENTORY_RECONCILE_HOOK, [], DTB_VEEQO_INVENTORY_ACTION_GROUP )
-		: false;
-	if ( ! $already ) {
-		as_enqueue_async_action( DTB_VEEQO_INVENTORY_RECONCILE_HOOK, [], DTB_VEEQO_INVENTORY_ACTION_GROUP, true );
-	}
-}
-add_action( 'dtb_veeqo_configuration_updated', 'dtb_veeqo_queue_inventory_reconciliation_after_configuration', 100 );
 
 function dtb_veeqo_runtime_readiness(): array {
 	$order     = function_exists( 'dtb_veeqo_production_readiness' ) ? dtb_veeqo_production_readiness() : [ 'ready' => false, 'missing' => [ 'production_configuration' ] ];
