@@ -186,7 +186,10 @@ ErrorDocument 511 /errors/511.html
   # browser-followed 302 changes login/admin POST requests to GET and drops the
   # submitted credentials, action, nonce, file mapping, and batch position.
   RewriteRule ^wp-admin/admin-ajax\.php$ wp/wp-admin/admin-ajax.php [L,QSA]
-  RewriteRule ^wp-admin/?$ wp/wp-admin/ [L,QSA]
+  # Target the front controller, not the physical directory. Rewriting to the
+  # directory allows mod_dir/SiteGround to externalize the server filesystem path
+  # during WordPress' post-login redirect.
+  RewriteRule ^wp-admin/?$ wp/wp-admin/index.php [L,QSA]
   RewriteRule ^wp-admin/(.*)$ wp/wp-admin/$1 [L,QSA]
   RewriteRule ^wp-login\.php$ wp/wp-login.php [L,QSA]
 
