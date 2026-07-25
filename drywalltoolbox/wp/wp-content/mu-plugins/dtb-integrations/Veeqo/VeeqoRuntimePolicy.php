@@ -25,6 +25,24 @@ function dtb_veeqo_verified_webhooks_enabled(): bool {
 // reconciliation maps exact SKUs and projects stock asynchronously in batches.
 remove_action( 'woocommerce_update_product', 'dtb_veeqo_map_product_sku', 20 );
 
+// The legacy WP-Cron inventory pull sums stock across warehouses and reads an
+// obsolete stock field. Remove its hooks and clear the persisted schedule once;
+// Action Scheduler now owns canonical inventory reconciliation.
+remove_action( 'init', 'dtb_veeqo_schedule_inventory_pull', 25 );
+remove_action( 'dtb_veeqo_inventory_sync', 'dtb_veeqo_run_inventory_pull' );
+
+function dtb_veeqo_retire_legacy_inventory_cron(): void {
+	if ( '1' === (string) get_option( 'dtb_veeqo_legacy_inventory_cron_retired_v1', '' ) ) {
+		return;
+	}
+	wp_clear_scheduled_hook( 'dtb_veeqo_inventory_sync' );
+	update_option( 'dtb_veeqo_legacy_inventory_cron_retired_v1', '1', false );
+	if ( function_exists( 'dtb_veeqo_log' ) ) {
+		dtb_veeqo_log( 'info', 'legacy_inventory_cron_retired', 'Legacy Veeqo WP-Cron inventory projection was retired in favor of Action Scheduler.' );
+	}
+}
+add_action( 'init', 'dtb_veeqo_retire_legacy_inventory_cron', 5 );
+
 // The legacy client attempted webhook registration automatically. Production is
 // fail-closed until the upstream signing contract is explicitly verified.
 if ( ! dtb_veeqo_verified_webhooks_enabled() ) {
