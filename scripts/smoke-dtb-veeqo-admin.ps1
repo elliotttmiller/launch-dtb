@@ -128,7 +128,7 @@ foreach ($file in $phpFiles) {
 $symbolChecks = @(
     @{ Pattern = 'function\s+dtb_veeqo_remove_legacy_admin_registration\s*\('; Expected = 1; Label = 'legacy admin retirement function' },
     @{ Pattern = 'function\s+dtb_veeqo_inventory_reconcile_chunk\s*\('; Expected = 1; Label = 'canonical inventory chunk function' },
-    @{ Pattern = 'function\s+dtb_veeqo_constant_config\s*\('; Expected = 1; Label = 'constant-only credential configuration function' },
+    @{ Pattern = 'function\s+dtb_veeqo_boundary_config\s*\('; Expected = 1; Label = 'credential-boundary configuration function' },
     @{ Pattern = 'function\s+dtb_veeqo_refresh_credential_boundary\s*\('; Expected = 1; Label = 'credential-boundary refresh function' },
     @{ Pattern = 'class\s+DTB_Veeqo_Operation_Store\b'; Expected = 1; Label = 'operation-store class' }
 )
@@ -149,20 +149,26 @@ if (Test-Path -LiteralPath $credentialBoundary) {
     foreach ($needle in @(
         "DTB_VEEQO_API_KEY",
         "DTB_VEEQO_WEBHOOK_SECRET",
+        "`$stored['warehouse_id']",
+        "`$stored['channel_id']",
+        "`$stored['delivery_method_id']",
         "dtb_veeqo_refresh_credential_boundary();"
     )) {
         if (-not $credentialBoundaryText.Contains($needle)) {
-            $failures.Add("Credential boundary is missing required constant-only behavior: $needle")
+            $failures.Add("Credential boundary is missing required configuration behavior: $needle")
         }
     }
     foreach ($forbidden in @(
-        "get_option(",
+        "`$stored['api_key']",
+        "`$stored[`"api_key`"]",
+        "`$stored['webhook_secret']",
+        "`$stored[`"webhook_secret`"]",
         "update_option(",
         "delete_option(",
         "get_site_option("
     )) {
         if ($credentialBoundaryText.Contains($forbidden)) {
-            $failures.Add("Credential boundary must not read or write WordPress options: $forbidden")
+            $failures.Add("Credential boundary must not read option-stored secrets or mutate settings: $forbidden")
         }
     }
 }
@@ -180,6 +186,19 @@ if (Test-Path -LiteralPath $runtimePolicy) {
     )) {
         if (-not $policyText.Contains($needle)) {
             $failures.Add("Runtime policy is missing retirement/security guard: $needle")
+        }
+    }
+}
+
+$productionConfiguration = Join-Path $veeqoRoot "VeeqoProductionConfiguration.php"
+if (Test-Path -LiteralPath $productionConfiguration) {
+    $productionConfigurationText = Get-Content -LiteralPath $productionConfiguration -Raw
+    foreach ($needle in @(
+        "unset( `$settings['api_key'], `$settings['webhook_secret'] )",
+        "dtb_veeqo_refresh_credential_boundary()"
+    )) {
+        if (-not $productionConfigurationText.Contains($needle)) {
+            $failures.Add("Production configuration is missing credential-boundary behavior: $needle")
         }
     }
 }
