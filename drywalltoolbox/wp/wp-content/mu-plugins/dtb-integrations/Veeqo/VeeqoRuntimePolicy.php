@@ -73,7 +73,11 @@ function dtb_veeqo_remove_persisted_credentials(): void {
 	}
 	unset( $settings['api_key'], $settings['webhook_secret'] );
 	update_option( 'woocommerce_dtb_veeqo_settings', $settings, false );
-	unset( $GLOBALS['_dtb_veeqo_config'] );
+	if ( function_exists( 'dtb_veeqo_refresh_credential_boundary' ) ) {
+		dtb_veeqo_refresh_credential_boundary();
+	} else {
+		unset( $GLOBALS['_dtb_veeqo_config'] );
+	}
 	if ( function_exists( 'dtb_veeqo_log' ) ) {
 		dtb_veeqo_log( 'info', 'persisted_credentials_removed', 'Historical Veeqo credential fields were removed from WordPress options.' );
 	}
