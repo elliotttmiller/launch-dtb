@@ -79,7 +79,6 @@ final class DTB_Veeqo_Admin_Read_Model {
 		unset( $settings['api_key'], $settings['webhook_secret'] );
 		update_option( 'woocommerce_dtb_veeqo_settings', $settings, false );
 		unset( $GLOBALS['_dtb_veeqo_config'] );
-		do_action( 'dtb_veeqo_configuration_updated', get_current_user_id() );
 		return self::settings();
 	}
 
@@ -92,10 +91,10 @@ final class DTB_Veeqo_Admin_Read_Model {
 		$stock    = sanitize_key( (string) ( $args['stock_status'] ?? '' ) );
 		$mapping  = sanitize_key( (string) ( $args['mapping'] ?? '' ) );
 		$type     = sanitize_key( (string) ( $args['type'] ?? '' ) );
-		$order    = 'asc' === strtolower( (string) ( $args['order'] ?? 'asc' ) ) ? 'ASC' : 'DESC';
+		$order    = 'desc' === strtolower( (string) ( $args['order'] ?? 'asc' ) ) ? 'DESC' : 'ASC';
 		$orderby  = sanitize_key( (string) ( $args['orderby'] ?? 'sku' ) );
 		$order_map = [
-			'name'           => 'p.post_title',
+			'name'           => 'product_name',
 			'sku'            => 'lookup.sku',
 			'stock_quantity' => 'lookup.stock_quantity',
 			'stock_status'   => 'lookup.stock_status',
@@ -106,8 +105,8 @@ final class DTB_Veeqo_Admin_Read_Model {
 		$where  = [ "p.post_type IN ('product','product_variation')", "p.post_status NOT IN ('trash','auto-draft')", "lookup.sku <> ''" ];
 		$params = [];
 		if ( '' !== $search ) {
-			$like    = '%' . $wpdb->esc_like( $search ) . '%';
-			$where[] = '(p.post_title LIKE %s OR lookup.sku LIKE %s)';
+			$like     = '%' . $wpdb->esc_like( $search ) . '%';
+			$where[]  = '(COALESCE(NULLIF(p.post_title, \'\'), parent.post_title) LIKE %s OR lookup.sku LIKE %s)';
 			$params[] = $like;
 			$params[] = $like;
 		}
@@ -115,7 +114,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 			$where[]  = 'lookup.stock_status = %s';
 			$params[] = $stock;
 		} elseif ( 'lowstock' === $stock ) {
-			$where[] = 'lookup.stock_quantity > 0 AND lookup.stock_quantity <= %d';
+			$where[]  = 'lookup.stock_quantity > 0 AND lookup.stock_quantity <= %d';
 			$params[] = self::LOW_STOCK_THRESHOLD;
 		}
 		if ( 'mapped' === $mapping ) {
@@ -129,21 +128,25 @@ final class DTB_Veeqo_Admin_Read_Model {
 			$where[] = "p.post_type = 'product_variation'";
 		}
 
+		$sellable_meta = "(SELECT post_id, MAX(meta_value) AS meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_veeqo_sellable_id' GROUP BY post_id)";
+		$mapped_meta   = "(SELECT post_id, MAX(meta_value) AS meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_veeqo_mapped_sku' GROUP BY post_id)";
+		$thumb_meta    = "(SELECT post_id, MAX(meta_value) AS meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_thumbnail_id' GROUP BY post_id)";
 		$from = "FROM {$wpdb->posts} p
+			LEFT JOIN {$wpdb->posts} parent ON parent.ID = p.post_parent
 			INNER JOIN {$wpdb->prefix}wc_product_meta_lookup lookup ON lookup.product_id = p.ID
-			LEFT JOIN {$wpdb->postmeta} sellable ON sellable.post_id = p.ID AND sellable.meta_key = '_veeqo_sellable_id'
-			LEFT JOIN {$wpdb->postmeta} mapped ON mapped.post_id = p.ID AND mapped.meta_key = '_veeqo_mapped_sku'
-			LEFT JOIN {$wpdb->postmeta} thumb ON thumb.post_id = p.ID AND thumb.meta_key = '_thumbnail_id'";
+			LEFT JOIN {$sellable_meta} sellable ON sellable.post_id = p.ID
+			LEFT JOIN {$mapped_meta} mapped ON mapped.post_id = p.ID
+			LEFT JOIN {$thumb_meta} thumb ON thumb.post_id = p.ID";
 		$where_sql = implode( ' AND ', $where );
-		$count_sql = "SELECT COUNT(DISTINCT p.ID) {$from} WHERE {$where_sql}";
+		$count_sql = "SELECT COUNT(*) {$from} WHERE {$where_sql}";
 		$total     = (int) $wpdb->get_var( empty( $params ) ? $count_sql : $wpdb->prepare( $count_sql, ...$params ) );
 
-		$select_sql = "SELECT DISTINCT p.ID, p.post_parent, p.post_title, p.post_type, p.post_status, p.post_modified_gmt,
-			lookup.sku, lookup.stock_quantity, lookup.stock_status, sellable.meta_value AS veeqo_sellable_id,
-			mapped.meta_value AS veeqo_mapped_sku, thumb.meta_value AS thumbnail_id
+		$select_sql = "SELECT p.ID, p.post_parent, COALESCE(NULLIF(p.post_title, ''), parent.post_title) AS product_name,
+			p.post_type, p.post_status, p.post_modified_gmt, lookup.sku, lookup.stock_quantity, lookup.stock_status,
+			sellable.meta_value AS veeqo_sellable_id, mapped.meta_value AS veeqo_mapped_sku, thumb.meta_value AS thumbnail_id
 			{$from} WHERE {$where_sql} ORDER BY {$order_column} {$order}, p.ID ASC LIMIT %d OFFSET %d";
 		$select_params = array_merge( $params, [ $per_page, $offset ] );
-		$rows = $wpdb->get_results( $wpdb->prepare( $select_sql, ...$select_params ), ARRAY_A );
+		$rows          = $wpdb->get_results( $wpdb->prepare( $select_sql, ...$select_params ), ARRAY_A );
 
 		$items = [];
 		foreach ( (array) $rows as $row ) {
@@ -151,7 +154,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 			$items[] = [
 				'product_id'         => $product_id,
 				'parent_id'          => absint( $row['post_parent'] ?? 0 ),
-				'name'               => sanitize_text_field( (string) ( $row['post_title'] ?? '' ) ),
+				'name'               => sanitize_text_field( (string) ( $row['product_name'] ?? '' ) ),
 				'type'               => 'product_variation' === (string) ( $row['post_type'] ?? '' ) ? 'variation' : 'simple',
 				'publish_status'     => sanitize_key( (string) ( $row['post_status'] ?? '' ) ),
 				'sku'                => sanitize_text_field( (string) ( $row['sku'] ?? '' ) ),
@@ -170,26 +173,27 @@ final class DTB_Veeqo_Admin_Read_Model {
 		}
 
 		return [
-			'page' => $page,
+			'page'     => $page,
 			'per_page' => $per_page,
-			'total' => $total,
-			'pages' => max( 1, (int) ceil( $total / $per_page ) ),
-			'items' => $items,
-			'source' => 'woocommerce_projection',
+			'total'    => $total,
+			'pages'    => max( 1, (int) ceil( $total / $per_page ) ),
+			'items'    => $items,
+			'source'   => 'woocommerce_projection',
 		];
 	}
 
 	public static function inventory_summary(): array {
 		global $wpdb;
+		$sellable_meta = "(SELECT post_id, MAX(meta_value) AS meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_veeqo_sellable_id' GROUP BY post_id)";
 		$sql = "SELECT
-			COUNT(DISTINCT p.ID) AS total,
+			COUNT(*) AS total,
 			SUM(CASE WHEN lookup.stock_status = 'instock' THEN 1 ELSE 0 END) AS in_stock,
 			SUM(CASE WHEN lookup.stock_quantity > 0 AND lookup.stock_quantity <= %d THEN 1 ELSE 0 END) AS low_stock,
 			SUM(CASE WHEN lookup.stock_status = 'outofstock' THEN 1 ELSE 0 END) AS out_of_stock,
 			SUM(CASE WHEN sellable.meta_value IS NULL OR sellable.meta_value = '' THEN 1 ELSE 0 END) AS unmapped
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->prefix}wc_product_meta_lookup lookup ON lookup.product_id = p.ID
-			LEFT JOIN {$wpdb->postmeta} sellable ON sellable.post_id = p.ID AND sellable.meta_key = '_veeqo_sellable_id'
+			LEFT JOIN {$sellable_meta} sellable ON sellable.post_id = p.ID
 			WHERE p.post_type IN ('product','product_variation') AND p.post_status NOT IN ('trash','auto-draft') AND lookup.sku <> ''";
 		$row = (array) $wpdb->get_row( $wpdb->prepare( $sql, self::LOW_STOCK_THRESHOLD ), ARRAY_A );
 		return [
@@ -203,20 +207,13 @@ final class DTB_Veeqo_Admin_Read_Model {
 
 	public static function orders( array $args, bool $fulfillment_only = false ): array {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
-			return [ 'page' => 1, 'per_page' => 25, 'total' => 0, 'pages' => 1, 'items' => [] ];
+			return [ 'page' => 1, 'per_page' => 25, 'total' => 0, 'pages' => 1, 'items' => [], 'error' => 'WooCommerce order APIs are unavailable.' ];
 		}
 		$page     = max( 1, absint( $args['page'] ?? 1 ) );
 		$per_page = min( 100, max( 10, absint( $args['per_page'] ?? 25 ) ) );
 		$status   = sanitize_key( (string) ( $args['status'] ?? '' ) );
 		$search   = trim( sanitize_text_field( (string) ( $args['search'] ?? '' ) ) );
-		$query = [
-			'limit'    => $per_page,
-			'page'     => $page,
-			'paginate' => true,
-			'orderby'  => 'date',
-			'order'    => 'DESC',
-			'return'   => 'objects',
-		];
+		$query = [ 'limit' => $per_page, 'page' => $page, 'paginate' => true, 'orderby' => 'date', 'order' => 'DESC', 'return' => 'objects' ];
 		if ( '' !== $status && 'all' !== $status ) {
 			$query['status'] = [ $status ];
 		}
@@ -237,14 +234,20 @@ final class DTB_Veeqo_Admin_Read_Model {
 				[ 'key' => '_dtb_veeqo_sync_status', 'compare' => 'EXISTS' ],
 			];
 		}
-		$result = wc_get_orders( $query );
+		try {
+			$result = wc_get_orders( $query );
+		} catch ( Throwable $throwable ) {
+			return [
+				'page' => $page, 'per_page' => $per_page, 'total' => 0, 'pages' => 1, 'items' => [],
+				'error' => sanitize_text_field( $throwable->getMessage() ),
+			];
+		}
 		$orders = is_object( $result ) && isset( $result->orders ) ? (array) $result->orders : (array) $result;
 		$items  = [];
 		foreach ( $orders as $order ) {
-			if ( ! $order instanceof WC_Order ) {
-				continue;
+			if ( $order instanceof WC_Order ) {
+				$items[] = self::order_row( $order );
 			}
-			$items[] = self::order_row( $order );
 		}
 		$total = is_object( $result ) && isset( $result->total ) ? (int) $result->total : count( $items );
 		$pages = is_object( $result ) && isset( $result->max_num_pages ) ? (int) $result->max_num_pages : 1;
@@ -260,7 +263,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 		return $counts;
 	}
 
-	public static function exact_sku( string $sku ): array|WP_Error {
+	public static function exact_sku( string $sku ) {
 		$sku = trim( sanitize_text_field( $sku ) );
 		if ( '' === $sku || strlen( $sku ) > 100 ) {
 			return new WP_Error( 'invalid_sku', 'Enter a valid exact SKU.', [ 'status' => 400 ] );
@@ -321,7 +324,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 	}
 
 	private static function order_row( WC_Order $order ): array {
-		$veeqo_id   = absint( $order->get_meta( '_dtb_veeqo_order_id', true ) ?: $order->get_meta( '_veeqo_order_id', true ) );
+		$veeqo_id    = absint( $order->get_meta( '_dtb_veeqo_order_id', true ) ?: $order->get_meta( '_veeqo_order_id', true ) );
 		$sync_status = sanitize_key( (string) $order->get_meta( '_dtb_veeqo_sync_status', true ) );
 		$tracking    = sanitize_text_field( (string) ( $order->get_meta( '_tracking_number', true ) ?: $order->get_meta( '_dtb_veeqo_tracking_number', true ) ) );
 		$carrier     = sanitize_text_field( (string) ( $order->get_meta( '_tracking_carrier', true ) ?: $order->get_meta( '_dtb_veeqo_carrier', true ) ) );
