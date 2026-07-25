@@ -35,6 +35,9 @@ if ( ! function_exists( 'dtb_veeqo_sync_order' ) ) {
 			if ( function_exists( 'dtb_order_integration_set_meta_state' ) ) {
 				dtb_order_integration_set_meta_state( $order, 'veeqo', 'already_synced', [ 'order_id' => $existing_id ] );
 			}
+			if ( function_exists( 'dtb_veeqo_start_order_reconciliation' ) ) {
+				dtb_veeqo_start_order_reconciliation( $order_id, 0 );
+			}
 			return [
 				'status' => 'already_synced', 'veeqo_order_id' => $existing_id,
 				'tracking_number' => (string) $order->get_meta( '_tracking_number', true ),
@@ -60,9 +63,6 @@ if ( ! function_exists( 'dtb_veeqo_sync_order' ) ) {
 				throw new DTB_Order_Integration_Exception( 'Veeqo order payload could not be built. Check configuration, line-item SKUs, sellable mappings, and shipping address.', false, 422 );
 			}
 
-			// Preserve the human/operator-visible Woo order number in Veeqo. The
-			// request helper derives its POST /orders Idempotency-Key from this stable
-			// channel_order_number; the DTB correlation key is persisted separately.
 			if ( empty( $payload['order']['channel_order_number'] ) ) {
 				$payload['order']['channel_order_number'] = ltrim( (string) $order->get_order_number(), '#' );
 			}
@@ -97,6 +97,9 @@ if ( ! function_exists( 'dtb_veeqo_sync_order' ) ) {
 			}
 			if ( class_exists( 'DTB_VeeqoSyncJob' ) ) {
 				DTB_VeeqoSyncJob::log_timestamp( 'order_queue' );
+			}
+			if ( function_exists( 'dtb_veeqo_start_order_reconciliation' ) ) {
+				dtb_veeqo_start_order_reconciliation( $order_id, 15 );
 			}
 			return [ 'status' => 'synced', 'veeqo_order_id' => $veeqo_id, 'tracking_number' => null, 'carrier' => null, 'inventory_reserved' => true, 'message' => 'Order synced to Veeqo.', 'retryable' => false ];
 		} catch ( DTB_Order_Integration_Exception $e ) {
