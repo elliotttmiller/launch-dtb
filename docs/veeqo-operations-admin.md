@@ -14,14 +14,16 @@ Authentication: native WordPress admin cookie plus the WordPress REST nonce supp
 
 Canonical implementation: `VeeqoInventoryProjectionServiceV2.php`.
 
-- Fetches `/products` in pages of at most 100.
+- Fetches `/products` using the shared page-size contract.
 - Uses only the explicitly configured `warehouse_id`.
 - Reads `available_stock_level`; `available_stock` is accepted only as a compatibility alias.
+- Rejects null and non-numeric stock values as invalid.
 - Treats missing warehouse entries and absent stock fields as unknown, never as zero.
 - Requires exact SKU identity and fails closed on duplicate WooCommerce SKUs.
 - Updates simple products and variations, synchronizes variable parents, and invalidates product transients.
 - Supports dry run with no WooCommerce writes.
-- Uses a token-owned, expiring option lock to contain duplicate execution.
+- Uses a token-owned lock with page-level heartbeat refresh.
+- Uses bounded page/time execution, persists partial diagnostics, and queues continuation from the next page cursor.
 
 The legacy `dtb_veeqo_pull_inventory_into_wc()` remains in `VeeqoClient.php` only for compatibility. Its WP-Cron schedule and worker are removed by `VeeqoRuntimePolicy.php`; Action Scheduler owns production reconciliation.
 
@@ -35,13 +37,13 @@ Action Scheduler group: `dtb-integrations`
 
 Operation arguments: `operation_id`, `dry_run`
 
-Deduplication: only one queued/running operator operation is allowed. The canonical reconciliation lock also prevents concurrent scheduled and operator runs.
+Deduplication: the active-operation marker is claimed atomically with `add_option()`. Only one queued/running operator operation is allowed. The canonical reconciliation lock also prevents concurrent scheduled and operator runs.
 
 Retries: recurring reconciliation retries transient `0`, `408`, `425`, `429`, and `5xx` failures up to three times with bounded exponential delay. Operator operations persist terminal failure and may be requeued by an operator after remediation.
 
-Observability: operation state and the latest aggregate reconciliation report are stored as non-autoloaded WordPress options. History is bounded to 20 operations. Veeqo structured logs include operation ID, action ID, mode, aggregate counts, and redacted errors.
+Observability: operation state and the latest aggregate reconciliation report are stored as non-autoloaded WordPress options. History is bounded to 20 operation summaries; full results remain available only through the protected per-operation endpoint. Veeqo structured logs include operation ID, action ID, mode, aggregate counts, and redacted errors.
 
-Rollback: remove `VeeqoOperationsAdmin.php` and `VeeqoInventoryProjectionServiceV2.php` from `dtb-integrations/bootstrap.php`, restore the prior bootstrap, and clear pending `dtb-integrations` Veeqo actions. Do not re-enable the retired legacy inventory cron as a production authority.
+Rollback: remove `VeeqoOperationsAdmin.php` and `VeeqoInventoryProjectionServiceV2.php` from `dtb-integrations/bootstrap.php` only if the rollback bootstrap continues to load `VeeqoRuntimePolicy.php`. Keep the runtime retirement guard active, clear pending `dtb-integrations` Veeqo actions, and verify `dtb_veeqo_inventory_sync` is absent from WP-Cron. Do not restore a bootstrap or recovery state that permits `VeeqoClient.php` to schedule or execute the retired legacy inventory cron.
 
 ## REST endpoints
 
