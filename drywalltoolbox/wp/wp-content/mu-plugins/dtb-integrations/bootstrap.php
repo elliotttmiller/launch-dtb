@@ -47,7 +47,6 @@ if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
 // 1) Core bridges/clients first.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceBridge.php',
-	'dtb-integrations/Veeqo/VeeqoCredentialBoundary.php',
 	'dtb-integrations/Veeqo/VeeqoClient.php',
 	'dtb-integrations/QuickBooks/QuickBooksClient.php',
 ] );
