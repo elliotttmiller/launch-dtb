@@ -1,73 +1,283 @@
-# Veeqo Operations Admin
+# Veeqo Control Center
 
-## Ownership and authority
+## Purpose
 
-The Veeqo Operations console is owned by `dtb-integrations/Veeqo`. Veeqo remains the authority for sellable inventory, warehouse availability, allocation, fulfillment, carrier, and tracking. WooCommerce stores the checkout-facing inventory projection. The console does not create orders, change payment state, or expose credentials.
+The Veeqo Control Center is the canonical WordPress operator workspace for Drywall Toolbox inventory, order projection, fulfillment visibility, reconciliation, and non-secret Veeqo configuration. It replaces the retired `WooCommerce > Veeqo Operations` page and prevents routine operators from switching between wp-admin and Veeqo for DTB-owned workflows.
 
-Admin page: `WooCommerce > Veeqo Operations`
+Admin URL:
 
-Required capability: `manage_woocommerce`
+```text
+/wp/wp-admin/admin.php?page=dtb-veeqo-control-center
+```
 
-Authentication: native WordPress admin cookie plus the WordPress REST nonce supplied by `wp-api-fetch`.
+Required capability:
+
+```text
+manage_woocommerce
+```
+
+Authentication is the native WordPress admin cookie plus the WordPress REST nonce installed by `wp-api-fetch`.
+
+## Authority boundaries
+
+- WooCommerce owns products, customers, orders, payments, refunds, and checkout-facing order status.
+- Veeqo owns sellable inventory, configured-warehouse availability, allocation, fulfillment, labels, shipment execution/status, carrier, and tracking.
+- DTB owns exact-SKU mapping, inventory projection, order projection policy, queues, idempotency, retries, diagnostics, recovery, and the operator experience.
+- QuickBooks remains accounting projection only.
+
+The control center does not create storefront orders, change payment status, provide live Veeqo carrier quotes, or expose Veeqo credentials.
+
+## Architecture
+
+Owning module:
+
+```text
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/Veeqo/
+```
+
+Runtime composition:
+
+```text
+VeeqoClient.php                         compatibility API/payload/log helpers
+VeeqoProductionConfiguration.php        server-side discovery/readiness
+VeeqoInventoryProjectionServiceV3.php   warehouse-scoped inventory projection
+VeeqoRuntimePolicy.php                  authority/retirement/security policy
+Services/VeeqoOperationStore.php        durable single-flight operation state
+Services/VeeqoAdminReadModel.php        batched/redacted admin projections
+Rest/VeeqoAdminController.php           canonical protected admin API
+Rest/VeeqoCompatibilityController.php   bounded aliases for known callers
+Admin/VeeqoAdminPage.php                wp-admin application shell
+assets/veeqo-admin.css                   scoped responsive presentation
+assets/veeqo-admin.js                    interaction, filtering, polling, drawers
+```
+
+The historical monolithic `VeeqoOperationsAdmin.php`, `VeeqoInventoryAdminController.php`, `VeeqoInventoryProjectionService.php`, and `VeeqoInventoryProjectionServiceV2.php` are removed. There is one admin page owner, one inventory projection implementation, and one operation store.
+
+## Operator sections
+
+### Overview
+
+- production-readiness indicators
+- inventory, low-stock, out-of-stock, unmapped, and processing-order KPIs
+- current inventory reconciliation diagnostics
+- recent durable operations
+- exact-SKU inspector
+
+### Orders
+
+- WooCommerce order search/filter/pagination
+- Veeqo external order identity and DTB sync state
+- fulfillment/tracking projection
+- bounded operator retry through the canonical `dtb-orders` queue
+
+### Inventory
+
+- indexed search by product name or SKU
+- filters for stock state, mapping state, and product type
+- WooCommerce checkout-facing projected stock
+- mapping identity and exact-SKU live inspection
+- dry-run and real reconciliation controls
+
+The table labels `On hand`, `Available`, `Committed`, and `Incoming` follow the Veeqo operator vocabulary. WooCommerce stores only checkout-facing projected available quantity; committed/incoming values remain unknown unless a verified Veeqo read model supplies them. Unknown values display as `—` and are never invented.
+
+### Fulfillment
+
+- Veeqo-projected WooCommerce orders
+- queue/sync state
+- external Veeqo order ID
+- tracking/carrier projection
+- operator retry using the canonical order queue
+
+### Operations
+
+- one active inventory operation at a time
+- bounded page/time chunks
+- durable cursor/result/heartbeat state
+- transient retry with exponential backoff
+- continuation recovery after worker interruption
+- bounded history of 20 summaries
+
+### Settings
+
+- server-side API credential readiness only; the key is never rendered or accepted
+- Direct channel, warehouse, and delivery method selection
+- Veeqo discovery and explicit validation
+- server constants remain authoritative over WordPress options
+- multiple candidates require an explicit operator choice
+
+Saving operational IDs does not automatically mutate inventory. The operator must validate configuration and run a dry reconciliation before applying stock.
 
 ## Inventory projection contract
 
-Canonical implementation: `VeeqoInventoryProjectionServiceV2.php`.
+Canonical implementation:
 
-- Fetches `/products` using the shared page-size contract.
-- Uses only the explicitly configured `warehouse_id`.
-- Reads `available_stock_level`; `available_stock` is accepted only as a compatibility alias.
-- Rejects null and non-numeric stock values as invalid.
-- Treats missing warehouse entries and absent stock fields as unknown, never as zero.
-- Requires exact SKU identity and fails closed on duplicate WooCommerce SKUs.
-- Updates simple products and variations, synchronizes variable parents, and invalidates product transients.
-- Supports dry run with no WooCommerce writes.
-- Uses a token-owned lock with page-level heartbeat refresh.
-- Uses bounded page/time execution, persists partial diagnostics, and queues continuation from the next page cursor.
+```text
+VeeqoInventoryProjectionServiceV3.php
+```
 
-The legacy `dtb_veeqo_pull_inventory_into_wc()` remains in `VeeqoClient.php` only for compatibility. Its WP-Cron schedule and worker are removed by `VeeqoRuntimePolicy.php`; Action Scheduler owns production reconciliation.
+Rules:
 
-## Queue contract
+- fetch `/products` using pages of 100
+- use only the explicitly configured Veeqo warehouse
+- prefer `available_stock_level`; accept `available_stock` only as a compatibility alias
+- reject null/non-numeric stock values
+- treat absent warehouse entries and unknown stock schemas as exceptions, never zero
+- require exact unique WooCommerce SKU identity
+- update only simple products and variations
+- persist `_veeqo_sellable_id` and `_veeqo_mapped_sku`
+- synchronize affected variable parents and invalidate transients
+- skip unchanged products
+- support a write-free dry run
 
-Operation hook: `dtb_veeqo_inventory_operation`
+Execution budget:
 
-Recurring reconciliation hook: `dtb_veeqo_inventory_reconcile`
+```text
+page size: 100
+maximum pages per chunk: 25
+maximum wall time per chunk: 90 seconds
+absolute page limit: 1000
+lease TTL: 20 minutes with page-level heartbeat
+```
 
-Action Scheduler group: `dtb-integrations`
+## Queue contracts
 
-Operation arguments: `operation_id`, `dry_run`
+Inventory operation hook:
 
-Deduplication: the active-operation marker is claimed atomically with `add_option()`. Only one queued/running operator operation is allowed. The canonical reconciliation lock also prevents concurrent scheduled and operator runs.
+```text
+dtb_veeqo_inventory_operation
+```
 
-Retries: recurring reconciliation retries transient `0`, `408`, `425`, `429`, and `5xx` failures up to three times with bounded exponential delay. Operator operations persist terminal failure and may be requeued by an operator after remediation.
+Arguments:
 
-Observability: operation state and the latest aggregate reconciliation report are stored as non-autoloaded WordPress options. History is bounded to 20 operation summaries; full results remain available only through the protected per-operation endpoint. Veeqo structured logs include operation ID, action ID, mode, aggregate counts, and redacted errors.
+```text
+operation_id, dry_run, start_page, aggregate, attempt
+```
 
-Rollback: remove `VeeqoOperationsAdmin.php` and `VeeqoInventoryProjectionServiceV2.php` from `dtb-integrations/bootstrap.php` only if the rollback bootstrap continues to load `VeeqoRuntimePolicy.php`. Keep the runtime retirement guard active, clear pending `dtb-integrations` Veeqo actions, and verify `dtb_veeqo_inventory_sync` is absent from WP-Cron. Do not restore a bootstrap or recovery state that permits `VeeqoClient.php` to schedule or execute the retired legacy inventory cron.
+Recurring trigger:
 
-## REST endpoints
+```text
+dtb_veeqo_inventory_reconcile_recurring
+```
 
-All routes below require `manage_woocommerce`:
+System reconciliation hook:
 
-- `GET /dtb/v1/veeqo/admin/operations/overview`
-- `GET /dtb/v1/veeqo/admin/operations/sku?sku={exact-sku}`
-- `POST /dtb/v1/veeqo/admin/operations/reconcile` with `{ "dry_run": true|false }`
-- `GET /dtb/v1/veeqo/admin/operations/{operation_id}`
-- `GET /dtb/v1/veeqo/admin/inventory/diagnostics`
-- `GET /dtb/v1/veeqo/inventory` for the WooCommerce projection
-- `POST /dtb/v1/veeqo/admin/connection/test`
+```text
+dtb_veeqo_inventory_reconcile
+```
 
-The SKU inspector returns redacted WooCommerce mapping data and Veeqo sellable/warehouse stock fields. It never returns the API key, webhook secret, authorization headers, or raw credential-bearing responses.
+Action Scheduler group:
 
-## Deployment and verification
+```text
+dtb-integrations
+```
 
-1. Deploy all changed `dtb-integrations` files from one commit.
-2. Confirm PHP syntax for every changed PHP file.
-3. Run `scripts/smoke-dtb-mu-modules.ps1` and targeted negative REST permission tests.
-4. Confirm wp-admin loads without `Cannot redeclare dtb_veeqo_pull_inventory_into_wc()`.
-5. Open `WooCommerce > Veeqo Operations` and run connection validation.
-6. Inspect a known exact SKU and confirm the configured warehouse reports the expected `available_stock_level`.
-7. Queue a dry run and review pages, sellables, projected updates, unmapped SKUs, duplicates, missing warehouse entries, and invalid entries.
-8. Queue a real reconciliation only after the dry run is acceptable.
-9. Verify representative simple products and variations in WooCommerce.
-10. Restore production debug settings and inspect structured logs and Action Scheduler state.
+Inventory single-flight uses an atomic active marker plus a token-owned reconciliation lease. Operation continuation persists its next cursor before enqueueing the continuation, records a heartbeat, and can recover a pending continuation after a dead worker. Transient classes `0`, `408`, `425`, `429`, lock conflict, and `5xx` retry up to three times with bounded exponential delay.
+
+Order retry remains in the canonical order platform:
+
+```text
+hook: dtb_order_sync_veeqo
+group: dtb-orders
+queue API: dtb_order_enqueue_job()
+```
+
+The control center never calls Veeqo synchronously to create an order.
+
+## REST API
+
+All canonical control-center routes require `manage_woocommerce`:
+
+```text
+GET  /dtb/v1/veeqo/admin/control-center/overview
+GET  /dtb/v1/veeqo/admin/control-center/inventory
+GET  /dtb/v1/veeqo/admin/control-center/orders
+GET  /dtb/v1/veeqo/admin/control-center/fulfillment
+GET  /dtb/v1/veeqo/admin/control-center/settings
+POST /dtb/v1/veeqo/admin/control-center/settings
+POST /dtb/v1/veeqo/admin/control-center/connection/test
+POST /dtb/v1/veeqo/admin/control-center/inventory/reconcile
+GET  /dtb/v1/veeqo/admin/control-center/operations
+GET  /dtb/v1/veeqo/admin/control-center/operations/{operation_id}
+GET  /dtb/v1/veeqo/admin/control-center/sku?sku={exact-sku}
+POST /dtb/v1/veeqo/admin/control-center/orders/{order_id}/retry
+```
+
+Supported compatibility aliases delegate to canonical behavior and perform no catalog-wide synchronous work:
+
+```text
+GET  /dtb/v1/veeqo/status
+GET  /dtb/v1/veeqo/inventory
+POST /dtb/v1/veeqo/inventory/pull
+POST /dtb/v1/veeqo/map-skus
+POST /dtb/v1/veeqo/sync-order/{order_id}
+DELETE /dtb/v1/veeqo/webhooks/ensure  -> 410 retired
+```
+
+The old `/dtb/v1/veeqo/status` JWT-only behavior is replaced by native wp-admin capability authorization.
+
+## Security
+
+The browser and REST responses never receive:
+
+- Veeqo API keys
+- webhook secrets
+- authorization headers
+- raw credential-bearing upstream payloads
+- customer payment data
+
+Historical `api_key` and `webhook_secret` fields are removed from `woocommerce_dtb_veeqo_settings` by an idempotent runtime migration. Credentials are accepted only from server constants.
+
+Every write requires `manage_woocommerce` and the WordPress REST nonce. Inventory and order writes are queued. External calls are not made during checkout, payment confirmation, or webhook acknowledgement.
+
+## Legacy retirement
+
+`VeeqoRuntimePolicy.php` removes the historical client ownership before hooks execute:
+
+```text
+rest_api_init -> dtb_veeqo_register_routes
+woocommerce_update_product -> dtb_veeqo_map_product_sku
+cron_schedules -> dtb_veeqo_register_cron_intervals
+init -> dtb_veeqo_schedule_inventory_pull
+dtb_veeqo_inventory_sync -> dtb_veeqo_run_inventory_pull
+init -> dtb_veeqo_ensure_webhooks
+anonymous woocommerce_integrations registration
+```
+
+The persisted `dtb_veeqo_inventory_sync` WP-Cron event is cleared with retry-on-failure and must never be restored as production authority.
+
+`VeeqoClient.php` is explicitly compatibility infrastructure until its still-used API, order-payload, shipping, repair, logging, and webhook helpers are separately extracted. New behavior must not be added there.
+
+## Deployment
+
+Deploy the complete `dtb-integrations/Veeqo` and bootstrap change from one immutable commit. Do not selectively upload only the admin page or bootstrap.
+
+Required order:
+
+1. backup the DTB-managed MU-plugin surface
+2. validate all changed PHP syntax
+3. validate `veeqo-admin.js` syntax
+4. run the Veeqo admin smoke script and global MU-plugin validation
+5. deploy the bounded payload through the protected deployment workflow
+6. confirm wp-admin loads and the old bookmark redirects
+7. validate connection and selected resources
+8. run a dry reconciliation
+9. review every duplicate, unmapped, missing-warehouse, and invalid-stock exception
+10. run one controlled reconciliation
+11. verify representative simple products and variations
+12. verify one controlled paid order creates exactly one Veeqo order through `dtb-orders`
+13. verify fulfillment/tracking projection
+
+Merge is not deployment.
+
+## Rollback
+
+Rollback must retain `VeeqoRuntimePolicy.php`. Never restore the legacy WP-Cron inventory worker or public bulk inventory route.
+
+1. stop/cancel identified pending `dtb-integrations` Veeqo actions
+2. restore the previous complete DTB-managed file set
+3. keep the legacy cron/route/admin retirement policy loaded
+4. correct the configured warehouse/resource mapping
+5. queue a fresh authoritative reconciliation
+6. verify representative SKUs before reopening checkout
+
+Rollback does not automatically revert WooCommerce stock already projected from Veeqo. Never bulk-mark all products in stock; reconcile from the Veeqo authority.
