@@ -122,7 +122,9 @@ function dtb_veeqo_operations_enqueue( bool $dry_run ): array {
 		$operation['error']  = 'Action Scheduler did not return an action ID.';
 		$operation['completed_at'] = gmdate( 'c' );
 		dtb_veeqo_operations_save( $operation );
-		delete_option( DTB_VEEQO_OPERATIONS_ACTIVE_OPTION );
+		if ( $operation_id === (string) get_option( DTB_VEEQO_OPERATIONS_ACTIVE_OPTION, '' ) ) {
+			delete_option( DTB_VEEQO_OPERATIONS_ACTIVE_OPTION );
+		}
 		return [ 'ok' => false, 'status' => 503, 'code' => 'queue_failed', 'message' => $operation['error'] ];
 	}
 
