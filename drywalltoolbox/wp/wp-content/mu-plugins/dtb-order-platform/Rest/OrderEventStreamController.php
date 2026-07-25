@@ -31,15 +31,14 @@ function dtb_order_rest_event_stream( WP_REST_Request $request ): void {
 	echo "retry: 3000\n\n";
 	flush();
 
-	$started_at      = microtime( true );
-	$last_heartbeat  = microtime( true );
-	$last_revision   = '';
+	$started_at     = microtime( true );
+	$last_heartbeat = microtime( true );
+	$last_revision  = '';
 
 	do {
 		if ( connection_aborted() ) {
 			break;
 		}
-		delete_transient( 'dtb_order_tracking_v2_' . $order_id );
 		$frame = function_exists( 'dtb_order_build_sse_frame' ) ? dtb_order_build_sse_frame( $order_id ) : null;
 		if ( ! is_array( $frame ) ) {
 			echo "event: error\n";
@@ -50,7 +49,7 @@ function dtb_order_rest_event_stream( WP_REST_Request $request ): void {
 
 		$revision = dtb_order_sse_frame_revision( $frame );
 		if ( '' === $last_revision || ! hash_equals( $last_revision, $revision ) ) {
-			$event_name  = ! empty( $frame['is_terminal'] ) ? 'order.terminal' : 'order.status_changed';
+			$event_name    = ! empty( $frame['is_terminal'] ) ? 'order.terminal' : 'order.status_changed';
 			$frame['type'] = $event_name;
 			if ( ! empty( $frame['id'] ) ) {
 				echo 'id: ' . absint( $frame['id'] ) . "\n";
