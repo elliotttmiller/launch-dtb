@@ -29,12 +29,14 @@ final class DTB_Veeqo_Operation_Store {
 		if ( '' === $operation_id ) {
 			return;
 		}
+
 		$operation['operation_id'] = $operation_id;
 		update_option( self::option_name( $operation_id ), $operation, false );
 
 		$index = array_values( array_unique( array_filter( array_map( 'sanitize_key', (array) get_option( DTB_VEEQO_OPERATIONS_INDEX_OPTION, [] ) ) ) ) );
 		$index = array_values( array_diff( $index, [ $operation_id ] ) );
 		array_unshift( $index, $operation_id );
+
 		$expired = array_slice( $index, DTB_VEEQO_OPERATIONS_RETENTION );
 		update_option( DTB_VEEQO_OPERATIONS_INDEX_OPTION, array_slice( $index, 0, DTB_VEEQO_OPERATIONS_RETENTION ), false );
 		foreach ( $expired as $expired_id ) {
@@ -144,6 +146,7 @@ final class DTB_Veeqo_Operation_Store {
 		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
 			return [ 'ok' => false, 'status' => 503, 'code' => 'action_scheduler_unavailable', 'message' => 'Action Scheduler is unavailable.' ];
 		}
+
 		$active = self::active();
 		if ( ! empty( $active ) ) {
 			return [ 'ok' => true, 'status' => 202, 'operation' => self::summary( $active ), 'message' => 'A Veeqo inventory operation is already queued or running.' ];
@@ -174,6 +177,7 @@ final class DTB_Veeqo_Operation_Store {
 			'error'                => '',
 		];
 		self::save( $operation );
+
 		$action_id = as_enqueue_async_action( DTB_VEEQO_OPERATIONS_HOOK, [ $operation_id, $dry_run, 1, [], 0 ], DTB_VEEQO_INVENTORY_ACTION_GROUP, true );
 		if ( empty( $action_id ) ) {
 			$operation['status']       = 'failed';
@@ -183,6 +187,7 @@ final class DTB_Veeqo_Operation_Store {
 			self::release_active( $operation_id );
 			return [ 'ok' => false, 'status' => 503, 'code' => 'queue_failed', 'message' => $operation['error'] ];
 		}
+
 		$operation['action_id'] = absint( $action_id );
 		self::save( $operation );
 		return [ 'ok' => true, 'status' => 202, 'operation' => self::summary( $operation ), 'message' => 'Veeqo inventory operation queued.' ];
@@ -194,9 +199,10 @@ final class DTB_Veeqo_Operation_Store {
 		if ( empty( $operation ) || in_array( (string) ( $operation['status'] ?? '' ), [ 'completed', 'failed' ], true ) ) {
 			return;
 		}
-		if ( $operation_id !== sanitize_key( (string) get_option( DTB_VEEQO_OPERATIONS_ACTIVE_OPTION, '' ) ) {
+		if ( $operation_id !== sanitize_key( (string) get_option( DTB_VEEQO_OPERATIONS_ACTIVE_OPTION, '' ) ) ) {
 			return;
 		}
+
 		$expected_page = max( 1, absint( $operation['next_page'] ?? 1 ) );
 		if ( max( 1, $start_page ) !== $expected_page ) {
 			return;
@@ -213,6 +219,7 @@ final class DTB_Veeqo_Operation_Store {
 			if ( ! function_exists( 'dtb_veeqo_inventory_reconcile_chunk' ) ) {
 				throw new RuntimeException( 'Canonical Veeqo inventory projection service is unavailable.' );
 			}
+
 			$result = dtb_veeqo_inventory_reconcile_chunk( $dry_run, $start_page, $aggregate );
 			if ( is_wp_error( $result ) ) {
 				$error_data = $result->get_error_data();
@@ -224,6 +231,7 @@ final class DTB_Veeqo_Operation_Store {
 			$operation['heartbeat_at'] = gmdate( 'c' );
 			$operation['attempt']      = 0;
 			$operation['error']        = '';
+
 			if ( ! empty( $result['partial'] ) ) {
 				$operation['status']               = 'running';
 				$operation['next_page']            = max( 1, absint( $result['next_page'] ?? ( $start_page + 1 ) ) );
@@ -239,6 +247,7 @@ final class DTB_Veeqo_Operation_Store {
 				if ( empty( $action_id ) ) {
 					throw new RuntimeException( 'Veeqo continuation could not be queued.' );
 				}
+
 				$operation['action_id']            = absint( $action_id );
 				$operation['continuation_pending'] = false;
 				self::save( $operation );
@@ -258,6 +267,7 @@ final class DTB_Veeqo_Operation_Store {
 			$retryable     = $lock_conflict || 0 === $status || 408 === $status || 425 === $status || 429 === $status || $status >= 500;
 			$retry_page    = max( 1, absint( $operation['next_page'] ?? $start_page ) );
 			$retry_result  = is_array( $operation['result'] ?? null ) ? $operation['result'] : $aggregate;
+
 			if ( $retryable && $attempt < DTB_VEEQO_OPERATIONS_MAX_RETRIES && function_exists( 'as_schedule_single_action' ) ) {
 				$delay     = min( HOUR_IN_SECONDS, ( 2 ** $attempt ) * 5 * MINUTE_IN_SECONDS );
 				$action_id = as_schedule_single_action(
