@@ -74,6 +74,9 @@ jobs:
           find drywalltoolbox/wp/wp-content/mu-plugins drywalltoolbox/wp/wp-content/themes -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
+      - name: Test Veeqo credential boundary
+        run: php scripts/test-dtb-veeqo-credential-boundary.php
+
       - name: Validate Veeqo integration contract
         shell: pwsh
         run: ./scripts/smoke-dtb-veeqo-admin.ps1
@@ -82,12 +85,12 @@ jobs:
         shell: pwsh
         run: ./scripts/smoke-dtb-mu-modules.ps1
 
-      - name: Validate checkout JavaScript syntax
+      - name: Validate active checkout JavaScript syntax
         shell: bash
         run: |
           set -euo pipefail
-          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js
-          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js
+          node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
+          node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
           node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js
 
       - name: Validate checkout presentation contract
