@@ -168,19 +168,22 @@ No full-catalog write or external order mutation runs in an interactive REST req
 Before packaging or deployment:
 
 ```powershell
+php .\scripts\test-dtb-veeqo-credential-boundary.php
 .\scripts\smoke-dtb-veeqo-admin.ps1
 .\scripts\smoke-dtb-mu-modules.ps1
 ```
 
+The executable PHP contract verifies that option-stored API/webhook secrets are ignored, server constants remain authoritative, and the supported non-secret resource-ID fallback remains intact without bootstrapping WordPress or contacting Veeqo.
+
 The Veeqo smoke script validates the complete file manifest, rejects retired files/directories, checks bootstrap wiring and credential-boundary ordering, scans duplicate canonical symbols, verifies that option-stored secrets are not read, lints every Veeqo PHP file when PHP is installed, and validates the admin JavaScript when Node is installed.
 
-Both smoke scripts are required CI checks in `.github/workflows/ci-build.yml`.
+All three checks are required by CI/release workflows.
 
 ## Production replacement procedure
 
 1. Back up the current live `dtb-integrations/Veeqo/` directory and `dtb-integrations/bootstrap.php`.
 2. Build the replacement from one immutable repository commit.
-3. Run the Veeqo and global MU-plugin smoke checks against that commit.
+3. Run the Veeqo credential contract and global MU-plugin smoke checks against that commit.
 4. Upload the complete replacement directory to a temporary sibling path.
 5. Verify every manifest file exists, retired paths are absent, and PHP permissions are normally `0644` with directories `0755`.
 6. Replace the live `Veeqo/` directory as one unit. Do not copy into the existing directory without first removing or renaming it.
