@@ -41,7 +41,7 @@ No `Infrastructure/` directory is part of the canonical module.
 ## Composition and ownership
 
 ```text
-VeeqoCredentialBoundary.php             constant-only request-local credential/config cache
+VeeqoCredentialBoundary.php             secret-safe request-local configuration cache
 VeeqoClient.php                         compatibility API/payload/log helpers only
 VeeqoConfig.php                         normalized configuration facade
 VeeqoProductionConfiguration.php       resource discovery and readiness
@@ -64,7 +64,7 @@ VeeqoSyncJob.php                       synchronization timestamps/state
 VeeqoHealthCheck.php                   redacted health diagnostics
 ```
 
-`VeeqoCredentialBoundary.php` must load before `VeeqoClient.php`. It pre-populates the compatibility client's request-local configuration cache exclusively from server-side constants, so legacy credential fields in WordPress options cannot become bootstrap-time runtime authority.
+`VeeqoCredentialBoundary.php` must load before `VeeqoClient.php`. It pre-populates the compatibility client's request-local configuration cache with API key and webhook secret values only from server-side constants. Non-secret warehouse, channel, and delivery-method identifiers retain their supported constant-first, WordPress-option fallback.
 
 `VeeqoClient.php` remains compatibility infrastructure because active order payload, API request, shipping, repair, logging, and webhook code still depends on its functions. It does not own production admin routes, inventory scheduling, product-save mapping, settings UI, or webhook registration. New domain behavior does not belong in that file.
 
@@ -151,7 +151,8 @@ No full-catalog write or external order mutation runs in an interactive REST req
 
 - Never expose or persist Veeqo credentials in browser code, REST responses, logs, or WordPress options.
 - Resolve API key and webhook secret runtime authority only from `DTB_VEEQO_API_KEY` and `DTB_VEEQO_WEBHOOK_SECRET` server constants.
-- Load `VeeqoCredentialBoundary.php` before the compatibility client and refresh it after historical option cleanup.
+- Non-secret warehouse, channel, and delivery-method identifiers may use their existing constant-first WordPress-option fallback.
+- Load `VeeqoCredentialBoundary.php` before the compatibility client and refresh it after historical credential cleanup or resource-setting writes.
 - Never convert unknown stock to zero.
 - Never sum warehouse inventory for checkout projection.
 - Never bypass exact SKU, order, customer, or allocation ownership validation.
@@ -160,7 +161,7 @@ No full-catalog write or external order mutation runs in an interactive REST req
 - Never describe DTB checkout shipping policy as live Veeqo carrier rating.
 - Never invent provider write endpoints from UI behavior or historical comments.
 
-`VeeqoRuntimePolicy.php` must remain loaded during rollback. It retires legacy routes, cron, product-save mapping, duplicate settings ownership, and automatic webhook registration. It also removes historical credential fields from WordPress options and preserves the constant-only request-local configuration boundary.
+`VeeqoRuntimePolicy.php` must remain loaded during rollback. It retires legacy routes, cron, product-save mapping, duplicate settings ownership, and automatic webhook registration. It also removes historical credential fields from WordPress options and preserves the secret-safe request-local configuration boundary.
 
 ## Validation
 
@@ -171,7 +172,7 @@ Before packaging or deployment:
 .\scripts\smoke-dtb-mu-modules.ps1
 ```
 
-The Veeqo smoke script validates the complete file manifest, rejects retired files/directories, checks bootstrap wiring and credential-boundary ordering, scans duplicate canonical symbols, lints every Veeqo PHP file when PHP is installed, and validates the admin JavaScript when Node is installed.
+The Veeqo smoke script validates the complete file manifest, rejects retired files/directories, checks bootstrap wiring and credential-boundary ordering, scans duplicate canonical symbols, verifies that option-stored secrets are not read, lints every Veeqo PHP file when PHP is installed, and validates the admin JavaScript when Node is installed.
 
 Both smoke scripts are required CI checks in `.github/workflows/ci-build.yml`.
 
