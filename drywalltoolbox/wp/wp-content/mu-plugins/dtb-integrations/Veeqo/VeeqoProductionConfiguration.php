@@ -142,7 +142,11 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 	unset( $settings['api_key'], $settings['webhook_secret'] );
 	if ( $persist ) {
 		update_option( 'woocommerce_dtb_veeqo_settings', $settings, false );
-		unset( $GLOBALS['_dtb_veeqo_config'] );
+		if ( function_exists( 'dtb_veeqo_refresh_credential_boundary' ) ) {
+			dtb_veeqo_refresh_credential_boundary();
+		} else {
+			unset( $GLOBALS['_dtb_veeqo_config'] );
+		}
 	}
 	$readiness = dtb_veeqo_production_readiness();
 	$diagnostics = [
