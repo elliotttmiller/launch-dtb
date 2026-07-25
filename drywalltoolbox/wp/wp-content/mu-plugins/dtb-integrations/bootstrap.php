@@ -44,11 +44,11 @@ if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
 	}
 }
 
-// 1) Core bridges/clients first (runtime hooks/routes).
+// 1) Core bridges/clients first. VeeqoClient is compatibility-only infrastructure;
+// VeeqoRuntimePolicy removes its historical route/schedule/admin ownership below.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceBridge.php',
 	'dtb-integrations/Veeqo/VeeqoClient.php',
-	'dtb-integrations/Veeqo/VeeqoLegacyAdminRegistrationGuard.php',
 	'dtb-integrations/QuickBooks/QuickBooksClient.php',
 ] );
 
@@ -61,17 +61,17 @@ dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceHealthCheck.php',
 ] );
 
-// 3) Veeqo module-layer files.
+// 3) Veeqo production module. Load domain/runtime services before REST and admin UI.
 dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoConfig.php',
 	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryService.php',
-	'dtb-integrations/Veeqo/VeeqoInventoryProjectionServiceV2.php',
-	'dtb-integrations/Veeqo/VeeqoInventoryAdminController.php',
+	'dtb-integrations/Veeqo/VeeqoInventoryProjectionServiceV3.php',
 	'dtb-integrations/Veeqo/VeeqoRuntimePolicy.php',
 	'dtb-integrations/Veeqo/Services/VeeqoOperationStore.php',
 	'dtb-integrations/Veeqo/Services/VeeqoAdminReadModel.php',
 	'dtb-integrations/Veeqo/Rest/VeeqoAdminController.php',
+	'dtb-integrations/Veeqo/Rest/VeeqoCompatibilityController.php',
 	'dtb-integrations/Veeqo/Admin/VeeqoAdminPage.php',
 	'dtb-integrations/Veeqo/VeeqoOrderProjectionContract.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryBoundary.php',
