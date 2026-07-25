@@ -53,6 +53,14 @@ jobs:
           cp .github/workflows/ci-build.yml dtb-production/.github/workflows/ci-build.yml
           cp .github/workflows/deploy.yml dtb-production/.github/workflows/deploy.yml
 
+          # Exact validation/release dependencies invoked by the copied workflows.
+          mkdir -p dtb-production/scripts dtb-production/launch/scripts
+          cp scripts/smoke-dtb-checkout-ui.ps1 dtb-production/scripts/smoke-dtb-checkout-ui.ps1
+          cp scripts/smoke-dtb-mu-modules.ps1 dtb-production/scripts/smoke-dtb-mu-modules.ps1
+          cp scripts/smoke-dtb-veeqo-admin.ps1 dtb-production/scripts/smoke-dtb-veeqo-admin.ps1
+          cp scripts/test-dtb-veeqo-credential-boundary.php dtb-production/scripts/test-dtb-veeqo-credential-boundary.php
+          cp launch/scripts/siteground-sftp-release.sh dtb-production/launch/scripts/siteground-sftp-release.sh
+
           # Frontend production source. Keep only files needed to build/validate the storefront.
           mkdir -p dtb-production/frontend/scripts
           cp -a frontend/src dtb-production/frontend/src
@@ -113,6 +121,7 @@ jobs:
           - `AGENTS.md`
           - current `memory-bank/{product,structure,tech}.md`
           - `.github/workflows/{ci-build,deploy}.yml`
+          - exact workflow dependencies in `scripts/` and `launch/scripts/`
           - curated `frontend/` production source and mandatory build-safety files
           - tracked `wp/` application code (`mu-plugins`, themes, routing/index files)
           - exactly two authoritative runtime/import CSVs from `products/launch/official/`
@@ -120,7 +129,7 @@ jobs:
           - production root `.htaccess` and `logos/`
 
           Excluded:
-          - root `scripts/`
+          - non-allowlisted operational scripts
           - legacy/stage/historical catalog CSV generations outside `products/launch/official/`
           - research/reference docs, scraped data, reports, audits, source-history and scratch data
           - generated `dist/`, `node_modules/`, caches and local/staging env files
@@ -140,6 +149,14 @@ jobs:
           test -f dtb-production/memory-bank/tech.md
           test -f dtb-production/.github/workflows/ci-build.yml
           test -f dtb-production/.github/workflows/deploy.yml
+
+          test -f dtb-production/scripts/smoke-dtb-checkout-ui.ps1
+          test -f dtb-production/scripts/smoke-dtb-mu-modules.ps1
+          test -f dtb-production/scripts/smoke-dtb-veeqo-admin.ps1
+          test -f dtb-production/scripts/test-dtb-veeqo-credential-boundary.php
+          test "$(find dtb-production/scripts -maxdepth 1 -type f | wc -l)" -eq 4
+          test -f dtb-production/launch/scripts/siteground-sftp-release.sh
+          test "$(find dtb-production/launch/scripts -maxdepth 1 -type f | wc -l)" -eq 1
 
           test -d dtb-production/frontend/src
           test -d dtb-production/frontend/public
@@ -170,7 +187,6 @@ jobs:
           fi
 
           # Explicitly reject development/research/runtime-owned content.
-          test ! -e dtb-production/scripts
           test ! -e dtb-production/docs
           test ! -e dtb-production/frontend/server
           test ! -e dtb-production/dist
