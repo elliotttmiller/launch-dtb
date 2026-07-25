@@ -64,17 +64,22 @@ add_action(
 		$js_ver   = is_file( $js_path ) ? (string) filemtime( $js_path ) : '1';
 
 		wp_enqueue_style( 'dtb-veeqo-admin', $base_url . 'veeqo-admin.css', [], $css_ver );
+		wp_enqueue_script( 'wp-api-fetch' );
 		wp_enqueue_script( 'dtb-veeqo-admin', $base_url . 'veeqo-admin.js', [ 'wp-api-fetch' ], $js_ver, true );
 
 		$config = [
 			'restRoot' => esc_url_raw( rest_url() ),
-			'nonce'    => wp_create_nonce( 'wp_rest' ),
-			'basePath' => '/dtb/v1/veeqo/admin/dashboard',
+			'basePath' => '/dtb/v1/veeqo/admin/control-center',
 			'pageUrl'  => esc_url_raw( admin_url( 'admin.php?page=' . DTB_VEEQO_ADMIN_PAGE_SLUG ) ),
 			'currency' => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD',
 			'locale'   => get_user_locale(),
-			'pollMs'   => 2500,
-			'pollLimit'=> 120,
+			'pageSize' => 50,
+			'pollMs'   => 3000,
+			'pollLimit'=> 100,
+			'labels'   => [
+				'confirmReconcile' => __( 'Apply configured-warehouse Veeqo stock to WooCommerce?', 'drywall-toolbox' ),
+				'confirmRetry'     => __( 'Queue a Veeqo retry for this WooCommerce order?', 'drywall-toolbox' ),
+			],
 		];
 		wp_add_inline_script( 'dtb-veeqo-admin', 'window.DTBVeeqoAdmin=' . wp_json_encode( $config ) . ';', 'before' );
 	},
