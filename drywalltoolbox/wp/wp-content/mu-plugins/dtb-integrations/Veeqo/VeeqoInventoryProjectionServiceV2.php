@@ -107,9 +107,9 @@ function dtb_veeqo_inventory_normalize_stock_entry( array $entry ): ?array {
 	if ( ! empty( $entry['infinite'] ) ) {
 		return [ 'available' => 0, 'infinite' => true ];
 	}
-	if ( array_key_exists( 'available_stock_level', $entry ) ) {
+	if ( is_numeric( $entry['available_stock_level'] ?? null ) ) {
 		$available = (int) $entry['available_stock_level'];
-	} elseif ( array_key_exists( 'available_stock', $entry ) ) {
+	} elseif ( is_numeric( $entry['available_stock'] ?? null ) ) {
 		$available = (int) $entry['available_stock'];
 	} else {
 		return null;
