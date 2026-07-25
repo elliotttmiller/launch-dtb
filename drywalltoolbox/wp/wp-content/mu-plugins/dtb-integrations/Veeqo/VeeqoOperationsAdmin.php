@@ -228,8 +228,11 @@ function dtb_veeqo_operations_lookup_sku( string $sku ) {
 		$response = dtb_veeqo_request( 'GET', '/products', [ 'query' => $sku, 'page' => '1', 'page_size' => '20' ] );
 		if ( ! empty( $response['ok'] ) && is_array( $response['data'] ?? null ) ) {
 			foreach ( $response['data'] as $veeqo_product ) {
+				if ( ! is_array( $veeqo_product ) ) {
+					continue;
+				}
 				foreach ( (array) ( $veeqo_product['sellables'] ?? [] ) as $sellable ) {
-					if ( $sku !== trim( (string) ( $sellable['sku_code'] ?? '' ) ) ) {
+					if ( ! is_array( $sellable ) || $sku !== trim( (string) ( $sellable['sku_code'] ?? '' ) ) ) {
 						continue;
 					}
 					$entries = [];
