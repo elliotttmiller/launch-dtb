@@ -1,0 +1,1 @@
+powershell -ExecutionPolicy Bypass -File "C:\Users\Elliott\launch-dtb\scripts\run-dtb-siteground-ssh.ps1"
