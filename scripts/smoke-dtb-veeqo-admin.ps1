@@ -8,9 +8,20 @@ $veeqoRoot = Join-Path $repoRoot "drywalltoolbox/wp/wp-content/mu-plugins/dtb-in
 $bootstrap = Join-Path $repoRoot "drywalltoolbox/wp/wp-content/mu-plugins/dtb-integrations/bootstrap.php"
 
 $required = @(
-    "VeeqoInventoryProjectionServiceV3.php",
-    "VeeqoRuntimePolicy.php",
+    "README.md",
+    "VeeqoClient.php",
+    "VeeqoConfig.php",
     "VeeqoProductionConfiguration.php",
+    "VeeqoInventoryService.php",
+    "VeeqoInventoryProjectionServiceV3.php",
+    "VeeqoInventorySchedulePolicy.php",
+    "VeeqoInventoryCoverageService.php",
+    "VeeqoRuntimePolicy.php",
+    "VeeqoOrderProjectionContract.php",
+    "VeeqoInventoryBoundary.php",
+    "VeeqoShippingService.php",
+    "VeeqoSyncJob.php",
+    "VeeqoHealthCheck.php",
     "Services/VeeqoOperationStore.php",
     "Services/VeeqoAdminReadModel.php",
     "Rest/VeeqoAdminController.php",
@@ -20,7 +31,7 @@ $required = @(
     "assets/veeqo-admin.js"
 )
 
-$forbidden = @(
+$forbiddenFiles = @(
     "VeeqoInventoryProjectionService.php",
     "VeeqoInventoryProjectionServiceV2.php",
     "VeeqoInventoryAdminController.php",
@@ -31,7 +42,15 @@ $forbidden = @(
     "Services/VeeqoAdminOrderReadService.php"
 )
 
+$forbiddenDirectories = @(
+    "Infrastructure"
+)
+
 $failures = New-Object System.Collections.Generic.List[string]
+
+if (-not (Test-Path -LiteralPath $veeqoRoot -PathType Container)) {
+    $failures.Add("Missing canonical Veeqo module directory: $veeqoRoot")
+}
 
 foreach ($relative in $required) {
     $path = Join-Path $veeqoRoot $relative
@@ -40,10 +59,17 @@ foreach ($relative in $required) {
     }
 }
 
-foreach ($relative in $forbidden) {
+foreach ($relative in $forbiddenFiles) {
     $path = Join-Path $veeqoRoot $relative
     if (Test-Path -LiteralPath $path -PathType Leaf) {
         $failures.Add("Retired Veeqo file is still present: $relative")
+    }
+}
+
+foreach ($relative in $forbiddenDirectories) {
+    $path = Join-Path $veeqoRoot $relative
+    if (Test-Path -LiteralPath $path -PathType Container) {
+        $failures.Add("Retired Veeqo directory is still present: $relative")
     }
 }
 
@@ -64,6 +90,7 @@ if (-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)) {
         }
     }
     foreach ($needle in @(
+        "VeeqoInventoryProjectionService.php",
         "VeeqoInventoryProjectionServiceV2.php",
         "VeeqoInventoryAdminController.php",
         "VeeqoOperationsAdmin.php",
@@ -77,6 +104,35 @@ if (-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)) {
     }
 }
 
+$phpFiles = @()
+if (Test-Path -LiteralPath $veeqoRoot -PathType Container) {
+    $phpFiles = @(Get-ChildItem -LiteralPath $veeqoRoot -Recurse -File -Filter "*.php")
+}
+
+foreach ($file in $phpFiles) {
+    $text = Get-Content -LiteralPath $file.FullName -Raw
+    if (-not $text.Contains("defined( 'ABSPATH' ) || exit;")) {
+        $relative = $file.FullName.Substring($veeqoRoot.Length).TrimStart('\', '/')
+        $failures.Add("Veeqo PHP file lacks the canonical ABSPATH guard: $relative")
+    }
+}
+
+$symbolChecks = @(
+    @{ Pattern = 'function\s+dtb_veeqo_remove_legacy_admin_registration\s*\('; Expected = 1; Label = 'legacy admin retirement function' },
+    @{ Pattern = 'function\s+dtb_veeqo_inventory_reconcile_chunk\s*\('; Expected = 1; Label = 'canonical inventory chunk function' },
+    @{ Pattern = 'class\s+DTB_Veeqo_Operation_Store\b'; Expected = 1; Label = 'operation-store class' }
+)
+foreach ($check in $symbolChecks) {
+    $count = 0
+    foreach ($file in $phpFiles) {
+        $text = Get-Content -LiteralPath $file.FullName -Raw
+        $count += ([regex]::Matches($text, $check.Pattern)).Count
+    }
+    if ($count -ne $check.Expected) {
+        $failures.Add("Expected exactly $($check.Expected) declaration(s) of $($check.Label); found $count")
+    }
+}
+
 $runtimePolicy = Join-Path $veeqoRoot "VeeqoRuntimePolicy.php"
 if (Test-Path -LiteralPath $runtimePolicy) {
     $policyText = Get-Content -LiteralPath $runtimePolicy -Raw
@@ -84,7 +140,8 @@ if (Test-Path -LiteralPath $runtimePolicy) {
         "remove_action( 'rest_api_init', 'dtb_veeqo_register_routes', 10 )",
         "remove_action( 'woocommerce_update_product', 'dtb_veeqo_map_product_sku', 20 )",
         "remove_action( 'dtb_veeqo_inventory_sync', 'dtb_veeqo_run_inventory_pull' )",
-        "dtb_veeqo_remove_persisted_credentials"
+        "dtb_veeqo_remove_persisted_credentials",
+        "function_exists( 'dtb_veeqo_remove_legacy_admin_registration' )"
     )) {
         if (-not $policyText.Contains($needle)) {
             $failures.Add("Runtime policy is missing retirement/security guard: $needle")
@@ -103,6 +160,22 @@ if (Test-Path -LiteralPath $controller) {
     }
 }
 
+$adminPage = Join-Path $veeqoRoot "Admin/VeeqoAdminPage.php"
+if (Test-Path -LiteralPath $adminPage) {
+    $adminPageText = Get-Content -LiteralPath $adminPage -Raw
+    if ($adminPageText -match 'DTB_VEEQO_API_KEY\s*[=:]\s*["'']') {
+        $failures.Add("Veeqo admin page appears to embed a credential literal")
+    }
+}
+
+$adminJs = Join-Path $veeqoRoot "assets/veeqo-admin.js"
+if (Test-Path -LiteralPath $adminJs) {
+    $adminJsText = Get-Content -LiteralPath $adminJs -Raw
+    if ($adminJsText -match '(?i)authorization\s*:\s*["'']|api[_-]?key\s*[:=]\s*["'']|webhook[_-]?secret\s*[:=]\s*["'']') {
+        $failures.Add("Veeqo admin JavaScript appears to embed credential material")
+    }
+}
+
 $client = Join-Path $veeqoRoot "VeeqoClient.php"
 if (Test-Path -LiteralPath $client) {
     $clientText = Get-Content -LiteralPath $client -Raw
@@ -113,23 +186,10 @@ if (Test-Path -LiteralPath $client) {
 
 $php = Get-Command php -ErrorAction SilentlyContinue
 if ($null -ne $php) {
-    $phpFiles = @(
-        $bootstrap,
-        (Join-Path $veeqoRoot "VeeqoInventoryProjectionServiceV3.php"),
-        (Join-Path $veeqoRoot "VeeqoRuntimePolicy.php"),
-        (Join-Path $veeqoRoot "VeeqoProductionConfiguration.php"),
-        (Join-Path $veeqoRoot "Services/VeeqoOperationStore.php"),
-        (Join-Path $veeqoRoot "Services/VeeqoAdminReadModel.php"),
-        (Join-Path $veeqoRoot "Rest/VeeqoAdminController.php"),
-        (Join-Path $veeqoRoot "Rest/VeeqoCompatibilityController.php"),
-        (Join-Path $veeqoRoot "Admin/VeeqoAdminPage.php")
-    )
-    foreach ($file in $phpFiles) {
-        if (Test-Path -LiteralPath $file) {
-            & $php.Source -l $file | Out-Host
-            if ($LASTEXITCODE -ne 0) {
-                $failures.Add("PHP syntax failed: $file")
-            }
+    foreach ($file in @($phpFiles + (Get-Item -LiteralPath $bootstrap))) {
+        & $php.Source -l $file.FullName | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            $failures.Add("PHP syntax failed: $($file.FullName)")
         }
     }
 } else {
@@ -137,7 +197,6 @@ if ($null -ne $php) {
 }
 
 $node = Get-Command node -ErrorAction SilentlyContinue
-$adminJs = Join-Path $veeqoRoot "assets/veeqo-admin.js"
 if ($null -ne $node -and (Test-Path -LiteralPath $adminJs)) {
     & $node.Source --check $adminJs | Out-Host
     if ($LASTEXITCODE -ne 0) {

@@ -22,27 +22,35 @@ function dtb_veeqo_verified_webhooks_enabled(): bool {
 		&& '' !== trim( (string) DTB_VEEQO_WEBHOOK_SECRET );
 }
 
-/** Remove the anonymous historical WooCommerce integration registration. */
-function dtb_veeqo_remove_legacy_admin_registration(): void {
-	global $wp_filter;
-	$hook = $wp_filter['woocommerce_integrations'] ?? null;
-	if ( ! $hook instanceof WP_Hook || ! is_array( $hook->callbacks ) ) {
-		return;
-	}
-	foreach ( $hook->callbacks as $priority => $callbacks ) {
-		foreach ( $callbacks as $callback ) {
-			$function = $callback['function'] ?? null;
-			if ( ! $function instanceof Closure ) {
-				continue;
-			}
-			try {
-				$reflection = new ReflectionFunction( $function );
-				$filename   = wp_normalize_path( (string) $reflection->getFileName() );
-			} catch ( ReflectionException $exception ) {
-				continue;
-			}
-			if ( str_ends_with( $filename, '/dtb-integrations/Veeqo/VeeqoClient.php' ) ) {
-				remove_filter( 'woocommerce_integrations', $function, (int) $priority );
+/**
+ * Remove the anonymous historical WooCommerce integration registration.
+ *
+ * The guard prevents a mixed/overlay deployment from taking down WordPress if
+ * a retired copy of the former registration guard is still present. The
+ * canonical deployment manifest still requires that retired file to be absent.
+ */
+if ( ! function_exists( 'dtb_veeqo_remove_legacy_admin_registration' ) ) {
+	function dtb_veeqo_remove_legacy_admin_registration(): void {
+		global $wp_filter;
+		$hook = $wp_filter['woocommerce_integrations'] ?? null;
+		if ( ! $hook instanceof WP_Hook || ! is_array( $hook->callbacks ) ) {
+			return;
+		}
+		foreach ( $hook->callbacks as $priority => $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				$function = $callback['function'] ?? null;
+				if ( ! $function instanceof Closure ) {
+					continue;
+				}
+				try {
+					$reflection = new ReflectionFunction( $function );
+					$filename   = wp_normalize_path( (string) $reflection->getFileName() );
+				} catch ( ReflectionException $exception ) {
+					continue;
+				}
+				if ( str_ends_with( $filename, '/dtb-integrations/Veeqo/VeeqoClient.php' ) ) {
+					remove_filter( 'woocommerce_integrations', $function, (int) $priority );
+				}
 			}
 		}
 	}
