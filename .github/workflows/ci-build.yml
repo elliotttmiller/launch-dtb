@@ -74,6 +74,14 @@ jobs:
           find drywalltoolbox/wp/wp-content/mu-plugins drywalltoolbox/wp/wp-content/themes -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
+      - name: Validate Veeqo integration contract
+        shell: pwsh
+        run: ./scripts/smoke-dtb-veeqo-admin.ps1
+
+      - name: Validate MU-plugin composition
+        shell: pwsh
+        run: ./scripts/smoke-dtb-mu-modules.ps1
+
       - name: Validate checkout JavaScript syntax
         shell: bash
         run: |
