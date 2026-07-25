@@ -44,10 +44,7 @@ if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
 	}
 }
 
-// 1) Core bridges/clients first. The Veeqo credential boundary must load before
-// VeeqoClient so the compatibility helper can resolve configuration only from
-// server-side constants. VeeqoRuntimePolicy removes its historical route,
-// schedule, settings, product-save, and webhook ownership below.
+// 1) Core bridges/clients first.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceBridge.php',
 	'dtb-integrations/Veeqo/VeeqoCredentialBoundary.php',
@@ -77,6 +74,8 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/Rest/VeeqoCompatibilityController.php',
 	'dtb-integrations/Veeqo/Admin/VeeqoAdminPage.php',
 	'dtb-integrations/Veeqo/VeeqoOrderProjectionContract.php',
+	'dtb-integrations/Veeqo/VeeqoOrderStateProjector.php',
+	'dtb-integrations/Veeqo/VeeqoOrderReconciliationService.php',
 	'dtb-integrations/Veeqo/VeeqoInventoryBoundary.php',
 	'dtb-integrations/Veeqo/VeeqoShippingService.php',
 	'dtb-integrations/Veeqo/VeeqoSyncJob.php',
@@ -102,16 +101,13 @@ dtb_integrations_require_files( [
 	'dtb-integrations/OperationalPipeline/QuickBooksJobOverride.php',
 	'dtb-integrations/OperationalPipeline/VeeqoWebhookEchoGuard.php',
 	'dtb-integrations/OperationalPipeline/VeeqoWebhookPipelineController.php',
+	'dtb-integrations/OperationalPipeline/VeeqoInboundProjectionOverride.php',
+	'dtb-integrations/WooCommerce/RepairVeeqoSyncOverride.php',
 	'dtb-integrations/OperationalPipeline/QuickBooksQueueController.php',
 	'dtb-integrations/OperationalPipeline/PipelinePayloadPreview.php',
 ] );
 
-// Rewards module intentionally omitted for launch:
-// - RewardsService.php
-// - RewardsIssueJob.php
-// - RewardsAdjustmentController.php
-// - RewardsBalanceController.php
-// - RewardsHealthCheck.php
+// Rewards module intentionally omitted for launch.
 
 // 5) Notifications last (cross-integration consumers).
 dtb_integrations_require_files( [
@@ -190,5 +186,4 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Admin/MarketplaceSettingsPage.php',
 ] );
 
-// Register existing lightweight integration diagnostics.
 dtb_integrations_register_health_checks();
