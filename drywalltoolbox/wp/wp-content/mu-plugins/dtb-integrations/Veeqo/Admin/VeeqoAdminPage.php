@@ -9,6 +9,20 @@ defined( 'ABSPATH' ) || exit;
 
 const DTB_VEEQO_ADMIN_PAGE_SLUG = 'dtb-veeqo-control-center';
 
+/**
+ * Convert a WordPress locale into a browser-compatible BCP 47 language tag.
+ *
+ * WordPress commonly returns locales such as en_US, while Intl requires en-US.
+ */
+function dtb_veeqo_admin_browser_locale(): string {
+	$locale = str_replace( '_', '-', (string) get_user_locale() );
+	if ( 1 !== preg_match( '/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/', $locale ) ) {
+		return 'en-US';
+	}
+
+	return $locale;
+}
+
 /** Redirect the retired operations-page bookmark to the canonical control center. */
 add_action(
 	'admin_init',
@@ -72,7 +86,7 @@ add_action(
 			'basePath' => '/dtb/v1/veeqo/admin/control-center',
 			'pageUrl'  => esc_url_raw( admin_url( 'admin.php?page=' . DTB_VEEQO_ADMIN_PAGE_SLUG ) ),
 			'currency' => function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD',
-			'locale'   => get_user_locale(),
+			'locale'   => dtb_veeqo_admin_browser_locale(),
 			'pageSize' => 50,
 			'pollMs'   => 3000,
 			'pollLimit'=> 100,
