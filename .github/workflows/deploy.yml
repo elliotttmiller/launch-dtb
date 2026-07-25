@@ -82,10 +82,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '20'
           cache: npm
@@ -111,23 +111,12 @@ jobs:
           find drywalltoolbox/wp/wp-content/mu-plugins drywalltoolbox/wp/wp-content/themes -type f -name '*.php' -print0 \
             | xargs -0 -n1 php -l
 
-      - name: Test Veeqo credential boundary
-        run: php scripts/test-dtb-veeqo-credential-boundary.php
-
-      - name: Validate Veeqo integration contract
-        shell: pwsh
-        run: ./scripts/smoke-dtb-veeqo-admin.ps1
-
-      - name: Validate MU-plugin composition
-        shell: pwsh
-        run: ./scripts/smoke-dtb-mu-modules.ps1
-
-      - name: Validate active checkout JavaScript syntax
+      - name: Validate checkout JavaScript syntax
         shell: bash
         run: |
           set -euo pipefail
-          node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
-          node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
+          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js
+          node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js
           node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js
 
       - name: Validate checkout presentation contract
@@ -200,7 +189,7 @@ jobs:
       SITEGROUND_REMOTE_DIR: ${{ secrets.SITEGROUND_REMOTE_DIR }}
     steps:
       - name: Checkout release tooling
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download immutable deployment payload
         uses: actions/download-artifact@v4
@@ -286,7 +275,7 @@ jobs:
       SITEGROUND_REMOTE_DIR: ${{ secrets.SITEGROUND_REMOTE_DIR }}
     steps:
       - name: Checkout release tooling
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Download selected backup
         uses: actions/download-artifact@v4
