@@ -36,7 +36,7 @@ SiteGround Speed Optimizer is runtime-owned. DTB may request a full Dynamic/File
 1. Back up SiteGround files and database.
 2. Verify `home` and `siteurl` with WP-CLI and review a serialized-data-aware old-origin search/replace dry run.
 3. Build and validate the SPA, PHP, routing, and bounded payload.
-4. Deploy through the protected `siteground-production` workflow or assemble `launch/live/` for a controlled manual transfer.
+4. Assemble `launch/live/`, review the complete bounded change set, and transfer it manually through FileZilla.
 5. Purge SiteGround Dynamic Cache and CDN cache where enabled.
 6. Verify root admin/login/REST aliases, Woo cookie continuity, native checkout, official Stripe readiness/webhooks, one-order behavior, refunds, and downstream integrations in a fresh session.
 7. Keep indexing disabled until runtime acceptance completes.
