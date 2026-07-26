@@ -47,8 +47,8 @@ Each plugin follows a consistent layered architecture:
 | `dtb-repair-service` | Repair submission, workflow, quotes, shipping, status tracking |
 | `dtb-order-platform` | Order lifecycle, event stream, tracking projections |
 | `dtb-integrations` | Veeqo, Amazon, eBay, QuickBooks, WooCommerce webhooks, operational pipeline |
-| `dtb-schematics` | Schematic manifests, media, parts resolution |
-| `dtb-media` | Image sync, product image linking, variation gallery |
+| `dtb-schematics` | Schematic uploads registration, attachment metadata, media manifests, cache invalidation, and parts resolution |
+| `dtb-media` | Product-image sync, product linking, and variation galleries; its admin screen surfaces schematic registration without owning that behavior |
 | `dtb-returns` | Return portal workflow |
 | `dtb-support` | Support tickets, contact form, SLA, admin workbench |
 | `dtb-marketing` | SEO, coming-soon page |
@@ -66,6 +66,18 @@ PluginName/
 ├── Admin/          # WP admin UI pages and menus
 └── bootstrap.php   # Loads all files in dependency order
 ```
+
+## Schematic Media Flow
+
+```
+frontend schematic registry + hotspot JSON
+  -> GET /wp-json/dtb/v1/schematics/media
+  -> dtb-schematics manifest repository
+  -> WordPress attachment metadata
+  -> wp-content/uploads/2026/schematics/*
+```
+
+The frontend production artifact does not own schematic image binaries. Stable schematic IDs join frontend definitions to WordPress attachment metadata. The DTB Image Sync screen exposes a bounded, idempotent registration action, while all registration and manifest behavior remains inside `dtb-schematics`.
 
 ## Deployment Pipeline
 
