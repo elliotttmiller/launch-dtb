@@ -64,7 +64,7 @@ Assert-True ($paymentRuntime.Contains('classifySingleGateway')) 'Payment runtime
 Assert-True ($paymentRuntime.Contains("actionBar.hidden = true")) 'Payment runtime must mechanically remove the fixed DTB navigation overlay on Payment.'
 Assert-True ($paymentRuntime.Contains("paymentRoot.removeAttribute( 'inert' )")) 'Payment runtime must remove accidental same-origin inert state from the active provider mount.'
 Assert-True ($paymentFailureCss.Contains('.dtb-checkout-payment-recovery')) 'Failed-payment recovery must have a dedicated accessible notice style.'
-Assert-True ($paymentFailureRuntime.Contains('Payment wasn\'t approved')) 'Failed-payment runtime must present the retryable payment message.'
+Assert-True ($paymentFailureRuntime.Contains("Payment wasn't approved")) 'Failed-payment runtime must present the retryable payment message.'
 Assert-True ($paymentFailureRuntime.Contains('No order was placed')) 'Failed-payment runtime must explain that checkout was not committed.'
 Assert-True ($paymentFailureRuntime.Contains('MutationObserver')) 'Failed-payment runtime must observe Woo notices without intercepting submission.'
 Assert-True (-not $paymentFailureRuntime.Contains('preventDefault(')) 'Failed-payment runtime must not intercept Woo checkout submission.'
