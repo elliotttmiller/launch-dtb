@@ -15,7 +15,7 @@ from .deployer import DeploymentEngine, DeploymentPlan
 class ConfirmDeploy(ModalScreen[bool]):
     CSS = """
     ConfirmDeploy { align: center middle; }
-    #confirm-box { width: 66; height: 14; border: heavy $warning; background: $surface; padding: 1 2; }
+    #confirm-box { width: 66; height: 15; border: heavy $warning; background: $surface; padding: 1 2; }
     #confirm-actions { height: 3; align: center middle; }
     Button { margin: 0 1; }
     """
@@ -23,7 +23,11 @@ class ConfirmDeploy(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         with Vertical(id="confirm-box"):
             yield Label("PRODUCTION DEPLOYMENT GATE", classes="title")
-            yield Static("The inspected delta will be synchronized to SiteGround production. Protected paths remain excluded and remote deletion is disabled.")
+            yield Static(
+                "The inspected file delta will be uploaded using FTP over explicit TLS. "
+                "Changed files are backed up locally, uploads are checksum-verified, "
+                "remote deletion is disabled, and failed transactions attempt rollback."
+            )
             with Horizontal(id="confirm-actions"):
                 yield Button("Cancel", id="cancel")
                 yield Button("Deploy", id="deploy", variant="error")
@@ -39,7 +43,7 @@ class ConfirmDeploy(ModalScreen[bool]):
 
 class DeploymentApp(App[None]):
     TITLE = "Drywall Toolbox // SiteGround Deployment"
-    SUB_TITLE = "Local Control Plane"
+    SUB_TITLE = "Windows FTPES Control Plane"
     CSS = """
     Screen { background: #07111f; color: #d8e7ff; }
     Header { background: #0b1b31; color: #70d7ff; }
@@ -84,11 +88,11 @@ class DeploymentApp(App[None]):
             self.config = load_config(self.config_path)
             self.engine = DeploymentEngine(self.config, self.write_log)
             self.query_one("#summary", Static).update(
-                f"[b]Target[/b]  {self.config.ssh.user}@{self.config.ssh.host}:{self.config.ssh.port}\n"
-                f"[b]Root[/b]    {self.config.remote.site_root}\n"
-                f"[b]Mode[/b]    key-only SSH · rsync checksum delta · no remote deletion"
+                f"[b]Target[/b]  {self.config.ftp.user}@{self.config.ftp.host}:{self.config.ftp.port}\n"
+                f"[b]Root[/b]    {self.config.ftp.root()}\n"
+                f"[b]Mode[/b]    FTPES · SHA-256 file delta · local backup · no remote deletion"
             )
-            await self.write_log("success", "Verified scan contract loaded")
+            await self.write_log("success", "Verified scan contract and FTPES configuration loaded")
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error", timeout=10)
@@ -151,7 +155,9 @@ class DeploymentApp(App[None]):
     async def run_dry_run(self) -> None:
         try:
             self.plan = await self.require_engine().dry_run()
-            await self.write_log("success", f"Dry run complete: {self.plan.release_id}")
+            await self.write_log(
+                "success", f"Dry run complete: {self.plan.release_id} ({len(self.plan.changes)} changes)"
+            )
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error")
@@ -189,7 +195,7 @@ class DeploymentApp(App[None]):
     async def run_validate(self) -> None:
         try:
             await self.require_engine().validate_remote()
-            await self.write_log("success", "Production validation passed")
+            await self.write_log("success", "FTPES connectivity and production health validation passed")
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error")
