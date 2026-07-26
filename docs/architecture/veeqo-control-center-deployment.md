@@ -13,12 +13,13 @@
 
 1. Build the immutable bounded deployment artifact.
 2. Confirm the artifact contains all changed `dtb-integrations/Veeqo` files and no runtime-owned secrets/state.
-3. Obtain protected `siteground-production` approval.
-4. Back up the DTB-managed remote surface.
-5. Deploy through `.github/workflows/deploy.yml`.
-6. Run root, health, wp-admin, REST, and checkout smoke checks.
+3. Create independent SiteGround file and database backups.
+4. Review the complete dependency-consistent Veeqo module change set.
+5. Transfer the complete reviewed artifact manually through FileZilla.
+6. Clear applicable SiteGround caches through Site Tools.
+7. Run root, health, wp-admin, REST, and checkout smoke checks.
 
-Do not manually upload only `bootstrap.php` or only the admin assets. Composition changes must deploy atomically.
+Do not manually upload only `bootstrap.php` or only the admin assets. Composition changes must be transferred as one complete dependency-consistent change set.
 
 ## Post-deploy validation
 
@@ -48,7 +49,7 @@ Do not manually upload only `bootstrap.php` or only the admin assets. Compositio
 ## Rollback procedure
 
 1. Stop identified pending Veeqo actions; do not bulk-delete unrelated historical actions.
-2. Restore the previous complete DTB-managed artifact.
+2. Restore the previous complete DTB-managed artifact from the independently verified backup.
 3. Keep `VeeqoRuntimePolicy.php` or an equivalent retirement guard active.
 4. Never restore legacy WP-Cron inventory projection, public bulk inventory, or automatic webhook registration.
 5. Correct configuration.
