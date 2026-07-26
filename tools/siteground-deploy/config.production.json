@@ -1,10 +1,11 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "environment": "production",
   "repository_root": "../..",
   "scan_manifest": "docs/report/siteground-scan-20260726-134554/deployment-manifest.json",
   "ftp": {
-    "host": "elliottm4.sg-host.com",
+    "connect_host": "ftp.elliottm4.sg-host.com",
+    "tls_hostname": "elliottm4.sg-host.com",
     "user": "dtb@elliottm4.sg-host.com",
     "port": 21,
     "password_env": "DTB_FTP_PASSWORD",
