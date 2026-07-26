@@ -1,28 +1,30 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "environment": "production",
   "repository_root": "../..",
   "scan_manifest": "docs/report/siteground-scan-20260726-134554/deployment-manifest.json",
-  "ssh": {
-    "host": "giowm1315.siteground.biz",
-    "user": "u2350-gksz9clvygx0",
-    "port_env": "DTB_SSH_PORT",
-    "identity_file_env": "DTB_SSH_IDENTITY_FILE",
-    "known_hosts_file_env": "DTB_KNOWN_HOSTS_FILE",
-    "connect_timeout_seconds": 15
+  "ftp": {
+    "host": "ftp.elliottm4.sg-host.com",
+    "user": "dtb@elliottm4.sg-host.com",
+    "port": 21,
+    "password_env": "DTB_FTP_PASSWORD",
+    "root_env": "DTB_FTP_ROOT",
+    "timeout_seconds": 30,
+    "passive": true,
+    "require_tls": true
   },
   "remote": {
-    "site_root": "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html",
-    "wordpress_root": "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html/wp",
-    "state_root": "/home/u2350-gksz9clvygx0/.dtb-deploy"
+    "verified_site_root": "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html",
+    "verified_wordpress_root": "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html/wp",
+    "local_state_directory": ".state"
   },
   "build": {
     "working_directory": "frontend",
     "command": ["npm", "run", "build"],
-    "required_output": "dist/index.html"
+    "required_output": "frontend/dist/index.html"
   },
   "mappings": [
-    {"name":"Storefront","source":"dist/","destination":"./","owner":"frontend","delete":false,"excludes":["wp/***",".well-known/***","logs/***","wp-config.php",".user.ini"]},
+    {"name":"Storefront","source":"frontend/dist/","destination":"./","owner":"frontend","delete":false,"excludes":["wp/***",".well-known/***","logs/***","wp-config.php",".user.ini"]},
     {"name":"Root Apache configuration","source":"drywalltoolbox/.htaccess","destination":".htaccess","owner":"deployment","delete":false,"excludes":[]},
     {"name":"DTB MU plugins","source":"drywalltoolbox/wp/wp-content/mu-plugins/","destination":"wp/wp-content/mu-plugins/","owner":"dtb-backend","delete":false,"excludes":["*.bak*","**/*.bak*","debug.log","*.log"]},
     {"name":"Drywall Toolbox theme","source":"drywalltoolbox/wp/wp-content/themes/drywall-toolbox/","destination":"wp/wp-content/themes/drywall-toolbox/","owner":"wordpress-theme","delete":false,"excludes":["*.log",".DS_Store"]},
