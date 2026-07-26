@@ -3,7 +3,7 @@ param(
     [string]$HostName = "ssh.elliottm4.sg-host.com",
     [int]$Port = 18765,
     [string]$UserName = "u2350-gksz9clvygx0",
-    [string]$IdentityFile = "C:\Users\Elliott\.ssh\dtb-production",
+    [string]$IdentityFile = "C:\Users\AMD\.ssh\drywalltoolbox",
     [string]$RemoteDirectory = "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html",
     [string]$Command = ""
 )
