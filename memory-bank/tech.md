@@ -73,8 +73,9 @@ Key variables:
 
 ## Deployment
 
-- Production: `npm run build` → `dist/` → assembled by `launch/scripts/assemble-siteground.ps1` → SFTP to SiteGround
-- CI: GitHub Actions (`build-dtb-production.yml`, `deploy.yml`)
+- Production artifact: `npm run build` → `dist/` → `launch/scripts/assemble-siteground.ps1` → `launch/live/`
+- Production file transfer: manual operator upload through FileZilla; connection details and credentials remain outside the repository
+- CI: GitHub Actions validates and packages source; it does not write to production
 - Smoke tests: PowerShell scripts in `scripts/smoke-dtb-*.ps1`
 
 ## Key Build Behaviors
