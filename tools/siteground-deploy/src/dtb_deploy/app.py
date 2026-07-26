@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from tkinter import Tk, filedialog
 
 from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Label, Static, TextArea
+from textual.widgets import Button, Footer, Header, Input, Label, Static, TextArea
 
 from .config import AppConfig, load_config
 from .deployer import DeploymentEngine, DeploymentPlan
@@ -15,18 +16,19 @@ from .deployer import DeploymentEngine, DeploymentPlan
 class ConfirmDeploy(ModalScreen[bool]):
     CSS = """
     ConfirmDeploy { align: center middle; }
-    #confirm-box { width: 66; height: 15; border: heavy $warning; background: $surface; padding: 1 2; }
+    #confirm-box { width: 72; height: 16; border: heavy $warning; background: $surface; padding: 1 2; }
     #confirm-actions { height: 3; align: center middle; }
     Button { margin: 0 1; }
     """
 
     def compose(self) -> ComposeResult:
         with Vertical(id="confirm-box"):
-            yield Label("PRODUCTION DEPLOYMENT GATE", classes="title")
+            yield Label("PRODUCTION TRANSFER GATE")
             yield Static(
-                "The inspected file delta will be uploaded using FTP over explicit TLS. "
-                "Changed files are backed up locally, uploads are checksum-verified, "
-                "remote deletion is disabled, and failed transactions attempt rollback."
+                "Only the previewed ADD/MODIFY files will be transferred over FTPES. "
+                "Existing files are backed up locally, uploads are checksum-verified, "
+                "protected paths are blocked, remote deletion is disabled, and failed "
+                "transactions attempt rollback."
             )
             with Horizontal(id="confirm-actions"):
                 yield Button("Cancel", id="cancel")
@@ -42,7 +44,7 @@ class ConfirmDeploy(ModalScreen[bool]):
 
 
 class DeploymentApp(App[None]):
-    TITLE = "Drywall Toolbox // SiteGround Deployment"
+    TITLE = "Drywall Toolbox // SiteGround File Transfer"
     SUB_TITLE = "Windows FTPES Control Plane"
     CSS = """
     Screen { background: #07111f; color: #d8e7ff; }
@@ -53,13 +55,17 @@ class DeploymentApp(App[None]):
     .brand { color: #70d7ff; text-style: bold; margin-bottom: 1; }
     .status { color: #8aa8c7; margin-bottom: 1; }
     Button { width: 26; margin: 0 0 1 0; }
+    #selection { height: 11; border: round #21486f; padding: 1; margin-bottom: 1; }
+    #selection-actions { height: 3; }
+    #selection-actions Button { width: 18; margin-right: 1; }
+    Input { margin-bottom: 1; }
     #log { border: round #21486f; height: 1fr; background: #040b13; }
     #summary { height: 7; border: round #21486f; padding: 1; margin-bottom: 1; }
     Footer { background: #0b1b31; }
     """
     BINDINGS = [
         ("q", "quit", "Quit"),
-        ("d", "dry_run", "Dry Run"),
+        ("r", "preview", "Preview"),
         ("p", "deploy", "Deploy"),
         ("ctrl+shift+c", "copy_log", "Copy Log"),
     ]
@@ -79,22 +85,22 @@ class DeploymentApp(App[None]):
                 yield Static("DRYWALL TOOLBOX", classes="brand")
                 yield Static("SITEGROUND // PRODUCTION", classes="status")
                 yield Button("1  Preflight", id="preflight", variant="primary")
-                yield Button("2  Build", id="build")
-                yield Button("3  Dry Run", id="dry-run", variant="warning")
-                yield Button("4  Deploy", id="deploy", variant="error")
-                yield Button("5  Validate", id="validate", variant="success")
+                yield Button("2  Preview Transfer", id="preview", variant="warning")
+                yield Button("3  Deploy", id="deploy", variant="error")
+                yield Button("4  Validate", id="validate", variant="success")
                 yield Button("Copy Log", id="copy-log")
                 yield Button("Clear Log", id="clear")
             with Vertical(id="content"):
                 yield Static("Configuration loading…", id="summary")
-                yield TextArea(
-                    "",
-                    id="log",
-                    read_only=True,
-                    show_line_numbers=False,
-                    soft_wrap=False,
-                    tab_behavior="focus",
-                )
+                with Vertical(id="selection"):
+                    yield Label("Local source file or directory")
+                    yield Input(placeholder=r"C:\path\to\file-or-directory", id="local-source")
+                    with Horizontal(id="selection-actions"):
+                        yield Button("Select File", id="select-file")
+                        yield Button("Select Directory", id="select-directory")
+                    yield Label("Remote destination relative to FTP root")
+                    yield Input(placeholder="wp/wp-content/mu-plugins", id="remote-destination")
+                yield TextArea("", id="log", read_only=True, show_line_numbers=False, soft_wrap=False)
         yield Footer()
 
     async def on_mount(self) -> None:
@@ -104,9 +110,9 @@ class DeploymentApp(App[None]):
             self.query_one("#summary", Static).update(
                 f"[b]Target[/b]  {self.config.ftp.user}@{self.config.ftp.host}:{self.config.ftp.port}\n"
                 f"[b]Root[/b]    {self.config.ftp.root()}\n"
-                f"[b]Mode[/b]    FTPES · SHA-256 file delta · local backup · no remote deletion"
+                f"[b]Mode[/b]    Operator-selected FTPES transfer · SHA-256 verification · rollback"
             )
-            await self.write_log("success", "Verified scan contract and FTPES configuration loaded")
+            await self.write_log("success", "FTPES transfer configuration loaded")
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error", timeout=10)
@@ -123,13 +129,33 @@ class DeploymentApp(App[None]):
             raise RuntimeError("Deployment engine is unavailable")
         return self.engine
 
+    def _choose_path(self, *, directory: bool) -> None:
+        root = Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        try:
+            selected = filedialog.askdirectory() if directory else filedialog.askopenfilename()
+        finally:
+            root.destroy()
+        if selected:
+            self.query_one("#local-source", Input).value = selected
+            self.plan = None
+
+    @on(Button.Pressed, "#select-file")
+    def select_file(self) -> None:
+        self._choose_path(directory=False)
+
+    @on(Button.Pressed, "#select-directory")
+    def select_directory(self) -> None:
+        self._choose_path(directory=True)
+
     def action_copy_log(self) -> None:
         text = "\n".join(self.log_lines)
         if not text:
             self.notify("The log is empty", severity="warning")
             return
         self.copy_to_clipboard(text)
-        self.notify("Complete log copied to clipboard", severity="information")
+        self.notify("Complete log copied to clipboard")
 
     @on(Button.Pressed, "#copy-log")
     def copy_log_pressed(self) -> None:
@@ -147,40 +173,30 @@ class DeploymentApp(App[None]):
     @work(exclusive=True)
     async def run_preflight(self) -> None:
         try:
-            release_context = await self.require_engine().preflight()
-            await self.write_log("success", f"Preflight passed ({release_context})")
+            result = await self.require_engine().preflight()
+            await self.write_log("success", f"Preflight passed ({result})")
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error")
 
-    @on(Button.Pressed, "#build")
-    def build_pressed(self) -> None:
-        self.run_build()
+    @on(Button.Pressed, "#preview")
+    def preview_pressed(self) -> None:
+        self.action_preview()
+
+    def action_preview(self) -> None:
+        self.run_preview()
 
     @work(exclusive=True)
-    async def run_build(self) -> None:
+    async def run_preview(self) -> None:
         try:
-            await self.require_engine().build()
-            await self.write_log("success", "Production storefront build passed")
+            source_value = self.query_one("#local-source", Input).value.strip()
+            destination = self.query_one("#remote-destination", Input).value.strip()
+            if not source_value:
+                raise ValueError("Select a local file or directory")
+            self.plan = await self.require_engine().preview(Path(source_value), destination)
+            await self.write_log("success", f"Preview complete: {len(self.plan.changes)} change(s)")
         except Exception as exc:
-            await self.write_log("error", str(exc))
-            self.notify(str(exc), severity="error")
-
-    @on(Button.Pressed, "#dry-run")
-    def dry_run_pressed(self) -> None:
-        self.action_dry_run()
-
-    def action_dry_run(self) -> None:
-        self.run_dry_run()
-
-    @work(exclusive=True)
-    async def run_dry_run(self) -> None:
-        try:
-            self.plan = await self.require_engine().dry_run()
-            await self.write_log(
-                "success", f"Dry run complete: {self.plan.release_id} ({len(self.plan.changes)} changes)"
-            )
-        except Exception as exc:
+            self.plan = None
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error")
 
@@ -190,7 +206,7 @@ class DeploymentApp(App[None]):
 
     def action_deploy(self) -> None:
         if self.plan is None:
-            self.notify("Run Dry Run before deployment", severity="warning")
+            self.notify("Preview the transfer before deployment", severity="warning")
             return
         self.push_screen(ConfirmDeploy(), self.confirmed_deploy)
 
@@ -203,7 +219,7 @@ class DeploymentApp(App[None]):
         try:
             assert self.plan is not None
             await self.require_engine().deploy(self.plan)
-            await self.write_log("success", f"Release deployed: {self.plan.release_id}")
+            await self.write_log("success", f"Transfer deployed: {self.plan.release_id}")
             self.plan = None
         except Exception as exc:
             await self.write_log("error", str(exc))
