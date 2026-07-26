@@ -11,9 +11,9 @@ launch-dtb/
 │       └── themes/
 ├── launch/live/            # Assembled SiteGround deployment overlay (generated)
 ├── docs/                   # Architecture docs, contracts, audit reports
-├── scripts/                # Deployment, smoke tests, data migration scripts
+├── scripts/                # Build, smoke-test, and data-migration tooling
 ├── products/               # Product catalog CSVs, images, parts data
-└── .github/workflows/      # CI/CD pipelines
+└── .github/workflows/      # CI validation and packaging pipelines
 ```
 
 ## Frontend (`frontend/src/`)
@@ -69,10 +69,11 @@ PluginName/
 
 ## Deployment Pipeline
 
-1. `frontend/` → Webpack build → `launch/live/assets/`
-2. `launch/scripts/assemble-siteground.ps1` assembles the overlay
-3. `launch/scripts/siteground-sftp-release.sh` deploys via SFTP to SiteGround
-4. GitHub Actions: `build-dtb-production.yml`, `deploy.yml`
+1. `frontend/` → Webpack production build
+2. `launch/scripts/assemble-siteground.ps1` reconstructs the bounded `launch/live/` overlay
+3. CI validates source, PHP, JavaScript, routing, and payload boundaries without writing to production
+4. An operator creates independent backups and transfers the reviewed `launch/live/` change set manually through FileZilla
+5. Runtime caches and production acceptance checks are completed separately
 
 ## Key Architectural Patterns
 
