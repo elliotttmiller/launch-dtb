@@ -23,10 +23,8 @@ import {
 import SEOHead from '../components/shared/SEOHead';
 import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
-import { getCart } from '../api/cart.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
-import { resolveWooCheckoutHandoffUrl } from '../utils/checkoutHandoff.js';
-import { navigateDocument } from '../utils/documentNavigation.js';
+import { beginCheckoutHandoff } from '../utils/checkoutHandoff.js';
 
 function parseStoreMoney(value, minorUnit) {
   const raw = Number(value);
@@ -57,30 +55,14 @@ export default function Cart() {
 
     setCheckoutPending(true);
     try {
-      // Signed-in customers must converge DTB auth to native WordPress/Woo identity
-      // before native checkout owns the document. This prevents a customer cart from
-      // being handed to /checkout/ while the browser still presents a stale/guest
-      // native identity.
-      if (isAuthenticated) {
-        await ensureNativeCheckoutReady();
-      }
-
-      // Prove the authoritative Woo cart still contains items after any auth/session
-      // convergence. Never trust only the React snapshot when crossing runtimes.
-      const authoritativeCart = await getCart();
-      if (!Array.isArray(authoritativeCart?.items) || authoritativeCart.items.length === 0) {
-        window.alert('Your checkout cart could not be confirmed. Please refresh your cart and try again.');
-        return;
-      }
-
-      // Resolve the live native checkout destination before document replacement.
-      // This prevents a SiteGround/Woo redirect back to /cart/ from appearing as a
-      // no-op page refresh and uses the supported WordPress front-controller route
-      // only when the canonical public checkout route cannot be opened.
-      const checkoutUrl = await resolveWooCheckoutHandoffUrl();
-      navigateDocument(checkoutUrl, { transition: 'checkout' });
+      await beginCheckoutHandoff({
+        isAuthenticated,
+        ensureNativeCheckoutReady,
+        isCartMutating: () => isMutating,
+        settleDelayMs: 0,
+      });
     } catch (error) {
-      window.alert(error?.message || 'We could not open secure checkout. Your cart is still saved. Please try again.');
+      window.alert(error?.message || 'We could not prepare your checkout session. Please try again.');
     } finally {
       setCheckoutPending(false);
     }
@@ -254,7 +236,7 @@ export default function Cart() {
                   className={`dtb-cart-summary-card__checkout w-full inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${checkoutDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}
                 >
                   <Lock size={14} strokeWidth={2.5} />
-                  {checkoutPending ? 'Opening secure checkout…' : isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
+                  {checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </a>
               </div>
