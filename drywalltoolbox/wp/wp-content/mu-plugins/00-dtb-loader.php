@@ -250,7 +250,7 @@ function _dtb_require( string $path ): void {
 		echo '<div class="notice notice-error"><p>'
 			. '<strong>Drywall Toolbox:</strong> mu-plugin file <code>'
 			. esc_html( $filename )
-			. '</code> is missing from the server. Deploy it via CI/CD or FTP.</p></div>';
+			. '</code> is missing from the server. Restore it from the reviewed production artifact.</p></div>';
 	} );
 }
 
