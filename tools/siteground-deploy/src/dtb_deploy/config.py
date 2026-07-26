@@ -16,32 +16,33 @@ class SSHConfig(BaseModel):
     known_hosts_file_env: str
     connect_timeout_seconds: int = Field(default=15, ge=1, le=120)
 
+    @property
     def port(self) -> int:
-        value = os.environ.get(self.port_env, "").strip()
-        if not value:
+        raw = os.environ.get(self.port_env, "").strip()
+        if not raw:
             raise ValueError(f"Environment variable {self.port_env} is required")
         try:
-            port = int(value)
+            value = int(raw)
         except ValueError as exc:
             raise ValueError(f"{self.port_env} must be an integer") from exc
-        if not 1 <= port <= 65535:
+        if value < 1 or value > 65535:
             raise ValueError(f"{self.port_env} must be between 1 and 65535")
-        return port
+        return value
 
     def identity_file(self) -> Path:
-        value = os.environ.get(self.identity_file_env, "").strip()
-        if not value:
+        raw = os.environ.get(self.identity_file_env, "").strip()
+        if not raw:
             raise ValueError(f"Environment variable {self.identity_file_env} is required")
-        path = Path(value).expanduser().resolve()
+        path = Path(raw).expanduser().resolve()
         if not path.is_file():
             raise ValueError(f"SSH identity file does not exist: {path}")
         return path
 
     def known_hosts_file(self) -> Path:
-        value = os.environ.get(self.known_hosts_file_env, "").strip()
-        if not value:
+        raw = os.environ.get(self.known_hosts_file_env, "").strip()
+        if not raw:
             raise ValueError(f"Environment variable {self.known_hosts_file_env} is required")
-        path = Path(value).expanduser().resolve()
+        path = Path(raw).expanduser().resolve()
         if not path.is_file():
             raise ValueError(f"Known-hosts file does not exist: {path}")
         return path
@@ -100,7 +101,11 @@ class AppConfig(BaseModel):
             raise ValueError("Configured site root differs from verified scan")
         if server.get("wordpressRoot") != self.remote.wordpress_root:
             raise ValueError("Configured WordPress root differs from verified scan")
-        verified = {item["remote"] for item in scan.get("candidateMappings", []) if item.get("verifiedRemoteTarget") is True}
+        verified = {
+            item["remote"]
+            for item in scan.get("candidateMappings", [])
+            if item.get("verifiedRemoteTarget") is True
+        }
         for mapping in self.mappings:
             destination = mapping.destination.rstrip("/") or "."
             candidate = "wp/wp-content/themes" if destination.startswith("wp/wp-content/themes/") else destination
@@ -109,9 +114,9 @@ class AppConfig(BaseModel):
 
 
 def load_config(path: Path) -> AppConfig:
-    path = path.expanduser().resolve()
-    data = json.loads(path.read_text(encoding="utf-8"))
-    data["repository_root"] = str((path.parent / data["repository_root"]).resolve())
+    resolved = path.expanduser().resolve()
+    data = json.loads(resolved.read_text(encoding="utf-8"))
+    data["repository_root"] = str((resolved.parent / data["repository_root"]).resolve())
     config = AppConfig.model_validate(data)
     config.validate_scan_contract()
     return config
