@@ -15,6 +15,14 @@ from .runner import LogSink
 
 
 @dataclass(slots=True)
+class RemoteEntry:
+    name: str
+    path: str
+    is_directory: bool
+    size: int | None = None
+
+
+@dataclass(slots=True)
 class PlannedChange:
     local_path: str
     remote_path: str
@@ -26,7 +34,7 @@ class PlannedChange:
 @dataclass(slots=True)
 class DeploymentPlan:
     release_id: str
-    source_path: str
+    source_paths: list[str]
     remote_destination: str
     changes: list[PlannedChange]
     dry_run_output: str
@@ -47,8 +55,14 @@ class FTPSession:
     def __enter__(self) -> "FTPSession":
         if not self.config.ftp.require_tls:
             raise RuntimeError("Unencrypted FTP is prohibited")
-        ftp = FTP_TLS(context=ssl.create_default_context(), timeout=self.config.ftp.timeout_seconds)
-        ftp.connect(self.config.ftp.host, self.config.ftp.port)
+
+        context = ssl.create_default_context()
+        ftp = FTP_TLS(context=context, timeout=self.config.ftp.timeout_seconds)
+        ftp.connect(self.config.ftp.connect_host, self.config.ftp.port)
+
+        # SiteGround exposes FTP through ftp.<site> while presenting the site's
+        # *.sg-host.com certificate. Set the TLS SNI/verification name before AUTH TLS.
+        ftp.host = self.config.ftp.tls_hostname
         ftp.login(self.config.ftp.user, self.config.ftp.password())
         ftp.prot_p()
         ftp.set_pasv(self.config.ftp.passive)
@@ -104,6 +118,45 @@ class FTPSession:
         with local_path.open("rb") as handle:
             self.ftp.storbinary(f"STOR {remote_path}", handle, blocksize=1024 * 256)
 
+    def list_directory(self, remote_path: str) -> list[RemoteEntry]:
+        normalized = remote_path.strip("/")
+        entries: list[RemoteEntry] = []
+        try:
+            for name, facts in self.ftp.mlsd(normalized or "."):
+                if name in (".", ".."):
+                    continue
+                entry_type = facts.get("type", "")
+                if entry_type in ("cdir", "pdir"):
+                    continue
+                path = str(PurePosixPath(normalized) / name) if normalized else name
+                size_value = facts.get("size")
+                entries.append(
+                    RemoteEntry(
+                        name=name,
+                        path=path,
+                        is_directory=entry_type == "dir",
+                        size=int(size_value) if size_value and size_value.isdigit() else None,
+                    )
+                )
+        except error_perm:
+            names = self.ftp.nlst(normalized or ".")
+            for raw in names:
+                name = PurePosixPath(raw).name
+                if name in (".", ".."):
+                    continue
+                path = str(PurePosixPath(normalized) / name) if normalized else name
+                current = self.ftp.pwd()
+                is_directory = False
+                try:
+                    self.ftp.cwd(path)
+                    is_directory = True
+                except error_perm:
+                    pass
+                finally:
+                    self.ftp.cwd(current)
+                entries.append(RemoteEntry(name=name, path=path, is_directory=is_directory))
+        return sorted(entries, key=lambda item: (not item.is_directory, item.name.lower()))
+
 
 class DeploymentEngine:
     def __init__(self, config: AppConfig, sink: LogSink):
@@ -121,7 +174,17 @@ class DeploymentEngine:
                 session.ftp.cwd("wp")
                 session.ftp.cwd("..")
             except error_perm as exc:
-                raise RuntimeError("Configured FTP root does not expose the verified WordPress 'wp' directory") from exc
+                raise RuntimeError(
+                    "Configured FTP root does not expose the verified WordPress 'wp' directory"
+                ) from exc
+
+    async def list_remote(self, remote_path: str) -> list[RemoteEntry]:
+        normalized = self._normalize_remote(remote_path)
+        return await asyncio.to_thread(self._list_remote_sync, normalized)
+
+    def _list_remote_sync(self, remote_path: str) -> list[RemoteEntry]:
+        with FTPSession(self.config) as session:
+            return session.list_directory(remote_path)
 
     @staticmethod
     def _sha256(path: Path) -> str:
@@ -132,8 +195,7 @@ class DeploymentEngine:
         return digest.hexdigest()
 
     def _normalize_remote(self, remote: str) -> str:
-        candidate = remote.replace("\\", "/").strip()
-        candidate = candidate.strip("/")
+        candidate = remote.replace("\\", "/").strip().strip("/")
         path = PurePosixPath(candidate or ".")
         if path.is_absolute() or ".." in path.parts:
             raise ValueError("Remote destination must be relative to the configured FTP root")
@@ -147,28 +209,49 @@ class DeploymentEngine:
                 return True
         return False
 
-    def _selected_files(self, source: Path, destination: str) -> list[tuple[Path, str]]:
-        if not source.exists():
-            raise FileNotFoundError(f"Local source does not exist: {source}")
+    def _selected_files(self, sources: list[Path], destination: str) -> list[tuple[Path, str]]:
         destination = self._normalize_remote(destination)
-        if source.is_file():
-            remote = str(PurePosixPath(destination) / source.name) if destination else source.name
-            return [(source, remote)]
         files: list[tuple[Path, str]] = []
-        base = PurePosixPath(destination) / source.name if destination else PurePosixPath(source.name)
-        for local in sorted(path for path in source.rglob("*") if path.is_file()):
-            remote = str(base / local.relative_to(source).as_posix())
-            files.append((local, remote))
+        seen_remote: set[str] = set()
+
+        for source in sources:
+            source = source.expanduser().resolve()
+            if not source.exists():
+                raise FileNotFoundError(f"Local source does not exist: {source}")
+
+            if source.is_file():
+                remote = str(PurePosixPath(destination) / source.name) if destination else source.name
+                candidates = [(source, remote)]
+            else:
+                base = PurePosixPath(destination) / source.name if destination else PurePosixPath(source.name)
+                candidates = [
+                    (local, str(base / local.relative_to(source).as_posix()))
+                    for local in sorted(path for path in source.rglob("*") if path.is_file())
+                ]
+                if not candidates:
+                    raise RuntimeError(f"Selected directory contains no files: {source}")
+
+            for local, remote in candidates:
+                if remote in seen_remote:
+                    raise RuntimeError(f"Multiple selected sources resolve to the same remote path: {remote}")
+                seen_remote.add(remote)
+                files.append((local, remote))
+
         if not files:
-            raise RuntimeError("Selected directory contains no files")
+            raise ValueError("Select at least one local file or directory")
         return files
 
-    def _build_plan_sync(self, source: Path, destination: str) -> DeploymentPlan:
+    def _build_plan_sync(self, sources: list[Path], destination: str) -> DeploymentPlan:
         release_id = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        normalized_destination = self._normalize_remote(destination)
         changes: list[PlannedChange] = []
-        lines = [f"SOURCE      {source}", f"DESTINATION /{self._normalize_remote(destination)}"]
+        lines = [
+            f"SOURCES     {len(sources)}",
+            f"DESTINATION /{normalized_destination}" if normalized_destination else "DESTINATION /",
+        ]
+
         with FTPSession(self.config) as session:
-            for local, remote in self._selected_files(source, destination):
+            for local, remote in self._selected_files(sources, normalized_destination):
                 if self._is_protected(remote):
                     raise RuntimeError(f"Transfer attempts to write protected path: {remote}")
                 local_hash = self._sha256(local)
@@ -177,12 +260,21 @@ class DeploymentEngine:
                     action = "UNCHANGED" if session.hash_remote(remote) == local_hash else "MODIFY"
                 lines.append(f"{action:9} {remote}")
                 if action != "UNCHANGED":
-                    changes.append(PlannedChange(str(local), remote, action, local_hash, local.stat().st_size))
-        return DeploymentPlan(release_id, str(source), destination, changes, "\n".join(lines))
+                    changes.append(
+                        PlannedChange(str(local), remote, action, local_hash, local.stat().st_size)
+                    )
 
-    async def preview(self, source: Path, destination: str) -> DeploymentPlan:
+        return DeploymentPlan(
+            release_id=release_id,
+            source_paths=[str(path.expanduser().resolve()) for path in sources],
+            remote_destination=normalized_destination,
+            changes=changes,
+            dry_run_output="\n".join(lines),
+        )
+
+    async def preview(self, sources: list[Path], destination: str) -> DeploymentPlan:
         await self.preflight()
-        plan = await asyncio.to_thread(self._build_plan_sync, source.expanduser().resolve(), destination)
+        plan = await asyncio.to_thread(self._build_plan_sync, sources, destination)
         for line in plan.dry_run_output.splitlines():
             await self.sink("stdout", line)
         return plan
@@ -206,6 +298,7 @@ class DeploymentEngine:
         ledger_root = self.config.state_root / "releases"
         ledger_root.mkdir(parents=True, exist_ok=True)
         applied: list[AppliedChange] = []
+
         with FTPSession(self.config) as session:
             lease = self._acquire_lease(session)
             try:
@@ -217,42 +310,57 @@ class DeploymentEngine:
                     temp = str(PurePosixPath(parent) / f".{name}.dtb-upload-{plan.release_id}")
                     previous = None
                     backup_path = None
+
                     if session.exists(remote):
                         backup_path = str(backup_root / remote)
                         session.download(remote, Path(backup_path))
+
                     session.upload(local, temp)
                     if session.hash_remote(temp) != change.sha256:
                         session.ftp.delete(temp)
                         raise RuntimeError(f"Remote checksum mismatch: {remote}")
+
                     if session.exists(remote):
                         previous = str(PurePosixPath(parent) / f".{name}.dtb-prev-{plan.release_id}")
                         session.ftp.rename(remote, previous)
+
                     try:
                         session.ftp.rename(temp, remote)
                     except Exception:
                         if previous and session.exists(previous):
                             session.ftp.rename(previous, remote)
                         raise
+
                     applied.append(AppliedChange(change, backup_path, previous))
+
                 for change in plan.changes:
                     if session.hash_remote(change.remote_path) != change.sha256:
                         raise RuntimeError(f"Post-deployment checksum mismatch: {change.remote_path}")
+
                 self._validate_health_sync()
+
                 for item in applied:
                     if item.previous_remote_path and session.exists(item.previous_remote_path):
                         session.ftp.delete(item.previous_remote_path)
-                payload = json.dumps({
-                    "release_id": plan.release_id,
-                    "source_path": plan.source_path,
-                    "remote_destination": plan.remote_destination,
-                    "deployed_utc": datetime.now(timezone.utc).isoformat(),
-                    "transport": "FTPES",
-                    "changes": [asdict(change) for change in plan.changes],
-                    "backup_root": str(backup_root),
-                }, indent=2, sort_keys=True)
+
+                payload = json.dumps(
+                    {
+                        "release_id": plan.release_id,
+                        "source_paths": plan.source_paths,
+                        "remote_destination": plan.remote_destination,
+                        "deployed_utc": datetime.now(timezone.utc).isoformat(),
+                        "transport": "FTPES",
+                        "changes": [asdict(change) for change in plan.changes],
+                        "backup_root": str(backup_root),
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
                 ledger = ledger_root / f"{plan.release_id}.json"
                 ledger.write_text(payload, encoding="utf-8")
-                ledger.with_suffix(".json.sha256").write_text(hashlib.sha256(payload.encode()).hexdigest(), encoding="utf-8")
+                ledger.with_suffix(".json.sha256").write_text(
+                    hashlib.sha256(payload.encode()).hexdigest(), encoding="utf-8"
+                )
             except Exception:
                 for item in reversed(applied):
                     try:
@@ -270,7 +378,7 @@ class DeploymentEngine:
 
     @staticmethod
     def _http_status(url: str) -> int:
-        request = urllib.request.Request(url, headers={"User-Agent": "DTB-Deploy/3.0"})
+        request = urllib.request.Request(url, headers={"User-Agent": "DTB-Deploy/4.0"})
         with urllib.request.urlopen(request, timeout=20) as response:
             return int(response.status)
 
