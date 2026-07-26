@@ -29,7 +29,7 @@ class PlannedChange:
 @dataclass(slots=True)
 class DeploymentPlan:
     release_id: str
-    commit: str
+    source_reference: str
     changes: list[PlannedChange]
     dry_run_output: str
 
@@ -47,12 +47,12 @@ class FTPSession:
         self.client: FTP_TLS | None = None
 
     def __enter__(self) -> "FTPSession":
+        if not self.config.ftp.require_tls:
+            raise RuntimeError("Unencrypted FTP is prohibited")
         context = ssl.create_default_context()
         ftp = FTP_TLS(context=context, timeout=self.config.ftp.timeout_seconds)
         ftp.connect(self.config.ftp.host, self.config.ftp.port)
         ftp.login(self.config.ftp.user, self.config.ftp.password())
-        if not self.config.ftp.require_tls:
-            raise RuntimeError("Unencrypted FTP is prohibited")
         ftp.prot_p()
         ftp.set_pasv(self.config.ftp.passive)
         ftp.cwd(self.config.ftp.root())
@@ -114,16 +114,10 @@ class DeploymentEngine:
         self.sink = sink
 
     async def preflight(self) -> str:
-        for executable in ("git", "npm"):
-            if shutil.which(executable) is None:
-                raise RuntimeError(f"Required executable is not available: {executable}")
-        root = self.config.root
-        result = await run_command(["git", "status", "--porcelain"], cwd=root, sink=self.sink)
-        if result.stdout.strip():
-            raise RuntimeError("Deployment requires a clean Git working tree")
-        commit = (await run_command(["git", "rev-parse", "HEAD"], cwd=root, sink=self.sink)).stdout.strip()
+        if shutil.which("npm") is None:
+            raise RuntimeError("Required executable is not available: npm")
         await asyncio.to_thread(self._verify_ftpes)
-        return commit
+        return "FTPES authenticated and production root verified"
 
     def _verify_ftpes(self) -> None:
         with FTPSession(self.config) as session:
@@ -154,7 +148,11 @@ class DeploymentEngine:
     def _is_excluded(self, relative: str, mapping: Mapping) -> bool:
         normalized = relative.replace("\\", "/")
         candidates = [normalized, PurePosixPath(normalized).name]
-        return any(fnmatch.fnmatch(candidate, pattern) for pattern in mapping.excludes for candidate in candidates)
+        return any(
+            fnmatch.fnmatch(candidate, pattern)
+            for pattern in mapping.excludes
+            for candidate in candidates
+        )
 
     def _is_protected(self, remote_path: str) -> bool:
         target = remote_path.strip("/")
@@ -181,7 +179,7 @@ class DeploymentEngine:
             files.append((local, remote))
         return files
 
-    def _build_plan_sync(self, release_id: str, commit: str) -> DeploymentPlan:
+    def _build_plan_sync(self, release_id: str, source_reference: str) -> DeploymentPlan:
         changes: list[PlannedChange] = []
         lines: list[str] = []
         with FTPSession(self.config) as session:
@@ -198,20 +196,27 @@ class DeploymentEngine:
                         action = "UNCHANGED" if remote_hash == local_hash else "MODIFY"
                     lines.append(f"{action:9} {remote}")
                     if action != "UNCHANGED":
-                        changes.append(PlannedChange(
-                            mapping=mapping.name,
-                            local_path=str(local),
-                            remote_path=remote,
-                            action=action,
-                            sha256=local_hash,
-                            size=local.stat().st_size,
-                        ))
-        return DeploymentPlan(release_id, commit, changes, "\n".join(lines))
+                        changes.append(
+                            PlannedChange(
+                                mapping=mapping.name,
+                                local_path=str(local),
+                                remote_path=remote,
+                                action=action,
+                                sha256=local_hash,
+                                size=local.stat().st_size,
+                            )
+                        )
+        return DeploymentPlan(release_id, source_reference, changes, "\n".join(lines))
 
     async def dry_run(self) -> DeploymentPlan:
-        commit = await self.preflight()
-        release_id = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + commit[:12]
-        plan = await asyncio.to_thread(self._build_plan_sync, release_id, commit)
+        await self.preflight()
+        release_id = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        source_reference = "operator-managed-local-checkout"
+        plan = await asyncio.to_thread(
+            self._build_plan_sync,
+            release_id,
+            source_reference,
+        )
         for line in plan.dry_run_output.splitlines():
             await self.sink("stdout", line)
         return plan
@@ -246,7 +251,10 @@ class DeploymentEngine:
                     remote = change.remote_path
                     remote_parent = str(PurePosixPath(remote).parent)
                     remote_name = PurePosixPath(remote).name
-                    temp = str(PurePosixPath(remote_parent) / f".{remote_name}.dtb-upload-{plan.release_id}")
+                    temp = str(
+                        PurePosixPath(remote_parent)
+                        / f".{remote_name}.dtb-upload-{plan.release_id}"
+                    )
                     previous = None
                     backup_path = None
                     if session.exists(remote):
@@ -257,7 +265,10 @@ class DeploymentEngine:
                         session.ftp.delete(temp)
                         raise RuntimeError(f"Remote checksum mismatch: {remote}")
                     if session.exists(remote):
-                        previous = str(PurePosixPath(remote_parent) / f".{remote_name}.dtb-prev-{plan.release_id}")
+                        previous = str(
+                            PurePosixPath(remote_parent)
+                            / f".{remote_name}.dtb-prev-{plan.release_id}"
+                        )
                         session.ftp.rename(remote, previous)
                     try:
                         session.ftp.rename(temp, remote)
@@ -273,7 +284,7 @@ class DeploymentEngine:
                         session.ftp.delete(item.previous_remote_path)
                 ledger = {
                     "release_id": plan.release_id,
-                    "commit": plan.commit,
+                    "source_reference": plan.source_reference,
                     "deployed_utc": datetime.now(timezone.utc).isoformat(),
                     "transport": "FTPES",
                     "changes": [asdict(change) for change in plan.changes],
@@ -283,7 +294,8 @@ class DeploymentEngine:
                 ledger_path = ledger_root / f"{plan.release_id}.json"
                 ledger_path.write_text(payload, encoding="utf-8")
                 ledger_path.with_suffix(".json.sha256").write_text(
-                    hashlib.sha256(payload.encode()).hexdigest(), encoding="utf-8"
+                    hashlib.sha256(payload.encode()).hexdigest(),
+                    encoding="utf-8",
                 )
             except Exception:
                 self._rollback_transaction(session, applied)
