@@ -1,0 +1,91 @@
+DRYWALL TOOLBOX — HIGH-LEVEL SITEGROUND ARCHITECTURE
+====================================================
+
+SiteGround host root:
+  /home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com
+
+Public site root:
+  /home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html
+
+WordPress root:
+  /home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html/wp
+
+Host-root entries:
+  d  logs
+  d  public_html
+  d  webstats
+
+Site-root entries:
+  d  assets
+  d  brands
+  d  errors
+  d  logos
+  d  mu-plugins.bk.cp
+  d  payment_logos
+  d  wp
+  f  .htaccess
+  f  404.html
+  f  android-chrome-192x192.png
+  f  android-chrome-512x512.png
+  f  android-chrome-maskable-192x192.png
+  f  android-chrome-maskable-512x512.png
+  f  apple-touch-icon.png
+  f  asset-manifest.json
+  f  customer
+  f  favicon-16x16.png
+  f  favicon-32x32.png
+  f  favicon-48x48.png
+  f  favicon.ico
+  f  index.html
+  f  logo-black.svg
+  f  logo-white.svg
+  f  no-image-placeholder.webp
+  f  robots.txt
+  f  service-worker.js
+  f  site.webmanifest
+  f  vite.svg
+  f  workbox-a9e21ce4.js
+
+WordPress-root entries:
+  d  .git
+  d  wp-admin
+  d  wp-content
+  d  wp-includes
+  f  .gitignore
+  f  .htaccess
+  f  index.php
+  f  license.txt
+  f  php_errorlog
+  f  readme.html
+  f  wp-activate.php
+  f  wp-blog-header.php
+  f  wp-comments-post.php
+  f  wp-config-sample.php
+  f  wp-config.php
+  f  wp-cron.php
+  f  wp-links-opml.php
+  f  wp-load.php
+  f  wp-login.php
+  f  wp-mail.php
+  f  wp-settings.php
+  f  wp-signup.php
+  f  wp-trackback.php
+  f  xmlrpc.php
+
+WordPress content entries:
+  d  cache
+  d  mu-plugins
+  d  mu-plugins.bak
+  d  plugins
+  d  themes
+  d  themes.bak
+  d  themes.bak2
+  d  upgrade
+  d  uploads
+  f  .htaccess
+  f  advanced-cache.php
+  f  debug.log
+  f  index.php
+  f  object-cache-socket-missing.php
+  f  sgo-config.php
+  f  sgs_encrypt_key.php
