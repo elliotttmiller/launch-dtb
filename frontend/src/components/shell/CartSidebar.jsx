@@ -3,7 +3,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
 import { getCart } from '../../api/cart.js';
 import StorefrontCartSheet from '../storefront/StorefrontCartSheet';
-import { getWooCheckoutUrl } from '../../utils/checkoutUrl.js';
+import { resolveWooCheckoutHandoffUrl } from '../../utils/checkoutHandoff.js';
 import { navigateDocument } from '../../utils/documentNavigation.js';
 
 const CART_DEBOUNCE_DRAIN_MS = 350;
@@ -42,6 +42,8 @@ export default function CartSidebar({ isOpen, onClose }) {
       event.stopPropagation();
       if (checkoutPendingRef.current) return;
       checkoutPendingRef.current = true;
+      anchor.setAttribute('aria-busy', 'true');
+      anchor.setAttribute('aria-disabled', 'true');
 
       try {
         // The cart sheet intentionally debounces quantity writes. Give that timer
@@ -77,13 +79,20 @@ export default function CartSidebar({ isOpen, onClose }) {
           return;
         }
 
-        navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
+        // Probe the canonical native route before replacing the React document.
+        // If SiteGround incorrectly redirects /checkout/ back to /cart/, use the
+        // supported WordPress front-controller fallback once. A confirmed loop is
+        // surfaced instead of silently refreshing the cart page.
+        const checkoutUrl = await resolveWooCheckoutHandoffUrl();
+        navigateDocument(checkoutUrl, { transition: 'checkout' });
         onClose?.();
       } catch (error) {
-        window.alert(error?.message || 'We could not confirm your signed-in checkout session. Please try again.');
+        window.alert(error?.message || 'We could not open secure checkout. Your cart is still saved. Please try again.');
         anchor.focus?.();
       } finally {
         checkoutPendingRef.current = false;
+        anchor.removeAttribute('aria-busy');
+        anchor.removeAttribute('aria-disabled');
       }
     };
 
