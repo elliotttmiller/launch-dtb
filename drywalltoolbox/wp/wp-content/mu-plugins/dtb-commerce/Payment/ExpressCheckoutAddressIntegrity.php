@@ -3,11 +3,13 @@
  * Stripe Express Checkout address compatibility boundary.
  *
  * The official WooCommerce Stripe extension remains the owner of Apple Pay,
- * Google Pay, Link, address collection, shipping-option refresh, and payment
- * confirmation. This class only normalizes equivalent provider field shapes
- * into WooCommerce's canonical address keys before the extension validates the
- * address. It never invents an address, geocodes a destination, or bypasses
- * WooCommerce validation.
+ * Google Pay, Link, address collection, shipping-option refresh, checkout
+ * submission, and payment confirmation. This class only canonicalizes equivalent
+ * provider field shapes before WooCommerce validates them and emits redacted
+ * diagnostics when the verified Express Checkout Store API flow fails.
+ *
+ * It never invents an address, geocodes a destination, bypasses WooCommerce
+ * validation, creates a payment intent/session, or handles Stripe secrets.
  *
  * @package drywall-toolbox
  */
@@ -16,14 +18,29 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_ExpressCheckoutAddressIntegrity {
 	private const MIN_NORMALIZATION_VERSION = '10.2.0';
-	private const MIN_RECOMMENDED_VERSION   = '10.3.1';
+	private const MIN_RECOMMENDED_VERSION   = '10.7.0';
+	private const EXPRESS_HEADER            = 'x-wcstripe-express-checkout';
+	private const EXPRESS_NONCE_HEADER      = 'x-wcstripe-express-checkout-nonce';
+	private const EXPRESS_NONCE_ACTION      = 'wc_store_api_express_checkout';
+
+	/** Store API routes that may carry canonical checkout addresses. */
+	private const ADDRESS_ROUTES = [
+		'/wc/store/v1/cart/update-customer',
+		'/wc/store/v1/checkout',
+	];
 
 	public static function register(): void {
+		// Official Stripe 10.2+ AJAX normalization boundary.
 		add_filter( 'wc_stripe_express_checkout_normalize_address', [ __CLASS__, 'normalize' ], 20, 2 );
 
-		// Retain compatibility with the legacy shipping-posted-values boundary used
-		// by older official Stripe releases. The same canonicalization rules apply.
+		// Compatibility with older Payment Request shipping updates.
 		add_filter( 'wc_stripe_payment_request_shipping_posted_values', [ __CLASS__, 'normalize_legacy' ], 20 );
+
+		// Stripe 10.9+ uses verified Store API address updates. Running before the
+		// extension's own priority-10 normalizer is safe because this transform is
+		// idempotent and gated by the same signed request context.
+		add_filter( 'rest_pre_dispatch', [ __CLASS__, 'normalize_store_api_request' ], 9, 3 );
+		add_filter( 'rest_request_after_callbacks', [ __CLASS__, 'observe_store_api_response' ], 20, 3 );
 
 		add_action( 'wc_stripe_express_checkout_after_checkout_validation', [ __CLASS__, 'observe_validation' ], 20, 2 );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notice' ] );
@@ -33,7 +50,7 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 	 * Normalize provider address aliases into WooCommerce canonical keys.
 	 *
 	 * @param mixed $normalized_data Address already normalized by Stripe.
-	 * @param mixed $data            Raw provider address payload.
+	 * @param mixed $data            Original provider address payload.
 	 * @return array<string,mixed>
 	 */
 	public static function normalize( $normalized_data, $data ): array {
@@ -41,13 +58,12 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 		$raw        = is_array( $data ) ? $data : [];
 		$sources    = self::address_sources( $raw );
 
-		self::fill_text( $normalized, 'first_name', $sources, [ 'first_name', 'firstName', 'given_name', 'givenName' ] );
-		self::fill_text( $normalized, 'last_name', $sources, [ 'last_name', 'lastName', 'family_name', 'familyName' ] );
+		self::fill_text( $normalized, 'first_name', $sources, [ 'first_name', 'firstName', 'given_name', 'givenName', 'given' ] );
+		self::fill_text( $normalized, 'last_name', $sources, [ 'last_name', 'lastName', 'family_name', 'familyName', 'family' ] );
 		self::fill_text( $normalized, 'company', $sources, [ 'company', 'organization', 'organisation' ] );
 		self::fill_text( $normalized, 'city', $sources, [ 'city', 'locality', 'town', 'postal_town', 'postalTown' ] );
 		self::fill_text( $normalized, 'phone', $sources, [ 'phone', 'phone_number', 'phoneNumber' ] );
 		self::fill_email( $normalized, 'email', $sources, [ 'email', 'email_address', 'emailAddress' ] );
-
 		self::fill_address_lines( $normalized, $sources );
 
 		$country = self::canonical_country(
@@ -88,8 +104,96 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 	}
 
 	/**
-	 * Log only validation codes/field identifiers. Never log wallet payloads,
-	 * names, street addresses, email addresses, phone numbers, or payment data.
+	 * Normalize verified Stripe Express Checkout Store API address parameters.
+	 *
+	 * This supports the current tokenized-cart flow without weakening Store API
+	 * nonce/header checks or changing ordinary checkout/cart requests.
+	 *
+	 * @param mixed           $response Existing pre-dispatch response.
+	 * @param WP_REST_Server  $server   REST server instance.
+	 * @param WP_REST_Request $request  Current request.
+	 * @return mixed
+	 */
+	public static function normalize_store_api_request( $response, $server, $request ) {
+		unset( $server );
+
+		if ( ! $request instanceof WP_REST_Request || ! self::is_verified_express_request( $request ) ) {
+			return $response;
+		}
+
+		if ( ! in_array( $request->get_route(), self::ADDRESS_ROUTES, true ) ) {
+			return $response;
+		}
+
+		$billing  = self::normalize_request_address( $request->get_param( 'billing_address' ) );
+		$shipping = self::normalize_request_address( $request->get_param( 'shipping_address' ) );
+
+		// Wallets may provide the recipient name once in billing/contact details.
+		// Reuse only present canonical values; never synthesize a customer identity.
+		foreach ( [ 'first_name', 'last_name' ] as $field ) {
+			if ( '' === self::scalar_text( $shipping[ $field ] ?? '' ) && '' !== self::scalar_text( $billing[ $field ] ?? '' ) ) {
+				$shipping[ $field ] = $billing[ $field ];
+			}
+			if ( '' === self::scalar_text( $billing[ $field ] ?? '' ) && '' !== self::scalar_text( $shipping[ $field ] ?? '' ) ) {
+				$billing[ $field ] = $shipping[ $field ];
+			}
+		}
+
+		if ( ! empty( $billing ) ) {
+			$request->set_param( 'billing_address', $billing );
+		}
+		if ( ! empty( $shipping ) ) {
+			$request->set_param( 'shipping_address', $shipping );
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Observe failed verified Express Checkout Store API responses without PII.
+	 *
+	 * @param mixed           $response Response generated by the route callback.
+	 * @param mixed           $handler  Route handler metadata.
+	 * @param WP_REST_Request $request  Current request.
+	 * @return mixed
+	 */
+	public static function observe_store_api_response( $response, $handler, $request ) {
+		unset( $handler );
+
+		if ( ! $request instanceof WP_REST_Request || ! self::is_verified_express_request( $request ) ) {
+			return $response;
+		}
+
+		$status = 0;
+		$codes  = [];
+		if ( is_wp_error( $response ) ) {
+			$status = (int) ( $response->get_error_data()['status'] ?? 500 );
+			$codes  = $response->get_error_codes();
+		} elseif ( $response instanceof WP_REST_Response ) {
+			$status = (int) $response->get_status();
+			$data   = $response->get_data();
+			if ( is_array( $data ) && isset( $data['code'] ) ) {
+				$codes[] = $data['code'];
+			}
+		}
+
+		if ( $status >= 400 ) {
+			self::log_failure(
+				'stripe_express_checkout_store_api_failed',
+				[
+					'route'       => sanitize_text_field( $request->get_route() ),
+					'status'      => $status,
+					'error_codes' => self::sanitize_error_codes( $codes ),
+				]
+			);
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Log custom-field validation codes only. Never log wallet payloads, names,
+	 * street addresses, email addresses, phone numbers, or payment data.
 	 *
 	 * @param mixed $custom_checkout_data Unused provider checkout data.
 	 * @param mixed $errors               Validation errors.
@@ -101,24 +205,14 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 			return;
 		}
 
-		$codes = array_values(
-			array_unique(
-				array_filter(
-					array_map( 'sanitize_key', $errors->get_error_codes() )
-				)
-			)
+		self::log_failure(
+			'stripe_express_checkout_validation_failed',
+			[
+				'error_codes' => self::sanitize_error_codes( $errors->get_error_codes() ),
+				'error_count' => count( $errors->get_error_codes() ),
+				'source'      => 'woocommerce_stripe_express_checkout',
+			]
 		);
-
-		if ( function_exists( 'dtb_security_log' ) ) {
-			dtb_security_log(
-				'stripe_express_checkout_validation_failed',
-				[
-					'error_codes' => $codes,
-					'error_count' => count( $codes ),
-					'source'      => 'woocommerce_stripe_express_checkout',
-				]
-			);
-		}
 	}
 
 	public static function admin_notice(): void {
@@ -135,18 +229,42 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 		echo '<div class="notice ' . esc_attr( $severity ) . '"><p>'
 			. esc_html(
 				sprintf(
-					/* translators: %s: installed WooCommerce Stripe extension version. */
-					__( 'Drywall Toolbox detected WooCommerce Stripe Gateway %s. Update the official Stripe extension before accepting Express Checkout payments; newer releases include required Apple Pay and Google Pay address-normalization fixes.', 'drywall-toolbox' ),
-					$version
+					/* translators: 1: installed version, 2: recommended minimum version. */
+					__( 'Drywall Toolbox detected WooCommerce Stripe Gateway %1$s. Update the official Stripe extension to %2$s or newer before accepting Express Checkout payments; current releases include Store API, Apple Pay, Google Pay, and checkout-session reliability fixes.', 'drywall-toolbox' ),
+					$version,
+					self::MIN_RECOMMENDED_VERSION
 				)
 			)
 			. '</p></div>';
 	}
 
+	/** @param mixed $address @return array<string,mixed> */
+	private static function normalize_request_address( $address ): array {
+		if ( ! is_array( $address ) ) {
+			return [];
+		}
+		return self::normalize( $address, $address );
+	}
+
+	private static function is_verified_express_request( WP_REST_Request $request ): bool {
+		$route = $request->get_route();
+		if ( ! str_starts_with( $route, '/wc/store/v1/cart' ) && ! str_starts_with( $route, '/wc/store/v1/checkout' ) ) {
+			return false;
+		}
+
+		$context = strtolower( sanitize_text_field( (string) $request->get_header( self::EXPRESS_HEADER ) ) );
+		if ( 'true' !== $context ) {
+			return false;
+		}
+
+		$nonce = sanitize_text_field( (string) $request->get_header( self::EXPRESS_NONCE_HEADER ) );
+		return '' !== $nonce && (bool) wp_verify_nonce( $nonce, self::EXPRESS_NONCE_ACTION );
+	}
+
 	/** @return array<int,array<string,mixed>> */
 	private static function address_sources( array $raw ): array {
 		$sources = [ $raw ];
-		foreach ( [ 'shipping_address', 'shippingAddress', 'shipping', 'address', 'billing_address', 'billingAddress' ] as $key ) {
+		foreach ( [ 'shipping_address', 'shippingAddress', 'shipping', 'address', 'billing_address', 'billingAddress', 'name' ] as $key ) {
 			if ( isset( $raw[ $key ] ) && is_array( $raw[ $key ] ) ) {
 				$sources[] = $raw[ $key ];
 			}
@@ -196,6 +314,8 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 			if ( '' === $line_two && count( $clean_lines ) > 1 ) {
 				$line_two = implode( ', ', array_slice( $clean_lines, 1 ) );
 			}
+		} elseif ( '' === $line_one && '' !== self::scalar_text( $address_lines ) ) {
+			$line_one = sanitize_text_field( self::scalar_text( $address_lines ) );
 		}
 
 		if ( '' === $line_one ) {
@@ -251,6 +371,15 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 			return $country;
 		}
 
+		$aliases = [
+			'USA'                      => 'US',
+			'UNITED STATES'            => 'US',
+			'UNITED STATES OF AMERICA' => 'US',
+		];
+		if ( isset( $aliases[ $country ] ) ) {
+			return $aliases[ $country ];
+		}
+
 		if ( function_exists( 'WC' ) && WC()->countries ) {
 			foreach ( (array) WC()->countries->get_countries() as $code => $name ) {
 				if ( 0 === strcasecmp( sanitize_text_field( (string) $name ), $country ) ) {
@@ -292,8 +421,8 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 		if ( strlen( $digits ) >= 9 ) {
 			return substr( $digits, 0, 5 ) . '-' . substr( $digits, 5, 4 );
 		}
-		if ( strlen( $digits ) >= 5 ) {
-			return substr( $digits, 0, 5 );
+		if ( 5 === strlen( $digits ) ) {
+			return $digits;
 		}
 		return $postcode;
 	}
@@ -305,19 +434,44 @@ final class DTB_ExpressCheckoutAddressIntegrity {
 				continue;
 			}
 			foreach ( $aliases as $alias ) {
-				if ( array_key_exists( $alias, $source ) && '' !== self::scalar_text( $source[ $alias ] ) ) {
-					return $source[ $alias ];
+				if ( ! array_key_exists( $alias, $source ) ) {
+					continue;
+				}
+				$value = $source[ $alias ];
+				if ( is_array( $value ) && ! empty( $value ) ) {
+					return $value;
+				}
+				if ( '' !== self::scalar_text( $value ) ) {
+					return $value;
 				}
 			}
 		}
 		return '';
 	}
 
-	private static function scalar_text( $value ): string {
-		if ( is_scalar( $value ) ) {
-			return trim( (string) $value );
+	/** @param array<int,mixed> $codes @return array<int,string> */
+	private static function sanitize_error_codes( array $codes ): array {
+		return array_values(
+			array_unique(
+				array_filter( array_map( static fn ( $code ): string => sanitize_key( (string) $code ), $codes ) )
+			)
+		);
+	}
+
+	/** @param array<string,mixed> $context */
+	private static function log_failure( string $event, array $context ): void {
+		if ( function_exists( 'dtb_security_log' ) ) {
+			dtb_security_log( sanitize_key( $event ), $context );
+			return;
 		}
-		return '';
+
+		if ( function_exists( 'wc_get_logger' ) ) {
+			wc_get_logger()->warning( sanitize_key( $event ), [ 'source' => 'dtb-stripe-express-checkout' ] + $context );
+		}
+	}
+
+	private static function scalar_text( $value ): string {
+		return is_scalar( $value ) ? trim( (string) $value ) : '';
 	}
 }
 
