@@ -11,10 +11,22 @@ from pydantic import BaseModel, Field, model_validator
 class SSHConfig(BaseModel):
     host: str
     user: str
-    port: int = Field(ge=1, le=65535)
+    port_env: str
     identity_file_env: str
     known_hosts_file_env: str
     connect_timeout_seconds: int = Field(default=15, ge=1, le=120)
+
+    def port(self) -> int:
+        value = os.environ.get(self.port_env, "").strip()
+        if not value:
+            raise ValueError(f"Environment variable {self.port_env} is required")
+        try:
+            port = int(value)
+        except ValueError as exc:
+            raise ValueError(f"{self.port_env} must be an integer") from exc
+        if not 1 <= port <= 65535:
+            raise ValueError(f"{self.port_env} must be between 1 and 65535")
+        return port
 
     def identity_file(self) -> Path:
         value = os.environ.get(self.identity_file_env, "").strip()
@@ -88,19 +100,10 @@ class AppConfig(BaseModel):
             raise ValueError("Configured site root differs from verified scan")
         if server.get("wordpressRoot") != self.remote.wordpress_root:
             raise ValueError("Configured WordPress root differs from verified scan")
-        verified = {
-            item["remote"]
-            for item in scan.get("candidateMappings", [])
-            if item.get("verifiedRemoteTarget") is True
-        }
+        verified = {item["remote"] for item in scan.get("candidateMappings", []) if item.get("verifiedRemoteTarget") is True}
         for mapping in self.mappings:
             destination = mapping.destination.rstrip("/") or "."
-            if destination == ".":
-                candidate = "."
-            elif destination.startswith("wp/wp-content/themes/"):
-                candidate = "wp/wp-content/themes"
-            else:
-                candidate = destination
+            candidate = "wp/wp-content/themes" if destination.startswith("wp/wp-content/themes/") else destination
             if candidate not in verified:
                 raise ValueError(f"Mapping is not authorized by scan manifest: {mapping.name} -> {destination}")
 
