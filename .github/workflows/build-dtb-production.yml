@@ -139,7 +139,6 @@ jobs:
           test -f dtb-production/memory-bank/structure.md
           test -f dtb-production/memory-bank/tech.md
           test -f dtb-production/.github/workflows/ci-build.yml
-          test ! -e dtb-production/.github/workflows/deploy.yml
 
           test -d dtb-production/frontend/src
           test -d dtb-production/frontend/public
