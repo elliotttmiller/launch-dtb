@@ -86,6 +86,10 @@ jobs:
         shell: pwsh
         run: ./scripts/smoke-dtb-checkout-ui.ps1
 
+      - name: Validate customer-facing typography contract
+        shell: pwsh
+        run: ./scripts/smoke-dtb-frontend-typography.ps1
+
       - name: Reject legacy production origins in active runtime source
         shell: bash
         run: |
