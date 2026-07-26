@@ -29,6 +29,7 @@ dtb_module_require( 'dtb-schematics/Services/SchematicAttachmentProcessor.php' )
 
 // Application.
 dtb_module_require( 'dtb-schematics/Application/SyncSchematicMedia.php' );
+dtb_module_require( 'dtb-schematics/Application/RegisterSchematicUploads.php' );
 dtb_module_require( 'dtb-schematics/Application/BuildSchematicManifest.php' );
 dtb_module_require( 'dtb-schematics/Application/ResolveSchematicParts.php' );
 
