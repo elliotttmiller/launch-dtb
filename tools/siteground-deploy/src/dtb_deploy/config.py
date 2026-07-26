@@ -87,6 +87,12 @@ def load_config(path: Path) -> AppConfig:
     data["repository_root"] = str((resolved.parent / data["repository_root"]).resolve())
     config = AppConfig.model_validate(data)
     config.validate_scan_contract()
+
+    # Resolve optional local overrides once so every engine consumer uses the
+    # same immutable endpoint and TLS verification name for this process.
+    config.ftp.connect_host = config.ftp.effective_connect_host()
+    config.ftp.tls_hostname = config.ftp.effective_tls_hostname()
+
     config.ftp.password()
     config.ftp.root()
     return config
