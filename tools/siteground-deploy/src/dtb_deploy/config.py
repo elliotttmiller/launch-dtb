@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 
 
 class FTPConfig(BaseModel):
-    host: str
+    connect_host: str
+    tls_hostname: str
     user: str
     port: int = Field(default=21, ge=1, le=65535)
     password_env: str = "DTB_FTP_PASSWORD"
