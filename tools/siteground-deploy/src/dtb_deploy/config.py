@@ -6,7 +6,7 @@ from pathlib import Path, PurePosixPath
 from typing import Literal
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 class FTPConfig(BaseModel):
@@ -41,30 +41,6 @@ class RemoteConfig(BaseModel):
     local_state_directory: str = ".state"
 
 
-class BuildConfig(BaseModel):
-    working_directory: str
-    command: list[str]
-    required_output: str
-
-
-class Mapping(BaseModel):
-    name: str
-    source: str
-    destination: str
-    owner: Literal["frontend", "deployment", "dtb-backend", "wordpress-theme"]
-    delete: bool = False
-    excludes: list[str] = []
-
-    @model_validator(mode="after")
-    def deny_destructive_sync(self) -> "Mapping":
-        if self.delete:
-            raise ValueError(f"Remote deletion is disabled: {self.name}")
-        destination = PurePosixPath(self.destination)
-        if destination.is_absolute() or ".." in destination.parts:
-            raise ValueError(f"Unsafe FTP destination: {self.destination}")
-        return self
-
-
 class AppConfig(BaseModel):
     schema_version: int
     environment: Literal["production"]
@@ -72,8 +48,6 @@ class AppConfig(BaseModel):
     scan_manifest: str
     ftp: FTPConfig
     remote: RemoteConfig
-    build: BuildConfig
-    mappings: list[Mapping]
     protected_remote_paths: list[str]
     health_checks: list[str]
 
@@ -95,16 +69,6 @@ class AppConfig(BaseModel):
             raise ValueError("Configured site root differs from verified scan")
         if server.get("wordpressRoot") != self.remote.verified_wordpress_root:
             raise ValueError("Configured WordPress root differs from verified scan")
-        verified = {
-            item["remote"]
-            for item in scan.get("candidateMappings", [])
-            if item.get("verifiedRemoteTarget") is True
-        }
-        for mapping in self.mappings:
-            destination = mapping.destination.rstrip("/") or "."
-            candidate = "wp/wp-content/themes" if destination.startswith("wp/wp-content/themes/") else destination
-            if candidate not in verified:
-                raise ValueError(f"Mapping is not authorized by scan manifest: {mapping.name} -> {destination}")
 
 
 def load_config(path: Path) -> AppConfig:
