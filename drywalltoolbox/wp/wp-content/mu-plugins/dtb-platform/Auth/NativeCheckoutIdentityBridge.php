@@ -29,10 +29,10 @@ function dtb_native_checkout_resolve_current_user( $user_id ) {
 }
 
 function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
-	$native_user_id      = ! empty( $user_id ) ? absint( $user_id ) : 0;
-	$native_user         = $native_user_id > 0 ? get_user_by( 'id', $native_user_id ) : false;
+	$native_user_id       = ! empty( $user_id ) ? absint( $user_id ) : 0;
+	$native_user          = $native_user_id > 0 ? get_user_by( 'id', $native_user_id ) : false;
 	$native_is_privileged = $native_user instanceof WP_User && dtb_native_checkout_user_is_privileged( $native_user );
-	$woo_customer_kind   = dtb_native_checkout_woo_customer_kind( $native_user_id, $native_is_privileged );
+	$woo_customer_kind    = dtb_native_checkout_woo_customer_kind( $native_user_id, $native_is_privileged );
 
 	$token = ! empty( $_COOKIE['dtb_auth'] )
 		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
@@ -48,18 +48,22 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 		return false;
 	}
 
-	$resolved = dtb_native_checkout_verify_user_id( $token );
-	if ( $resolved <= 0 ) {
+	$verification = DTB_JwtService::verify( $token );
+	if ( is_wp_error( $verification ) ) {
+		$event = 'token_expired' === $verification->get_error_code()
+			? 'native_checkout_expired_jwt_cookie_cleared'
+			: 'native_checkout_invalid_jwt_cookie_cleared';
 		if ( $native_is_privileged ) {
-			dtb_native_checkout_log_security_event( 'native_checkout_invalid_jwt_privileged_preserved', $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
+			dtb_native_checkout_log_security_event( str_replace( '_cookie_cleared', '_privileged_preserved', $event ), $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
 			return $user_id;
 		}
 		dtb_native_checkout_clear_stale_customer_cookie( $native_user_id );
-		dtb_native_checkout_log_security_event( 'native_checkout_invalid_jwt_cookie_cleared', $native_user_id, 0, $woo_customer_kind, 'invalid_jwt' );
+		dtb_native_checkout_log_security_event( $event, $native_user_id, 0, $woo_customer_kind, 'invalid_jwt' );
 		return false;
 	}
 
-	$user = get_user_by( 'id', $resolved );
+	$resolved = absint( $verification->sub ?? 0 );
+	$user     = $resolved > 0 ? get_user_by( 'id', $resolved ) : false;
 	if ( ! $user instanceof WP_User || dtb_native_checkout_user_is_privileged( $user ) ) {
 		dtb_native_checkout_log_security_event( 'native_checkout_jwt_user_rejected', $native_user_id, $resolved, $woo_customer_kind, 'jwt_user_rejected' );
 		return $user_id;
@@ -135,9 +139,6 @@ function dtb_native_checkout_expire_woocommerce_browser_state(): void {
 	}
 }
 
-/**
- * Classify shopper state without reading or logging Woo session identifiers.
- */
 function dtb_native_checkout_woo_customer_kind( int $native_user_id, bool $native_is_privileged ): string {
 	if ( $native_is_privileged ) {
 		return 'privileged_native';
@@ -145,9 +146,6 @@ function dtb_native_checkout_woo_customer_kind( int $native_user_id, bool $nativ
 	return $native_user_id > 0 ? 'native_customer' : 'guest';
 }
 
-/**
- * Emit only the approved redacted identity-handoff fields.
- */
 function dtb_native_checkout_log_security_event(
 	string $event,
 	int $native_user_id = 0,
@@ -156,11 +154,11 @@ function dtb_native_checkout_log_security_event(
 	string $handoff_status = 'unknown'
 ): void {
 	$payload = [
-		'event'              => sanitize_key( $event ),
-		'native_user_id'     => absint( $native_user_id ),
-		'jwt_user_id'        => absint( $jwt_user_id ),
-		'woo_customer_kind'  => sanitize_key( $woo_customer_kind ),
-		'handoff_status'     => sanitize_key( $handoff_status ),
+		'event'             => sanitize_key( $event ),
+		'native_user_id'    => absint( $native_user_id ),
+		'jwt_user_id'       => absint( $jwt_user_id ),
+		'woo_customer_kind' => sanitize_key( $woo_customer_kind ),
+		'handoff_status'    => sanitize_key( $handoff_status ),
 	];
 
 	error_log( (string) wp_json_encode( $payload, JSON_UNESCAPED_SLASHES ) );
@@ -195,62 +193,4 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 	}
 
 	return false;
-}
-
-function dtb_native_checkout_verify_user_id( string $token ): int {
-	$parts = explode( '.', $token );
-	if ( 3 !== count( $parts ) ) {
-		return 0;
-	}
-
-	[ $encoded_header, $encoded_payload, $encoded_signature ] = $parts;
-	$header_json  = dtb_native_checkout_base64url_decode( $encoded_header );
-	$payload_json = dtb_native_checkout_base64url_decode( $encoded_payload );
-	if ( null === $header_json || null === $payload_json ) {
-		return 0;
-	}
-
-	$header  = json_decode( $header_json );
-	$payload = json_decode( $payload_json );
-	if ( ! is_object( $header ) || ! is_object( $payload ) || 'HS256' !== ( $header->alg ?? '' ) ) {
-		return 0;
-	}
-
-	$config = function_exists( 'dtb_get_config' ) ? dtb_get_config() : [];
-	$secret = is_array( $config ) ? (string) ( $config['jwt_secret'] ?? '' ) : '';
-	if ( '' === $secret ) {
-		return 0;
-	}
-
-	$expected = rtrim(
-		strtr(
-			base64_encode( hash_hmac( 'sha256', $encoded_header . '.' . $encoded_payload, $secret, true ) ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
-			'+/',
-			'-_'
-		),
-		'='
-	);
-	if ( ! hash_equals( $expected, $encoded_signature ) ) {
-		return 0;
-	}
-
-	$now = time();
-	$sub = isset( $payload->sub ) ? absint( $payload->sub ) : 0;
-	$exp = isset( $payload->exp ) ? (int) $payload->exp : 0;
-	$iat = isset( $payload->iat ) ? (int) $payload->iat : 0;
-	if ( $sub <= 0 || $exp <= $now || ( $iat > 0 && $iat > $now + 300 ) ) {
-		return 0;
-	}
-
-	return $sub;
-}
-
-function dtb_native_checkout_base64url_decode( string $value ): ?string {
-	if ( '' === $value || ! preg_match( '/^[A-Za-z0-9_-]+$/', $value ) ) {
-		return null;
-	}
-
-	$padded  = $value . str_repeat( '=', ( 4 - ( strlen( $value ) % 4 ) ) % 4 );
-	$decoded = base64_decode( strtr( $padded, '-_', '+/' ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-	return false === $decoded ? null : $decoded;
 }
