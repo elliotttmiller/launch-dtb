@@ -2,56 +2,43 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Literal
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field, model_validator
 
 
-class SSHConfig(BaseModel):
+class FTPConfig(BaseModel):
     host: str
     user: str
-    port_env: str
-    identity_file_env: str
-    known_hosts_file_env: str
-    connect_timeout_seconds: int = Field(default=15, ge=1, le=120)
+    port: int = Field(default=21, ge=1, le=65535)
+    password_env: str = "DTB_FTP_PASSWORD"
+    root_env: str = "DTB_FTP_ROOT"
+    timeout_seconds: int = Field(default=30, ge=5, le=300)
+    passive: bool = True
+    require_tls: bool = True
 
-    @property
-    def port(self) -> int:
-        raw = os.environ.get(self.port_env, "").strip()
-        if not raw:
-            raise ValueError(f"Environment variable {self.port_env} is required")
-        try:
-            value = int(raw)
-        except ValueError as exc:
-            raise ValueError(f"{self.port_env} must be an integer") from exc
-        if value < 1 or value > 65535:
-            raise ValueError(f"{self.port_env} must be between 1 and 65535")
+    def password(self) -> str:
+        value = os.environ.get(self.password_env, "")
+        if not value:
+            raise ValueError(f"Environment variable {self.password_env} is required")
         return value
 
-    def identity_file(self) -> Path:
-        raw = os.environ.get(self.identity_file_env, "").strip()
-        if not raw:
-            raise ValueError(f"Environment variable {self.identity_file_env} is required")
-        path = Path(raw).expanduser().resolve()
-        if not path.is_file():
-            raise ValueError(f"SSH identity file does not exist: {path}")
-        return path
-
-    def known_hosts_file(self) -> Path:
-        raw = os.environ.get(self.known_hosts_file_env, "").strip()
-        if not raw:
-            raise ValueError(f"Environment variable {self.known_hosts_file_env} is required")
-        path = Path(raw).expanduser().resolve()
-        if not path.is_file():
-            raise ValueError(f"Known-hosts file does not exist: {path}")
-        return path
+    def root(self) -> str:
+        value = os.environ.get(self.root_env, "").strip()
+        if not value:
+            raise ValueError(f"Environment variable {self.root_env} is required")
+        normalized = "/" + value.strip("/") if value != "/" else "/"
+        if ".." in PurePosixPath(normalized).parts:
+            raise ValueError("FTP root may not contain parent traversal")
+        return normalized
 
 
 class RemoteConfig(BaseModel):
-    site_root: str
-    wordpress_root: str
-    state_root: str
+    verified_site_root: str
+    verified_wordpress_root: str
+    local_state_directory: str = ".state"
 
 
 class BuildConfig(BaseModel):
@@ -71,7 +58,10 @@ class Mapping(BaseModel):
     @model_validator(mode="after")
     def deny_destructive_sync(self) -> "Mapping":
         if self.delete:
-            raise ValueError(f"Destructive rsync deletion is disabled: {self.name}")
+            raise ValueError(f"Remote deletion is disabled: {self.name}")
+        destination = PurePosixPath(self.destination)
+        if destination.is_absolute() or ".." in destination.parts:
+            raise ValueError(f"Unsafe FTP destination: {self.destination}")
         return self
 
 
@@ -80,7 +70,7 @@ class AppConfig(BaseModel):
     environment: Literal["production"]
     repository_root: str
     scan_manifest: str
-    ssh: SSHConfig
+    ftp: FTPConfig
     remote: RemoteConfig
     build: BuildConfig
     mappings: list[Mapping]
@@ -91,15 +81,19 @@ class AppConfig(BaseModel):
     def root(self) -> Path:
         return Path(self.repository_root).resolve()
 
+    @property
+    def state_root(self) -> Path:
+        return (self.root / "tools/siteground-deploy" / self.remote.local_state_directory).resolve()
+
     def validate_scan_contract(self) -> None:
         scan_path = self.root / self.scan_manifest
         if not scan_path.is_file():
             raise ValueError(f"Verified SiteGround scan manifest is missing: {scan_path}")
         scan = json.loads(scan_path.read_text(encoding="utf-8"))
         server = scan.get("server", {})
-        if server.get("siteRoot") != self.remote.site_root:
+        if server.get("siteRoot") != self.remote.verified_site_root:
             raise ValueError("Configured site root differs from verified scan")
-        if server.get("wordpressRoot") != self.remote.wordpress_root:
+        if server.get("wordpressRoot") != self.remote.verified_wordpress_root:
             raise ValueError("Configured WordPress root differs from verified scan")
         verified = {
             item["remote"]
@@ -115,8 +109,11 @@ class AppConfig(BaseModel):
 
 def load_config(path: Path) -> AppConfig:
     resolved = path.expanduser().resolve()
+    load_dotenv(resolved.parent / ".env", override=False)
     data = json.loads(resolved.read_text(encoding="utf-8"))
     data["repository_root"] = str((resolved.parent / data["repository_root"]).resolve())
     config = AppConfig.model_validate(data)
     config.validate_scan_contract()
+    config.ftp.password()
+    config.ftp.root()
     return config
