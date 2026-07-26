@@ -10,6 +10,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
 const CHECKOUT_SESSION_SYNC_ERROR = 'Your signed-in session is not ready for checkout yet. Please try again.';
+const CHECKOUT_SESSION_CHANGED_ERROR = 'Your secure checkout identity changed while we reconciled your session. We refreshed your cart for safety. Review it, then select checkout again.';
 const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800];
 const PUBLIC_ENV = {
   REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL,
@@ -21,9 +22,7 @@ function readPublicEnv(name) {
     const runtimeEnv = window.DTB_PUBLIC_ENV || window.dtbPublicEnv || {};
     if (typeof runtimeEnv[name] === 'string') return runtimeEnv[name];
   }
-  if (typeof PUBLIC_ENV[name] === 'string') {
-    return PUBLIC_ENV[name];
-  }
+  if (typeof PUBLIC_ENV[name] === 'string') return PUBLIC_ENV[name];
   return '';
 }
 
@@ -93,12 +92,31 @@ function emitAuthChanged(type) {
   catch { /** storage may be unavailable */ }
 }
 
+function normalizeNativeCheckoutState(data) {
+  const state = data?.session?.native_checkout || {};
+  return {
+    status: String(state.status || 'unknown'),
+    ready: state.ready === true,
+    cookieQueued: state.cookie_queued === true,
+    cookieAlreadyValid: state.cookie_already_valid === true,
+    identityConflictContained: state.identity_conflict_contained === true,
+  };
+}
+
+function checkoutSessionError(code, message, state) {
+  const error = new Error(message);
+  error.name = 'CheckoutSessionError';
+  error.code = code;
+  error.checkoutSession = state;
+  return error;
+}
+
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const epochRef = useRef(0);
-  const nativeCheckoutReadyRef = useRef(false);
+  const nativeCheckoutStateRef = useRef(normalizeNativeCheckoutState(null));
 
   const validateSession = useCallback(async ({ retries = 0, publish = false, epoch = null } = {}) => {
     const activeEpoch = epoch ?? epochRef.current;
@@ -110,22 +128,22 @@ export function useAuth() {
 
       const data = await authJson('/validate', { method: 'POST' });
       const nextUser = data?.authenticated === false ? null : data?.user || null;
-      nativeCheckoutReadyRef.current = data?.session?.native_checkout?.ready === true;
+      nativeCheckoutStateRef.current = normalizeNativeCheckoutState(data);
       if (nextUser) {
         if (epochRef.current === activeEpoch) {
           setUser(nextUser);
           if (publish) emitAuthChanged('login');
         }
-        return nextUser;
+        return { user: nextUser, nativeCheckout: nativeCheckoutStateRef.current };
       }
     }
 
-    nativeCheckoutReadyRef.current = false;
+    nativeCheckoutStateRef.current = normalizeNativeCheckoutState(null);
     if (epochRef.current === activeEpoch) {
       setUser(null);
       if (publish) emitAuthChanged('logout');
     }
-    return null;
+    return { user: null, nativeCheckout: nativeCheckoutStateRef.current };
   }, []);
 
   useEffect(() => {
@@ -146,21 +164,17 @@ export function useAuth() {
     try {
       if (remote) {
         const result = await authJson('/logout', { method: 'DELETE' });
-        if (result?.success !== true) {
-          throw new Error('The server did not confirm sign out. Please try again.');
-        }
+        if (result?.success !== true) throw new Error('The server did not confirm sign out. Please try again.');
       }
 
-      nativeCheckoutReadyRef.current = false;
+      nativeCheckoutStateRef.current = normalizeNativeCheckoutState(null);
       if (epochRef.current === epoch) {
         setUser(null);
         if (publish) emitAuthChanged('logout');
       }
       return true;
     } catch (logoutError) {
-      if (epochRef.current === epoch) {
-        setError(logoutError?.message || 'Unable to sign out securely. Please try again.');
-      }
+      if (epochRef.current === epoch) setError(logoutError?.message || 'Unable to sign out securely. Please try again.');
       throw logoutError;
     } finally {
       if (epochRef.current === epoch) setIsLoading(false);
@@ -172,9 +186,7 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    const handler = () => {
-      void logout().catch(() => logout({ remote: false }));
-    };
+    const handler = () => { void logout().catch(() => logout({ remote: false })); };
     window.addEventListener('auth:expired', handler);
     return () => window.removeEventListener('auth:expired', handler);
   }, [logout]);
@@ -185,14 +197,10 @@ export function useAuth() {
       try {
         const payload = JSON.parse(event.newValue);
         if (payload?.type === 'logout') {
-          void logout({ remote: false, publish: false })
-            .catch(() => null)
-            .finally(emitLocalAuthChanged);
+          void logout({ remote: false, publish: false }).catch(() => null).finally(emitLocalAuthChanged);
         }
         if (payload?.type === 'login') {
-          void validateSession({ retries: 2 })
-            .catch(() => null)
-            .finally(emitLocalAuthChanged);
+          void validateSession({ retries: 2 }).catch(() => null).finally(emitLocalAuthChanged);
         }
       } catch { /** ignore */ }
     };
@@ -205,14 +213,11 @@ export function useAuth() {
     setError(null);
     setIsLoading(true);
     try {
-      const data = await authJson('/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await authJson('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Login failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
-      if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
-      return { ...data, user: confirmed, nativeCheckoutReady: nativeCheckoutReadyRef.current };
+      if (!confirmed.user) throw new Error(SESSION_SYNC_ERROR);
+      return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {
         setUser(null);
@@ -235,8 +240,8 @@ export function useAuth() {
       });
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Registration failed.');
       const confirmed = await validateSession({ retries: 3, publish: true, epoch });
-      if (!confirmed) throw new Error(SESSION_SYNC_ERROR);
-      return { ...data, user: confirmed, nativeCheckoutReady: nativeCheckoutReadyRef.current };
+      if (!confirmed.user) throw new Error(SESSION_SYNC_ERROR);
+      return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {
         setUser(null);
@@ -250,20 +255,22 @@ export function useAuth() {
 
   const ensureNativeCheckoutReady = useCallback(async () => {
     const confirmed = await validateSession({ retries: 2 });
-    if (!confirmed || nativeCheckoutReadyRef.current !== true) {
-      throw new Error(CHECKOUT_SESSION_SYNC_ERROR);
+    const state = confirmed.nativeCheckout;
+    if (!confirmed.user) throw checkoutSessionError('checkout_identity_unconfirmed', CHECKOUT_SESSION_SYNC_ERROR, state);
+    if (state.identityConflictContained) {
+      throw checkoutSessionError('checkout_identity_reconciled', CHECKOUT_SESSION_CHANGED_ERROR, state);
     }
-    return confirmed;
+    if (state.ready !== true || !['aligned', 'bridged'].includes(state.status)) {
+      throw checkoutSessionError('checkout_identity_not_ready', CHECKOUT_SESSION_SYNC_ERROR, state);
+    }
+    return { user: confirmed.user, nativeCheckout: state };
   }, [validateSession]);
 
   const forgotPassword = useCallback(async (email) => {
     setError(null);
     try {
       const spaUrl = readPublicEnv('REACT_APP_SITE_URL') || (typeof window !== 'undefined' ? window.location.origin : '');
-      return await authJson('/forgot-password', {
-        method: 'POST',
-        body: JSON.stringify({ email, ...(spaUrl ? { spa_url: spaUrl } : {}) }),
-      });
+      return await authJson('/forgot-password', { method: 'POST', body: JSON.stringify({ email, ...(spaUrl ? { spa_url: spaUrl } : {}) }) });
     } catch (err) {
       setError(err?.message || 'Request failed.');
       throw err;
@@ -273,10 +280,7 @@ export function useAuth() {
   const resetPassword = useCallback(async (key, loginName, password) => {
     setError(null);
     try {
-      return await authJson('/reset-password', {
-        method: 'POST',
-        body: JSON.stringify({ key, login: loginName, password }),
-      });
+      return await authJson('/reset-password', { method: 'POST', body: JSON.stringify({ key, login: loginName, password }) });
     } catch (err) {
       setError(err?.message || 'Password reset failed.');
       throw err;
