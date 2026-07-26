@@ -48,10 +48,9 @@ jobs:
           cp memory-bank/structure.md dtb-production/memory-bank/structure.md
           cp memory-bank/tech.md dtb-production/memory-bank/tech.md
 
-          # Current production CI/release workflows only.
+          # Current production validation workflow only. Remote transfer remains operator-owned.
           mkdir -p dtb-production/.github/workflows
           cp .github/workflows/ci-build.yml dtb-production/.github/workflows/ci-build.yml
-          cp .github/workflows/deploy.yml dtb-production/.github/workflows/deploy.yml
 
           # Frontend production source. Keep only files needed to build/validate the storefront.
           mkdir -p dtb-production/frontend/scripts
@@ -107,12 +106,12 @@ jobs:
           cat > dtb-production/PRODUCTION-PACKAGE.md <<'EOF'
           # DTB Production Launch Source Package
 
-          This directory is a curated copy of current source and production data required to build, operate, validate, and deploy Drywall Toolbox for launch.
+          This directory is a curated copy of current source and production data required to build, operate, and validate Drywall Toolbox for launch. Production file transfer is an operator-owned manual process outside this package.
 
           Included:
           - `AGENTS.md`
           - current `memory-bank/{product,structure,tech}.md`
-          - `.github/workflows/{ci-build,deploy}.yml`
+          - `.github/workflows/ci-build.yml`
           - curated `frontend/` production source and mandatory build-safety files
           - tracked `wp/` application code (`mu-plugins`, themes, routing/index files)
           - exactly two authoritative runtime/import CSVs from `products/launch/official/`
@@ -121,6 +120,7 @@ jobs:
 
           Excluded:
           - root `scripts/`
+          - remote connection helpers, transport implementations, and credentials
           - legacy/stage/historical catalog CSV generations outside `products/launch/official/`
           - research/reference docs, scraped data, reports, audits, source-history and scratch data
           - generated `dist/`, `node_modules/`, caches and local/staging env files
@@ -139,7 +139,7 @@ jobs:
           test -f dtb-production/memory-bank/structure.md
           test -f dtb-production/memory-bank/tech.md
           test -f dtb-production/.github/workflows/ci-build.yml
-          test -f dtb-production/.github/workflows/deploy.yml
+          test ! -e dtb-production/.github/workflows/deploy.yml
 
           test -d dtb-production/frontend/src
           test -d dtb-production/frontend/public
