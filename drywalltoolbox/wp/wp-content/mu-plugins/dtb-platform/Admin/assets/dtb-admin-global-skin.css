@@ -94,42 +94,6 @@ body.dtb-admin-global-skin textarea:focus {
 	outline: 2px solid transparent;
 }
 
-/* WordPress chrome */
-body.dtb-admin-global-skin #wpadminbar {
-	background: #151d2b;
-	box-shadow: 0 1px 0 rgba(255, 255, 255, .07), 0 10px 28px rgba(15, 23, 42, .18);
-}
-
-body.dtb-admin-global-skin #adminmenuback,
-body.dtb-admin-global-skin #adminmenuwrap,
-body.dtb-admin-global-skin #adminmenu {
-	background: #111827;
-}
-
-body.dtb-admin-global-skin #adminmenu .wp-submenu,
-body.dtb-admin-global-skin #adminmenu .wp-has-current-submenu .wp-submenu {
-	background: #182235;
-}
-
-body.dtb-admin-global-skin #adminmenu li.menu-top:hover,
-body.dtb-admin-global-skin #adminmenu li.opensub > a.menu-top,
-body.dtb-admin-global-skin #adminmenu li > a.menu-top:focus {
-	background: #1f2b40;
-}
-
-body.dtb-admin-global-skin #adminmenu li.wp-has-current-submenu a.wp-has-current-submenu,
-body.dtb-admin-global-skin #adminmenu li.current a.menu-top,
-body.dtb-admin-global-skin #adminmenu .wp-menu-arrow {
-	background: var(--dtb-wp-primary);
-	color: #fff;
-}
-
-body.dtb-admin-global-skin #adminmenu .wp-submenu a:focus,
-body.dtb-admin-global-skin #adminmenu .wp-submenu a:hover,
-body.dtb-admin-global-skin #adminmenu .wp-submenu li.current a {
-	color: #93c5fd;
-}
-
 /* Common surfaces */
 body.dtb-admin-global-skin .postbox,
 body.dtb-admin-global-skin .stuffbox,
