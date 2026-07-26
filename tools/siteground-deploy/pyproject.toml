@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dtb-siteground-deploy"
-version = "2.0.1"
-description = "Local-only Drywall Toolbox SiteGround FTPES deployment TUI"
+version = "4.0.0"
+description = "Windows SiteGround FTPES file manager and deployment TUI"
 requires-python = ">=3.11"
 dependencies = [
   "textual>=1.0,<2",
