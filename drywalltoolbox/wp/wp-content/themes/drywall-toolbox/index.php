@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit;
 	<link rel="apple-touch-icon" href="<?php echo esc_url( home_url( '/logos/apple-touch-icon.png' ) ); ?>" />
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&display=swap" rel="stylesheet">
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class( 'dtb-react-app' ); ?>>
