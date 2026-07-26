@@ -99,7 +99,8 @@ defined( 'ABSPATH' ) || exit;
  *                  account.
  *   Where to get : No value to fetch — just set to true.
  *   What breaks  : Theme and plugin files can no longer be edited from the
- *                  WordPress admin. Make all code changes via SSH/FTP/git.
+ *                  WordPress admin. Make changes in canonical repository source
+ *                  and transfer only reviewed production artifacts.
  *
  * -----------------------------------------------------------------------------
  * OPTIONAL CONSTANTS (not shown in the ready-to-copy block above)
@@ -287,8 +288,8 @@ defined( 'ABSPATH' ) || exit;
  *
  * STEP 2 — Upload the updated CSV to the server
  * -----------------------------------------------
- *   Via WooCommerce → Products → Import, or via cPanel File Manager / SFTP,
- *   copy the updated catalog CSV to:
+ *   Use WooCommerce → Products → Import, or upload the reviewed CSV with
+ *   FileZilla to:
  *     public_html/drywalltoolbox/wp/wp-content/uploads/wc-imports/
  *   (filename must match DTB_WC_CSV_FILENAME / dtb_get_config()['csv_filename'],
  *    or use auto-discovery by naming it product-wc-<brand>-<suffix>.csv)
