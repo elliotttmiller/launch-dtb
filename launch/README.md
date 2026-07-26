@@ -35,25 +35,20 @@ The assembly script installs dependencies, lints and builds the frontend, then r
 
 Do not upload `dist-staging/` to `public_html/`. The staging build is compiled for `/staging/2972/` and will produce 404s for root-deployed assets such as `/staging/2972/assets/js/main.js`.
 
-## GitHub Actions deployment
+## Manual FileZilla deployment
 
-The production release is `.github/workflows/deploy.yml` (`Controlled SiteGround Release`). It is manual-only and deploys over SFTP. It does not use `launch/wp/.git`; that nested repository is a local/runtime WordPress snapshot and is intentionally excluded from the outer repository.
+Remote file transfer is operator-managed through FileZilla and is intentionally outside the repository. The repository contains no remote-transfer workflow, transport script, credential contract, or production connection helper.
 
-Configure the GitHub environment named `siteground-production` with a required reviewer and these environment secrets:
+Before each transfer:
 
-```text
-SITEGROUND_SFTP_HOST
-SITEGROUND_SFTP_PORT
-SITEGROUND_SFTP_USERNAME
-SITEGROUND_SFTP_PASSWORD
-SITEGROUND_REMOTE_DIR
-```
+1. Build and validate `launch/live/` from canonical source.
+2. Create independent SiteGround file and database backups.
+3. Review the complete bounded overlay and confirm that runtime-owned paths are absent.
+4. Transfer the complete dependency-consistent change set with FileZilla; do not upload isolated composition files.
+5. Clear required SiteGround caches through Site Tools.
+6. Run the runtime acceptance checks below.
 
-Copy the SFTP host, port, username, and password from SiteGround Site Tools. Set `SITEGROUND_REMOTE_DIR` to the exact remote directory that File Manager identifies as the document root for `elliottm4.sg-host.com`; do not guess this value and do not paste credentials into repository files or support messages.
-
-Before the first production release, run `CI Build Validation - No Deploy` from `main`. After it passes, run `Controlled SiteGround Release`, choose `deploy`, enter `DEPLOY`, and approve the protected environment. The workflow builds an immutable payload, backs up exactly the managed file surface, uploads only that surface, performs HTTP smoke checks, and automatically restores the file backup if deployment or smoke checks fail. Database and external-service rollback remain operator-owned.
-
-For an explicit file restore, rerun `Controlled SiteGround Release` with `restore`, enter `RESTORE`, and provide the original workflow run ID and exact `siteground-backup-*` artifact name.
+FileZilla connection details and credentials are operator-owned and must not be committed, documented in repository files, or pasted into support messages.
 
 ## Required runtime actions
 
