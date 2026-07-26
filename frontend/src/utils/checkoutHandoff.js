@@ -1,78 +1,143 @@
-import { getWooCheckoutFallbackUrl, getWooCheckoutUrl } from './checkoutUrl.js';
+import { getCart } from '../api/cart.js';
+import { getWooCheckoutUrl } from './checkoutUrl.js';
+import { navigateDocument } from './documentNavigation.js';
 
-const CART_PATH_PATTERN = /\/cart\/?$/i;
-const CHECKOUT_PATH_PATTERN = /\/checkout(?:\/|$)/i;
+const DEFAULT_SETTLE_DELAY_MS = 350;
+const DEFAULT_MUTATION_WAIT_MS = 8000;
+const POLL_INTERVAL_MS = 75;
 
-function parseUrl(value) {
-  try {
-    return new URL(value, typeof window !== 'undefined' ? window.location.origin : 'https://elliottm4.sg-host.com');
-  } catch {
-    return null;
+let activeHandoffPromise = null;
+
+export class CheckoutHandoffError extends Error {
+  constructor(code, message, cause = null) {
+    super(message);
+    this.name = 'CheckoutHandoffError';
+    this.code = code;
+    this.cause = cause;
   }
 }
 
-function isCartDestination(value) {
-  const url = parseUrl(value);
-  return Boolean(url && CART_PATH_PATTERN.test(url.pathname));
+function sleep(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 }
 
-function isCheckoutDestination(value) {
-  const url = parseUrl(value);
-  return Boolean(url && CHECKOUT_PATH_PATTERN.test(url.pathname));
+function normalizeBooleanReader(reader) {
+  return typeof reader === 'function' ? reader : () => Boolean(reader);
 }
 
-async function probeCheckout(url) {
-  const response = await fetch(url, {
-    method: 'GET',
-    credentials: 'include',
-    cache: 'no-store',
-    redirect: 'follow',
-    headers: {
-      Accept: 'text/html,application/xhtml+xml',
-    },
+async function waitForCartMutations({ isCartMutating, settleDelayMs, mutationWaitMs }) {
+  const readMutating = normalizeBooleanReader(isCartMutating);
+
+  if (settleDelayMs > 0) {
+    await sleep(settleDelayMs);
+  }
+
+  const startedAt = Date.now();
+  while (readMutating()) {
+    if (Date.now() - startedAt >= mutationWaitMs) {
+      throw new CheckoutHandoffError(
+        'cart_mutation_timeout',
+        'Your cart is still updating. Please wait a moment and try checkout again.'
+      );
+    }
+    await sleep(POLL_INTERVAL_MS);
+  }
+}
+
+function validateAuthoritativeCart(cart) {
+  if (!Array.isArray(cart?.items) || cart.items.length === 0) {
+    throw new CheckoutHandoffError(
+      'cart_not_confirmed',
+      'Your checkout cart could not be confirmed. Please refresh your cart and try again.'
+    );
+  }
+
+  if (Array.isArray(cart?.errors) && cart.errors.length > 0) {
+    const firstMessage = String(cart.errors[0]?.message || '').trim();
+    throw new CheckoutHandoffError(
+      'cart_validation_failed',
+      firstMessage || 'Your cart needs attention before checkout. Please review it and try again.'
+    );
+  }
+
+  return cart;
+}
+
+async function executeCheckoutHandoff({
+  isAuthenticated = false,
+  ensureNativeCheckoutReady,
+  isCartMutating = false,
+  settleDelayMs = DEFAULT_SETTLE_DELAY_MS,
+  mutationWaitMs = DEFAULT_MUTATION_WAIT_MS,
+  onBeforeNavigate,
+} = {}) {
+  if (typeof window === 'undefined') {
+    throw new CheckoutHandoffError('browser_required', 'Checkout is only available in the browser.');
+  }
+
+  await waitForCartMutations({
+    isCartMutating,
+    settleDelayMs: Math.max(0, Number(settleDelayMs) || 0),
+    mutationWaitMs: Math.max(1000, Number(mutationWaitMs) || DEFAULT_MUTATION_WAIT_MS),
   });
 
-  return {
-    ok: response.ok,
-    status: response.status,
-    finalUrl: response.url || url,
-  };
+  if (isAuthenticated) {
+    if (typeof ensureNativeCheckoutReady !== 'function') {
+      throw new CheckoutHandoffError(
+        'identity_bridge_unavailable',
+        'We could not prepare your signed-in checkout session. Please try again.'
+      );
+    }
+    await ensureNativeCheckoutReady();
+  }
+
+  const authoritativeCart = validateAuthoritativeCart(await getCart());
+  const checkoutUrl = getWooCheckoutUrl();
+
+  if (typeof onBeforeNavigate === 'function') {
+    await onBeforeNavigate({ cart: authoritativeCart, checkoutUrl });
+  }
+
+  navigateDocument(checkoutUrl, { transition: 'checkout' });
+  return { cart: authoritativeCart, checkoutUrl };
 }
 
 /**
- * Resolve the safest native WooCommerce checkout destination before replacing
- * the React document.
- *
- * The canonical public /checkout/ route remains preferred. When the hosting
- * rewrite layer incorrectly redirects it to the React /cart/ route, the
- * supported WordPress front-controller URL is probed once as a deterministic
- * fallback. A confirmed cart redirect is surfaced as an error instead of
- * creating a visible cart-refresh loop.
+ * Runs the one supported React -> native WooCommerce checkout transfer.
+ * Concurrent calls share one in-flight promise so rapid taps cannot start
+ * competing identity/cart checks or document navigations.
  */
-export async function resolveWooCheckoutHandoffUrl() {
-  const canonicalUrl = getWooCheckoutUrl();
-  const canonical = await probeCheckout(canonicalUrl);
-
-  if (canonical.ok && !isCartDestination(canonical.finalUrl)) {
-    return isCheckoutDestination(canonical.finalUrl) ? canonical.finalUrl : canonicalUrl;
+export function beginCheckoutHandoff(options = {}) {
+  if (activeHandoffPromise) {
+    return activeHandoffPromise;
   }
 
-  const fallbackUrl = getWooCheckoutFallbackUrl();
-  const fallback = await probeCheckout(fallbackUrl);
+  activeHandoffPromise = executeCheckoutHandoff(options)
+    .catch((error) => {
+      if (error instanceof CheckoutHandoffError) {
+        throw error;
+      }
+      throw new CheckoutHandoffError(
+        'checkout_handoff_failed',
+        error?.message || 'We could not prepare your checkout session. Please try again.',
+        error
+      );
+    })
+    .finally(() => {
+      activeHandoffPromise = null;
+    });
 
-  if (fallback.ok && !isCartDestination(fallback.finalUrl)) {
-    return fallback.finalUrl || fallbackUrl;
+  return activeHandoffPromise;
+}
+
+export function isCheckoutHandoffTarget(value) {
+  if (!value || typeof window === 'undefined') return false;
+
+  try {
+    const url = new URL(value, window.location.origin);
+    return /\/checkout\/?$/i.test(url.pathname)
+      || /\/staging\/[A-Za-z0-9_-]+\/checkout\/?$/i.test(url.pathname);
+  } catch {
+    return false;
   }
-
-  const error = new Error(
-    'WooCommerce could not open checkout for the current cart. Your cart is still saved. Refresh the page and try again.'
-  );
-  error.code = 'DTB_CHECKOUT_HANDOFF_REJECTED';
-  error.details = {
-    canonicalStatus: canonical.status,
-    canonicalFinalUrl: canonical.finalUrl,
-    fallbackStatus: fallback.status,
-    fallbackFinalUrl: fallback.finalUrl,
-  };
-  throw error;
 }
