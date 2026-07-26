@@ -1,42 +1,41 @@
-# Drywall Toolbox SiteGround File Manager TUI
+# Drywall Toolbox SiteGround Production Management Console
 
-Local-only Windows 11 control plane for browsing SiteGround and safely transferring operator-selected files and directories over FTP over explicit TLS (FTPES).
+A Windows 11 operator console for browsing the live SiteGround filesystem, preparing file-level production changes, verifying transfer plans, activating releases, reviewing backups, validating production, and exporting operational logs.
+
+## Console workspaces
+
+- **Overview** — connection, source selection, destination, transfer plan, backups, and guardrail status.
+- **File Manager** — Windows multi-file/directory selection beside a live SiteGround remote browser.
+- **Transfer Queue** — exact `ADD` and `MODIFY` operations from the current preview.
+- **Releases & Backups** — local checksummed release ledgers and file-level production backups.
+- **Validation** — FTPES, TLS, FTP-root, and public HTTP health gates.
+- **Operator Logs** — selectable diagnostic output with clipboard export.
+- **Settings** — effective non-secret runtime configuration and protected paths.
 
 ## Architecture
 
-- Python 3.11+ and Textual.
-- Native Windows multi-file and directory selectors.
+- Python 3.11+ and Textual 1.x.
+- Native Windows file and directory selectors.
 - Live SiteGround remote directory browser.
-- Native Python `ftplib.FTP_TLS`; no rsync, WSL, Cygwin or external FTP executable.
-- No npm, Node.js build, Git commands or source-control mutations.
-- FTPES is mandatory. Plain unencrypted FTP is rejected.
-- The FTP network endpoint and TLS certificate hostname are configured separately.
-- TLS hostname and certificate-chain validation remain enabled.
+- Native Python `ftplib.FTP_TLS`; no rsync, WSL, Cygwin, Git execution, npm, or Node.js build step.
+- FTP over explicit TLS is mandatory; plain FTP is rejected.
+- FTP network endpoint and TLS certificate hostname are separate, environment-overridable values.
+- TLS certificate-chain and hostname verification remain mandatory.
 - Operators select one or more local files/directories and choose the destination from the live remote tree.
-- SHA-256 comparison classifies files as `ADD`, `MODIFY` or `UNCHANGED` before deployment.
-- Preview becomes invalid whenever sources or destination change.
+- SHA-256 comparison classifies files before deployment.
+- Any source or destination change invalidates the current preview.
 - Remote deletion is disabled.
 - Protected WordPress and runtime paths are blocked.
-- Existing production files are downloaded to local release backups before replacement.
-- Files upload to temporary names, are checksum-verified, and are renamed into place.
-- Failed transactions attempt immediate restoration of prior remote files.
+- Existing production files are downloaded to local backups before replacement.
+- Uploads use temporary names, checksum verification, and remote rename activation.
+- Failed transactions attempt immediate restoration of prior files.
 - Release ledgers and backups remain local under `tools/siteground-deploy/.state`.
-- The log console is selectable and exposes a `Copy Log` button plus `Ctrl+Shift+C`.
-
-## FTPES endpoint
-
-The connection uses:
-
-- Network endpoint: `ftp.elliottm4.sg-host.com:21`
-- TLS certificate hostname: `elliottm4.sg-host.com`
-
-This preserves certificate validation while using the SiteGround FTP listener.
 
 ## Requirements
 
 - Windows 11
 - Python 3.11+
-- A SiteGround FTP account scoped to the target website
+- SiteGround FTP account scoped to the target website
 
 ## Installation
 
@@ -55,18 +54,36 @@ Run:
 dtb-deploy
 ```
 
+## Local environment
+
+```dotenv
+DTB_FTP_PASSWORD=<rotated-siteground-ftp-password>
+DTB_FTP_ROOT=/
+
+# Optional overrides. Leave blank to use config.production.json.
+DTB_FTP_CONNECT_HOST=
+DTB_FTP_TLS_HOSTNAME=
+```
+
+The endpoint and TLS hostname must be values documented or verified for the FTP service. Do not disable certificate verification to work around a mismatch.
+
 ## Operator workflow
 
-1. Start the TUI.
-2. Run **Connect / Preflight**. This authenticates through FTPES and loads the live remote root.
-3. Use **Add Files** and/or **Add Directory**. Multiple sources may be combined in one transfer plan.
-4. Navigate the live SiteGround browser with **Open Folder**, **Up** and **Refresh**.
-5. Select the intended directory and click **Use Folder**.
-6. Run **Preview Transfer** and inspect every resolved `ADD`, `MODIFY` and `UNCHANGED` path.
-7. Use **Copy Log** or `Ctrl+Shift+C` when logs need to be shared.
-8. Run **Deploy Preview** only after reviewing the current plan.
-9. Run **Validate Production** for an independent FTPES and HTTP health check.
+1. Start the console.
+2. Run **Connect / Preflight**.
+3. Open **File Manager** and add one or more local files/directories.
+4. Browse the live SiteGround tree.
+5. Select the target directory and click **Use Folder**.
+6. Generate the transfer preview.
+7. Review the exact queue, byte total, and resolved remote paths.
+8. Deploy only the current preview.
+9. Review the resulting release ledger and local backup.
+10. Run full production validation.
 
-Selected directories retain their top-level directory name beneath the chosen destination. Selected files are placed directly inside the chosen destination. Duplicate remote path resolution is rejected.
+Selected directories retain their top-level directory name beneath the chosen destination. Selected files are placed directly inside the chosen destination. Duplicate remote-path resolution is rejected.
 
-Never commit `.env`, FTP passwords, certificates, generated backups or release ledgers.
+## Safety model
+
+The console blocks writes to configured protected paths, never performs broad remote deletion, and never displays or persists the FTP password outside the local `.env` process environment. Backups, release ledgers, and logs must remain outside the web root.
+
+Never commit `.env`, FTP passwords, certificates, generated backups, or release ledgers.
