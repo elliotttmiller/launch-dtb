@@ -20,7 +20,7 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
 	private const STRIPE_GATEWAY_ID         = 'stripe';
-	private const STRIPE_APPEARANCE_VERSION = '2026.07.23.1';
+	private const STRIPE_APPEARANCE_VERSION = '2026.07.26.1';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
 	public static function register(): void {
@@ -117,7 +117,7 @@ final class DTB_OfficialStripeNativeCheckout {
 			'colorText'            => '#101828',
 			'colorTextSecondary'   => '#667085',
 			'colorDanger'          => '#b42318',
-			'fontFamily'           => 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+			'fontFamily'           => 'Nunito, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 			'fontSizeBase'         => '15px',
 			'borderRadius'         => '12px',
 			'spacingUnit'          => '4px',
