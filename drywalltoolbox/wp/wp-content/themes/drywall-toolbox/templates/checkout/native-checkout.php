@@ -27,8 +27,8 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 /*
  * Theme presentation is intentionally one ordered stack: base design -> wrapper
  * refinements -> responsive flow -> live context -> contact presentation -> narrow
- * payment interaction hardening. No theme asset creates/replaces payment controls or
- * owns checkout submit/business persistence.
+ * payment interaction hardening -> failed-payment recovery. No theme asset creates
+ * or replaces payment controls or owns checkout submit/business persistence.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -66,6 +66,12 @@ wp_enqueue_style(
 	[ 'dtb-checkout-theme-contact-identity' ],
 	$asset_version( 'assets/checkout/checkout-payment-interaction.css' )
 );
+wp_enqueue_style(
+	'dtb-checkout-theme-payment-failure',
+	$theme_uri . '/assets/checkout/checkout-payment-failure.css',
+	[ 'dtb-checkout-theme-payment-interaction' ],
+	$asset_version( 'assets/checkout/checkout-payment-failure.css' )
+);
 
 wp_enqueue_script(
 	'dtb-checkout-theme-boot',
@@ -86,6 +92,13 @@ wp_enqueue_script(
 	$theme_uri . '/assets/checkout/checkout-payment-runtime.js',
 	[ 'dtb-checkout-theme-ui' ],
 	$asset_version( 'assets/checkout/checkout-payment-runtime.js' ),
+	true
+);
+wp_enqueue_script(
+	'dtb-checkout-theme-payment-failure',
+	$theme_uri . '/assets/checkout/checkout-payment-failure.js',
+	[ 'dtb-checkout-theme-payment-runtime' ],
+	$asset_version( 'assets/checkout/checkout-payment-failure.js' ),
 	true
 );
 wp_enqueue_script(
