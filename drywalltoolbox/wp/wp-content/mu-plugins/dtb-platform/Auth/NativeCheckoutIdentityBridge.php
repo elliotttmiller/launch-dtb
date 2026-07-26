@@ -1,11 +1,7 @@
 <?php
 /**
- * Native checkout identity bridge.
- *
- * Resolves the verified DTB storefront customer before WooCommerce initializes its
- * checkout session. This filter must remain side-effect-light because it runs inside
- * `determine_current_user`: never initialize/destroy Woo sessions or call helpers that
- * resolve the current user recursively from this boundary.
+ * Resolve verified DTB customer identity before native WooCommerce checkout.
+ * This boundary runs inside determine_current_user and must not initialize WC sessions.
  *
  * @package drywalltoolbox
  */
@@ -14,12 +10,6 @@ defined( 'ABSPATH' ) || exit;
 
 add_filter( 'determine_current_user', 'dtb_native_checkout_resolve_current_user', 25 );
 
-/**
- * Resolve a verified DTB storefront identity for native checkout documents.
- *
- * @param int|false $user_id User resolved by earlier/native auth providers.
- * @return int|false
- */
 function dtb_native_checkout_resolve_current_user( $user_id ) {
 	static $resolving = false;
 
@@ -31,18 +21,18 @@ function dtb_native_checkout_resolve_current_user( $user_id ) {
 	try {
 		return dtb_native_checkout_resolve_current_user_inner( $user_id );
 	} catch ( Throwable $error ) {
-		dtb_native_checkout_log_security_event( 'native_checkout_identity_bridge_failed' );
+		dtb_native_checkout_log_security_event( 'native_checkout_identity_bridge_failed', absint( $user_id ), 0, 'unknown', 'failed' );
 		return $user_id;
 	} finally {
 		$resolving = false;
 	}
 }
 
-/** Internal resolver kept separate so the outer recursion guard always unwinds. */
 function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
-	$native_user_id = ! empty( $user_id ) ? absint( $user_id ) : 0;
-	$native_user    = $native_user_id > 0 ? get_user_by( 'id', $native_user_id ) : false;
+	$native_user_id      = ! empty( $user_id ) ? absint( $user_id ) : 0;
+	$native_user         = $native_user_id > 0 ? get_user_by( 'id', $native_user_id ) : false;
 	$native_is_privileged = $native_user instanceof WP_User && dtb_native_checkout_user_is_privileged( $native_user );
+	$woo_customer_kind   = dtb_native_checkout_woo_customer_kind( $native_user_id, $native_is_privileged );
 
 	$token = ! empty( $_COOKIE['dtb_auth'] )
 		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
@@ -50,71 +40,63 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 
 	if ( '' === $token ) {
 		if ( $native_is_privileged ) {
+			dtb_native_checkout_log_security_event( 'native_checkout_privileged_native_preserved', $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
 			return $user_id;
 		}
 		dtb_native_checkout_clear_stale_customer_cookie( $native_user_id );
+		dtb_native_checkout_log_security_event( 'native_checkout_stale_customer_cookie_cleared', $native_user_id, 0, $woo_customer_kind, 'stale_cleared' );
 		return false;
 	}
 
 	$resolved = dtb_native_checkout_verify_user_id( $token );
 	if ( $resolved <= 0 ) {
 		if ( $native_is_privileged ) {
+			dtb_native_checkout_log_security_event( 'native_checkout_invalid_jwt_privileged_preserved', $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
 			return $user_id;
 		}
 		dtb_native_checkout_clear_stale_customer_cookie( $native_user_id );
+		dtb_native_checkout_log_security_event( 'native_checkout_invalid_jwt_cookie_cleared', $native_user_id, 0, $woo_customer_kind, 'invalid_jwt' );
 		return false;
 	}
 
 	$user = get_user_by( 'id', $resolved );
-	if ( ! $user instanceof WP_User ) {
-		return $user_id;
-	}
-
-	if ( dtb_native_checkout_user_is_privileged( $user ) ) {
+	if ( ! $user instanceof WP_User || dtb_native_checkout_user_is_privileged( $user ) ) {
+		dtb_native_checkout_log_security_event( 'native_checkout_jwt_user_rejected', $native_user_id, $resolved, $woo_customer_kind, 'jwt_user_rejected' );
 		return $user_id;
 	}
 
 	if ( $native_user_id > 0 && $native_user_id === $resolved ) {
+		dtb_native_checkout_log_security_event( 'native_checkout_identity_aligned', $native_user_id, $resolved, $woo_customer_kind, 'aligned' );
 		return $user_id;
 	}
 
 	if ( $native_user_id > 0 && $native_user_id !== $resolved ) {
 		if ( $native_is_privileged ) {
-			dtb_native_checkout_log_security_event( 'native_checkout_privileged_identity_conflict_blocked' );
+			dtb_native_checkout_log_security_event( 'native_checkout_privileged_identity_conflict_blocked', $native_user_id, $resolved, $woo_customer_kind, 'privileged_conflict_blocked' );
 			return $user_id;
 		}
 
-		/*
-		 * Fail closed without touching WC()->session here. `determine_current_user` runs
-		 * before WooCommerce session initialization; destroying/loading Woo state from
-		 * this filter can recurse or block PHP-FPM and surface as an upstream 502.
-		 * Expire only browser-side Woo session markers, rotate native auth to the verified
-		 * customer, then allow WooCommerce to initialize a fresh supported session.
-		 */
+		/* Privacy isolation outranks cart preservation for a true customer conflict. */
 		dtb_native_checkout_expire_woocommerce_browser_state();
 		if ( ! headers_sent() ) {
 			wp_clear_auth_cookie();
 			wp_set_auth_cookie( $resolved, false, is_ssl() );
 		}
-		dtb_native_checkout_log_security_event( 'native_checkout_identity_conflict_contained' );
+		dtb_native_checkout_log_security_event( 'native_checkout_identity_conflict_contained', $native_user_id, $resolved, $woo_customer_kind, 'conflict_replaced' );
 		return $resolved;
 	}
 
 	if ( ! headers_sent() ) {
 		wp_set_auth_cookie( $resolved, false, is_ssl() );
 	}
-
+	dtb_native_checkout_log_security_event( 'native_checkout_identity_bridged', 0, $resolved, 'guest', 'bridged' );
 	return $resolved;
 }
 
-/** Whether a user crosses the storefront-customer privilege boundary. */
 function dtb_native_checkout_user_is_privileged( WP_User $user ): bool {
 	return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 }
 
-/**
- * Clear a stale non-privileged native customer cookie during checkout resolution.
- */
 function dtb_native_checkout_clear_stale_customer_cookie( int $native_user_id ): void {
 	if ( $native_user_id <= 0 || headers_sent() ) {
 		return;
@@ -124,18 +106,9 @@ function dtb_native_checkout_clear_stale_customer_cookie( int $native_user_id ):
 	if ( $native_user instanceof WP_User && dtb_native_checkout_user_is_privileged( $native_user ) ) {
 		return;
 	}
-
 	wp_clear_auth_cookie();
-	dtb_native_checkout_log_security_event( 'native_checkout_stale_customer_cookie_cleared' );
 }
 
-/**
- * Expire only browser-side Woo session/cart markers without initializing WooCommerce.
- *
- * This helper is safe inside `determine_current_user`. Server-side session rows are
- * intentionally left for WooCommerce's own lifecycle/garbage collection; no customer
- * data is copied across an identity conflict.
- */
 function dtb_native_checkout_expire_woocommerce_browser_state(): void {
 	if ( headers_sent() ) {
 		return;
@@ -162,20 +135,37 @@ function dtb_native_checkout_expire_woocommerce_browser_state(): void {
 	}
 }
 
-/** Log a redacted event without resolving current-user state. */
-function dtb_native_checkout_log_security_event( string $event ): void {
-	error_log(
-		(string) wp_json_encode(
-			[
-				'source' => 'dtb-security',
-				'event'  => sanitize_key( $event ),
-			],
-			JSON_UNESCAPED_SLASHES
-		)
-	);
+/**
+ * Classify shopper state without reading or logging Woo session identifiers.
+ */
+function dtb_native_checkout_woo_customer_kind( int $native_user_id, bool $native_is_privileged ): string {
+	if ( $native_is_privileged ) {
+		return 'privileged_native';
+	}
+	return $native_user_id > 0 ? 'native_customer' : 'guest';
 }
 
-/** Whether this request is a native Woo checkout/payment document request. */
+/**
+ * Emit only the approved redacted identity-handoff fields.
+ */
+function dtb_native_checkout_log_security_event(
+	string $event,
+	int $native_user_id = 0,
+	int $jwt_user_id = 0,
+	string $woo_customer_kind = 'unknown',
+	string $handoff_status = 'unknown'
+): void {
+	$payload = [
+		'event'              => sanitize_key( $event ),
+		'native_user_id'     => absint( $native_user_id ),
+		'jwt_user_id'        => absint( $jwt_user_id ),
+		'woo_customer_kind'  => sanitize_key( $woo_customer_kind ),
+		'handoff_status'     => sanitize_key( $handoff_status ),
+	];
+
+	error_log( (string) wp_json_encode( $payload, JSON_UNESCAPED_SLASHES ) );
+}
+
 function dtb_native_checkout_identity_bridge_request(): bool {
 	if ( is_admin() || wp_doing_ajax() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
@@ -207,7 +197,6 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 	return false;
 }
 
-/** Verify the existing DTB HS256 cookie contract and return its WordPress user ID. */
 function dtb_native_checkout_verify_user_id( string $token ): int {
 	$parts = explode( '.', $token );
 	if ( 3 !== count( $parts ) ) {
@@ -256,7 +245,6 @@ function dtb_native_checkout_verify_user_id( string $token ): int {
 	return $sub;
 }
 
-/** Strict base64url decode. */
 function dtb_native_checkout_base64url_decode( string $value ): ?string {
 	if ( '' === $value || ! preg_match( '/^[A-Za-z0-9_-]+$/', $value ) ) {
 		return null;

@@ -9,11 +9,12 @@ const POLL_INTERVAL_MS = 75;
 let activeHandoffPromise = null;
 
 export class CheckoutHandoffError extends Error {
-  constructor(code, message, cause = null) {
+  constructor(code, message, cause = null, context = null) {
     super(message);
     this.name = 'CheckoutHandoffError';
     this.code = code;
     this.cause = cause;
+    this.context = context;
   }
 }
 
@@ -28,9 +29,7 @@ function normalizeBooleanReader(reader) {
 async function waitForCartMutations({ isCartMutating, settleDelayMs, mutationWaitMs }) {
   const readMutating = normalizeBooleanReader(isCartMutating);
 
-  if (settleDelayMs > 0) {
-    await sleep(settleDelayMs);
-  }
+  if (settleDelayMs > 0) await sleep(settleDelayMs);
 
   const startedAt = Date.now();
   while (readMutating()) {
@@ -69,6 +68,7 @@ async function executeCheckoutHandoff({
   isCartMutating = false,
   settleDelayMs = DEFAULT_SETTLE_DELAY_MS,
   mutationWaitMs = DEFAULT_MUTATION_WAIT_MS,
+  onSessionReconciled,
   onBeforeNavigate,
 } = {}) {
   if (typeof window === 'undefined') {
@@ -88,7 +88,24 @@ async function executeCheckoutHandoff({
         'We could not prepare your signed-in checkout session. Please try again.'
       );
     }
-    await ensureNativeCheckoutReady();
+
+    try {
+      await ensureNativeCheckoutReady();
+    } catch (error) {
+      if (error?.code === 'checkout_identity_reconciled') {
+        const refreshedCart = await getCart();
+        if (typeof onSessionReconciled === 'function') {
+          await onSessionReconciled({ cart: refreshedCart, checkoutSession: error.checkoutSession || null });
+        }
+        throw new CheckoutHandoffError(
+          'checkout_identity_reconciled',
+          error.message,
+          error,
+          { cart: refreshedCart, checkoutSession: error.checkoutSession || null }
+        );
+      }
+      throw error;
+    }
   }
 
   const authoritativeCart = validateAuthoritativeCart(await getCart());
@@ -108,17 +125,13 @@ async function executeCheckoutHandoff({
  * competing identity/cart checks or document navigations.
  */
 export function beginCheckoutHandoff(options = {}) {
-  if (activeHandoffPromise) {
-    return activeHandoffPromise;
-  }
+  if (activeHandoffPromise) return activeHandoffPromise;
 
   activeHandoffPromise = executeCheckoutHandoff(options)
     .catch((error) => {
-      if (error instanceof CheckoutHandoffError) {
-        throw error;
-      }
+      if (error instanceof CheckoutHandoffError) throw error;
       throw new CheckoutHandoffError(
-        'checkout_handoff_failed',
+        error?.code || 'checkout_handoff_failed',
         error?.message || 'We could not prepare your checkout session. Please try again.',
         error
       );

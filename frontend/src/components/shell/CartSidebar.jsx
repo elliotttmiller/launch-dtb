@@ -7,7 +7,7 @@ import { beginCheckoutHandoff, isCheckoutHandoffTarget } from '../../utils/check
 const CART_DEBOUNCE_DRAIN_MS = 350;
 
 export default function CartSidebar({ isOpen, onClose }) {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, getCartTotal, isMutating } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, clearCart, refreshCart, getCartTotal, isMutating } = useCart();
   const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
   const isMutatingRef = useRef(isMutating);
   const checkoutPendingRef = useRef(false);
@@ -38,6 +38,9 @@ export default function CartSidebar({ isOpen, onClose }) {
           ensureNativeCheckoutReady,
           isCartMutating: () => isMutatingRef.current,
           settleDelayMs: CART_DEBOUNCE_DRAIN_MS,
+          onSessionReconciled: async () => {
+            await refreshCart();
+          },
           onBeforeNavigate: () => {
             onClose?.();
           },
@@ -54,7 +57,7 @@ export default function CartSidebar({ isOpen, onClose }) {
 
     document.addEventListener('click', interceptCheckout, true);
     return () => document.removeEventListener('click', interceptCheckout, true);
-  }, [ensureNativeCheckoutReady, isAuthenticated, isOpen, onClose]);
+  }, [ensureNativeCheckoutReady, isAuthenticated, isOpen, onClose, refreshCart]);
 
   return (
     <StorefrontCartSheet
