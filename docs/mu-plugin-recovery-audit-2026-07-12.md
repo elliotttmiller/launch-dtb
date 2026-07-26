@@ -22,10 +22,10 @@ retains the required 11-module load order. The current module bootstraps are not
 missing the older behavior; they extend it with the newer canonical checkout,
 payment, shipping, inventory, media, security, and observability boundaries.
 
-The principal recovery defect was deployment convergence. The HostGator FTPS
-workflow used `mirror --only-newer`, allowing cPanel extraction timestamps or
-manual server edits to preserve stale PHP files and produce a mixed runtime.
-The workflow also did not remove obsolete top-level MU-plugins, which WordPress
+The principal recovery defect was deployment convergence. The previous remote
+mirror process trusted modification times, allowing archive extraction timestamps
+or manual server edits to preserve stale PHP files and produce a mixed runtime.
+The process also did not remove obsolete top-level MU-plugins, which WordPress
 auto-loads independently of the DTB loader.
 
 The correct recovery is therefore to deploy the reviewed current tree as the
@@ -143,35 +143,39 @@ not remove a hook, route, filter, gateway, or payment method.
    platform security implementation. This allows WordPress's normal top-level
    MU-plugin loading to restore the boundary even if a server temporarily has a
    mismatched platform bootstrap; it does not duplicate business logic.
-3. CI and deployment now execute composition validation before building a payload.
+3. CI validates composition before building a payload.
 4. Payload shape checks require the loader and critical canonical files.
-5. Full FTPS upload no longer trusts server modification times.
-6. After replacements are present, full deployment converges the MU-plugin
-   subtree with deletion enabled to remove stale top-level auto-loaded files.
-7. Selective deployment of the complete MU-plugin tree uses the same convergent
-   behavior; other selective directories remain non-destructive.
-8. Production smoke validation now requires the hardened public config response
-   and rejects WooCommerce credential fields.
+5. Production recovery no longer relies on server modification times.
+6. The reviewed complete MU-plugin subtree is transferred as one dependency-consistent
+   unit so stale top-level auto-loaded files can be identified and removed explicitly.
+7. Selective replacement of isolated bootstrap or admin asset files is prohibited
+   when module composition has changed.
+8. Production smoke validation requires the hardened public config response and
+   rejects WooCommerce credential fields.
 9. Browser credential secrets were removed from the frontend build step.
 10. Rewards remains launch-gated and is built disabled.
 
 ## Required operational sequence
 
 1. Review and merge the recovery changes through normal pull-request controls.
-2. Run the protected full-payload deployment. A selective upload of individual
-   PHP files is not sufficient to repair an unknown mixed MU-plugin tree.
-3. Preserve the workflow-created pre-deployment remote backup artifact.
-4. Allow the post-deployment backend smoke check to complete.
-5. Confirm `/wp-json/dtb/v1/config` contains no `wc_auth_user` or `wc_auth_pass`
+2. Build and validate the complete bounded production overlay. A selective upload
+   of individual PHP files is not sufficient to repair an unknown mixed MU-plugin tree.
+3. Create independent SiteGround file and database backups.
+4. Transfer the complete reviewed MU-plugin change set through FileZilla.
+5. Remove only the explicitly identified stale top-level MU-plugin files after
+   verifying they are absent from canonical source and present in the backup.
+6. Confirm `/wp-json/dtb/v1/config` contains no `wc_auth_user` or `wc_auth_pass`
    fields, then revoke and rotate the exposed WooCommerce/application-password
    credential and update only its server-side configuration.
-6. In an authenticated WordPress session, verify Command Center/System Manager,
+7. In an authenticated WordPress session, verify Command Center/System Manager,
    checkout session-confirm-finalize, keyed order-pay, Action Scheduler group
    `dtb-orders`, Veeqo integration state, customer order ownership, repairs,
    returns, and support workbenches.
-7. Review PHP and DTB operational logs for missing-file notices, fatal errors,
+8. Review PHP and DTB operational logs for missing-file notices, fatal errors,
    duplicate order side effects, webhook signature failures, and retry
    amplification.
+9. If production validation fails, restore the independently verified file backup
+   before continuing. Database and external integration compensation remain
+   separate operator actions.
 
-The workflow automatically restores the remote backup if production smoke
-validation fails. No deployment was performed as part of this audit.
+No deployment was performed as part of this audit.
