@@ -1,6 +1,6 @@
 # Mobile Checkout Architecture
 
-Last verified against active source: 2026-07-24.
+Last verified against active source: 2026-07-26.
 
 ## Ownership
 
@@ -143,7 +143,47 @@ WooCommerce Stripe
 
 Apple Pay and Google Pay are provider-owned surfaces using the same Woo/Stripe checkout authority.
 
-A valid wallet address must not be rejected because DTB introduced duplicate required customer identity fields.
+A valid wallet address must not be rejected because DTB introduced duplicate required customer identity fields or because an equivalent provider field name was not converted into Woo's canonical address shape.
+
+`dtb-commerce/Payment/ExpressCheckoutAddressIntegrity.php` is a compatibility and observability boundary only:
+
+```text
+verified Stripe Express Checkout request
+  -> official Stripe express-context header
+  -> official wc_store_api_express_checkout nonce
+  -> normalize equivalent address aliases
+  -> Woo canonical billing_address / shipping_address
+  -> Woo validation, shipping, tax, and checkout remain authoritative
+```
+
+Supported compatibility surfaces:
+
+1. `wc_stripe_express_checkout_normalize_address` for official Stripe 10.2+ AJAX normalization.
+2. `wc_stripe_payment_request_shipping_posted_values` for the legacy Payment Request pathway.
+3. Verified Store API `/cart/update-customer` and `/checkout` requests for current tokenized-cart Express Checkout flows.
+
+Canonicalization is intentionally limited to equivalent representations:
+
+```text
+firstName / givenName        -> first_name
+lastName / familyName        -> last_name
+addressLine[] / line1        -> address_1 / address_2
+locality / postalTown        -> city
+region / administrativeArea -> state code through Woo country/state tables
+postalCode / zipCode         -> postcode
+countryCode / country name   -> Woo country code
+```
+
+The boundary must never:
+
+- invent a street, city, state, postcode, country, or recipient;
+- geocode or call an external address service during checkout;
+- disable Woo postcode/address validation globally;
+- modify ordinary non-Express Store API requests;
+- log wallet payloads, names, street addresses, email, phone, payment data, tokens, or client secrets;
+- create/confirm Stripe payments or own cart/session lifecycle.
+
+Failures are logged only as redacted route/status/error-code diagnostics. The deployed official WooCommerce Stripe extension should be kept at the repository's recommended minimum or newer because upstream releases include Express Checkout Store API, address, and checkout-session fixes.
 
 Required production rules:
 
@@ -152,7 +192,8 @@ Required production rules:
 3. No DTB custom shipping-address validation in the wallet flow.
 4. No CSS/JS access to provider iframe internals.
 5. Official Stripe extension version is exposed through `/dtb/v1/checkout/capabilities` for release diagnostics.
-6. Use the official Stripe extension's supported address normalization behavior; do not add speculative address rewrites without a reproduced provider/Woo normalization defect.
+6. Express Store API normalization requires Stripe's signed context header and nonce.
+7. Address normalization remains idempotent and never bypasses Woo validation.
 
 ## Theme presentation assets
 
@@ -193,6 +234,7 @@ Backend runtime/diagnostics remain in `dtb-commerce`:
 ```text
 dtb-commerce/Payment/WooNativeCheckoutRuntime.php
 dtb-commerce/Payment/OfficialStripeNativeCheckout.php
+dtb-commerce/Payment/ExpressCheckoutAddressIntegrity.php
 dtb-commerce/Payment/CheckoutRuntimeIntegrity.php
 dtb-commerce/Payment/CheckoutPerformance.php
 dtb-commerce/Validation/CheckoutFieldPolicy.php
@@ -225,15 +267,17 @@ Minimum release matrix:
 3. Shipping/address edits update Woo shipping rates, tax, and totals before Payment is reachable.
 4. Minnesota tax configured in Woo admin is sourced from the canonical shipping destination and appears in Woo `total_tax`; non-Minnesota behavior follows the configured Woo rates.
 5. Apple Pay and Google Pay accept valid supported shipping addresses and return applicable shipping rates without DTB duplicate-field validation failures.
-6. Wallet-selected address/name values remain canonical and are not overwritten by legacy `dtb-checkout/contact-*` metadata.
-7. Standard manual checkout captures Woo canonical first/last/phone/address values correctly.
-8. Order customer/address fields match the canonical Woo checkout state.
-9. Order Summary live context matches Woo native totals; it never calculates independent values.
-10. Payment-method options remain selectable/tappable on a real mobile device and the DTB fixed action shell is absent on Payment.
-11. Apple Pay/Google Pay/Link eligibility remains provider-owned.
-12. Card success, decline, 3DS challenge/cancel/failure remain official Stripe/Woo flows.
-13. Mobile -> desktop -> mobile does not duplicate controls or lose state.
-14. Exactly one Stripe runtime/payment surface exists.
-15. SiteGround does not combine/rehost Stripe.js or reorder critical checkout dependencies.
-16. Successful checkout follows Woo order-received and DTB downstream lifecycle exactly once.
-17. Run `scripts/smoke-dtb-checkout-payment-ui.ps1`, `scripts/smoke-dtb-checkout-ui.ps1`, `scripts/smoke-dtb-express-checkout-address.ps1`, and `scripts/smoke-dtb-mu-modules.ps1` before deployment.
+6. Wallet addresses using long-form state names and provider aliases normalize to Woo canonical fields.
+7. Express Store API requests without the official header/nonce are not modified.
+8. Wallet-selected address/name values remain canonical and are not overwritten by legacy `dtb-checkout/contact-*` metadata.
+9. Standard manual checkout captures Woo canonical first/last/phone/address values correctly.
+10. Order customer/address fields match the canonical Woo checkout state.
+11. Order Summary live context matches Woo native totals; it never calculates independent values.
+12. Payment-method options remain selectable/tappable on a real mobile device and the DTB fixed action shell is absent on Payment.
+13. Apple Pay/Google Pay/Link eligibility remains provider-owned.
+14. Card success, decline, 3DS challenge/cancel/failure remain official Stripe/Woo flows.
+15. Mobile -> desktop -> mobile does not duplicate controls or lose state.
+16. Exactly one Stripe runtime/payment surface exists.
+17. SiteGround does not combine/rehost Stripe.js or reorder critical checkout dependencies.
+18. Successful checkout follows Woo order-received and DTB downstream lifecycle exactly once.
+19. Run `scripts/smoke-dtb-express-checkout-address-integrity.ps1`, `scripts/smoke-dtb-checkout-payment-ui.ps1`, `scripts/smoke-dtb-checkout-ui.ps1`, and `scripts/smoke-dtb-express-checkout-address.ps1` before deployment.
