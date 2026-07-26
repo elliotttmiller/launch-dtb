@@ -555,9 +555,9 @@ If a historically referenced validation script is absent from current source, st
 
 Merge is not deployment.
 
-The intended production deployment contract is controlled/manual release with explicit confirmation, protected approval, backup, validation, rollback, and restore capability.
+Production file transfer is operator-managed through FileZilla outside the repository. The repository contains no remote connection helper, transfer script, remote-write workflow, or production credential contract. CI validation and packaging workflows must not write to the live server or be represented as deployment.
 
-Active `.github/workflows/deploy.yml` builds an immutable bounded payload, requires exact confirmation and protected `siteground-production` approval, backs up only the DTB-managed remote surface, deploys over SFTP, runs root/health/checkout HTTP smoke checks, automatically restores managed files on release failure, and supports explicit artifact-based restore. Database backup/restore and external payment/integration acceptance remain operator-owned and must not be inferred from a successful file release.
+Before a manual production transfer, assemble and validate the bounded overlay, create independent file and database backups, review the complete dependency-consistent change set, transfer it through FileZilla, clear required caches, and run runtime acceptance checks. If validation fails, restore the independently verified backup before continuing. Database restoration and external payment/integration compensation remain operator-owned.
 
 Never package or deploy:
 
