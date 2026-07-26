@@ -14,11 +14,19 @@ class FTPConfig(BaseModel):
     tls_hostname: str
     user: str
     port: int = Field(default=21, ge=1, le=65535)
+    connect_host_env: str = "DTB_FTP_CONNECT_HOST"
+    tls_hostname_env: str = "DTB_FTP_TLS_HOSTNAME"
     password_env: str = "DTB_FTP_PASSWORD"
     root_env: str = "DTB_FTP_ROOT"
     timeout_seconds: int = Field(default=30, ge=5, le=300)
     passive: bool = True
     require_tls: bool = True
+
+    def effective_connect_host(self) -> str:
+        return os.environ.get(self.connect_host_env, "").strip() or self.connect_host
+
+    def effective_tls_hostname(self) -> str:
+        return os.environ.get(self.tls_hostname_env, "").strip() or self.tls_hostname
 
     def password(self) -> str:
         value = os.environ.get(self.password_env, "")
