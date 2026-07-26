@@ -15,10 +15,10 @@ drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Rest/StripeEmbeddedCheckout
 drywalltoolbox/wp/wp-content/mu-plugins/dtb-order-platform/Application/StripeEmbeddedCheckoutOrderMaterializer.php
 ```
 
-Also remove retired frontend artifacts from the deployed build by deploying a fresh `frontend/dist` payload rather than copying individual files over an old build.
+Also remove retired frontend artifacts from the deployed build by transferring a fresh bounded `frontend/dist` payload rather than copying individual files over an old build.
 
 ## Why this matters
 
-WordPress loads must-use plugins on every REST request. A partial FTP overlay can leave deleted PHP files on the server or omit newly required files. Either condition can cause `/wp-json/*` to return WordPress critical-error HTML instead of JSON, which breaks login, product catalog, cart, and checkout together.
+WordPress loads must-use plugins on every REST request. A partial manual overlay can leave deleted PHP files on the server or omit newly required files. Either condition can cause `/wp-json/*` to return WordPress critical-error HTML instead of JSON, which breaks login, product catalog, cart, and checkout together.
 
-Use the CI/deploy artifact or a clean mirror upload. Do not manually overlay only changed files for this checkout migration.
+Use the reviewed bounded overlay and transfer the complete dependency-consistent change set with FileZilla. Do not manually replace only isolated checkout files for this migration.
