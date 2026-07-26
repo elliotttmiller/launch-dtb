@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
-import os
 import shlex
 import shutil
+import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -43,15 +44,14 @@ class DeploymentEngine:
     def _rsync_ssh(self) -> str:
         identity = self.config.ssh.identity_file()
         known_hosts = self.config.ssh.known_hosts_file()
-        parts = [
+        return shlex.join([
             "ssh", "-p", str(self.config.ssh.port),
             "-i", str(identity),
             "-o", "BatchMode=yes",
             "-o", "IdentitiesOnly=yes",
             "-o", "StrictHostKeyChecking=yes",
             "-o", f"UserKnownHostsFile={known_hosts}",
-        ]
-        return shlex.join(parts)
+        ])
 
     async def preflight(self) -> str:
         for executable in ("git", "rsync", "ssh", "npm"):
@@ -62,7 +62,10 @@ class DeploymentEngine:
         if result.stdout.strip():
             raise RuntimeError("Deployment requires a clean Git working tree")
         commit = (await run_command(["git", "rev-parse", "HEAD"], cwd=root, sink=self.sink)).stdout.strip()
-        await run_command(self._ssh_base() + ["command -v rsync && command -v php && command -v wp && command -v flock"], sink=self.sink)
+        await run_command(
+            self._ssh_base() + ["command -v rsync && command -v php && command -v wp && command -v mkdir"],
+            sink=self.sink,
+        )
         return commit
 
     async def build(self) -> None:
@@ -73,10 +76,9 @@ class DeploymentEngine:
             raise RuntimeError(f"Build output is missing: {required}")
 
     def _remote_path(self, mapping: Mapping) -> str:
-        destination = mapping.destination
-        if destination in (".", "./"):
+        if mapping.destination in (".", "./"):
             return self.config.remote.site_root.rstrip("/") + "/"
-        return self.config.remote.site_root.rstrip("/") + "/" + destination.lstrip("/")
+        return self.config.remote.site_root.rstrip("/") + "/" + mapping.destination.lstrip("/")
 
     def _rsync_args(self, mapping: Mapping, *, dry_run: bool, backup_dir: str | None = None) -> list[str]:
         source = self.config.root / mapping.source
@@ -85,7 +87,7 @@ class DeploymentEngine:
         args = [
             "rsync", "-azc", "--itemize-changes", "--human-readable",
             "--no-owner", "--no-group", "--safe-links", "--protect-args",
-            "-e", self._rsync_ssh(),
+            "--partial", "--delay-updates", "-e", self._rsync_ssh(),
         ]
         if dry_run:
             args.extend(["--dry-run", "--stats"])
@@ -96,7 +98,10 @@ class DeploymentEngine:
         for protected in self.config.protected_remote_paths:
             if not protected.startswith("../"):
                 args.extend(["--exclude", protected])
-        args.extend([str(source), f"{self.config.ssh.user}@{self.config.ssh.host}:{self._remote_path(mapping)}"])
+        args.extend([
+            str(source),
+            f"{self.config.ssh.user}@{self.config.ssh.host}:{self._remote_path(mapping)}",
+        ])
         return args
 
     async def dry_run(self) -> DeploymentPlan:
@@ -109,34 +114,60 @@ class DeploymentEngine:
             output.append(f"## {mapping.name}\n{result.stdout}")
         return DeploymentPlan(release_id, commit, "\n".join(output))
 
+    async def _acquire_lease(self, release_id: str) -> str:
+        state = self.config.remote.state_root.rstrip("/")
+        lease = f"{state}/deploy.lock.d"
+        command = (
+            f"umask 077; mkdir -p {shlex.quote(state)}; "
+            f"mkdir {shlex.quote(lease)} || {{ echo 'deployment lease already held' >&2; exit 73; }}; "
+            f"printf '%s\\n' {shlex.quote(release_id)} > {shlex.quote(lease + '/release-id')}"
+        )
+        await run_command(self._ssh_base() + [command], sink=self.sink)
+        return lease
+
+    async def _release_lease(self, lease: str) -> None:
+        await run_command(self._ssh_base() + [f"rm -rf -- {shlex.quote(lease)}"], sink=self.sink, check=False)
+
     async def deploy(self, plan: DeploymentPlan) -> None:
         state = self.config.remote.state_root.rstrip("/")
         backup = f"{state}/backups/{plan.release_id}"
         ledger = f"{state}/releases/{plan.release_id}.json"
-        lock = f"{state}/deploy.lock"
-        setup = (
-            f"mkdir -p {shlex.quote(backup)} {shlex.quote(state + '/releases')} && "
-            f"flock -n {shlex.quote(lock)} -c 'echo locked'"
-        )
-        await run_command(self._ssh_base() + [setup], sink=self.sink)
-        for mapping in self.config.mappings:
-            await self.sink("section", f"Deploy: {mapping.name}")
-            await run_command(self._rsync_args(mapping, dry_run=False, backup_dir=backup), cwd=self.config.root, sink=self.sink)
-        await self.validate_remote()
-        ledger_data = json.dumps({
-            "release_id": plan.release_id,
-            "commit": plan.commit,
-            "deployed_utc": datetime.now(timezone.utc).isoformat(),
-            "backup_root": backup,
-            "mappings": [m.model_dump() for m in self.config.mappings],
-        }, separators=(",", ":"))
-        checksum = hashlib.sha256(ledger_data.encode()).hexdigest()
-        remote_write = (
-            f"umask 077; cat > {shlex.quote(ledger)} <<'DTB_LEDGER'\n"
-            f"{ledger_data}\nDTB_LEDGER\n"
-            f"printf '%s  %s\\n' {shlex.quote(checksum)} {shlex.quote(ledger)} > {shlex.quote(ledger + '.sha256')}"
-        )
-        await run_command(self._ssh_base() + [remote_write], sink=self.sink)
+        lease = await self._acquire_lease(plan.release_id)
+        try:
+            await run_command(
+                self._ssh_base() + [f"mkdir -p {shlex.quote(backup)} {shlex.quote(state + '/releases')}"],
+                sink=self.sink,
+            )
+            for mapping in self.config.mappings:
+                await self.sink("section", f"Deploy: {mapping.name}")
+                await run_command(
+                    self._rsync_args(mapping, dry_run=False, backup_dir=backup),
+                    cwd=self.config.root,
+                    sink=self.sink,
+                )
+            await self.validate_remote()
+            ledger_data = json.dumps({
+                "release_id": plan.release_id,
+                "commit": plan.commit,
+                "deployed_utc": datetime.now(timezone.utc).isoformat(),
+                "backup_root": backup,
+                "mappings": [m.model_dump() for m in self.config.mappings],
+            }, separators=(",", ":"))
+            checksum = hashlib.sha256(ledger_data.encode()).hexdigest()
+            remote_write = (
+                f"umask 077; cat > {shlex.quote(ledger)} <<'DTB_LEDGER'\n"
+                f"{ledger_data}\nDTB_LEDGER\n"
+                f"printf '%s  %s\\n' {shlex.quote(checksum)} {shlex.quote(ledger)} > {shlex.quote(ledger + '.sha256')}"
+            )
+            await run_command(self._ssh_base() + [remote_write], sink=self.sink)
+        finally:
+            await self._release_lease(lease)
+
+    @staticmethod
+    def _http_status(url: str) -> int:
+        request = urllib.request.Request(url, headers={"User-Agent": "DTB-Deploy/1.0"})
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return int(response.status)
 
     async def validate_remote(self) -> None:
         wp_root = shlex.quote(self.config.remote.wordpress_root)
@@ -147,6 +178,7 @@ class DeploymentEngine:
         )
         await run_command(self._ssh_base() + [command], sink=self.sink)
         for url in self.config.health_checks:
-            result = await run_command(["curl", "--fail", "--silent", "--show-error", "--location", "--max-time", "20", url], sink=self.sink, check=False)
-            if result.returncode != 0:
-                raise RuntimeError(f"Health check failed: {url}")
+            status = await asyncio.to_thread(self._http_status, url)
+            await self.sink("stdout", f"HTTP {status} {url}")
+            if not 200 <= status < 400:
+                raise RuntimeError(f"Health check failed: HTTP {status} {url}")
