@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "environment": "production",
   "repository_root": "../..",
   "scan_manifest": "docs/report/siteground-scan-20260726-134554/deployment-manifest.json",
@@ -18,18 +18,21 @@
     "verified_wordpress_root": "/home/u2350-gksz9clvygx0/www/elliottm4.sg-host.com/public_html/wp",
     "local_state_directory": ".state"
   },
-  "build": {
-    "working_directory": "frontend",
-    "command": ["npm", "run", "build"],
-    "required_output": "frontend/dist/index.html"
-  },
-  "mappings": [
-    {"name":"Storefront","source":"frontend/dist/","destination":"./","owner":"frontend","delete":false,"excludes":["wp/***",".well-known/***","logs/***","wp-config.php",".user.ini"]},
-    {"name":"Root Apache configuration","source":"drywalltoolbox/.htaccess","destination":".htaccess","owner":"deployment","delete":false,"excludes":[]},
-    {"name":"DTB MU plugins","source":"drywalltoolbox/wp/wp-content/mu-plugins/","destination":"wp/wp-content/mu-plugins/","owner":"dtb-backend","delete":false,"excludes":["*.bak*","**/*.bak*","debug.log","*.log"]},
-    {"name":"Drywall Toolbox theme","source":"drywalltoolbox/wp/wp-content/themes/drywall-toolbox/","destination":"wp/wp-content/themes/drywall-toolbox/","owner":"wordpress-theme","delete":false,"excludes":["*.log",".DS_Store"]},
-    {"name":"Headless base theme","source":"drywalltoolbox/wp/wp-content/themes/headless-base/","destination":"wp/wp-content/themes/headless-base/","owner":"wordpress-theme","delete":false,"excludes":["*.log",".DS_Store"]}
+  "protected_remote_paths": [
+    "wp/wp-config.php",
+    "wp/wp-admin",
+    "wp/wp-includes",
+    "wp/wp-content/plugins",
+    "wp/wp-content/uploads",
+    "wp/wp-content/cache",
+    "wp/wp-content/upgrade",
+    ".well-known",
+    "../logs",
+    ".user.ini"
   ],
-  "protected_remote_paths": ["wp/wp-config.php","wp/wp-admin","wp/wp-includes","wp/wp-content/plugins","wp/wp-content/uploads","wp/wp-content/cache","wp/wp-content/upgrade",".well-known","../logs",".user.ini"],
-  "health_checks": ["https://elliottm4.sg-host.com/","https://elliottm4.sg-host.com/wp-json/","https://elliottm4.sg-host.com/wp-json/drywall/v1"]
+  "health_checks": [
+    "https://elliottm4.sg-host.com/",
+    "https://elliottm4.sg-host.com/wp-json/",
+    "https://elliottm4.sg-host.com/wp-json/drywall/v1"
+  ]
 }
