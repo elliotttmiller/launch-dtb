@@ -1,36 +1,35 @@
-# Drywall Toolbox SiteGround Deployment TUI
+# Drywall Toolbox SiteGround File Transfer TUI
 
-Local-only Windows 11 production deployment control plane for synchronizing verified Drywall Toolbox repository artifacts to SiteGround using FTP over explicit TLS (FTPES).
+Local-only Windows 11 control plane for transferring operator-selected files and directories to SiteGround over FTP over explicit TLS (FTPES).
 
 ## Architecture
 
 - Python 3.11+ application.
-- Textual and Rich terminal interface.
+- Textual terminal interface with native Windows file and directory selectors.
 - Native Python `ftplib.FTP_TLS`; no rsync, WSL, Cygwin or external FTP executable.
-- No Git commands or source-control mutations. Operators manage `git fetch` and `git reset --hard` manually before launching the tool.
+- No npm, Node.js build, Git commands or source-control mutations.
 - FTPES is mandatory. Plain unencrypted FTP is rejected.
 - TLS hostname and certificate-chain validation remain enabled.
-- SiteGround scan manifest remains the authorization contract for deployment destinations.
-- SHA-256 comparison classifies files as `ADD`, `MODIFY` or `UNCHANGED`.
+- SiteGround scan data validates the configured production roots.
+- Operators explicitly select one local file or directory and enter a remote destination relative to the FTP root.
+- SHA-256 comparison classifies files as `ADD`, `MODIFY` or `UNCHANGED` before deployment.
 - Remote deletion is disabled.
+- Protected WordPress and runtime paths are blocked.
 - Existing production files are downloaded to local release backups before replacement.
 - Files upload to temporary names, are checksum-verified, and are renamed into place.
-- Failed transactions attempt immediate restoration of the prior remote files.
+- Failed transactions attempt immediate restoration of prior remote files.
 - Release ledgers and backups remain local under `tools/siteground-deploy/.state`.
 - The log console is selectable and exposes a `Copy Log` button plus `Ctrl+Shift+C`.
 
-The configured FTPES endpoint is `elliottm4.sg-host.com:21`, which matches the production `*.sg-host.com` certificate. Do not use `ftp.elliottm4.sg-host.com`, because that two-label hostname is not covered by the wildcard certificate.
+The configured FTPES endpoint is `elliottm4.sg-host.com:21`, which matches the production `*.sg-host.com` certificate.
 
 ## Requirements
 
 - Windows 11
 - Python 3.11+
-- Node.js and npm
 - A SiteGround FTP account scoped to the target website
 
 ## Installation
-
-From PowerShell:
 
 ```powershell
 cd tools\siteground-deploy
@@ -41,8 +40,6 @@ python -m pip install -e .
 Copy-Item .env.example .env
 ```
 
-Before starting the TUI, update the local checkout manually from the repository root using the exact branch or commit intended for production. The deployment application does not run or validate Git commands.
-
 Run:
 
 ```powershell
@@ -51,13 +48,15 @@ dtb-deploy
 
 ## Operator workflow
 
-1. Update the local checkout manually.
-2. Start the TUI.
-3. Run **Preflight** to validate npm, FTPES authentication, TLS, and the FTP-visible WordPress root.
-4. Run **Build**.
-5. Run **Dry Run** and inspect every `ADD` and `MODIFY` entry.
+1. Start the TUI.
+2. Run **Preflight** to validate FTPES authentication, TLS and the configured FTP-visible WordPress root.
+3. Use **Select File** or **Select Directory**, or paste an absolute Windows path into **Local source**.
+4. Enter the remote destination relative to the configured FTP root, for example `wp/wp-content/mu-plugins`.
+5. Run **Preview Transfer** and inspect every `ADD`, `MODIFY` and `UNCHANGED` entry.
 6. Use **Copy Log** or `Ctrl+Shift+C` to copy the complete console output.
-7. Run **Deploy** only after reviewing the plan.
-8. Run **Validate** after deployment when an independent health check is required.
+7. Run **Deploy** only after reviewing the preview.
+8. Run **Validate** for an independent FTPES and HTTP health check.
 
-Never commit `.env`, FTP passwords, certificates, generated backups, or release ledgers.
+Selecting a directory preserves that directory as the top-level folder under the entered remote destination. Selecting a file transfers that file into the entered destination directory.
+
+Never commit `.env`, FTP passwords, certificates, generated backups or release ledgers.
