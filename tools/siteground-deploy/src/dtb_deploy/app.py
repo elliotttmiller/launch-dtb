@@ -6,7 +6,7 @@ from textual import on, work
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal, Vertical
 from textual.screen import ModalScreen
-from textual.widgets import Button, Footer, Header, Label, Log, Static
+from textual.widgets import Button, Footer, Header, Label, Static, TextArea
 
 from .config import AppConfig, load_config
 from .deployer import DeploymentEngine, DeploymentPlan
@@ -57,7 +57,12 @@ class DeploymentApp(App[None]):
     #summary { height: 7; border: round #21486f; padding: 1; margin-bottom: 1; }
     Footer { background: #0b1b31; }
     """
-    BINDINGS = [("q", "quit", "Quit"), ("d", "dry_run", "Dry Run"), ("p", "deploy", "Deploy")]
+    BINDINGS = [
+        ("q", "quit", "Quit"),
+        ("d", "dry_run", "Dry Run"),
+        ("p", "deploy", "Deploy"),
+        ("ctrl+shift+c", "copy_log", "Copy Log"),
+    ]
 
     def __init__(self, config_path: Path):
         super().__init__()
@@ -65,6 +70,7 @@ class DeploymentApp(App[None]):
         self.config: AppConfig | None = None
         self.engine: DeploymentEngine | None = None
         self.plan: DeploymentPlan | None = None
+        self.log_lines: list[str] = []
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -77,10 +83,18 @@ class DeploymentApp(App[None]):
                 yield Button("3  Dry Run", id="dry-run", variant="warning")
                 yield Button("4  Deploy", id="deploy", variant="error")
                 yield Button("5  Validate", id="validate", variant="success")
+                yield Button("Copy Log", id="copy-log")
                 yield Button("Clear Log", id="clear")
             with Vertical(id="content"):
                 yield Static("Configuration loading…", id="summary")
-                yield Log(id="log", highlight=True, auto_scroll=True)
+                yield TextArea(
+                    "",
+                    id="log",
+                    read_only=True,
+                    show_line_numbers=False,
+                    soft_wrap=False,
+                    tab_behavior="focus",
+                )
         yield Footer()
 
     async def on_mount(self) -> None:
@@ -98,25 +112,33 @@ class DeploymentApp(App[None]):
             self.notify(str(exc), severity="error", timeout=10)
 
     async def write_log(self, kind: str, message: str) -> None:
-        palette = {
-            "command": "cyan",
-            "stdout": "white",
-            "stderr": "yellow",
-            "section": "bold bright_cyan",
-            "success": "bold green",
-            "error": "bold red",
-        }
-        style = palette.get(kind, "white")
-        self.query_one("#log", Log).write_line(f"[{style}]{kind.upper():>7}[/]  {message}")
+        for line in str(message).splitlines() or [""]:
+            self.log_lines.append(f"{kind.upper():>7}  {line}")
+        console = self.query_one("#log", TextArea)
+        console.text = "\n".join(self.log_lines)
+        console.move_cursor((max(len(self.log_lines) - 1, 0), 0))
 
     def require_engine(self) -> DeploymentEngine:
         if self.engine is None:
             raise RuntimeError("Deployment engine is unavailable")
         return self.engine
 
+    def action_copy_log(self) -> None:
+        text = "\n".join(self.log_lines)
+        if not text:
+            self.notify("The log is empty", severity="warning")
+            return
+        self.copy_to_clipboard(text)
+        self.notify("Complete log copied to clipboard", severity="information")
+
+    @on(Button.Pressed, "#copy-log")
+    def copy_log_pressed(self) -> None:
+        self.action_copy_log()
+
     @on(Button.Pressed, "#clear")
     def clear_log(self) -> None:
-        self.query_one("#log", Log).clear()
+        self.log_lines.clear()
+        self.query_one("#log", TextArea).text = ""
 
     @on(Button.Pressed, "#preflight")
     def preflight_pressed(self) -> None:
@@ -125,8 +147,8 @@ class DeploymentApp(App[None]):
     @work(exclusive=True)
     async def run_preflight(self) -> None:
         try:
-            commit = await self.require_engine().preflight()
-            await self.write_log("success", f"Preflight passed at {commit[:12]}")
+            release_context = await self.require_engine().preflight()
+            await self.write_log("success", f"Preflight passed ({release_context})")
         except Exception as exc:
             await self.write_log("error", str(exc))
             self.notify(str(exc), severity="error")
