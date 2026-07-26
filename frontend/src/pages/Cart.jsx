@@ -25,6 +25,7 @@ import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
 import { getCart } from '../api/cart.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
+import { resolveWooCheckoutHandoffUrl } from '../utils/checkoutHandoff.js';
 import { navigateDocument } from '../utils/documentNavigation.js';
 
 function parseStoreMoney(value, minorUnit) {
@@ -72,9 +73,14 @@ export default function Cart() {
         return;
       }
 
-      navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
+      // Resolve the live native checkout destination before document replacement.
+      // This prevents a SiteGround/Woo redirect back to /cart/ from appearing as a
+      // no-op page refresh and uses the supported WordPress front-controller route
+      // only when the canonical public checkout route cannot be opened.
+      const checkoutUrl = await resolveWooCheckoutHandoffUrl();
+      navigateDocument(checkoutUrl, { transition: 'checkout' });
     } catch (error) {
-      window.alert(error?.message || 'We could not confirm your signed-in checkout session. Please try again.');
+      window.alert(error?.message || 'We could not open secure checkout. Your cart is still saved. Please try again.');
     } finally {
       setCheckoutPending(false);
     }
@@ -244,10 +250,11 @@ export default function Cart() {
                   href={getWooCheckoutUrl()}
                   onClick={handleCheckout}
                   aria-disabled={checkoutDisabled ? 'true' : undefined}
+                  aria-busy={checkoutPending ? 'true' : undefined}
                   className={`dtb-cart-summary-card__checkout w-full inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${checkoutDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}
                 >
                   <Lock size={14} strokeWidth={2.5} />
-                  {checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
+                  {checkoutPending ? 'Opening secure checkout…' : isMutating ? 'Updating cart…' : 'Continue to secure checkout'}
                   <ArrowRight size={14} strokeWidth={2.5} />
                 </a>
               </div>
