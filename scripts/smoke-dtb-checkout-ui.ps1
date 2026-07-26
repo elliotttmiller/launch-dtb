@@ -11,6 +11,7 @@ function Assert-True {
     param([bool] $Condition, [string] $Message)
     if (-not $Condition) { throw $Message }
 }
+
 function Read-RequiredText {
     param([string] $Path)
     Assert-True (Test-Path -LiteralPath $Path -PathType Leaf) "Required checkout source file is missing: $Path"
@@ -31,6 +32,8 @@ $cartPath = Join-Path $frontend 'src/pages/Cart.jsx'
 $cartSidebarPath = Join-Path $frontend 'src/components/shell/CartSidebar.jsx'
 $authHookPath = Join-Path $frontend 'src/auth/useAuth.js'
 $documentNavigationPath = Join-Path $frontend 'src/utils/documentNavigation.js'
+$checkoutHandoffPath = Join-Path $frontend 'src/utils/checkoutHandoff.js'
+$checkoutUrlPath = Join-Path $frontend 'src/utils/checkoutUrl.js'
 
 $template = Read-RequiredText $templatePath
 $ui = Read-RequiredText $uiPath
@@ -46,6 +49,8 @@ $cart = Read-RequiredText $cartPath
 $cartSidebar = Read-RequiredText $cartSidebarPath
 $authHook = Read-RequiredText $authHookPath
 $documentNavigation = Read-RequiredText $documentNavigationPath
+$checkoutHandoff = Read-RequiredText $checkoutHandoffPath
+$checkoutUrl = Read-RequiredText $checkoutUrlPath
 
 $retiredPaths = @(
     (Join-Path $commerce 'Payment/MobilePaymentSheet.php'),
@@ -61,6 +66,7 @@ $retiredPaths = @(
     (Join-Path $theme 'assets/checkout/checkout-profile.css'),
     (Join-Path $theme 'assets/checkout/checkout-contact-identity.js')
 )
+
 foreach ($path in $retiredPaths) {
     Assert-True (-not (Test-Path -LiteralPath $path)) "Retired/competing checkout artifact must remain deleted: $path"
 }
@@ -73,6 +79,7 @@ Assert-True ($template.Contains('the_content();')) 'Theme checkout template must
 foreach ($requiredStep in @("id: 'contact'", "id: 'shipping'", "id: 'payment'")) {
     Assert-True ($ui.Contains($requiredStep)) "Missing mobile checkout step contract: $requiredStep"
 }
+
 Assert-True ($ui.Contains("'Continue to shipping'")) 'Contact step must expose Continue to shipping.'
 Assert-True ($ui.Contains("'Continue to payment'")) 'Shipping step must expose Continue to payment.'
 Assert-True ($ui.Contains('function goNext()')) 'Mobile checkout must have one explicit forward-navigation owner.'
@@ -103,18 +110,32 @@ Assert-True (-not ($refinements -match 'iframe\s+[.#\[]')) 'Theme CSS must not t
 Assert-True ($nativeIdentity.Contains('static $resolving = false')) 'Native identity bridge must retain recursion protection.'
 Assert-True (-not $nativeIdentity.Contains('discard_woocommerce_session_for_identity_conflict')) 'determine_current_user must not initialize/destroy Woo sessions.'
 Assert-True ($nativeIdentity.Contains('dtb_native_checkout_expire_woocommerce_browser_state')) 'Identity conflicts must use side-effect-light browser-state containment.'
-Assert-True ($login.Contains("const checkoutUrl = getWooCheckoutUrl();")) 'Checkout login return must resolve the canonical Woo checkout URL.'
+Assert-True ($login.Contains('const checkoutUrl = getWooCheckoutUrl();')) 'Checkout login return must resolve the canonical Woo checkout URL.'
 Assert-True ($login.Contains("navigateDocument(checkoutUrl, { replace: true, transition: 'checkout' });")) 'Checkout login return must use a full-document Woo checkout handoff.'
 Assert-True ($login.Contains('if (isCheckoutReturnTarget(returnTarget))')) 'Full-document checkout handoff must be scoped to checkout return targets.'
 
-# Signed-in users who enter checkout from an already-authenticated cart must converge
-# native Woo identity before the document transfer and then prove the authoritative cart.
 Assert-True ($authHook.Contains('ensureNativeCheckoutReady')) 'Auth hook must expose a native checkout readiness guard.'
 Assert-True ($authHook.Contains('nativeCheckoutReadyRef.current !== true')) 'Checkout readiness guard must fail closed when native convergence is incomplete.'
-Assert-True ($cart.Contains('await ensureNativeCheckoutReady();')) 'Full cart checkout must converge signed-in native checkout identity before handoff.'
-Assert-True ($cart.Contains('const authoritativeCart = await getCart();')) 'Full cart checkout must re-read the authoritative Woo cart before handoff.'
-Assert-True ($cartSidebar.Contains('await ensureNativeCheckoutReady();')) 'Cart drawer checkout must converge signed-in native checkout identity before handoff.'
-Assert-True ($cartSidebar.Contains('const authoritativeCart = await getCart();')) 'Cart drawer checkout must re-read the authoritative Woo cart before handoff.'
+
+Assert-True ($checkoutUrl.Contains("return buildCheckoutUrl('/checkout/');")) 'The canonical checkout URL must remain the public root /checkout/ route.'
+Assert-True ($checkoutHandoff.Contains('export function beginCheckoutHandoff')) 'Checkout transfer must have one shared orchestration boundary.'
+Assert-True ($checkoutHandoff.Contains('let activeHandoffPromise = null')) 'Checkout transfer must contain duplicate concurrent submissions.'
+Assert-True ($checkoutHandoff.Contains('await ensureNativeCheckoutReady();')) 'Signed-in checkout must converge native identity before cart proof.'
+Assert-True ($checkoutHandoff.Contains('validateAuthoritativeCart(await getCart())')) 'Checkout transfer must re-read the authoritative Woo cart.'
+Assert-True ($checkoutHandoff.Contains("navigateDocument(checkoutUrl, { transition: 'checkout' });")) 'Checkout transfer must use full-document navigation.'
+Assert-True ($checkoutHandoff.Contains('cart_mutation_timeout')) 'Checkout transfer must bound cart-mutation waiting.'
+Assert-True ($checkoutHandoff.Contains('isCheckoutHandoffTarget')) 'Cart drawer interception must recognize canonical and staging-shaped checkout links.'
+Assert-True (-not $checkoutHandoff.Contains("fetch(checkoutUrl")) 'Checkout handoff must not prefetch private checkout HTML.'
+Assert-True (-not $checkoutHandoff.Contains('getWooCheckoutFallbackUrl')) 'Checkout handoff must not hide routing/session failures behind a second checkout route.'
+
+Assert-True ($cart.Contains('beginCheckoutHandoff({')) 'Full cart checkout must use the shared handoff boundary.'
+Assert-True (-not $cart.Contains('resolveWooCheckoutHandoffUrl')) 'Full cart must not probe private checkout HTML.'
+Assert-True (-not $cart.Contains('const authoritativeCart = await getCart();')) 'Full cart must not duplicate checkout orchestration.'
+Assert-True ($cartSidebar.Contains('beginCheckoutHandoff({')) 'Cart drawer checkout must use the shared handoff boundary.'
+Assert-True ($cartSidebar.Contains('isCheckoutHandoffTarget(anchor.href)')) 'Cart drawer must normalize legacy/staging checkout links through the shared boundary.'
+Assert-True (-not $cartSidebar.Contains('resolveWooCheckoutHandoffUrl')) 'Cart drawer must not probe private checkout HTML.'
+Assert-True (-not $cartSidebar.Contains('const authoritativeCart = await getCart();')) 'Cart drawer must not duplicate checkout orchestration.'
+
 Assert-True ($documentNavigation.Contains("if (transition === 'checkout' || prefersReducedMotion())")) 'Checkout handoff must commit immediately without blanking the current cart document.'
 Assert-True (-not $documentNavigation.Contains("classList.add('dtb-checkout-handoff-active')")) 'Checkout handoff must not activate a document-hiding class while native checkout is pending.'
 
