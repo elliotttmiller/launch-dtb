@@ -1,8 +1,8 @@
 name: CI Build Validation - No Deploy
 
-# This workflow is intentionally validation-only. Pushes to main must never write
-# to SiteGround; live file changes are owned by deploy.yml via workflow_dispatch
-# and the protected siteground-production environment.
+# This workflow is intentionally validation-only. It builds and validates the
+# bounded production payload but never writes to the live server. Production
+# file transfer is a manual operator action performed outside GitHub Actions.
 
 on:
   push:
