@@ -193,7 +193,7 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 
 	if ( '/wp/index.php' === rtrim( $path, '/' ) || '/index.php' === rtrim( $path, '/' ) ) {
 		$pagename = isset( $_GET['pagename'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			? sanitize_key( wp_unslash( (string) $_GET['pagename'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			? sanitize_key( wp_unslash( (string) $_GET['pagename'] ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			: '';
 		return 'checkout' === $pagename;
 	}
