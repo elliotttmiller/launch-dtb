@@ -14,6 +14,11 @@ final class DTB_Veeqo_Admin_Controller {
 	public static function register(): void {
 		register_rest_route( self::NAMESPACE, self::BASE . '/overview', self::read_route( [ __CLASS__, 'overview' ] ) );
 		register_rest_route( self::NAMESPACE, self::BASE . '/inventory', self::read_route( [ __CLASS__, 'inventory' ], self::inventory_args() ) );
+		register_rest_route( self::NAMESPACE, self::BASE . '/inventory/(?P<product_id>[\d]+)', self::read_route( [ __CLASS__, 'inventory_item' ], [
+			'product_id' => [ 'required' => true, 'type' => 'integer', 'minimum' => 1, 'sanitize_callback' => 'absint' ],
+		] ) );
+		register_rest_route( self::NAMESPACE, self::BASE . '/inventory/bulk-preview', self::write_route( [ __CLASS__, 'bulk_preview' ], self::bulk_args() ) );
+		register_rest_route( self::NAMESPACE, self::BASE . '/inventory/bulk-apply', self::write_route( [ __CLASS__, 'bulk_apply' ], self::bulk_args() ) );
 		register_rest_route( self::NAMESPACE, self::BASE . '/orders', self::read_route( [ __CLASS__, 'orders' ], self::order_args() ) );
 		register_rest_route( self::NAMESPACE, self::BASE . '/fulfillment', self::read_route( [ __CLASS__, 'fulfillment' ], self::order_args() ) );
 		register_rest_route( self::NAMESPACE, self::BASE . '/settings', [
@@ -60,6 +65,23 @@ final class DTB_Veeqo_Admin_Controller {
 
 	public static function inventory( WP_REST_Request $request ): WP_REST_Response {
 		return rest_ensure_response( DTB_Veeqo_Admin_Read_Model::inventory( $request->get_params() ) );
+	}
+
+	public static function inventory_item( WP_REST_Request $request ) {
+		$result = DTB_Veeqo_Admin_Read_Model::inventory_item( absint( $request['product_id'] ) );
+		return is_wp_error( $result ) ? $result : rest_ensure_response( $result );
+	}
+
+	public static function bulk_preview( WP_REST_Request $request ) {
+		$payload = $request->get_json_params();
+		$result  = DTB_Veeqo_Admin_Read_Model::bulk_preview( is_array( $payload ) ? $payload : [] );
+		return is_wp_error( $result ) ? $result : rest_ensure_response( $result );
+	}
+
+	public static function bulk_apply( WP_REST_Request $request ) {
+		$payload = $request->get_json_params();
+		$result  = DTB_Veeqo_Admin_Read_Model::bulk_apply( is_array( $payload ) ? $payload : [] );
+		return is_wp_error( $result ) ? $result : new WP_REST_Response( $result, 200 );
 	}
 
 	public static function orders( WP_REST_Request $request ): WP_REST_Response {
@@ -180,11 +202,19 @@ final class DTB_Veeqo_Admin_Controller {
 			'page'         => [ 'type' => 'integer', 'minimum' => 1, 'default' => 1, 'sanitize_callback' => 'absint' ],
 			'per_page'     => [ 'type' => 'integer', 'minimum' => 10, 'maximum' => 100, 'default' => 50, 'sanitize_callback' => 'absint' ],
 			'search'       => [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
-			'stock_status' => [ 'type' => 'string', 'enum' => [ '', 'instock', 'lowstock', 'outofstock', 'onbackorder' ], 'sanitize_callback' => 'sanitize_key' ],
-			'mapping'      => [ 'type' => 'string', 'enum' => [ '', 'mapped', 'unmapped' ], 'sanitize_callback' => 'sanitize_key' ],
+			'stock_status' => [ 'type' => 'string', 'enum' => [ '', 'instock', 'lowstock', 'outofstock', 'onbackorder', 'negative', 'committed_exceeds_on_hand' ], 'sanitize_callback' => 'sanitize_key' ],
+			'mapping'      => [ 'type' => 'string', 'enum' => [ '', 'mapped', 'unmapped', 'mismatch' ], 'sanitize_callback' => 'sanitize_key' ],
 			'type'         => [ 'type' => 'string', 'enum' => [ '', 'simple', 'variation' ], 'sanitize_callback' => 'sanitize_key' ],
-			'orderby'      => [ 'type' => 'string', 'enum' => [ 'name', 'sku', 'stock_quantity', 'stock_status', 'updated' ], 'default' => 'sku', 'sanitize_callback' => 'sanitize_key' ],
+			'orderby'      => [ 'type' => 'string', 'enum' => [ 'name', 'sku', 'stock_quantity', 'stock_status', 'updated', 'on_hand', 'committed', 'available', 'incoming', 'mapping' ], 'default' => 'sku', 'sanitize_callback' => 'sanitize_key' ],
 			'order'        => [ 'type' => 'string', 'enum' => [ 'asc', 'desc' ], 'default' => 'asc', 'sanitize_callback' => 'sanitize_key' ],
+		];
+	}
+
+	private static function bulk_args(): array {
+		return [
+			'product_ids' => [ 'required' => true, 'type' => 'array', 'items' => [ 'type' => 'integer' ] ],
+			'changes'     => [ 'required' => true, 'type' => 'object' ],
+			'preview_hash'=> [ 'type' => 'string', 'sanitize_callback' => 'sanitize_text_field' ],
 		];
 	}
 
