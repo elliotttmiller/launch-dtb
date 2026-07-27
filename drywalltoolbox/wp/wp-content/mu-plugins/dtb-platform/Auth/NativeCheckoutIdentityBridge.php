@@ -43,22 +43,28 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 			dtb_native_checkout_log_security_event( 'native_checkout_privileged_native_preserved', $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
 			return $user_id;
 		}
-		dtb_native_checkout_clear_stale_customer_cookie( $native_user_id );
-		dtb_native_checkout_log_security_event( 'native_checkout_stale_customer_cookie_cleared', $native_user_id, 0, $woo_customer_kind, 'stale_cleared' );
+
+		if ( $native_user_id > 0 ) {
+			dtb_native_checkout_log_security_event( 'native_checkout_native_customer_preserved_without_jwt', $native_user_id, 0, $woo_customer_kind, 'native_preserved' );
+			return $user_id;
+		}
+
+		dtb_native_checkout_log_security_event( 'native_checkout_guest_without_jwt', 0, 0, 'guest', 'guest' );
 		return false;
 	}
 
 	$verification = DTB_JwtService::verify( $token );
 	if ( is_wp_error( $verification ) ) {
 		$event = 'token_expired' === $verification->get_error_code()
-			? 'native_checkout_expired_jwt_cookie_cleared'
-			: 'native_checkout_invalid_jwt_cookie_cleared';
-		if ( $native_is_privileged ) {
-			dtb_native_checkout_log_security_event( str_replace( '_cookie_cleared', '_privileged_preserved', $event ), $native_user_id, 0, $woo_customer_kind, 'privileged_preserved' );
+			? 'native_checkout_expired_jwt_cookie_ignored'
+			: 'native_checkout_invalid_jwt_cookie_ignored';
+
+		if ( $native_user_id > 0 ) {
+			dtb_native_checkout_log_security_event( $event, $native_user_id, 0, $woo_customer_kind, $native_is_privileged ? 'privileged_preserved' : 'native_preserved' );
 			return $user_id;
 		}
-		dtb_native_checkout_clear_stale_customer_cookie( $native_user_id );
-		dtb_native_checkout_log_security_event( $event, $native_user_id, 0, $woo_customer_kind, 'invalid_jwt' );
+
+		dtb_native_checkout_log_security_event( $event, 0, 0, 'guest', 'invalid_jwt' );
 		return false;
 	}
 
