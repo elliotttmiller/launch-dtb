@@ -59,10 +59,22 @@
   min-width: 0;
 }
 
+.dtb-order-item__main > div {
+  min-width: 0;
+}
+
+.dtb-order-item__name {
+  max-width: 100%;
+  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  hyphens: none !important;
+}
+
 .dtb-order-item__price {
   justify-self: end;
   align-self: center;
   text-align: right;
+  white-space: nowrap;
 }
 
 @media (max-width: 767px) {
@@ -123,7 +135,6 @@
 
   .dtb-order-item,
   .dtb-order-item--friendly {
-    grid-template-columns: minmax(0, 1fr) auto !important;
     gap: 0.7rem !important;
     align-items: center !important;
   }
@@ -135,20 +146,46 @@
     min-width: 0;
   }
 
-  .dtb-order-item__name {
-    max-width: 100%;
-  }
-
   .dtb-order-item__price {
     justify-self: end !important;
     align-self: center !important;
     padding-top: 0 !important;
     text-align: right !important;
-    white-space: nowrap;
   }
 
   main > .dtb-route-back-bar--orders:has(+ .dtb-order-tracking-shell) {
     display: none !important;
+  }
+}
+
+/*
+ * Product names and prices compete for the same horizontal row below tablet
+ * widths. Stack the price beneath the complete product-information row so the
+ * title retains a usable measure and wraps only at normal word boundaries.
+ */
+@media (max-width: 560px) {
+  .dtb-order-item,
+  .dtb-order-item--friendly {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.55rem !important;
+    padding: 0.78rem !important;
+  }
+
+  .dtb-order-item__main {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 0.68rem;
+    width: 100%;
+  }
+
+  .dtb-order-item__thumb {
+    width: 56px !important;
+    height: 56px !important;
+  }
+
+  .dtb-order-item__price {
+    justify-self: end !important;
+    margin-right: 0.08rem;
+    font-size: 0.9rem;
   }
 }
 
@@ -164,6 +201,17 @@
 
   .dtb-order-item,
   .dtb-order-item--friendly {
-    gap: 0.58rem !important;
+    gap: 0.5rem !important;
+    padding: 0.72rem !important;
+  }
+
+  .dtb-order-item__main {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 0.62rem;
+  }
+
+  .dtb-order-item__thumb {
+    width: 52px !important;
+    height: 52px !important;
   }
 }
