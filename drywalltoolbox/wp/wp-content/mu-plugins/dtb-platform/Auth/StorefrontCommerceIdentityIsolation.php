@@ -40,8 +40,8 @@ function dtb_storefront_commerce_isolate_privileged_native_identity( $user_id ) 
 	$token = ! empty( $_COOKIE['dtb_auth'] )
 		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
 		: '';
-	if ( '' !== $token && function_exists( 'dtb_native_checkout_verify_user_id' ) ) {
-		$resolved = dtb_native_checkout_verify_user_id( $token );
+	if ( '' !== $token && class_exists( 'DTB_JwtService' ) ) {
+		$resolved = DTB_JwtService::user_id( $token );
 		if ( $resolved > 0 ) {
 			$customer = get_user_by( 'id', $resolved );
 			if ( $customer instanceof WP_User && ! dtb_storefront_commerce_user_is_privileged( $customer ) ) {

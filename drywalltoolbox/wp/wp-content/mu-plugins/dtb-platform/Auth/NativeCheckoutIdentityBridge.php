@@ -107,6 +107,25 @@ function dtb_native_checkout_user_is_privileged( WP_User $user ): bool {
 	return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 }
 
+/**
+ * Verify a DTB storefront JWT and return the customer ID it represents.
+ *
+ * This is the canonical name the storefront identity guards use when they resolve
+ * the verified customer before this bridge runs. Verification itself is delegated
+ * to DTB_JwtService so signature, expiry, and claim handling keep a single
+ * implementation.
+ *
+ * @param string $token Raw dtb_auth JWT.
+ * @return int Verified user ID, or 0 when the token is absent or invalid.
+ */
+function dtb_native_checkout_verify_user_id( string $token ): int {
+	if ( '' === $token || ! class_exists( 'DTB_JwtService' ) ) {
+		return 0;
+	}
+
+	return DTB_JwtService::user_id( $token );
+}
+
 function dtb_native_checkout_clear_stale_customer_cookie( int $native_user_id ): void {
 	if ( $native_user_id <= 0 || headers_sent() ) {
 		return;

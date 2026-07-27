@@ -44,11 +44,11 @@ function dtb_checkout_preserve_woo_session_during_identity_convergence( $user_id
 	$token = ! empty( $_COOKIE['dtb_auth'] )
 		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
 		: '';
-	if ( '' === $token || ! function_exists( 'dtb_native_checkout_verify_user_id' ) ) {
+	if ( '' === $token || ! class_exists( 'DTB_JwtService' ) ) {
 		return $user_id;
 	}
 
-	$resolved = dtb_native_checkout_verify_user_id( $token );
+	$resolved = DTB_JwtService::user_id( $token );
 	if ( $resolved <= 0 ) {
 		return $user_id;
 	}
