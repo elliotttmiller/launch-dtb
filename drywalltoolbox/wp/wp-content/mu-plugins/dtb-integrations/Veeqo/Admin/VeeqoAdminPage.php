@@ -64,7 +64,6 @@ add_action(
 		$base_dir      = dirname( __DIR__ );
 		$base_url      = content_url( 'mu-plugins/dtb-integrations/Veeqo/assets/' );
 		$css_path      = $base_dir . '/assets/veeqo-admin.css';
-		$redesign_css = $base_dir . '/assets/veeqo-control-center-redesign.css';
 		$js_path       = $base_dir . '/assets/veeqo-admin.js';
 		$workspace_css = $base_dir . '/assets/veeqo-inventory-workspace.css';
 		$workspace_js  = $base_dir . '/assets/veeqo-inventory-workspace.js';
@@ -80,12 +79,6 @@ add_action(
 			$base_url . 'veeqo-inventory-workspace.css',
 			[ 'dtb-veeqo-admin' ],
 			is_file( $workspace_css ) ? (string) filemtime( $workspace_css ) : '1'
-		);
-		wp_enqueue_style(
-			'dtb-veeqo-control-center-redesign',
-			$base_url . 'veeqo-control-center-redesign.css',
-			[ 'dtb-veeqo-admin', 'dtb-veeqo-inventory-workspace' ],
-			is_file( $redesign_css ) ? (string) filemtime( $redesign_css ) : '1'
 		);
 
 		wp_enqueue_script( 'wp-api-fetch' );
