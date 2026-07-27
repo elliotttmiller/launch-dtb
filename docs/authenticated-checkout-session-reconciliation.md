@@ -1,6 +1,6 @@
 # Authenticated Checkout Session Reconciliation
 
-Last updated: 2026-07-26.
+Last updated: 2026-07-27.
 
 ## Authority
 
@@ -31,6 +31,12 @@ A clean handoff has one of two statuses:
 A `conflict_replaced` or `identity_conflict_contained=true` response is never checkout-ready for the current click. The browser must remain on the cart surface, refresh the authoritative Store API cart and nonce, tell the shopper that the secure checkout session changed, and require another explicit checkout action after the refreshed cart has been reviewed.
 
 The conflict branch must continue expiring browser-side WooCommerce session markers. It must not copy serialized Woo session data, transplant carts between customer IDs, trust browser snapshots as authority, or preserve a customer-bound session whose ownership cannot be proven.
+
+## Native checkout document behavior
+
+The native checkout resolver must preserve an already valid native WordPress customer session when the optional `dtb_auth` cookie is missing, expired, or invalid. WooCommerce must remain able to load the customer-bound cart from its native session cookie and must not be forced into its empty-cart redirect solely because a secondary DTB JWT is unavailable on the document request.
+
+The resolver may clear or replace native customer authentication only after a cryptographically valid DTB JWT proves a different non-privileged customer identity. Privileged WordPress sessions remain isolated and are never replaced by the public checkout bridge.
 
 ## Frontend ownership
 
@@ -64,6 +70,7 @@ The conflict branch must continue expiring browser-side WooCommerce session mark
 
 - Resolves the DTB JWT subject only after HS256 signature, expiry, issued-at, and WordPress user existence checks.
 - Preserves privileged wp-admin identity isolation.
+- Preserves a valid native customer identity when the secondary DTB JWT is absent or unusable.
 - Contains true non-privileged customer conflicts without initializing WooCommerce sessions inside `determine_current_user`.
 - Emits only approved redacted diagnostics.
 
@@ -104,5 +111,6 @@ Do not log or export cookie values or session keys during this audit. Do not mer
 6. The shopper sees a clear session-change notice and must explicitly select checkout again.
 7. The second attempt proceeds only when validation reports `aligned` or `bridged`, conflict containment is false, and the authoritative cart contains items.
 8. Privileged native wp-admin cookies remain intact and cannot own public shopper commerce state.
-9. Logs contain only the approved redacted fields.
-10. No database migration or customer-record mutation occurs.
+9. A valid native customer checkout session is not cleared merely because `dtb_auth` is missing, expired, or invalid on the checkout document request.
+10. Logs contain only the approved redacted fields.
+11. No database migration or customer-record mutation occurs.
