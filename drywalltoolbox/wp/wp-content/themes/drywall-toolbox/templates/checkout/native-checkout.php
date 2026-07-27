@@ -33,9 +33,10 @@ wp_enqueue_style(
 
 /*
  * Theme presentation is intentionally one ordered stack: base design -> wrapper
- * refinements -> responsive flow -> live context -> contact presentation -> narrow
- * payment interaction hardening -> failed-payment recovery. No theme asset creates
- * or replaces payment controls or owns checkout submit/business persistence.
+ * refinements -> desktop redesign -> responsive flow -> live context -> contact
+ * presentation -> narrow payment interaction hardening -> failed-payment recovery
+ * -> final mobile redesign. No theme asset creates or replaces payment controls or
+ * owns checkout submit or business persistence.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -50,9 +51,15 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout-refinements.css' )
 );
 wp_enqueue_style(
+	'dtb-checkout-theme-desktop-redesign',
+	$theme_uri . '/assets/checkout/checkout-desktop-redesign.css',
+	[ 'dtb-checkout-theme-refinements' ],
+	$asset_version( 'assets/checkout/checkout-desktop-redesign.css' )
+);
+wp_enqueue_style(
 	'dtb-checkout-theme-flow',
 	$theme_uri . '/assets/checkout/checkout-flow.css',
-	[ 'dtb-checkout-theme-refinements' ],
+	[ 'dtb-checkout-theme-desktop-redesign' ],
 	$asset_version( 'assets/checkout/checkout-flow.css' )
 );
 wp_enqueue_style(
@@ -79,8 +86,14 @@ wp_enqueue_style(
 	[ 'dtb-checkout-theme-payment-interaction' ],
 	$asset_version( 'assets/checkout/checkout-payment-failure.css' )
 );
+wp_enqueue_style(
+	'dtb-checkout-theme-mobile-redesign',
+	$theme_uri . '/assets/checkout/checkout-mobile-redesign.css',
+	[ 'dtb-checkout-theme-payment-failure' ],
+	$asset_version( 'assets/checkout/checkout-mobile-redesign.css' )
+);
 wp_add_inline_style(
-	'dtb-checkout-theme-payment-failure',
+	'dtb-checkout-theme-mobile-redesign',
 	'body.dtb-official-stripe-checkout,body.dtb-official-stripe-checkout *{font-family:"Nunito",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}body.dtb-official-stripe-checkout{font-optical-sizing:auto;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}'
 );
 
