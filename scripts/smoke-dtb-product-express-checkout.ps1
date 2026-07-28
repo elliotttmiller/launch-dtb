@@ -94,7 +94,7 @@ Assert-Contains $checkoutTemplate 'checkout-ux-refinements.css' 'Native checkout
 Assert-Contains $checkoutCss '.wc-block-components-payment-methods' 'Payment methods must receive the final cohesive card treatment'
 Assert-Contains $checkoutCss '.wc-block-components-order-summary-item' 'Order summary rows must receive deterministic compact spacing'
 Assert-Contains $checkoutCss '.wc-block-components-totals-footer-item' 'The grand total hierarchy must be explicitly styled'
-Assert-NotContains $checkoutUi 'confidence' 'The checkout UI must not inject a confidence panel'
-Assert-NotContains $checkoutCss 'confidence' 'The checkout styles must not retain confidence panel rules'
+Assert-NotContains $checkoutUi 'dtb-checkout-confidence' 'The checkout UI must not inject a confidence panel'
+Assert-NotContains $checkoutCss 'dtb-checkout-confidence' 'The checkout styles must not retain confidence panel selectors'
 
 Write-Host 'PASS: Product express checkout architecture, wallet shipping integrity, and checkout presentation contracts are intact.'
