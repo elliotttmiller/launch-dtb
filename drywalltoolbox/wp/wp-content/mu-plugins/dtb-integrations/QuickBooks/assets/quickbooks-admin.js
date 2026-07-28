@@ -171,7 +171,13 @@
 			const mappedName = document.createElement('strong');
 			mappedName.textContent = item.name || item.expected || '—';
 			const expected = document.createElement('small');
-			expected.textContent = item.configured ? `Exact item: ${item.expected}` : `Expected: ${item.expected}`;
+			if (item.verified) {
+				expected.textContent = `Verified for connected company: ${item.expected}`;
+			} else if (item.configured) {
+				expected.textContent = `Configured but not verified for connected company: ${item.expected}`;
+			} else {
+				expected.textContent = `Expected: ${item.expected}`;
+			}
 			name.append(mappedName, expected);
 
 			const id = document.createElement('code');
@@ -184,9 +190,9 @@
 			source.textContent = sourceLabel(item.source);
 
 			const status = document.createElement('span');
-			status.className = `dtb-qbo-item-status ${item.configured ? 'is-ready' : 'is-missing'}`;
+			status.className = `dtb-qbo-item-status ${item.verified ? 'is-ready' : 'is-missing'}`;
 			status.setAttribute('role', 'cell');
-			status.textContent = item.configured ? 'Mapped' : 'Missing';
+			status.textContent = item.verified ? 'Verified' : item.configured ? 'Needs verification' : 'Missing';
 
 			row.append(role, name, id, source, status);
 			container.append(row);
@@ -352,11 +358,15 @@
 		}
 	};
 
-	const activateTab = (name) => {
+	const activateTab = (name, focus = false) => {
 		queryAll('[data-qbo-tab]').forEach((tab) => {
 			const active = tab.dataset.qboTab === name;
 			tab.classList.toggle('is-active', active);
 			tab.setAttribute('aria-selected', active ? 'true' : 'false');
+			tab.setAttribute('tabindex', active ? '0' : '-1');
+			if (active && focus) {
+				tab.focus();
+			}
 		});
 		queryAll('[data-qbo-panel]').forEach((panel) => {
 			const active = panel.dataset.qboPanel === name;
@@ -370,6 +380,37 @@
 		if (tab) {
 			activateTab(tab.dataset.qboTab);
 		}
+	};
+
+	const handleTabKeys = (event) => {
+		const tab = event.target.closest('[data-qbo-tab]');
+		if (!tab) {
+			return;
+		}
+
+		const tabs = queryAll('[data-qbo-tab]');
+		const current = tabs.indexOf(tab);
+		let next = current;
+
+		switch (event.key) {
+			case 'ArrowRight':
+				next = (current + 1) % tabs.length;
+				break;
+			case 'ArrowLeft':
+				next = (current - 1 + tabs.length) % tabs.length;
+				break;
+			case 'Home':
+				next = 0;
+				break;
+			case 'End':
+				next = tabs.length - 1;
+				break;
+			default:
+				return;
+		}
+
+		event.preventDefault();
+		activateTab(tabs[next].dataset.qboTab, true);
 	};
 
 	const copyDiagnostic = async (event) => {
@@ -392,6 +433,7 @@
 
 	root.addEventListener('click', handleAction);
 	root.addEventListener('click', handleTabs);
+	root.addEventListener('keydown', handleTabKeys);
 	root.addEventListener('click', copyDiagnostic);
 
 	const noticeMessages = {
@@ -403,6 +445,8 @@
 		token_storage: ['QuickBooks connected, but encrypted token storage failed.', 'error'],
 		company_verification: ['QuickBooks connected, but company verification failed.', 'error'],
 	};
+
+	activateTab('configuration');
 
 	if (noticeMessages[config.notice]) {
 		showAlert(...noticeMessages[config.notice]);
