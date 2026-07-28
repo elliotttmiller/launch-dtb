@@ -22,47 +22,65 @@
 	const checkoutSelector = '.wc-block-checkout';
 	const wizardViewport = window.matchMedia( '(max-width: 1023px)' );
 	const wizardInactiveClass = 'is-dtb-checkout-step-inactive';
+	const wizardExpressSelector = '.wp-block-woocommerce-checkout-express-payment-block, .wc-block-components-express-payment';
+	const wizardStepWrapperSelector = '.wc-block-components-checkout-step';
 	const wizardSteps = [
-		{
-			id: 'contact', label: 'Contact', sublabel: 'Your details', selectors: [
-				'.wp-block-woocommerce-checkout-express-payment-block',
-				'.wp-block-woocommerce-checkout-contact-information-block',
-				'.wp-block-woocommerce-checkout-create-account-block',
-				'[data-block-name="woocommerce/checkout-contact-information-block"]',
-				'.wc-block-checkout__contact-fields',
-			],
-		},
-		{
-			id: 'shipping', label: 'Shipping', sublabel: 'Delivery options', selectors: [
-				'.wp-block-woocommerce-checkout-shipping-method-block',
-				'.wp-block-woocommerce-checkout-pickup-options-block',
-				'.wp-block-woocommerce-checkout-shipping-address-block',
-				'.wp-block-woocommerce-checkout-billing-address-block',
-				'.wp-block-woocommerce-checkout-shipping-methods-block',
-				'[data-block-name="woocommerce/checkout-shipping-address-block"]',
-				'[data-block-name="woocommerce/checkout-billing-address-block"]',
-				'.wc-block-checkout__shipping-fields',
-				'.wc-block-checkout__shipping-address',
-				'.wc-block-checkout__billing-fields',
-				'.wc-block-checkout__shipping-option',
-				'.wc-block-checkout__shipping-method',
-			],
-		},
-		{
-			id: 'payment', label: 'Payment', sublabel: 'Review & pay', selectors: [
-				'.wp-block-woocommerce-checkout-payment-block',
-				'.wp-block-woocommerce-checkout-additional-information-block',
-				'.wp-block-woocommerce-checkout-order-note-block',
-				'.wp-block-woocommerce-checkout-terms-block',
-				'.wp-block-woocommerce-checkout-actions-block',
-				'[data-block-name="woocommerce/checkout-payment-block"]',
-				'.wc-block-checkout__payment-method',
-				'.wc-block-checkout__order-notes',
-				'.wc-block-checkout__terms',
-				'.wc-block-checkout__actions',
-			],
-		},
+		{ id: 'contact', label: 'Contact', sublabel: 'Your details' },
+		{ id: 'shipping', label: 'Shipping', sublabel: 'Delivery options' },
+		{ id: 'payment', label: 'Payment', sublabel: 'Review & pay' },
 	];
+
+	/**
+	 * Classify the WooCommerce Checkout Block's own top-level section wrappers
+	 * into Contact / Shipping / Payment groups by structural position rather
+	 * than an enumerated list of specific block class names. `.wc-block-
+	 * components-checkout-step` is the one stable, version-resilient public
+	 * class WooCommerce Blocks applies to every top-level step wrapper
+	 * regardless of which concrete step it is; Woo always renders Contact
+	 * first and Payment last, with zero or more shipping-related steps (an
+	 * address step and/or a method step) in between. Any non-step sibling
+	 * (order notes, terms, actions) is grouped with whichever step wrapper it
+	 * follows in document order. This avoids depending on undocumented or
+	 * version-specific block/element class names.
+	 */
+	function wizardStepGroups( root ) {
+		const main = root.querySelector( '.wc-block-components-main, .wc-block-checkout__main' ) || root;
+		const children = Array.from( main.children ).filter( ( node ) => (
+			! node.classList.contains( 'dtb-checkout-wizard-actions' )
+		) );
+		const stepWrappers = children.filter( ( node ) => node.matches( wizardStepWrapperSelector ) );
+		if ( stepWrappers.length === 0 ) {
+			return [ [], [], [] ];
+		}
+
+		const firstStep = stepWrappers[ 0 ];
+		const lastStep = stepWrappers[ stepWrappers.length - 1 ];
+		const groups = [ [], [], [] ];
+
+		children.forEach( ( node ) => {
+			if ( node.matches( wizardExpressSelector ) ) {
+				groups[ 0 ].push( node );
+				return;
+			}
+			if ( node === firstStep ) {
+				groups[ 0 ].push( node );
+				return;
+			}
+			if ( node === lastStep ) {
+				groups[ 2 ].push( node );
+				return;
+			}
+			if ( stepWrappers.includes( node ) ) {
+				groups[ 1 ].push( node );
+				return;
+			}
+			// A non-step sibling (order notes, terms, actions row, etc.)
+			// belongs with whichever step wrapper precedes it in the DOM.
+			groups[ node.compareDocumentPosition( lastStep ) & Node.DOCUMENT_POSITION_FOLLOWING ? 1 : 2 ].push( node );
+		} );
+
+		return groups;
+	}
 	const paymentRootSelector = '.wp-block-woocommerce-checkout-payment-block, .wc-block-checkout__payment-method';
 	const loginSelector = [
 		'a[href*="/my-account/"]',
@@ -257,16 +275,11 @@
 		return Array.from( new Set( nodes.filter( Boolean ) ) );
 	}
 
-	function topLevelNodes( nodes ) {
-		return nodes.filter( ( node ) => ! nodes.some( ( other ) => other !== node && other.contains( node ) ) );
-	}
-
 	function wizardStepElements( root, index ) {
-		const step = wizardSteps[ index ];
-		if ( ! root || ! step ) {
+		if ( ! root || ! wizardSteps[ index ] ) {
 			return [];
 		}
-		return topLevelNodes( uniqueNodes( step.selectors.flatMap( ( selector ) => Array.from( root.querySelectorAll( selector ) ) ) ) );
+		return wizardStepGroups( root )[ index ] || [];
 	}
 
 	function clearWizardStepMarkers( root ) {
@@ -279,18 +292,13 @@
 
 	function markWizardStepOwnership( root ) {
 		clearWizardStepMarkers( root );
-		const ownership = new Map();
-		wizardSteps.forEach( ( step, index ) => wizardStepElements( root, index ).forEach( ( node ) => {
-			if ( ! ownership.has( node ) ) {
-				ownership.set( node, index );
-			}
-		} ) );
-		ownership.forEach( ( index, node ) => {
+		const groups = wizardStepGroups( root );
+		groups.forEach( ( nodes, index ) => nodes.forEach( ( node ) => {
 			const inactive = index !== wizardActiveStep;
 			node.dataset.dtbCheckoutStep = wizardSteps[ index ].id;
 			node.classList.toggle( wizardInactiveClass, inactive );
 			node.setAttribute( 'aria-hidden', inactive ? 'true' : 'false' );
-		} );
+		} ) );
 	}
 
 	function wizardStepControls( root, index ) {
