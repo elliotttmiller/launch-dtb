@@ -11,6 +11,11 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! function_exists( 'dtb_integrations_require_files' ) ) {
+	/**
+	 * Require a list of integration module files in-order.
+	 *
+	 * @param string[] $relative_paths Paths relative to wp-content/mu-plugins.
+	 */
 	function dtb_integrations_require_files( array $relative_paths ): void {
 		foreach ( $relative_paths as $path ) {
 			dtb_module_require( $path );
@@ -19,6 +24,7 @@ if ( ! function_exists( 'dtb_integrations_require_files' ) ) {
 }
 
 if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
+	/** Register major integration health checks with DTB health registry. */
 	function dtb_integrations_register_health_checks(): void {
 		if ( class_exists( 'DTB_WooCommerceHealthCheck' ) ) {
 			DTB_WooCommerceHealthCheck::register();
@@ -38,12 +44,15 @@ if ( ! function_exists( 'dtb_integrations_register_health_checks' ) ) {
 	}
 }
 
+// 1) Core bridges/clients first. VeeqoClient is compatibility-only infrastructure;
+// VeeqoRuntimePolicy removes its historical route/schedule/admin ownership below.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceBridge.php',
 	'dtb-integrations/Veeqo/VeeqoClient.php',
 	'dtb-integrations/QuickBooks/QuickBooksClient.php',
 ] );
 
+// 2) WooCommerce module-layer files.
 dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/ProductLookupService.php',
 	'dtb-integrations/WooCommerce/WooWebhookManager.php',
@@ -52,6 +61,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/WooCommerce/WooCommerceHealthCheck.php',
 ] );
 
+// 3) Veeqo production module. Load domain/runtime services before REST and admin UI.
 dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoConfig.php',
 	'dtb-integrations/Veeqo/VeeqoProductionConfiguration.php',
@@ -70,6 +80,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoHealthCheck.php',
 ] );
 
+// 4) QuickBooks module-layer files.
 dtb_integrations_require_files( [
 	'dtb-integrations/QuickBooks/QuickBooksConfig.php',
 	'dtb-integrations/QuickBooks/QuickBooksCustomerMapper.php',
@@ -80,6 +91,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/QuickBooks/QuickBooksHealthCheck.php',
 ] );
 
+// 4.5) Canonical order-platform contracts and hook overrides for Veeqo/QuickBooks orchestration.
 dtb_integrations_require_files( [
 	'dtb-integrations/OperationalPipeline/AtomicIntegrationLock.php',
 	'dtb-integrations/OperationalPipeline/QuickBooksAccountingPipeline.php',
@@ -92,6 +104,14 @@ dtb_integrations_require_files( [
 	'dtb-integrations/OperationalPipeline/PipelinePayloadPreview.php',
 ] );
 
+// Rewards module intentionally omitted for launch:
+// - RewardsService.php
+// - RewardsIssueJob.php
+// - RewardsAdjustmentController.php
+// - RewardsBalanceController.php
+// - RewardsHealthCheck.php
+
+// 5) Notifications last (cross-integration consumers).
 dtb_integrations_require_files( [
 	'dtb-integrations/Notifications/NotificationTemplateRepository.php',
 	'dtb-integrations/Notifications/EmailTemplateRenderer.php',
@@ -100,6 +120,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Notifications/SmsGateway.php',
 ] );
 
+// 6) Marketplace shared infrastructure (schema + contracts + credentials).
 dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Schema/MarketplaceSchemaInstaller.php',
 	'dtb-integrations/Marketplace/ChannelContract.php',
@@ -115,6 +136,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/OrderMaterializationService.php',
 ] );
 
+// 7) Amazon module.
 dtb_integrations_require_files( [
 	'dtb-integrations/Amazon/AmazonConfig.php',
 	'dtb-integrations/Amazon/AmazonLwaTokenService.php',
@@ -126,6 +148,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Amazon/AmazonWebhookController.php',
 ] );
 
+// 8) eBay module.
 dtb_integrations_require_files( [
 	'dtb-integrations/Ebay/EbayConfig.php',
 	'dtb-integrations/Ebay/EbayOAuthTokenService.php',
@@ -136,11 +159,13 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Ebay/EbayHealthCheck.php',
 ] );
 
+// 9) Marketplace queue jobs.
 dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Jobs/MarketplaceQueueJobs.php',
 	'dtb-integrations/Marketplace/Jobs/MarketplaceMaterializationQueue.php',
 ] );
 
+// 10) Marketplace REST controllers.
 dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Rest/MarketplaceOverviewController.php',
 	'dtb-integrations/Marketplace/Rest/MarketplaceOrdersController.php',
@@ -151,6 +176,7 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Rest/MarketplaceSettingsController.php',
 ] );
 
+// 11) Marketplace admin helpers + pages.
 dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Admin/MarketplaceAdminHelpers.php',
 	'dtb-integrations/Marketplace/Admin/MarketplaceOverviewPage.php',
@@ -162,4 +188,5 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Marketplace/Admin/MarketplaceSettingsPage.php',
 ] );
 
+// Register existing lightweight integration diagnostics.
 dtb_integrations_register_health_checks();
