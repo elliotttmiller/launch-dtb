@@ -81,6 +81,8 @@ The previous presentation stack used multiple whole-document MutationObservers p
 ### Desktop, 1024px and wider
 
 - Two-column grid: fluid checkout form and a bounded 360–420px order-summary rail.
+- Express Checkout is visually ordered first in the desktop form column before contact and shipping sections.
+- The Express Checkout block remains in WooCommerce's canonical DOM; presentation uses desktop-only CSS ordering and never clones, reparents, or remounts provider controls.
 - Order summary is sticky with a safe 24px top offset and no internal scroll trap.
 - Each top-level checkout section is a restrained white card with one border and low-elevation shadow.
 - Form controls use a 52px minimum target, consistent radius, visible focus ring, and no forced field reordering.
@@ -133,6 +135,8 @@ Authoritative assets:
 - `assets/checkout/checkout-boot.js`
 - `assets/checkout/checkout-ui.js`
 - `assets/checkout/checkout-express-entry.js`
+
+The template attaches the desktop-only Express Checkout ordering rule to the authoritative `dtb-checkout-theme` style handle. It adds no second stylesheet and does not mutate provider DOM.
 
 Obsolete layered desktop/mobile/refinement/contact/payment assets are intentionally not enqueued and should not be restored.
 
