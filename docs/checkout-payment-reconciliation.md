@@ -6,7 +6,7 @@ Last verified against source: 2026-07-27.
 
 WooCommerce and the official WooCommerce Stripe Payment Gateway remain the authoritative owners of checkout payment execution and order payment status. DTB does not infer payment success from a redirect, query parameter, browser state, order creation, or a raw `stripe_*` gateway identifier.
 
-The order platform now contains a narrow reconciliation path for the failure mode where WooCommerce has already persisted complete captured-payment evidence but the order remains in `pending` or `on-hold`.
+The order platform contains a narrow reconciliation path for the failure mode where WooCommerce has already persisted complete captured-payment evidence but the order remains in `pending` or `on-hold`.
 
 ## Required evidence
 
@@ -47,21 +47,43 @@ The reconciliation method never calls Veeqo, QuickBooks, or notification integra
 - A redacted WooCommerce warning is emitted when verified captured payment does not transition to `processing` or `completed`. It includes only the order ID, trigger, and resulting status.
 - No payment credential, token, client secret, webhook secret, or raw provider payload is logged.
 
-## Customer tracking presentation
+## Customer tracking CSS ownership
 
-On screens at or below 560 CSS pixels, order-item pricing is placed beneath the complete product information row. Product names use normal word boundaries and may break inside a token only as a last-resort overflow safeguard. Automatic hyphenation is disabled.
+Order tracking uses a bounded two-layer feature stylesheet contract:
+
+```text
+frontend/src/styles/order-tracking.css
+  -> feature visual primitives and component presentation
+
+frontend/src/styles/order-tracking-layout.css
+  -> tracking-only structural layout, responsive behavior, and rendering stability
+```
+
+`mobile-account-order-layout-fixes.css` is restricted to account hub and account-order-list presentation. It must not define tracking-page item, status panel, progress, shipment, or tracking header selectors.
+
+The retired `order-tracking-layout-fixes.css` patch file is intentionally absent. New tracking changes must be made in one of the two owning tracking files rather than added as a global override stylesheet.
+
+At or below 560 CSS pixels, order-item pricing is placed beneath the complete product-information row. Product names use normal word boundaries and may break inside an otherwise unbreakable token only as a last-resort overflow safeguard. Automatic hyphenation is disabled.
 
 ## Deployment and acceptance
 
-Deploy only these reviewed artifacts for this change:
+Deploy only these reviewed source artifacts for this change:
 
 ```text
 drywalltoolbox/wp/wp-content/mu-plugins/dtb-order-platform/Payment/CheckoutPaymentLifecycle.php
+frontend/src/main.jsx
+frontend/src/styles/order-tracking-layout.css
 frontend/src/styles/mobile-account-order-layout-fixes.css
 docs/checkout-payment-reconciliation.md
 ```
 
-Before deployment, back up the existing production PHP file, the currently deployed frontend build, and the affected order/database state. After deployment and frontend build transfer, clear SiteGround dynamic and frontend caches.
+The obsolete frontend source file must be removed from the deployed source workspace when applicable:
+
+```text
+frontend/src/styles/order-tracking-layout-fixes.css
+```
+
+Production receives the complete dependency-consistent frontend build, not individual unbuilt source CSS files. Before deployment, back up the existing production PHP file, the currently deployed frontend build, and the affected order/database state. After deployment and frontend build transfer, clear SiteGround dynamic and frontend caches.
 
 Acceptance requires:
 
@@ -72,4 +94,6 @@ Acceptance requires:
 5. The event ledger contains one reconciliation event and downstream jobs remain exactly once.
 6. Guest order tracking remains accessible only through the valid order key.
 7. Mobile item names wrap at word boundaries and prices do not compress the title column.
-8. Failed, cancelled, refunded, and zero-total behavior remains unchanged.
+8. The account-order list remains visually unchanged after removal of tracking selectors from its stylesheet.
+9. No runtime request, API contract, component wiring, checkout integration, order projection, or queue behavior changes beyond the documented payment reconciliation.
+10. Failed, cancelled, refunded, and zero-total behavior remains unchanged.
