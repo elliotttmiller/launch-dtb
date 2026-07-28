@@ -3,7 +3,7 @@
  *
  * This layer intentionally contains presentation-only adjustments that must win
  * after the responsive checkout stack. It does not create checkout controls,
- * payment surfaces, totals, or order state.
+ * payment surfaces, totals, order state, or confidence/marketing panels.
  */
 
 body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
@@ -31,19 +31,154 @@ body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-si
   box-shadow: var(--dtb-ui-shadow, 0 10px 30px rgba(16, 24, 40, 0.06)) !important;
 }
 
+body.dtb-official-stripe-checkout .wc-block-components-payment-method-label,
+body.dtb-official-stripe-checkout .wc-block-components-radio-control__label {
+  min-width: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control__option {
+  min-height: 56px !important;
+  padding: 14px 16px !important;
+  border-color: var(--dtb-ui-border, #e2e8f0) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control__option:focus-within {
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 0 2px rgba(47, 91, 234, 0.2) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content {
+  padding: 4px 16px 18px !important;
+  background: #ffffff !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-sidebar,
+body.dtb-official-stripe-checkout .wc-block-checkout__sidebar,
+body.dtb-official-stripe-checkout .wc-block-components-order-summary,
+body.dtb-official-stripe-checkout .wp-block-woocommerce-checkout-order-summary-block {
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary {
+  display: block !important;
+  overflow: visible !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary__content {
+  max-height: none !important;
+  overflow: visible !important;
+  padding-bottom: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item {
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 13px 0 !important;
+  border-bottom: 1px solid var(--dtb-checkout-line, #e2e8f0) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item:last-child {
+  border-bottom: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image {
+  margin-right: 12px !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__description {
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__description p,
+body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__description span {
+  line-height: 1.4;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-wrapper {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-top: 0 !important;
+}
+
 body.dtb-official-stripe-checkout .wc-block-components-totals-item {
-  min-height: 40px !important;
-  padding-top: 9px !important;
-  padding-bottom: 9px !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 9px 0 !important;
+  align-items: baseline !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-item__label {
+  color: var(--dtb-checkout-muted, #64748b);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-item__value {
+  color: var(--dtb-checkout-text, #0f172a);
+  font-size: 14px;
+  font-weight: 720;
+  text-align: right;
 }
 
 body.dtb-official-stripe-checkout .wc-block-components-totals-footer-item {
-  min-height: 60px !important;
+  min-height: 0 !important;
   margin-top: 4px !important;
-  padding-top: 10px !important;
-  border-top: 1px solid var(--dtb-checkout-line) !important;
+  padding: 14px 0 4px !important;
+  border-top: 1px solid var(--dtb-checkout-line, #e2e8f0) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-footer-item .wc-block-components-totals-item__label,
+body.dtb-official-stripe-checkout .wc-block-components-totals-footer-item .wc-block-components-totals-item__value {
+  color: var(--dtb-checkout-text, #0f172a);
+  font-size: clamp(18px, 2vw, 22px) !important;
+  font-weight: 820 !important;
+  letter-spacing: -0.025em;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-panel__button,
+body.dtb-official-stripe-checkout .wc-block-components-order-summary__button-text {
+  min-height: 44px;
+}
+
+body.dtb-official-stripe-checkout [data-dtb-checkout-live-context] {
+  margin: 8px 0 4px !important;
 }
 
 body.dtb-official-stripe-checkout [data-dtb-express-entry] {
   scroll-margin-block: 24px;
+}
+
+body.dtb-official-stripe-checkout.dtb-checkout-express-entry-unavailable .wp-block-woocommerce-checkout-express-payment-block {
+  scroll-margin-block: 24px;
+}
+
+@media (max-width: 767px) {
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item {
+    padding-block: 11px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-radio-control__option {
+    min-height: 52px !important;
+    padding: 12px 14px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-radio-control-accordion-content {
+    padding: 2px 14px 16px !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-totals-item {
+    padding-block: 8px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+  body.dtb-official-stripe-checkout .wc-block-components-radio-control__option {
+    scroll-behavior: auto;
+  }
 }
