@@ -222,14 +222,35 @@ function dtb_auth_user_is_privileged( WP_User $user ): bool {
 	return user_can( $user, 'manage_options' ) || user_can( $user, 'edit_users' );
 }
 
+/**
+ * Return the signed native WordPress cookie user without trusting the request's
+ * current-user object, which may have been intentionally isolated to guest for a
+ * public Store API or checkout request.
+ */
 function dtb_auth_valid_native_cookie_user_id(): int {
-	if ( ! defined( 'LOGGED_IN_COOKIE' ) || empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) || ! function_exists( 'wp_validate_auth_cookie' ) ) {
+	if ( ! function_exists( 'wp_validate_auth_cookie' ) ) {
 		return 0;
 	}
 
-	$cookie  = wp_unslash( (string) $_COOKIE[ LOGGED_IN_COOKIE ] );
-	$user_id = wp_validate_auth_cookie( $cookie, 'logged_in' );
-	return $user_id ? absint( $user_id ) : 0;
+	$cookie_candidates = [];
+	if ( defined( 'LOGGED_IN_COOKIE' ) && ! empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
+		$cookie_candidates['logged_in'] = wp_unslash( (string) $_COOKIE[ LOGGED_IN_COOKIE ] );
+	}
+	if ( defined( 'SECURE_AUTH_COOKIE' ) && ! empty( $_COOKIE[ SECURE_AUTH_COOKIE ] ) ) {
+		$cookie_candidates['secure_auth'] = wp_unslash( (string) $_COOKIE[ SECURE_AUTH_COOKIE ] );
+	}
+	if ( defined( 'AUTH_COOKIE' ) && ! empty( $_COOKIE[ AUTH_COOKIE ] ) ) {
+		$cookie_candidates['auth'] = wp_unslash( (string) $_COOKIE[ AUTH_COOKIE ] );
+	}
+
+	foreach ( $cookie_candidates as $scheme => $cookie ) {
+		$user_id = wp_validate_auth_cookie( $cookie, $scheme );
+		if ( $user_id ) {
+			return absint( $user_id );
+		}
+	}
+
+	return 0;
 }
 
 function dtb_auth_attach_native_session_state( $response, array $state ): void {
@@ -254,13 +275,30 @@ function dtb_auth_attach_native_session_state( $response, array $state ): void {
 	$response->set_data( $data );
 }
 
+/**
+ * Clear only a native non-privileged customer cookie.
+ *
+ * Storefront guest validation commonly runs in the same browser as wp-admin.
+ * determine_current_user may intentionally project that request as anonymous, so
+ * wp_get_current_user() is not authoritative for deciding whether browser cookies
+ * belong to an administrator. Validate the signed cookies directly and preserve
+ * every privileged native session.
+ */
 function dtb_auth_clear_native_customer_cookie(): void {
 	if ( headers_sent() ) {
 		return;
 	}
 
-	$current = wp_get_current_user();
-	if ( $current instanceof WP_User && $current->exists() && dtb_auth_user_is_privileged( $current ) ) {
+	$native_user_id = dtb_auth_valid_native_cookie_user_id();
+	if ( $native_user_id <= 0 ) {
+		return;
+	}
+
+	$native_user = get_user_by( 'id', $native_user_id );
+	if ( ! $native_user instanceof WP_User || dtb_auth_user_is_privileged( $native_user ) ) {
+		if ( $native_user instanceof WP_User && function_exists( 'dtb_security_log' ) ) {
+			dtb_security_log( 'native_privileged_cookie_preserved_during_storefront_auth', [] );
+		}
 		return;
 	}
 
