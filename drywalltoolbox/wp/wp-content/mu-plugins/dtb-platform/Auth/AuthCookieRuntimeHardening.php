@@ -7,13 +7,44 @@
  * same-origin storefront customer sessions into WordPress's native HttpOnly auth
  * cookie so WooCommerce can execute its supported customer/session lifecycle.
  *
+ * Native wp-admin requests are authenticated only by signed WordPress cookies.
+ * A storefront customer JWT must never become the wp-admin current user or trigger
+ * WooCommerce's customer-to-my-account admin redirect.
+ *
  * @package drywalltoolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
+add_filter( 'determine_current_user', 'dtb_auth_enforce_native_admin_identity_boundary', 100 );
 add_filter( 'rest_pre_dispatch', 'dtb_auth_block_privileged_native_storefront_auth', 15, 3 );
 add_filter( 'rest_post_dispatch', 'dtb_auth_harden_rest_response', 20, 3 );
+
+/**
+ * Keep wp-admin and admin-ajax on native WordPress cookie authentication only.
+ *
+ * AuthRoutes loads during wp-admin and its REST JWT bridge executes late in the
+ * determine_current_user chain. Without this final boundary, a browser that has a
+ * DTB customer JWT but no valid native admin cookie can be resolved as that customer;
+ * WooCommerce then redirects the wp-admin request to My Account. Re-evaluate only
+ * signed native cookies here and otherwise leave the request anonymous so WordPress
+ * sends the normal wp-login.php challenge.
+ *
+ * @param int|false $user_id User resolved by earlier authentication filters.
+ * @return int|false
+ */
+function dtb_auth_enforce_native_admin_identity_boundary( $user_id ) {
+	if ( ! is_admin() || wp_doing_cron() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return $user_id;
+	}
+
+	$native_user_id = dtb_auth_valid_native_cookie_user_id();
+	if ( $native_user_id > 0 ) {
+		return $native_user_id;
+	}
+
+	return false;
+}
 
 function dtb_auth_block_privileged_native_storefront_auth( $result, $server, $request ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 	if ( null !== $result || ! $request instanceof WP_REST_Request ) {
