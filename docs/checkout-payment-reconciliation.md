@@ -44,8 +44,28 @@ The reconciliation method never calls Veeqo, QuickBooks, or notification integra
 - An in-request per-order guard prevents recursive reconciliation.
 - The reconciliation ledger event uses `payment-status-reconciled:{order_id}` as its idempotency key.
 - Existing payment lifecycle events and processing-job dispatch retain their own idempotency and atomic barriers.
-- A redacted WooCommerce warning is emitted when verified captured payment does not transition to `processing` or `completed`. It includes only the order ID, trigger, and resulting status.
+- A redacted WooCommerce warning is emitted when verified captured payment does not transition to `processing` or `completed`.
 - No payment credential, token, client secret, webhook secret, or raw provider payload is logged.
+
+## Guest cart and native admin session continuity
+
+Same-origin WooCommerce cookies remain the guest-cart authority. Public Store API identity isolation applies to both supported route forms:
+
+```text
+/wp-json/wc/store/v1/...
+/wp/index.php?rest_route=/wc/store/v1/...
+```
+
+Storefront auth validation and logout clear a native WordPress cookie only when its signed cookie resolves to a non-privileged customer. They do not trust the request-scoped current-user projection, because public commerce isolation may intentionally resolve that request as anonymous. Signed administrator/operator cookies are preserved.
+
+WooCommerce empty-cart and continue-shopping actions route to the React catalog:
+
+```text
+/products
+/staging/{id}/products
+```
+
+The unused native `/shop/` URL is not emitted by the checkout workflow.
 
 ## Customer tracking CSS ownership
 
@@ -63,39 +83,26 @@ frontend/src/styles/order-tracking-layout.css
 
 The retired `order-tracking-layout-fixes.css` patch file is intentionally absent. New tracking changes must be made in one of the two owning tracking files rather than added as a global override stylesheet.
 
-At or below 560 CSS pixels, order-item pricing is placed beneath the complete product-information row. Product names use normal word boundaries and may break inside an otherwise unbreakable token only as a last-resort overflow safeguard. Automatic hyphenation is disabled.
-
-This CSS consolidation changes stylesheet ownership and cascade organization only. It does not modify React component structure, route wiring, API calls, authentication, guest order-key authorization, event streaming, checkout handoff, payment execution, order projections, queue dispatch, Veeqo, QuickBooks, or notification integrations.
+At or below 560 CSS pixels, order-item pricing is placed beneath the complete product-information row. Product names use normal word boundaries and automatic hyphenation is disabled.
 
 ## Deployment and acceptance
 
-Deploy only these reviewed source artifacts for this change:
+The guest-cart/admin-session follow-up deploys only:
 
 ```text
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-order-platform/Payment/CheckoutPaymentLifecycle.php
-frontend/src/main.jsx
-frontend/src/styles/order-tracking-layout.css
-frontend/src/styles/mobile-account-order-layout-fixes.css
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/StorefrontCommerceIdentityIsolation.php
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/AuthCookieRuntimeHardening.php
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/StorefrontReturnContext.php
 docs/checkout-payment-reconciliation.md
 ```
 
-The obsolete frontend source file must be removed from the deployed source workspace when applicable:
-
-```text
-frontend/src/styles/order-tracking-layout-fixes.css
-```
-
-Production receives the complete dependency-consistent frontend build, not individual unbuilt source CSS files. Before deployment, back up the existing production PHP file, the currently deployed frontend build, and the affected order/database state. After deployment and frontend build transfer, clear SiteGround dynamic and frontend caches.
+Before deployment, back up the changed PHP files and affected Woo/session database state. Clear SiteGround dynamic cache after transfer.
 
 Acceptance requires:
 
-1. Unpaid checkout remains `pending` and displays the payment-required action.
-2. A successful automatic-capture Stripe test order reaches `processing` or `completed`.
-3. A paid order deliberately left in `pending` is reconciled only when all captured-payment evidence is present.
-4. Authorization-only/manual-capture state does not dispatch fulfillment.
-5. The event ledger contains one reconciliation event and downstream jobs remain exactly once.
-6. Guest order tracking remains accessible only through the valid order key.
-7. Mobile item names wrap at word boundaries and prices do not compress the title column.
-8. The account-order list remains visually unchanged after removal of tracking selectors from its stylesheet.
-9. No runtime request, API contract, component wiring, checkout integration, order projection, or queue behavior changes beyond the documented payment reconciliation.
-10. Failed, cancelled, refunded, and zero-total behavior remains unchanged.
+1. A guest cart survives repeated Checkout Block address, shipping, and payment refreshes.
+2. Pretty-permalink and query-routed Store API requests resolve the same guest session.
+3. Guest storefront auth validation does not expire a concurrently signed-in privileged wp-admin session.
+4. Customer logout clears only customer-native cookies and never a privileged admin cookie.
+5. Empty-cart and continue-shopping actions route to `/products`, not `/shop/`.
+6. Existing payment reconciliation, order projections, queues, Veeqo, QuickBooks, and notification behavior remain unchanged.
