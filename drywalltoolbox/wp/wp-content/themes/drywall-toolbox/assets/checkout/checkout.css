@@ -585,7 +585,117 @@ body.woocommerce-checkout .wc-block-components-checkout-return-to-cart-button {
 }
 
 /* ---------------------------------------------------------------------------
- * 12. Accessibility & platform affordances
+ * 12. Checkboxes — terms, save payment method, "ship to different address"
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-checkbox__input {
+	width: 20px;
+	height: 20px;
+	border: 1px solid var(--dtb-border-strong);
+	border-radius: 5px;
+	accent-color: var(--dtb-accent);
+	flex: none;
+}
+
+body.woocommerce-checkout .wc-block-components-checkbox__mark {
+	fill: #fff;
+}
+
+body.woocommerce-checkout label:has(.wc-block-components-checkbox__input) {
+	min-height: var(--dtb-touch);
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+/* ---------------------------------------------------------------------------
+ * 13. Notices — validation summaries, store notices, empty/error states
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-notice-banner {
+	border-radius: var(--dtb-radius-md);
+	border: 1px solid var(--dtb-border);
+	border-left-width: 4px;
+	padding: 12px 14px;
+	background: var(--dtb-surface);
+	margin-bottom: 14px;
+}
+
+body.woocommerce-checkout .wc-block-components-notice-banner.is-error {
+	border-left-color: var(--dtb-danger);
+}
+
+body.woocommerce-checkout .wc-block-components-notice-banner.is-success {
+	border-left-color: var(--dtb-success);
+}
+
+body.woocommerce-checkout .wc-block-components-notice-banner .wc-block-components-notice-banner__content {
+	font-size: 13px;
+	color: var(--dtb-text);
+}
+
+/* ---------------------------------------------------------------------------
+ * 14. Coupon form and country/state selects
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-totals-coupon-link {
+	color: var(--dtb-accent);
+	font-weight: 600;
+}
+
+body.woocommerce-checkout .wc-block-components-totals-coupon__input input {
+	min-height: var(--dtb-touch);
+	border-radius: var(--dtb-radius-sm);
+	border: 1px solid var(--dtb-border-strong);
+}
+
+body.woocommerce-checkout .wc-block-components-totals-coupon__button {
+	min-height: var(--dtb-touch);
+	border-radius: var(--dtb-radius-sm);
+	font-weight: 600;
+}
+
+body.woocommerce-checkout .wc-blocks-components-select {
+	margin-top: 12px;
+}
+
+body.woocommerce-checkout .wc-blocks-components-select__container {
+	min-height: var(--dtb-touch);
+	border-radius: var(--dtb-radius-sm);
+	border: 1px solid var(--dtb-border-strong);
+	background: var(--dtb-surface);
+}
+
+/* ---------------------------------------------------------------------------
+ * 15. Address autocomplete suggestions
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-address-autocomplete-suggestions {
+	border: 1px solid var(--dtb-border);
+	border-radius: var(--dtb-radius-sm);
+	box-shadow: var(--dtb-shadow-md);
+	background: var(--dtb-surface);
+	overflow: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+ * 16. Subtle motion — interactive elements only, disabled entirely under
+ * prefers-reduced-motion by the rule in section 17.
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-text-input input,
+body.woocommerce-checkout .wc-blocks-components-select__select,
+body.woocommerce-checkout .wc-block-components-radio-control__option,
+body.woocommerce-checkout .wc-block-components-checkout-place-order-button,
+body.woocommerce-checkout .wc-block-components-checkout-step,
+.dtb-checkout__actions-back,
+.dtb-checkout__actions-continue,
+.dtb-checkout__step-dot {
+	transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+/* ---------------------------------------------------------------------------
+ * 17. Accessibility & platform affordances
  * ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
