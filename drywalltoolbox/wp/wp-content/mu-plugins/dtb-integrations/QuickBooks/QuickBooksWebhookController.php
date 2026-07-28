@@ -12,11 +12,15 @@ if ( class_exists( 'DTB_QuickBooksWebhookController' ) ) {
 }
 
 final class DTB_QuickBooksWebhookController {
-	private const REST_NAMESPACE = 'dtb/v1';
-	private const ROUTE          = '/webhooks/qbo';
-	private const QUEUE_HOOK     = 'dtb_qbo_process_webhook_event';
-	private const QUEUE_GROUP    = 'dtb-orders';
-	private const MAX_BODY_BYTES = 262144;
+	private const REST_NAMESPACE       = 'dtb/v1';
+	private const ROUTE                = '/webhooks/qbo';
+	private const QUEUE_HOOK           = 'dtb_qbo_process_webhook_event';
+	private const QUEUE_GROUP          = 'dtb-orders';
+	private const MAX_BODY_BYTES       = 2097152;
+	private const DEDUPE_TTL           = 30 * DAY_IN_SECONDS;
+	private const PROCESSING_LOCK_TTL  = 15 * MINUTE_IN_SECONDS;
+	private const MAX_RETRY_ATTEMPTS   = 5;
+	private const RETRY_DELAYS_SECONDS = [ 60, 300, 1800, 7200, 21600 ];
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ self::class, 'register_route' ] );
@@ -31,8 +35,12 @@ final class DTB_QuickBooksWebhookController {
 		] );
 	}
 
+	public static function verifier_configured(): bool {
+		return '' !== self::verifier_token();
+	}
+
 	public static function receive( WP_REST_Request $request ): WP_REST_Response|WP_Error {
-		$verifier = defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ? trim( (string) DTB_QBO_WEBHOOK_VERIFIER_TOKEN ) : '';
+		$verifier = self::verifier_token();
 		if ( '' === $verifier ) {
 			return new WP_Error( 'qbo_webhook_not_configured', 'QuickBooks webhook verification is not configured.', [ 'status' => 503 ] );
 		}
@@ -49,7 +57,7 @@ final class DTB_QuickBooksWebhookController {
 		}
 
 		$events = json_decode( $body, true );
-		if ( ! is_array( $events ) || ! array_is_list( $events ) ) {
+		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $events ) || ! array_is_list( $events ) ) {
 			return new WP_Error( 'qbo_webhook_invalid_payload', 'Invalid QuickBooks webhook payload.', [ 'status' => 400 ] );
 		}
 		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
@@ -62,15 +70,28 @@ final class DTB_QuickBooksWebhookController {
 			if ( null === $normalized ) {
 				continue;
 			}
-			as_enqueue_async_action( self::QUEUE_HOOK, [ $normalized ], self::QUEUE_GROUP, true );
-			++$accepted;
+			$action_id = as_enqueue_async_action( self::QUEUE_HOOK, [ $normalized ], self::QUEUE_GROUP, true );
+			if ( 0 !== (int) $action_id ) {
+				++$accepted;
+			}
 		}
 
 		return new WP_REST_Response( [ 'ok' => true, 'accepted' => $accepted ], 200 );
 	}
 
+	private static function verifier_token(): string {
+		$environment = function_exists( 'dtb_qbo_environment' ) ? dtb_qbo_environment() : 'production';
+		if ( 'sandbox' === $environment && defined( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN' ) ) {
+			return trim( (string) DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN );
+		}
+		if ( 'production' === $environment && defined( 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN' ) ) {
+			return trim( (string) DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN );
+		}
+		return defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ? trim( (string) DTB_QBO_WEBHOOK_VERIFIER_TOKEN ) : '';
+	}
+
 	private static function normalize_event( mixed $event ): ?array {
-		if ( ! is_array( $event ) ) {
+		if ( ! is_array( $event ) || '1.0' !== (string) ( $event['specversion'] ?? '' ) ) {
 			return null;
 		}
 		$id       = sanitize_text_field( (string) ( $event['id'] ?? '' ) );
@@ -87,12 +108,13 @@ final class DTB_QuickBooksWebhookController {
 		}
 
 		return [
-			'id'            => substr( $id, 0, 191 ),
-			'type'          => $type,
-			'entity_id'     => substr( $entity, 0, 64 ),
-			'realm_id'      => $realm,
-			'occurred_at'   => substr( $occurred, 0, 64 ),
-			'environment'   => function_exists( 'dtb_qbo_environment' ) ? dtb_qbo_environment() : '',
+			'id'          => substr( $id, 0, 191 ),
+			'type'        => $type,
+			'entity_id'   => substr( $entity, 0, 64 ),
+			'realm_id'    => $realm,
+			'occurred_at' => substr( $occurred, 0, 64 ),
+			'environment' => function_exists( 'dtb_qbo_environment' ) ? dtb_qbo_environment() : '',
+			'attempt'     => 0,
 		];
 	}
 
@@ -101,16 +123,50 @@ final class DTB_QuickBooksWebhookController {
 		if ( '' === $event_id ) {
 			return;
 		}
-		$dedupe_key = 'dtb_qbo_webhook_' . hash( 'sha256', $event_id );
+
+		$dedupe_key = 'dtb_qbo_webhook_done_' . hash( 'sha256', $event_id );
 		if ( false !== get_transient( $dedupe_key ) ) {
 			return;
 		}
-		set_transient( $dedupe_key, 1, 30 * DAY_IN_SECONDS );
+
+		$lock_key = 'dtb_qbo_webhook_lock_' . hash( 'sha256', $event_id );
+		if ( ! self::acquire_processing_lock( $lock_key ) ) {
+			return;
+		}
+
+		try {
+			if ( self::dispatch_event( $event ) ) {
+				set_transient( $dedupe_key, 1, self::DEDUPE_TTL );
+				return;
+			}
+			self::schedule_retry( $event );
+		} finally {
+			delete_option( $lock_key );
+		}
+	}
+
+	private static function acquire_processing_lock( string $lock_key ): bool {
+		if ( add_option( $lock_key, time(), '', false ) ) {
+			return true;
+		}
+		$locked_at = (int) get_option( $lock_key, 0 );
+		if ( $locked_at > 0 && $locked_at < time() - self::PROCESSING_LOCK_TTL ) {
+			delete_option( $lock_key );
+			return add_option( $lock_key, time(), '', false );
+		}
+		return false;
+	}
+
+	private static function dispatch_event( array $event ): bool {
+		if ( (string) ( $event['environment'] ?? '' ) !== dtb_qbo_environment() ) {
+			self::audit( 'qbo_webhook_environment_ignored', $event );
+			return true;
+		}
 
 		$config = function_exists( 'dtb_qbo_config' ) ? dtb_qbo_config() : [];
 		if ( (string) ( $config['realm_id'] ?? '' ) !== (string) ( $event['realm_id'] ?? '' ) ) {
 			self::audit( 'qbo_webhook_realm_ignored', $event );
-			return;
+			return true;
 		}
 
 		$type = (string) ( $event['type'] ?? '' );
@@ -118,20 +174,20 @@ final class DTB_QuickBooksWebhookController {
 		$entity    = $matches[1] ?? '';
 		$operation = $matches[2] ?? '';
 		if ( '' === $entity || '' === $operation ) {
-			return;
+			return true;
 		}
 
 		if ( 'salesreceipt' === $entity ) {
-			self::reconcile_sales_receipt( (string) $event['entity_id'], $operation, $event );
-			return;
+			return self::reconcile_sales_receipt( (string) $event['entity_id'], $operation, $event );
 		}
 		self::audit( 'qbo_refund_webhook_observed', $event + [ 'operation' => $operation ] );
+		return true;
 	}
 
-	private static function reconcile_sales_receipt( string $entity_id, string $operation, array $event ): void {
+	private static function reconcile_sales_receipt( string $entity_id, string $operation, array $event ): bool {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			self::audit( 'qbo_webhook_woocommerce_unavailable', $event );
-			return;
+			return false;
 		}
 		$orders = wc_get_orders( [
 			'limit'      => 2,
@@ -141,7 +197,7 @@ final class DTB_QuickBooksWebhookController {
 		] );
 		if ( 1 !== count( $orders ) || ! $orders[0] instanceof WC_Order ) {
 			self::audit( 'qbo_sales_receipt_webhook_unmapped', $event + [ 'operation' => $operation ] );
-			return;
+			return false;
 		}
 		$order = $orders[0];
 		$order->update_meta_data( '_dtb_qbo_last_webhook_event_id', sanitize_text_field( (string) $event['id'] ) );
@@ -152,15 +208,35 @@ final class DTB_QuickBooksWebhookController {
 		}
 		$order->save_meta_data();
 		self::audit( 'qbo_sales_receipt_webhook_reconciled', $event + [ 'order_id' => $order->get_id(), 'operation' => $operation ] );
+		return true;
+	}
+
+	private static function schedule_retry( array $event ): void {
+		$attempt = max( 0, absint( $event['attempt'] ?? 0 ) );
+		if ( $attempt >= self::MAX_RETRY_ATTEMPTS ) {
+			self::audit( 'qbo_webhook_retries_exhausted', $event + [ 'operation' => 'failed' ] );
+			throw new RuntimeException( 'QuickBooks webhook reconciliation retries exhausted.' );
+		}
+		if ( ! function_exists( 'as_schedule_single_action' ) ) {
+			throw new RuntimeException( 'QuickBooks webhook retry queue is unavailable.' );
+		}
+		$event['attempt'] = $attempt + 1;
+		$delay            = self::RETRY_DELAYS_SECONDS[ $attempt ] ?? end( self::RETRY_DELAYS_SECONDS );
+		$action_id        = as_schedule_single_action( time() + $delay, self::QUEUE_HOOK, [ $event ], self::QUEUE_GROUP, true );
+		if ( 0 === (int) $action_id ) {
+			throw new RuntimeException( 'QuickBooks webhook retry could not be scheduled.' );
+		}
+		self::audit( 'qbo_webhook_retry_scheduled', $event + [ 'operation' => 'retry' ] );
 	}
 
 	private static function audit( string $event, array $context ): void {
 		$context = [
-			'event_id'      => sanitize_text_field( (string) ( $context['id'] ?? '' ) ),
-			'entity_id'     => sanitize_text_field( (string) ( $context['entity_id'] ?? '' ) ),
-			'realm_suffix'  => substr( preg_replace( '/[^0-9]/', '', (string) ( $context['realm_id'] ?? '' ) ), -4 ),
-			'operation'     => sanitize_key( (string) ( $context['operation'] ?? '' ) ),
-			'order_id'      => absint( $context['order_id'] ?? 0 ),
+			'event_id'     => sanitize_text_field( (string) ( $context['id'] ?? '' ) ),
+			'entity_id'    => sanitize_text_field( (string) ( $context['entity_id'] ?? '' ) ),
+			'realm_suffix' => substr( preg_replace( '/[^0-9]/', '', (string) ( $context['realm_id'] ?? '' ) ), -4 ),
+			'operation'    => sanitize_key( (string) ( $context['operation'] ?? '' ) ),
+			'order_id'     => absint( $context['order_id'] ?? 0 ),
+			'attempt'      => absint( $context['attempt'] ?? 0 ),
 		];
 		if ( function_exists( 'dtb_ops_audit_log' ) ) {
 			dtb_ops_audit_log( $event, $context );
