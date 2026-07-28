@@ -24,6 +24,31 @@ Source code and the active loader are authoritative for `drywalltoolbox/wp/wp-co
 
 New bounded business logic belongs inside the owning module subtree. Root compatibility files may delegate but must not become new domain homes.
 
+### WP-admin presentation ownership
+
+The active regular plugin at
+`wp/wp-content/plugins/brikpanel-admin-panel-dashboard-for-woocommerce` owns the
+WordPress admin shell and theme. BrikPanel controls the admin toolbar, primary
+navigation, submenu presentation, content offsets, core page surfaces, and
+responsive admin chrome. The regular-plugin directory is operator-managed and is
+not part of the tracked MU-plugin deployment mirror.
+
+DTB admin assets may style only DTB-owned page content and interactive components.
+They must not globally skin WordPress/WooCommerce, reposition or scroll the core
+admin menu, replace toolbar/menu colors, hide core footer or Screen Options
+surfaces, or set backgrounds and offsets on `#wpwrap`, `#wpcontent`, `#wpbody`, or
+`#wpbody-content`. DTB body classes exist only as scoping hooks for DTB-owned
+components; they do not confer ownership of the surrounding admin shell.
+DTB-owned sticky panels and drawers consume BrikPanel's published
+`--bp-topbar-height` and `--brikpanel-sidebar-width` variables, with WordPress
+fallbacks, instead of hard-coding native admin-bar or sidebar dimensions.
+
+Validate this boundary before deployment:
+
+```powershell
+.\scripts\smoke-dtb-admin-theme-boundary.ps1
+```
+
 ## 2. Module responsibilities
 
 ### `dtb-platform`
@@ -41,7 +66,6 @@ Catalog/product/variation/brand/taxonomy models and normalization, relationships
 - native Woo checkout runtime exception for the headless storefront;
 - checkout field/domain policy;
 - Payment Plugins for Stripe readiness/capability metadata;
-- supported Stripe Elements appearance configuration;
 - checkout runtime integrity/performance telemetry;
 - checkout-order contract tagging and non-secret paid-reference mirroring;
 - DTB shipping policy method;
@@ -74,7 +98,6 @@ It owns:
 
 - runtime identity/version verification for `woo-stripe-payment`;
 - read-safe checkout capability/readiness metadata;
-- supported `wc_stripe_get_element_options` appearance configuration;
 - approved Express Checkout gateway filtering;
 - checkout contract tagging;
 - verified paid-lifecycle non-secret reference mirroring;
@@ -100,18 +123,13 @@ dtb-commerce/Validation/CheckoutFieldPolicy.php
 
 It owns Checkout Block contact registration, optional phone policy, and defensive synchronization into canonical Woo billing/shipping properties. It owns no presentation.
 
-Theme-owned presentation source:
+Theme-owned neutral checkout document:
 
 ```text
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-flow.css
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-boot.js
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-ui.js
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-express-entry.js
 ```
 
-The active theme owns one ordered presentation stack. It must not recreate provider controls, proxy fields, duplicate payment state, a mobile payment sheet, or a second order submission action.
+The active checkout shell intentionally enqueues no DTB stylesheet or presentation controller and contains no inline design rules. WooCommerce Checkout Block supplies the temporary visual baseline while a new design is developed from a single reviewed layer. Do not restore the deleted checkout cascade, mobile wizard, loader, header treatment, express-focus controller, provider-control overrides, proxy fields, duplicate payment state, a mobile payment sheet, or a second order submission action.
 
 Checkout performance/stability diagnostics:
 
@@ -222,14 +240,15 @@ Initial downstream processing dispatch remains protected by an atomic per-order 
 
 ## 6. Checkout UI contract
 
-- Desktop is a single-page checkout with Express Checkout first and a bounded order-summary/payment rail.
-- Below 1024px uses Contact -> Shipping -> Payment.
+- The current theme shell is intentionally neutral and loads no DTB checkout stylesheet, inline design rule, loader, branded header, mobile wizard, or presentation controller.
+- WooCommerce Checkout Block supplies the temporary desktop/mobile visual baseline.
+- A future redesign must add one authoritative presentation layer rather than restore the deleted cascade.
 - Contact owns first name, last name, email, optional phone.
 - Shipping owns address and shipping method.
 - Payment owns provider selection and native Place Order.
 - Apple Pay/Google Pay belong in the provider's Express Checkout section and must not also render as lower payment rows.
 - Link is excluded from approved Express Checkout.
-- Provider/Woo native radio inputs may be visually clipped to create touch cards, but remain focusable and state-authoritative.
+- Provider/Woo native inputs remain focusable and state-authoritative.
 - No proxy fields, fake wallet/PayPal/BNPL controls, iframe mutation, duplicate payment state, or duplicate order action.
 
 ## 7. Refund contract

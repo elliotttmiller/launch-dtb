@@ -29,7 +29,7 @@ React Store API cart
 
 - verifies the replacement plugin by its runtime constants, container function, base gateway class, and reflected plugin path;
 - exposes read-only non-secret checkout capabilities;
-- configures Stripe Elements through the documented `wc_stripe_get_element_options` filter without replacing provider-owned options;
+- leaves Stripe Elements appearance entirely provider-owned during the neutral checkout reset;
 - limits the classic/provider-rendered Stripe Express Checkout collection to verified Apple Pay and Google Pay gateway instances;
 - relies on provider Payment Sections for Checkout Block placement, so the operator must assign Apple Pay/Google Pay to Express Checkout and disable Link Express Checkout;
 - tags new Checkout Block orders with `payment-plugins-stripe-v1`;
@@ -42,14 +42,12 @@ Provider-specific official-Stripe address/shipping shims and browser-header rate
 
 ## Checkout presentation contract
 
-- Desktop remains a single-page checkout.
-- Mobile/tablet retain the Contact -> Shipping -> Payment presentation wizard.
-- Express Checkout remains first.
+- The current theme shell loads no DTB checkout stylesheet, inline design override, loader, branded header, mobile wizard, or presentation controller.
+- WooCommerce Checkout Block provides the temporary desktop/mobile visual baseline pending a clean redesign.
 - Apple Pay and Google Pay are provider-owned express methods.
 - Link is excluded from the approved Express Checkout collection; it may be enabled only inside the provider's card/Payment Element configuration if approved.
 - Apple Pay and Google Pay must be assigned to the provider's **Express Checkout** payment section and removed from its ordinary **Checkout** payment section to avoid duplicate wallet rows.
-- Native provider/WooCommerce payment inputs remain the state authority. DTB may visually present them as touch cards but must not replace or mirror payment state.
-- The header contains the DTB logo and a provider-backed Powered by Stripe indicator.
+- Native provider/WooCommerce payment inputs remain the state authority. DTB must not replace or mirror payment state.
 
 ## PayPal boundary
 
@@ -132,8 +130,8 @@ The automatic migration claim is provider-owned behavior. Drywall Toolbox must v
 
 - [ ] Confirm the assigned WooCommerce Checkout page contains the Checkout Block.
 - [ ] Confirm checkout is HTTPS and no-store/private.
-- [ ] Confirm the DTB header shows logo left and Powered by Stripe right only when the replacement provider is active.
-- [ ] Confirm desktop is single-page and mobile/tablet retain Contact -> Shipping -> Payment.
+- [ ] Confirm no DTB checkout stylesheet, inline design override, loader, branded header, mobile wizard, or presentation controller is loaded.
+- [ ] Confirm the native WooCommerce Checkout Block baseline renders on desktop and mobile.
 - [ ] Confirm Contact contains first name, last name, email, and optional phone.
 - [ ] Confirm Shipping contains address and shipping methods.
 - [ ] Confirm Express Checkout is first and not duplicated below.

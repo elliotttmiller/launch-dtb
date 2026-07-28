@@ -3,9 +3,9 @@
  * Checkout runtime integrity boundary.
  *
  * WooCommerce Checkout Block and Payment Plugins for Stripe own their complete
- * JavaScript dependency graph and execution order. Theme-owned presentation may
- * enhance same-origin wrappers only after WooCommerce mounts; it must never impose
- * async/defer strategy or dependency coupling on critical payment assets.
+ * JavaScript dependency graph and execution order. DTB currently loads no checkout
+ * presentation controller; diagnostics must never impose async/defer strategy or
+ * dependency coupling on critical payment assets.
  *
  * @package drywall-toolbox
  */
@@ -13,11 +13,8 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutRuntimeIntegrity {
-	/** DTB-owned presentation/diagnostic handles allowed on native checkout. */
+	/** DTB-owned diagnostic handles allowed on native checkout. */
 	private const DTB_CHECKOUT_SCRIPT_HANDLES = [
-		'dtb-checkout-theme-boot',
-		'dtb-checkout-theme-ui',
-		'dtb-checkout-theme-express-entry',
 		'dtb-woo-native-checkout-performance',
 	];
 
@@ -88,7 +85,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 		remove_filter( 'template_include', 'dtb_force_react_template', 99 );
 	}
 
-	/** Preserve DTB presentation execution order after WooCommerce/payment assets. */
+	/** Prevent host strategy mutation on the DTB diagnostic asset. */
 	public static function enforce_dtb_checkout_script_invariants(): void {
 		if ( ! self::is_primary_checkout_request() ) {
 			return;

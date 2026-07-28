@@ -6,24 +6,6 @@
  * No new pages, routes, JavaScript, or UI framework.
  */
 
-body.dtb-admin-screen {
-	background:
-		radial-gradient(circle at 7% 0%, rgba(37, 99, 235, .075), transparent 32%),
-		radial-gradient(circle at 92% 3%, rgba(245, 158, 11, .08), transparent 30%),
-		linear-gradient(180deg, #f7faff 0%, #f3f6fb 100%);
-}
-
-body.dtb-admin-screen #wpcontent,
-body.dtb-admin-screen #wpbody-content {
-	background: transparent;
-}
-
-body.dtb-admin-screen .wrap.dtb-admin-page,
-body.dtb-admin-screen .wrap:has(.dtb-admin) {
-	max-width: none;
-	min-width: 0;
-}
-
 body.dtb-admin-screen .dtb-admin-frame__inner {
 	max-width: min(1680px, 100%);
 }
@@ -272,11 +254,6 @@ body.dtb-admin-screen :where(.dtb-modal-tab--active, .dtb-modal-tab[aria-selecte
 }
 
 @media (max-width: 782px) {
-	body.dtb-admin-screen .wrap.dtb-admin-page,
-	body.dtb-admin-screen .wrap:has(.dtb-admin) {
-		margin-inline: 0;
-	}
-
 	.dtb-admin :where(.dtb-page-header) {
 		border-radius: 18px;
 		padding: 18px;

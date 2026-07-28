@@ -6,8 +6,8 @@
  * order creation, refunds, and authoritative payment status. Payment Plugins for
  * Stripe WooCommerce owns Stripe payment methods, wallet eligibility, Stripe
  * Elements, tokenization, authentication, confirmation, capture, and webhooks.
- * DTB owns provider readiness, supported appearance configuration, order tagging,
- * captured-payment observation, and redacted operational diagnostics only.
+ * DTB owns provider readiness, order tagging, captured-payment observation, and
+ * redacted operational diagnostics only.
  *
  * @package drywall-toolbox
  */
@@ -35,9 +35,7 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
-		add_filter( 'body_class', [ __CLASS__, 'body_class' ] );
 		add_filter( 'woocommerce_available_payment_gateways', [ __CLASS__, 'enforce_single_stripe_authority' ], 1000 );
-		add_filter( 'wc_stripe_get_element_options', [ __CLASS__, 'stripe_element_options' ], 100, 2 );
 		add_filter( 'wc_stripe_express_payment_methods', [ __CLASS__, 'express_payment_methods' ], 100 );
 		add_action( 'woocommerce_checkout_create_order', [ __CLASS__, 'tag_checkout_order' ], 20, 2 );
 		add_action( 'woocommerce_store_api_checkout_order_processed', [ __CLASS__, 'tag_store_api_order' ], 20 );
@@ -121,17 +119,6 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 		);
 	}
 
-	public static function body_class( array $classes ): array {
-		if ( self::is_primary_checkout_request() ) {
-			$classes[] = 'dtb-woo-native-checkout';
-			$classes[] = 'dtb-payment-plugins-stripe-checkout';
-			// Existing checkout.css selectors use this presentation compatibility class.
-			$classes[] = 'dtb-official-stripe-checkout';
-			$classes[] = 'dtb-checkout-native-page';
-		}
-		return array_values( array_unique( $classes ) );
-	}
-
 	/**
 	 * Fail closed against competing storefront Stripe card/wallet authorities.
 	 * The old plugins may remain installed for rollback or historical order review,
@@ -149,80 +136,6 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 
 		unset( $gateways['stripe'], $gateways['woocommerce_payments'] );
 		return $gateways;
-	}
-
-	/**
-	 * Merge DTB appearance tokens into Payment Plugins' supported Stripe Elements
-	 * options without replacing payment-method types, client secrets, locale, or
-	 * any provider-owned behavior.
-	 *
-	 * @param mixed $options Stripe Elements options.
-	 * @param mixed $gateway Payment Plugins gateway instance.
-	 * @return mixed
-	 */
-	public static function stripe_element_options( $options, $gateway ) {
-		if ( ! is_array( $options ) || ! self::is_payment_plugins_gateway_instance( $gateway ) ) {
-			return $options;
-		}
-		if ( self::CARD_GATEWAY_ID !== sanitize_key( (string) ( $gateway->id ?? '' ) ) ) {
-			return $options;
-		}
-
-		$appearance           = isset( $options['appearance'] ) && is_array( $options['appearance'] ) ? $options['appearance'] : [];
-		$existing_variables   = isset( $appearance['variables'] ) && is_array( $appearance['variables'] ) ? $appearance['variables'] : [];
-		$existing_rules       = isset( $appearance['rules'] ) && is_array( $appearance['rules'] ) ? $appearance['rules'] : [];
-		$appearance_variables = [
-			'colorPrimary'       => '#2457e6',
-			'colorBackground'    => '#ffffff',
-			'colorText'          => '#101828',
-			'colorTextSecondary' => '#667085',
-			'colorDanger'        => '#b42318',
-			'fontFamily'         => 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-			'fontSizeBase'       => '15px',
-			'borderRadius'       => '14px',
-			'spacingUnit'        => '4px',
-		];
-		$appearance_rules = [
-			'.Input' => [
-				'backgroundColor' => '#ffffff',
-				'border'          => '1px solid #cfd8e3',
-				'borderRadius'    => '12px',
-				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
-				'padding'         => '13px 14px',
-			],
-			'.Input:focus' => [
-				'border'    => '1px solid #2457e6',
-				'boxShadow' => '0 0 0 4px rgba(36,87,230,.14)',
-			],
-			'.Input--invalid' => [
-				'border'    => '1px solid #b42318',
-				'boxShadow' => '0 0 0 3px rgba(180,35,24,.10)',
-			],
-			'.Label' => [
-				'color'      => '#475467',
-				'fontWeight' => '600',
-			],
-			'.Tab' => [
-				'backgroundColor' => '#ffffff',
-				'border'          => '1px solid #e3e8ef',
-				'borderRadius'    => '14px',
-				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
-			],
-			'.Tab--selected' => [
-				'backgroundColor' => '#eef3ff',
-				'border'          => '1px solid #2457e6',
-			],
-		];
-
-		$options['appearance'] = array_merge(
-			$appearance,
-			[
-				'theme'     => $appearance['theme'] ?? 'stripe',
-				'variables' => array_merge( $existing_variables, $appearance_variables ),
-				'rules'     => array_merge( $existing_rules, $appearance_rules ),
-			]
-		);
-		return $options;
 	}
 
 	/**

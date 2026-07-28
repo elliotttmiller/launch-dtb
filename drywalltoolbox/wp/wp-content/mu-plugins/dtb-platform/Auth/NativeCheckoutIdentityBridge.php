@@ -34,6 +34,14 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 	$native_is_privileged = $native_user instanceof WP_User && dtb_native_checkout_user_is_privileged( $native_user );
 	$woo_customer_kind    = dtb_native_checkout_woo_customer_kind( $native_user_id, $native_is_privileged );
 
+	if (
+		function_exists( 'dtb_storefront_commerce_privileged_native_conflict' )
+		&& dtb_storefront_commerce_privileged_native_conflict()
+	) {
+		dtb_native_checkout_log_security_event( 'native_checkout_privileged_identity_conflict_guest_isolated', 0, 0, 'privileged_native', 'guest_isolated' );
+		return false;
+	}
+
 	$token = ! empty( $_COOKIE['dtb_auth'] )
 		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
 		: '';

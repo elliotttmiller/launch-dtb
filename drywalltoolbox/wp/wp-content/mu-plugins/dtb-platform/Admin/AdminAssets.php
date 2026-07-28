@@ -14,7 +14,6 @@
 defined( 'ABSPATH' ) || exit;
 
 add_action( 'admin_enqueue_scripts', 'dtb_admin_assets_enqueue' );
-add_action( 'admin_enqueue_scripts', 'dtb_admin_assets_enqueue_global_skin', 1 );
 add_filter( 'admin_body_class', 'dtb_admin_assets_body_class' );
 
 function dtb_admin_assets_enqueue(): void {
@@ -56,17 +55,6 @@ function dtb_admin_assets_enqueue(): void {
 		$css_ver
 	);
 
-	// ── WordPress admin chrome override CSS (restores default black WP sidebar/topbar on DTB pages) ──
-	$wp_chrome_css_file = $assets_dir . 'dtb-admin-wp-chrome.css';
-	if ( file_exists( $wp_chrome_css_file ) ) {
-		wp_enqueue_style(
-			'dtb-admin-wp-chrome',
-			$assets_url . 'dtb-admin-wp-chrome.css',
-			[ 'dtb-admin' ],
-			(string) filemtime( $wp_chrome_css_file )
-		);
-	}
-
 	// ── Workbench shared CSS (loads after dtb-admin) ──
 	$wb_css_file = $assets_dir . 'dtb-admin-workbench.css';
 	if ( file_exists( $wb_css_file ) ) {
@@ -84,9 +72,6 @@ function dtb_admin_assets_enqueue(): void {
 		$wb_actions_css_deps = [ 'dtb-admin' ];
 		if ( wp_style_is( 'dtb-admin-workbench', 'enqueued' ) ) {
 			$wb_actions_css_deps[] = 'dtb-admin-workbench';
-		}
-		if ( wp_style_is( 'dtb-admin-wp-chrome', 'enqueued' ) ) {
-			$wb_actions_css_deps[] = 'dtb-admin-wp-chrome';
 		}
 		wp_enqueue_style(
 			'dtb-admin-workbench-actions',
@@ -198,9 +183,6 @@ function dtb_admin_assets_enqueue(): void {
 
 		// Build CSS deps: always dtb-admin; add workbench/action CSS if available.
 		$css_deps = [ 'dtb-admin' ];
-		if ( file_exists( $assets_dir . 'dtb-admin-wp-chrome.css' ) ) {
-			$css_deps[] = 'dtb-admin-wp-chrome';
-		}
 		if ( file_exists( $assets_dir . 'dtb-admin-workbench.css' ) ) {
 			$css_deps[] = 'dtb-admin-workbench';
 		}
@@ -270,7 +252,6 @@ function dtb_admin_assets_enqueue(): void {
 	if ( file_exists( $modern_polish_css_file ) ) {
 		$modern_polish_deps = array_values( array_filter( array_merge(
 			[ 'dtb-admin' ],
-			wp_style_is( 'dtb-admin-wp-chrome', 'enqueued' ) ? [ 'dtb-admin-wp-chrome' ] : [],
 			wp_style_is( 'dtb-admin-workbench', 'enqueued' ) ? [ 'dtb-admin-workbench' ] : [],
 			wp_style_is( 'dtb-admin-workbench-actions', 'enqueued' ) ? [ 'dtb-admin-workbench-actions' ] : [],
 			wp_style_is( 'dtb-admin-bulk-actions', 'enqueued' ) ? [ 'dtb-admin-bulk-actions' ] : [],
@@ -323,43 +304,10 @@ function dtb_admin_assets_enqueue(): void {
 }
 
 /**
- * Load the non-invasive global wp-admin visual skin.
- *
- * This is intentionally separate from the DTB component system. It gives core
- * WordPress, WooCommerce, payment-provider, and DTB admin pages a consistent modern
- * chrome without changing page callbacks, routes, capabilities, form fields, or
- * JavaScript behavior.
- */
-function dtb_admin_assets_enqueue_global_skin(): void {
-	if ( ! dtb_feature_enabled( 'DTB_GLOBAL_ADMIN_SKIN_ENABLED', true ) ) {
-		return;
-	}
-
-	if ( wp_doing_ajax() || ( defined( 'IFRAME_REQUEST' ) && IFRAME_REQUEST ) ) {
-		return;
-	}
-
-	$assets_dir = __DIR__ . '/assets/';
-	$assets_url = plugin_dir_url( __FILE__ ) . 'assets/';
-	$css_file   = $assets_dir . 'dtb-admin-global-skin.css';
-
-	if ( ! file_exists( $css_file ) ) {
-		return;
-	}
-
-	wp_enqueue_style(
-		'dtb-admin-global-skin',
-		$assets_url . 'dtb-admin-global-skin.css',
-		[],
-		(string) filemtime( $css_file )
-	);
-}
-
-/**
  * Add a stable body class while rendering DTB admin pages.
  *
- * This lets the shared stylesheet modernize the surrounding wp-admin chrome
- * without leaking those overrides into unrelated WordPress screens.
+ * The class scopes DTB-owned components only. WordPress and third-party admin
+ * chrome remain owned by the active admin-theme plugin.
  *
  * @param string $classes Existing admin body class string.
  * @return string
@@ -371,10 +319,6 @@ function dtb_admin_assets_body_class( string $classes ): string {
 
 	if ( $page_meta || $is_dtb_slug ) {
 		$classes .= ' dtb-admin-screen';
-	}
-
-	if ( dtb_feature_enabled( 'DTB_GLOBAL_ADMIN_SKIN_ENABLED', true ) ) {
-		$classes .= ' dtb-admin-global-skin';
 	}
 
 	return $classes;

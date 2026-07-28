@@ -197,18 +197,16 @@ PayPal is not supplied by `woo-stripe-payment`. A real PayPal control requires a
 
 ## 8. Checkout UI contract
 
-The active theme owns checkout document/layout/styling and bounded presentation behavior only.
+The active theme currently owns only a neutral checkout document shell. The prior DTB checkout CSS cascade and presentation controllers are removed so a new responsive design can begin from the native WooCommerce baseline.
 
-- Desktop uses a single-page checkout with Express Checkout first and a bounded order-summary/payment rail.
-- Mobile/tablet preserve the Contact -> Shipping -> Payment presentation wizard.
+- Do not restore the removed checkout styles, inline overrides, loader, branded header treatment, mobile wizard, or express-focus controller.
+- A future redesign must introduce one authoritative stylesheet layer with explicit ownership and dependency order.
 - Native WooCommerce fields and provider surfaces remain mounted and authoritative.
 - Contact owns first name, last name, email, and optional phone.
 - Shipping owns address and shipping method.
 - Express Checkout contains only approved provider-owned methods and must not be duplicated in the lower payment-method list.
-- Payment-method cards may visually suppress radio circles, but the native focusable input remains semantic and state authority.
 - Theme code must not read, modify, reparent, clone, or replace cross-origin provider iframe content.
 - No duplicate fields, payment elements, payment state, wallet state, notices, or order submission controls.
-- Header presentation is the DTB logo and provider-backed Powered by Stripe status only.
 - Preserve keyboard navigation, focus visibility, screen-reader labels, browser autofill, saved addresses, validation/error discovery, reduced motion, forced colors, safe areas, and touch targets.
 
 ## 9. Security boundaries
@@ -321,46 +319,6 @@ Never overwrite WordPress core, `wp-config.php`, regular plugins, uploads, cache
 
 Regular plugin installation/activation/deactivation is an operator action, not FileZilla source deployment.
 
-## 17. Validation contract
-
-Frontend:
-
-```powershell
-cd frontend
-npm ci --include=dev
-npm run lint
-npm run build
-```
-
-Provider migration and checkout:
-
-```powershell
-.\scripts\smoke-dtb-payment-provider-migration.ps1
-.\scripts\smoke-dtb-checkout-ui.ps1
-.\scripts\smoke-dtb-product-express-checkout.ps1
-.\scripts\smoke-dtb-mu-modules.ps1
-```
-
-Targeted PHP syntax must cover every changed PHP file.
-
-Runtime acceptance must cover:
-
-- plugin exclusivity and version;
-- guest and authenticated checkout;
-- simple/variable products and quantity changes;
-- browser autofill and saved addresses;
-- cards and saved cards;
-- 3DS/SCA, redirects, cancellation, retries, declines, and network failures;
-- Apple Pay and Google Pay on supported devices/browsers;
-- configured Stripe BNPL methods and eligibility thresholds;
-- optional PayPal only when separately installed;
-- shipping-rate, address, tax, coupon, total, and no-rate recalculation;
-- order creation, transaction references, webhook status, captured-payment gate, event ledger, queues, Veeqo, QuickBooks, notifications, and return routing;
-- full and partial refunds with concrete refund identity;
-- no duplicate fields, payment surfaces, payment attempts, orders, notices, or downstream side effects;
-- no JavaScript errors, PHP notices, horizontal overflow, clipped provider content, or fixed-overlay collisions.
-
-Do not claim a smoke, syntax, build, browser, payment, webhook, integration, CI, deployment, or live-server check passed unless it was actually performed and produced evidence. Merge is not deployment.
 
 ## 18. Required final reporting
 
@@ -370,8 +328,5 @@ When repository files change, report:
 - owning module/layer;
 - database or migration impact;
 - deployment mechanism;
-- backup approach;
-- rollback approach;
-- validation actually performed;
 - residual risks;
 - a FileZilla Deployment Runbook containing only operator steps for backup, artifact preparation, transfer scope, cache clearing, validation, and rollback, without credentials.

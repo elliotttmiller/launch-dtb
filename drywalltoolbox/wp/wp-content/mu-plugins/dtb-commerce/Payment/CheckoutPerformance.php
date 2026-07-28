@@ -5,7 +5,7 @@
  * WooCommerce Checkout Block and Payment Plugins for Stripe own the complete
  * checkout/payment runtime graph. This class records bounded, non-secret
  * diagnostics only; it never dequeues, preloads, reprioritizes, or changes
- * provider execution strategy. Presentation remains theme-owned.
+ * provider execution strategy or apply presentation styling.
  *
  * @package drywall-toolbox
  */
@@ -44,7 +44,7 @@ final class DTB_CheckoutPerformance {
 		wp_enqueue_script(
 			'dtb-woo-native-checkout-performance',
 			content_url( 'mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js' ),
-			[ 'dtb-checkout-theme-ui' ],
+			[],
 			self::ASSET_VERSION,
 			true
 		);

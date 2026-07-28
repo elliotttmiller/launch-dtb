@@ -61,16 +61,14 @@ An explicit failed check changes the product control to a standard secure Buy No
 
 ## Checkout presentation
 
-The native checkout presentation:
+The native checkout currently uses the unmodified WooCommerce Checkout Block visual baseline. The prior DTB checkout stylesheet, mobile wizard, loader, header treatment, and express-focus controller are removed pending a clean redesign.
 
-- keeps Express Checkout first on desktop and in the Contact step on mobile/tablet;
+The product express handoff still:
+
 - uses provider-owned Apple Pay and Google Pay controls only;
 - excludes Link from the approved Express Checkout collection;
 - allows an independently installed PayPal provider to supply a real third express control, but never creates one;
-- uses a desktop single-page checkout and a below-1024px Contact -> Shipping -> Payment presentation wizard;
 - preserves native WooCommerce contact/address/shipping/payment controls;
-- keeps provider payment surfaces mounted through mobile step navigation;
-- visually presents payment methods as touch cards while retaining the native focusable input/state authority;
 - removes duplicate wallet/payment rows by requiring Apple Pay/Google Pay to use the provider's Express Checkout section rather than its ordinary Checkout section;
 - never reads or modifies cross-origin provider iframe contents.
 

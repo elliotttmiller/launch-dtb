@@ -8,9 +8,11 @@
  * while the storefront later becomes anonymous, causing Woo to invalidate the
  * session and remove the cart during checkout.
  *
- * DTB storefront JWT identity remains authoritative when present. Otherwise a
- * privileged native WordPress identity is treated as anonymous only for public
- * commerce surfaces; wp-admin and native admin REST namespaces are untouched.
+ * A privileged native WordPress identity is treated as anonymous only for public
+ * commerce surfaces. If the same browser also carries a DTB customer JWT, the
+ * conflict remains guest-isolated until the auth endpoint clears that JWT; this
+ * prevents parallel cart/auth requests from binding a guest cart to the customer.
+ * wp-admin and native admin REST namespaces are untouched.
  *
  * @package drywalltoolbox
  */
@@ -36,23 +38,27 @@ function dtb_storefront_commerce_isolate_privileged_native_identity( $user_id ) 
 		return $user_id;
 	}
 
-	// A verified DTB customer identity wins on storefront commerce surfaces.
-	$token = ! empty( $_COOKIE['dtb_auth'] )
-		? sanitize_text_field( wp_unslash( (string) $_COOKIE['dtb_auth'] ) )
-		: '';
-	if ( '' !== $token && class_exists( 'DTB_JwtService' ) ) {
-		$resolved = DTB_JwtService::user_id( $token );
-		if ( $resolved > 0 ) {
-			$customer = get_user_by( 'id', $resolved );
-			if ( $customer instanceof WP_User && ! dtb_storefront_commerce_user_is_privileged( $customer ) ) {
-				return $resolved;
-			}
-		}
+	// Keep the administrator cookie intact in the browser, but do not expose that
+	// identity to Woo's public cart/session lifecycle for this request. Mark the
+	// request so the later native-checkout bridge cannot reintroduce a customer JWT
+	// while the privileged browser cookie remains active.
+	dtb_storefront_commerce_privileged_native_conflict( true );
+	return false;
+}
+
+/**
+ * Track a privileged native/customer conflict for this request only.
+ *
+ * @param bool $mark Whether to mark the current request as conflicted.
+ */
+function dtb_storefront_commerce_privileged_native_conflict( bool $mark = false ): bool {
+	static $detected = false;
+
+	if ( $mark ) {
+		$detected = true;
 	}
 
-	// Keep the administrator cookie intact in the browser, but do not expose that
-	// identity to Woo's public cart/session lifecycle for this request.
-	return false;
+	return $detected;
 }
 
 /** Whether a user crosses the storefront customer privilege boundary. */

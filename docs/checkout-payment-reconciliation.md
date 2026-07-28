@@ -69,6 +69,8 @@ Same-origin WooCommerce cookies remain guest-cart authority. Public Store API id
 
 Storefront authentication validation and logout clear a native WordPress cookie only when its signed cookie resolves to a non-privileged customer. Signed administrator/operator cookies remain intact.
 
+If one browser carries both a signed administrator/operator cookie and a DTB customer JWT, public commerce requests remain guest-isolated for the entire request. The later native-checkout identity bridge must not reintroduce the customer JWT while the privileged cookie conflict is active. This avoids a parallel SPA auth/cart race that can briefly bind the WooCommerce session to the customer and then produce `woocommerce_rest_cart_empty` during Checkout Block total recalculation.
+
 WooCommerce empty-cart and continue-shopping actions route to the React catalog (`/products` or `/staging/{id}/products`), not the unused native `/shop/` path.
 
 ## Acceptance
@@ -78,13 +80,14 @@ Validate on a production-equivalent environment:
 1. Guest cart survives address, shipping, tax, payment, and provider refreshes.
 2. Pretty-permalink and query-routed Store API requests resolve the same guest session.
 3. Guest storefront auth validation does not expire a privileged wp-admin session.
-4. New Stripe-paid orders receive the replacement contract/provider metadata only after paid evidence.
-5. Historical official-Stripe orders still pass historical audit/refund/recovery rules.
-6. Captured-payment reconciliation emits one event and one downstream dispatch path.
-7. Failed, cancelled, authorization-only, or reference-less orders remain blocked.
-8. Card, saved card, 3DS/SCA, Apple Pay, Google Pay, configured BNPL, webhook, refund, Veeqo, QuickBooks, notification, and return-routing behavior are validated.
-9. Multiple partial refunds retain concrete `order_id + refund_id` identity.
-10. No duplicate order, payment, event, job, or downstream effect occurs.
+4. A browser carrying both privileged native and DTB customer cookies remains guest-isolated across concurrent auth, cart, checkout-document, and Checkout Block REST requests.
+5. New Stripe-paid orders receive the replacement contract/provider metadata only after paid evidence.
+6. Historical official-Stripe orders still pass historical audit/refund/recovery rules.
+7. Captured-payment reconciliation emits one event and one downstream dispatch path.
+8. Failed, cancelled, authorization-only, or reference-less orders remain blocked.
+9. Card, saved card, 3DS/SCA, Apple Pay, Google Pay, configured BNPL, webhook, refund, Veeqo, QuickBooks, notification, and return-routing behavior are validated.
+10. Multiple partial refunds retain concrete `order_id + refund_id` identity.
+11. No duplicate order, payment, event, job, or downstream effect occurs.
 
 ## Database impact and rollback
 

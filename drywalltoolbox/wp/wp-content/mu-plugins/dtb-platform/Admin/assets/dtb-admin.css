@@ -206,7 +206,8 @@ body.dtb-repair-admin-screen {
 .dtb-admin {
   --dtb-admin-gutter: clamp(12px, 2vw, 28px);
   --dtb-admin-content-max: 1680px;
-  min-height: calc(100vh - 32px);
+  --dtb-admin-top-offset: var(--bp-topbar-height, 32px);
+  min-height: calc(100vh - var(--dtb-admin-top-offset));
   padding: 0;
   overflow-x: clip;
   animation: dtbFadeIn var(--dtb-motion-base) var(--dtb-ease-standard);
@@ -1521,7 +1522,7 @@ a.dtb-kpi:hover { text-decoration: none; }
 
 .dtb-drawer {
   position: fixed;
-  top: 32px; /* below wp-admin toolbar */
+  top: var(--dtb-admin-top-offset);
   right: 0;
   bottom: 0;
   width: min(560px, 100vw);
@@ -1823,7 +1824,6 @@ a.dtb-kpi:hover { text-decoration: none; }
 
   .dtb-drawer {
     width: 100vw;
-    top: 46px; /* mobile wp-admin bar */
   }
 
   .dtb-table-wrap { overflow-x: auto; }
@@ -1834,7 +1834,7 @@ a.dtb-kpi:hover { text-decoration: none; }
   .wrap.dtb-admin-page { margin: 0; }
 
   .dtb-admin {
-    min-height: calc(100vh - 46px);
+    min-height: calc(100vh - var(--dtb-admin-top-offset));
   }
 
   .dtb-admin-frame {
@@ -2148,25 +2148,11 @@ a.dtb-kpi:hover { text-decoration: none; }
 }
 
 /* =============================================================================
-   27. WP ADMIN HOST OVERRIDES
-   (Neutralise WP admin chrome so the DTB surface sits cleanly.)
+   27. DTB PAGE INTEGRATION
+   (Keep all selectors inside DTB-owned page content.)
    ============================================================================= */
 
-/* Match WP admin backgrounds to DTB surface token on DTB-owned screens only. */
-body.dtb-admin-screen,
-body.dtb-admin-screen #wpwrap,
-body.dtb-admin-screen #wpcontent,
-body.dtb-admin-screen #wpbody,
-body.dtb-admin-screen #wpbody-content,
-body.dtb-repair-admin-screen,
-body.dtb-repair-admin-screen #wpwrap,
-body.dtb-repair-admin-screen #wpcontent,
-body.dtb-repair-admin-screen #wpbody,
-body.dtb-repair-admin-screen #wpbody-content {
-  background: var(--dtb-bg) !important;
-}
-
-/* Remove WP default .wrap h1 left-border / colour inside DTB pages */
+/* Remove the duplicate WordPress heading inside the DTB page frame. */
 .dtb-admin-page .wrap > h1,
 .dtb-admin-page h1.wp-heading-inline {
   display: none !important;
@@ -2176,11 +2162,6 @@ body.dtb-repair-admin-screen #wpbody-content {
 .dtb-admin a,
 .dtb-admin button {
   outline-offset: 2px;
-}
-
-/* Ensure WP admin bar doesn't push fixed DTB headers unexpectedly */
-.wp-toolbar .dtb-admin-page {
-  padding-top: 0;
 }
 
 /* =============================================================================

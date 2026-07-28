@@ -46,14 +46,6 @@ add_action(
 	35
 );
 
-add_filter(
-	'admin_body_class',
-	static function ( string $classes ): string {
-		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-		return DTB_VEEQO_ADMIN_PAGE_SLUG === $page ? $classes . ' dtb-veeqo-control-center-page' : $classes;
-	}
-);
-
 add_action(
 	'admin_enqueue_scripts',
 	static function ( string $hook_suffix ): void {
