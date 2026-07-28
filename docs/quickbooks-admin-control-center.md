@@ -22,7 +22,7 @@ The page is registered in the DTB operations library with `manage_options` autho
 
 - active environment and company status;
 - OAuth, token, company, webhook, and accounting-item readiness;
-- exact accounting item discovery and environment-scoped mapping;
+- exact accounting item discovery and connected-company verification;
 - connection testing;
 - OAuth connection and confirmed disconnection controls;
 - the authoritative WooCommerce → event ledger → `dtb-orders` → QuickBooks workflow;
@@ -45,7 +45,7 @@ The scoped layer:
 - does not style `body`, `#adminmenu`, `#wpadminbar`, generic WordPress tables, or third-party screens;
 - uses BrikPanel-compatible CSS custom-property fallbacks where available;
 - inherits global typography and WordPress button behavior;
-- supports reduced motion and responsive layouts;
+- supports keyboard tab navigation, reduced motion, and responsive layouts;
 - contains no remote fonts, images, or third-party UI dependencies.
 
 ## Operator REST API
@@ -66,9 +66,9 @@ GET  /wp-json/dtb/v1/admin/qbo/dashboard
 POST /wp-json/dtb/v1/admin/qbo/items/discover
 ```
 
-Every route requires an authenticated WordPress administrator with `manage_options`. Browser writes require the WordPress REST nonce. Responses remain redacted and never expose client secrets, webhook verifier tokens, access tokens, refresh tokens, authorization codes, or full realm IDs.
+Every route requires an authenticated WordPress administrator with `manage_options`. Browser writes require the WordPress REST nonce. Responses remain redacted and never expose client secrets, webhook verifier tokens, access tokens, refresh tokens, authorization codes, full realm IDs, or realm hashes.
 
-## Accounting item mapping
+## Accounting item discovery and mapping
 
 The accounting projection requires four exact active QuickBooks `Service` items:
 
@@ -79,14 +79,16 @@ DTB Discount
 DTB Refund
 ```
 
-`POST /admin/qbo/items/discover` performs four bounded exact-name QuickBooks queries. It does not create or mutate remote QuickBooks records.
+`POST /admin/qbo/items/discover` executes one bounded `Item` query using an allowlisted `Name IN (...)` clause. It requests complete Item entities because the QuickBooks query language does not support field projections. The operation includes active and inactive list records so an inactive exact match can be reported as incompatible instead of silently appearing missing.
+
+Discovery does not create or mutate remote QuickBooks records. It reduces external latency and quota use by resolving all four required names in one request.
 
 For each role it requires:
 
 - exactly one result;
 - the exact canonical name;
 - `Type = Service`;
-- `Active = true`;
+- an active record;
 - a non-empty QuickBooks Item ID.
 
 Verified mappings are stored in environment-scoped WordPress options:
@@ -98,11 +100,22 @@ dtb_qbo_sandbox_item_discount_id
 dtb_qbo_sandbox_item_refund_id
 ```
 
-Production uses the corresponding `dtb_qbo_production_*` options. Sandbox and production mappings therefore cannot overwrite one another.
+Production uses the corresponding `dtb_qbo_production_*` options. Sandbox and production managed mappings therefore cannot overwrite one another.
 
-The existing `DTB_QBO_ITEM_*_ID` and `DTB_QBO_ITEM_*_NAME` constants remain supported as immutable operator overrides. When constants are present, the discovery workflow verifies them but never rewrites them.
+The complete mapping set is also bound to a SHA-256 hash derived from the active environment and connected realm. The full realm and realm hash are never returned to the browser. A reconnect to a different company in the same environment invalidates readiness until the administrator runs discovery again.
 
-Legacy unscoped options remain a read-only compatibility fallback for existing deployments. New mappings are never written to the legacy option names.
+Verification metadata uses non-autoloaded environment-scoped options:
+
+```text
+dtb_qbo_sandbox_item_mapping_realm_hash
+dtb_qbo_sandbox_item_mapping_verified_at
+```
+
+The existing `DTB_QBO_ITEM_*_ID` and `DTB_QBO_ITEM_*_NAME` constants remain supported as immutable operator overrides. Constants are not considered ready merely because they exist; discovery must confirm that every configured ID matches the exact Service item in the connected company.
+
+Legacy unscoped options remain a read-only compatibility fallback for existing deployments. They are reported as needing verification and are migrated into managed environment-scoped mappings after successful discovery.
+
+The queue-owned accounting pipeline fails closed when a required generic product, shipping, discount, or refund mapping is missing or not verified for the connected company.
 
 ## Readiness contract
 
@@ -111,10 +124,10 @@ The dashboard reports ready only when all five checks pass:
 1. active-environment OAuth credentials are configured;
 2. OAuth tokens and realm are connected;
 3. the selected QuickBooks company is verified;
-4. all four required Service items are mapped;
+4. all four required Service items are mapped and verified for that company;
 5. signed webhook verification is configured.
 
-Readiness is informational and fail-closed. The accounting pipeline independently requires item references and a connected QuickBooks client before projecting an order or refund.
+Readiness is informational and fail-closed. The accounting pipeline independently requires a verified item reference and a connected QuickBooks client before projecting an order or refund.
 
 ## OAuth completion UX
 
@@ -133,10 +146,13 @@ The control center initiates OAuth in the same browser tab. This avoids stale po
 - `manage_options` is required for page access and REST operations.
 - REST requests use the WordPress `wp_rest` nonce.
 - Item discovery is read-only against QuickBooks.
+- Discovery uses code-owned allowlisted item names and a bounded result limit.
 - Mapping writes use environment-scoped WordPress options with autoload disabled.
+- Mapping readiness is bound to the connected QuickBooks company.
 - Constant-backed mappings cannot be changed through the UI.
 - Disconnect requires explicit confirmation.
-- Disconnect clears tokens, realm, and company snapshot only; it does not delete WooCommerce data, Action Scheduler history, event-ledger records, or QuickBooks transactions.
+- Disconnect clears tokens, realm, and company snapshot only; it does not delete WooCommerce data, Action Scheduler history, event-ledger records, mapping options, or QuickBooks transactions.
+- Retained mappings cannot be used after connecting a different realm until discovery verifies them again.
 - All accounting writes remain queue-owned and idempotent.
 - Logs and API responses remain redacted.
 
@@ -149,15 +165,17 @@ Before deployment:
 3. Confirm the QuickBooks page appears under the Drywall Toolbox operations menu.
 4. Confirm BrikPanel global navigation and wp-admin chrome remain unchanged.
 5. Confirm the page works at desktop, tablet, and mobile wp-admin widths.
-6. Confirm keyboard focus, tabs, controls, copy actions, and reduced-motion behavior.
+6. Confirm keyboard focus, arrow-key tab navigation, controls, copy actions, and reduced-motion behavior.
 7. Confirm `/admin/qbo/dashboard` returns only redacted data.
 8. Run **Test connection** and require HTTP 200.
-9. Run **Discover and map** and verify all four exact Service items and IDs appear.
-10. Confirm the mapped option names are isolated to the active environment.
-11. Confirm the readiness score reaches 100% only when every prerequisite passes.
-12. Confirm connect uses a correctly encoded OAuth URL and returns to the control center.
-13. Confirm disconnect requires confirmation and does not delete orders, refunds, queue history, or QuickBooks transactions.
-14. Execute one controlled captured-payment sandbox order through the canonical queue and verify exactly one reconciled SalesReceipt.
+9. Run **Discover and map** and verify all four exact active Service items and IDs appear as verified.
+10. Confirm only one bounded QuickBooks Item query is issued by discovery.
+11. Confirm mapped option names and verification metadata are isolated to the active environment.
+12. Confirm reconnecting another sandbox company invalidates item readiness until rediscovery.
+13. Confirm the readiness score reaches 100% only when every prerequisite passes.
+14. Confirm connect uses a correctly encoded OAuth URL and returns to the control center.
+15. Confirm disconnect requires confirmation and does not delete orders, refunds, queue history, mappings, or QuickBooks transactions.
+16. Execute one controlled captured-payment sandbox order through the canonical queue and verify exactly one reconciled SalesReceipt.
 
 ## Deployment
 
