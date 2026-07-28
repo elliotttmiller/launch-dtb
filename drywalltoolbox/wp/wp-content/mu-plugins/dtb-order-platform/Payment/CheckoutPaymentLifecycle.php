@@ -224,18 +224,45 @@ final class DTB_CheckoutPaymentLifecycle {
 		}
 
 		$order_edit_url = admin_url( 'post.php?post=' . $order_id . '&action=edit' );
+		$site_name      = sanitize_text_field( (string) get_bloginfo( 'name' ) );
+		$site_name      = '' !== $site_name ? $site_name : 'Drywall Toolbox';
+
+		/**
+		 * Subject line for the payment-reconciliation alert email.
+		 *
+		 * @param string $subject
+		 * @param int    $order_id
+		 */
+		$subject = (string) apply_filters(
+			'dtb_checkout_reconciliation_alert_subject',
+			sprintf( '[%s] Order #%d: captured payment stuck unfulfillable', $site_name, $order_id ),
+			$order_id
+		);
+
+		/**
+		 * Message body for the payment-reconciliation alert email.
+		 *
+		 * @param string $message
+		 * @param int    $order_id
+		 */
+		$message = (string) apply_filters(
+			'dtb_checkout_reconciliation_alert_message',
+			sprintf(
+				"A %s Stripe payment for order #%d was captured but did not transition to a fulfillable WooCommerce status (processing/completed).\n\nTrigger: %s\nCurrent status: %s\n\nReview and manually reconcile: %s",
+				$site_name,
+				$order_id,
+				sanitize_key( $source ),
+				sanitize_key( $status ),
+				$order_edit_url
+			),
+			$order_id
+		);
 
 		dtb_send_email(
 			[
 				'to'      => $to,
-				'subject' => sprintf( '[Drywall Toolbox] Order #%d: captured payment stuck unfulfillable', $order_id ),
-				'message' => sprintf(
-					"A DTB Stripe payment for order #%d was captured but did not transition to a fulfillable WooCommerce status (processing/completed).\n\nTrigger: %s\nCurrent status: %s\n\nReview and manually reconcile: %s",
-					$order_id,
-					sanitize_key( $source ),
-					sanitize_key( $status ),
-					$order_edit_url
-				),
+				'subject' => $subject,
+				'message' => $message,
 				'is_html' => false,
 			]
 		);

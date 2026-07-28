@@ -36,9 +36,42 @@ function dtb_store_api_checkout_rate_limit( $result, WP_REST_Server $server, WP_
 		return $result;
 	}
 
-	// Generous enough for a real checkout session (retries, quantity/coupon
-	// changes, address edits) while blocking scripted hammering of cart/checkout.
-	$limit_check = DTB_RateLimiter::check( 'store_api_checkout_mutation', 90, 5 * MINUTE_IN_SECONDS );
+	/**
+	 * Let integrations that legitimately generate higher write volume (e.g. a
+	 * trusted server-to-server client, or an operator tool) opt out of this
+	 * throttle without touching this file.
+	 *
+	 * @param bool             $bypass  Whether to skip rate limiting for this request.
+	 * @param WP_REST_Request  $request The current request.
+	 */
+	if ( apply_filters( 'dtb_store_api_checkout_rate_limit_bypass', false, $request ) ) {
+		return $result;
+	}
+
+	/**
+	 * Bucket key, request limit, and window (seconds) for the Store API checkout
+	 * throttle. Defaults are generous enough for a real checkout session
+	 * (retries, quantity/coupon changes, address edits) while blocking scripted
+	 * hammering of cart/checkout.
+	 *
+	 * @param array{bucket:string,limit:int,window:int} $settings
+	 * @param WP_REST_Request                            $request
+	 */
+	$settings = apply_filters(
+		'dtb_store_api_checkout_rate_limit_settings',
+		[
+			'bucket' => 'store_api_checkout_mutation',
+			'limit'  => 90,
+			'window' => 5 * MINUTE_IN_SECONDS,
+		],
+		$request
+	);
+
+	$limit_check = DTB_RateLimiter::check(
+		sanitize_key( (string) ( $settings['bucket'] ?? 'store_api_checkout_mutation' ) ),
+		(int) ( $settings['limit'] ?? 90 ),
+		(int) ( $settings['window'] ?? 5 * MINUTE_IN_SECONDS )
+	);
 	if ( true === $limit_check ) {
 		return $result;
 	}
