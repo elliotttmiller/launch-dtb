@@ -16,15 +16,33 @@ add_action( 'dtb_order_sync_quickbooks', 'dtb_operational_pipeline_job_sync_quic
 
 if ( ! function_exists( 'dtb_operational_pipeline_qbo_retryable_error' ) ) {
 	function dtb_operational_pipeline_qbo_retryable_error( WP_Error|Throwable|string $error ): bool {
-		$message = $error instanceof WP_Error ? $error->get_error_message() : ( $error instanceof Throwable ? $error->getMessage() : (string) $error );
-		$code    = $error instanceof WP_Error ? (string) $error->get_error_code() : '';
+		if ( $error instanceof WP_Error ) {
+			$data = $error->get_error_data();
+			if ( is_array( $data ) && array_key_exists( 'retryable', $data ) ) {
+				return (bool) $data['retryable'];
+			}
+			$code = (string) $error->get_error_code();
+			if ( in_array( $code, [
+				'already_synced',
+				'no_line_items',
+				'no_refund_total',
+				'invalid_refund',
+				'payment_not_captured',
+				'qbo_not_connected',
+				'qbo_reference_missing',
+				'qbo_customer_failed',
+				'qbo_invalid_entity',
+				'qbo_duplicate_ambiguous',
+				'qbo_invalid_success',
+			], true ) ) {
+				return false;
+			}
+			if ( in_array( $code, [ 'qbo_locked', 'qbo_refresh_locked' ], true ) ) {
+				return true;
+			}
+		}
 
-		if ( in_array( $code, [ 'already_synced', 'no_line_items', 'no_refund_total', 'invalid_refund', 'qbo_not_configured' ], true ) ) {
-			return false;
-		}
-		if ( 'qbo_locked' === $code ) {
-			return true;
-		}
+		$message = $error instanceof WP_Error ? $error->get_error_message() : ( $error instanceof Throwable ? $error->getMessage() : (string) $error );
 		if ( preg_match( '/\b(400|401|403|404|409|410|422)\b/', $message ) ) {
 			return false;
 		}
@@ -33,7 +51,6 @@ if ( ! function_exists( 'dtb_operational_pipeline_qbo_retryable_error' ) ) {
 }
 
 if ( ! function_exists( 'dtb_operational_pipeline_job_sync_quickbooks' ) ) {
-	/** Queue job: sync one order or one concrete refund to QuickBooks. */
 	function dtb_operational_pipeline_job_sync_quickbooks( int $order_id, array $args = [] ): void {
 		$attempt   = isset( $args['attempt'] ) ? max( 1, absint( $args['attempt'] ) ) : 1;
 		$action    = sanitize_key( (string) ( $args['action'] ?? 'create' ) );
@@ -62,7 +79,7 @@ if ( ! function_exists( 'dtb_operational_pipeline_job_sync_quickbooks' ) ) {
 		try {
 			if ( ! function_exists( 'dtb_qbo_enabled' ) || ! dtb_qbo_enabled() ) {
 				if ( function_exists( 'dtb_order_update_integration_state' ) ) {
-					dtb_order_update_integration_state( $order_id, 'quickbooks', [ 'status' => 'not_configured', 'error' => 'QuickBooks integration is not configured.', 'retryable' => false, 'attempt' => $attempt ] );
+					dtb_order_update_integration_state( $order_id, 'quickbooks', [ 'status' => 'not_configured', 'error' => 'QuickBooks integration is not connected.', 'retryable' => false, 'attempt' => $attempt ] );
 				}
 				return;
 			}
@@ -74,7 +91,7 @@ if ( ! function_exists( 'dtb_operational_pipeline_job_sync_quickbooks' ) ) {
 			} else {
 				$result = function_exists( 'dtb_qbo_sync_order_pipeline' )
 					? dtb_qbo_sync_order_pipeline( $order )
-					: ( function_exists( 'dtb_qbo_sync_order' ) ? dtb_qbo_sync_order( $order ) : new WP_Error( 'qbo_sync_unavailable', 'QuickBooks sync pipeline is unavailable.' ) );
+					: new WP_Error( 'qbo_sync_unavailable', 'QuickBooks sync pipeline is unavailable.' );
 			}
 
 			if ( is_wp_error( $result ) ) {
@@ -109,8 +126,8 @@ if ( ! function_exists( 'dtb_operational_pipeline_job_sync_quickbooks' ) ) {
 			$entity_id = '';
 			$type      = 'sales_receipt';
 			if ( is_array( $result ) ) {
-				$entity_id = (string) ( $result['SalesReceipt']['Id'] ?? $result['Invoice']['Id'] ?? $result['RefundReceipt']['Id'] ?? '' );
-				$type      = isset( $result['RefundReceipt'] ) ? 'refund_receipt' : ( isset( $result['Invoice'] ) ? 'invoice' : 'sales_receipt' );
+				$entity_id = (string) ( $result['SalesReceipt']['Id'] ?? $result['RefundReceipt']['Id'] ?? '' );
+				$type      = isset( $result['RefundReceipt'] ) ? 'refund_receipt' : 'sales_receipt';
 			}
 
 			if ( function_exists( 'dtb_order_update_integration_state' ) ) {
@@ -118,7 +135,6 @@ if ( ! function_exists( 'dtb_operational_pipeline_job_sync_quickbooks' ) ) {
 			}
 			update_post_meta( $order_id, '_dtb_quickbooks_sync_status', 'synced' );
 			delete_post_meta( $order_id, '_dtb_quickbooks_sync_error' );
-
 			if ( function_exists( 'dtb_order_append_event' ) ) {
 				dtb_order_append_event( $order_id, 'integration.quickbooks.synced', [ 'source' => 'cron', 'actor_type' => 'quickbooks', 'visibility' => 'operator', 'idempotency_key' => 'quickbooks:' . $action . ':' . $order_id . ':' . ( $refund_id ?: 0 ), 'payload' => [ 'action' => $action, 'refund_id' => $refund_id ?: null, 'entity_id' => $entity_id ?: null, 'entity_type' => $type, 'handler' => 'accounting_pipeline' ] ] );
 			}
