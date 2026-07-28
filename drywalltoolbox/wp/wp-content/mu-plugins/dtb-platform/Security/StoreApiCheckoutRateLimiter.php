@@ -16,6 +16,36 @@
 defined( 'ABSPATH' ) || exit;
 
 add_filter( 'rest_pre_dispatch', 'dtb_store_api_checkout_rate_limit', 5, 3 );
+add_filter( 'dtb_store_api_checkout_rate_limit_bypass', 'dtb_store_api_checkout_rate_limit_bypass_for_express_checkout', 10, 2 );
+
+/**
+ * Exempt verified Stripe Express Checkout (Apple Pay / Google Pay / Link)
+ * requests from this throttle.
+ *
+ * The wallet's payment sheet can fire several rapid shipping-rate/customer-
+ * update calls as the shopper's device resolves an address (e.g. Apple Pay's
+ * `shippingaddresschange`/`shippingoptionchange` callbacks), all sharing one
+ * fingerprint bucket with the rest of that visitor's cart/checkout traffic. A
+ * 429 here is indistinguishable to the wallet from "no shipping rates
+ * available" and surfaces as a stuck/unresolvable address in the payment
+ * sheet. The same header+nonce pair DTB_ExpressCheckoutAddressIntegrity
+ * already requires to trust an express-checkout request is required here too,
+ * so this only exempts genuinely wallet-verified requests, not arbitrary
+ * callers that merely set a header.
+ */
+function dtb_store_api_checkout_rate_limit_bypass_for_express_checkout( bool $bypass, WP_REST_Request $request ): bool {
+	if ( $bypass ) {
+		return $bypass;
+	}
+
+	$context = strtolower( sanitize_text_field( (string) $request->get_header( 'x-wcstripe-express-checkout' ) ) );
+	if ( 'true' !== $context ) {
+		return false;
+	}
+
+	$nonce = sanitize_text_field( (string) $request->get_header( 'x-wcstripe-express-checkout-nonce' ) );
+	return '' !== $nonce && (bool) wp_verify_nonce( $nonce, 'wc_store_api_express_checkout' );
+}
 
 /**
  * @param mixed           $result Existing short-circuit result, if any.
