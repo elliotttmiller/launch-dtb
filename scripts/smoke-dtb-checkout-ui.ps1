@@ -52,6 +52,10 @@ $recovery = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-com
 Assert-Contains $template "'/assets/checkout/checkout.css'" 'Checkout must load the single authoritative stylesheet'
 Assert-Contains $template "'dtb-checkout-theme-ui'" 'Checkout must load the bounded presentation controller'
 Assert-Contains $template "'dtb-checkout-theme-express-entry'" 'Checkout must load the bounded express handoff controller'
+Assert-Contains $template 'wp_add_inline_style(' 'Desktop express ordering must remain attached to the authoritative checkout style handle'
+Assert-Contains $template '@media (min-width:1024px)' 'Express checkout ordering must be desktop-only'
+Assert-Contains $template '.wp-block-woocommerce-checkout-express-payment-block' 'The canonical WooCommerce Express Checkout block must be targeted'
+Assert-Contains $template 'order:-100!important' 'Express Checkout must remain first in the desktop form column'
 Assert-NotContains $template 'checkout-refinements.css' 'Stale cascade layers must not be enqueued'
 Assert-NotContains $template 'checkout-desktop-redesign.css' 'Desktop styling must be consolidated'
 Assert-NotContains $template 'checkout-mobile-redesign.css' 'Mobile styling must be consolidated'
@@ -103,4 +107,4 @@ Assert-Contains $shipping 'wp_verify_nonce' 'Wallet shipping hardening must veri
 Assert-Contains $shipping 'stripe_express_checkout_shipping_rates_missing' 'Missing wallet rates must remain observable'
 Assert-Contains $recovery 'checkout-draft' 'Recoverable failed payments must remain retryable without a durable failed order'
 
-Write-Host 'PASS: Checkout UI, responsive layout, accessibility, payment authority, wallet shipping, and recovery contracts are intact.'
+Write-Host 'PASS: Checkout UI, responsive layout, desktop express ordering, accessibility, payment authority, wallet shipping, and recovery contracts are intact.'
