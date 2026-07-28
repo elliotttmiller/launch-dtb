@@ -24,7 +24,11 @@
 
 	try {
 		const requestedAt = Number( window.sessionStorage.getItem( storageKey ) || 0 );
-		requestedByStorage = requestedAt > 0 && ( Date.now() - requestedAt ) <= handoffTtlMs;
+		const age = Date.now() - requestedAt;
+		requestedByStorage = Number.isFinite( requestedAt )
+			&& requestedAt > 0
+			&& age >= 0
+			&& age <= handoffTtlMs;
 		window.sessionStorage.removeItem( storageKey );
 	} catch {
 		requestedByStorage = false;
