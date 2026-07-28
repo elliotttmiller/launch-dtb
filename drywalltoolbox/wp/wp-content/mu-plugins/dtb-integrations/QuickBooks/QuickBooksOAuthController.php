@@ -11,8 +11,9 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_QuickBooksOAuthController {
-	private const REST_NAMESPACE = 'dtb/v1';
-	private const NOTICE_QUERY   = 'dtb_qbo_notice';
+	private const REST_NAMESPACE    = 'dtb/v1';
+	private const NOTICE_QUERY      = 'dtb_qbo_notice';
+	private const STATE_TTL_SECONDS = 10 * MINUTE_IN_SECONDS;
 
 	public static function register(): void {
 		remove_action( 'admin_menu', 'dtb_qbo_register_settings_page', 20 );
@@ -62,14 +63,16 @@ final class DTB_QuickBooksOAuthController {
 		if ( ! empty( $status['connected'] ) ) {
 			return new WP_Error( 'qbo_already_connected', __( 'QuickBooks is already connected for the active environment.', 'dtb' ), [ 'status' => 409 ] );
 		}
-		$authorization_url = dtb_qbo_get_auth_url();
-		if ( '' === $authorization_url ) {
-			return new WP_Error( 'qbo_authorization_unavailable', __( 'QuickBooks authorization could not be initialized.', 'dtb' ), [ 'status' => 503 ] );
+
+		$authorization_url = self::create_authorization_url();
+		if ( is_wp_error( $authorization_url ) ) {
+			return $authorization_url;
 		}
+
 		return new WP_REST_Response( [
 			'ok'                => true,
 			'environment'       => dtb_qbo_environment(),
-			'authorization_url' => esc_url_raw( $authorization_url ),
+			'authorization_url' => $authorization_url,
 			'redirect_uri'      => dtb_qbo_redirect_uri(),
 		], 200 );
 	}
@@ -102,30 +105,52 @@ final class DTB_QuickBooksOAuthController {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'Insufficient permissions.', 'dtb' ), '', [ 'response' => 403 ] );
 		}
+
 		$state = sanitize_text_field( wp_unslash( $_GET['state'] ?? '' ) );
-		$key   = 'dtb_qbo_oauth_' . hash( 'sha256', $state );
-		$txn   = get_transient( $key );
+		if ( 1 !== preg_match( '/^[a-f0-9]{64}$/D', $state ) ) {
+			self::redirect_with_notice( 'invalid_state' );
+		}
+
+		$state_hash = hash( 'sha256', $state );
+		$key        = 'dtb_qbo_oauth_' . $state_hash;
+		$txn        = get_transient( $key );
 		delete_transient( $key );
-		if ( '' === $state || ! is_array( $txn ) || (int) ( $txn['user_id'] ?? 0 ) !== get_current_user_id() || (string) ( $txn['environment'] ?? '' ) !== dtb_qbo_environment() || (string) ( $txn['redirect_uri'] ?? '' ) !== dtb_qbo_redirect_uri() ) {
+
+		$valid_state = is_array( $txn )
+			&& isset( $txn['state_hash'] )
+			&& hash_equals( (string) $txn['state_hash'], $state_hash )
+			&& (int) ( $txn['user_id'] ?? 0 ) === get_current_user_id()
+			&& (string) ( $txn['environment'] ?? '' ) === dtb_qbo_environment()
+			&& (string) ( $txn['redirect_uri'] ?? '' ) === dtb_qbo_redirect_uri();
+
+		if ( ! $valid_state ) {
 			self::redirect_with_notice( 'invalid_state' );
 		}
 		if ( isset( $_GET['error'] ) ) {
 			self::redirect_with_notice( 'authorization_denied' );
 		}
+
 		$code     = sanitize_text_field( wp_unslash( $_GET['code'] ?? '' ) );
 		$realm_id = preg_replace( '/[^0-9]/', '', (string) wp_unslash( $_GET['realmId'] ?? '' ) );
 		if ( '' === $code || '' === $realm_id ) {
 			self::redirect_with_notice( 'invalid_response' );
 		}
-		$tokens = dtb_qbo_token_request( [ 'grant_type' => 'authorization_code', 'code' => $code, 'redirect_uri' => dtb_qbo_redirect_uri() ] );
+
+		$tokens = dtb_qbo_token_request( [
+			'grant_type'   => 'authorization_code',
+			'code'         => $code,
+			'redirect_uri' => dtb_qbo_redirect_uri(),
+		] );
 		if ( is_wp_error( $tokens ) ) {
 			self::redirect_with_notice( 'token_exchange' );
 		}
+
 		$tokens['realm_id'] = $realm_id;
 		if ( ! dtb_qbo_save_tokens( $tokens ) ) {
 			dtb_qbo_clear_tokens();
 			self::redirect_with_notice( 'token_storage' );
 		}
+
 		$company = dtb_qbo_verify_company();
 		if ( is_wp_error( $company ) ) {
 			dtb_qbo_clear_tokens();
@@ -150,6 +175,76 @@ final class DTB_QuickBooksOAuthController {
 		echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 	}
 
+	public static function get_authorization_url(): string {
+		$authorization_url = self::create_authorization_url();
+		return is_wp_error( $authorization_url ) ? '' : $authorization_url;
+	}
+
+	private static function create_authorization_url(): string|WP_Error {
+		$config       = dtb_qbo_config();
+		$redirect_uri = dtb_qbo_redirect_uri();
+		$user_id      = get_current_user_id();
+
+		if ( '' === (string) ( $config['client_id'] ?? '' ) || '' === (string) ( $config['client_secret'] ?? '' ) ) {
+			return new WP_Error( 'qbo_credentials_missing', __( 'QuickBooks credentials are not configured for the active environment.', 'dtb' ), [ 'status' => 503 ] );
+		}
+		if ( $user_id <= 0 || ! current_user_can( 'manage_options' ) ) {
+			return new WP_Error( 'qbo_authorization_forbidden', __( 'QuickBooks authorization requires an authenticated administrator.', 'dtb' ), [ 'status' => 403 ] );
+		}
+		if ( ! wp_http_validate_url( $redirect_uri ) || 'https' !== strtolower( (string) wp_parse_url( $redirect_uri, PHP_URL_SCHEME ) ) ) {
+			return new WP_Error( 'qbo_redirect_uri_invalid', __( 'QuickBooks authorization requires a valid HTTPS redirect URI.', 'dtb' ), [ 'status' => 503 ] );
+		}
+
+		try {
+			$state = bin2hex( random_bytes( 32 ) );
+		} catch ( Throwable $error ) {
+			return new WP_Error( 'qbo_state_generation_failed', __( 'QuickBooks authorization could not be initialized securely.', 'dtb' ), [ 'status' => 503 ] );
+		}
+
+		$state_hash = hash( 'sha256', $state );
+		$stored     = set_transient(
+			'dtb_qbo_oauth_' . $state_hash,
+			[
+				'state_hash'   => $state_hash,
+				'user_id'      => $user_id,
+				'environment'  => dtb_qbo_environment(),
+				'redirect_uri' => $redirect_uri,
+				'issued_at'    => time(),
+			],
+			self::STATE_TTL_SECONDS
+		);
+		if ( ! $stored ) {
+			return new WP_Error( 'qbo_state_store_failed', __( 'QuickBooks authorization state could not be stored.', 'dtb' ), [ 'status' => 503 ] );
+		}
+
+		$query = http_build_query(
+			[
+				'client_id'     => (string) $config['client_id'],
+				'response_type' => 'code',
+				'scope'         => DTB_QBO_SCOPE,
+				'redirect_uri'  => $redirect_uri,
+				'state'         => $state,
+			],
+			'',
+			'&',
+			PHP_QUERY_RFC3986
+		);
+		$authorization_url = rtrim( DTB_QBO_AUTH_URL, '?' ) . '?' . $query;
+
+		$parsed_query = (string) wp_parse_url( $authorization_url, PHP_URL_QUERY );
+		parse_str( $parsed_query, $parsed );
+		if (
+			(string) ( $parsed['redirect_uri'] ?? '' ) !== $redirect_uri
+			|| (string) ( $parsed['state'] ?? '' ) !== $state
+			|| 'code' !== (string) ( $parsed['response_type'] ?? '' )
+		) {
+			delete_transient( 'dtb_qbo_oauth_' . $state_hash );
+			return new WP_Error( 'qbo_authorization_url_invalid', __( 'QuickBooks authorization URL validation failed.', 'dtb' ), [ 'status' => 503 ] );
+		}
+
+		return $authorization_url;
+	}
+
 	private static function webhook_verifier_configured(): bool {
 		return class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured();
 	}
@@ -163,5 +258,5 @@ final class DTB_QuickBooksOAuthController {
 DTB_QuickBooksOAuthController::register();
 
 function dtb_integrations_qbo_auth_url(): string {
-	return function_exists( 'dtb_qbo_get_auth_url' ) ? (string) dtb_qbo_get_auth_url() : '';
+	return DTB_QuickBooksOAuthController::get_authorization_url();
 }
