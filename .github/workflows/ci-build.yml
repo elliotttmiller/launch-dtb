@@ -81,6 +81,7 @@ jobs:
           node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-steps.js
           node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-ui.js
           node --check drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js
+          node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-express-entry.js
 
       - name: Validate checkout presentation contract
         shell: pwsh
