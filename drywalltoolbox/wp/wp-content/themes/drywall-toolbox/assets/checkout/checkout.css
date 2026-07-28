@@ -249,6 +249,17 @@ body.dtb-official-stripe-checkout .wc-block-checkout__main > .wp-block-woocommer
   box-shadow: var(--dtb-checkout-shadow-sm) !important;
 }
 
+@media (min-width: 1024px) {
+  body.dtb-official-stripe-checkout .wc-block-components-main > .wc-block-components-checkout-step,
+  body.dtb-official-stripe-checkout .wc-block-checkout__main > .wc-block-components-checkout-step,
+  body.dtb-official-stripe-checkout .wc-block-components-main > .wp-block-woocommerce-checkout-express-payment-block,
+  body.dtb-official-stripe-checkout .wc-block-components-main > .wp-block-woocommerce-checkout-payment-block,
+  body.dtb-official-stripe-checkout .wc-block-checkout__main > .wp-block-woocommerce-checkout-express-payment-block,
+  body.dtb-official-stripe-checkout .wc-block-checkout__main > .wp-block-woocommerce-checkout-payment-block {
+    box-shadow: var(--dtb-checkout-shadow) !important;
+  }
+}
+
 body.dtb-official-stripe-checkout .wc-block-components-main > :last-child,
 body.dtb-official-stripe-checkout .wc-block-checkout__main > :last-child {
   margin-bottom: 0 !important;

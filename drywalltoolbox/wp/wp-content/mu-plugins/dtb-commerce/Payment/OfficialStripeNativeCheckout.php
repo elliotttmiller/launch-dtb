@@ -20,7 +20,7 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
 	private const STRIPE_GATEWAY_ID         = 'stripe';
-	private const STRIPE_APPEARANCE_VERSION = '2026.07.28.1';
+	private const STRIPE_APPEARANCE_VERSION = '2026.07.28.2';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
 	public static function register(): void {
@@ -155,6 +155,51 @@ final class DTB_OfficialStripeNativeCheckout {
 			],
 			'.TabLabel' => (object) [
 				'fontWeight' => '600',
+			],
+			'.AccordionItem' => (object) [
+				'backgroundColor' => '#ffffff',
+				'border'          => '1px solid #e7ebf1',
+				'borderRadius'    => '16px',
+				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
+				'padding'         => '14px 16px',
+				'transition'      => 'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease',
+			],
+			'.AccordionItem:hover' => (object) [
+				'backgroundColor' => '#f9fbff',
+				'border'          => '1px solid #b8c4d6',
+			],
+			'.AccordionItem:focus' => (object) [
+				'outline'       => '2px solid #9db4ff',
+				'outlineOffset' => '2px',
+			],
+			'.AccordionItem--selected' => (object) [
+				'backgroundColor' => '#eef3ff',
+				'border'          => '1px solid #2f5bea',
+				'boxShadow'       => '0 0 0 1px rgba(47,91,234,.06)',
+			],
+			'.PickerItem' => (object) [
+				'backgroundColor' => '#ffffff',
+				'border'          => '1px solid #e7ebf1',
+				'borderRadius'    => '16px',
+				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
+				'padding'         => '14px 16px',
+				'transition'      => 'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease',
+			],
+			'.PickerItem:hover' => (object) [
+				'backgroundColor' => '#f9fbff',
+				'border'          => '1px solid #b8c4d6',
+			],
+			'.PickerItem:focus' => (object) [
+				'outline'       => '2px solid #9db4ff',
+				'outlineOffset' => '2px',
+			],
+			'.PickerItem--selected' => (object) [
+				'backgroundColor' => '#eef3ff',
+				'border'          => '1px solid #2f5bea',
+				'boxShadow'       => '0 0 0 1px rgba(47,91,234,.06)',
+			],
+			'.BlockDivider' => (object) [
+				'backgroundColor' => '#e7ebf1',
 			],
 			'.Input' => (object) [
 				'backgroundColor' => '#ffffff',
