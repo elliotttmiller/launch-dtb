@@ -40,6 +40,7 @@
 	const storefrontLoginUrl = `${ storefrontBasePath }/login?returnTo=%2Fcheckout`;
 
 	let rootObserver = null;
+	let mountObserver = null;
 	let bodyObserver = null;
 	let commerceUnsubscribe = null;
 	let observedRoot = null;
@@ -183,9 +184,15 @@
 
 	function updateBusyState( root, snapshot = commerceSnapshot() ) {
 		const busy = Boolean( snapshot.busy );
+		const busyValue = busy ? 'true' : 'false';
+		const runtimeValue = snapshot.available ? 'ready' : 'waiting';
 		document.body.classList.toggle( 'dtb-checkout-is-busy', busy );
-		root.setAttribute( 'aria-busy', busy ? 'true' : 'false' );
-		root.dataset.dtbCheckoutRuntime = snapshot.available ? 'ready' : 'waiting';
+		if ( root.getAttribute( 'aria-busy' ) !== busyValue ) {
+			root.setAttribute( 'aria-busy', busyValue );
+		}
+		if ( root.dataset.dtbCheckoutRuntime !== runtimeValue ) {
+			root.dataset.dtbCheckoutRuntime = runtimeValue;
+		}
 	}
 
 	function reconcile() {
@@ -216,14 +223,23 @@
 
 	function bindRootObserver( root ) {
 		rootObserver?.disconnect();
+		mountObserver?.disconnect();
+		bodyObserver?.disconnect();
+		bodyObserver = null;
 		observedRoot = root;
+
 		rootObserver = new MutationObserver( queueReconcile );
 		rootObserver.observe( root, {
 			childList: true,
 			subtree: true,
 			attributes: true,
-			attributeFilter: [ 'class', 'aria-invalid', 'aria-busy', 'role' ],
+			attributeFilter: [ 'class', 'aria-invalid', 'role' ],
 		} );
+
+		if ( root.parentElement ) {
+			mountObserver = new MutationObserver( queueReconcile );
+			mountObserver.observe( root.parentElement, { childList: true } );
+		}
 	}
 
 	function bindCommerceStore() {
@@ -270,6 +286,7 @@
 
 	function cleanup() {
 		rootObserver?.disconnect();
+		mountObserver?.disconnect();
 		bodyObserver?.disconnect();
 		if ( typeof commerceUnsubscribe === 'function' ) {
 			commerceUnsubscribe();
