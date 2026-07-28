@@ -5,21 +5,27 @@
  * screens (Contact, Shipping, Payment) with no document navigation, no
  * iframe, and no second form. It never creates, clones, or moves a native
  * field, wallet, or payment control — it only toggles visibility of the
- * *existing* top-level block groups that WooCommerce itself already renders,
- * using their real `data-block-name` attributes (see
- * WooCommerce core `src/Blocks/BlockTypes/Checkout.php`, which emits this
- * exact structure server-side):
+ * *existing* top-level block groups that WooCommerce itself already renders.
  *
- *   wp-block-woocommerce-checkout-fields-block
- *     ├─ [data-block-name="woocommerce/checkout-express-payment-block"]
- *     ├─ [data-block-name="woocommerce/checkout-contact-information-block"]
- *     ├─ [data-block-name="woocommerce/checkout-shipping-address-block"]
- *     ├─ [data-block-name="woocommerce/checkout-billing-address-block"]
- *     └─ [data-block-name="woocommerce/checkout-shipping-method-block"] (or -pickup-options-block)
- *   [data-block-name="woocommerce/checkout-payment-block"]
- *   [data-block-name="woocommerce/checkout-order-note-block"]
- *   [data-block-name="woocommerce/checkout-terms-block"]
- *   [data-block-name="woocommerce/checkout-actions-block"]        <- native Place order button
+ * Groups are classified by DOM position, not by an enumerated list of block
+ * names: `data-block-name` attributes are only present in the block editor's
+ * own markup, never in this store's actual frontend HTML output, so a
+ * selector list built from them silently matches nothing at runtime (see
+ * commit 320b536 / PR #44 in this repo's history, which hit and fixed this
+ * exact failure mode once already). `.wc-block-components-checkout-step` is
+ * WooCommerce Blocks' one stable, version-resilient public class applied to
+ * every top-level step wrapper regardless of which concrete step it is, and
+ * WooCommerce always renders Contact first and Payment last, with zero or
+ * more shipping-related steps in between:
+ *
+ *   .wc-block-components-express-payment      <- always Contact
+ *   .wc-block-components-checkout-step (1st)   <- always Contact
+ *   .wc-block-components-checkout-step (last)  <- always Payment
+ *   .wc-block-components-checkout-step (any other)  <- Shipping
+ *   (non-step siblings: order notes, terms, actions row) <- grouped with
+ *     whichever step wrapper precedes them in document order
+ *
+ * See classifyStepGroups() below.
  *
  * Step gating uses the platform's own HTML5 constraint validation
  * (checkValidity/reportValidity) against the fields *inside the active
@@ -43,9 +49,11 @@
  * Runs only under a mobile viewport (matches the scope of this redesign
  * pass). At wider viewports every group is left visible and none of this
  * chrome is mounted, so the page is the plain, accessible single-scroll
- * Woo Blocks checkout. If the expected block markup is not found (a Woo
- * Blocks version change, a customized checkout layout), the script exits
- * without altering anything.
+ * Woo Blocks checkout. Waits for the checkout root to exist (retrying for
+ * up to ~10s in case it renders later than DOMContentLoaded), and if no
+ * `.wc-block-components-checkout-step` wrapper is ever found (a Woo Blocks
+ * version change, a customized checkout layout), never mounts any chrome —
+ * the page stays the plain, unmodified Woo Blocks checkout.
  *
  * Handle: dtb-checkout (see functions.php dtb_enqueue_native_checkout_assets()).
  */
@@ -56,35 +64,13 @@
 	var HIDDEN_ATTR = 'data-dtb-step-hidden';
 
 	var STEPS = [
-		{
-			id: 'contact',
-			label: 'Contact',
-			selectors: [
-				'[data-block-name="woocommerce/checkout-express-payment-block"]',
-				'[data-block-name="woocommerce/checkout-contact-information-block"]',
-			],
-		},
-		{
-			id: 'shipping',
-			label: 'Shipping',
-			selectors: [
-				'[data-block-name="woocommerce/checkout-shipping-address-block"]',
-				'[data-block-name="woocommerce/checkout-billing-address-block"]',
-				'[data-block-name="woocommerce/checkout-shipping-method-block"]',
-				'[data-block-name="woocommerce/checkout-pickup-options-block"]',
-			],
-		},
-		{
-			id: 'payment',
-			label: 'Payment',
-			selectors: [
-				'[data-block-name="woocommerce/checkout-payment-block"]',
-				'[data-block-name="woocommerce/checkout-order-note-block"]',
-				'[data-block-name="woocommerce/checkout-terms-block"]',
-				'[data-block-name="woocommerce/checkout-actions-block"]',
-			],
-		},
+		{ id: 'contact', label: 'Contact' },
+		{ id: 'shipping', label: 'Shipping' },
+		{ id: 'payment', label: 'Payment' },
 	];
+
+	var STEP_WRAPPER_SELECTOR = '.wc-block-components-checkout-step';
+	var EXPRESS_PAYMENT_SELECTOR = '.wc-block-components-express-payment';
 
 	var mobileMedia = null;
 	var wizard = null; // { root, rail, actions, statusEl, backBtn, continueBtn, railButtons: [] }
@@ -98,28 +84,65 @@
 		return document.querySelector( '.wc-block-checkout__form' ) || document.querySelector( '.wc-block-checkout' );
 	}
 
+	/**
+	 * Classify the checkout's own top-level section wrappers into
+	 * Contact / Shipping / Payment groups by structural position. See the
+	 * file header comment for why this replaced an earlier, broken
+	 * `data-block-name` selector list.
+	 */
+	function classifyStepGroups() {
+		var root = checkoutRoot();
+		var groups = [ [], [], [] ];
+		if ( ! root ) {
+			return groups;
+		}
+		var main = root.querySelector( '.wc-block-components-main, .wc-block-checkout__main' ) || root;
+		var children = Array.prototype.slice.call( main.children );
+		var stepWrappers = children.filter( function ( node ) {
+			return node.matches( STEP_WRAPPER_SELECTOR );
+		} );
+		if ( ! stepWrappers.length ) {
+			return groups;
+		}
+
+		var firstStep = stepWrappers[ 0 ];
+		var lastStep = stepWrappers[ stepWrappers.length - 1 ];
+
+		children.forEach( function ( node ) {
+			if ( node.matches( EXPRESS_PAYMENT_SELECTOR ) ) {
+				groups[ 0 ].push( node );
+				return;
+			}
+			if ( node === firstStep ) {
+				groups[ 0 ].push( node );
+				return;
+			}
+			if ( node === lastStep ) {
+				groups[ 2 ].push( node );
+				return;
+			}
+			if ( stepWrappers.indexOf( node ) !== -1 ) {
+				groups[ 1 ].push( node );
+				return;
+			}
+			// A non-step sibling (order notes, terms, actions row, etc.)
+			// belongs with whichever step wrapper precedes it in the DOM.
+			var precedesLastStep = Boolean( node.compareDocumentPosition( lastStep ) & Node.DOCUMENT_POSITION_FOLLOWING );
+			groups[ precedesLastStep ? 1 : 2 ].push( node );
+		} );
+
+		return groups;
+	}
+
 	/** All groups for a step that currently exist in the DOM. */
 	function stepGroups( index ) {
-		var root = checkoutRoot();
-		var step = STEPS[ index ];
-		if ( ! root || ! step ) {
-			return [];
-		}
-		var found = [];
-		step.selectors.forEach( function ( selector ) {
-			root.querySelectorAll( selector ).forEach( function ( node ) {
-				if ( found.indexOf( node ) === -1 ) {
-					found.push( node );
-				}
-			} );
-		} );
-		return found;
+		return classifyStepGroups()[ index ] || [];
 	}
 
 	function allTrackedGroups() {
 		var all = [];
-		STEPS.forEach( function ( _step, index ) {
-			stepGroups( index ).forEach( function ( node ) {
+		classifyStepGroups().forEach( function ( nodes ) {
+			nodes.forEach( function ( node ) {
 				if ( all.indexOf( node ) === -1 ) {
 					all.push( node );
 				}
@@ -500,9 +523,22 @@
 		} );
 	}
 
-	function init() {
+	var INIT_RETRY_LIMIT = 50; // ~10s at 200ms, bounding worst-case retry cost.
+
+	/**
+	 * The checkout root is expected in the initial server-rendered HTML, but
+	 * this retries rather than bailing permanently on the first miss —
+	 * belt-and-suspenders against any deferred/delayed render of the
+	 * Checkout block on a given page load.
+	 */
+	function init( attempt ) {
 		var root = checkoutRoot();
 		if ( ! root ) {
+			if ( ( attempt || 0 ) < INIT_RETRY_LIMIT ) {
+				window.setTimeout( function () {
+					init( ( attempt || 0 ) + 1 );
+				}, 200 );
+			}
 			return;
 		}
 
@@ -525,8 +561,10 @@
 	}
 
 	if ( document.readyState === 'loading' ) {
-		document.addEventListener( 'DOMContentLoaded', init, { once: true } );
+		document.addEventListener( 'DOMContentLoaded', function () {
+			init( 0 );
+		}, { once: true } );
 	} else {
-		init();
+		init( 0 );
 	}
 } )();
