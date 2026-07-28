@@ -12,10 +12,9 @@ function asBoolean(value) {
 
 function findOfficialStripeGateway(capabilities) {
   const gateways = Array.isArray(capabilities?.gateways) ? capabilities.gateways : [];
-  return gateways.find((gateway) => (
-    gateway?.provider === 'woocommerce_stripe'
-    || gateway?.id === 'stripe'
-  )) || null;
+  return gateways.find((gateway) => gateway?.provider === 'woocommerce_stripe')
+    || gateways.find((gateway) => gateway?.id === 'stripe')
+    || null;
 }
 
 export function normalizeProductExpressCheckoutReadiness(capabilities) {
@@ -62,12 +61,13 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
 }
 
 export async function getProductExpressCheckoutReadiness({ force = false } = {}) {
+  if (inFlightRequest) {
+    return inFlightRequest;
+  }
+
   const now = Date.now();
   if (!force && cachedReadiness && cacheExpiresAt > now) {
     return cachedReadiness;
-  }
-  if (!force && inFlightRequest) {
-    return inFlightRequest;
   }
 
   inFlightRequest = apiClient('/wp-json/dtb/v1/checkout/capabilities', {
