@@ -11,12 +11,12 @@ import '../../styles/product-express-checkout.css';
 
 const DEFAULT_READINESS = Object.freeze({
   state: 'unknown',
-  provider: 'WooCommerce Stripe',
+  provider: 'Payment Plugins for Stripe',
   checks: {},
   reasons: [],
 });
 
-const WALLET_LABELS = Object.freeze(['Apple Pay', 'Google Pay', 'Link']);
+const WALLET_LABELS = Object.freeze(['Apple Pay', 'Google Pay']);
 
 function readinessMessage(readiness) {
   if (readiness.state === 'ready') {
