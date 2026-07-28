@@ -29,6 +29,17 @@
  * shipping/tax totals are recalculating or while Woo has flagged a field
  * invalid. No private/internal object graph is read.
  *
+ * The Contact screen also collects first/last name via WooCommerce's
+ * Additional Checkout Fields API (registered server-side in
+ * mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php as
+ * `dtb/first_name` / `dtb/last_name`, location `contact`) — real, native,
+ * Woo-rendered inputs, not a client-side duplicate. They are registered
+ * `required: false` at the API level so an Apple Pay / Google Pay / Link
+ * order (which never touches them) is never blocked; this script instead
+ * enforces them as required for the typed/card flow only, by checking their
+ * `autocomplete="given-name"`/`"family-name"` inputs before leaving the
+ * Contact step (see firstEmptyContactIdentityField()).
+ *
  * Runs only under a mobile viewport (matches the scope of this redesign
  * pass). At wider viewports every group is left visible and none of this
  * chrome is mounted, so the page is the plain, accessible single-scroll
@@ -195,6 +206,35 @@
 		} );
 	}
 
+	/**
+	 * First name / last name are registered as WooCommerce Additional
+	 * Checkout Fields (see mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php)
+	 * with `required: false` at the API level, on purpose — a required
+	 * Contact-location field would fail Store API validation for an Apple
+	 * Pay / Google Pay / Link order, which never populates it. "Required"
+	 * for the typed/card flow is therefore enforced only here, client-side,
+	 * scoped to the Contact step; the wallet flow never runs through this
+	 * gate at all. Selected by the field's own `autocomplete` value (set at
+	 * registration) rather than an id/name, since that is stable regardless
+	 * of the internal id WooCommerce Blocks assigns the input.
+	 */
+	function firstEmptyContactIdentityField( groups, stepId ) {
+		if ( stepId !== 'contact' ) {
+			return null;
+		}
+		var controls = [];
+		groups.forEach( function ( group ) {
+			group.querySelectorAll( 'input[autocomplete="given-name"], input[autocomplete="family-name"]' ).forEach( function ( control ) {
+				if ( controls.indexOf( control ) === -1 ) {
+					controls.push( control );
+				}
+			} );
+		} );
+		return controls.find( function ( control ) {
+			return ! control.disabled && ! String( control.value || '' ).trim();
+		} );
+	}
+
 	function setStatus( message, kind ) {
 		if ( ! wizard || ! wizard.statusEl ) {
 			return;
@@ -211,6 +251,12 @@
 			setStatus( 'Complete the highlighted fields before continuing.', 'error' );
 			invalid.reportValidity && invalid.reportValidity();
 			invalid.focus && invalid.focus();
+			return false;
+		}
+		var missingIdentity = firstEmptyContactIdentityField( groups, STEPS[ index ].id );
+		if ( missingIdentity ) {
+			setStatus( 'Enter your first and last name to continue.', 'error' );
+			missingIdentity.focus && missingIdentity.focus();
 			return false;
 		}
 		if ( STEPS[ index ].id === 'shipping' ) {
