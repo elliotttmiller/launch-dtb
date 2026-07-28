@@ -10,11 +10,37 @@ function asBoolean(value) {
   return typeof value === 'boolean' ? value : null;
 }
 
+function asNonNegativeInteger(value) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
 function findOfficialStripeGateway(capabilities) {
   const gateways = Array.isArray(capabilities?.gateways) ? capabilities.gateways : [];
   return gateways.find((gateway) => gateway?.provider === 'woocommerce_stripe')
     || gateways.find((gateway) => gateway?.id === 'stripe')
     || null;
+}
+
+function unavailableReasons(checks) {
+  const labels = {
+    nativeCheckout: 'Native WooCommerce checkout is not ready.',
+    officialProvider: 'The official WooCommerce Stripe provider is not authoritative.',
+    stripeExtensionActive: 'The official Stripe extension is not active.',
+    stripeGatewayEnabled: 'The Stripe gateway is disabled.',
+    expressCheckoutEnabled: 'Stripe Express Checkout is disabled.',
+    expressCheckoutCheckoutLocation: 'Express Checkout is not enabled at checkout.',
+    checkoutBlockReady: 'The WooCommerce Checkout Block is not configured.',
+    https: 'HTTPS is required for wallet payments.',
+    gatewayEntryEnabled: 'The official Stripe gateway entry is disabled.',
+    noCompetingWooPayments: 'A competing WooPayments checkout authority is enabled.',
+    walletShippingReady: 'WooCommerce shipping is not ready for wallet address resolution.',
+  };
+
+  return Object.entries(checks)
+    .filter(([, value]) => value === false)
+    .map(([key]) => labels[key])
+    .filter(Boolean);
 }
 
 export function normalizeProductExpressCheckoutReadiness(capabilities) {
@@ -23,6 +49,9 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     : {};
   const gateway = findOfficialStripeGateway(capabilities);
   const competingWooPayments = asBoolean(readiness.competing_woopayments);
+  const shippingEnabled = asBoolean(readiness.shipping_enabled);
+  const shippingMethodCount = asNonNegativeInteger(readiness.shipping_method_count);
+  const walletShippingReady = asBoolean(readiness.wallet_shipping_ready);
 
   const checks = {
     nativeCheckout: capabilities?.checkout === 'woo_native_checkout_block',
@@ -35,6 +64,7 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     https: asBoolean(readiness.https),
     gatewayEntryEnabled: gateway ? asBoolean(gateway.enabled) : null,
     noCompetingWooPayments: competingWooPayments == null ? null : !competingWooPayments,
+    walletShippingReady,
   };
 
   const requiredChecks = [
@@ -48,6 +78,7 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     checks.https,
     checks.gatewayEntryEnabled,
     checks.noCompetingWooPayments,
+    checks.walletShippingReady,
   ];
 
   const explicitlyUnavailable = requiredChecks.some((value) => value === false);
@@ -57,6 +88,12 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     state: explicitlyUnavailable ? 'unavailable' : (fullyReady ? 'ready' : 'unknown'),
     provider: 'WooCommerce Stripe',
     checks,
+    reasons: unavailableReasons(checks),
+    shipping: {
+      enabled: shippingEnabled,
+      methodCount: shippingMethodCount,
+      allowedCountryCount: asNonNegativeInteger(readiness.allowed_shipping_countries_count),
+    },
   };
 }
 
@@ -80,6 +117,8 @@ export async function getProductExpressCheckoutReadiness({ force = false } = {})
       state: 'unknown',
       provider: 'WooCommerce Stripe',
       checks: {},
+      reasons: [],
+      shipping: {},
     }))
     .then((result) => {
       cachedReadiness = result;
