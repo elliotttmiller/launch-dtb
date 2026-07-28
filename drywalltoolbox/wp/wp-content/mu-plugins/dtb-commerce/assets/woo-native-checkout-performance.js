@@ -2,7 +2,6 @@
 	'use strict';
 
 	const config = window.DTB_CHECKOUT_PERFORMANCE || {};
-	const mobileViewport = window.matchMedia( '(max-width: 767px)' );
 	const checkoutRootSelector = '.wc-block-checkout';
 	const paymentBlockSelector = '.wp-block-woocommerce-checkout-payment-block, .wc-block-checkout__payment-method';
 	const expressBlockSelector = '.wp-block-woocommerce-checkout-express-payment-block, .wc-block-components-express-payment';
@@ -17,23 +16,15 @@
 	const reportedSignatures = new Set();
 
 	let runtimeObserver = null;
-	let bodyClassObserver = null;
 	let observedRoot = null;
 	let maintenanceQueued = false;
-	let paymentWatchArmed = false;
+	let paymentWatchTimer = 0;
 	let vitalsReported = false;
 	let clsValue = 0;
 	let lcpValue = 0;
 
 	function checkoutRoot() {
 		return document.querySelector( checkoutRootSelector );
-	}
-
-	function currentStep() {
-		if ( document.body.classList.contains( 'dtb-checkout-step-payment' ) ) return 'payment';
-		if ( document.body.classList.contains( 'dtb-checkout-step-shipping' ) ) return 'shipping';
-		if ( document.body.classList.contains( 'dtb-checkout-step-contact' ) ) return 'contact';
-		return 'unknown';
 	}
 
 	function eventId() {
@@ -48,7 +39,7 @@
 		try {
 			const url = new URL( String( value ), window.location.href );
 			return `${ url.origin }${ url.pathname }`;
-		} catch ( error ) {
+		} catch {
 			return String( value ).slice( 0, 240 );
 		}
 	}
@@ -77,7 +68,7 @@
 				line: Number( location.line || 0 ),
 				column: Number( location.column || 0 ),
 				viewport_w: Math.round( window.innerWidth || 0 ),
-				step: currentStep(),
+				step: 'continuous',
 				detail,
 			} ),
 		} ).catch( () => undefined );
@@ -115,7 +106,7 @@
 	function expressSurface() {
 		const block = document.querySelector( expressBlockSelector );
 		if ( ! block ) return null;
-		return block.querySelector( 'iframe, button, [role="button"]' ) ? block : null;
+		return block.querySelector( 'iframe, button:not([disabled]), [role="button"]' ) ? block : null;
 	}
 
 	function fallbackNotice() {
@@ -150,8 +141,8 @@
 			expressButton.className = 'wc-block-components-button';
 			expressButton.textContent = 'Try express checkout';
 			expressButton.addEventListener( 'click', () => {
-				express.scrollIntoView( { behavior: 'smooth', block: 'center' } );
-				const focusTarget = express.querySelector( 'button:not([disabled]), iframe, [role="button"]' );
+				express.scrollIntoView( { behavior: window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ? 'auto' : 'smooth', block: 'center' } );
+				const focusTarget = express.querySelector( 'button:not([disabled]), [role="button"]' );
 				if ( focusTarget instanceof HTMLElement ) focusTarget.focus( { preventScroll: true } );
 			} );
 			content.append( expressButton );
@@ -167,15 +158,9 @@
 		paymentBlock.prepend( notice );
 	}
 
-	function shouldWatchPaymentSurface() {
-		if ( ! mobileViewport.matches ) return true;
-		if ( ! document.body.classList.contains( 'dtb-mobile-checkout-enhanced' ) ) return true;
-		return document.body.classList.contains( 'dtb-checkout-step-payment' );
-	}
-
 	function checkPaymentSurface() {
-		paymentWatchArmed = false;
-		if ( ! shouldWatchPaymentSurface() || isProviderFrameReady() ) {
+		paymentWatchTimer = 0;
+		if ( isProviderFrameReady() ) {
 			removeFallbackNoticeIfRecovered();
 			return;
 		}
@@ -188,10 +173,9 @@
 	}
 
 	function armPaymentSurfaceWatch() {
-		if ( paymentWatchArmed || ! shouldWatchPaymentSurface() || isProviderFrameReady() ) return;
-		paymentWatchArmed = true;
+		if ( paymentWatchTimer || isProviderFrameReady() ) return;
 		const timeout = Math.max( 5000, Math.min( 30000, Number( config.paymentSurfaceTimeoutMs || 15000 ) ) );
-		window.setTimeout( checkPaymentSurface, timeout );
+		paymentWatchTimer = window.setTimeout( checkPaymentSurface, timeout );
 	}
 
 	function optimizeOrderSummaryImages( root = document ) {
@@ -215,37 +199,35 @@
 		}, 0 );
 	}
 
+	function bindRuntimeObserver( root ) {
+		runtimeObserver?.disconnect();
+		const previousRoot = observedRoot;
+		observedRoot = root;
+		if ( previousRoot && root && previousRoot !== root ) {
+			const filledBefore = countFilledControls( previousRoot );
+			const filledAfter = countFilledControls( root );
+			report( 'checkout_root_replaced', 'WooCommerce checkout root was replaced during the active checkout session.', {
+				filled_before: filledBefore,
+				filled_after: filledAfter,
+				state_loss_suspected: filledBefore > 0 && filledAfter < filledBefore,
+			} );
+		}
+		if ( ! root ) return;
+		runtimeObserver = new MutationObserver( queueMaintenance );
+		runtimeObserver.observe( root, { childList: true, subtree: true } );
+	}
+
 	function queueMaintenance() {
 		if ( maintenanceQueued ) return;
 		maintenanceQueued = true;
 		window.requestAnimationFrame( () => {
 			maintenanceQueued = false;
 			const root = checkoutRoot();
-			if ( root && root !== observedRoot ) {
-				const previousRoot = observedRoot;
-				if ( previousRoot ) {
-					const filledBefore = countFilledControls( previousRoot );
-					const filledAfter = countFilledControls( root );
-					report( 'checkout_root_replaced', 'WooCommerce checkout root was replaced during the active checkout session.', {
-						filled_before: filledBefore,
-						filled_after: filledAfter,
-						state_loss_suspected: filledBefore > 0 && filledAfter < filledBefore,
-					} );
-				}
-				bindRuntimeObserver( root );
-			}
+			if ( root && root !== observedRoot ) bindRuntimeObserver( root );
 			optimizeOrderSummaryImages( root || document );
 			removeFallbackNoticeIfRecovered();
 			armPaymentSurfaceWatch();
 		} );
-	}
-
-	function bindRuntimeObserver( root ) {
-		runtimeObserver?.disconnect();
-		observedRoot = root;
-		if ( ! root ) return;
-		runtimeObserver = new MutationObserver( queueMaintenance );
-		runtimeObserver.observe( root, { childList: true, subtree: true } );
 	}
 
 	function hostAllowedForPayment( host ) {
@@ -260,7 +242,7 @@
 				const url = new URL( entry.name, window.location.href );
 				if ( url.origin === window.location.origin || hostAllowedForPayment( url.hostname.toLowerCase() ) ) return;
 				unexpected.add( url.hostname.toLowerCase() );
-			} catch ( error ) {
+			} catch {
 				// Ignore malformed performance entries.
 			}
 		} );
@@ -278,7 +260,7 @@
 				} );
 			} );
 			clsObserver.observe( { type: 'layout-shift', buffered: true } );
-		} catch ( error ) {}
+		} catch {}
 		try {
 			const lcpObserver = new PerformanceObserver( ( list ) => {
 				const entries = list.getEntries();
@@ -286,7 +268,7 @@
 				if ( latest ) lcpValue = latest.startTime || 0;
 			} );
 			lcpObserver.observe( { type: 'largest-contentful-paint', buffered: true } );
-		} catch ( error ) {}
+		} catch {}
 	}
 
 	function reportVitalsIfNeeded() {
@@ -306,35 +288,26 @@
 		} );
 	}
 
+	function cleanup() {
+		runtimeObserver?.disconnect();
+		if ( paymentWatchTimer ) window.clearTimeout( paymentWatchTimer );
+		reportVitalsIfNeeded();
+	}
+
 	function initialize() {
 		window.addEventListener( 'error', handleWindowError, true );
 		window.addEventListener( 'unhandledrejection', handleUnhandledRejection );
-		window.addEventListener( 'pagehide', reportVitalsIfNeeded, { once: true } );
+		window.addEventListener( 'pagehide', cleanup, { once: true } );
 		document.addEventListener( 'visibilitychange', () => {
 			if ( document.visibilityState === 'hidden' ) reportVitalsIfNeeded();
 		} );
 
 		observeVitals();
-		const root = checkoutRoot();
-		bindRuntimeObserver( root );
-		optimizeOrderSummaryImages( root || document );
-		armPaymentSurfaceWatch();
-
-		bodyClassObserver = new MutationObserver( () => {
-			paymentWatchArmed = false;
-			if ( shouldWatchPaymentSurface() ) armPaymentSurfaceWatch();
-		} );
-		bodyClassObserver.observe( document.body, { attributes: true, attributeFilter: [ 'class' ] } );
-
-		const auditDelay = Math.max( 1000, Math.min( 5000, Number( config.paymentSurfaceTimeoutMs || 15000 ) ) );
-		window.setTimeout( auditThirdPartyResources, auditDelay );
-
-		let identityChecks = 0;
-		const identityTimer = window.setInterval( () => {
-			identityChecks += 1;
-			queueMaintenance();
-			if ( identityChecks >= 30 || document.visibilityState === 'hidden' ) window.clearInterval( identityTimer );
-		}, 1000 );
+		bindRuntimeObserver( checkoutRoot() );
+		queueMaintenance();
+		window.setTimeout( queueMaintenance, 1000 );
+		window.setTimeout( queueMaintenance, 5000 );
+		window.setTimeout( auditThirdPartyResources, 2500 );
 	}
 
 	if ( document.readyState === 'loading' ) {
