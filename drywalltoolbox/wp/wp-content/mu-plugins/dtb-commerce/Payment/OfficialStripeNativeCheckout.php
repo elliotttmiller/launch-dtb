@@ -343,6 +343,16 @@ final class DTB_OfficialStripeNativeCheckout {
 	}
 
 	/** Determine whether a gateway ID belongs to the official Stripe extension. */
+	/**
+	 * Whether the checkout document should present "Powered by Stripe"
+	 * branding: true only when the official Stripe extension is present and
+	 * an official Stripe gateway instance is actually enabled. Presentation
+	 * code must not show this branding unconditionally.
+	 */
+	public static function stripe_badge_visible(): bool {
+		return self::is_official_stripe_extension_active() && self::is_official_stripe_gateway_enabled();
+	}
+
 	public static function is_official_gateway_id( string $gateway_id ): bool {
 		$gateway_id = sanitize_key( $gateway_id );
 		if ( '' === $gateway_id || ! self::is_official_stripe_extension_active() ) {
