@@ -43,10 +43,10 @@ $provider = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-com
 $runtime = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/WooNativeCheckoutRuntime.php'
 $runtimeIntegrity = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/CheckoutRuntimeIntegrity.php'
 $performance = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/CheckoutPerformance.php'
-$identityIsolation = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/StorefrontCommerceIdentityIsolation.php'
 $identityBridge = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/NativeCheckoutIdentityBridge.php'
 $identityContinuity = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/CheckoutSessionContinuityGuard.php'
 $authRoutes = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/AuthRoutes.php'
+$platformBootstrap = Read-RepositoryFile 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/bootstrap.php'
 
 @(
     'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css',
@@ -77,9 +77,9 @@ Assert-NotContains $provider "add_filter( 'body_class'" 'Provider code must not 
 Assert-NotContains $runtimeIntegrity 'dtb-checkout-theme-ui' 'Runtime integrity must not retain removed presentation handles'
 Assert-NotContains $performance "[ 'dtb-checkout-theme-ui' ]" 'Telemetry must not depend on a removed presentation controller'
 
-Assert-Contains $identityIsolation 'dtb_storefront_commerce_privileged_native_conflict( true )' 'Privileged commerce requests must mark identity isolation'
-Assert-Contains $identityBridge 'dtb_storefront_commerce_privileged_native_conflict()' 'Native checkout must honor privileged isolation'
-Assert-Contains $identityContinuity 'dtb_storefront_commerce_privileged_native_conflict()' 'Checkout convergence must honor privileged isolation'
-Assert-Contains $authRoutes 'dtb_storefront_commerce_privileged_native_conflict()' 'The REST JWT bridge must honor privileged isolation'
+Assert-NotContains $identityBridge 'dtb_storefront_commerce_privileged_native_conflict()' 'Native checkout must preserve a valid privileged native identity'
+Assert-NotContains $identityContinuity 'dtb_storefront_commerce_privileged_native_conflict()' 'Checkout convergence must not rewrite a valid privileged identity to guest'
+Assert-NotContains $authRoutes 'dtb_storefront_commerce_privileged_native_conflict()' 'The REST JWT bridge must respect earlier native authentication'
+Assert-NotContains $platformBootstrap 'StorefrontCommerceIdentityIsolation.php' 'The destructive privileged-to-guest identity rewrite must remain retired'
 
-Write-Host 'PASS: Neutral WooCommerce checkout baseline, provider authority, and identity isolation contracts are intact.'
+Write-Host 'PASS: Neutral WooCommerce checkout baseline, provider authority, and native session continuity contracts are intact.'

@@ -58,18 +58,18 @@ The reconciliation method never calls Veeqo, QuickBooks, notifications, or anoth
 - PayPal is outside this Stripe reconciliation contract and requires a separately reviewed provider/contract before it may enter DTB paid downstream processing.
 - Historical orders and refunds must remain readable during and after cutover.
 
-## Guest cart and native admin session continuity
+## Cart and native admin session continuity
 
-Same-origin WooCommerce cookies remain guest-cart authority. Public Store API identity isolation applies to both supported route forms:
+Same-origin WooCommerce cookies remain cart authority for both guests and signed-in WordPress users. DTB must preserve the native WordPress identity that WooCommerce used when it created the session across both supported Store API route forms:
 
 ```text
 /wp-json/wc/store/v1/...
 /wp/index.php?rest_route=/wc/store/v1/...
 ```
 
-Storefront authentication validation and logout clear a native WordPress cookie only when its signed cookie resolves to a non-privileged customer. Signed administrator/operator cookies remain intact.
+Storefront authentication validation and logout clear a native WordPress cookie only when its signed cookie resolves to a non-privileged customer. Signed administrator/operator cookies remain intact and remain the current WooCommerce user on public cart and checkout requests.
 
-If one browser carries both a signed administrator/operator cookie and a DTB customer JWT, public commerce requests remain guest-isolated for the entire request. The later native-checkout identity bridge must not reintroduce the customer JWT while the privileged cookie conflict is active. This avoids a parallel SPA auth/cart race that can briefly bind the WooCommerce session to the customer and then produce `woocommerce_rest_cart_empty` during Checkout Block total recalculation.
+If one browser carries both a signed administrator/operator cookie and a DTB customer JWT, the valid native administrator identity wins. The storefront auth boundary rejects the conflicting customer handoff rather than rewriting the commerce request to guest user `0`. Rewriting a valid native user after WooCommerce has issued a customer-bound session causes WooCommerce to invalidate or rotate that session, leaving Checkout Block without the `wp_woocommerce_session_*` cookie and producing `woocommerce_rest_cart_empty`.
 
 WooCommerce empty-cart and continue-shopping actions route to the React catalog (`/products` or `/staging/{id}/products`), not the unused native `/shop/` path.
 
@@ -80,7 +80,7 @@ Validate on a production-equivalent environment:
 1. Guest cart survives address, shipping, tax, payment, and provider refreshes.
 2. Pretty-permalink and query-routed Store API requests resolve the same guest session.
 3. Guest storefront auth validation does not expire a privileged wp-admin session.
-4. A browser carrying both privileged native and DTB customer cookies remains guest-isolated across concurrent auth, cart, checkout-document, and Checkout Block REST requests.
+4. A browser carrying a privileged native cookie preserves that same native identity across cart, checkout-document, and Checkout Block REST requests; a conflicting DTB customer handoff remains blocked.
 5. New Stripe-paid orders receive the replacement contract/provider metadata only after paid evidence.
 6. Historical official-Stripe orders still pass historical audit/refund/recovery rules.
 7. Captured-payment reconciliation emits one event and one downstream dispatch path.

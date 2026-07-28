@@ -19,12 +19,9 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'payment-plugins-stripe-v1';
 	public const PROVIDER         = 'payment_plugins_stripe';
 
-	private const CARD_GATEWAY_ID       = 'stripe_cc';
-	private const APPLE_PAY_GATEWAY_ID  = 'stripe_applepay';
-	private const GOOGLE_PAY_GATEWAY_ID = 'stripe_googlepay';
-	private const LINK_GATEWAY_ID       = 'stripe_link';
-	private const MINIMUM_VERSION       = '4.0.8';
-	private const PLUGIN_PATH_FRAGMENT  = '/woo-stripe-payment/';
+	private const UPM_GATEWAY_ID       = 'stripe_upm';
+	private const MINIMUM_VERSION      = '4.0.8';
+	private const PLUGIN_PATH_FRAGMENT = '/woo-stripe-payment/';
 
 	/** @var array<int,string> */
 	private const BNPL_GATEWAY_IDS = [
@@ -36,7 +33,6 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_filter( 'woocommerce_available_payment_gateways', [ __CLASS__, 'enforce_single_stripe_authority' ], 1000 );
-		add_filter( 'wc_stripe_express_payment_methods', [ __CLASS__, 'express_payment_methods' ], 100 );
 		add_action( 'woocommerce_checkout_create_order', [ __CLASS__, 'tag_checkout_order' ], 20, 2 );
 		add_action( 'woocommerce_store_api_checkout_order_processed', [ __CLASS__, 'tag_store_api_order' ], 20 );
 		add_action( 'woocommerce_payment_complete', [ __CLASS__, 'mirror_verified_stripe_payment' ], 9 );
@@ -69,7 +65,8 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 				'id'               => $id,
 				'title'            => sanitize_text_field( (string) ( $gateway->method_title ?? $gateway->title ?? 'Stripe' ) ),
 				'enabled'          => self::gateway_enabled( $gateway ),
-				'express_checkout' => self::gateway_express_checkout_enabled( $gateway ),
+				'express_checkout' => false,
+				'universal_method' => self::UPM_GATEWAY_ID === $id,
 				'provider'         => self::PROVIDER,
 				'contract'         => self::CONTRACT_VERSION,
 			];
@@ -84,9 +81,7 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 			$allowed_countries = array_keys( (array) WC()->countries->get_shipping_countries() );
 		}
 
-		$apple_pay  = self::gateway_by_id( self::APPLE_PAY_GATEWAY_ID );
-		$google_pay = self::gateway_by_id( self::GOOGLE_PAY_GATEWAY_ID );
-		$link       = self::gateway_by_id( self::LINK_GATEWAY_ID );
+		$upm = self::gateway_by_id( self::UPM_GATEWAY_ID );
 
 		return rest_ensure_response(
 			[
@@ -97,15 +92,17 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 				'readiness' => [
 					'stripe_extension_active'            => self::is_extension_active(),
 					'stripe_extension_version'           => self::plugin_version(),
-					'stripe_gateway_enabled'             => self::is_card_gateway_enabled(),
-					'apple_pay_enabled'                  => self::gateway_enabled( $apple_pay ),
-					'apple_pay_express_checkout'         => self::gateway_express_checkout_enabled( $apple_pay ),
-					'google_pay_enabled'                 => self::gateway_enabled( $google_pay ),
-					'google_pay_express_checkout'        => self::gateway_express_checkout_enabled( $google_pay ),
-					'link_enabled'                       => self::gateway_enabled( $link ),
-					'express_checkout_enabled'           => self::has_enabled_express_gateway(),
-					'express_checkout_checkout_location' => self::has_enabled_express_gateway(),
-					'bnpl_gateway_count'                 => self::enabled_gateway_count( self::BNPL_GATEWAY_IDS ),
+					'stripe_gateway_enabled'             => self::gateway_enabled( $upm ),
+					'upm_gateway_enabled'                => self::gateway_enabled( $upm ),
+					'upm_configuration_ready'            => self::upm_configuration_ready( $upm ),
+					'apple_pay_enabled'                  => self::upm_method_enabled( 'stripe_applepay', $upm ),
+					'apple_pay_express_checkout'         => false,
+					'google_pay_enabled'                 => self::upm_method_enabled( 'stripe_googlepay', $upm ),
+					'google_pay_express_checkout'        => false,
+					'link_enabled'                       => self::upm_method_enabled( 'stripe_link', $upm ),
+					'express_checkout_enabled'           => false,
+					'express_checkout_checkout_location' => false,
+					'bnpl_gateway_count'                 => self::enabled_upm_method_count( self::BNPL_GATEWAY_IDS, $upm ),
 					'checkout_block'                     => self::checkout_page_has_supported_content(),
 					'https'                              => is_ssl(),
 					'competing_official_stripe'          => self::is_official_woocommerce_stripe_active(),
@@ -130,32 +127,20 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 	 */
 	public static function enforce_single_stripe_authority( $gateways ): array {
 		$gateways = is_array( $gateways ) ? $gateways : [];
-		if ( ! self::is_primary_checkout_request() || ! self::is_card_gateway_enabled() ) {
+		if ( ! self::is_storefront_payment_request() || ! self::is_upm_gateway_enabled() ) {
 			return $gateways;
 		}
 
-		unset( $gateways['stripe'], $gateways['woocommerce_payments'] );
-		return $gateways;
-	}
-
-	/**
-	 * Limit the Stripe-owned Express Checkout banner to the approved wallets.
-	 * PayPal is not a Stripe payment method and must be supplied by its separately
-	 * installed provider plugin; DTB never creates a synthetic PayPal control.
-	 *
-	 * @param mixed $gateways Payment Plugins gateway collection.
-	 * @return array<string,object>
-	 */
-	public static function express_payment_methods( $gateways ): array {
-		$gateways = is_array( $gateways ) ? $gateways : [];
-		$ordered  = [];
-		foreach ( [ self::APPLE_PAY_GATEWAY_ID, self::GOOGLE_PAY_GATEWAY_ID ] as $id ) {
-			$gateway = $gateways[ $id ] ?? null;
-			if ( self::is_payment_plugins_gateway_instance( $gateway ) && self::gateway_enabled( $gateway ) ) {
-				$ordered[ $id ] = $gateway;
+		foreach ( $gateways as $id => $gateway ) {
+			if (
+				self::UPM_GATEWAY_ID !== sanitize_key( (string) $id )
+				&& self::is_payment_plugins_gateway_instance( $gateway )
+			) {
+				unset( $gateways[ $id ] );
 			}
 		}
-		return $ordered;
+		unset( $gateways['stripe'], $gateways['woocommerce_payments'] );
+		return $gateways;
 	}
 
 	public static function tag_checkout_order( WC_Order $order, array $data = [] ): void {
@@ -189,7 +174,7 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 	}
 
 	public static function stripe_badge_visible(): bool {
-		return self::is_extension_active() && self::has_any_enabled_gateway();
+		return self::is_extension_active() && self::is_upm_gateway_enabled();
 	}
 
 	public static function is_payment_plugins_gateway_id( string $gateway_id ): bool {
@@ -218,9 +203,9 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 				. esc_html( sprintf( __( 'Drywall Toolbox requires Payment Plugins for Stripe WooCommerce %1$s or newer. Installed version: %2$s.', 'drywall-toolbox' ), self::MINIMUM_VERSION, $version ) )
 				. '</p></div>';
 		}
-		if ( ! self::is_card_gateway_enabled() ) {
+		if ( ! self::is_upm_gateway_enabled() ) {
 			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Connect Payment Plugins for Stripe to Stripe and enable Credit Cards (Stripe) before accepting checkout payments.', 'drywall-toolbox' )
+				. esc_html__( 'Connect Payment Plugins for Stripe to Stripe and enable Universal Payment Methods (Stripe) before accepting checkout payments.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
 		if ( self::is_official_woocommerce_stripe_active() || self::is_gateway_enabled_by_id( 'woocommerce_payments' ) ) {
@@ -228,9 +213,10 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 				. esc_html__( 'Drywall Toolbox permits one storefront card/wallet authority. Deactivate the WooCommerce Stripe Gateway and WooPayments before enabling Payment Plugins for Stripe.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
-		if ( ! self::has_enabled_express_gateway() ) {
+		$upm = self::gateway_by_id( self::UPM_GATEWAY_ID );
+		if ( self::gateway_enabled( $upm ) && ! self::upm_configuration_ready( $upm ) ) {
 			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Enable Apple Pay and/or Google Pay and assign them to the Express Checkout payment section before wallet acceptance testing.', 'drywall-toolbox' )
+				. esc_html__( 'Select a dedicated Stripe Payment Method Configuration for Universal Payment Methods before checkout acceptance testing.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
 		if ( ! is_ssl() ) {
@@ -307,47 +293,40 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 		return self::gateway_enabled( self::gateway_by_id( $gateway_id ) );
 	}
 
-	private static function gateway_express_checkout_enabled( $gateway ): bool {
-		if ( ! self::gateway_enabled( $gateway ) || ! method_exists( $gateway, 'is_express_checkout_enabled' ) ) {
+	private static function upm_method_enabled( string $gateway_id, $upm = null ): bool {
+		$upm = $upm ?? self::gateway_by_id( self::UPM_GATEWAY_ID );
+		if ( ! self::gateway_enabled( $upm ) || ! method_exists( $upm, 'is_enabled_payment_method' ) ) {
 			return false;
 		}
 		try {
-			return (bool) $gateway->is_express_checkout_enabled();
+			return (bool) $upm->is_enabled_payment_method( sanitize_key( $gateway_id ) );
 		} catch ( Throwable $e ) {
 			return false;
 		}
 	}
 
-	private static function is_card_gateway_enabled(): bool {
-		$gateway = self::gateway_by_id( self::CARD_GATEWAY_ID );
+	private static function is_upm_gateway_enabled(): bool {
+		$gateway = self::gateway_by_id( self::UPM_GATEWAY_ID );
 		return self::is_payment_plugins_gateway_instance( $gateway ) && self::gateway_enabled( $gateway );
 	}
 
-	private static function has_enabled_express_gateway(): bool {
-		foreach ( [ self::APPLE_PAY_GATEWAY_ID, self::GOOGLE_PAY_GATEWAY_ID ] as $id ) {
-			$gateway = self::gateway_by_id( $id );
-			if ( self::is_payment_plugins_gateway_instance( $gateway ) && self::gateway_express_checkout_enabled( $gateway ) ) {
-				return true;
-			}
+	private static function upm_configuration_ready( $upm = null ): bool {
+		$upm = $upm ?? self::gateway_by_id( self::UPM_GATEWAY_ID );
+		if ( ! self::gateway_enabled( $upm ) || ! method_exists( $upm, 'get_payment_method_configuration' ) ) {
+			return false;
 		}
-		return false;
-	}
-
-	private static function has_any_enabled_gateway(): bool {
-		foreach ( self::payment_gateways() as $gateway ) {
-			if ( self::is_payment_plugins_gateway_instance( $gateway ) && self::gateway_enabled( $gateway ) ) {
-				return true;
-			}
+		try {
+			return '' !== trim( (string) $upm->get_payment_method_configuration() );
+		} catch ( Throwable $e ) {
+			return false;
 		}
-		return false;
 	}
 
 	/** @param array<int,string> $ids */
-	private static function enabled_gateway_count( array $ids ): int {
+	private static function enabled_upm_method_count( array $ids, $upm = null ): int {
 		$count = 0;
 		foreach ( $ids as $id ) {
-			$gateway = self::gateway_by_id( $id );
-			if ( self::is_payment_plugins_gateway_instance( $gateway ) && self::gateway_enabled( $gateway ) ) {
+			if ( self::upm_method_enabled( $id, $upm ) ) {
 				++$count;
 			}
 		}
@@ -406,8 +385,8 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 		return has_block( 'woocommerce/checkout', (string) get_post_field( 'post_content', $checkout_page_id ) );
 	}
 
-	private static function is_primary_checkout_request(): bool {
-		if ( is_admin() || ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+	private static function is_storefront_payment_request(): bool {
+		if ( is_admin() ) {
 			return false;
 		}
 		if ( function_exists( 'is_wc_endpoint_url' ) && ( is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) ) {

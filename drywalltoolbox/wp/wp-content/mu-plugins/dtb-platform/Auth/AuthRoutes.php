@@ -160,13 +160,6 @@ function dtb_jwt_resolve_rest_user( $user_id ) {
 		return $user_id;
 	}
 
-	if (
-		function_exists( 'dtb_storefront_commerce_privileged_native_conflict' )
-		&& dtb_storefront_commerce_privileged_native_conflict()
-	) {
-		return false;
-	}
-
 	if ( dtb_jwt_is_wp_admin_rest_route() ) {
 		return $user_id;
 	}

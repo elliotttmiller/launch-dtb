@@ -113,7 +113,7 @@ Add behavior only within the owning module. Root compatibility files may delegat
 ## 5. System authorities
 
 - **WooCommerce** owns products, customers, Store API cart/session state, canonical checkout fields, addresses, shipping, tax, discounts, totals, storefront order creation, operational payment/order status, refunds, and saved payment-method records.
-- **Payment Plugins for Stripe WooCommerce** (`woo-stripe-payment`) owns Stripe card fields, Apple Pay, Google Pay, Link when enabled, Stripe-supported BNPL methods, Stripe Elements, tokenization, 3DS/SCA, payment confirmation/capture, and Stripe webhook synchronization into WooCommerce.
+- **Payment Plugins for Stripe WooCommerce** (`woo-stripe-payment`) owns the single `stripe_upm` Universal Payment Method gateway, its Stripe Payment Element, eligible cards, Apple Pay, Google Pay, Link when approved, Stripe-supported BNPL/local methods, tokenization, 3DS/SCA, payment confirmation/capture, and Stripe webhook synchronization into WooCommerce.
 - **Optional PayPal provider** owns PayPal only when separately installed, configured, reviewed, and validated. It must not introduce a second card authority or synthetic PayPal UI.
 - **DTB** owns native-checkout routing/runtime integration, readiness diagnostics, checkout field/domain policy, order tagging/observation, captured-payment gating, event ledger, queues, projections, repairs, returns, schematics, media, integrations, and operator workflows.
 - **Veeqo** owns sellable inventory, allocation, fulfillment, shipping labels, carrier execution, shipment status, and tracking.
@@ -144,6 +144,7 @@ Mandatory invariants:
 
 - WooCommerce Checkout Block creates storefront orders.
 - `woo-stripe-payment` is the only active storefront Stripe card/wallet authority.
+- `stripe_upm` is the only enabled Payment Plugins storefront gateway. Standalone `stripe_cc`, Apple Pay, Google Pay, Link, BNPL, and local-method gateways remain disabled; eligible methods render inside the one UPM Payment Element.
 - Do not run the WooCommerce Stripe Gateway or WooPayments simultaneously with `woo-stripe-payment` in production.
 - React never creates WooCommerce orders, PaymentIntents, Stripe Checkout Sessions, card fields, wallet tokens, provider iframes, or payment confirmations.
 - Do not copy or patch regular-plugin internals into DTB source. Use current documented provider hooks, WooCommerce contracts, and provider-owned settings.
@@ -185,7 +186,7 @@ Operator-owned migration steps include:
 - install and activate a reviewed current `woo-stripe-payment` release;
 - connect test and live Stripe accounts through the plugin's supported connection flow;
 - configure webhooks and verify delivery/signature handling;
-- configure card, Apple Pay, Google Pay, Link, BNPL, capture, order status, statement descriptor, saved methods, and payment sections;
+- create dedicated test and live Stripe Payment Method Configurations, configure the `stripe_upm` gateway, eligible card/wallet/BNPL/local methods, capture, order status, statement descriptor, and saved methods;
 - register/verify wallet domains where required;
 - validate provider-managed customer/token/subscription migration;
 - run checkout, webhook, refund, recovery, and downstream acceptance;
@@ -204,7 +205,7 @@ The active theme currently owns only a neutral checkout document shell. The prio
 - Native WooCommerce fields and provider surfaces remain mounted and authoritative.
 - Contact owns first name, last name, email, and optional phone.
 - Shipping owns address and shipping method.
-- Express Checkout contains only approved provider-owned methods and must not be duplicated in the lower payment-method list.
+- Payment contains one provider-owned UPM Payment Element; DTB must not mount or advertise a separate Express Checkout surface.
 - Theme code must not read, modify, reparent, clone, or replace cross-origin provider iframe content.
 - No duplicate fields, payment elements, payment state, wallet state, notices, or order submission controls.
 - Preserve keyboard navigation, focus visibility, screen-reader labels, browser autofill, saved addresses, validation/error discovery, reduced motion, forced colors, safe areas, and touch targets.

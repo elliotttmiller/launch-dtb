@@ -85,10 +85,6 @@ function dtb_oo_enqueue_assets( string $hook ): void {
 
     $settings = function_exists( 'dtb_oo_get_settings' ) ? dtb_oo_get_settings() : [];
 
-    // Attach dashboard CSS to a guaranteed admin style handle.
-    wp_enqueue_style( 'wp-admin' );
-    wp_add_inline_style( 'wp-admin', dtb_oo_inline_css() );
-
     // Attach dashboard JS to a guaranteed admin script handle.
     wp_enqueue_script( 'jquery' );
 

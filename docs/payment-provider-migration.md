@@ -30,11 +30,11 @@ React Store API cart
 - verifies the replacement plugin by its runtime constants, container function, base gateway class, and reflected plugin path;
 - exposes read-only non-secret checkout capabilities;
 - leaves Stripe Elements appearance entirely provider-owned during the neutral checkout reset;
-- limits the classic/provider-rendered Stripe Express Checkout collection to verified Apple Pay and Google Pay gateway instances;
-- relies on provider Payment Sections for Checkout Block placement, so the operator must assign Apple Pay/Google Pay to Express Checkout and disable Link Express Checkout;
+- enforces `stripe_upm` as the only Payment Plugins gateway on storefront payment requests;
+- suppresses standalone Payment Plugins card, wallet, BNPL, and local-method gateways whenever UPM is enabled;
 - tags new Checkout Block orders with `payment-plugins-stripe-v1`;
 - mirrors a non-secret payment reference only after WooCommerce reports a paid date and the selected gateway is verified as originating from `woo-stripe-payment`;
-- emits operator notices for missing/outdated provider versions, disabled card/wallet configuration, HTTPS/Checkout Block failures, and competing Stripe authorities.
+- emits operator notices for missing/outdated provider versions, disabled or unconfigured UPM, HTTPS/Checkout Block failures, and competing Stripe authorities.
 
 Historical orders keep the prior `woo-stripe-v1` / `woocommerce_stripe` evidence. The captured-payment gate accepts both historical and new provider contracts; no bulk metadata rewrite is required or permitted.
 
@@ -44,9 +44,9 @@ Provider-specific official-Stripe address/shipping shims and browser-header rate
 
 - The current theme shell loads no DTB checkout stylesheet, inline design override, loader, branded header, mobile wizard, or presentation controller.
 - WooCommerce Checkout Block provides the temporary desktop/mobile visual baseline pending a clean redesign.
-- Apple Pay and Google Pay are provider-owned express methods.
-- Link is excluded from the approved Express Checkout collection; it may be enabled only inside the provider's card/Payment Element configuration if approved.
-- Apple Pay and Google Pay must be assigned to the provider's **Express Checkout** payment section and removed from its ordinary **Checkout** payment section to avoid duplicate wallet rows.
+- The checkout contains one provider-owned `stripe_upm` Payment Element.
+- Cards, Apple Pay, Google Pay, approved Link, BNPL, and local methods may appear only inside that Payment Element when Stripe reports them eligible.
+- Standalone Payment Plugins gateways and a separate Express Checkout banner remain disabled to prevent duplicate payment surfaces.
 - Native provider/WooCommerce payment inputs remain the state authority. DTB must not replace or mirror payment state.
 
 ## PayPal boundary
@@ -98,24 +98,22 @@ The automatic migration claim is provider-owned behavior. Drywall Toolbox must v
 ### D. Provider settings
 
 - [ ] Set automatic capture unless a separately approved manual-capture workflow exists.
-- [ ] Enable **Credit Cards (Stripe)** (`stripe_cc`).
-- [ ] Select the approved Stripe form/Payment Element mode.
+- [ ] Create a dedicated test Payment Method Configuration for this WooCommerce store rather than using Stripe's default configuration.
+- [ ] Enable **Universal Payment Methods (Stripe)** (`stripe_upm`) as the only Payment Plugins storefront gateway.
+- [ ] Select the dedicated test Payment Method Configuration and begin with cards only.
+- [ ] Disable standalone Credit Cards, Apple Pay, Google Pay, Link, BNPL, and local-method Payment Plugins gateways.
 - [ ] Confirm saved payment methods are enabled only according to the privacy/account policy.
 - [ ] Configure statement descriptor, locale, order status, receipt, dispute, refund/cancellation, logging, and customer-creation settings.
 - [ ] Keep production logging at the minimum level needed for redacted operations.
 - [ ] Do not enable client-visible or log output containing API keys, client secrets, or payment payloads.
 
-### E. Express Checkout
+### E. UPM wallets and dynamic methods
 
-- [ ] Enable Apple Pay.
-- [ ] Set Apple Pay **Payment Sections** to **Express Checkout** only for checkout; remove ordinary Checkout placement to prevent a duplicate lower payment row.
-- [ ] Set the approved Apple Pay theme, height, radius, and button type.
-- [ ] Enable Google Pay.
-- [ ] Set Google Pay **Payment Sections** to **Express Checkout** only for checkout; remove ordinary Checkout placement to prevent a duplicate lower payment row.
-- [ ] Set the approved Google Pay theme, height, radius, and button type.
-- [ ] Disable Link Express Checkout. Enable Link inside the card element only if specifically approved.
+- [ ] Enable Apple Pay and Google Pay inside the dedicated UPM Payment Method Configuration only.
+- [ ] Enable Link inside UPM only if specifically approved.
+- [ ] Do not enable separate Express Checkout or standalone wallet gateways.
 - [ ] Register/verify the production payment-method domain in Stripe where required.
-- [ ] Confirm Apple Pay and Google Pay eligibility on supported real devices and browsers.
+- [ ] Confirm Stripe dynamically exposes Apple Pay and Google Pay inside UPM on supported real devices and browsers.
 
 ### F. BNPL and optional methods
 
@@ -134,7 +132,7 @@ The automatic migration claim is provider-owned behavior. Drywall Toolbox must v
 - [ ] Confirm the native WooCommerce Checkout Block baseline renders on desktop and mobile.
 - [ ] Confirm Contact contains first name, last name, email, and optional phone.
 - [ ] Confirm Shipping contains address and shipping methods.
-- [ ] Confirm Express Checkout is first and not duplicated below.
+- [ ] Confirm exactly one UPM Payment Element is present and no standalone card/wallet/payment rows are duplicated.
 - [ ] Confirm at least one WooCommerce/DTB shipping method exists for every supported destination.
 - [ ] Test no-rate destinations and address changes across multiple states/postcodes.
 - [ ] Verify tax, coupons, shipping, and totals recalculate authoritatively.

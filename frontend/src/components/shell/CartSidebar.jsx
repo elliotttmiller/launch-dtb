@@ -42,6 +42,13 @@ export default function CartSidebar({ isOpen, onClose }) {
             await refreshCart();
           },
           onBeforeNavigate: () => {
+            // This capture-phase handler prevents the cart sheet's link handler
+            // from running, so it must release focus before closing the sheet.
+            // Otherwise React applies aria-hidden/inert while the checkout link
+            // is still focused and Chromium blocks the accessibility-tree change.
+            if (anchor.contains(document.activeElement)) {
+              document.activeElement?.blur?.();
+            }
             onClose?.();
           },
         });

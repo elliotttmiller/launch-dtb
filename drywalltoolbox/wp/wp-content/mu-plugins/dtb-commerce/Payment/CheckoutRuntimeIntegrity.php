@@ -47,17 +47,8 @@ final class DTB_CheckoutRuntimeIntegrity {
 		'wc-blocks-checkout',
 		'wc-checkout-block-frontend',
 		'wc-stripe-checkout-modules',
-		'wc-stripe-credit-card',
-		'wc-stripe-block-credit-card',
-		'wc-stripe-applepay-checkout',
-		'wc-stripe-googlepay-checkout',
-		'wc-stripe-applepay-express-checkout',
-		'wc-stripe-googlepay-express-checkout',
-		'wc-stripe-apple-pay',
-		'wc-stripe-google-pay',
-		'wc-stripe-blocks-apple-pay',
-		'wc-stripe-blocks-googlepay',
-		'wc-stripe-link-checkout',
+		'wc-stripe-upm-checkout',
+		'wc-stripe-block-upm',
 	];
 
 	public static function register(): void {

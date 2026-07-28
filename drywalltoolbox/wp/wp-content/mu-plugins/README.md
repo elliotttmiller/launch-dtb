@@ -33,15 +33,20 @@ navigation, submenu presentation, content offsets, core page surfaces, and
 responsive admin chrome. The regular-plugin directory is operator-managed and is
 not part of the tracked MU-plugin deployment mirror.
 
-DTB admin assets may style only DTB-owned page content and interactive components.
-They must not globally skin WordPress/WooCommerce, reposition or scroll the core
-admin menu, replace toolbar/menu colors, hide core footer or Screen Options
-surfaces, or set backgrounds and offsets on `#wpwrap`, `#wpcontent`, `#wpbody`, or
-`#wpbody-content`. DTB body classes exist only as scoping hooks for DTB-owned
-components; they do not confer ownership of the surrounding admin shell.
-DTB-owned sticky panels and drawers consume BrikPanel's published
-`--bp-topbar-height` and `--brikpanel-sidebar-width` variables, with WordPress
-fallbacks, instead of hard-coding native admin-bar or sidebar dimensions.
+DTB does not enqueue an independent admin stylesheet layer. At the end of
+`admin_enqueue_scripts`, `dtb-platform/Admin/AdminAssets.php` removes styles
+registered from any `dtb-*` MU-plugin source and the legacy DTB font handle on
+every wp-admin screen. Functional DTB JavaScript remains available, but BrikPanel is
+the only runtime owner of typography, colors, spacing, surfaces, navigation,
+content offsets, and responsive admin chrome. Module markup may retain narrowly
+required state styles such as hidden controls or progress widths; it must not
+introduce a second admin theme or attach inline CSS to a WordPress core style
+handle.
+
+DTB body classes exist only as stable behavioral/scoping hooks and do not confer
+ownership of the surrounding admin shell. The source CSS files remain in the
+deployment mirror only as dormant legacy assets while tool markup is migrated;
+they are not part of the runtime style queue.
 
 Validate this boundary before deployment:
 
@@ -98,7 +103,7 @@ It owns:
 
 - runtime identity/version verification for `woo-stripe-payment`;
 - read-safe checkout capability/readiness metadata;
-- approved Express Checkout gateway filtering;
+- `stripe_upm`-only storefront gateway enforcement;
 - checkout contract tagging;
 - verified paid-lifecycle non-secret reference mirroring;
 - operator notices for missing/outdated provider, competing gateways, disabled payment methods, HTTPS, and Checkout Block readiness.
@@ -188,7 +193,7 @@ React cart / product handoff
 Authority rules:
 
 - WooCommerce owns cart/session/customer/address/shipping/tax/totals/order/refund and authoritative status.
-- `woo-stripe-payment` owns Stripe card/wallet/BNPL rendering, provider selection, tokenization, 3DS/SCA, confirmation/capture, and Stripe webhook synchronization.
+- `woo-stripe-payment` owns the single `stripe_upm` Payment Element, eligible card/wallet/BNPL/local-method rendering, provider selection, tokenization, 3DS/SCA, confirmation/capture, and Stripe webhook synchronization.
 - A separately installed PayPal provider owns PayPal only. It must not create another card authority.
 - React owns cart UX/handoff only and never renders payment fields/wallet iframes or creates payment/order objects.
 - Theme owns checkout shell/layout/styling/presentation behavior only.
@@ -246,8 +251,8 @@ Initial downstream processing dispatch remains protected by an atomic per-order 
 - Contact owns first name, last name, email, optional phone.
 - Shipping owns address and shipping method.
 - Payment owns provider selection and native Place Order.
-- Apple Pay/Google Pay belong in the provider's Express Checkout section and must not also render as lower payment rows.
-- Link is excluded from approved Express Checkout.
+- `stripe_upm` is the only storefront Payment Plugins gateway; standalone card, Apple Pay, Google Pay, Link, BNPL, and local-method gateways remain disabled.
+- Stripe determines eligible cards, wallets, BNPL, and local methods inside the one UPM Payment Element.
 - Provider/Woo native inputs remain focusable and state-authoritative.
 - No proxy fields, fake wallet/PayPal/BNPL controls, iframe mutation, duplicate payment state, or duplicate order action.
 

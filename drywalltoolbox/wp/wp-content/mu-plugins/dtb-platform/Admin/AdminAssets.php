@@ -4,7 +4,9 @@
  *
  * Responsible for:
  *  - Detecting current DTB admin page via AdminPageRegistry.
- *  - Enqueuing dtb-admin.css and dtb-admin.js only on DTB pages.
+ *  - Enqueuing DTB behavior scripts only on DTB pages.
+ *  - Removing DTB-owned admin styles so the active admin-theme plugin owns all
+ *    wp-admin presentation.
  *  - Conditionally loading ApexCharts on dashboard-template pages.
  *  - Localizing the dtbAdminConfig JS object.
  *
@@ -14,7 +16,32 @@
 defined( 'ABSPATH' ) || exit;
 
 add_action( 'admin_enqueue_scripts', 'dtb_admin_assets_enqueue' );
+add_action( 'admin_enqueue_scripts', 'dtb_admin_remove_custom_styles', PHP_INT_MAX );
 add_filter( 'admin_body_class', 'dtb_admin_assets_body_class' );
+
+/**
+ * Keep DTB admin behavior while delegating all wp-admin presentation to the
+ * active admin-theme plugin (BrikPanel in production).
+ *
+ * Several bounded modules register their own stylesheet handles. Removing by
+ * DTB MU-plugin source URL at the end of the enqueue phase creates one durable
+ * ownership boundary without coupling this repository to a regular plugin's
+ * implementation or handle names.
+ */
+function dtb_admin_remove_custom_styles(): void {
+	$styles = wp_styles();
+	foreach ( (array) $styles->queue as $handle ) {
+		$registered = $styles->registered[ $handle ] ?? null;
+		$source     = is_object( $registered ) ? (string) $registered->src : '';
+		$is_dtb_css = 'dtb-fonts' === $handle
+			|| false !== strpos( $source, '/mu-plugins/dtb-' );
+
+		if ( $is_dtb_css ) {
+			wp_dequeue_style( $handle );
+			wp_deregister_style( $handle );
+		}
+	}
+}
 
 function dtb_admin_assets_enqueue(): void {
 	$page_meta   = dtb_current_page_meta();

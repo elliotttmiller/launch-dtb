@@ -15,10 +15,10 @@ function asNonNegativeInteger(value) {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
-function findStripeCardGateway(capabilities) {
+function findStripeUpmGateway(capabilities) {
   const gateways = Array.isArray(capabilities?.gateways) ? capabilities.gateways : [];
-  return gateways.find((gateway) => gateway?.provider === 'payment_plugins_stripe' && gateway?.id === 'stripe_cc')
-    || gateways.find((gateway) => gateway?.id === 'stripe_cc')
+  return gateways.find((gateway) => gateway?.provider === 'payment_plugins_stripe' && gateway?.id === 'stripe_upm')
+    || gateways.find((gateway) => gateway?.id === 'stripe_upm')
     || null;
 }
 
@@ -27,11 +27,11 @@ function unavailableReasons(checks) {
     nativeCheckout: 'Native WooCommerce checkout is not ready.',
     paymentPluginsProvider: 'Payment Plugins for Stripe is not authoritative.',
     stripeExtensionActive: 'Payment Plugins for Stripe is not active.',
-    stripeGatewayEnabled: 'The Stripe card gateway is disabled.',
-    expressCheckoutEnabled: 'Apple Pay and Google Pay Express Checkout are disabled.',
+    upmGatewayEnabled: 'The Stripe Universal Payment Method gateway is disabled.',
+    upmConfigurationReady: 'A dedicated Stripe Payment Method Configuration has not been selected.',
     checkoutBlockReady: 'The WooCommerce Checkout Block is not configured.',
     https: 'HTTPS is required for wallet payments.',
-    gatewayEntryEnabled: 'The Payment Plugins Stripe card gateway is disabled.',
+    gatewayEntryEnabled: 'The Payment Plugins Universal Payment Method gateway is disabled.',
     noCompetingOfficialStripe: 'The retired WooCommerce Stripe Gateway is still active.',
     noCompetingWooPayments: 'WooPayments is enabled as a competing payment authority.',
     walletShippingReady: 'WooCommerce shipping is not ready for wallet address resolution.',
@@ -47,7 +47,7 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
   const readiness = capabilities?.readiness && typeof capabilities.readiness === 'object'
     ? capabilities.readiness
     : {};
-  const gateway = findStripeCardGateway(capabilities);
+  const gateway = findStripeUpmGateway(capabilities);
   const competingOfficialStripe = asBoolean(readiness.competing_official_stripe);
   const competingWooPayments = asBoolean(readiness.competing_woopayments);
   const shippingEnabled = asBoolean(readiness.shipping_enabled);
@@ -58,8 +58,8 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     nativeCheckout: capabilities?.checkout === 'woo_native_checkout_block',
     paymentPluginsProvider: capabilities?.provider === 'payment_plugins_stripe',
     stripeExtensionActive: asBoolean(readiness.stripe_extension_active),
-    stripeGatewayEnabled: asBoolean(readiness.stripe_gateway_enabled),
-    expressCheckoutEnabled: asBoolean(readiness.express_checkout_enabled),
+    upmGatewayEnabled: asBoolean(readiness.upm_gateway_enabled),
+    upmConfigurationReady: asBoolean(readiness.upm_configuration_ready),
     checkoutBlockReady: asBoolean(readiness.checkout_block),
     https: asBoolean(readiness.https),
     gatewayEntryEnabled: gateway ? asBoolean(gateway.enabled) : null,
@@ -72,8 +72,8 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     checks.nativeCheckout,
     checks.paymentPluginsProvider,
     checks.stripeExtensionActive,
-    checks.stripeGatewayEnabled,
-    checks.expressCheckoutEnabled,
+    checks.upmGatewayEnabled,
+    checks.upmConfigurationReady,
     checks.checkoutBlockReady,
     checks.https,
     checks.gatewayEntryEnabled,

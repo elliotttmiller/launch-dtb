@@ -151,9 +151,6 @@ function dtb_ops_enqueue_assets( string $hook ): void {
 		return;
 	}
 
-	wp_enqueue_style( 'wp-admin' );
-	wp_add_inline_style( 'wp-admin', dtb_ops_inline_css() );
-
 	wp_enqueue_script( 'jquery' );
 
 	$bootstrap = [

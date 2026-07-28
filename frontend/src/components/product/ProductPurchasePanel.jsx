@@ -33,7 +33,7 @@ export default function ProductPurchasePanel({
   const expressCheckoutDisabledReason = isOutOfStock
     ? 'This product is currently out of stock.'
     : needsVariation && !hasCompleteSelection
-      ? 'Select all required product options before using express checkout.'
+      ? 'Select all required product options before continuing to secure checkout.'
       : '';
 
   return (

@@ -33,13 +33,6 @@ function dtb_checkout_preserve_woo_session_during_identity_convergence( $user_id
 		return $user_id;
 	}
 
-	if (
-		function_exists( 'dtb_storefront_commerce_privileged_native_conflict' )
-		&& dtb_storefront_commerce_privileged_native_conflict()
-	) {
-		return false;
-	}
-
 	$native_user_id = ! empty( $user_id ) ? absint( $user_id ) : 0;
 	if ( $native_user_id > 0 ) {
 		$native_user = get_user_by( 'id', $native_user_id );

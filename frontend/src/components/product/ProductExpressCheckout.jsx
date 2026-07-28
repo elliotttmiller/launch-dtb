@@ -2,10 +2,6 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Zap } from 'lucide-react';
 import { getProductExpressCheckoutReadiness } from '../../api/checkoutCapabilities.js';
 import { useCart } from '../../context/CartContext';
-import {
-  clearExpressCheckoutHandoff,
-  requestExpressCheckoutHandoff,
-} from '../../utils/checkoutUrl.js';
 import { scheduleCheckoutPrewarm } from '../../utils/checkoutPrewarm.js';
 import '../../styles/product-express-checkout.css';
 
@@ -16,16 +12,14 @@ const DEFAULT_READINESS = Object.freeze({
   reasons: [],
 });
 
-const WALLET_LABELS = Object.freeze(['Apple Pay', 'Google Pay']);
-
 function readinessMessage(readiness) {
   if (readiness.state === 'ready') {
-    return 'Eligible wallet methods are presented and completed by Stripe on the secure checkout page.';
+    return 'Eligible payment methods are presented securely by Stripe on checkout.';
   }
   if (readiness.state === 'unavailable') {
-    return 'Express wallets are not available for the current store configuration. Standard secure checkout remains available.';
+    return 'Secure checkout is available, but the Stripe Universal Payment Method configuration needs attention.';
   }
-  return 'Eligible wallet methods are detected and presented securely by Stripe on checkout.';
+  return 'Stripe determines eligible cards, wallets, and payment methods on the secure checkout page.';
 }
 
 function busyMessage({ pending, isMutating }) {
@@ -66,7 +60,6 @@ export default function ProductExpressCheckout({
       return;
     }
     if (observedPendingRef.current) {
-      clearExpressCheckoutHandoff();
       clickLockedRef.current = false;
       observedPendingRef.current = false;
     }
@@ -74,13 +67,11 @@ export default function ProductExpressCheckout({
 
   useEffect(() => {
     if (!disabled) return;
-    clearExpressCheckoutHandoff();
     clickLockedRef.current = false;
   }, [disabled]);
 
   const busy = pending || isMutating;
   const blocked = disabled || busy;
-  const expressReady = readiness.state !== 'unavailable';
   const statusMessage = useMemo(() => {
     if (interactionError) return interactionError;
     if (disabled && disabledReason) return disabledReason;
@@ -94,40 +85,33 @@ export default function ProductExpressCheckout({
     clickLockedRef.current = true;
     setInteractionError('');
 
-    if (expressReady) requestExpressCheckoutHandoff();
-    else clearExpressCheckoutHandoff();
-
     try {
       const result = onExpressCheckout();
       if (result && typeof result.catch === 'function') {
         result.catch((error) => {
-          clearExpressCheckoutHandoff();
           clickLockedRef.current = false;
           setInteractionError(error?.message || 'Secure checkout could not be prepared. Please try again.');
         });
       }
     } catch (error) {
-      clearExpressCheckoutHandoff();
       clickLockedRef.current = false;
       setInteractionError(error?.message || 'Secure checkout could not be prepared. Please try again.');
     }
   };
 
-  const buttonLabel = readiness.state === 'unavailable'
-    ? 'Buy now securely'
-    : 'Buy now with express checkout';
+  const buttonLabel = 'Buy now securely';
   const activeButtonLabel = pending
     ? 'Preparing secure checkout…'
     : isMutating
       ? 'Updating cart…'
       : buttonLabel;
-  const dividerLabel = readiness.state === 'unavailable' ? 'Buy now' : 'Express checkout';
+  const dividerLabel = 'Secure checkout';
 
   return (
     <section
       className="dtb-product-express-checkout"
       data-readiness={readiness.state}
-      aria-label="Express checkout"
+      aria-label="Secure checkout"
     >
       <div className="dtb-product-express-checkout__divider" aria-hidden="true">
         <span>{dividerLabel}</span>
@@ -151,12 +135,6 @@ export default function ProductExpressCheckout({
         </span>
         <ArrowRight className="dtb-product-express-checkout__arrow" size={17} aria-hidden="true" />
       </button>
-
-      {expressReady ? (
-        <ul className="dtb-product-express-checkout__methods" aria-label="Eligible express payment methods may include">
-          {WALLET_LABELS.map((label) => <li key={label}>{label}</li>)}
-        </ul>
-      ) : null}
 
       <p
         id={descriptionId}

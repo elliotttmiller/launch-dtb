@@ -1,4 +1,4 @@
-# Product Express Checkout
+# Product Secure Checkout Handoff
 
 Last verified against active source: 2026-07-28.
 
@@ -6,20 +6,20 @@ Last verified against active source: 2026-07-28.
 
 Drywall Toolbox product pages and quick-view modals are React surfaces. They are not native WordPress product queries, so WordPress conditional tags such as `is_product()`, `is_shop()`, and `has_term()` are not authoritative for controls rendered inside those React views.
 
-Payment Plugins for Stripe WooCommerce (`woo-stripe-payment`) is the sole Stripe payment and wallet authority. React must not create a Stripe Express Checkout Element, PaymentIntent, Checkout Session, confirmation token, wallet button, card field, or provider iframe. The replacement plugin owns:
+Payment Plugins for Stripe WooCommerce (`woo-stripe-payment`) is the sole Stripe payment authority through its `stripe_upm` gateway. React must not create a Stripe Express Checkout Element, PaymentIntent, Checkout Session, confirmation token, wallet button, card field, or provider iframe. The replacement plugin owns:
 
 - Apple Pay and Google Pay eligibility and rendering;
 - Stripe-supported Link and BNPL methods when enabled in approved provider locations;
 - provider-owned address, shipping, amount, and line-item synchronization;
 - tokenization, confirmation, cancellation, authentication, capture, and webhook synchronization.
 
-The wallet labels rendered on React product surfaces are informational only. They do not claim that a wallet is available on the shopper's current browser/device. The provider performs final eligibility checks at native checkout.
+React product surfaces advertise only secure checkout, not individual wallets. Stripe performs final payment-method eligibility inside UPM at native checkout.
 
 PayPal is not supplied by `woo-stripe-payment`. A real PayPal control requires a separately installed and reviewed PayPal plugin. DTB must never render a synthetic PayPal button or route PayPal through Stripe.
 
 ## Product-page flow
 
-Both the full product page and product modal render the shared purchase panel and express handoff.
+Both the full product page and product modal render the shared purchase panel and secure checkout handoff.
 
 ```text
 Selected product / variation / quantity
@@ -27,16 +27,16 @@ Selected product / variation / quantity
   -> ProductExpressCheckout
   -> serialized WooCommerce Store API add-to-cart mutation
   -> authoritative cart/session response
-  -> full-document navigation to /checkout/?dtb_express=1
+  -> full-document navigation to /checkout/
   -> native WooCommerce Checkout Block
-  -> Payment Plugins for Stripe Express Checkout surface
+  -> one Payment Plugins `stripe_upm` Payment Element
   -> WooCommerce shipping, tax, order, and payment lifecycle
   -> DTB verified captured-payment gate, event ledger, and queues
 ```
 
 The action is single-flight and disabled while cart mutation or checkout handoff is active, preventing duplicate add-to-cart and navigation attempts.
 
-The `dtb_express` value is short-lived presentation metadata only. The native checkout script waits for a provider-owned express surface, brings it into view, and removes the marker from the URL. It never changes totals, shipping, payment state, or submission behavior. If the provider surface does not become ready within the bounded timeout, the handoff fails open to ordinary native checkout.
+The handoff contains no payment-method preference. UPM and Stripe determine eligible cards, wallets, BNPL, and local methods only after native checkout loads.
 
 ## Provider migration boundary
 
@@ -50,8 +50,8 @@ WooCommerce and `DTB_Shipping_Method` remain authoritative for shipping packages
 
 - native WooCommerce Checkout Block ownership;
 - Payment Plugins for Stripe runtime and minimum version;
-- enabled `stripe_cc` card gateway;
-- Apple Pay and/or Google Pay Express Checkout configuration;
+- enabled `stripe_upm` gateway;
+- a selected dedicated Stripe Payment Method Configuration;
 - HTTPS;
 - absence of the retired WooCommerce Stripe Gateway and WooPayments as competing card/wallet authorities;
 - WooCommerce shipping-method and allowed-country readiness;
@@ -63,13 +63,13 @@ An explicit failed check changes the product control to a standard secure Buy No
 
 The native checkout currently uses the unmodified WooCommerce Checkout Block visual baseline. The prior DTB checkout stylesheet, mobile wizard, loader, header treatment, and express-focus controller are removed pending a clean redesign.
 
-The product express handoff still:
+The product checkout handoff:
 
-- uses provider-owned Apple Pay and Google Pay controls only;
-- excludes Link from the approved Express Checkout collection;
-- allows an independently installed PayPal provider to supply a real third express control, but never creates one;
+- exposes no standalone payment or wallet controls;
+- allows only the provider-owned UPM Payment Element at checkout;
+- allows an independently installed PayPal provider only after a separate architecture decision, but never creates a synthetic control;
 - preserves native WooCommerce contact/address/shipping/payment controls;
-- removes duplicate wallet/payment rows by requiring Apple Pay/Google Pay to use the provider's Express Checkout section rather than its ordinary Checkout section;
+- removes duplicate wallet/payment rows by disabling all standalone Payment Plugins gateways;
 - never reads or modifies cross-origin provider iframe contents.
 
 The complete presentation contract is in `docs/checkout-ui-architecture.md`. The provider cutover and operator checklist are in `docs/payment-provider-migration.md`.
@@ -82,10 +82,10 @@ Before production acceptance:
 - deactivate the prior WooCommerce Stripe Gateway and WooPayments;
 - connect the correct test/live Stripe account through the provider's supported flow;
 - configure and verify the provider webhook endpoint;
-- enable `stripe_cc` with automatic capture unless a separate capture workflow is approved;
-- enable Apple Pay and Google Pay;
-- assign Apple Pay and Google Pay to **Express Checkout** for checkout and remove their ordinary Checkout placement to avoid duplicates;
-- disable Link Express Checkout; enable Link inside the card element only when explicitly approved;
+- enable `stripe_upm` with automatic capture unless a separate capture workflow is approved;
+- create and select dedicated test and live Payment Method Configurations;
+- enable approved cards, Apple Pay, Google Pay, Link, BNPL, and local methods inside UPM only;
+- disable every standalone Payment Plugins payment gateway;
 - configure only approved Stripe BNPL methods and test eligibility/redirect/refund behavior;
 - verify production payment-method domain registration and HTTPS;
 - confirm every supported shipping destination has an enabled WooCommerce/DTB rate;
