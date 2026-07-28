@@ -6,7 +6,8 @@
  * options, wallet events, shipping-address collection, shipping-rate selection,
  * amount updates, confirmation, and cancellation. This boundary only ensures a
  * verified wallet address update cannot reuse a stale WooCommerce package-rate
- * cache and records redacted diagnostics when WooCommerce still returns no rate.
+ * cache, exposes non-secret readiness metadata, and records redacted diagnostics
+ * when WooCommerce still returns no rate.
  *
  * @package drywall-toolbox
  */
@@ -17,6 +18,7 @@ final class DTB_ExpressCheckoutShippingReadiness {
 	private const EXPRESS_HEADER       = 'x-wcstripe-express-checkout';
 	private const EXPRESS_NONCE_HEADER = 'x-wcstripe-express-checkout-nonce';
 	private const EXPRESS_NONCE_ACTION = 'wc_store_api_express_checkout';
+	private const CAPABILITIES_ROUTE   = '/dtb/v1/checkout/capabilities';
 
 	/** @var array<int,string> */
 	private const ADDRESS_UPDATE_ROUTES = [
@@ -35,6 +37,8 @@ final class DTB_ExpressCheckoutShippingReadiness {
 	public static function register(): void {
 		add_filter( 'rest_pre_dispatch', [ __CLASS__, 'prepare_address_update' ], 8, 3 );
 		add_filter( 'rest_request_after_callbacks', [ __CLASS__, 'observe_shipping_response' ], 30, 3 );
+		add_filter( 'rest_post_dispatch', [ __CLASS__, 'append_capabilities' ], 20, 3 );
+		add_action( 'admin_notices', [ __CLASS__, 'admin_notice' ] );
 	}
 
 	/**
@@ -121,6 +125,70 @@ final class DTB_ExpressCheckoutShippingReadiness {
 		return $response;
 	}
 
+	/**
+	 * Add public, non-secret Express Checkout settings to the existing readiness
+	 * response so the React product UI can fail open without claiming wallets are
+	 * configured when the official gateway has disabled them.
+	 *
+	 * @param mixed           $response REST response.
+	 * @param WP_REST_Server  $server   REST server instance.
+	 * @param WP_REST_Request $request  REST request.
+	 * @return mixed
+	 */
+	public static function append_capabilities( $response, WP_REST_Server $server, WP_REST_Request $request ) {
+		unset( $server );
+
+		if ( self::CAPABILITIES_ROUTE !== $request->get_route() || ! $response instanceof WP_REST_Response ) {
+			return $response;
+		}
+
+		$data = $response->get_data();
+		if ( ! is_array( $data ) ) {
+			return $response;
+		}
+
+		$gateway   = self::main_gateway();
+		$locations = self::gateway_option_values(
+			$gateway,
+			'express_checkout_button_locations',
+			[ 'product', 'cart', 'checkout' ]
+		);
+		$readiness = isset( $data['readiness'] ) && is_array( $data['readiness'] ) ? $data['readiness'] : [];
+
+		$readiness['express_checkout_enabled']           = self::gateway_option_enabled( $gateway, 'express_checkout' );
+		$readiness['express_checkout_checkout_location'] = in_array( 'checkout', $locations, true );
+		$readiness['express_checkout_product_location']  = in_array( 'product', $locations, true );
+		$readiness['express_checkout_locations']         = $locations;
+		$data['readiness']                               = $readiness;
+
+		$response->set_data( $data );
+		return $response;
+	}
+
+	public static function admin_notice(): void {
+		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) || ! defined( 'WC_STRIPE_VERSION' ) ) {
+			return;
+		}
+
+		$gateway = self::main_gateway();
+		if ( ! is_object( $gateway ) || ! isset( $gateway->enabled ) || 'yes' !== (string) $gateway->enabled ) {
+			return;
+		}
+
+		$locations = self::gateway_option_values(
+			$gateway,
+			'express_checkout_button_locations',
+			[ 'product', 'cart', 'checkout' ]
+		);
+		if ( self::gateway_option_enabled( $gateway, 'express_checkout' ) && in_array( 'checkout', $locations, true ) ) {
+			return;
+		}
+
+		echo '<div class="notice notice-warning"><p>'
+			. esc_html__( 'Drywall Toolbox product express checkout handoff requires Stripe Express Checkout Buttons to be enabled for the Checkout location. Update WooCommerce Stripe payment-method settings before production wallet testing.', 'drywall-toolbox' )
+			. '</p></div>';
+	}
+
 	private static function is_verified_request( WP_REST_Request $request ): bool {
 		$route = $request->get_route();
 		if ( ! str_starts_with( $route, '/wc/store/v1/cart' )
@@ -164,6 +232,44 @@ final class DTB_ExpressCheckoutShippingReadiness {
 			}
 		}
 		return $count;
+	}
+
+	/** @return object|null */
+	private static function main_gateway() {
+		if ( ! function_exists( 'WC' ) || ! WC() || ! WC()->payment_gateways() ) {
+			return null;
+		}
+
+		$gateways = WC()->payment_gateways()->payment_gateways();
+		return is_array( $gateways ) && isset( $gateways['stripe'] ) && is_object( $gateways['stripe'] )
+			? $gateways['stripe']
+			: null;
+	}
+
+	private static function gateway_option_enabled( $gateway, string $option ): bool {
+		if ( ! is_object( $gateway ) || ! method_exists( $gateway, 'get_option' ) ) {
+			return false;
+		}
+
+		return 'yes' === (string) $gateway->get_option( sanitize_key( $option ), 'no' );
+	}
+
+	/** @param array<int,string> $fallback @return array<int,string> */
+	private static function gateway_option_values( $gateway, string $option, array $fallback = [] ): array {
+		if ( ! is_object( $gateway ) || ! method_exists( $gateway, 'get_option' ) ) {
+			return [];
+		}
+
+		$value = $gateway->get_option( sanitize_key( $option ), $fallback );
+		if ( ! is_array( $value ) ) {
+			$value = '' !== trim( (string) $value ) ? [ $value ] : [];
+		}
+
+		return array_values(
+			array_unique(
+				array_filter( array_map( static fn ( $item ): string => sanitize_key( (string) $item ), $value ) )
+			)
+		);
 	}
 
 	/** @param array<string,mixed> $context */
