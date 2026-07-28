@@ -3,7 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutPaymentLifecycle {
-	/** @var array<int, bool> */
+	/** @var array<int,bool> */
 	private static array $reconciling = [];
 
 	public static function register(): void {
@@ -18,23 +18,14 @@ final class DTB_CheckoutPaymentLifecycle {
 		add_action( 'woocommerce_order_status_refunded', [ __CLASS__, 'refunded' ], 20 );
 	}
 
-	/**
-	 * Reconcile the authoritative Store API order after WooCommerce and the selected
-	 * payment gateway have completed checkout processing.
-	 *
-	 * @param mixed $order Store API order object.
-	 */
+	/** @param mixed $order Store API order object. */
 	public static function reconcile_store_api_order( $order ): void {
 		if ( $order instanceof WC_Order ) {
 			self::reconcile_captured_payment( $order, 'store-api-checkout-processed' );
 		}
 	}
 
-	/**
-	 * Repair a paid Stripe order that was left in an unpaid WooCommerce status.
-	 *
-	 * @param mixed $order_id WooCommerce order ID.
-	 */
+	/** @param mixed $order_id WooCommerce order ID. */
 	public static function reconcile_order_status( $order_id ): void {
 		$order = wc_get_order( (int) $order_id );
 		if ( $order instanceof WC_Order ) {
@@ -44,28 +35,24 @@ final class DTB_CheckoutPaymentLifecycle {
 
 	public static function complete( $order_id ): void {
 		$order = wc_get_order( (int) $order_id );
-		if ( ! $order instanceof WC_Order || ! self::is_verified( $order ) ) {
-			return;
+		if ( $order instanceof WC_Order && self::is_verified( $order ) ) {
+			self::record( $order, 'payment_completed' );
 		}
-		self::record( $order, 'payment_completed' );
 	}
 
 	public static function processing( $order_id ): void {
 		$order = wc_get_order( (int) $order_id );
-		if ( ! $order instanceof WC_Order || ! self::is_verified( $order ) ) {
-			return;
+		if ( $order instanceof WC_Order && self::is_verified( $order ) ) {
+			// Authorization-only Stripe orders do not pass the captured-payment gate.
+			self::record( $order, 'payment_confirmed' );
 		}
-		// Processing is observed only after the captured-payment gate passes. Do not
-		// call this "authorized"; authorization-only Stripe orders are not fulfillable.
-		self::record( $order, 'payment_confirmed' );
 	}
 
 	public static function completed( $order_id ): void {
 		$order = wc_get_order( (int) $order_id );
-		if ( ! $order instanceof WC_Order || ! self::is_verified( $order ) ) {
-			return;
+		if ( $order instanceof WC_Order && self::is_verified( $order ) ) {
+			self::record( $order, 'payment_completed' );
 		}
-		self::record( $order, 'payment_completed' );
 	}
 
 	public static function failed( $order_id ): void {
@@ -94,25 +81,25 @@ final class DTB_CheckoutPaymentLifecycle {
 		$status   = sanitize_key( (string) $order->get_status() );
 
 		if (
-			$order_id <= 0 ||
-			isset( self::$reconciling[ $order_id ] ) ||
-			! self::is_dtb_checkout_order( $order ) ||
-			(float) $order->get_total() <= 0 ||
-			! in_array( $status, [ 'pending', 'on-hold' ], true )
+			$order_id <= 0
+			|| isset( self::$reconciling[ $order_id ] )
+			|| ! self::is_dtb_checkout_order( $order )
+			|| (float) $order->get_total() <= 0
+			|| ! in_array( $status, [ 'pending', 'on-hold' ], true )
 		) {
 			return;
 		}
 
 		/*
-		 * Mirror only provider-verified, non-secret Stripe evidence. This method does
-		 * not trust a checkout redirect, browser flag, raw gateway prefix, or DTB
-		 * metadata supplied before WooCommerce records a paid date and reference.
+		 * Ask the active adapter to mirror provider-verified, non-secret evidence.
+		 * This does not trust redirects, browser flags, raw gateway prefixes, or DTB
+		 * metadata written before WooCommerce records paid state and a reference.
 		 */
 		if (
-			class_exists( 'DTB_OfficialStripeNativeCheckout' ) &&
-			is_callable( [ 'DTB_OfficialStripeNativeCheckout', 'mirror_verified_stripe_payment' ] )
+			class_exists( 'DTB_PaymentPluginsStripeNativeCheckout' )
+			&& is_callable( [ 'DTB_PaymentPluginsStripeNativeCheckout', 'mirror_verified_stripe_payment' ] )
 		) {
-			DTB_OfficialStripeNativeCheckout::mirror_verified_stripe_payment( $order_id );
+			DTB_PaymentPluginsStripeNativeCheckout::mirror_verified_stripe_payment( $order_id );
 		}
 
 		$order = wc_get_order( $order_id );
@@ -132,11 +119,9 @@ final class DTB_CheckoutPaymentLifecycle {
 		$before_status                  = sanitize_key( (string) $order->get_status() );
 
 		try {
-			/* WooCommerce remains the status authority and determines processing versus
-			 * completed from the order contents. Its normal hooks retain exactly-once
-			 * event and downstream queue behavior. */
+			// WooCommerce remains status authority and emits the normal idempotent hooks.
 			$order->payment_complete( $reference );
-			$reconciled = wc_get_order( $order_id );
+			$reconciled  = wc_get_order( $order_id );
 			$after_status = $reconciled instanceof WC_Order
 				? sanitize_key( (string) $reconciled->get_status() )
 				: $before_status;
@@ -175,9 +160,9 @@ final class DTB_CheckoutPaymentLifecycle {
 				'visibility'      => 'internal',
 				'idempotency_key' => 'payment-status-reconciled:' . $order_id,
 				'payload'         => [
-					'trigger'        => sanitize_key( $source ),
-					'before_status'  => sanitize_key( $before_status ),
-					'after_status'   => sanitize_key( $after_status ),
+					'trigger'         => sanitize_key( $source ),
+					'before_status'   => sanitize_key( $before_status ),
+					'after_status'    => sanitize_key( $after_status ),
 					'event_timestamp' => gmdate( 'c' ),
 				],
 			]
@@ -196,17 +181,9 @@ final class DTB_CheckoutPaymentLifecycle {
 				]
 			);
 		}
-
 		self::alert_reconciliation_warning( $order_id, $source, $status );
 	}
 
-	/**
-	 * Notify an operator that a captured payment is stuck unfulfillable. This is the
-	 * exact failure mode payment reconciliation exists to catch, so it must not be
-	 * discoverable only by someone reading logs or manually running the health
-	 * monitor. Deduped per order via a transient so a flapping order status can't
-	 * flood the inbox.
-	 */
 	private static function alert_reconciliation_warning( int $order_id, string $source, string $status ): void {
 		if ( ! function_exists( 'dtb_send_email' ) ) {
 			return;
@@ -227,24 +204,12 @@ final class DTB_CheckoutPaymentLifecycle {
 		$site_name      = sanitize_text_field( (string) get_bloginfo( 'name' ) );
 		$site_name      = '' !== $site_name ? $site_name : 'Drywall Toolbox';
 
-		/**
-		 * Subject line for the payment-reconciliation alert email.
-		 *
-		 * @param string $subject
-		 * @param int    $order_id
-		 */
 		$subject = (string) apply_filters(
 			'dtb_checkout_reconciliation_alert_subject',
 			sprintf( '[%s] Order #%d: captured payment stuck unfulfillable', $site_name, $order_id ),
 			$order_id
 		);
 
-		/**
-		 * Message body for the payment-reconciliation alert email.
-		 *
-		 * @param string $message
-		 * @param int    $order_id
-		 */
 		$message = (string) apply_filters(
 			'dtb_checkout_reconciliation_alert_message',
 			sprintf(
