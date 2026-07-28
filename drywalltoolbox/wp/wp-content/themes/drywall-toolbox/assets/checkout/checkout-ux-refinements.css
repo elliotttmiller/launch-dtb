@@ -1,0 +1,49 @@
+/*
+ * Final checkout UX refinements.
+ *
+ * This layer intentionally contains presentation-only adjustments that must win
+ * after the responsive checkout stack. It does not create checkout controls,
+ * payment surfaces, totals, or order state.
+ */
+
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control:not(.is-dtb-single-gateway) {
+  overflow: hidden !important;
+  border: 1px solid var(--dtb-ui-border, var(--dtb-checkout-line)) !important;
+  border-radius: var(--dtb-ui-radius-lg, 18px) !important;
+  background: #ffffff !important;
+  box-shadow: var(--dtb-ui-shadow, 0 10px 30px rgba(16, 24, 40, 0.06)) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control.is-dtb-single-gateway {
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set {
+  overflow: hidden !important;
+  border: 1px solid var(--dtb-ui-border, var(--dtb-checkout-line)) !important;
+  border-radius: var(--dtb-ui-radius-lg, 18px) !important;
+  background: var(--dtb-ui-soft-blue, #f5f8ff) !important;
+  box-shadow: var(--dtb-ui-shadow, 0 10px 30px rgba(16, 24, 40, 0.06)) !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-item {
+  min-height: 40px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+}
+
+body.dtb-official-stripe-checkout .wc-block-components-totals-footer-item {
+  min-height: 60px !important;
+  margin-top: 4px !important;
+  padding-top: 10px !important;
+  border-top: 1px solid var(--dtb-checkout-line) !important;
+}
+
+body.dtb-official-stripe-checkout [data-dtb-express-entry] {
+  scroll-margin-block: 24px;
+}

@@ -234,29 +234,6 @@
 		return nodes.find( ( node ) => node.closest( '.wc-block-components-sidebar, .wc-block-checkout__sidebar' ) ) || nodes[ 0 ] || null;
 	}
 
-	const confidenceItems = [
-		'Secure Stripe Checkout',
-		'Free Shipping',
-		'Live Order Tracking',
-		'Authorized Dealer',
-	];
-
-	/**
-	 * A minimal, read-only trust panel placed directly above Place Order.
-	 * Purely presentational — no cart/order/payment data is read or written.
-	 */
-	function renderPurchaseConfidence() {
-		const actions = document.querySelector( '.wp-block-woocommerce-checkout-actions-block' );
-		if ( ! actions || actions.querySelector( '[data-dtb-purchase-confidence]' ) ) return;
-
-		const panel = document.createElement( 'ul' );
-		panel.className = 'dtb-purchase-confidence';
-		panel.dataset.dtbPurchaseConfidence = '1';
-		panel.setAttribute( 'aria-label', 'Purchase confidence' );
-		panel.innerHTML = confidenceItems.map( ( item ) => `<li>${ item }</li>` ).join( '' );
-		actions.insertBefore( panel, actions.firstChild );
-	}
-
 	/*
 	 * This panel intentionally shows only the shipping destination — the native
 	 * WooCommerce order-summary totals (below) already render the authoritative

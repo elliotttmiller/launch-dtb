@@ -1,4 +1,5 @@
-import { LockKeyhole, Minus, Plus, ShoppingCart } from 'lucide-react';
+import { Minus, Plus, ShoppingCart } from 'lucide-react';
+import ProductExpressCheckout from './ProductExpressCheckout.jsx';
 
 export default function ProductPurchasePanel({
   quantity,
@@ -23,20 +24,29 @@ export default function ProductPurchasePanel({
   };
 
   const addToCartPending = addToCartState === 'adding' || addToCartState === 'added';
+  const purchaseBusy = addToCartPending || isExpressCheckoutPending;
   const addToCartLabel = isOutOfStock
-        ? 'Out of Stock'
-        : needsVariation && !hasCompleteSelection
-          ? 'Select Options'
-          : 'Add to Cart';
+    ? 'Out of Stock'
+    : needsVariation && !hasCompleteSelection
+      ? 'Select Options'
+      : 'Add to Cart';
+  const expressCheckoutDisabledReason = isOutOfStock
+    ? 'This product is currently out of stock.'
+    : needsVariation && !hasCompleteSelection
+      ? 'Select all required product options before using express checkout.'
+      : '';
 
   return (
-    <div className="product-detail-purchase-panel dtb-pdp-purchase-panel">
+    <div
+      className="product-detail-purchase-panel dtb-pdp-purchase-panel"
+      aria-busy={purchaseBusy}
+    >
       <div className="dtb-pdp-purchase-row">
         <div className="dtb-pdp-qty-root" role="group" aria-label="Quantity">
           <button
             type="button"
             onClick={onDecrease}
-            disabled={quantity <= 1}
+            disabled={purchaseBusy || quantity <= 1}
             className="dtb-pdp-qty-btn"
             aria-label="Decrease quantity"
           >
@@ -49,12 +59,13 @@ export default function ProductPurchasePanel({
             min={1}
             max={99}
             onChange={handleInputChange}
+            disabled={purchaseBusy}
             aria-label="Quantity"
           />
           <button
             type="button"
             onClick={onIncrease}
-            disabled={quantity >= 99}
+            disabled={purchaseBusy || quantity >= 99}
             className="dtb-pdp-qty-btn"
             aria-label="Increase quantity"
           >
@@ -65,7 +76,7 @@ export default function ProductPurchasePanel({
         <button
           type="button"
           onClick={onAddToCart}
-          disabled={!canAddToCart || addToCartPending}
+          disabled={!canAddToCart || purchaseBusy}
           className={`dtb-pdp-add-to-cart is-${addToCartState}`}
           data-dtb-cart-action="add"
           data-dtb-cart-feedback-mode="controlled"
@@ -89,20 +100,12 @@ export default function ProductPurchasePanel({
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onExpressCheckout}
-        disabled={!canExpressCheckout || isExpressCheckoutPending}
-        className="dtb-pdp-express-checkout"
-      >
-        <LockKeyhole size={15} aria-hidden="true" />
-        <span aria-live="polite">
-          {isExpressCheckoutPending ? 'Preparing secure checkout…' : 'Buy now'}
-        </span>
-      </button>
-      <p className="dtb-pdp-express-checkout__note">
-        Eligible express payment methods are shown securely at checkout.
-      </p>
+      <ProductExpressCheckout
+        onExpressCheckout={onExpressCheckout}
+        pending={isExpressCheckoutPending}
+        disabled={!canExpressCheckout || addToCartPending}
+        disabledReason={expressCheckoutDisabledReason}
+      />
     </div>
   );
 }

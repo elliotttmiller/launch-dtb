@@ -35,8 +35,8 @@ wp_enqueue_style(
  * Theme presentation is intentionally one ordered stack: base design -> wrapper
  * refinements -> desktop redesign -> responsive flow -> live context -> contact
  * presentation -> narrow payment interaction hardening -> failed-payment recovery
- * -> final mobile redesign. No theme asset creates or replaces payment controls or
- * owns checkout submit or business persistence.
+ * -> mobile redesign -> final UX refinements. No theme asset creates or replaces
+ * payment controls or owns checkout submit or business persistence.
  */
 wp_enqueue_style(
 	'dtb-checkout-theme',
@@ -92,8 +92,14 @@ wp_enqueue_style(
 	[ 'dtb-checkout-theme-payment-failure' ],
 	$asset_version( 'assets/checkout/checkout-mobile-redesign.css' )
 );
+wp_enqueue_style(
+	'dtb-checkout-theme-ux-refinements',
+	$theme_uri . '/assets/checkout/checkout-ux-refinements.css',
+	[ 'dtb-checkout-theme-mobile-redesign' ],
+	$asset_version( 'assets/checkout/checkout-ux-refinements.css' )
+);
 wp_add_inline_style(
-	'dtb-checkout-theme-mobile-redesign',
+	'dtb-checkout-theme-ux-refinements',
 	'body.dtb-official-stripe-checkout,body.dtb-official-stripe-checkout *{font-family:"Nunito",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}body.dtb-official-stripe-checkout{font-optical-sizing:auto;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}'
 );
 
@@ -109,6 +115,13 @@ wp_enqueue_script(
 	$theme_uri . '/assets/checkout/checkout-ui.js',
 	[ 'dtb-checkout-theme-boot', 'wp-data', 'wc-blocks-data-store' ],
 	$asset_version( 'assets/checkout/checkout-ui.js' ),
+	true
+);
+wp_enqueue_script(
+	'dtb-checkout-theme-express-entry',
+	$theme_uri . '/assets/checkout/checkout-express-entry.js',
+	[ 'dtb-checkout-theme-ui' ],
+	$asset_version( 'assets/checkout/checkout-express-entry.js' ),
 	true
 );
 wp_enqueue_script(

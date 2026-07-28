@@ -574,22 +574,20 @@ body.dtb-official-stripe-checkout .wc-block-components-express-payment-continue-
 body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
 body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control {
   overflow: hidden;
-  border: 1px solid var(--dtb-ui-border, var(--dtb-checkout-line));
-  border-radius: var(--dtb-ui-radius-lg, 18px);
+  border: 1px solid var(--dtb-checkout-line);
+  border-radius: 4px;
   background: #ffffff;
-  box-shadow: var(--dtb-ui-shadow, 0 10px 30px rgba(16, 24, 40, 0.06));
 }
 body.dtb-official-stripe-checkout .wc-block-checkout__payment-method .wc-block-components-radio-control.is-dtb-single-gateway {
   overflow: visible;
   border: 0;
   border-radius: 0;
   background: transparent;
-  box-shadow: none;
 }
 body.dtb-official-stripe-checkout .wc-block-components-payment-methods.is-dtb-single-gateway-set {
   overflow: hidden;
   border: 1px solid var(--dtb-ui-border, var(--dtb-checkout-line));
-  border-radius: var(--dtb-ui-radius-lg, 18px);
+  border-radius: var(--dtb-ui-radius, 14px);
   background: var(--dtb-ui-soft-blue, #f5f8ff);
   box-shadow: var(--dtb-ui-shadow, 0 10px 30px rgba(16, 24, 40, 0.06));
 }
@@ -692,31 +690,6 @@ body.dtb-official-stripe-checkout .wc-block-components-payment-methods {
 body.dtb-official-stripe-checkout .wc-block-checkout__terms,
 body.dtb-official-stripe-checkout .wc-block-checkout__actions {
   margin-top: 18px;
-}
-body.dtb-official-stripe-checkout .dtb-purchase-confidence {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 0 0 16px;
-  padding: 0;
-  list-style: none;
-  gap: 8px 18px;
-}
-body.dtb-official-stripe-checkout .dtb-purchase-confidence li {
-  position: relative;
-  padding-left: 20px;
-  color: var(--dtb-checkout-muted);
-  font-size: 12.5px;
-  font-weight: 620;
-  letter-spacing: -0.006em;
-  line-height: 1.4;
-}
-body.dtb-official-stripe-checkout .dtb-purchase-confidence li::before {
-  position: absolute;
-  left: 0;
-  top: 0;
-  color: var(--dtb-checkout-success);
-  content: "\2713";
-  font-weight: 800;
 }
 body.dtb-official-stripe-checkout .wc-block-checkout__terms {
   color: var(--dtb-checkout-muted);
@@ -870,8 +843,8 @@ body.dtb-official-stripe-checkout .wc-block-components-totals-wrapper {
   border-top: 1px solid var(--dtb-checkout-line);
 }
 body.dtb-official-stripe-checkout .wc-block-components-totals-item {
-  min-height: 40px;
-  padding: 9px 0;
+  min-height: 48px;
+  padding: 12px 0;
   color: var(--dtb-checkout-copy);
   font-size: 14px;
 }
@@ -891,10 +864,7 @@ body.dtb-official-stripe-checkout .wc-block-components-totals-item__value {
   font-weight: 560;
 }
 body.dtb-official-stripe-checkout .wc-block-components-totals-footer-item {
-  min-height: 60px;
-  margin-top: 4px;
-  padding-top: 10px;
-  border-top: 1px solid var(--dtb-checkout-line);
+  min-height: 72px;
   color: var(--dtb-checkout-ink);
 }
 body.dtb-official-stripe-checkout .wc-block-components-totals-coupon-link {
