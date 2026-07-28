@@ -113,9 +113,18 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 		return false;
 	}
 
-	if ( ! headers_sent() ) {
-		wp_set_auth_cookie( $resolved, false, is_ssl() );
+	if ( headers_sent() ) {
+		/*
+		 * Without the auth cookie the browser never receives the login, so setting
+		 * current_user/firing wp_login here would only bridge this single request
+		 * and leave the browser back on anonymous on the very next one — a
+		 * misleading partial-bridge state. Stay anonymous instead.
+		 */
+		dtb_native_checkout_log_security_event( 'native_checkout_bridge_skipped_headers_sent', 0, $resolved, 'guest', 'headers_sent' );
+		return false;
 	}
+
+	wp_set_auth_cookie( $resolved, false, is_ssl() );
 	wp_set_current_user( $resolved );
 	/*
 	 * WooCommerce only merges/migrates a guest cart into the account cart on the
@@ -136,8 +145,10 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 function dtb_native_checkout_bridge_request_is_active_action( object $verification ): bool {
 	$fresh_login_window_seconds = 10 * MINUTE_IN_SECONDS;
 
+	// REQUEST_METHOD is a trusted server-set token, not user input; sanitize_key()
+	// would needlessly lowercase/strip it before we re-uppercase it here.
 	$method = isset( $_SERVER['REQUEST_METHOD'] )
-		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) )
+		? strtoupper( (string) $_SERVER['REQUEST_METHOD'] )
 		: 'GET';
 	if ( 'POST' === $method ) {
 		return true;
