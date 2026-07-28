@@ -73,15 +73,22 @@ An explicit failed check changes the product control to a standard secure Buy No
 
 ## Checkout presentation
 
-The final checkout theme layer:
+The native checkout presentation now:
 
+- loads one authoritative `checkout.css` stylesheet instead of a multi-layer override cascade;
 - removes the purchase confidence panel completely;
-- preserves provider-owned payment controls;
+- keeps only native WooCommerce contact, billing, and shipping controls;
+- removes mobile proxy fields, hidden custom checkout steps, and fixed DTB navigation overlays;
+- preserves every WooCommerce and Stripe surface in one continuous mobile flow;
+- preserves provider-owned payment controls and styles only same-origin wrapper elements;
 - presents the payment-method area as a cohesive modern card;
 - applies compact, deterministic spacing to product rows and total rows;
 - removes artificial sidebar and summary minimum heights;
 - strengthens total hierarchy without duplicating totals or order state;
-- keeps responsive focus, overflow, and reduced-motion behavior intact.
+- focuses newly rendered native errors without replacing their content;
+- includes responsive focus, overflow, reduced-motion, forced-colors, and safe-area behavior.
+
+The complete presentation and operating contract is documented in `docs/checkout-ui-architecture.md`.
 
 ## Required operator configuration
 
