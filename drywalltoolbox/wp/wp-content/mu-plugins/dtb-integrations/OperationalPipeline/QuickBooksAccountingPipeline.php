@@ -41,6 +41,14 @@ function dtb_qbo_money( mixed $amount ): float {
 }
 
 function dtb_qbo_require_ref( string $key, string $name ): array|WP_Error {
+	$key = sanitize_key( $key );
+	if ( class_exists( 'DTB_QuickBooksItemMappingService' ) && ! DTB_QuickBooksItemMappingService::item_ready( $key ) ) {
+		return new WP_Error(
+			'qbo_reference_unverified',
+			sprintf( 'QuickBooks %s item reference is not verified for the connected company.', strtolower( $name ) )
+		);
+	}
+
 	$ref = dtb_qbo_accounting_ref( $key, '', $name );
 	return '' === $ref['value'] ? new WP_Error( 'qbo_reference_missing', sprintf( 'QuickBooks %s item reference is not configured.', strtolower( $name ) ) ) : $ref;
 }
@@ -154,7 +162,7 @@ function dtb_qbo_find_entity_by_doc_number( string $entity, string $doc_number )
 	if ( ! in_array( $entity, [ 'SalesReceipt', 'RefundReceipt' ], true ) ) {
 		return new WP_Error( 'qbo_invalid_entity', 'Unsupported QuickBooks entity query.' );
 	}
-	$safe   = str_replace( "'", "''", $doc_number );
+	$safe   = str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $doc_number );
 	$result = dtb_qbo_request( 'GET', '/query', [ 'query' => "SELECT * FROM {$entity} WHERE DocNumber = '{$safe}' MAXRESULTS 2" ] );
 	if ( empty( $result['ok'] ) ) {
 		return new WP_Error( 'qbo_reconciliation_failed', (string) ( $result['error'] ?? 'QuickBooks reconciliation query failed.' ) );
