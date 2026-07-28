@@ -2,16 +2,32 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/** @return array<int,string> */
+function dtb_checkout_handoff_supported_contracts(): array {
+	return [
+		'payment-plugins-stripe-v1',
+		'woo-stripe-v1', // Historical orders created before the provider migration.
+	];
+}
+
+/** @return array<int,string> */
+function dtb_checkout_handoff_supported_stripe_providers(): array {
+	return [
+		'payment_plugins_stripe',
+		'woocommerce_stripe', // Historical paid-order evidence remains valid.
+	];
+}
+
 function dtb_checkout_handoff_is_order( $order ): bool {
 	if ( ! $order instanceof WC_Order ) {
 		return false;
 	}
 
-	$gateway  = (string) $order->get_meta( '_dtb_checkout_gateway', true );
-	$contract = (string) $order->get_meta( '_dtb_checkout_contract_version', true );
+	$gateway  = sanitize_key( (string) $order->get_meta( '_dtb_checkout_gateway', true ) );
+	$contract = sanitize_key( (string) $order->get_meta( '_dtb_checkout_contract_version', true ) );
 
 	return 'woo_native_stripe' === $gateway
-		&& 'woo-stripe-v1' === $contract;
+		&& in_array( $contract, dtb_checkout_handoff_supported_contracts(), true );
 }
 
 function dtb_checkout_handoff_has_gateway_reference( WC_Order $order ): bool {
@@ -28,19 +44,23 @@ function dtb_checkout_handoff_has_gateway_reference( WC_Order $order ): bool {
 }
 
 /**
- * Verify that DTB observed the selected gateway as an instance owned by the
- * official WooCommerce Stripe extension during the Woo payment lifecycle.
- *
- * We intentionally do not trust a raw `stripe_*` payment-method prefix here;
- * third-party Stripe extensions use overlapping gateway IDs.
+ * Verify provider evidence written only after a WooCommerce paid lifecycle hook.
+ * Raw gateway-ID prefixes are intentionally insufficient because unrelated Stripe
+ * extensions may register overlapping IDs.
  */
+function dtb_checkout_handoff_uses_verified_stripe_provider( WC_Order $order ): bool {
+	$provider = sanitize_key( (string) $order->get_meta( '_dtb_payment_provider', true ) );
+	return in_array( $provider, dtb_checkout_handoff_supported_stripe_providers(), true );
+}
+
+/** Historical compatibility name retained for integrations outside this module. */
 function dtb_checkout_handoff_uses_official_stripe_gateway( WC_Order $order ): bool {
-	return 'woocommerce_stripe' === sanitize_key( (string) $order->get_meta( '_dtb_payment_provider', true ) );
+	return dtb_checkout_handoff_uses_verified_stripe_provider( $order );
 }
 
 function dtb_checkout_handoff_has_provider_verified_payment( WC_Order $order ): bool {
 	return dtb_checkout_handoff_is_order( $order )
-		&& dtb_checkout_handoff_uses_official_stripe_gateway( $order )
+		&& dtb_checkout_handoff_uses_verified_stripe_provider( $order )
 		&& null !== $order->get_date_paid()
 		&& dtb_checkout_handoff_has_gateway_reference( $order );
 }
