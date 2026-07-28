@@ -5,7 +5,7 @@
  * Checkout itself is always canonical root `/checkout/`. A staging React build may
  * originate that handoff from `/staging/{id}`; this module stores only that
  * validated public base path in the existing Woo session/order contract and uses
- * it when WooCommerce asks the payment gateway for its successful return URL.
+ * it when WooCommerce asks for customer-facing storefront return URLs.
  *
  * No payment state, Stripe state, order totals, or customer identity are derived
  * from this context. The value is presentation/routing metadata only.
@@ -27,6 +27,8 @@ final class DTB_StorefrontReturnContext {
 		add_action( 'woocommerce_checkout_create_order', [ __CLASS__, 'apply_order_context' ], 30, 2 );
 		add_action( 'woocommerce_store_api_checkout_order_processed', [ __CLASS__, 'apply_store_api_order_context' ], 30 );
 		add_filter( 'woocommerce_get_return_url', [ __CLASS__, 'filter_success_return_url' ], 1000, 2 );
+		add_filter( 'woocommerce_return_to_shop_redirect', [ __CLASS__, 'filter_catalog_return_url' ], 1000 );
+		add_filter( 'woocommerce_continue_shopping_redirect', [ __CLASS__, 'filter_catalog_return_url' ], 1000 );
 	}
 
 	/**
@@ -45,16 +47,12 @@ final class DTB_StorefrontReturnContext {
 		WC()->session->set( self::SESSION_KEY, $base_path );
 	}
 
-	/**
-	 * Persist the checkout-origin context on classic checkout orders.
-	 */
+	/** Persist the checkout-origin context on classic checkout orders. */
 	public static function apply_order_context( WC_Order $order, array $data = [] ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		self::persist_order_context( $order );
 	}
 
-	/**
-	 * Persist the checkout-origin context on Checkout Block / Store API orders.
-	 */
+	/** Persist the checkout-origin context on Checkout Block / Store API orders. */
 	public static function apply_store_api_order_context( $order ): void {
 		if ( $order instanceof WC_Order ) {
 			self::persist_order_context( $order );
@@ -93,6 +91,24 @@ final class DTB_StorefrontReturnContext {
 			],
 			$url
 		);
+	}
+
+	/**
+	 * Keep native WooCommerce empty-cart and continue-shopping actions inside the
+	 * React storefront. `/shop/` is intentionally not a DTB route.
+	 *
+	 * @param string $url WooCommerce's configured shop URL.
+	 */
+	public static function filter_catalog_return_url( string $url ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		$base_path = '';
+		if ( function_exists( 'WC' ) && WC() && WC()->session ) {
+			$base_path = self::sanitize_storefront_base_path( (string) WC()->session->get( self::SESSION_KEY, '' ) );
+		}
+		if ( '' === $base_path && function_exists( 'dtb_detect_storefront_base_path' ) ) {
+			$base_path = self::sanitize_storefront_base_path( dtb_detect_storefront_base_path() );
+		}
+
+		return home_url( $base_path . '/products' );
 	}
 
 	private static function is_confirmable_order( WC_Order $order ): bool {
@@ -136,9 +152,7 @@ final class DTB_StorefrontReturnContext {
 		$order->update_meta_data( self::ORDER_META, $base_path );
 	}
 
-	/**
-	 * Only production root or a tracked staging build path may be persisted.
-	 */
+	/** Only production root or a tracked staging build path may be persisted. */
 	private static function sanitize_storefront_base_path( string $value ): string {
 		if ( function_exists( 'dtb_sanitize_storefront_base_path' ) ) {
 			return dtb_sanitize_storefront_base_path( $value );
