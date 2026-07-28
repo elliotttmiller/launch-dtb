@@ -469,6 +469,17 @@ function dtb_enqueue_native_checkout_assets(): void {
 		DTB_VERSION,
 		true
 	);
+
+	// Depends on the Cart/Checkout Blocks filter registry (window.wc.blocksCheckout);
+	// declared only if that script handle is actually registered on this install,
+	// since the script's own runtime check already no-ops safely either way.
+	wp_enqueue_script(
+		'dtb-checkout-order-summary',
+		get_template_directory_uri() . '/assets/checkout/checkout-order-summary.js',
+		wp_script_is( 'wc-blocks-checkout', 'registered' ) ? [ 'wc-blocks-checkout' ] : [],
+		DTB_VERSION,
+		true
+	);
 }
 
 

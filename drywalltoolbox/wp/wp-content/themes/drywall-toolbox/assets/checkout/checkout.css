@@ -501,9 +501,58 @@ body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
 	cursor: pointer;
 }
 
+/* Native item row is a flex row of (image, description, price); grid gives
+ * each column a predictable width so the (larger) image, name/SKU, and price
+ * line up cleanly regardless of name length. WooCommerce's own quantity
+ * badge keeps its native absolute position over the image's top-right
+ * corner — only the image's own box gets bigger here. */
+body.woocommerce-checkout .wc-block-components-order-summary-item {
+	display: grid;
+	grid-template-columns: 64px minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 12px;
+	padding: 14px 0;
+}
+
 body.woocommerce-checkout .wc-block-components-order-summary-item__image {
+	width: 64px;
 	border-radius: var(--dtb-radius-sm);
+	overflow: hidden;
+}
+
+body.woocommerce-checkout .wc-block-components-order-summary-item__image img {
+	width: 64px;
+	height: 64px;
+	max-width: none;
 	border: 1px solid var(--dtb-border);
+	border-radius: var(--dtb-radius-sm);
+	object-fit: contain;
+	background: var(--dtb-surface);
+}
+
+body.woocommerce-checkout .wc-block-components-order-summary-item__description,
+body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
+	min-width: 0;
+	margin: 0;
+}
+
+body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
+	white-space: nowrap;
+	font-weight: 600;
+}
+
+body.woocommerce-checkout .wc-block-components-product-name {
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.4;
+}
+
+/* Woo Blocks' short/full product description in the summary line item — the
+ * order summary should show only name, quantity, and price, not marketing
+ * copy. Variation attributes (size/color) are a different element and stay
+ * visible. */
+body.woocommerce-checkout .wc-block-components-product-metadata__description {
+	display: none;
 }
 
 body.woocommerce-checkout .wc-block-components-totals-item__value {
