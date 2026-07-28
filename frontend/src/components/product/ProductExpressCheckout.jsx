@@ -64,7 +64,12 @@ export default function ProductExpressCheckout({
     if (disabled || pending || clickLockedRef.current || typeof onExpressCheckout !== 'function') return;
 
     clickLockedRef.current = true;
-    requestExpressCheckoutHandoff();
+    const expressReady = readiness.state !== 'unavailable';
+    if (expressReady) {
+      requestExpressCheckoutHandoff();
+    } else {
+      clearExpressCheckoutHandoff();
+    }
 
     try {
       const result = onExpressCheckout();
