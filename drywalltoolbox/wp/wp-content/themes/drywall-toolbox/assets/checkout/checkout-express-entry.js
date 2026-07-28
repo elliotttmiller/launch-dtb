@@ -14,10 +14,18 @@
 	const queryKey = 'dtb_express';
 	const storageKey = 'dtb:checkout-express-entry:v1';
 	const handoffTtlMs = 2 * 60 * 1000;
+	const readinessTimeoutMs = 10000;
 	const selectors = [
 		'.wp-block-woocommerce-checkout-express-payment-block',
 		'.wc-block-components-express-payment',
 		'[data-block-name="woocommerce/checkout-express-payment-block"]',
+	];
+	const providerSelectors = [
+		'iframe',
+		'button',
+		'[role="button"]',
+		'.wc-block-components-express-payment__event-buttons',
+		'.wc-block-components-express-payment__content',
 	];
 	const requestedByQuery = new URLSearchParams( window.location.search || '' ).get( queryKey ) === '1';
 	let requestedByStorage = false;
@@ -60,8 +68,13 @@
 		return null;
 	}
 
+	function providerSurfaceReady( surface ) {
+		if ( ! surface || surface.getAttribute( 'aria-busy' ) === 'true' ) return false;
+		return providerSelectors.some( ( selector ) => surface.querySelector( selector ) );
+	}
+
 	function finish( surface ) {
-		if ( settled || ! surface ) return;
+		if ( settled || ! surface || ! providerSurfaceReady( surface ) ) return;
 		settled = true;
 		observer?.disconnect();
 		if ( timeoutId ) window.clearTimeout( timeoutId );
@@ -90,16 +103,27 @@
 		finish( findSurface() );
 	}
 
+	function failOpen() {
+		if ( settled ) return;
+		settled = true;
+		observer?.disconnect();
+		cleanUrl();
+		document.body.classList.add( 'dtb-checkout-express-entry-unavailable' );
+		window.dispatchEvent( new CustomEvent( 'dtb:checkout-express-entry-unavailable' ) );
+	}
+
 	function initialize() {
 		reconcile();
 		if ( settled ) return;
 
 		observer = new MutationObserver( reconcile );
-		observer.observe( document.body, { childList: true, subtree: true } );
-		timeoutId = window.setTimeout( () => {
-			observer?.disconnect();
-			cleanUrl();
-		}, 8000 );
+		observer.observe( document.body, {
+			attributes: true,
+			attributeFilter: [ 'aria-busy', 'class' ],
+			childList: true,
+			subtree: true,
+		} );
+		timeoutId = window.setTimeout( failOpen, readinessTimeoutMs );
 	}
 
 	if ( document.readyState === 'loading' ) {
