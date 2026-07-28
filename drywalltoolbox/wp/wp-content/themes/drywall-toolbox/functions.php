@@ -428,5 +428,49 @@ function dtb_clean_head(): void {
 }
 
 
+// =============================================================================
+// 5. NATIVE CHECKOUT PRESENTATION LAYER
+//
+// One authoritative stylesheet/script pair for the native WooCommerce Checkout
+// Block document (templates/checkout/native-checkout.php). Loads only on the
+// primary checkout surface — never order-pay/order-received, which keep their
+// own default WooCommerce-rendered presentation untouched — and only after
+// dtb_dequeue_non_react_assets() has already been removed for this request by
+// DTB_WooNativeCheckoutRuntime, so nothing here fights the SPA asset stripper.
+// =============================================================================
+
+add_action( 'wp_enqueue_scripts', 'dtb_enqueue_native_checkout_assets', 30 );
+/**
+ * Enqueue the branded checkout stylesheet and step-rail progress script.
+ * Restyles native Woo Checkout Block markup and Payment Plugins for Stripe
+ * container chrome only; never touches provider iframe contents (those are
+ * styled via the Stripe Appearance API — see
+ * mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php).
+ */
+function dtb_enqueue_native_checkout_assets(): void {
+	if ( is_admin() || ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		return;
+	}
+	if ( function_exists( 'is_wc_endpoint_url' ) && ( is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) ) {
+		return;
+	}
+
+	wp_enqueue_style(
+		'dtb-checkout',
+		get_template_directory_uri() . '/assets/checkout/checkout.css',
+		[],
+		DTB_VERSION
+	);
+
+	wp_enqueue_script(
+		'dtb-checkout',
+		get_template_directory_uri() . '/assets/checkout/checkout.js',
+		[],
+		DTB_VERSION,
+		true
+	);
+}
+
+
 // Theme policy is intentionally thin: REST/CORS/security/performance hardening
 // now lives in mu-plugins so active-theme changes do not change production policy.

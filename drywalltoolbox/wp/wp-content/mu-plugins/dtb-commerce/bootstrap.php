@@ -23,6 +23,7 @@ require_once __DIR__ . '/Domain/PaymentState.php';
 require_once __DIR__ . '/Payment/WooNativeCheckoutRuntime.php';
 require_once __DIR__ . '/Payment/StorefrontReturnContext.php';
 require_once __DIR__ . '/Payment/PaymentPluginsStripeNativeCheckout.php';
+require_once __DIR__ . '/Payment/StripeElementAppearance.php';
 require_once __DIR__ . '/Payment/FailedPaymentRecovery.php';
 require_once __DIR__ . '/Payment/CheckoutPerformance.php';
 require_once __DIR__ . '/Payment/CheckoutRuntimeIntegrity.php';
