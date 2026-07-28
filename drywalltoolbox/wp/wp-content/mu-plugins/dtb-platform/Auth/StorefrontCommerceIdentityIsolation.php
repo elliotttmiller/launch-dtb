@@ -77,8 +77,20 @@ function dtb_storefront_commerce_identity_isolation_request(): bool {
 		return true;
 	}
 
-	$marker = '/wp-json/wc/store/';
-	if ( false !== strpos( $path, $marker ) ) {
+	if ( false !== strpos( $path, '/wp-json/wc/store/' ) ) {
+		return true;
+	}
+
+	/*
+	 * WordPress may expose the same Store API through the query-routed fallback:
+	 * `/wp/index.php?rest_route=/wc/store/v1/...`. Treat it identically to the
+	 * pretty-permalink route so a privileged WP cookie cannot replace the guest
+	 * Woo session during Checkout Block refreshes.
+	 */
+	$rest_route = isset( $_GET['rest_route'] ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		? '/' . ltrim( sanitize_text_field( wp_unslash( (string) $_GET['rest_route'] ) ), '/' ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		: '';
+	if ( '' !== $rest_route && preg_match( '#^/wc/store(?:/|$)#i', $rest_route ) ) {
 		return true;
 	}
 

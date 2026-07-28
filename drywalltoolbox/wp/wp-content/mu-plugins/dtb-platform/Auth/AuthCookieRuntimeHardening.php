@@ -169,9 +169,6 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 	}
 
 	if ( $native_user_id > 0 && $native_user_id !== (int) $user->ID ) {
-		/* Never initialize/destroy WC()->session from auth response hardening. Doing so
-		 * competes with Woo lifecycle ownership and can deadlock/timeout under PHP-FPM.
-		 * Expire only stale browser-side session markers; Woo creates the next session. */
 		if ( function_exists( 'dtb_native_checkout_expire_woocommerce_browser_state' ) ) {
 			dtb_native_checkout_expire_woocommerce_browser_state();
 		}
@@ -196,20 +193,16 @@ function dtb_auth_fail_closed_on_privileged_native_conflict( $response, array $s
 	if ( 'blocked_native_privileged_conflict' !== ( $state['status'] ?? '' ) || '/dtb/v1/auth/validate' !== $route ) {
 		return;
 	}
-
 	if ( function_exists( 'dtb_clear_auth_cookie' ) ) {
 		dtb_clear_auth_cookie();
 	}
-
 	if ( ! ( $response instanceof WP_REST_Response || $response instanceof WP_HTTP_Response ) ) {
 		return;
 	}
-
 	$data = $response->get_data();
 	if ( ! is_array( $data ) ) {
 		return;
 	}
-
 	$data['success']       = true;
 	$data['authenticated'] = false;
 	$data['user']          = null;
@@ -223,25 +216,36 @@ function dtb_auth_user_is_privileged( WP_User $user ): bool {
 }
 
 function dtb_auth_valid_native_cookie_user_id(): int {
-	if ( ! defined( 'LOGGED_IN_COOKIE' ) || empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) || ! function_exists( 'wp_validate_auth_cookie' ) ) {
+	if ( ! function_exists( 'wp_validate_auth_cookie' ) ) {
 		return 0;
 	}
-
-	$cookie  = wp_unslash( (string) $_COOKIE[ LOGGED_IN_COOKIE ] );
-	$user_id = wp_validate_auth_cookie( $cookie, 'logged_in' );
-	return $user_id ? absint( $user_id ) : 0;
+	$cookie_candidates = [];
+	if ( defined( 'LOGGED_IN_COOKIE' ) && ! empty( $_COOKIE[ LOGGED_IN_COOKIE ] ) ) {
+		$cookie_candidates['logged_in'] = wp_unslash( (string) $_COOKIE[ LOGGED_IN_COOKIE ] );
+	}
+	if ( defined( 'SECURE_AUTH_COOKIE' ) && ! empty( $_COOKIE[ SECURE_AUTH_COOKIE ] ) ) {
+		$cookie_candidates['secure_auth'] = wp_unslash( (string) $_COOKIE[ SECURE_AUTH_COOKIE ] );
+	}
+	if ( defined( 'AUTH_COOKIE' ) && ! empty( $_COOKIE[ AUTH_COOKIE ] ) ) {
+		$cookie_candidates['auth'] = wp_unslash( (string) $_COOKIE[ AUTH_COOKIE ] );
+	}
+	foreach ( $cookie_candidates as $scheme => $cookie ) {
+		$user_id = wp_validate_auth_cookie( $cookie, $scheme );
+		if ( $user_id ) {
+			return absint( $user_id );
+		}
+	}
+	return 0;
 }
 
 function dtb_auth_attach_native_session_state( $response, array $state ): void {
 	if ( ! ( $response instanceof WP_REST_Response || $response instanceof WP_HTTP_Response ) ) {
 		return;
 	}
-
 	$data = $response->get_data();
 	if ( ! is_array( $data ) ) {
 		return;
 	}
-
 	$session = isset( $data['session'] ) && is_array( $data['session'] ) ? $data['session'] : [];
 	$session['native_checkout'] = [
 		'status'                      => sanitize_key( (string) ( $state['status'] ?? 'unknown' ) ),
@@ -258,12 +262,17 @@ function dtb_auth_clear_native_customer_cookie(): void {
 	if ( headers_sent() ) {
 		return;
 	}
-
-	$current = wp_get_current_user();
-	if ( $current instanceof WP_User && $current->exists() && dtb_auth_user_is_privileged( $current ) ) {
+	$native_user_id = dtb_auth_valid_native_cookie_user_id();
+	if ( $native_user_id <= 0 ) {
 		return;
 	}
-
+	$native_user = get_user_by( 'id', $native_user_id );
+	if ( ! $native_user instanceof WP_User || dtb_auth_user_is_privileged( $native_user ) ) {
+		if ( $native_user instanceof WP_User && function_exists( 'dtb_security_log' ) ) {
+			dtb_security_log( 'native_privileged_cookie_preserved_during_storefront_auth', [] );
+		}
+		return;
+	}
 	wp_clear_auth_cookie();
 }
 
