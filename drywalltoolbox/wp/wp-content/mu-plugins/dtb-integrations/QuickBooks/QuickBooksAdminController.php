@@ -109,6 +109,14 @@ final class DTB_QuickBooksAdminController {
 		$credentials     = ! empty( $status['credentials_configured'] );
 		$token_expires   = (int) ( $status['token_expires_at'] ?? 0 );
 		$company         = get_option( dtb_qbo_option_name( 'company' ), [] );
+		$mapping_verified_at = '';
+
+		foreach ( $mappings as $mapping ) {
+			if ( ! empty( $mapping['verified_at'] ) ) {
+				$mapping_verified_at = sanitize_text_field( (string) $mapping['verified_at'] );
+				break;
+			}
+		}
 
 		$checks = [
 			'credentials' => [
@@ -129,7 +137,7 @@ final class DTB_QuickBooksAdminController {
 			'items'       => [
 				'label'       => __( 'Accounting items', 'drywall-toolbox' ),
 				'complete'    => $items_ready,
-				'description' => $items_ready ? __( 'All required service items are mapped.', 'drywall-toolbox' ) : __( 'One or more accounting item mappings are missing.', 'drywall-toolbox' ),
+				'description' => $items_ready ? __( 'All required Service items are mapped and verified for the connected company.', 'drywall-toolbox' ) : __( 'Accounting item mappings are missing, stale, or not verified for the connected company.', 'drywall-toolbox' ),
 			],
 			'webhook'     => [
 				'label'       => __( 'Webhook verification', 'drywall-toolbox' ),
@@ -149,6 +157,10 @@ final class DTB_QuickBooksAdminController {
 				'checks' => $checks,
 			],
 			'items'       => array_values( $mappings ),
+			'mapping'     => [
+				'ready'      => $items_ready,
+				'verifiedAt' => $mapping_verified_at,
+			],
 			'token'       => [
 				'expiresAt'    => $token_expires,
 				'expiresAtIso' => $token_expires > 0 ? gmdate( 'c', $token_expires ) : '',
@@ -162,7 +174,7 @@ final class DTB_QuickBooksAdminController {
 			],
 			'links'       => [
 				'quickbooks' => 'sandbox' === dtb_qbo_environment() ? 'https://sandbox.qbo.intuit.com/app/homepage' : 'https://qbo.intuit.com/app/homepage',
-				'orders'     => admin_url( 'edit.php?post_type=shop_order' ),
+				'orders'     => admin_url( 'admin.php?page=wc-orders' ),
 				'scheduler'  => admin_url( 'tools.php?page=action-scheduler&status=pending&s=quickbooks' ),
 			],
 		];
