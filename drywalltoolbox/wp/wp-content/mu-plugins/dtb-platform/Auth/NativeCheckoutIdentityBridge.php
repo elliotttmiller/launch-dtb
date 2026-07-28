@@ -96,11 +96,55 @@ function dtb_native_checkout_resolve_current_user_inner( $user_id ) {
 		return $resolved;
 	}
 
+	/*
+	 * A browser with no native WP cookie at all is a true anonymous visit. Only
+	 * silently establish a native login here when there's a real signal that this
+	 * request is an active login/checkout action rather than an incidental page
+	 * view: either the JWT was issued moments ago (a fresh storefront login just
+	 * handed off to /checkout) or this is a POST (an actual checkout submission).
+	 * Otherwise a browser that merely still carries a week-old dtb_auth cookie from
+	 * an earlier storefront session would get silently logged into native WP on
+	 * every plain visit to /checkout (and, via the admin identity boundary, later
+	 * to /wp-admin/ too) even though the shopper never took a login action this
+	 * visit — surprising the shopper and orphaning any guest cart they built up.
+	 */
+	if ( ! dtb_native_checkout_bridge_request_is_active_action( $verification ) ) {
+		dtb_native_checkout_log_security_event( 'native_checkout_stale_jwt_bridge_skipped', 0, $resolved, 'guest', 'stale_jwt_skipped' );
+		return false;
+	}
+
 	if ( ! headers_sent() ) {
 		wp_set_auth_cookie( $resolved, false, is_ssl() );
 	}
+	wp_set_current_user( $resolved );
+	/*
+	 * WooCommerce only merges/migrates a guest cart into the account cart on the
+	 * `wp_login` action (see WC_Cart_Session::load_cart()). Without firing it here,
+	 * flipping current_user mid-request via determine_current_user orphans the
+	 * anonymous session's cart instead of merging it, which empties the cart the
+	 * shopper was just checking out with.
+	 */
+	do_action( 'wp_login', $user->user_login, $user ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 	dtb_native_checkout_log_security_event( 'native_checkout_identity_bridged', 0, $resolved, 'guest', 'bridged' );
 	return $resolved;
+}
+
+/**
+ * Whether this request carries a real signal of an active login/checkout action,
+ * as opposed to an incidental page view riding on a stale JWT cookie.
+ */
+function dtb_native_checkout_bridge_request_is_active_action( object $verification ): bool {
+	$fresh_login_window_seconds = 10 * MINUTE_IN_SECONDS;
+
+	$method = isset( $_SERVER['REQUEST_METHOD'] )
+		? strtoupper( sanitize_key( wp_unslash( (string) $_SERVER['REQUEST_METHOD'] ) ) )
+		: 'GET';
+	if ( 'POST' === $method ) {
+		return true;
+	}
+
+	$iat = isset( $verification->iat ) ? (int) $verification->iat : 0;
+	return $iat > 0 && ( time() - $iat ) <= $fresh_login_window_seconds;
 }
 
 function dtb_native_checkout_user_is_privileged( WP_User $user ): bool {
