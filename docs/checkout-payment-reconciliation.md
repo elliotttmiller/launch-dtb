@@ -65,6 +65,8 @@ The retired `order-tracking-layout-fixes.css` patch file is intentionally absent
 
 At or below 560 CSS pixels, order-item pricing is placed beneath the complete product-information row. Product names use normal word boundaries and may break inside an otherwise unbreakable token only as a last-resort overflow safeguard. Automatic hyphenation is disabled.
 
+This CSS consolidation changes stylesheet ownership and cascade organization only. It does not modify React component structure, route wiring, API calls, authentication, guest order-key authorization, event streaming, checkout handoff, payment execution, order projections, queue dispatch, Veeqo, QuickBooks, or notification integrations.
+
 ## Deployment and acceptance
 
 Deploy only these reviewed source artifacts for this change:
