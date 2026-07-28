@@ -20,7 +20,7 @@ final class DTB_OfficialStripeNativeCheckout {
 	public const CONTRACT_VERSION = 'woo-stripe-v1';
 
 	private const STRIPE_GATEWAY_ID         = 'stripe';
-	private const STRIPE_APPEARANCE_VERSION = '2026.07.26.1';
+	private const STRIPE_APPEARANCE_VERSION = '2026.07.28.1';
 	private const STRIPE_APPEARANCE_OPTION  = 'dtb_stripe_appearance_version';
 
 	public static function register(): void {
@@ -119,7 +119,7 @@ final class DTB_OfficialStripeNativeCheckout {
 			'colorDanger'          => '#b42318',
 			'fontFamily'           => 'Nunito, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 			'fontSizeBase'         => '15px',
-			'borderRadius'         => '12px',
+			'borderRadius'         => '16px',
 			'spacingUnit'          => '4px',
 			'gridColumnSpacing'    => '12px',
 			'gridRowSpacing'       => '12px',
@@ -134,9 +134,9 @@ final class DTB_OfficialStripeNativeCheckout {
 		$appearance_rules = [
 			'.Tab' => (object) [
 				'backgroundColor' => '#ffffff',
-				'border'          => '1px solid #e2e8f0',
-				'borderRadius'    => '12px',
-				'boxShadow'       => 'none',
+				'border'          => '1px solid #e7ebf1',
+				'borderRadius'    => '16px',
+				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
 				'padding'         => '12px 14px',
 				'transition'      => 'background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease',
 			],
@@ -158,9 +158,9 @@ final class DTB_OfficialStripeNativeCheckout {
 			],
 			'.Input' => (object) [
 				'backgroundColor' => '#ffffff',
-				'border'          => '1px solid #cbd5e1',
-				'borderRadius'    => '12px',
-				'boxShadow'       => 'none',
+				'border'          => '1px solid #d9e0ea',
+				'borderRadius'    => '16px',
+				'boxShadow'       => '0 1px 2px rgba(16,24,40,.04)',
 				'padding'         => '14px 14px',
 			],
 			'.Input:hover' => (object) [
@@ -177,6 +177,12 @@ final class DTB_OfficialStripeNativeCheckout {
 			'.Label' => (object) [
 				'color'      => '#475467',
 				'fontWeight' => '500',
+			],
+			'.Block' => (object) [
+				'backgroundColor' => '#ffffff',
+				'borderRadius'    => '18px',
+				'border'          => '1px solid #e7ebf1',
+				'boxShadow'       => '0 10px 30px rgba(16,24,40,.06)',
 			],
 		];
 

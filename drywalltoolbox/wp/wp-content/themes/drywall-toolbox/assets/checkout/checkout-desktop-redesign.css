@@ -196,12 +196,19 @@
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-radio-control,
-  body.dtb-official-stripe-checkout .wc-block-components-payment-methods,
   body.dtb-official-stripe-checkout .wc-block-components-address-card {
     overflow: hidden;
     border: 1px solid var(--dtb-desktop-border) !important;
     border-radius: var(--dtb-desktop-radius-md) !important;
     background: var(--dtb-desktop-surface) !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-payment-methods {
+    overflow: hidden;
+    border: 1px solid var(--dtb-desktop-border) !important;
+    border-radius: var(--dtb-desktop-radius-lg) !important;
+    background: var(--dtb-desktop-surface) !important;
+    box-shadow: var(--dtb-desktop-shadow) !important;
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-radio-control__option {
