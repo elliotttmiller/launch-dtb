@@ -32,7 +32,10 @@ $storefront_home_url  = home_url( $storefront_base_path . '/' );
 <?php wp_body_open(); ?>
 	<header class="dtb-checkout__topbar">
 		<a class="dtb-checkout__brand" href="<?php echo esc_url( $storefront_home_url ); ?>">
-			<img src="<?php echo esc_url( home_url( '/logo-white.svg' ) ); ?>" alt="<?php esc_attr_e( 'Drywall Toolbox', 'drywall-toolbox' ); ?>" width="3000" height="917">
+			<picture>
+				<source srcset="<?php echo esc_url( home_url( '/logos/drywall-logo-white.webp' ) ); ?>" type="image/webp">
+				<img src="<?php echo esc_url( home_url( '/logos/drywall-logo-white.png' ) ); ?>" alt="<?php esc_attr_e( 'Drywall Toolbox', 'drywall-toolbox' ); ?>" width="4096" height="1252">
+			</picture>
 		</a>
 		<span class="dtb-checkout__secure">
 			<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
