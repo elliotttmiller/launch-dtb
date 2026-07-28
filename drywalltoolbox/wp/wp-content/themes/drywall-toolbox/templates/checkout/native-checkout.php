@@ -33,6 +33,17 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout.css' )
 );
 
+/* Narrowly-scoped, dependent stylesheet for the below-1024px Contact ->
+ * Shipping -> Payment step wizard. It only styles the step indicator and a
+ * visual (never display:none) step-visibility state; it never hides or
+ * unmounts provider-owned payment/wallet surfaces. */
+wp_enqueue_style(
+	'dtb-checkout-theme-flow',
+	$theme_uri . '/assets/checkout/checkout-flow.css',
+	[ 'dtb-checkout-theme' ],
+	$asset_version( 'assets/checkout/checkout-flow.css' )
+);
+
 /* Keep the provider-owned Express Checkout block first in the desktop form
  * column without reparenting, cloning, or mutating its rendered controls. */
 wp_add_inline_style(
