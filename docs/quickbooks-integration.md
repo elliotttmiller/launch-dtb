@@ -46,7 +46,9 @@ POST /wp-json/dtb/v1/admin/qbo/disconnect
 
 Every operator route requires an authenticated WordPress administrator with `manage_options`. Browser requests also require a valid WordPress REST nonce.
 
-The status response includes the active environment, connection state, redacted realm suffix, OAuth redirect URI, webhook endpoint, and `webhook_verifier_configured`. It never returns credentials, verifier tokens, authorization codes, access tokens, or refresh tokens.
+The status response includes the active environment, connection state, redacted realm suffix, OAuth redirect URI, webhook endpoint, `webhook_verifier_configured`, and `ready_for_connection`. It never returns credentials, verifier tokens, authorization codes, access tokens, or refresh tokens.
+
+`ready_for_connection` is true only when both the active environment's OAuth credentials and webhook verifier token are configured. The connect route fails closed with HTTP 503 until those prerequisites are present.
 
 The connect route returns the one-time Intuit authorization URL and exact OAuth redirect URI. The OAuth callback remains:
 
@@ -86,6 +88,8 @@ The endpoint:
 5. enqueues each accepted event into the existing `dtb-orders` Action Scheduler group;
 6. returns HTTP 200 without calling the QuickBooks API in the request path.
 
+The endpoint is intentionally fail-closed. If the active environment's verifier token is absent, it returns HTTP 503 and does not accept or enqueue webhook events. There is no unsigned bootstrap mode.
+
 The current allowlist is intentionally narrow:
 
 ```text
@@ -108,6 +112,19 @@ Webhook delivery is at-least-once and may be out of order. DTB:
 
 A worker failure must not create a completed deduplication marker. Exhausted retries remain visible as a failed Action Scheduler action and a redacted audit event.
 
+## Configuration and activation sequence
+
+1. Deploy the reviewed QuickBooks controllers so the REST route exists.
+2. Enter `https://elliottm4.sg-host.com/wp-json/dtb/v1/webhooks/qbo` in the Intuit Development Webhooks page.
+3. Reveal and copy the Development verifier token.
+4. Store that token in server-owned `wp-config.php` as `DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN`.
+5. Clear SiteGround and PHP caches.
+6. Confirm the administrator status endpoint reports `webhook_verifier_configured: true` and `ready_for_connection: true`.
+7. Save the Intuit webhook configuration with CloudEvents enabled and only the allowlisted events selected.
+8. Complete OAuth through the administrator connect endpoint.
+
+Do not expose the verifier token or temporarily weaken signature enforcement during setup.
+
 ## OAuth and token handling
 
 - OAuth state is random, administrator-bound, environment-bound, redirect-bound, single-use, and expires after ten minutes.
@@ -119,7 +136,7 @@ A worker failure must not create a completed deduplication marker. Exhausted ret
 
 1. Deploy the complete reviewed QuickBooks change set.
 2. Configure sandbox credentials and the sandbox verifier token outside GitHub.
-3. Confirm the status endpoint reports `sandbox`, credentials configured, `webhook_verifier_configured: true`, and the expected webhook endpoint.
+3. Confirm the status endpoint reports `sandbox`, credentials configured, `webhook_verifier_configured: true`, `ready_for_connection: true`, and the expected webhook endpoint.
 4. Register the exact OAuth redirect URI returned by the connect endpoint.
 5. Complete OAuth and verify the intended sandbox company.
 6. Register the webhook endpoint and select only the allowlisted events.
