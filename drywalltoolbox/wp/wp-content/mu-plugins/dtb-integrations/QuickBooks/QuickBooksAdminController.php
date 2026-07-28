@@ -15,6 +15,36 @@ final class DTB_QuickBooksAdminController {
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ self::class, 'register_rest_routes' ] );
+		add_action( 'admin_init', [ self::class, 'redirect_oauth_notice' ], 5 );
+	}
+
+	/**
+	 * Move the legacy OAuth callback landing page into the permanent control
+	 * center while preserving the redacted result code.
+	 */
+	public static function redirect_oauth_notice(): void {
+		if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$notice = sanitize_key( wp_unslash( $_GET['dtb_qbo_notice'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page   = sanitize_key( wp_unslash( $_GET['page'] ?? '' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		global $pagenow;
+
+		if ( '' === $notice || 'index.php' !== $pagenow || 'dtb-quickbooks' === $page ) {
+			return;
+		}
+
+		wp_safe_redirect(
+			add_query_arg(
+				[
+					'page'           => 'dtb-quickbooks',
+					'dtb_qbo_notice' => $notice,
+				],
+				admin_url( 'admin.php' )
+			)
+		);
+		exit;
 	}
 
 	public static function register_rest_routes(): void {
@@ -111,8 +141,8 @@ final class DTB_QuickBooksAdminController {
 		$ready = $credentials && $connected && $company_ready && $items_ready && $webhook_ready;
 
 		return [
-			'ok'         => true,
-			'generatedAt'=> gmdate( 'c' ),
+			'ok'          => true,
+			'generatedAt' => gmdate( 'c' ),
 			'status'      => $status,
 			'readiness'   => [
 				'ready'  => $ready,
@@ -125,10 +155,10 @@ final class DTB_QuickBooksAdminController {
 				'expired'      => $token_expires > 0 && $token_expires <= time(),
 			],
 			'company'     => [
-				'name'       => sanitize_text_field( (string) ( $status['company_name'] ?? '' ) ),
-				'country'    => is_array( $company ) ? sanitize_text_field( (string) ( $company['country'] ?? '' ) ) : '',
-				'verifiedAt' => is_array( $company ) ? sanitize_text_field( (string) ( $company['verified_at'] ?? '' ) ) : '',
-				'realmSuffix'=> sanitize_text_field( (string) ( $status['realm_suffix'] ?? '' ) ),
+				'name'        => sanitize_text_field( (string) ( $status['company_name'] ?? '' ) ),
+				'country'     => is_array( $company ) ? sanitize_text_field( (string) ( $company['country'] ?? '' ) ) : '',
+				'verifiedAt'  => is_array( $company ) ? sanitize_text_field( (string) ( $company['verified_at'] ?? '' ) ) : '',
+				'realmSuffix' => sanitize_text_field( (string) ( $status['realm_suffix'] ?? '' ) ),
 			],
 			'links'       => [
 				'quickbooks' => 'sandbox' === dtb_qbo_environment() ? 'https://sandbox.qbo.intuit.com/app/homepage' : 'https://qbo.intuit.com/app/homepage',
