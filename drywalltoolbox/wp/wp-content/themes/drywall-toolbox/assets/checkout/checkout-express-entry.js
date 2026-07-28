@@ -13,6 +13,7 @@
 
 	const queryKey = 'dtb_express';
 	const storageKey = 'dtb:checkout-express-entry:v1';
+	const handoffTtlMs = 2 * 60 * 1000;
 	const selectors = [
 		'.wp-block-woocommerce-checkout-express-payment-block',
 		'.wc-block-components-express-payment',
@@ -22,7 +23,8 @@
 	let requestedByStorage = false;
 
 	try {
-		requestedByStorage = Number( window.sessionStorage.getItem( storageKey ) || 0 ) > 0;
+		const requestedAt = Number( window.sessionStorage.getItem( storageKey ) || 0 );
+		requestedByStorage = requestedAt > 0 && ( Date.now() - requestedAt ) <= handoffTtlMs;
 		window.sessionStorage.removeItem( storageKey );
 	} catch {
 		requestedByStorage = false;
@@ -71,7 +73,11 @@
 				behavior: reducedMotion ? 'auto' : 'smooth',
 				block: 'center',
 			} );
-			surface.focus( { preventScroll: true } );
+			try {
+				surface.focus( { preventScroll: true } );
+			} catch {
+				surface.focus();
+			}
 			window.dispatchEvent( new CustomEvent( 'dtb:checkout-express-entry-ready' ) );
 		} );
 	}
