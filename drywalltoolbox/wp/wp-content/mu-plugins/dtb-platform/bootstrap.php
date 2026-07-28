@@ -38,6 +38,7 @@ require_once $_dtb_platform . '/Security/FrontendSecurity.php';
 require_once $_dtb_platform . '/Security/AdminSecurity.php';
 require_once $_dtb_platform . '/Security/CorsPolicy.php';
 require_once $_dtb_platform . '/Security/RateLimiter.php';
+require_once $_dtb_platform . '/Security/StoreApiCheckoutRateLimiter.php';
 require_once $_dtb_platform . '/Security/CapabilityService.php';
 require_once $_dtb_platform . '/Security/NonceController.php';
 require_once $_dtb_platform . '/Security/NonceGuard.php';
