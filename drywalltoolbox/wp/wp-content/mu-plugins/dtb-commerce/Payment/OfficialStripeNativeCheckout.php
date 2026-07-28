@@ -49,11 +49,12 @@ final class DTB_OfficialStripeNativeCheckout {
 	}
 
 	public static function checkout_capabilities(): WP_REST_Response {
-		$main_gateway = self::payment_gateways()[ self::STRIPE_GATEWAY_ID ] ?? null;
-		$gateways     = [];
+		$main_gateway     = self::payment_gateways()[ self::STRIPE_GATEWAY_ID ] ?? null;
+		$active_provider  = DTB_StripeGatewayDetection::active_provider();
+		$gateways         = [];
 
-		foreach ( self::payment_gateways() as $gateway ) {
-			if ( ! self::is_official_stripe_gateway_instance( $gateway ) ) {
+		foreach ( [ DTB_StripeGatewayDetection::official_gateway_instance(), DTB_StripeGatewayDetection::payment_plugins_gateway_instance() ] as $variant => $gateway ) {
+			if ( ! is_object( $gateway ) ) {
 				continue;
 			}
 
@@ -63,7 +64,12 @@ final class DTB_OfficialStripeNativeCheckout {
 				'id'       => $id,
 				'title'    => sanitize_text_field( (string) ( $gateway->method_title ?? $gateway->title ?? 'Stripe' ) ),
 				'enabled'  => $enabled,
+				// Kept as the "Stripe family" identifier for backward
+				// compatibility with existing frontend readiness matching,
+				// which does not distinguish between the two supported
+				// Stripe plugins. See `variant` for the concrete plugin.
 				'provider' => 'woocommerce_stripe',
+				'variant'  => 0 === $variant ? 'official' : 'payment_plugins',
 				'contract' => self::CONTRACT_VERSION,
 			];
 		}
@@ -73,11 +79,12 @@ final class DTB_OfficialStripeNativeCheckout {
 				'checkout' => 'woo_native_checkout_block',
 				'contract' => self::CONTRACT_VERSION,
 				'provider' => 'woocommerce_stripe',
+				'stripe_gateway_variant' => $active_provider,
 				'gateways' => $gateways,
 				'readiness' => [
-					'stripe_extension_active'          => self::is_official_stripe_extension_active(),
+					'stripe_extension_active'          => null !== $active_provider,
 					'stripe_extension_version'         => defined( 'WC_STRIPE_VERSION' ) ? sanitize_text_field( (string) WC_STRIPE_VERSION ) : '',
-					'stripe_gateway_enabled'           => self::is_official_stripe_gateway_enabled(),
+					'stripe_gateway_enabled'           => DTB_StripeGatewayDetection::any_stripe_gateway_enabled(),
 					'optimized_checkout_enabled'       => self::gateway_option_enabled( $main_gateway, 'optimized_checkout_element' ),
 					'adaptive_pricing_configured'      => self::gateway_option_enabled( $main_gateway, 'adaptive_pricing' ),
 					'adaptive_pricing_runtime_enabled' => self::adaptive_pricing_runtime_enabled(),
@@ -306,13 +313,20 @@ final class DTB_OfficialStripeNativeCheckout {
 			return;
 		}
 
-		if ( ! self::is_official_stripe_extension_active() ) {
+		$active_provider = DTB_StripeGatewayDetection::active_provider();
+		if ( null === $active_provider ) {
 			echo '<div class="notice notice-error"><p>'
-				. esc_html__( 'Drywall Toolbox checkout requires the official WooCommerce Stripe Payment Gateway plugin. Install and activate the WooCommerce-maintained Stripe extension before testing payments.', 'drywall-toolbox' )
+				. esc_html__( 'Drywall Toolbox checkout requires a supported Stripe gateway plugin (the official WooCommerce Stripe Payment Gateway, or Payment Plugins for Stripe WooCommerce). Install and activate one before testing payments.', 'drywall-toolbox' )
 				. '</p></div>';
-		} elseif ( ! self::is_official_stripe_gateway_enabled() ) {
+		} elseif ( ! DTB_StripeGatewayDetection::any_stripe_gateway_enabled() ) {
 			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Drywall Toolbox checkout is configured for WooCommerce Checkout + the official WooCommerce Stripe Payment Gateway. Connect and enable Stripe before accepting payments.', 'drywall-toolbox' )
+				. esc_html__( 'Drywall Toolbox checkout is configured for WooCommerce Checkout + Stripe. Connect and enable the active Stripe gateway before accepting payments.', 'drywall-toolbox' )
+				. '</p></div>';
+		}
+
+		if ( 'payment_plugins' === $active_provider ) {
+			echo '<div class="notice notice-info"><p>'
+				. esc_html__( 'Drywall Toolbox detected Payment Plugins for Stripe WooCommerce as the active gateway. Stripe Appearance API styling and Express Checkout wallet-address hardening in this codebase are only wired for the official WooCommerce Stripe Payment Gateway today — see docs/stripe-gateway-migration.md before relying on those for this provider.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
 
@@ -350,7 +364,7 @@ final class DTB_OfficialStripeNativeCheckout {
 	 * code must not show this branding unconditionally.
 	 */
 	public static function stripe_badge_visible(): bool {
-		return self::is_official_stripe_extension_active() && self::is_official_stripe_gateway_enabled();
+		return DTB_StripeGatewayDetection::any_stripe_gateway_enabled();
 	}
 
 	public static function is_official_gateway_id( string $gateway_id ): bool {
@@ -398,8 +412,17 @@ final class DTB_OfficialStripeNativeCheckout {
 		}
 	}
 
+	/**
+	 * True for an order paid through either supported Stripe provider (the
+	 * official WooCommerce Stripe Payment Gateway, or Payment Plugins for
+	 * Stripe WooCommerce). Historical orders keep whichever gateway ID they
+	 * were placed under, so this must recognize both providers indefinitely,
+	 * not just whichever one is currently active.
+	 */
 	private static function is_official_stripe_order( WC_Order $order ): bool {
-		return self::is_official_gateway_id( (string) $order->get_payment_method() );
+		$payment_method = (string) $order->get_payment_method();
+		return self::is_official_gateway_id( $payment_method )
+			|| DTB_StripeGatewayDetection::is_stripe_payment_method( $payment_method );
 	}
 
 	private static function gateway_reference( WC_Order $order ): string {

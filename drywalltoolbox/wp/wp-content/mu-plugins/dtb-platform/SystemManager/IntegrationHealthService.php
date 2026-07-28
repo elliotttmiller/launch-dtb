@@ -68,7 +68,14 @@ function dtb_integration_health_get(): array {
 		],
 		[
 			'name'    => 'Stripe',
-			'ok'      => class_exists( 'WC_Stripe' ) || class_exists( 'WC_Stripe_Payment_Gateway' ),
+			// Recognizes either supported Stripe gateway (the official
+			// WooCommerce Stripe Payment Gateway, or Payment Plugins for
+			// Stripe WooCommerce) via DTB_StripeGatewayDetection's file-path
+			// based detection when that class has loaded; falls back to the
+			// official plugin's own class markers otherwise.
+			'ok'      => class_exists( 'DTB_StripeGatewayDetection' )
+				? null !== DTB_StripeGatewayDetection::active_provider()
+				: ( class_exists( 'WC_Stripe' ) || class_exists( 'WC_Stripe_Payment_Gateway' ) ),
 			'version' => defined( 'WC_STRIPE_VERSION' ) ? WC_STRIPE_VERSION : 'n/a',
 		],
 		[

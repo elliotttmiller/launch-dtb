@@ -59,6 +59,18 @@ final class DTB_CheckoutRuntimeIntegrity {
 		'wc-stripe-upe-blocks',
 		'wc-stripe-express-checkout',
 		'wc-stripe-payment-request',
+		/*
+		 * Best-effort handles for "Payment Plugins for Stripe WooCommerce"
+		 * (wordpress.org slug woo-stripe-payment), added defensively should
+		 * this store switch gateways. Not verified against that plugin's
+		 * actual registered handle names — see docs/stripe-gateway-migration.md.
+		 * Harmless either way: enforce_dtb_checkout_script_invariants() and
+		 * exclude_checkout_scripts_from_optimizer() below also always merge in
+		 * every currently-registered/queued script handle on the checkout
+		 * request, so an incorrect guess here changes nothing.
+		 */
+		'wc-stripe-payment-gateway',
+		'wc-stripe-payment-gateway-blocks',
 	];
 
 	public static function register(): void {
