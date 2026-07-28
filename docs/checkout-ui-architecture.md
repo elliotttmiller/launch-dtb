@@ -4,19 +4,18 @@ Last verified against active source: 2026-07-28.
 
 ## Current state
 
-Drywall Toolbox checkout is a native WooCommerce Checkout Block document inside the headless storefront architecture. The custom DTB checkout presentation stack was removed on 2026-07-28 so the next desktop/mobile redesign starts from one observable baseline instead of competing CSS and JavaScript layers.
+Drywall Toolbox checkout is a native WooCommerce Checkout Block document inside the headless storefront architecture. The custom DTB checkout presentation stack was removed on 2026-07-28 so the redesign below started from one observable baseline instead of competing CSS and JavaScript layers.
 
-The current theme shell intentionally has:
+A single mobile-first presentation layer (handle `dtb-checkout`) shipped on top of that baseline the same day, then was extended into an in-page step wizard (Contact / Shipping / Payment) the following day with no document navigation. It is intentionally additive over the same, unmodified WooCommerce Checkout Block DOM:
 
-- no DTB checkout stylesheet;
-- no DTB inline CSS;
-- no DTB checkout loader or branded header treatment;
-- no DTB mobile wizard;
-- no DTB express-payment focus/scroll controller;
-- no DTB DOM classification or presentation classes;
-- no duplicate fields, payment controls, or order-submission controls.
+- one stylesheet (`assets/checkout/checkout.css`) restyling native WooCommerce Checkout Block markup and Payment Plugins for Stripe container chrome only, by their published stable class names;
+- one script (`assets/checkout/checkout.js`) that, on mobile viewports only, presents the checkout's real top-level block groups as three screens (Contact, Shipping, Payment) by toggling visibility (`display: none` + `inert`) on the exact groups WooCommerce core itself renders — identified by their own `data-block-name` attributes (`woocommerce/checkout-contact-information-block`, `woocommerce/checkout-shipping-address-block`, `woocommerce/checkout-payment-block`, etc. — see `src/Blocks/BlockTypes/Checkout.php` in WooCommerce core for the exact template). It builds its own progress rail and a sticky Back/Continue bar; it never creates, clones, duplicates, or moves a native field, and never fabricates a second submit control — the final step reveals Woo's own native "Place order" button. Step advancement is gated by the platform's own HTML5 constraint validation on the fields inside the step being left, plus the documented public `wc/store/cart`, `wc/store/checkout`, and `wc/store/validation` data stores (WooCommerce Blocks' third-party extensibility surface) for shipping/tax recalculation state and Woo-reported field errors — no private/internal object graph is read. At non-mobile widths the wizard chrome is not mounted at all and every group stays visible (the plain single-scroll layout);
+- a branded top bar added to `native-checkout.php`;
+- a Stripe Elements Appearance API integration (`mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php`) applying brand tokens to the Universal Payment Method's Payment Element via the officially documented `wc_stripe_get_element_options` filter, the only supported way to style content inside the Stripe iframe. It preserves the merchant's own UPM theme/layout admin selection and adds variables/rules on top rather than replacing it.
 
-WooCommerce and Payment Plugins for Stripe still load their own required styles and scripts through `wp_head()` and `wp_footer()`.
+WooCommerce and Payment Plugins for Stripe still load their own required styles and scripts through `wp_head()` and `wp_footer()`; DTB's stylesheet/script enqueue after them (priority 30) and only on the primary checkout surface (never order-pay/order-received).
+
+Unlike an earlier (removed) checkout presentation stack that solved the mockup's step-1 field grouping by cloning proxy `first_name`/`last_name`/`phone` inputs and two-way-syncing them into the native ones, first/last name and an optional phone now reach the Contact step through WooCommerce's own **Additional Checkout Fields API** (`woocommerce_register_additional_checkout_field()`, stable since WooCommerce 8.9, see `mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php`) — real, Woo-rendered, Woo-validated, Woo-persisted fields (`dtb/first_name`, `dtb/last_name`, `dtb/phone`) at the `contact` location, not a client-side clone. The native `first_name`/`last_name` inputs are hidden from the shipping/billing address forms via `woocommerce_get_country_locale` (the filter WooCommerce Blocks itself reads for address-field hidden/required state), and a one-directional, non-destructive sync (`woocommerce_set_additional_field_value` + a durable re-check on `woocommerce_store_api_checkout_order_processed`) copies a non-empty Contact value onto the canonical billing/shipping name — never overwriting a wallet-supplied value with a blank one.
 
 ## Authority boundary
 
@@ -96,3 +95,24 @@ Real payment acceptance requires a connected Stripe account, valid webhooks, HTT
 ## Database impact and rollback
 
 The presentation reset introduces no schema change or data migration. Rollback restores the prior theme template and all five deleted presentation assets as one dependency-consistent set, restores the prior MU-plugin runtime files, clears SiteGround caches, and reruns checkout/payment acceptance. Do not delete or rewrite orders created during a failed cutover.
+
+## Required one-time admin action
+
+WooCommerce's Checkout block has its own editor-configurable "Address Fields" setting (shared across the Contact/Shipping/Billing inner blocks) that can show a Phone field on the address step in addition to the one now collected on Contact. This is page-content configuration (a block attribute on the Checkout page), not something a code change can set — an admin must open the Checkout page in the block editor, select the Checkout Fields block, and turn off "Phone" under Address Fields, so phone is collected exactly once. Nothing breaks if this step is skipped — the Contact-step `dtb/phone` field is independent and optional either way — but the customer would otherwise be asked for a phone number twice.
+
+## Redesign v1 — mobile pass (2026-07-28), v2 — in-page wizard (2026-07-29), v3 — Contact identity fields (2026-07-29)
+
+Scope was deliberately mobile-first only, per entry criterion 1-6 above; neither pass claims entry criteria 7-8 (guest/authenticated cart continuity sign-off, rendered desktop/mobile QA) — those require a live WooCommerce + Payment Plugins for Stripe environment with a connected Stripe test account and were not run in this change. Before production sign-off, run the full validation matrix above against staging, specifically:
+
+- 320–428px widths across the step rail, sticky action bar, card sections, and Payment Element tabs;
+- click through Contact → Shipping → Payment and Back again with a guest cart, a variable product, a coupon applied mid-flow, and an authenticated account with a saved address — confirm no field ever loses its value across a step transition (it never should, since nothing is unmounted, only hidden) and that going back does not clear or re-validate a step's contents;
+- confirm the Continue button on the Shipping screen stays disabled (with an "Updating…" message) while `wc/store/checkout`'s `isCalculating` or `wc/store/cart`'s rate-loading selectors report busy, and that it does not falsely block once shipping is calculated;
+- confirm the Payment screen shows Woo's own native "Place order" button and no duplicate submit control, and that 3DS/SCA, saved cards, Apple Pay, Google Pay, Link, and each enabled BNPL method still complete correctly;
+- UPM theme/layout admin setting still applies (this pass preserves `stripe_upm`'s own `theme` option and layers brand variables/rules on top rather than replacing it);
+- collapsible order summary toggle (native Woo Blocks behavior) still opens/closes correctly and stays visible across all three wizard steps;
+- resize/rotate mid-session between mobile and desktop widths — the wizard chrome must unmount and every field must become visible again with no field left `inert`;
+- no console errors from `checkout.js`'s `MutationObserver`/`wp.data.subscribe` on a WooCommerce Blocks version different from the one this pass targeted — the script no-ops safely if its expected `data-block-name` groups or store keys aren't found;
+- **v3 specifically**: confirm `dtb/first_name`/`dtb/last_name`/`dtb/phone` render on the Contact step and the native name inputs no longer render on the Shipping/Billing address forms; confirm a *typed/card* checkout cannot advance past Contact with an empty first or last name (client-side gate) and that the resulting order's billing/shipping first/last name match what was typed; **critically**, confirm an **Apple Pay / Google Pay / Link** checkout still completes successfully end-to-end without ever visiting the Contact step's name inputs, and that the resulting order's name comes from the wallet, unmodified — this is the exact failure mode `CheckoutFieldPolicy.php`'s required-field design avoids, and it must be verified on a real device/wallet, not assumed from code review;
+- confirm the one-time admin action above (Address Fields → Phone off) has been applied, or accept that phone will be asked twice until it is.
+
+Rollback for these passes (independent of the full reset rollback above): remove the `dtb_enqueue_native_checkout_assets()` block from the theme's `functions.php`, delete `assets/checkout/checkout.css` and `assets/checkout/checkout.js`, revert `templates/checkout/native-checkout.php` to the neutral shell, remove `mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php` plus its `require_once` in `dtb-commerce/bootstrap.php`, and revert `mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php` to its pre-v3 state (optional-phone filters only, no Additional Checkout Fields, no locale hiding, no sync hooks). No schema or order data is touched by any of this; historical orders keep whatever `dtb/first_name`/`dtb/last_name`/`dtb/phone` metadata they already have.
