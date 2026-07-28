@@ -23,15 +23,19 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     ? capabilities.readiness
     : {};
   const gateway = findOfficialStripeGateway(capabilities);
+  const competingWooPayments = asBoolean(readiness.competing_woopayments);
 
   const checks = {
     nativeCheckout: capabilities?.checkout === 'woo_native_checkout_block',
     officialProvider: capabilities?.provider === 'woocommerce_stripe',
     stripeExtensionActive: asBoolean(readiness.stripe_extension_active),
     stripeGatewayEnabled: asBoolean(readiness.stripe_gateway_enabled),
+    expressCheckoutEnabled: asBoolean(readiness.express_checkout_enabled),
+    expressCheckoutCheckoutLocation: asBoolean(readiness.express_checkout_checkout_location),
     checkoutBlockReady: asBoolean(readiness.checkout_block),
     https: asBoolean(readiness.https),
     gatewayEntryEnabled: gateway ? asBoolean(gateway.enabled) : null,
+    noCompetingWooPayments: competingWooPayments == null ? null : !competingWooPayments,
   };
 
   const requiredChecks = [
@@ -39,9 +43,12 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
     checks.officialProvider,
     checks.stripeExtensionActive,
     checks.stripeGatewayEnabled,
+    checks.expressCheckoutEnabled,
+    checks.expressCheckoutCheckoutLocation,
     checks.checkoutBlockReady,
     checks.https,
     checks.gatewayEntryEnabled,
+    checks.noCompetingWooPayments,
   ];
 
   const explicitlyUnavailable = requiredChecks.some((value) => value === false);
