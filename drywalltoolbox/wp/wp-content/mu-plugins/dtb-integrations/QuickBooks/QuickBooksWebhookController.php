@@ -221,7 +221,7 @@ final class DTB_QuickBooksWebhookController {
 			throw new RuntimeException( 'QuickBooks webhook retry queue is unavailable.' );
 		}
 		$event['attempt'] = $attempt + 1;
-		$delay            = self::RETRY_DELAYS_SECONDS[ $attempt ] ?? end( self::RETRY_DELAYS_SECONDS );
+		$delay            = self::RETRY_DELAYS_SECONDS[ $attempt ] ?? self::RETRY_DELAYS_SECONDS[ self::MAX_RETRY_ATTEMPTS - 1 ];
 		$action_id        = as_schedule_single_action( time() + $delay, self::QUEUE_HOOK, [ $event ], self::QUEUE_GROUP, true );
 		if ( 0 === (int) $action_id ) {
 			throw new RuntimeException( 'QuickBooks webhook retry could not be scheduled.' );
