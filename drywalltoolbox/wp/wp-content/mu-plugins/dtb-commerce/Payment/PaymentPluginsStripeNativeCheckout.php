@@ -36,6 +36,7 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
 		add_filter( 'body_class', [ __CLASS__, 'body_class' ] );
+		add_filter( 'woocommerce_available_payment_gateways', [ __CLASS__, 'enforce_single_stripe_authority' ], 1000 );
 		add_filter( 'wc_stripe_get_element_options', [ __CLASS__, 'stripe_element_options' ], 100, 2 );
 		add_filter( 'wc_stripe_express_payment_methods', [ __CLASS__, 'express_payment_methods' ], 100 );
 		add_action( 'woocommerce_checkout_create_order', [ __CLASS__, 'tag_checkout_order' ], 20, 2 );
@@ -129,6 +130,25 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 			$classes[] = 'dtb-checkout-native-page';
 		}
 		return array_values( array_unique( $classes ) );
+	}
+
+	/**
+	 * Fail closed against competing storefront Stripe card/wallet authorities.
+	 * The old plugins may remain installed for rollback or historical order review,
+	 * but they are not offered on the primary checkout while the replacement card
+	 * gateway is active. Order-pay remains untouched for explicit historical repair.
+	 *
+	 * @param mixed $gateways Available WooCommerce payment gateways.
+	 * @return array<string,object>
+	 */
+	public static function enforce_single_stripe_authority( $gateways ): array {
+		$gateways = is_array( $gateways ) ? $gateways : [];
+		if ( ! self::is_primary_checkout_request() || ! self::is_card_gateway_enabled() ) {
+			return $gateways;
+		}
+
+		unset( $gateways['stripe'], $gateways['woocommerce_payments'] );
+		return $gateways;
 	}
 
 	/**
@@ -227,12 +247,12 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 
 	public static function tag_checkout_order( WC_Order $order, array $data = [] ): void {
 		unset( $data );
-		self::tag_order( $order, 'woocommerce_checkout' );
+		self::tag_order_if_provider_order( $order, 'woocommerce_checkout' );
 	}
 
 	public static function tag_store_api_order( $order ): void {
 		if ( $order instanceof WC_Order ) {
-			self::tag_order( $order, 'woocommerce_store_api_checkout' );
+			self::tag_order_if_provider_order( $order, 'woocommerce_store_api_checkout' );
 		}
 	}
 
@@ -247,11 +267,12 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 			return;
 		}
 
+		self::tag_order( $order, 'payment_plugins_stripe_lifecycle' );
 		$order->update_meta_data( '_dtb_payment_provider', self::PROVIDER );
 		$order->update_meta_data( '_dtb_payment_ref', $reference );
 		$order->update_meta_data( '_dtb_payment_captured', '1' );
 		$order->update_meta_data( '_dtb_payment_lifecycle_source', 'payment_plugins_stripe_lifecycle' );
-		$order->save_meta_data();
+		$order->save();
 	}
 
 	public static function stripe_badge_visible(): bool {
@@ -309,6 +330,14 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 				. esc_html__( 'The assigned WooCommerce Checkout page must contain the WooCommerce Checkout Block.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
+	}
+
+	private static function tag_order_if_provider_order( WC_Order $order, string $source ): void {
+		$payment_method = sanitize_key( (string) $order->get_payment_method() );
+		if ( '' !== $payment_method && ! self::is_payment_plugins_gateway_id( $payment_method ) ) {
+			return;
+		}
+		self::tag_order( $order, $source );
 	}
 
 	private static function tag_order( WC_Order $order, string $source ): void {
