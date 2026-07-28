@@ -47,18 +47,36 @@
 		return payload;
 	};
 
+	const syncActionStates = () => {
+		const dashboard = state.dashboard;
+		if (!dashboard) {
+			const refresh = query('[data-qbo-action="refresh"]');
+			if (refresh) {
+				refresh.disabled = state.busy;
+			}
+			return;
+		}
+
+		const status = dashboard.status || {};
+		const connected = Boolean(status.connected);
+		const states = {
+			refresh: false,
+			test: !connected,
+			discover: !connected,
+			connect: connected || !status.ready_for_connection,
+			disconnect: !connected,
+		};
+
+		queryAll('[data-qbo-action]').forEach((button) => {
+			button.disabled = state.busy || Boolean(states[button.dataset.qboAction]);
+		});
+	};
+
 	const setBusy = (busy) => {
 		state.busy = busy;
 		root.classList.toggle('is-busy', busy);
-		queryAll('[data-qbo-action]').forEach((button) => {
-			if (busy) {
-				button.dataset.qboWasDisabled = button.disabled ? '1' : '0';
-				button.disabled = true;
-			} else if (button.dataset.qboWasDisabled === '0') {
-				button.disabled = false;
-			}
-			delete button.dataset.qboWasDisabled;
-		});
+		root.setAttribute('aria-busy', busy ? 'true' : 'false');
+		syncActionStates();
 	};
 
 	const showAlert = (message, tone = 'info') => {
@@ -69,7 +87,8 @@
 		alert.textContent = message;
 		alert.className = `dtb-qbo-alert is-${tone}`;
 		alert.hidden = false;
-		alert.focus?.();
+		alert.setAttribute('tabindex', '-1');
+		alert.focus();
 	};
 
 	const clearAlert = () => {
@@ -77,6 +96,7 @@
 		if (alert) {
 			alert.hidden = true;
 			alert.textContent = '';
+			alert.removeAttribute('tabindex');
 		}
 	};
 
@@ -216,23 +236,9 @@
 		}
 
 		const connectButton = query('[data-qbo-action="connect"]');
-		const testButton = query('[data-qbo-action="test"]');
-		const discoverButton = query('[data-qbo-action="discover"]');
-		const disconnectButton = query('[data-qbo-action="disconnect"]');
 		const openLink = query('[data-qbo-open-link]');
-
 		if (connectButton) {
 			connectButton.hidden = connected;
-			connectButton.disabled = connected || !status.ready_for_connection;
-		}
-		if (testButton) {
-			testButton.disabled = !connected;
-		}
-		if (discoverButton) {
-			discoverButton.disabled = !connected;
-		}
-		if (disconnectButton) {
-			disconnectButton.disabled = !connected;
 		}
 		if (openLink) {
 			openLink.hidden = !connected;
@@ -248,6 +254,7 @@
 			schedulerLink.href = dashboard.links?.scheduler || '#';
 		}
 
+		syncActionStates();
 		root.classList.add('is-ready');
 	};
 
