@@ -12,11 +12,27 @@
 defined( 'ABSPATH' ) || exit;
 
 function dtb_qbo_accounting_ref( string $key, string $default_id = '', string $default_name = '' ): array {
-	$key        = strtoupper( sanitize_key( $key ) );
+	$option_key = sanitize_key( $key );
+	$key        = strtoupper( $option_key );
 	$id_const   = 'DTB_QBO_ITEM_' . $key . '_ID';
 	$name_const = 'DTB_QBO_ITEM_' . $key . '_NAME';
-	$value      = defined( $id_const ) ? constant( $id_const ) : get_option( strtolower( $id_const ), $default_id );
-	$name       = defined( $name_const ) ? constant( $name_const ) : get_option( strtolower( $name_const ), $default_name );
+
+	if ( defined( $id_const ) ) {
+		$value = constant( $id_const );
+		$name  = defined( $name_const ) ? constant( $name_const ) : $default_name;
+	} else {
+		$environment_id   = function_exists( 'dtb_qbo_option_name' ) ? dtb_qbo_option_name( 'item_' . $option_key . '_id' ) : '';
+		$environment_name = function_exists( 'dtb_qbo_option_name' ) ? dtb_qbo_option_name( 'item_' . $option_key . '_name' ) : '';
+		$value            = '' !== $environment_id ? get_option( $environment_id, '' ) : '';
+		$name             = '' !== $environment_name ? get_option( $environment_name, $default_name ) : $default_name;
+
+		// Compatibility fallback for mappings created before environment isolation.
+		if ( '' === (string) $value ) {
+			$value = get_option( strtolower( $id_const ), $default_id );
+			$name  = get_option( strtolower( $name_const ), $name );
+		}
+	}
+
 	return [ 'value' => sanitize_text_field( (string) $value ), 'name' => sanitize_text_field( (string) $name ) ];
 }
 
@@ -25,6 +41,14 @@ function dtb_qbo_money( mixed $amount ): float {
 }
 
 function dtb_qbo_require_ref( string $key, string $name ): array|WP_Error {
+	$key = sanitize_key( $key );
+	if ( class_exists( 'DTB_QuickBooksItemMappingService' ) && ! DTB_QuickBooksItemMappingService::item_ready( $key ) ) {
+		return new WP_Error(
+			'qbo_reference_unverified',
+			sprintf( 'QuickBooks %s item reference is not verified for the connected company.', strtolower( $name ) )
+		);
+	}
+
 	$ref = dtb_qbo_accounting_ref( $key, '', $name );
 	return '' === $ref['value'] ? new WP_Error( 'qbo_reference_missing', sprintf( 'QuickBooks %s item reference is not configured.', strtolower( $name ) ) ) : $ref;
 }
@@ -138,7 +162,7 @@ function dtb_qbo_find_entity_by_doc_number( string $entity, string $doc_number )
 	if ( ! in_array( $entity, [ 'SalesReceipt', 'RefundReceipt' ], true ) ) {
 		return new WP_Error( 'qbo_invalid_entity', 'Unsupported QuickBooks entity query.' );
 	}
-	$safe   = str_replace( "'", "''", $doc_number );
+	$safe   = str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $doc_number );
 	$result = dtb_qbo_request( 'GET', '/query', [ 'query' => "SELECT * FROM {$entity} WHERE DocNumber = '{$safe}' MAXRESULTS 2" ] );
 	if ( empty( $result['ok'] ) ) {
 		return new WP_Error( 'qbo_reconciliation_failed', (string) ( $result['error'] ?? 'QuickBooks reconciliation query failed.' ) );

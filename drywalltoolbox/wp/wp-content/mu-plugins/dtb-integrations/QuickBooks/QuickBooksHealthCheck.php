@@ -7,10 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( class_exists( 'DTB_QuickBooksHealthCheck' ) ) {
-	return;
-}
-
 final class DTB_QuickBooksHealthCheck {
 	public static function register(): void {
 		if ( class_exists( 'DTB_HealthRegistry' ) ) {
@@ -20,10 +16,11 @@ final class DTB_QuickBooksHealthCheck {
 
 	/** Passive diagnostics only; this method never performs an external request. */
 	public static function run(): array {
-		$status = function_exists( 'dtb_qbo_status' ) ? dtb_qbo_status() : [];
-		$status['ok'] = ! empty( $status['connected'] ) && ! empty( $status['company_verified'] );
-		$status['request_available'] = function_exists( 'dtb_qbo_request' );
-		$status['queue_pipeline_available'] = function_exists( 'dtb_qbo_sync_order_pipeline' );
+		$status                              = function_exists( 'dtb_qbo_status' ) ? dtb_qbo_status() : [];
+		$status['item_mappings_ready']       = class_exists( 'DTB_QuickBooksItemMappingService' ) && DTB_QuickBooksItemMappingService::ready();
+		$status['ok']                        = ! empty( $status['connected'] ) && ! empty( $status['company_verified'] ) && $status['item_mappings_ready'];
+		$status['request_available']         = function_exists( 'dtb_qbo_request' );
+		$status['queue_pipeline_available']  = function_exists( 'dtb_qbo_sync_order_pipeline' );
 		return $status;
 	}
 }

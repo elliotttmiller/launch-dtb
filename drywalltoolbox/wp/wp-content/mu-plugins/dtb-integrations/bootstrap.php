@@ -80,13 +80,17 @@ dtb_integrations_require_files( [
 	'dtb-integrations/Veeqo/VeeqoHealthCheck.php',
 ] );
 
-// 4) QuickBooks module-layer files.
+// 4) QuickBooks production module. Load configuration and mapping services before
+// REST controllers and the BrikPanel-compatible administrator application.
 dtb_integrations_require_files( [
 	'dtb-integrations/QuickBooks/QuickBooksConfig.php',
 	'dtb-integrations/QuickBooks/QuickBooksCustomerMapper.php',
 	'dtb-integrations/QuickBooks/QuickBooksInvoiceService.php',
+	'dtb-integrations/QuickBooks/QuickBooksItemMappingService.php',
 	'dtb-integrations/QuickBooks/QuickBooksOAuthController.php',
+	'dtb-integrations/QuickBooks/QuickBooksAdminController.php',
 	'dtb-integrations/QuickBooks/QuickBooksWebhookController.php',
+	'dtb-integrations/QuickBooks/Admin/QuickBooksAdminPage.php',
 	'dtb-integrations/QuickBooks/QuickBooksSyncJob.php',
 	'dtb-integrations/QuickBooks/QuickBooksHealthCheck.php',
 ] );
