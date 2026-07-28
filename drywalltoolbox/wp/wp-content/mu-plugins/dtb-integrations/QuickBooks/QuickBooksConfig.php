@@ -12,27 +12,20 @@ if ( class_exists( 'DTB_QuickBooksConfig' ) ) {
 }
 
 final class DTB_QuickBooksConfig {
-	/** Return raw runtime config from the existing QuickBooks module. */
 	public static function raw(): array {
 		return function_exists( 'dtb_qbo_config' ) ? (array) dtb_qbo_config() : [];
 	}
 
-	/** Return whether the integration is enabled. */
 	public static function enabled(): bool {
-		return function_exists( 'dtb_qbo_enabled' ) ? (bool) dtb_qbo_enabled() : false;
+		return function_exists( 'dtb_qbo_enabled' ) && dtb_qbo_enabled();
 	}
 
-	/** Return a safe diagnostic snapshot without exposing credential values. */
 	public static function diagnostics(): array {
-		$config = self::raw();
-
-		return [
-			'enabled' => self::enabled(),
-			'has_client_id' => '' !== (string) ( $config['client_id'] ?? '' ),
-			'has_client_credential' => '' !== (string) ( $config['client_secret'] ?? '' ),
-			'has_realm_id' => '' !== (string) ( $config['realm_id'] ?? '' ),
-			'sandbox' => (bool) ( $config['sandbox'] ?? false ),
-			'has_tokens' => function_exists( 'dtb_qbo_load_tokens' ) ? null !== dtb_qbo_load_tokens() : false,
+		return function_exists( 'dtb_qbo_status' ) ? dtb_qbo_status() : [
+			'environment'            => null,
+			'credentials_configured' => false,
+			'connected'              => false,
+			'company_verified'       => false,
 		];
 	}
 }
