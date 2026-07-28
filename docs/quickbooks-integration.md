@@ -56,6 +56,17 @@ The connect route returns the one-time Intuit authorization URL and exact OAuth 
 /wp-admin/admin-ajax.php?action=dtb_qbo_oauth_callback
 ```
 
+The authorization URL is assembled with RFC 3986 query encoding. The callback URI therefore appears percent-encoded inside the Intuit request, including its own `?action=...` query string. Never manually concatenate OAuth query parameters and never decode or re-encode the returned authorization URL before opening it.
+
+A valid authorization request must parse back to all of the following values before it is returned to the operator:
+
+```text
+response_type = code
+scope = com.intuit.quickbooks.accounting
+redirect_uri = exact registered callback URI
+state = 64-character random hexadecimal value
+```
+
 ## Required QuickBooks item references
 
 ```php
@@ -127,7 +138,12 @@ Do not expose the verifier token or temporarily weaken signature enforcement dur
 
 ## OAuth and token handling
 
-- OAuth state is random, administrator-bound, environment-bound, redirect-bound, single-use, and expires after ten minutes.
+- OAuth state is generated with 32 cryptographically secure random bytes and represented as 64 lowercase hexadecimal characters.
+- OAuth state is administrator-bound, environment-bound, redirect-bound, single-use, and expires after ten minutes.
+- The state transient stores only the state hash, operator ID, environment, callback URI, and issue time.
+- The callback rejects malformed state before performing a transient lookup and uses `hash_equals` for the stored state-hash comparison.
+- The one-time transient is deleted before token exchange so callback replay fails closed.
+- The authorization URL is self-validated before being returned; malformed `redirect_uri`, `state`, or `response_type` values fail closed.
 - Access and refresh tokens are encrypted with AES-256-GCM using a key derived from the WordPress authentication secret.
 - Refreshes are protected by an option-backed cross-worker lock.
 - Browser and log output never include authorization codes, access tokens, refresh tokens, Client Secrets, verifier tokens, or raw Intuit responses.
@@ -138,18 +154,21 @@ Do not expose the verifier token or temporarily weaken signature enforcement dur
 2. Configure sandbox credentials and the sandbox verifier token outside GitHub.
 3. Confirm the status endpoint reports `sandbox`, credentials configured, `webhook_verifier_configured: true`, `ready_for_connection: true`, and the expected webhook endpoint.
 4. Register the exact OAuth redirect URI returned by the connect endpoint.
-5. Complete OAuth and verify the intended sandbox company.
-6. Register the webhook endpoint and select only the allowlisted events.
-7. Enable CloudEvents payload format.
-8. Send an unsigned request and confirm HTTP 401.
-9. Send a valid signed SalesReceipt event and confirm Intuit receives HTTP 200 within three seconds.
-10. Confirm an Action Scheduler job is created in the `dtb-orders` group.
-11. Replay the same event while pending and confirm no duplicate pending action is created.
-12. Confirm the completion marker is written only after successful processing.
-13. Force an unmapped SalesReceipt event and confirm the documented retry schedule is created.
-14. Confirm a stale processing lock can be reclaimed after 15 minutes.
-15. Create one captured-payment test order and verify exactly one SalesReceipt.
-16. Re-run the same accounting job and verify no duplicate.
+5. Call the connect endpoint with an authenticated administrator REST nonce.
+6. Parse the returned authorization URL and confirm `state` is present, `response_type=code`, and `redirect_uri` decodes to the exact registered callback URI.
+7. Confirm the raw authorization URL contains an encoded callback query separator (`%3F`) and encoded callback assignment (`%3D`), not a second unescaped `?action=` sequence.
+8. Complete OAuth and verify the intended sandbox company.
+9. Register the webhook endpoint and select only the allowlisted events.
+10. Enable CloudEvents payload format.
+11. Send an unsigned request and confirm HTTP 401.
+12. Send a valid signed SalesReceipt event and confirm Intuit receives HTTP 200 within three seconds.
+13. Confirm an Action Scheduler job is created in the `dtb-orders` group.
+14. Replay the same event while pending and confirm no duplicate pending action is created.
+15. Confirm the completion marker is written only after successful processing.
+16. Force an unmapped SalesReceipt event and confirm the documented retry schedule is created.
+17. Confirm a stale processing lock can be reclaimed after 15 minutes.
+18. Create one captured-payment test order and verify exactly one SalesReceipt.
+19. Re-run the same accounting job and verify no duplicate.
 
 ## Production cutover
 
