@@ -7,10 +7,62 @@
 	 * WooCommerce Checkout Block remains the only owner of customer/address data,
 	 * shipping, tax, totals, validation, payment selection, order creation, and
 	 * submission. This controller performs read-only classification, accessibility
-	 * focus management, login-route handoff, and busy-state presentation only.
+	 * focus management, login-route handoff, busy-state presentation, and (below
+	 * 1024px) a presentation-only Contact -> Shipping -> Payment step wizard.
+	 *
+	 * The wizard never creates a second form, field, or payment surface. It only
+	 * assigns `data-dtb-checkout-step` + `aria-hidden` to top-level WooCommerce
+	 * Checkout Block sections and toggles a CSS class that keeps inactive
+	 * sections mounted and measurable (zero-height/opacity, not `display:none`)
+	 * so the official Stripe gateway's Payment Element and wallet buttons are
+	 * never unmounted or remounted while moving between steps. Desktop
+	 * (1024px+) never receives step markers and remains one continuous page.
 	 */
 
 	const checkoutSelector = '.wc-block-checkout';
+	const wizardViewport = window.matchMedia( '(max-width: 1023px)' );
+	const wizardInactiveClass = 'is-dtb-checkout-step-inactive';
+	const wizardSteps = [
+		{
+			id: 'contact', label: 'Contact', sublabel: 'Your details', selectors: [
+				'.wp-block-woocommerce-checkout-express-payment-block',
+				'.wp-block-woocommerce-checkout-contact-information-block',
+				'.wp-block-woocommerce-checkout-create-account-block',
+				'[data-block-name="woocommerce/checkout-contact-information-block"]',
+				'.wc-block-checkout__contact-fields',
+			],
+		},
+		{
+			id: 'shipping', label: 'Shipping', sublabel: 'Delivery options', selectors: [
+				'.wp-block-woocommerce-checkout-shipping-method-block',
+				'.wp-block-woocommerce-checkout-pickup-options-block',
+				'.wp-block-woocommerce-checkout-shipping-address-block',
+				'.wp-block-woocommerce-checkout-billing-address-block',
+				'.wp-block-woocommerce-checkout-shipping-methods-block',
+				'[data-block-name="woocommerce/checkout-shipping-address-block"]',
+				'[data-block-name="woocommerce/checkout-billing-address-block"]',
+				'.wc-block-checkout__shipping-fields',
+				'.wc-block-checkout__shipping-address',
+				'.wc-block-checkout__billing-fields',
+				'.wc-block-checkout__shipping-option',
+				'.wc-block-checkout__shipping-method',
+			],
+		},
+		{
+			id: 'payment', label: 'Payment', sublabel: 'Review & pay', selectors: [
+				'.wp-block-woocommerce-checkout-payment-block',
+				'.wp-block-woocommerce-checkout-additional-information-block',
+				'.wp-block-woocommerce-checkout-order-note-block',
+				'.wp-block-woocommerce-checkout-terms-block',
+				'.wp-block-woocommerce-checkout-actions-block',
+				'[data-block-name="woocommerce/checkout-payment-block"]',
+				'.wc-block-checkout__payment-method',
+				'.wc-block-checkout__order-notes',
+				'.wc-block-checkout__terms',
+				'.wc-block-checkout__actions',
+			],
+		},
+	];
 	const paymentRootSelector = '.wp-block-woocommerce-checkout-payment-block, .wc-block-checkout__payment-method';
 	const loginSelector = [
 		'a[href*="/my-account/"]',
@@ -47,6 +99,11 @@
 	let reconcileQueued = false;
 	let lastCommerceSignature = '';
 	let lastErrorSignature = '';
+
+	let wizardActiveStep = 0;
+	let wizardHighestVisitedStep = 0;
+	let wizardProgressEl = null;
+	let wizardActionsEl = null;
 
 	function checkoutRoot() {
 		return document.querySelector( checkoutSelector );
@@ -195,6 +252,274 @@
 		}
 	}
 
+	function uniqueNodes( nodes ) {
+		return Array.from( new Set( nodes.filter( Boolean ) ) );
+	}
+
+	function topLevelNodes( nodes ) {
+		return nodes.filter( ( node ) => ! nodes.some( ( other ) => other !== node && other.contains( node ) ) );
+	}
+
+	function wizardStepElements( root, index ) {
+		const step = wizardSteps[ index ];
+		if ( ! root || ! step ) {
+			return [];
+		}
+		return topLevelNodes( uniqueNodes( step.selectors.flatMap( ( selector ) => Array.from( root.querySelectorAll( selector ) ) ) ) );
+	}
+
+	function clearWizardStepMarkers( root ) {
+		root?.querySelectorAll( '[data-dtb-checkout-step]' ).forEach( ( node ) => {
+			node.classList.remove( wizardInactiveClass );
+			node.removeAttribute( 'aria-hidden' );
+			delete node.dataset.dtbCheckoutStep;
+		} );
+	}
+
+	function markWizardStepOwnership( root ) {
+		clearWizardStepMarkers( root );
+		const ownership = new Map();
+		wizardSteps.forEach( ( step, index ) => wizardStepElements( root, index ).forEach( ( node ) => {
+			if ( ! ownership.has( node ) ) {
+				ownership.set( node, index );
+			}
+		} ) );
+		ownership.forEach( ( index, node ) => {
+			const inactive = index !== wizardActiveStep;
+			node.dataset.dtbCheckoutStep = wizardSteps[ index ].id;
+			node.classList.toggle( wizardInactiveClass, inactive );
+			node.setAttribute( 'aria-hidden', inactive ? 'true' : 'false' );
+		} );
+	}
+
+	function wizardStepControls( root, index ) {
+		return uniqueNodes( wizardStepElements( root, index ).flatMap( ( node ) => Array.from( node.querySelectorAll( 'input, select, textarea' ) ) ) )
+			.filter( ( control ) => ! control.disabled && control.type !== 'hidden' && control.willValidate !== false );
+	}
+
+	function setWizardMessage( message = '', kind = '' ) {
+		const status = wizardActionsEl?.querySelector( '.dtb-checkout-wizard__status' );
+		if ( ! status ) {
+			return;
+		}
+		status.textContent = message;
+		status.hidden = ! message;
+		status.dataset.kind = kind;
+	}
+
+	function validateWizardControls( root, index, message ) {
+		const invalid = wizardStepControls( root, index ).find( ( control ) => ! control.checkValidity() );
+		if ( ! invalid ) {
+			return true;
+		}
+		setWizardMessage( message, 'error' );
+		invalid.reportValidity?.();
+		invalid.focus?.();
+		return false;
+	}
+
+	function validateWizardContactStep( root ) {
+		return validateWizardControls( root, 0, 'Complete the highlighted fields before continuing.' );
+	}
+
+	function validateWizardShippingStep( root ) {
+		if ( ! validateWizardControls( root, 1, 'Complete the highlighted shipping fields before continuing.' ) ) {
+			return false;
+		}
+		const snapshot = commerceSnapshot();
+		if ( snapshot.available && snapshot.needsShipping && ( snapshot.busy || ! snapshot.hasCalculatedShipping ) ) {
+			setWizardMessage(
+				snapshot.busy
+					? 'Wait for shipping and tax totals to finish updating.'
+					: 'Enter a complete shipping address and select a delivery method before continuing.',
+				snapshot.busy ? 'progress' : 'error'
+			);
+			return false;
+		}
+		return true;
+	}
+
+	function updateWizardControls( root ) {
+		wizardProgressEl?.querySelectorAll( '[data-dtb-checkout-step-target]' ).forEach( ( button ) => {
+			const index = Number( button.dataset.dtbCheckoutStepTarget );
+			const complete = index < wizardActiveStep;
+			const current = index === wizardActiveStep;
+			button.disabled = index > wizardHighestVisitedStep;
+			button.classList.toggle( 'is-current', current );
+			button.classList.toggle( 'is-complete', complete );
+			button.setAttribute( 'aria-current', current ? 'step' : 'false' );
+			button.closest( '.dtb-checkout-wizard__item' )?.classList.toggle( 'is-current', current );
+			button.closest( '.dtb-checkout-wizard__item' )?.classList.toggle( 'is-complete', complete );
+			const circle = button.querySelector( '.dtb-checkout-wizard__circle' );
+			if ( circle ) {
+				circle.textContent = complete ? '' : String( index + 1 );
+			}
+		} );
+
+		if ( ! wizardActionsEl ) {
+			return;
+		}
+
+		const back = wizardActionsEl.querySelector( '.dtb-checkout-wizard__back' );
+		const next = wizardActionsEl.querySelector( '.dtb-checkout-wizard__next' );
+		const onPayment = wizardActiveStep === 2;
+		const snapshot = commerceSnapshot();
+		const busy = wizardActiveStep === 1 && Boolean( snapshot.busy );
+
+		wizardActionsEl.classList.toggle( 'is-payment-step', onPayment );
+		back.disabled = wizardActiveStep === 0;
+		back.setAttribute( 'aria-hidden', wizardActiveStep === 0 ? 'true' : 'false' );
+		next.hidden = onPayment;
+		next.disabled = busy;
+		next.textContent = busy ? 'Updating checkout…' : ( wizardActiveStep === 0 ? 'Continue to shipping' : 'Continue to payment' );
+
+		if ( busy ) {
+			setWizardMessage( 'Updating shipping and tax totals…', 'progress' );
+		} else if ( wizardActionsEl.querySelector( '.dtb-checkout-wizard__status' )?.dataset.kind === 'progress' ) {
+			setWizardMessage();
+		}
+	}
+
+	function showWizardStep( root, index, scroll ) {
+		wizardActiveStep = Math.max( 0, Math.min( index, wizardSteps.length - 1 ) );
+		wizardHighestVisitedStep = Math.max( wizardHighestVisitedStep, wizardActiveStep );
+		markWizardStepOwnership( root );
+		updateWizardControls( root );
+		if ( scroll ) {
+			const reducedMotion = window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+			wizardProgressEl?.scrollIntoView( { behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' } );
+		}
+	}
+
+	function goToNextWizardStep( root ) {
+		setWizardMessage();
+		if ( wizardActiveStep === 0 && ! validateWizardContactStep( root ) ) {
+			return;
+		}
+		if ( wizardActiveStep === 1 && ! validateWizardShippingStep( root ) ) {
+			return;
+		}
+		showWizardStep( root, wizardActiveStep + 1, true );
+	}
+
+	function goToPreviousWizardStep( root ) {
+		if ( wizardActiveStep > 0 ) {
+			showWizardStep( root, wizardActiveStep - 1, true );
+		}
+	}
+
+	function appendText( parent, tag, className, text ) {
+		const node = document.createElement( tag );
+		if ( className ) {
+			node.className = className;
+		}
+		if ( text ) {
+			node.textContent = text;
+		}
+		parent.append( node );
+		return node;
+	}
+
+	function createWizardProgress() {
+		const nav = document.createElement( 'nav' );
+		nav.className = 'dtb-checkout-wizard-progress';
+		nav.setAttribute( 'aria-label', 'Checkout progress' );
+		const track = document.createElement( 'ol' );
+		track.className = 'dtb-checkout-wizard__track';
+
+		wizardSteps.forEach( ( step, index ) => {
+			const item = document.createElement( 'li' );
+			item.className = 'dtb-checkout-wizard__item';
+			const button = document.createElement( 'button' );
+			button.type = 'button';
+			button.className = 'dtb-checkout-wizard__button';
+			button.dataset.dtbCheckoutStepTarget = String( index );
+			appendText( button, 'span', 'dtb-checkout-wizard__circle', String( index + 1 ) ).setAttribute( 'aria-hidden', 'true' );
+			const text = appendText( button, 'span', 'dtb-checkout-wizard__text', '' );
+			appendText( text, 'span', 'dtb-checkout-wizard__label', step.label );
+			appendText( text, 'span', 'dtb-checkout-wizard__sublabel', step.sublabel );
+			button.addEventListener( 'click', ( event ) => {
+				event.preventDefault();
+				const root = checkoutRoot();
+				if ( root && index <= wizardHighestVisitedStep ) {
+					showWizardStep( root, index, true );
+				}
+			} );
+			item.append( button );
+			track.append( item );
+		} );
+
+		nav.append( track );
+		return nav;
+	}
+
+	function createWizardActions() {
+		const wrapper = document.createElement( 'div' );
+		wrapper.className = 'dtb-checkout-wizard-actions';
+		const status = appendText( wrapper, 'div', 'dtb-checkout-wizard__status', '' );
+		status.setAttribute( 'role', 'status' );
+		status.setAttribute( 'aria-live', 'polite' );
+		status.hidden = true;
+
+		const inner = document.createElement( 'div' );
+		inner.className = 'dtb-checkout-wizard-actions__inner';
+		const back = appendText( inner, 'button', 'dtb-checkout-wizard__back', 'Back' );
+		back.type = 'button';
+		back.addEventListener( 'click', ( event ) => {
+			event.preventDefault();
+			const root = checkoutRoot();
+			if ( root ) {
+				goToPreviousWizardStep( root );
+			}
+		} );
+		const next = appendText( inner, 'button', 'dtb-checkout-wizard__next', '' );
+		next.type = 'button';
+		next.addEventListener( 'click', ( event ) => {
+			event.preventDefault();
+			event.stopPropagation();
+			const root = checkoutRoot();
+			if ( root ) {
+				goToNextWizardStep( root );
+			}
+		} );
+
+		wrapper.append( inner );
+		return wrapper;
+	}
+
+	function teardownWizard( root ) {
+		clearWizardStepMarkers( root );
+		document.body.classList.remove( 'dtb-checkout-wizard-enhanced' );
+		wizardProgressEl?.remove();
+		wizardProgressEl = null;
+		wizardActionsEl?.remove();
+		wizardActionsEl = null;
+	}
+
+	function mountWizard( root ) {
+		document.body.classList.add( 'dtb-checkout-wizard-enhanced' );
+		const main = root.querySelector( '.wc-block-components-main, .wc-block-checkout__main' ) || root;
+
+		if ( ! wizardProgressEl?.isConnected ) {
+			wizardProgressEl = createWizardProgress();
+			root.parentElement?.insertBefore( wizardProgressEl, root );
+		}
+		if ( ! wizardActionsEl?.isConnected ) {
+			wizardActionsEl = createWizardActions();
+			main.append( wizardActionsEl );
+		}
+
+		showWizardStep( root, wizardActiveStep, false );
+	}
+
+	function reconcileWizard( root ) {
+		if ( wizardViewport.matches ) {
+			mountWizard( root );
+		} else {
+			teardownWizard( root );
+		}
+	}
+
 	function reconcile() {
 		reconcileQueued = false;
 		const root = checkoutRoot();
@@ -211,6 +536,7 @@
 		classifyPaymentSurface( root );
 		updateBusyState( root );
 		focusNewestError( root );
+		reconcileWizard( root );
 	}
 
 	function queueReconcile() {
@@ -279,6 +605,7 @@
 			}
 		} );
 		bodyObserver.observe( document.body, { childList: true, subtree: true } );
+		wizardViewport.addEventListener( 'change', queueReconcile );
 		queueReconcile();
 		window.setTimeout( queueReconcile, 250 );
 		window.setTimeout( queueReconcile, 1000 );
@@ -288,6 +615,7 @@
 		rootObserver?.disconnect();
 		mountObserver?.disconnect();
 		bodyObserver?.disconnect();
+		wizardViewport.removeEventListener( 'change', queueReconcile );
 		if ( typeof commerceUnsubscribe === 'function' ) {
 			commerceUnsubscribe();
 		}

@@ -62,7 +62,9 @@ The previous mobile controller created proxy first-name, last-name, and phone in
 
 ### Custom hidden-step checkout
 
-The previous mobile flow assigned checkout sections to Contact, Shipping, and Payment steps, hid inactive WooCommerce sections, moved provider surfaces offscreen, and injected a fixed action bar. That introduced focus, browser-autofill, validation, Stripe mount, error-discovery, and responsive-layout risk. Mobile checkout is now one continuous native flow. WooCommerce sections and Stripe surfaces remain mounted, visible, measurable, and interactive.
+An earlier mobile flow assigned checkout sections to Contact, Shipping, and Payment steps, created proxy contact fields, moved provider surfaces offscreen with mixed hiding techniques, and injected a fixed action bar that could sit over payment content. That version was reverted in favor of one continuous scrolling page on every breakpoint.
+
+The current implementation restores a below-1024px Contact -> Shipping -> Payment wizard, rebuilt against the consolidated controller with three constraints the earlier version did not fully hold to: (1) no proxy/shadow fields — only native WooCommerce controls are read or validated; (2) a single, uniform, never-`display:none` visual-hiding technique for every inactive step, so no code path can accidentally unmount the step that happens to hold the Payment Element; (3) the Back/Continue action row is inline in normal document flow, not a fixed overlay, so it can never cover the Stripe Payment Element or wallet buttons. See "Responsive design contract" below for the current, accurate behavior.
 
 ### Payment DOM mutation
 
@@ -89,27 +91,24 @@ The previous presentation stack used multiple whole-document MutationObservers p
 - Express wallets and payment methods retain provider ownership inside modern same-origin shells.
 - Product rows use a compact image, description, and price grid; totals use consistent label/value alignment.
 
-### Tablet, below 1024px
+### Tablet and mobile, below 1024px: Contact -> Shipping -> Payment wizard
 
-- Checkout becomes a single column.
-- Native WooCommerce order summary moves above the form.
-- No sticky sidebar or fixed action overlay.
-- Section spacing and card padding compress without changing control ownership.
+Below 1024px, `checkout-ui.js` presents the single mounted WooCommerce Checkout Block as a three-step wizard instead of one long scroll. This is presentation-only:
 
-### Mobile, below 768px
-
-- Continuous one-page checkout; no synthetic stepper and no hidden checkout sections.
-- Native order-summary disclosure remains first in flow.
-- Controls use at least 54px height and 16px input text to prevent iOS zoom.
-- Express wallet buttons stack to one column when required.
-- Address fields collapse to one column.
-- Payment content remains fully visible and is never covered by a fixed DTB action bar.
-- Safe-area insets are respected.
+- Checkout becomes a single column; the native WooCommerce order summary moves above the form (order summary is not itself a wizard step).
+- Top-level Checkout Block sections are grouped into three steps — Contact (Express Checkout + contact information + account creation), Shipping (address + shipping/pickup methods), Payment (payment methods + order notes + terms + actions) — by classifying existing WooCommerce/Stripe block selectors. No new fields, no field values are read from or written into anything but native WooCommerce inputs.
+- The active step's top-level sections receive `data-dtb-checkout-step="contact|shipping|payment"` and `aria-hidden="false"`; inactive steps receive `aria-hidden="true"` and the `is-dtb-checkout-step-inactive` class. That class hides sections visually (zero height, zero opacity, `pointer-events: none`, taken out of flow) — it never sets `display:none`. Every WooCommerce/Stripe node, including the mounted Payment Element and wallet buttons, therefore stays in the DOM and mounted the entire time, regardless of which step is active.
+- A progress indicator (`.dtb-checkout-wizard-progress`) renders three numbered circles with label/sublabel text ("Contact / Your details", "Shipping / Delivery options", "Payment / Review & pay"), a connecting line, a filled/checked state for completed steps, and a filled active-state circle for the current step. Clicking a completed step's circle navigates back to it (forward navigation past the current step is only available via Continue).
+- An inline Back/Continue action row (`.dtb-checkout-wizard-actions`) sits in normal document flow directly after the active step's content — it is never `position: fixed` and can never cover the Payment Element or wallet buttons. On the Payment step only a Back control is shown; the native WooCommerce "Place order" button (already part of the Payment step's actions block) remains the sole way to submit.
+- Continuing past Contact or Shipping runs native-field validation only (`checkValidity()`/`reportValidity()` on the real WooCommerce inputs in that step) and, for Shipping, confirms a shipping method has been calculated and selected before advancing. No client value is treated as authoritative; WooCommerce's own subsequent validation and totals remain the last word.
+- Controls use at least 54px height and 16px input text to prevent iOS zoom. Express wallet buttons stack to one column when required. Address fields collapse to one column. Safe-area insets are respected.
+- Crossing the 1024px breakpoint (e.g. device rotation, browser resize) tears the wizard down or mounts it via a `matchMedia` change listener without reloading the document; desktop never receives step markers.
 
 ## Accessibility contract
 
 - Native WooCommerce labels, descriptions, validation, and control semantics remain intact.
-- No checkout section receives theme-owned `aria-hidden` or `inert` state.
+- No checkout section receives theme-owned `inert` state, and no section is ever removed from the DOM or set to `display:none` by theme code.
+- Below 1024px only, top-level Checkout Block sections receive theme-owned `aria-hidden` to reflect which of the three wizard steps is current; the inactive-step CSS class this pairs with is a visual hide (zero height/opacity, non-interactive) that keeps every node — including the mounted Stripe Payment Element and wallet buttons — laid out and mounted. At 1024px and wider no section ever receives `aria-hidden` from the theme.
 - Busy state is exposed through `aria-busy` on the Checkout Block root.
 - Newly rendered native error notices receive programmatic focus once per unique message.
 - Focus-visible outlines meet the shared primary-color contrast contract.
@@ -131,14 +130,15 @@ The previous presentation stack used multiple whole-document MutationObservers p
 
 Authoritative assets:
 
-- `assets/checkout/checkout.css`
+- `assets/checkout/checkout.css` — the single authoritative stylesheet for document shell, desktop two-column layout, card surfaces, and all continuous-flow presentation at every breakpoint.
+- `assets/checkout/checkout-flow.css` — a narrowly-scoped, dependent stylesheet (enqueued after and declared dependent on `checkout.css`) that styles only the below-1024px Contact -> Shipping -> Payment wizard: the progress indicator and the inactive-step visual-hiding state. It is the one deliberate exception to "one stylesheet," kept separate so the wizard remains independently reviewable and rollback-safe without re-fragmenting `checkout.css`.
 - `assets/checkout/checkout-boot.js`
-- `assets/checkout/checkout-ui.js`
+- `assets/checkout/checkout-ui.js` — includes the wizard step-classification, validation, and progress/action-row rendering logic alongside the existing busy-state, error-focus, login-handoff, and payment-shell classification logic.
 - `assets/checkout/checkout-express-entry.js`
 
-The template attaches the desktop-only Express Checkout ordering rule to the authoritative `dtb-checkout-theme` style handle. It adds no second stylesheet and does not mutate provider DOM.
+The template attaches the desktop-only Express Checkout ordering rule to the authoritative `dtb-checkout-theme` style handle. It does not mutate provider DOM.
 
-Obsolete layered desktop/mobile/refinement/contact/payment assets are intentionally not enqueued and should not be restored.
+Obsolete layered desktop/mobile/refinement/contact/payment-proxy assets (`checkout-desktop-redesign.css`, `checkout-mobile-redesign.css`, `checkout-refinements.css`, `checkout-contact-identity.css`, `checkout-payment-runtime.js`, `checkout-payment-failure.js`, `checkout-login-handoff.js`) are intentionally not enqueued and should not be restored.
 
 ## Validation matrix
 
@@ -159,7 +159,8 @@ Validate at minimum:
 - payment decline, invalid address, unavailable shipping, and network failure;
 - successful Woo order, Stripe reference, captured-payment gate, event ledger, queues, and storefront return URL;
 - no duplicate customer fields, payment surfaces, cart mutations, orders, or failure notices;
-- no JavaScript errors, PHP notices, horizontal overflow, clipped provider content, or fixed-overlay collisions.
+- no JavaScript errors, PHP notices, horizontal overflow, clipped provider content, or fixed-overlay collisions;
+- below 1024px: the Payment Element and any wallet buttons stay mounted (no reinitialization, no flicker) when moving Contact -> Shipping -> Payment and back; step validation blocks advancing on invalid/incomplete native fields; crossing the 1024px breakpoint via resize or rotation cleanly mounts/tears down the wizard without a reload or a lost in-progress payment mount.
 
 Real wallet acceptance requires a supported device/browser, registered payment-method domain, HTTPS, connected Stripe account, and production-equivalent WooCommerce shipping configuration.
 
