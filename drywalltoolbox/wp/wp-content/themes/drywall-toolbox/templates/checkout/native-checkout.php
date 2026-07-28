@@ -33,6 +33,13 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout.css' )
 );
 
+/* Keep the provider-owned Express Checkout block first in the desktop form
+ * column without reparenting, cloning, or mutating its rendered controls. */
+wp_add_inline_style(
+	'dtb-checkout-theme',
+	'@media (min-width:1024px){body.dtb-official-stripe-checkout .wc-block-components-main,body.dtb-official-stripe-checkout .wc-block-checkout__main{display:flex!important;flex-direction:column!important}body.dtb-official-stripe-checkout .wc-block-components-main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-official-stripe-checkout .wc-block-checkout__main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-official-stripe-checkout .wc-block-components-main>.wc-block-components-express-payment,body.dtb-official-stripe-checkout .wc-block-checkout__main>.wc-block-components-express-payment{order:-100!important}}'
+);
+
 wp_enqueue_script(
 	'dtb-checkout-theme-boot',
 	$theme_uri . '/assets/checkout/checkout-boot.js',
