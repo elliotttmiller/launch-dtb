@@ -28,10 +28,8 @@ final class DTB_ExpressCheckoutShippingReadiness {
 	private const OBSERVED_ROUTES = [
 		'/wc/store/v1/cart/update-customer',
 		'/wc/store/v1/cart/select-shipping-rate',
-		'/wc/store/v1/checkout',
 		'/wc/store/cart/update-customer',
 		'/wc/store/cart/select-shipping-rate',
-		'/wc/store/checkout',
 	];
 
 	public static function register(): void {
@@ -126,9 +124,7 @@ final class DTB_ExpressCheckoutShippingReadiness {
 	private static function is_verified_request( WP_REST_Request $request ): bool {
 		$route = $request->get_route();
 		if ( ! str_starts_with( $route, '/wc/store/v1/cart' )
-			&& ! str_starts_with( $route, '/wc/store/v1/checkout' )
-			&& ! str_starts_with( $route, '/wc/store/cart' )
-			&& ! str_starts_with( $route, '/wc/store/checkout' ) ) {
+			&& ! str_starts_with( $route, '/wc/store/cart' ) ) {
 			return false;
 		}
 
