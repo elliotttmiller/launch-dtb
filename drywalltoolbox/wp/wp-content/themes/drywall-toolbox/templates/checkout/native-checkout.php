@@ -101,10 +101,16 @@ wp_enqueue_script(
 			<a class="dtb-checkout-header__brand" href="<?php echo esc_url( $storefront_home_url ); ?>" aria-label="<?php esc_attr_e( 'Return to Drywall Toolbox', 'drywall-toolbox' ); ?>">
 				<img src="<?php echo esc_url( home_url( '/logos/logo-white.svg' ) ); ?>" alt="<?php esc_attr_e( 'Drywall Toolbox', 'drywall-toolbox' ); ?>" width="3000" height="917">
 			</a>
-			<div class="dtb-checkout-header__secure" aria-label="<?php esc_attr_e( 'Secure checkout powered by Stripe', 'drywall-toolbox' ); ?>">
+			<?php
+			$show_stripe_badge = class_exists( 'DTB_OfficialStripeNativeCheckout' )
+				&& DTB_OfficialStripeNativeCheckout::stripe_badge_visible();
+			?>
+			<div class="dtb-checkout-header__secure" aria-label="<?php echo esc_attr( $show_stripe_badge ? __( 'Secure checkout powered by Stripe', 'drywall-toolbox' ) : __( 'Secure checkout', 'drywall-toolbox' ) ); ?>">
 				<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10m-10 0h11a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-7A1.5 1.5 0 0 1 6.5 10Z" /></svg>
 				<span><?php esc_html_e( 'Secure checkout', 'drywall-toolbox' ); ?></span>
-				<img class="dtb-checkout-header__stripe" src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="" aria-hidden="true" width="2340" height="540">
+				<?php if ( $show_stripe_badge ) : ?>
+					<img class="dtb-checkout-header__stripe" src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="" aria-hidden="true" width="2340" height="540">
+				<?php endif; ?>
 			</div>
 		</div>
 	</header>

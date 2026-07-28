@@ -104,6 +104,7 @@
 	let wizardHighestVisitedStep = 0;
 	let wizardProgressEl = null;
 	let wizardActionsEl = null;
+	let wizardAnnounceEl = null;
 
 	function checkoutRoot() {
 		return document.querySelector( checkoutSelector );
@@ -380,6 +381,27 @@
 		}
 	}
 
+	function focusWizardStepHeading( root ) {
+		const heading = wizardStepElements( root, wizardActiveStep )
+			.flatMap( ( node ) => Array.from( node.querySelectorAll( '.wc-block-components-checkout-step__title, h2, h3' ) ) )
+			.find( Boolean );
+		if ( ! heading ) {
+			return;
+		}
+		if ( ! heading.hasAttribute( 'tabindex' ) ) {
+			heading.setAttribute( 'tabindex', '-1' );
+		}
+		heading.focus( { preventScroll: true } );
+	}
+
+	function announceWizardStep() {
+		if ( ! wizardAnnounceEl ) {
+			return;
+		}
+		const step = wizardSteps[ wizardActiveStep ];
+		wizardAnnounceEl.textContent = `Step ${ wizardActiveStep + 1 } of ${ wizardSteps.length }: ${ step.label }, ${ step.sublabel }`;
+	}
+
 	function showWizardStep( root, index, scroll ) {
 		wizardActiveStep = Math.max( 0, Math.min( index, wizardSteps.length - 1 ) );
 		wizardHighestVisitedStep = Math.max( wizardHighestVisitedStep, wizardActiveStep );
@@ -388,6 +410,8 @@
 		if ( scroll ) {
 			const reducedMotion = window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
 			wizardProgressEl?.scrollIntoView( { behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' } );
+			focusWizardStepHeading( root );
+			announceWizardStep();
 		}
 	}
 
@@ -494,6 +518,8 @@
 		wizardProgressEl = null;
 		wizardActionsEl?.remove();
 		wizardActionsEl = null;
+		wizardAnnounceEl?.remove();
+		wizardAnnounceEl = null;
 	}
 
 	function mountWizard( root ) {
@@ -507,6 +533,13 @@
 		if ( ! wizardActionsEl?.isConnected ) {
 			wizardActionsEl = createWizardActions();
 			main.append( wizardActionsEl );
+		}
+		if ( ! wizardAnnounceEl?.isConnected ) {
+			wizardAnnounceEl = document.createElement( 'div' );
+			wizardAnnounceEl.className = 'dtb-checkout-wizard__announce';
+			wizardAnnounceEl.setAttribute( 'role', 'status' );
+			wizardAnnounceEl.setAttribute( 'aria-live', 'polite' );
+			document.body.append( wizardAnnounceEl );
 		}
 
 		showWizardStep( root, wizardActiveStep, false );
