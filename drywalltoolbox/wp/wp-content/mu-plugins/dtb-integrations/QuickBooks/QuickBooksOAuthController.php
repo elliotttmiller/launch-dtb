@@ -10,10 +10,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( class_exists( 'DTB_QuickBooksOAuthController' ) ) {
-	return;
-}
-
 final class DTB_QuickBooksOAuthController {
 	private const REST_NAMESPACE = 'dtb/v1';
 	private const NOTICE_QUERY   = 'dtb_qbo_notice';

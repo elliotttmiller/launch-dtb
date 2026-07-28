@@ -7,10 +7,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( class_exists( 'DTB_QuickBooksWebhookController' ) ) {
-	return;
-}
-
 final class DTB_QuickBooksWebhookController {
 	private const REST_NAMESPACE       = 'dtb/v1';
 	private const ROUTE                = '/webhooks/qbo';
