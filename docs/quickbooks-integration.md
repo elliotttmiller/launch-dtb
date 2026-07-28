@@ -25,8 +25,11 @@ Credentials and verifier tokens are server-owned and must not be committed to Gi
 define( 'DTB_QBO_ENVIRONMENT', 'sandbox' );
 define( 'DTB_QBO_CLIENT_ID', '<Intuit development client ID>' );
 define( 'DTB_QBO_CLIENT_SECRET', '<Intuit development client secret>' );
-define( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN', '<Intuit development webhook verifier token>' );
+define( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN', '<Intuit development webhook verifier token>' );
+define( 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN', '<Intuit production webhook verifier token>' );
 ```
+
+The environment-specific verifier constants are preferred. `DTB_QBO_WEBHOOK_VERIFIER_TOKEN` remains a compatibility fallback for an existing single-environment deployment and should not be used when both sandbox and production are configured.
 
 Sandbox and production credentials, tokens, realm IDs, verifier tokens, item references, company verification, and customer mappings must remain isolated.
 
@@ -42,6 +45,8 @@ POST /wp-json/dtb/v1/admin/qbo/disconnect
 ```
 
 Every operator route requires an authenticated WordPress administrator with `manage_options`. Browser requests also require a valid WordPress REST nonce.
+
+The status response includes the active environment, connection state, redacted realm suffix, OAuth redirect URI, webhook endpoint, and `webhook_verifier_configured`. It never returns credentials, verifier tokens, authorization codes, access tokens, or refresh tokens.
 
 The connect route returns the one-time Intuit authorization URL and exact OAuth redirect URI. The OAuth callback remains:
 
@@ -74,10 +79,10 @@ https://elliottm4.sg-host.com/wp-json/dtb/v1/webhooks/qbo
 
 The endpoint:
 
-1. reads the raw request body;
-2. calculates HMAC-SHA256 using `DTB_QBO_WEBHOOK_VERIFIER_TOKEN`;
+1. reads the exact raw request body, up to 2 MiB;
+2. calculates HMAC-SHA256 using the verifier token for the active environment;
 3. compares the Base64 result to the `intuit-signature` header with `hash_equals`;
-4. validates the CloudEvents array and allowlisted event types;
+4. validates the CloudEvents 1.0 array and allowlisted event types;
 5. enqueues each accepted event into the existing `dtb-orders` Action Scheduler group;
 6. returns HTTP 200 without calling the QuickBooks API in the request path.
 
@@ -92,7 +97,16 @@ Do not subscribe to Account, Bill, Invoice, Payment, Vendor, Employee, Purchase,
 
 Enable **cloud event payload format**. The controller is built for the current CloudEvents array payload (`specversion`, `id`, `type`, `time`, `intuitentityid`, and `intuitaccountid`). Do not switch payload formats without updating and testing the parser first.
 
-Webhook delivery is at-least-once and may be out of order. DTB deduplicates by Intuit event ID for 30 days, validates the connected realm, and records external SalesReceipt update/void/delete signals as reconciliation state. Webhooks do not automatically overwrite WooCommerce authority.
+Webhook delivery is at-least-once and may be out of order. DTB:
+
+- uses Action Scheduler uniqueness to coalesce duplicate pending deliveries;
+- acquires an atomic option-backed processing lock per Intuit event ID;
+- records the 30-day completion marker only after reconciliation succeeds or the event is intentionally ignored;
+- retries temporarily unmapped SalesReceipt events after 1 minute, 5 minutes, 30 minutes, 2 hours, and 6 hours;
+- validates the queued environment and connected realm before reconciliation;
+- records external SalesReceipt update, void, and delete signals without overwriting WooCommerce authority.
+
+A worker failure must not create a completed deduplication marker. Exhausted retries remain visible as a failed Action Scheduler action and a redacted audit event.
 
 ## OAuth and token handling
 
@@ -104,23 +118,26 @@ Webhook delivery is at-least-once and may be out of order. DTB deduplicates by I
 ## Validation
 
 1. Deploy the complete reviewed QuickBooks change set.
-2. Configure sandbox credentials and verifier token outside GitHub.
-3. Confirm the status endpoint reports `sandbox` and credentials configured.
+2. Configure sandbox credentials and the sandbox verifier token outside GitHub.
+3. Confirm the status endpoint reports `sandbox`, credentials configured, `webhook_verifier_configured: true`, and the expected webhook endpoint.
 4. Register the exact OAuth redirect URI returned by the connect endpoint.
 5. Complete OAuth and verify the intended sandbox company.
 6. Register the webhook endpoint and select only the allowlisted events.
 7. Enable CloudEvents payload format.
-8. Trigger a sandbox SalesReceipt update and confirm Intuit receives HTTP 200.
-9. Confirm an Action Scheduler job is created in the `dtb-orders` group.
-10. Replay the same event and confirm it is deduplicated.
-11. Send an invalid signature and confirm HTTP 401.
-12. Create one captured-payment test order and verify exactly one SalesReceipt.
-13. Re-run the same accounting job and verify no duplicate.
+8. Send an unsigned request and confirm HTTP 401.
+9. Send a valid signed SalesReceipt event and confirm Intuit receives HTTP 200 within three seconds.
+10. Confirm an Action Scheduler job is created in the `dtb-orders` group.
+11. Replay the same event while pending and confirm no duplicate pending action is created.
+12. Confirm the completion marker is written only after successful processing.
+13. Force an unmapped SalesReceipt event and confirm the documented retry schedule is created.
+14. Confirm a stale processing lock can be reclaimed after 15 minutes.
+15. Create one captured-payment test order and verify exactly one SalesReceipt.
+16. Re-run the same accounting job and verify no duplicate.
 
 ## Production cutover
 
-Production uses the same code and queue path. Change only the environment, production credentials, production verifier token, registered production OAuth redirect URI, production webhook endpoint configuration, OAuth connection, realm, and verified production item references. Never copy sandbox secrets, tokens, realm IDs, mappings, or item IDs into production.
+Production uses the same code and queue path. Change only the active environment, production credentials, production verifier token, registered production OAuth redirect URI, production webhook configuration, OAuth connection, realm, and verified production item references. Never copy sandbox secrets, tokens, realm IDs, mappings, verifier tokens, or item IDs into production.
 
 ## Rollback
 
-Remove or disable the server-owned QuickBooks credentials and webhook verifier token, restore the previous reviewed MU-plugin files, clear SiteGround caches, and verify checkout plus the `dtb-orders` queue continue operating without QuickBooks. Do not delete WooCommerce orders, refunds, event-ledger records, Action Scheduler history, or existing QuickBooks transactions.
+Remove or disable the server-owned QuickBooks credentials and verifier token for the active environment, restore the previous reviewed MU-plugin files, clear SiteGround caches, and verify checkout plus the `dtb-orders` queue continue operating without QuickBooks. Do not delete WooCommerce orders, refunds, event-ledger records, Action Scheduler history, webhook audit records, or existing QuickBooks transactions.
