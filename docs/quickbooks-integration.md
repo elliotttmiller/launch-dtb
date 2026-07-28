@@ -4,7 +4,7 @@
 
 QuickBooks Online is an accounting projection only. WooCommerce owns customers, orders, payments, and refunds. DTB owns eligibility, idempotency, the event ledger, Action Scheduler jobs, retries, integration state, and operator recovery.
 
-The only supported write path is:
+The only supported accounting write path is:
 
 ```text
 WooCommerce captured payment or concrete refund
@@ -19,7 +19,7 @@ The removed legacy daily scan and direct manual batch synchronization must not b
 
 ## Runtime configuration
 
-Credentials are server-owned and must not be committed to GitHub.
+Credentials are server-owned and must not be committed to GitHub, saved through WordPress settings, exposed to the frontend, or included in deployment artifacts.
 
 ```php
 define( 'DTB_QBO_ENVIRONMENT', 'sandbox' );
@@ -29,7 +29,86 @@ define( 'DTB_QBO_CLIENT_SECRET', '<Intuit development client secret>' );
 
 `DTB_QBO_ENVIRONMENT` accepts only `sandbox` or `production`. Sandbox and production tokens, realm IDs, company verification, and customer mappings are stored separately.
 
-The exact redirect URI is displayed in **DTB Ops → QuickBooks**. Register that exact value in the Intuit developer application under development redirect URIs before connecting.
+The OAuth redirect URI is returned by the administrator status and connect endpoints. Register the exact value in the Intuit developer application under development redirect URIs before connecting.
+
+## Operator API
+
+QuickBooks operator behavior is backend-owned and does not depend on a WordPress submenu. A future admin workbench may call the same API without owning OAuth, tokens, or accounting logic.
+
+All routes require an authenticated WordPress user with `manage_options` and normal WordPress REST nonce authentication.
+
+```text
+GET  /wp-json/dtb/v1/admin/qbo/status
+POST /wp-json/dtb/v1/admin/qbo/connect
+POST /wp-json/dtb/v1/admin/qbo/test
+POST /wp-json/dtb/v1/admin/qbo/disconnect
+```
+
+### Status
+
+Returns only redacted operational state:
+
+- active environment;
+- whether server credentials are configured;
+- whether OAuth is connected;
+- whether the company is verified;
+- verified company name;
+- masked realm suffix;
+- access-token expiration timestamp;
+- exact redirect URI.
+
+It never returns the Client Secret, access token, refresh token, full realm ID, authorization code, or raw Intuit response.
+
+### Connect
+
+`POST /admin/qbo/connect` creates a new one-time OAuth transaction and returns:
+
+```json
+{
+  "ok": true,
+  "environment": "sandbox",
+  "authorization_url": "https://appcenter.intuit.com/connect/oauth2?...",
+  "redirect_uri": "https://example.com/wp-admin/admin-ajax.php?action=dtb_qbo_oauth_callback"
+}
+```
+
+The operator opens `authorization_url` in the same authenticated administrator browser session. The URL is short-lived and should not be logged or reused.
+
+### Test
+
+`POST /admin/qbo/test` performs a read-only `CompanyInfo` request and refreshes the verified company snapshot. It creates no customer, order, SalesReceipt, RefundReceipt, or accounting entry.
+
+### Disconnect
+
+`POST /admin/qbo/disconnect` requires:
+
+```json
+{
+  "confirm": true
+}
+```
+
+It removes tokens, realm ID, and company verification only for the active environment. It does not delete WooCommerce data, event-ledger entries, Action Scheduler history, QuickBooks transactions, or the other QuickBooks environment.
+
+## OAuth callback behavior
+
+The Intuit callback remains:
+
+```text
+/wp-admin/admin-ajax.php?action=dtb_qbo_oauth_callback
+```
+
+The callback is owned by `QuickBooksOAuthController.php`. It:
+
+1. requires an authenticated administrator;
+2. consumes a random, user-bound, environment-bound, redirect-bound one-time state transaction;
+3. exchanges the authorization code for tokens;
+4. stores tokens in the active environment namespace;
+5. verifies the selected company using `CompanyInfo`;
+6. clears the connection if token storage or company verification fails;
+7. redirects to the normal WordPress dashboard with a redacted success or failure notice.
+
+There is no dependency on a `DTB Ops` menu or QuickBooks settings page.
 
 ## Required QuickBooks item references
 
@@ -87,22 +166,25 @@ Two partial refunds therefore produce two distinct RefundReceipts. Duplicate que
 
 Registered WooCommerce users store an environment-specific QuickBooks customer ID. When no mapping exists, DTB searches by normalized billing email, then creates a customer with a stable DTB reference embedded in the display name. Customer creation failure blocks the accounting projection; there is no generic-customer fallback.
 
-## Operator workflow
+## Sandbox operator workflow
 
-1. Configure server-owned sandbox constants.
-2. Create the aggregate Product Sales, Shipping, Discount, and Refund items in the QuickBooks sandbox.
-3. Configure their QuickBooks IDs as server-owned constants.
-4. Register the exact redirect URI shown in **DTB Ops → QuickBooks** with Intuit.
-5. Select **Connect QuickBooks Sandbox** and authorize the intended sandbox company.
-6. Confirm the admin page reports Sandbox, Connected, and a verified company name.
-7. Create a paid WooCommerce test order using the approved checkout path.
-8. Confirm the `dtb-orders` QuickBooks job succeeds and exactly one SalesReceipt exists.
-9. Re-run the same job and confirm no duplicate is created.
-10. Create two partial WooCommerce refunds and confirm two distinct RefundReceipts.
+1. Deploy the reviewed QuickBooks MU-plugin change set.
+2. Configure server-owned sandbox credentials and aggregate-item IDs.
+3. Call `GET /wp-json/dtb/v1/admin/qbo/status` using an authenticated administrator REST session.
+4. Copy the returned `redirect_uri` into the Intuit development redirect URI configuration.
+5. Call `POST /wp-json/dtb/v1/admin/qbo/connect` with a valid WordPress REST nonce.
+6. Open the returned `authorization_url` in the same administrator browser session.
+7. Authorize the intended sandbox company.
+8. Confirm the WordPress dashboard reports a successful connection.
+9. Call `POST /wp-json/dtb/v1/admin/qbo/test` and confirm the verified company.
+10. Create a paid WooCommerce test order using the approved checkout path.
+11. Confirm the `dtb-orders` QuickBooks job succeeds and exactly one SalesReceipt exists.
+12. Re-run the same job and confirm no duplicate is created.
+13. Create two partial WooCommerce refunds and confirm two distinct RefundReceipts.
 
 ## Production cutover
 
-Production uses the same code and queue path. Change only the environment, production credentials, registered production redirect URI, OAuth connection, realm, and verified production item references. Never copy sandbox tokens, realm IDs, customer mappings, or item IDs into production.
+Production uses the same code, controller, REST contract, and queue path. Change only the environment, production credentials, registered production redirect URI, OAuth connection, realm, and verified production item references. Never copy sandbox tokens, realm IDs, customer mappings, or item IDs into production.
 
 ## Rollback
 
