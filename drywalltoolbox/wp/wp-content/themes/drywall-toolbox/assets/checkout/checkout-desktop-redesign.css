@@ -236,16 +236,22 @@
   body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image {
     position: relative;
     width: 64px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
-    width: 64px !important;
     height: 64px !important;
+    min-width: 64px !important;
+    margin: 0 !important;
+    padding: 5px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
     border: 1px solid var(--dtb-desktop-border) !important;
     border-radius: 10px !important;
     background: #fff !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0 !important;
+    background: transparent !important;
     object-fit: contain !important;
   }
 

@@ -192,17 +192,27 @@
     border-bottom: 1px solid var(--dtb-mobile-line) !important;
   }
 
-  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image,
-  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image {
     width: 68px !important;
     height: 68px !important;
-  }
-
-  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+    min-width: 68px !important;
+    padding: 5px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
     border: 1px solid var(--dtb-mobile-line) !important;
     border-radius: 13px !important;
     background: #fff !important;
     box-shadow: 0 4px 14px rgba(16, 34, 69, 0.06);
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__image img {
+    width: 100% !important;
+    height: 100% !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    object-fit: contain !important;
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-order-summary-item__quantity {
@@ -379,11 +389,28 @@
   body.dtb-official-stripe-checkout .wc-block-checkout__shipping-method .wc-block-components-radio-control__option {
     min-height: 66px;
     margin: 10px 0 0 !important;
-    padding: 15px 15px !important;
+    /* Left offset must stay large enough to clear the absolutely-positioned
+       radio input (checkout.css sets it at left:16px/width:20px); a uniform
+       15px here let the input overlap the label/price text. */
+    padding: 15px 15px 15px 50px !important;
     border: 1px solid var(--dtb-mobile-line-strong) !important;
     border-radius: 13px !important;
     background: var(--dtb-mobile-surface) !important;
     box-shadow: 0 5px 17px rgba(20, 40, 76, 0.045) !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-radio-control__option .wc-block-components-radio-control__input {
+    left: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  body.dtb-official-stripe-checkout .wc-block-components-radio-control__option .wc-block-components-radio-control__label-group {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    width: 100% !important;
   }
 
   body.dtb-official-stripe-checkout .wc-block-components-radio-control__option:has(input:checked),
