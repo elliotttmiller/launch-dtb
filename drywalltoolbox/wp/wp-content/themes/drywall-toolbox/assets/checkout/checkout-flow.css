@@ -11,7 +11,23 @@
  * and remains the single continuous two-column page from checkout.css.
  */
 
+.dtb-checkout-wizard__announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 1023px) {
+  body.dtb-checkout-wizard-enhanced [data-dtb-checkout-step] .wc-block-components-checkout-step__title:focus-visible {
+    outline: 3px solid rgba(36, 87, 230, 0.28);
+    outline-offset: 3px;
+  }
+
   body.dtb-checkout-wizard-enhanced .wc-block-components-main > .is-dtb-checkout-step-inactive,
   body.dtb-checkout-wizard-enhanced .wc-block-checkout__main > .is-dtb-checkout-step-inactive {
     position: absolute !important;
