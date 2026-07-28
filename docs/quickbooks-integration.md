@@ -2,7 +2,7 @@
 
 ## Ownership
 
-QuickBooks Online is an accounting projection only. WooCommerce owns customers, orders, payments, and refunds. DTB owns eligibility, idempotency, the event ledger, Action Scheduler jobs, retries, integration state, and operator recovery.
+QuickBooks Online is an accounting projection only. WooCommerce owns customers, orders, payments, and refunds. DTB owns eligibility, idempotency, the event ledger, Action Scheduler jobs, retries, integration state, webhook reconciliation, and operator recovery.
 
 The only supported write path is:
 
@@ -15,25 +15,41 @@ WooCommerce captured payment or concrete refund
 → read-after-write reconciliation
 ```
 
-The removed legacy daily scan and direct manual batch synchronization must not be restored.
+QuickBooks webhooks are inbound reconciliation signals only. They must never create WooCommerce orders, payments, or refunds.
 
 ## Runtime configuration
 
-Credentials are server-owned and must not be committed to GitHub.
+Credentials and verifier tokens are server-owned and must not be committed to GitHub.
 
 ```php
 define( 'DTB_QBO_ENVIRONMENT', 'sandbox' );
 define( 'DTB_QBO_CLIENT_ID', '<Intuit development client ID>' );
 define( 'DTB_QBO_CLIENT_SECRET', '<Intuit development client secret>' );
+define( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN', '<Intuit development webhook verifier token>' );
 ```
 
-`DTB_QBO_ENVIRONMENT` accepts only `sandbox` or `production`. Sandbox and production tokens, realm IDs, company verification, and customer mappings are stored separately.
+Sandbox and production credentials, tokens, realm IDs, verifier tokens, item references, company verification, and customer mappings must remain isolated.
 
-The exact redirect URI is displayed in **DTB Ops → QuickBooks**. Register that exact value in the Intuit developer application under development redirect URIs before connecting.
+## Operator API
+
+There is no dependency on a `DTB Ops` menu. The permanent administrator API is:
+
+```text
+GET  /wp-json/dtb/v1/admin/qbo/status
+POST /wp-json/dtb/v1/admin/qbo/connect
+POST /wp-json/dtb/v1/admin/qbo/test
+POST /wp-json/dtb/v1/admin/qbo/disconnect
+```
+
+Every operator route requires an authenticated WordPress administrator with `manage_options`. Browser requests also require a valid WordPress REST nonce.
+
+The connect route returns the one-time Intuit authorization URL and exact OAuth redirect URI. The OAuth callback remains:
+
+```text
+/wp-admin/admin-ajax.php?action=dtb_qbo_oauth_callback
+```
 
 ## Required QuickBooks item references
-
-The launch projection uses aggregate QuickBooks items unless a product has an explicit QuickBooks item ID in product metadata.
 
 ```php
 define( 'DTB_QBO_ITEM_PRODUCT_ID', '<QBO product-sales item ID>' );
@@ -46,64 +62,65 @@ define( 'DTB_QBO_ITEM_REFUND_ID', '<QBO refund item ID>' );
 define( 'DTB_QBO_ITEM_REFUND_NAME', 'DTB Refund' );
 ```
 
-Tax remains optional until an accountant-approved QuickBooks tax representation is configured:
+Missing required references fail closed. Numeric fallback IDs are prohibited.
 
-```php
-define( 'DTB_QBO_ITEM_TAX_ID', '<QBO tax item ID>' );
-define( 'DTB_QBO_ITEM_TAX_NAME', 'Sales Tax' );
+## Webhook endpoint
+
+Configure the Intuit development webhook endpoint as:
+
+```text
+https://elliottm4.sg-host.com/wp-json/dtb/v1/webhooks/qbo
 ```
 
-Missing required references fail closed. Numeric fallback IDs are prohibited.
+The endpoint:
+
+1. reads the raw request body;
+2. calculates HMAC-SHA256 using `DTB_QBO_WEBHOOK_VERIFIER_TOKEN`;
+3. compares the Base64 result to the `intuit-signature` header with `hash_equals`;
+4. validates the CloudEvents array and allowlisted event types;
+5. enqueues each accepted event into the existing `dtb-orders` Action Scheduler group;
+6. returns HTTP 200 without calling the QuickBooks API in the request path.
+
+The current allowlist is intentionally narrow:
+
+```text
+SalesReceipt: Create, Update, Void, Delete
+RefundReceipt: Create, Update, Void, Delete
+```
+
+Do not subscribe to Account, Bill, Invoice, Payment, Vendor, Employee, Purchase, JournalEntry, or other unrelated entities. DTB does not own those domains and receiving them adds retry load, noise, and unnecessary attack surface.
+
+Enable **cloud event payload format**. The controller is built for the current CloudEvents array payload (`specversion`, `id`, `type`, `time`, `intuitentityid`, and `intuitaccountid`). Do not switch payload formats without updating and testing the parser first.
+
+Webhook delivery is at-least-once and may be out of order. DTB deduplicates by Intuit event ID for 30 days, validates the connected realm, and records external SalesReceipt update/void/delete signals as reconciliation state. Webhooks do not automatically overwrite WooCommerce authority.
 
 ## OAuth and token handling
 
 - OAuth state is random, administrator-bound, environment-bound, redirect-bound, single-use, and expires after ten minutes.
 - Access and refresh tokens are encrypted with AES-256-GCM using a key derived from the WordPress authentication secret.
-- Legacy AES-CBC token payloads are read only for migration and are rewritten in the current format after a successful token save.
 - Refreshes are protected by an option-backed cross-worker lock.
-- The latest refresh token returned by Intuit replaces the previous token atomically.
-- Browser and log output never include authorization codes, access tokens, refresh tokens, Client Secrets, or raw Intuit responses.
+- Browser and log output never include authorization codes, access tokens, refresh tokens, Client Secrets, verifier tokens, or raw Intuit responses.
 
-## Accounting projection
+## Validation
 
-### SalesReceipt
-
-A SalesReceipt is eligible only when WooCommerce has both `date_paid` and a non-empty payment transaction reference. The queue worker:
-
-1. acquires the existing QuickBooks integration lock;
-2. queries QuickBooks by deterministic `DocNumber` (`DTB-{order_id}`);
-3. reconciles an existing entity when present;
-4. creates a SalesReceipt only when absent;
-5. queries it again after creation;
-6. records the entity ID only after successful reconciliation.
-
-### RefundReceipt
-
-Each concrete WooCommerce refund is projected independently. The deterministic document number is `DTB-R-{refund_id}` and the authoritative local idempotency marker is refund-specific order metadata.
-
-Two partial refunds therefore produce two distinct RefundReceipts. Duplicate queue execution reconciles the existing transaction rather than creating another.
-
-## Customer projection
-
-Registered WooCommerce users store an environment-specific QuickBooks customer ID. When no mapping exists, DTB searches by normalized billing email, then creates a customer with a stable DTB reference embedded in the display name. Customer creation failure blocks the accounting projection; there is no generic-customer fallback.
-
-## Operator workflow
-
-1. Configure server-owned sandbox constants.
-2. Create the aggregate Product Sales, Shipping, Discount, and Refund items in the QuickBooks sandbox.
-3. Configure their QuickBooks IDs as server-owned constants.
-4. Register the exact redirect URI shown in **DTB Ops → QuickBooks** with Intuit.
-5. Select **Connect QuickBooks Sandbox** and authorize the intended sandbox company.
-6. Confirm the admin page reports Sandbox, Connected, and a verified company name.
-7. Create a paid WooCommerce test order using the approved checkout path.
-8. Confirm the `dtb-orders` QuickBooks job succeeds and exactly one SalesReceipt exists.
-9. Re-run the same job and confirm no duplicate is created.
-10. Create two partial WooCommerce refunds and confirm two distinct RefundReceipts.
+1. Deploy the complete reviewed QuickBooks change set.
+2. Configure sandbox credentials and verifier token outside GitHub.
+3. Confirm the status endpoint reports `sandbox` and credentials configured.
+4. Register the exact OAuth redirect URI returned by the connect endpoint.
+5. Complete OAuth and verify the intended sandbox company.
+6. Register the webhook endpoint and select only the allowlisted events.
+7. Enable CloudEvents payload format.
+8. Trigger a sandbox SalesReceipt update and confirm Intuit receives HTTP 200.
+9. Confirm an Action Scheduler job is created in the `dtb-orders` group.
+10. Replay the same event and confirm it is deduplicated.
+11. Send an invalid signature and confirm HTTP 401.
+12. Create one captured-payment test order and verify exactly one SalesReceipt.
+13. Re-run the same accounting job and verify no duplicate.
 
 ## Production cutover
 
-Production uses the same code and queue path. Change only the environment, production credentials, registered production redirect URI, OAuth connection, realm, and verified production item references. Never copy sandbox tokens, realm IDs, customer mappings, or item IDs into production.
+Production uses the same code and queue path. Change only the environment, production credentials, production verifier token, registered production OAuth redirect URI, production webhook endpoint configuration, OAuth connection, realm, and verified production item references. Never copy sandbox secrets, tokens, realm IDs, mappings, or item IDs into production.
 
 ## Rollback
 
-Disable QuickBooks writes by removing or disabling the server-owned QuickBooks credentials, restore the previous reviewed MU-plugin files, clear SiteGround caches, and verify checkout and the `dtb-orders` queue continue operating without QuickBooks. Existing WooCommerce orders, refunds, event-ledger records, and Action Scheduler history must not be deleted.
+Remove or disable the server-owned QuickBooks credentials and webhook verifier token, restore the previous reviewed MU-plugin files, clear SiteGround caches, and verify checkout plus the `dtb-orders` queue continue operating without QuickBooks. Do not delete WooCommerce orders, refunds, event-ledger records, Action Scheduler history, or existing QuickBooks transactions.
