@@ -1,4 +1,4 @@
-/* Mobile account/order layout corrections. */
+/* Mobile account and account-order list layout corrections. */
 .dtb-route-back-bar {
   width: min(64rem, 100%);
   margin: 0 auto;
@@ -47,22 +47,6 @@
 
 .account-activity-card__aside {
   justify-content: center;
-}
-
-.dtb-order-item,
-.dtb-order-item--friendly {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-}
-
-.dtb-order-item__main {
-  min-width: 0;
-}
-
-.dtb-order-item__price {
-  justify-self: end;
-  align-self: center;
-  text-align: right;
 }
 
 @media (max-width: 767px) {
@@ -121,32 +105,6 @@
     white-space: nowrap;
   }
 
-  .dtb-order-item,
-  .dtb-order-item--friendly {
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    gap: 0.7rem !important;
-    align-items: center !important;
-  }
-
-  .dtb-order-item__main {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    min-width: 0;
-  }
-
-  .dtb-order-item__name {
-    max-width: 100%;
-  }
-
-  .dtb-order-item__price {
-    justify-self: end !important;
-    align-self: center !important;
-    padding-top: 0 !important;
-    text-align: right !important;
-    white-space: nowrap;
-  }
-
   main > .dtb-route-back-bar--orders:has(+ .dtb-order-tracking-shell) {
     display: none !important;
   }
@@ -160,10 +118,5 @@
 
   .account-activity-card__status {
     max-width: 6.5rem;
-  }
-
-  .dtb-order-item,
-  .dtb-order-item--friendly {
-    gap: 0.58rem !important;
   }
 }

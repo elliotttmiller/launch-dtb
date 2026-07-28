@@ -1,4 +1,11 @@
-/* Order tracking layout corrections: centered header, single back affordance, bottom help CTA, Edge/Safari rendering stability. */
+/*
+ * Order tracking structural and responsive layout authority.
+ *
+ * This file intentionally contains only OrderTracking layout/compositing rules
+ * that extend the shared visual primitives in order-pages.css and the feature
+ * presentation in order-tracking.css. Account-order styles do not belong here.
+ */
+
 .dtb-order-page .dtb-order-tracking-shell {
   isolation: isolate;
 }
@@ -74,11 +81,10 @@
   color: #1d4ed8;
   font-size: 0.88rem;
   font-weight: 850;
-  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.10);
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.1);
 }
 
-/* Microsoft Edge/Chromium can paint nested gradients + backdrop-like shadows differently during scroll.
-   Flatten decorative layers and force stable compositing for this page. */
+/* Keep nested gradient cards stable during Chromium/Safari scrolling. */
 .dtb-order-status-panel,
 .dtb-order-sheet--tracking,
 .dtb-order-sheet-section--tracking,
@@ -86,6 +92,31 @@
   transform: translateZ(0);
   backface-visibility: hidden;
   contain: paint;
+}
+
+.dtb-order-item--friendly {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.dtb-order-item__main,
+.dtb-order-item__main > div {
+  min-width: 0;
+}
+
+.dtb-order-item__name {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
+}
+
+.dtb-order-item__price {
+  justify-self: end;
+  align-self: center;
+  padding-top: 0;
+  text-align: right;
+  white-space: nowrap;
 }
 
 @supports (-ms-ime-align: auto) {
@@ -152,6 +183,36 @@
   .dtb-order-help-link--footer {
     width: min(100%, 18rem);
   }
+
+  .dtb-order-item--friendly {
+    gap: 0.7rem;
+  }
+}
+
+/* Preserve title measure by stacking price below the product row on phones. */
+@media (max-width: 560px) {
+  .dtb-order-item--friendly {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+    padding: 0.78rem;
+  }
+
+  .dtb-order-item__main {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 0.68rem;
+    width: 100%;
+  }
+
+  .dtb-order-item__thumb {
+    width: 56px;
+    height: 56px;
+  }
+
+  .dtb-order-item__price {
+    justify-self: end;
+    margin-right: 0.08rem;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 390px) {
@@ -161,5 +222,20 @@
 
   .dtb-order-status-panel__heading .dtb-order-tracking-title {
     font-size: clamp(2.05rem, 10.5vw, 2.65rem);
+  }
+
+  .dtb-order-item--friendly {
+    gap: 0.5rem;
+    padding: 0.72rem;
+  }
+
+  .dtb-order-item__main {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 0.62rem;
+  }
+
+  .dtb-order-item__thumb {
+    width: 52px;
+    height: 52px;
   }
 }
