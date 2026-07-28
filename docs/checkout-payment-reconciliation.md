@@ -47,6 +47,28 @@ The reconciliation method never calls Veeqo, QuickBooks, or notification integra
 - A redacted WooCommerce warning is emitted when verified captured payment does not transition to `processing` or `completed`. It includes only the order ID, trigger, and resulting status.
 - No payment credential, token, client secret, webhook secret, or raw provider payload is logged.
 
+## Guest cart and native admin session continuity
+
+Same-origin WooCommerce cookie state remains the sole guest-cart authority. Public Store API isolation applies to both supported route forms:
+
+```text
+/wp-json/wc/store/v1/...
+/wp/index.php?rest_route=/wc/store/v1/...
+```
+
+This prevents a native privileged WordPress cookie from becoming the Woo shopper identity during Checkout Block refresh requests and invalidating the anonymous cart.
+
+Storefront JWT validation and logout may clear a native WordPress cookie only when the signed cookie resolves to a non-privileged customer. The decision is made from the signed browser cookies directly, not from `wp_get_current_user()`, because public commerce request isolation may intentionally project the request as anonymous. Signed administrator/operator cookies are never cleared by guest storefront validation, logout, or checkout convergence.
+
+The customer-facing WooCommerce `Return to shop`, `Browse store`, and `Continue shopping` destinations resolve to the React catalog route:
+
+```text
+/products
+/staging/{id}/products
+```
+
+The unused native `/shop/` route is not emitted by the checkout workflow.
+
 ## Customer tracking CSS ownership
 
 Order tracking uses a bounded two-layer feature stylesheet contract:
@@ -73,6 +95,9 @@ Deploy only these reviewed source artifacts for this change:
 
 ```text
 drywalltoolbox/wp/wp-content/mu-plugins/dtb-order-platform/Payment/CheckoutPaymentLifecycle.php
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/StorefrontCommerceIdentityIsolation.php
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-platform/Auth/AuthCookieRuntimeHardening.php
+drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/StorefrontReturnContext.php
 frontend/src/main.jsx
 frontend/src/styles/order-tracking-layout.css
 frontend/src/styles/mobile-account-order-layout-fixes.css
@@ -85,7 +110,7 @@ The obsolete frontend source file must be removed from the deployed source works
 frontend/src/styles/order-tracking-layout-fixes.css
 ```
 
-Production receives the complete dependency-consistent frontend build, not individual unbuilt source CSS files. Before deployment, back up the existing production PHP file, the currently deployed frontend build, and the affected order/database state. After deployment and frontend build transfer, clear SiteGround dynamic and frontend caches.
+Production receives the complete dependency-consistent frontend build, not individual unbuilt source CSS files. Before deployment, back up the changed PHP files, the currently deployed frontend build, and the affected order/database state. After deployment and frontend build transfer, clear SiteGround dynamic and frontend caches.
 
 Acceptance requires:
 
@@ -97,5 +122,10 @@ Acceptance requires:
 6. Guest order tracking remains accessible only through the valid order key.
 7. Mobile item names wrap at word boundaries and prices do not compress the title column.
 8. The account-order list remains visually unchanged after removal of tracking selectors from its stylesheet.
-9. No runtime request, API contract, component wiring, checkout integration, order projection, or queue behavior changes beyond the documented payment reconciliation.
-10. Failed, cancelled, refunded, and zero-total behavior remains unchanged.
+9. A guest cart survives repeated Checkout Block address, shipping, and payment refreshes.
+10. Pretty-permalink and query-routed Store API requests resolve the same Woo guest session.
+11. Guest storefront auth validation does not expire a concurrently signed-in privileged wp-admin session.
+12. Storefront customer logout clears only the customer-native cookie and never a privileged admin cookie.
+13. Empty-cart and continue-shopping actions route to `/products`, not `/shop/`.
+14. No runtime request, API contract, component wiring, payment integration, order projection, or queue behavior changes beyond the documented corrections.
+15. Failed, cancelled, refunded, and zero-total behavior remains unchanged.
