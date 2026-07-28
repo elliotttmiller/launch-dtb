@@ -48,13 +48,16 @@ final class DTB_QuickBooksOAuthController {
 	}
 
 	public static function rest_status(): WP_REST_Response {
-		return new WP_REST_Response( dtb_qbo_status(), 200 );
+		$status = dtb_qbo_status();
+		$status['webhook_verifier_configured'] = class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured();
+		$status['webhook_endpoint']            = rest_url( 'dtb/v1/webhooks/qbo' );
+		return new WP_REST_Response( $status, 200 );
 	}
 
 	public static function rest_connect(): WP_REST_Response|WP_Error {
 		$status = dtb_qbo_status();
 		if ( empty( $status['credentials_configured'] ) ) {
-			return new WP_Error( 'qbo_credentials_missing', __( 'QuickBooks development credentials are not configured on the server.', 'dtb' ), [ 'status' => 503 ] );
+			return new WP_Error( 'qbo_credentials_missing', __( 'QuickBooks credentials are not configured for the active environment.', 'dtb' ), [ 'status' => 503 ] );
 		}
 		if ( ! empty( $status['connected'] ) ) {
 			return new WP_Error( 'qbo_already_connected', __( 'QuickBooks is already connected for the active environment.', 'dtb' ), [ 'status' => 409 ] );
@@ -97,7 +100,7 @@ final class DTB_QuickBooksOAuthController {
 
 	public static function handle_oauth_callback(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( esc_html__( 'Insufficient permissions.', 'dtb' ), 403 );
+			wp_die( esc_html__( 'Insufficient permissions.', 'dtb' ), '', [ 'response' => 403 ] );
 		}
 		$state = sanitize_text_field( wp_unslash( $_GET['state'] ?? '' ) );
 		$key   = 'dtb_qbo_oauth_' . hash( 'sha256', $state );
@@ -143,7 +146,7 @@ final class DTB_QuickBooksOAuthController {
 			return;
 		}
 		$class   = 'connected' === $notice ? 'notice-success' : 'notice-error';
-		$message = 'connected' === $notice ? __( 'QuickBooks connected and the selected company was verified.', 'dtb' ) : __( 'QuickBooks connection failed. Verify the registered redirect URI and server-managed development credentials, then retry.', 'dtb' );
+		$message = 'connected' === $notice ? __( 'QuickBooks connected and the selected company was verified.', 'dtb' ) : __( 'QuickBooks connection failed. Verify the registered redirect URI and server-managed credentials for the active environment, then retry.', 'dtb' );
 		echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
 	}
 
