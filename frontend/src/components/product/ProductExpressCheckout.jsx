@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { ArrowRight, Zap } from 'lucide-react';
 import { getProductExpressCheckoutReadiness } from '../../api/checkoutCapabilities.js';
-import { useCart } from '../../context/CartContext.jsx';
+import { useCart } from '../../context/CartContext';
 import {
   clearExpressCheckoutHandoff,
   requestExpressCheckoutHandoff,
@@ -116,6 +116,11 @@ export default function ProductExpressCheckout({
   const buttonLabel = readiness.state === 'unavailable'
     ? 'Buy now securely'
     : 'Buy now with express checkout';
+  const activeButtonLabel = pending
+    ? 'Preparing secure checkout…'
+    : isMutating
+      ? 'Updating cart…'
+      : buttonLabel;
   const dividerLabel = readiness.state === 'unavailable' ? 'Buy now' : 'Express checkout';
 
   return (
@@ -142,7 +147,7 @@ export default function ProductExpressCheckout({
           <Zap size={16} strokeWidth={2.4} />
         </span>
         <span className="dtb-product-express-checkout__label" aria-live="polite">
-          {busy ? 'Preparing secure checkout…' : buttonLabel}
+          {activeButtonLabel}
         </span>
         <ArrowRight className="dtb-product-express-checkout__arrow" size={17} aria-hidden="true" />
       </button>
