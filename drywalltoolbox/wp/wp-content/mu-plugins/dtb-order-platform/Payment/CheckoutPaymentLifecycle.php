@@ -185,17 +185,58 @@ final class DTB_CheckoutPaymentLifecycle {
 	}
 
 	private static function log_reconciliation_warning( int $order_id, string $source, string $status ): void {
-		if ( ! function_exists( 'wc_get_logger' ) ) {
+		if ( function_exists( 'wc_get_logger' ) ) {
+			wc_get_logger()->warning(
+				'Captured DTB Stripe payment did not transition to a fulfillable WooCommerce status.',
+				[
+					'source'       => 'dtb-order-platform',
+					'order_id'     => $order_id,
+					'trigger'      => sanitize_key( $source ),
+					'order_status' => sanitize_key( $status ),
+				]
+			);
+		}
+
+		self::alert_reconciliation_warning( $order_id, $source, $status );
+	}
+
+	/**
+	 * Notify an operator that a captured payment is stuck unfulfillable. This is the
+	 * exact failure mode payment reconciliation exists to catch, so it must not be
+	 * discoverable only by someone reading logs or manually running the health
+	 * monitor. Deduped per order via a transient so a flapping order status can't
+	 * flood the inbox.
+	 */
+	private static function alert_reconciliation_warning( int $order_id, string $source, string $status ): void {
+		if ( ! function_exists( 'dtb_send_email' ) ) {
 			return;
 		}
 
-		wc_get_logger()->warning(
-			'Captured DTB Stripe payment did not transition to a fulfillable WooCommerce status.',
+		$dedupe_key = 'dtb_recon_alert_' . $order_id;
+		if ( false !== get_transient( $dedupe_key ) ) {
+			return;
+		}
+		set_transient( $dedupe_key, 1, HOUR_IN_SECONDS );
+
+		$to = sanitize_email( (string) apply_filters( 'dtb_checkout_reconciliation_alert_email', get_option( 'admin_email' ) ) );
+		if ( '' === $to || ! is_email( $to ) ) {
+			return;
+		}
+
+		$order_edit_url = admin_url( 'post.php?post=' . $order_id . '&action=edit' );
+
+		dtb_send_email(
 			[
-				'source'       => 'dtb-order-platform',
-				'order_id'     => $order_id,
-				'trigger'      => sanitize_key( $source ),
-				'order_status' => sanitize_key( $status ),
+				'to'      => $to,
+				'subject' => sprintf( '[Drywall Toolbox] Order #%d: captured payment stuck unfulfillable', $order_id ),
+				'message' => sprintf(
+					"A DTB Stripe payment for order #%d was captured but did not transition to a fulfillable WooCommerce status (processing/completed).\n\nTrigger: %s\nCurrent status: %s\n\nReview and manually reconcile: %s",
+					$order_id,
+					sanitize_key( $source ),
+					sanitize_key( $status ),
+					$order_edit_url
+				),
+				'is_html' => false,
 			]
 		);
 	}

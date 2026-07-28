@@ -233,15 +233,20 @@ function dtb_native_checkout_log_security_event(
 	string $woo_customer_kind = 'unknown',
 	string $handoff_status = 'unknown'
 ): void {
-	$payload = [
-		'event'             => sanitize_key( $event ),
+	$context = [
 		'native_user_id'    => absint( $native_user_id ),
 		'jwt_user_id'       => absint( $jwt_user_id ),
 		'woo_customer_kind' => sanitize_key( $woo_customer_kind ),
 		'handoff_status'    => sanitize_key( $handoff_status ),
 	];
 
-	error_log( (string) wp_json_encode( $payload, JSON_UNESCAPED_SLASHES ) );
+	if ( function_exists( 'dtb_security_log' ) ) {
+		dtb_security_log( $event, $context );
+		return;
+	}
+
+	// Fallback only if the shared audit logger somehow isn't loaded yet.
+	error_log( (string) wp_json_encode( array_merge( [ 'event' => sanitize_key( $event ) ], $context ), JSON_UNESCAPED_SLASHES ) );
 }
 
 function dtb_native_checkout_identity_bridge_request(): bool {
