@@ -140,11 +140,13 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 }
 
 /* ---------------------------------------------------------------------------
- * 4. Step rail — visual progress only. Purely additive; does not gate, hide,
- * or reorder any native field or control. Numbers come from a CSS counter so
- * no editor/database change is required. Active/complete state is toggled by
- * checkout.js adding a class to <body>; with JS disabled every step simply
- * renders as "upcoming" styling, which still reads correctly.
+ * 4. Step rail — built at runtime by checkout.js over the native
+ * Contact/Shipping/Payment block groups (see that file's header comment for
+ * the exact selectors). Each `.dtb-checkout__step` is a real <button>; a
+ * step becomes clickable once its screen has been visited. Nothing here
+ * hides, gates, or reorders a native field on its own — this is chrome
+ * only. If checkout.js does not run, this markup is never inserted and the
+ * page renders as the plain single-scroll Woo Blocks checkout.
  * ------------------------------------------------------------------------- */
 
 .dtb-checkout__steps {
@@ -153,15 +155,27 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 	gap: 4px;
 	padding: 12px var(--dtb-gutter) 4px;
 	background: var(--dtb-ink);
+	border: 0;
 }
 
 .dtb-checkout__step {
+	appearance: none;
+	-webkit-appearance: none;
+	background: transparent;
+	border: 0;
+	font: inherit;
+	cursor: pointer;
 	flex: 1 1 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 6px;
+	padding: 4px 2px;
 	color: rgba(255, 255, 255, 0.45);
+}
+
+.dtb-checkout__step:disabled {
+	cursor: default;
 }
 
 .dtb-checkout__step-dot {
@@ -203,6 +217,98 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 }
 
 /* ---------------------------------------------------------------------------
+ * 4b. Active-step visibility. checkout.js sets this attribute on the native
+ * top-level block group(s) that don't belong to the step currently shown; it
+ * pairs the attribute with `inert` so hidden fields cannot receive focus.
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout [data-dtb-step-hidden] {
+	display: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * 4c. Sticky Back/Continue action bar. checkout.js appends this to <body>
+ * only on mobile; the final (payment) step hides Continue so the native
+ * "Place order" button inside the payment group is the only submit control.
+ * ------------------------------------------------------------------------- */
+
+.dtb-checkout__actions {
+	position: sticky;
+	bottom: 0;
+	z-index: 30;
+	background: var(--dtb-surface);
+	border-top: 1px solid var(--dtb-border);
+	padding: 10px var(--dtb-gutter);
+	padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+	box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.06);
+}
+
+.dtb-checkout__actions-status {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: var(--dtb-text-muted);
+}
+
+.dtb-checkout__actions-status[data-kind="error"] {
+	color: var(--dtb-danger);
+}
+
+.dtb-checkout__actions-row {
+	display: flex;
+	gap: 10px;
+}
+
+.dtb-checkout__actions-back,
+.dtb-checkout__actions-continue {
+	min-height: var(--dtb-touch);
+	border-radius: var(--dtb-radius-md);
+	font-weight: 600;
+	font-size: 15px;
+}
+
+.dtb-checkout__actions-back {
+	flex: 0 0 auto;
+	padding: 0 18px;
+	background: var(--dtb-surface);
+	border: 1px solid var(--dtb-border-strong);
+	color: var(--dtb-text);
+}
+
+.dtb-checkout__actions-back:disabled {
+	opacity: 0.4;
+}
+
+.dtb-checkout__actions-continue {
+	flex: 1 1 auto;
+	border: 1px solid var(--dtb-accent);
+	background: var(--dtb-accent);
+	color: #fff;
+}
+
+.dtb-checkout__actions-continue:disabled {
+	opacity: 0.7;
+}
+
+/* Room for the sticky action bar so it never overlaps the last field. */
+body.woocommerce-checkout:has(.dtb-checkout__actions) #primary {
+	padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Failsafe: checkout.js unmounts this chrome outside its own mobile media
+ * query, but a width change mid-session (device rotation, browser resize)
+ * is covered here too so the bar never persists into a desktop layout. */
+@media (min-width: 768px) {
+	.dtb-checkout__steps,
+	.dtb-checkout__actions {
+		display: none;
+	}
+
+	body.woocommerce-checkout #primary {
+		padding-bottom: 0;
+	}
+}
+
+/* ---------------------------------------------------------------------------
  * 5. Layout — WooCommerce Checkout Block regions
  * ------------------------------------------------------------------------- */
 
@@ -215,16 +321,13 @@ body.woocommerce-checkout .wc-block-checkout__form {
 	max-width: 100%;
 }
 
-/* Each Woo Blocks step (Contact, Shipping address, Shipping options, Payment)
- * becomes an elevated card with a numbered badge, matching the mockup's
- * step-driven visual language while keeping every native field mounted in its
- * original DOM position. */
-body.woocommerce-checkout .wc-block-checkout__main {
-	counter-reset: dtb-step;
-}
-
+/* Each native Woo Blocks section (Contact information, Shipping address,
+ * Shipping options, Payment methods, …) becomes an elevated card. These are
+ * sub-sections *within* one of the three wizard screens above — e.g. both
+ * "Shipping address" and "Shipping options" render inside the single
+ * "Shipping" wizard step — so they are not separately numbered here; the
+ * step rail above already carries the 1/2/3 sequence for the wizard itself. */
 body.woocommerce-checkout .wc-block-components-checkout-step {
-	counter-increment: dtb-step;
 	background: var(--dtb-surface);
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-lg);
@@ -233,39 +336,32 @@ body.woocommerce-checkout .wc-block-components-checkout-step {
 	margin-bottom: 14px;
 }
 
+/* A step Woo has already marked complete (collapsed to an address-card /
+ * summary + "Change" link) gets a small green check next to its heading. */
+body.woocommerce-checkout .wc-block-components-checkout-step--disabled .wc-block-components-checkout-step__heading-content::after {
+	content: "\2713";
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	margin-left: 8px;
+	border-radius: 999px;
+	background: var(--dtb-success);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+}
+
 body.woocommerce-checkout .wc-block-components-checkout-step__heading-content {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-step__heading-content::before {
-	content: counter(dtb-step);
-	flex: none;
-	width: 26px;
-	height: 26px;
-	border-radius: 999px;
-	background: var(--dtb-accent-soft);
-	color: var(--dtb-accent-dark);
-	font-size: 13px;
-	font-weight: 700;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
-/* A step Woo has already marked complete (collapsed to an address-card /
- * summary + "Change" link) gets a green check instead of its ordinal number. */
-body.woocommerce-checkout .wc-block-components-checkout-step--disabled .wc-block-components-checkout-step__heading-content::before {
-	content: "\2713";
-	background: var(--dtb-success);
-	color: #fff;
 }
 
 body.woocommerce-checkout .wc-block-components-checkout-step__description {
 	color: var(--dtb-text-muted);
 	font-size: 13px;
-	margin: 2px 0 0 36px;
+	margin: 2px 0 0;
 }
 
 body.woocommerce-checkout .wc-block-components-checkout-step__content {

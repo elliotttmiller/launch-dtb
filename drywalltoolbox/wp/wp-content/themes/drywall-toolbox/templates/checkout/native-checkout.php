@@ -5,10 +5,12 @@
  * WooCommerce owns the rendered checkout baseline and Payment Plugins for
  * Stripe WooCommerce owns its payment surfaces; nothing below reparents,
  * clones, or duplicates a native field, wallet, or order-submission control.
- * The only DTB-owned markup is the branded top bar and the visual step rail,
- * both presentation-only, styled and progressively enhanced by the
- * `dtb-checkout` stylesheet/script registered in functions.php
- * (dtb_enqueue_native_checkout_assets()). See
+ * The only DTB-owned markup here is the branded top bar. The in-page step
+ * wizard (progress rail + Back/Continue bar) is built entirely by
+ * checkout.js as progressive enhancement over the native Woo Checkout
+ * Block groups — no separate step markup lives in this template, so there
+ * is exactly one source of truth for step definitions. Both are
+ * registered in functions.php (dtb_enqueue_native_checkout_assets()). See
  * docs/checkout-ui-architecture.md for the full redesign contract.
  *
  * @package drywall-toolbox
@@ -38,20 +40,6 @@ defined( 'ABSPATH' ) || exit;
 		</span>
 		<span class="dtb-checkout__stripe-badge"><?php esc_html_e( 'Powered by Stripe', 'drywall-toolbox' ); ?></span>
 	</header>
-	<nav class="dtb-checkout__steps" aria-label="<?php esc_attr_e( 'Checkout progress', 'drywall-toolbox' ); ?>">
-		<span class="dtb-checkout__step" data-state="active">
-			<span class="dtb-checkout__step-dot" aria-hidden="true">1</span>
-			<span class="dtb-checkout__step-label"><?php esc_html_e( 'Contact', 'drywall-toolbox' ); ?></span>
-		</span>
-		<span class="dtb-checkout__step" data-state="upcoming">
-			<span class="dtb-checkout__step-dot" aria-hidden="true">2</span>
-			<span class="dtb-checkout__step-label"><?php esc_html_e( 'Shipping', 'drywall-toolbox' ); ?></span>
-		</span>
-		<span class="dtb-checkout__step" data-state="upcoming">
-			<span class="dtb-checkout__step-dot" aria-hidden="true">3</span>
-			<span class="dtb-checkout__step-label"><?php esc_html_e( 'Payment', 'drywall-toolbox' ); ?></span>
-		</span>
-	</nav>
 	<main id="primary" role="main">
 		<?php
 		if ( have_posts() ) {
