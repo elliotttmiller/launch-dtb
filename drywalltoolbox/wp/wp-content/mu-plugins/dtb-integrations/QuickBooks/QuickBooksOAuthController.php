@@ -48,9 +48,10 @@ final class DTB_QuickBooksOAuthController {
 	}
 
 	public static function rest_status(): WP_REST_Response {
-		$status = dtb_qbo_status();
-		$status['webhook_verifier_configured'] = class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured();
+		$status                                = dtb_qbo_status();
+		$status['webhook_verifier_configured'] = self::webhook_verifier_configured();
 		$status['webhook_endpoint']            = rest_url( 'dtb/v1/webhooks/qbo' );
+		$status['ready_for_connection']        = ! empty( $status['credentials_configured'] ) && $status['webhook_verifier_configured'];
 		return new WP_REST_Response( $status, 200 );
 	}
 
@@ -58,6 +59,9 @@ final class DTB_QuickBooksOAuthController {
 		$status = dtb_qbo_status();
 		if ( empty( $status['credentials_configured'] ) ) {
 			return new WP_Error( 'qbo_credentials_missing', __( 'QuickBooks credentials are not configured for the active environment.', 'dtb' ), [ 'status' => 503 ] );
+		}
+		if ( ! self::webhook_verifier_configured() ) {
+			return new WP_Error( 'qbo_webhook_verifier_missing', __( 'QuickBooks webhook verification is not configured for the active environment.', 'dtb' ), [ 'status' => 503 ] );
 		}
 		if ( ! empty( $status['connected'] ) ) {
 			return new WP_Error( 'qbo_already_connected', __( 'QuickBooks is already connected for the active environment.', 'dtb' ), [ 'status' => 409 ] );
@@ -148,6 +152,10 @@ final class DTB_QuickBooksOAuthController {
 		$class   = 'connected' === $notice ? 'notice-success' : 'notice-error';
 		$message = 'connected' === $notice ? __( 'QuickBooks connected and the selected company was verified.', 'dtb' ) : __( 'QuickBooks connection failed. Verify the registered redirect URI and server-managed credentials for the active environment, then retry.', 'dtb' );
 		echo '<div class="notice ' . esc_attr( $class ) . ' is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+	}
+
+	private static function webhook_verifier_configured(): bool {
+		return class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured();
 	}
 
 	private static function redirect_with_notice( string $notice ): never {
