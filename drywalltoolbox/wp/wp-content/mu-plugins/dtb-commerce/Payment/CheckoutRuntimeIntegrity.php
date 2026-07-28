@@ -22,6 +22,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 	private const DTB_CHECKOUT_SCRIPT_HANDLES = [
 		'dtb-checkout-theme-boot',
 		'dtb-checkout-theme-ui',
+		'dtb-checkout-theme-express-entry',
 		'dtb-woo-native-checkout-performance',
 	];
 
