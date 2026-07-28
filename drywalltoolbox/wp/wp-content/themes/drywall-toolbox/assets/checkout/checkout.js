@@ -7,25 +7,30 @@
  * field, wallet, or payment control — it only toggles visibility of the
  * *existing* top-level block groups that WooCommerce itself already renders.
  *
- * Groups are classified by DOM position, not by an enumerated list of block
- * names: `data-block-name` attributes are only present in the block editor's
- * own markup, never in this store's actual frontend HTML output, so a
- * selector list built from them silently matches nothing at runtime (see
- * commit 320b536 / PR #44 in this repo's history, which hit and fixed this
- * exact failure mode once already). `.wc-block-components-checkout-step` is
- * WooCommerce Blocks' one stable, version-resilient public class applied to
- * every top-level step wrapper regardless of which concrete step it is, and
- * WooCommerce always renders Contact first and Payment last, with zero or
- * more shipping-related steps in between:
+ * Groups are classified by WooCommerce Blocks' own stable, semantic CSS
+ * classes — not `data-block-name` attributes (only present in the block
+ * editor's own markup, never in this store's frontend HTML — see commit
+ * 320b536 / PR #44 in this repo's history) and not bare DOM-position/ordinal
+ * inference (fragile against extra wrapper elements a payment gateway's own
+ * script may inject around its step). Each semantic class below is verified
+ * present in the currently-shipping `woocommerce/assets/client/blocks/checkout.css`:
  *
- *   .wc-block-components-express-payment      <- always Contact
- *   .wc-block-components-checkout-step (1st)   <- always Contact
- *   .wc-block-components-checkout-step (last)  <- always Payment
- *   .wc-block-components-checkout-step (any other)  <- Shipping
- *   (non-step siblings: order notes, terms, actions row) <- grouped with
- *     whichever step wrapper precedes them in document order
+ *   .wc-block-components-express-payment   -> Contact (rendered above it)
+ *   .wc-block-checkout__contact-fields     -> Contact
+ *   .wc-block-checkout__shipping-fields    -> Shipping
+ *   .wc-block-checkout__billing-fields     -> Shipping
+ *   .wc-block-checkout__shipping-method    -> Shipping
+ *   .wc-block-checkout__pickup-options     -> Shipping
+ *   .wc-block-checkout__payment-method     -> Payment
+ *   .wc-block-checkout__add-note           -> Payment
+ *   .wc-block-checkout__terms              -> Payment
+ *   .wc-block-checkout__actions            -> Payment (native "Place order")
  *
- * See classifyStepGroups() below.
+ * For each match, the nearest ancestor `.wc-block-components-checkout-step`
+ * (WooCommerce Blocks' stable per-step card wrapper) is what actually gets
+ * hidden/shown, so the step's heading, border, and card styling move with
+ * its fields rather than leaving an empty shell behind. Express payment has
+ * no such wrapper and is toggled directly. See classifyStepGroups() below.
  *
  * Step gating uses the platform's own HTML5 constraint validation
  * (checkValidity/reportValidity) against the fields *inside the active
@@ -50,10 +55,11 @@
  * pass). At wider viewports every group is left visible and none of this
  * chrome is mounted, so the page is the plain, accessible single-scroll
  * Woo Blocks checkout. Waits for the checkout root to exist (retrying for
- * up to ~10s in case it renders later than DOMContentLoaded), and if no
- * `.wc-block-components-checkout-step` wrapper is ever found (a Woo Blocks
- * version change, a customized checkout layout), never mounts any chrome —
- * the page stays the plain, unmodified Woo Blocks checkout.
+ * up to ~10s in case it renders later than DOMContentLoaded), and never
+ * mounts the wizard chrome unless classification actually finds real
+ * Contact and Payment content (a Woo Blocks version change or a customized
+ * checkout layout could otherwise leave a Back/Continue bar over a page
+ * where nothing is actually being hidden — worse than no enhancement).
  *
  * Handle: dtb-checkout (see functions.php dtb_enqueue_native_checkout_assets()).
  */
@@ -70,7 +76,33 @@
 	];
 
 	var STEP_WRAPPER_SELECTOR = '.wc-block-components-checkout-step';
-	var EXPRESS_PAYMENT_SELECTOR = '.wc-block-components-express-payment';
+
+	// Index into STEPS above. Selectors are matched against elements *inside*
+	// the checkout root; each match's nearest `.wc-block-components-checkout-step`
+	// ancestor is the node actually shown/hidden. `direct: true` entries have
+	// no such wrapper and are toggled as-is.
+	var GROUP_DEFINITIONS = [
+		{
+			index: 0, // contact
+			wrapped: [ '.wc-block-checkout__contact-fields' ],
+			direct: [ '.wc-block-components-express-payment' ],
+		},
+		{
+			index: 1, // shipping
+			wrapped: [
+				'.wc-block-checkout__shipping-fields',
+				'.wc-block-checkout__billing-fields',
+				'.wc-block-checkout__shipping-method',
+				'.wc-block-checkout__pickup-options',
+			],
+			direct: [],
+		},
+		{
+			index: 2, // payment
+			wrapped: [ '.wc-block-checkout__payment-method' ],
+			direct: [ '.wc-block-checkout__add-note', '.wc-block-checkout__terms', '.wc-block-checkout__actions' ],
+		},
+	];
 
 	var mobileMedia = null;
 	var wizard = null; // { root, rail, actions, statusEl, backBtn, continueBtn, railButtons: [] }
@@ -85,10 +117,13 @@
 	}
 
 	/**
-	 * Classify the checkout's own top-level section wrappers into
-	 * Contact / Shipping / Payment groups by structural position. See the
-	 * file header comment for why this replaced an earlier, broken
-	 * `data-block-name` selector list.
+	 * Classify the checkout's own section wrappers into Contact / Shipping /
+	 * Payment groups by WooCommerce Blocks' own semantic CSS classes. See the
+	 * file header comment for the full selector map and why this replaced an
+	 * earlier, broken `data-block-name` selector list and, before that, a
+	 * DOM-position/ordinal heuristic that assumed every step wrapper is a
+	 * direct child of one common container — an assumption this store's
+	 * actual markup did not satisfy.
 	 */
 	function classifyStepGroups() {
 		var root = checkoutRoot();
@@ -96,39 +131,23 @@
 		if ( ! root ) {
 			return groups;
 		}
-		var main = root.querySelector( '.wc-block-components-main, .wc-block-checkout__main' ) || root;
-		var children = Array.prototype.slice.call( main.children );
-		var stepWrappers = children.filter( function ( node ) {
-			return node.matches( STEP_WRAPPER_SELECTOR );
-		} );
-		if ( ! stepWrappers.length ) {
-			return groups;
-		}
 
-		var firstStep = stepWrappers[ 0 ];
-		var lastStep = stepWrappers[ stepWrappers.length - 1 ];
-
-		children.forEach( function ( node ) {
-			if ( node.matches( EXPRESS_PAYMENT_SELECTOR ) ) {
-				groups[ 0 ].push( node );
-				return;
-			}
-			if ( node === firstStep ) {
-				groups[ 0 ].push( node );
-				return;
-			}
-			if ( node === lastStep ) {
-				groups[ 2 ].push( node );
-				return;
-			}
-			if ( stepWrappers.indexOf( node ) !== -1 ) {
-				groups[ 1 ].push( node );
-				return;
-			}
-			// A non-step sibling (order notes, terms, actions row, etc.)
-			// belongs with whichever step wrapper precedes it in the DOM.
-			var precedesLastStep = Boolean( node.compareDocumentPosition( lastStep ) & Node.DOCUMENT_POSITION_FOLLOWING );
-			groups[ precedesLastStep ? 1 : 2 ].push( node );
+		GROUP_DEFINITIONS.forEach( function ( group ) {
+			group.wrapped.forEach( function ( selector ) {
+				root.querySelectorAll( selector ).forEach( function ( inner ) {
+					var node = inner.closest( STEP_WRAPPER_SELECTOR ) || inner;
+					if ( groups[ group.index ].indexOf( node ) === -1 ) {
+						groups[ group.index ].push( node );
+					}
+				} );
+			} );
+			group.direct.forEach( function ( selector ) {
+				root.querySelectorAll( selector ).forEach( function ( node ) {
+					if ( groups[ group.index ].indexOf( node ) === -1 ) {
+						groups[ group.index ].push( node );
+					}
+				} );
+			} );
 		} );
 
 		return groups;
@@ -491,6 +510,20 @@
 		}
 
 		if ( ! isMobile() ) {
+			unmountWizard();
+			clearVisibility();
+			return;
+		}
+
+		// Contact and Payment always exist on any checkout regardless of
+		// whether the cart needs shipping; if either comes back empty, the
+		// classification hasn't found real content yet (Woo Blocks still
+		// hydrating) or its selectors no longer match this store's markup.
+		// Mounting the wizard chrome in that state would show a Back/Continue
+		// bar over a page nothing is actually being hidden on — worse than
+		// the plain page — so wait/skip instead.
+		var groups = classifyStepGroups();
+		if ( ! groups[ 0 ].length || ! groups[ 2 ].length ) {
 			unmountWizard();
 			clearVisibility();
 			return;
