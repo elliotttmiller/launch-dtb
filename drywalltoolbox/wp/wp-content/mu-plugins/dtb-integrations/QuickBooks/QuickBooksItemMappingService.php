@@ -129,12 +129,14 @@ final class DTB_QuickBooksItemMappingService {
 		$results = [];
 
 		foreach ( self::definitions() as $key => $definition ) {
-			$safe_name = str_replace( "'", "''", $definition['name'] );
+			// Canonical names are code-owned allowlisted values. QuickBooks query
+			// projections are unsupported, so request the complete Item entity.
+			$safe_name = str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $definition['name'] );
 			$response  = dtb_qbo_request(
 				'GET',
 				'/query',
 				[
-					'query' => "SELECT Id, Name, Type, Active FROM Item WHERE Name = '{$safe_name}' MAXRESULTS 2",
+					'query' => "SELECT * FROM Item WHERE Name = '{$safe_name}' MAXRESULTS 2",
 				]
 			);
 
@@ -177,7 +179,7 @@ final class DTB_QuickBooksItemMappingService {
 			$result['id']     = sanitize_text_field( (string) ( $item['Id'] ?? '' ) );
 			$result['name']   = sanitize_text_field( (string) ( $item['Name'] ?? '' ) );
 			$result['type']   = sanitize_text_field( (string) ( $item['Type'] ?? '' ) );
-			$result['active'] = ! empty( $item['Active'] );
+			$result['active'] = ! array_key_exists( 'Active', $item ) || rest_sanitize_boolean( $item['Active'] );
 
 			if ( '' === $result['id'] || $definition['name'] !== $result['name'] ) {
 				$result['status'] = 'invalid';
