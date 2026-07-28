@@ -30,7 +30,8 @@ React Store API cart
 - verifies the replacement plugin by its runtime constants, container function, base gateway class, and reflected plugin path;
 - exposes read-only non-secret checkout capabilities;
 - configures Stripe Elements through the documented `wc_stripe_get_element_options` filter without replacing provider-owned options;
-- limits the Stripe Express Checkout collection to verified Apple Pay and Google Pay gateway instances;
+- limits the classic/provider-rendered Stripe Express Checkout collection to verified Apple Pay and Google Pay gateway instances;
+- relies on provider Payment Sections for Checkout Block placement, so the operator must assign Apple Pay/Google Pay to Express Checkout and disable Link Express Checkout;
 - tags new Checkout Block orders with `payment-plugins-stripe-v1`;
 - mirrors a non-secret payment reference only after WooCommerce reports a paid date and the selected gateway is verified as originating from `woo-stripe-payment`;
 - emits operator notices for missing/outdated provider versions, disabled card/wallet configuration, HTTPS/Checkout Block failures, and competing Stripe authorities.
@@ -60,7 +61,7 @@ Do not create a fake PayPal button. Do not route PayPal through Stripe. If Payme
 
 DTB introduces no schema migration and no destructive data operation.
 
-The replacement plugin documents automatic recognition of Stripe customer IDs, saved payment methods, and supported subscription data created by the WooCommerce Stripe Gateway. It does **not** migrate plugin settings. All provider settings must be recreated manually and validated in staging.
+The replacement plugin documents automatic recognition of Stripe customer IDs, saved payment methods, and supported subscription data created by the WooCommerce Stripe Gateway. It does not migrate plugin settings. All provider settings must be recreated manually and validated in staging.
 
 The automatic migration claim is provider-owned behavior. Drywall Toolbox must validate representative customers, saved cards, and subscriptions before production cutover.
 
