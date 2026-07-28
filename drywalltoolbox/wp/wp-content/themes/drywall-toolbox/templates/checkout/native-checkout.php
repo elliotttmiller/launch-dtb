@@ -24,83 +24,13 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 	return is_readable( $path ) ? (string) filemtime( $path ) : DTB_VERSION;
 };
 
-wp_enqueue_style(
-	'dtb-customer-font-nunito',
-	'https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&display=swap',
-	[],
-	null
-);
-
-/*
- * Theme presentation is intentionally one ordered stack: base design -> wrapper
- * refinements -> desktop redesign -> responsive flow -> live context -> contact
- * presentation -> narrow payment interaction hardening -> failed-payment recovery
- * -> mobile redesign -> final UX refinements. No theme asset creates or replaces
- * payment controls or owns checkout submit or business persistence.
- */
+/* One authoritative checkout stylesheet. WooCommerce/Stripe retain all form,
+ * payment, and submission ownership; theme assets are presentation-only. */
 wp_enqueue_style(
 	'dtb-checkout-theme',
 	$theme_uri . '/assets/checkout/checkout.css',
-	[ 'dtb-customer-font-nunito' ],
+	[],
 	$asset_version( 'assets/checkout/checkout.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-refinements',
-	$theme_uri . '/assets/checkout/checkout-refinements.css',
-	[ 'dtb-checkout-theme' ],
-	$asset_version( 'assets/checkout/checkout-refinements.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-desktop-redesign',
-	$theme_uri . '/assets/checkout/checkout-desktop-redesign.css',
-	[ 'dtb-checkout-theme-refinements' ],
-	$asset_version( 'assets/checkout/checkout-desktop-redesign.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-flow',
-	$theme_uri . '/assets/checkout/checkout-flow.css',
-	[ 'dtb-checkout-theme-desktop-redesign' ],
-	$asset_version( 'assets/checkout/checkout-flow.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-runtime-context',
-	$theme_uri . '/assets/checkout/checkout-runtime-context.css',
-	[ 'dtb-checkout-theme-flow' ],
-	$asset_version( 'assets/checkout/checkout-runtime-context.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-contact-identity',
-	$theme_uri . '/assets/checkout/checkout-contact-identity.css',
-	[ 'dtb-checkout-theme-runtime-context' ],
-	$asset_version( 'assets/checkout/checkout-contact-identity.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-payment-interaction',
-	$theme_uri . '/assets/checkout/checkout-payment-interaction.css',
-	[ 'dtb-checkout-theme-contact-identity' ],
-	$asset_version( 'assets/checkout/checkout-payment-interaction.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-payment-failure',
-	$theme_uri . '/assets/checkout/checkout-payment-failure.css',
-	[ 'dtb-checkout-theme-payment-interaction' ],
-	$asset_version( 'assets/checkout/checkout-payment-failure.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-mobile-redesign',
-	$theme_uri . '/assets/checkout/checkout-mobile-redesign.css',
-	[ 'dtb-checkout-theme-payment-failure' ],
-	$asset_version( 'assets/checkout/checkout-mobile-redesign.css' )
-);
-wp_enqueue_style(
-	'dtb-checkout-theme-ux-refinements',
-	$theme_uri . '/assets/checkout/checkout-ux-refinements.css',
-	[ 'dtb-checkout-theme-mobile-redesign' ],
-	$asset_version( 'assets/checkout/checkout-ux-refinements.css' )
-);
-wp_add_inline_style(
-	'dtb-checkout-theme-ux-refinements',
-	'body.dtb-official-stripe-checkout,body.dtb-official-stripe-checkout *{font-family:"Nunito",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}body.dtb-official-stripe-checkout{font-optical-sizing:auto;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}'
 );
 
 wp_enqueue_script(
@@ -124,45 +54,23 @@ wp_enqueue_script(
 	$asset_version( 'assets/checkout/checkout-express-entry.js' ),
 	true
 );
-wp_enqueue_script(
-	'dtb-checkout-theme-payment-runtime',
-	$theme_uri . '/assets/checkout/checkout-payment-runtime.js',
-	[ 'dtb-checkout-theme-ui' ],
-	$asset_version( 'assets/checkout/checkout-payment-runtime.js' ),
-	true
-);
-wp_enqueue_script(
-	'dtb-checkout-theme-payment-failure',
-	$theme_uri . '/assets/checkout/checkout-payment-failure.js',
-	[ 'dtb-checkout-theme-payment-runtime' ],
-	$asset_version( 'assets/checkout/checkout-payment-failure.js' ),
-	true
-);
-wp_enqueue_script(
-	'dtb-checkout-theme-login-handoff',
-	$theme_uri . '/assets/checkout/checkout-login-handoff.js',
-	[ 'dtb-checkout-theme-ui' ],
-	$asset_version( 'assets/checkout/checkout-login-handoff.js' ),
-	true
-);
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-	<meta name="robots" content="noindex,nofollow">
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<meta name="theme-color" content="#071225">
+	<meta name="robots" content="noindex,nofollow,noarchive">
 	<script>document.documentElement.classList.add('dtb-native-checkout-booting');window.setTimeout(function(){document.documentElement.classList.remove('dtb-native-checkout-booting');},8000);</script>
 	<style>
-		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
-		html.dtb-native-checkout-booting .dtb-native-checkout-loader{display:flex}html.dtb-native-checkout-ready .dtb-native-checkout-loader{opacity:0;pointer-events:none}html.dtb-native-checkout-booting .dtb-native-woocommerce-document{overflow:hidden}html.dtb-native-checkout-booting .dtb-checkout-header,html.dtb-native-checkout-booting .dtb-native-woocommerce-main{opacity:0}.dtb-native-checkout-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}.dtb-secure-checkout-spinner{display:block;width:3.25em;height:3.25em;transform-origin:center;animation:dtb-secure-checkout-rotate 2s linear infinite}.dtb-secure-checkout-spinner__circle{fill:none;stroke:hsl(214,97%,59%);stroke-width:2;stroke-dasharray:1,200;stroke-dashoffset:0;stroke-linecap:round;animation:dtb-secure-checkout-dash 1.5s ease-in-out infinite}.dtb-native-checkout-loader__content p{margin:0;color:#475569;font:700 14px/1.5 "Nunito",ui-sans-serif,system-ui,sans-serif}@keyframes dtb-secure-checkout-rotate{100%{transform:rotate(360deg)}}@keyframes dtb-secure-checkout-dash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px}100%{stroke-dashoffset:-125px}}@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader{transition-duration:1ms}.dtb-secure-checkout-spinner,.dtb-secure-checkout-spinner__circle{animation:none}.dtb-secure-checkout-spinner__circle{stroke-dasharray:90,200;stroke-dashoffset:-35px}}
+		.dtb-native-checkout-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f5f7fb;color:#101828;align-items:center;justify-content:center;opacity:1;transition:opacity 260ms cubic-bezier(.4,0,.2,1)}
+		html.dtb-native-checkout-booting .dtb-native-checkout-loader{display:flex}html.dtb-native-checkout-ready .dtb-native-checkout-loader{opacity:0;pointer-events:none}html.dtb-native-checkout-booting .dtb-native-woocommerce-document{overflow:hidden}html.dtb-native-checkout-booting .dtb-checkout-header,html.dtb-native-checkout-booting .dtb-native-woocommerce-main{opacity:0}.dtb-native-checkout-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}.dtb-secure-checkout-spinner{display:block;width:3.25em;height:3.25em;transform-origin:center;animation:dtb-secure-checkout-rotate 2s linear infinite}.dtb-secure-checkout-spinner__circle{fill:none;stroke:#2457e6;stroke-width:2;stroke-dasharray:1,200;stroke-dashoffset:0;stroke-linecap:round;animation:dtb-secure-checkout-dash 1.5s ease-in-out infinite}.dtb-native-checkout-loader__content p{margin:0;color:#475467;font:700 14px/1.5 ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}@keyframes dtb-secure-checkout-rotate{100%{transform:rotate(360deg)}}@keyframes dtb-secure-checkout-dash{0%{stroke-dasharray:1,200;stroke-dashoffset:0}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px}100%{stroke-dashoffset:-125px}}@media (prefers-reduced-motion:reduce){.dtb-native-checkout-loader{transition-duration:1ms}.dtb-secure-checkout-spinner,.dtb-secure-checkout-spinner__circle{animation:none}.dtb-secure-checkout-spinner__circle{stroke-dasharray:90,200;stroke-dashoffset:-35px}}
 	</style>
 	<?php wp_head(); ?>
 </head>
 <body <?php body_class( 'dtb-native-woocommerce-document dtb-woo-native-checkout dtb-official-stripe-checkout dtb-checkout-native-page' ); ?>>
 <?php wp_body_open(); ?>
-	<div class="dtb-native-checkout-loader" role="status" aria-live="polite">
+	<div class="dtb-native-checkout-loader" role="status" aria-live="polite" aria-label="<?php esc_attr_e( 'Loading secure checkout', 'drywall-toolbox' ); ?>">
 		<div class="dtb-native-checkout-loader__content">
 			<svg class="dtb-secure-checkout-spinner" viewBox="25 25 50 50" aria-hidden="true" focusable="false">
 				<circle class="dtb-secure-checkout-spinner__circle" r="20" cy="50" cx="50"></circle>
@@ -177,6 +85,7 @@ wp_enqueue_script(
 			</a>
 			<div class="dtb-checkout-header__secure" aria-label="<?php esc_attr_e( 'Secure checkout powered by Stripe', 'drywall-toolbox' ); ?>">
 				<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10m-10 0h11a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-7A1.5 1.5 0 0 1 6.5 10Z" /></svg>
+				<span><?php esc_html_e( 'Secure checkout', 'drywall-toolbox' ); ?></span>
 				<img class="dtb-checkout-header__stripe" src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="" aria-hidden="true" width="2340" height="540">
 			</div>
 		</div>
