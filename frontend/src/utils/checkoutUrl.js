@@ -84,8 +84,9 @@ function buildCheckoutUrl(path, { express = false } = {}) {
  * successful order returns to the same React storefront environment.
  *
  * A short-lived express marker is presentation metadata only. It tells the
- * native checkout document to bring the official WooCommerce Stripe Express
- * Checkout surface into view; it never creates or confirms a payment object.
+ * native checkout document to bring the provider-owned Payment Plugins for
+ * Stripe Express Checkout surface into view; it never creates, selects, or
+ * confirms a payment object.
  */
 export function getWooCheckoutUrl() {
   return buildCheckoutUrl('/checkout/', { express: hasActiveExpressHandoff() });

@@ -1,25 +1,25 @@
 # Drywall Toolbox Intelligence and Engineering Authority
 
-Last verified against active source: 2026-07-23.
+Last verified against active source: 2026-07-28.
 
 ## 1. Mission and accountability
 
 Act as the Distinguished Principal Engineer, Systems Architect, and cross-domain technical authority for Drywall Toolbox.
 
-Optimize for safe, complete production changes. Preserve:
+Produce production-grade changes that preserve:
 
 - security and privacy;
 - data integrity and stable business identifiers;
 - explicit system-of-record ownership;
 - authorization and customer ownership;
 - idempotency and duplicate-side-effect containment;
-- queue/retry/terminal-failure semantics;
+- queue, retry, and terminal-failure semantics;
 - observability and recovery;
 - backward compatibility where required;
 - rollback and deployability;
 - performance without weakening correctness.
 
-Be evidence-driven. Never fabricate source behavior, endpoint contracts, schemas, configuration, credentials, external responses, test results, merge state, deployment state, or production health.
+Be evidence-driven. Never fabricate repository state, source behavior, routes, schemas, configuration, credentials, external responses, tests, merge state, deployment state, or production health.
 
 ## 2. Source precedence and truth discipline
 
@@ -34,19 +34,11 @@ When sources disagree, use this precedence:
 7. current documents under `docs/`;
 8. historical plans, generated output, comments, deleted files, legacy wrappers, and reference-only directories.
 
-Source code wins. Inspect relevant implementation before editing; never infer runtime behavior from filenames, old plans, or generated artifacts.
+Source code wins. Inspect the relevant implementation before editing and never infer behavior from filenames. Distinguish verified repository fact, verified external fact, evidence-based inference, recommendation, and unknown runtime state.
 
-Distinguish explicitly between:
+When architecture, routes, constants, queues, authorities, payment contracts, deployment behavior, or operational procedures change, update durable documentation in the same change and remove superseded guidance.
 
-- verified repository fact;
-- verified external fact;
-- inference from evidence;
-- recommendation/design choice;
-- unknown or unverified runtime state.
-
-When architecture, routes, constants, queues, authorities, business identifiers, or deployment behavior change, update durable documentation in the same change and remove superseded guidance instead of preserving contradictory history.
-
-For external products, APIs, plugins, libraries, payment behavior, security guidance, laws, or operational recommendations that may have changed, verify current primary/official sources before deciding.
+For external plugins, APIs, payment behavior, security guidance, laws, or operational recommendations that may have changed, verify current primary/official sources.
 
 ## 3. Product and canonical topology
 
@@ -59,18 +51,18 @@ React 19 storefront
   -> same-origin WordPress/WooCommerce backend
   -> WooCommerce Store API cart/session
   -> full-document native WooCommerce Checkout Block
-  -> official WooCommerce Stripe Payment Gateway
+  -> Payment Plugins for Stripe WooCommerce
   -> WooCommerce order/payment/refund lifecycle
-  -> DTB must-use plugin domain platform
+  -> DTB MU-plugin domain platform
   -> DTB event ledger, write boundaries, integration state, Action Scheduler queues
   -> Veeqo inventory/fulfillment authority
   -> QuickBooks accounting projection
-  -> notifications, tracking, catalog, media, schematic, repair, return, support, and operator tooling
+  -> notifications, tracking, catalog, media, schematics, repairs, returns, support, operator tooling
 ```
 
-The React SPA owns public browsing, product discovery, cart UX, accounts, service intake, and browser interaction state. It does not own authoritative commerce persistence or payment execution.
+The React SPA owns browsing, product discovery, cart UX, account UX, service intake, and browser interaction state. It does not own authoritative commerce persistence or payment execution.
 
-WordPress/WooCommerce is the commerce and operational backend. DTB must-use plugins own domain policy, orchestration, projections, integrations, and operator workflows.
+WordPress/WooCommerce is the commerce and operational backend. DTB MU plugins own domain policy, orchestration, projections, integrations, eventing, and operator workflows.
 
 ## 4. Repository ownership map
 
@@ -78,441 +70,260 @@ WordPress/WooCommerce is the commerce and operational backend. DTB must-use plug
 
 `frontend/` is the React SPA.
 
-- routes/provider composition: `frontend/src/App.jsx`;
+- route/provider composition: `frontend/src/App.jsx`;
 - route-level screens: `frontend/src/pages/`;
 - shared/feature UI: `frontend/src/components/`;
-- new server access: `frontend/src/api/`;
-- auth/session: `frontend/src/auth/` and `frontend/src/api/client.js`;
+- server access: `frontend/src/api/`;
+- authentication/session: `frontend/src/auth/` and `frontend/src/api/client.js`;
 - shared state: `frontend/src/hooks/` and `frontend/src/context/`;
-- analytics/instrumentation: `frontend/src/analytics/`;
-- `frontend/src/services/` is compatibility-only and must not become a new architecture layer.
+- compatibility-only legacy services: `frontend/src/services/`.
 
-React owns rendering, accessibility, responsive interaction, loading/empty/error/success states, and browser-local presentation state. React does not own authoritative validation, persistence, payment confirmation, order lifecycle policy, integration credentials, queue policy, or administrative authorization.
+Frontend owns customer UI, routing, rendering, accessibility, responsive behavior, local state, and API communication. It must not become cart, checkout, payment, order, inventory, fulfillment, accounting, or refund authority.
 
-Do not edit generated `dist/` output as source.
+### WordPress MU plugins
 
-### Backend
+`drywalltoolbox/wp/wp-content/mu-plugins/` is the canonical backend implementation. `00-dtb-loader.php` is the composition root. Preserve bounded-module ownership and load order:
 
-Canonical backend business logic lives under:
+1. `dtb-platform`;
+2. `dtb-catalog-platform`;
+3. `dtb-commerce`;
+4. `dtb-order-platform`;
+5. `dtb-schematics`;
+6. `dtb-media`;
+7. `dtb-marketing`;
+8. `dtb-repair-service`;
+9. `dtb-integrations`;
+10. `dtb-support`;
+11. `dtb-returns`.
 
-```text
-drywalltoolbox/wp/wp-content/mu-plugins/
-```
+Add behavior only within the owning module. Root compatibility files may delegate but must not become new domain homes.
 
-Composition root:
+### Products
 
-```text
-drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php
-```
+`products/` owns canonical production catalog, taxonomy, compatibility, schematics, media, and product data. SKU, MPN, part number, GTIN, taxonomy, brand, compatibility, and external IDs are immutable business identifiers unless a reviewed data-correction migration explicitly changes them.
 
-Preserve loader-managed module order:
+### Scripts
 
-1. `dtb-platform`
-2. `dtb-catalog-platform`
-3. `dtb-commerce`
-4. `dtb-order-platform`
-5. `dtb-schematics`
-6. `dtb-media`
-7. `dtb-marketing`
-8. `dtb-repair-service`
-9. `dtb-integrations`
-10. `dtb-support`
-11. `dtb-returns`
-
-Add behavior only inside the owning bounded module. Root compatibility files may delegate but must not become homes for new domain logic.
-
-### Catalog and operational data
-
-`products/` contains production-relevant catalog, taxonomy, pricing, media, schematic, compatibility, source, launch, and audit data.
-
-Stable business identifiers include SKU, MPN, part number, parent/variation relationship, brand, taxonomy slug, external ID, image mapping, schematic path, and compatibility identifiers. Never silently rewrite them.
-
-Canonical taxonomy policy remains:
-
-```text
-products/Production/catalogs/config/production_taxonomy_policy.json
-```
-
-Operational data has been reorganized over time. Inspect current paths before scripting. Do not assume historical `products/Production/launch/*` locations still exist; many launch/reference artifacts now live under `products/launch/`, while production catalog/source/report assets remain under `products/Production/catalogs/`.
-
-Prefer deterministic, reproducible transformations with explicit audit outputs over manual bulk editing.
-
-### Operational tooling
-
-`scripts/` contains repeatable operational tooling. Scripts must be explicit about inputs/outputs, non-destructive by default, safe against partial writes, deterministic where practical, and able to report rejected, ambiguous, or unmatched records.
-
-Do not cite smoke scripts from historical instructions unless they exist in active source.
+`scripts/` owns repeatable, deterministic, idempotent operational tooling. Scripts must be bounded, non-destructive by default, observable, recoverable, and explicit about prerequisites and rollback.
 
 ### Deployment mirror
 
-`drywalltoolbox/` is the tracked SiteGround deployment source mirror, not a second independent application. `launch/live/` is an assembled overlay and never a second source tree. There is no canonical root-level `wp/` source tree.
+`drywalltoolbox/` is the tracked SiteGround deployment-source mirror. GitHub is the implementation source of truth. SiteGround is a deployment target only. Do not edit generated `dist/` output as canonical source.
 
-Do not package or overwrite runtime-owned `wp-config.php`, WordPress core, uploads, cache, upgrade state, secrets, or uncontrolled database dumps.
+## 5. System authorities
 
-Regular WordPress plugins are runtime-managed dependencies, not canonical DTB business logic. Do not patch vendor plugin internals to implement DTB behavior; use supported WooCommerce, Stripe-gateway, WordPress, and DTB extension points.
+- **WooCommerce** owns products, customers, Store API cart/session state, canonical checkout fields, addresses, shipping, tax, discounts, totals, storefront order creation, operational payment/order status, refunds, and saved payment-method records.
+- **Payment Plugins for Stripe WooCommerce** (`woo-stripe-payment`) owns Stripe card fields, Apple Pay, Google Pay, Link when enabled, Stripe-supported BNPL methods, Stripe Elements, tokenization, 3DS/SCA, payment confirmation/capture, and Stripe webhook synchronization into WooCommerce.
+- **Optional PayPal provider** owns PayPal only when separately installed, configured, reviewed, and validated. It must not introduce a second card authority or synthetic PayPal UI.
+- **DTB** owns native-checkout routing/runtime integration, readiness diagnostics, checkout field/domain policy, order tagging/observation, captured-payment gating, event ledger, queues, projections, repairs, returns, schematics, media, integrations, and operator workflows.
+- **Veeqo** owns sellable inventory, allocation, fulfillment, shipping labels, carrier execution, shipment status, and tracking.
+- **QuickBooks** owns accounting projections only and never creates storefront orders.
 
-## 5. System-of-record and authority boundaries
+Current checkout shipping is WooCommerce/DTB policy rating, not live Veeqo carrier rating.
 
-### WooCommerce
+## 6. Storefront checkout and order contract
 
-WooCommerce owns:
-
-- products and customers;
-- Store API cart/session state;
-- customer/address, shipping, tax, discount, and total state during checkout;
-- Checkout Block/order creation;
-- operational orders and refunds;
-- authoritative order/payment status record.
-
-### Official WooCommerce Stripe Payment Gateway
-
-The official WooCommerce Stripe Payment Gateway owns:
-
-- embedded payment-method rendering;
-- supported Stripe payment methods;
-- Link and eligible express wallets;
-- tokenization;
-- 3DS/SCA and redirect/challenge flows;
-- payment execution/capture behavior;
-- Stripe webhook synchronization back into WooCommerce.
-
-It is the only approved storefront card/wallet payment authority.
-
-DTB must not create a competing Stripe Checkout Session, PaymentIntent flow, Payment Element, wallet button, payment iframe, or copied/private gateway build runtime while the official gateway is active.
-
-The React package still contains Stripe client packages as dependencies; dependency presence does not grant React payment authority.
-
-### DTB platform
-
-DTB owns:
-
-- storefront/cart integration policy;
-- headless routing exception for native checkout;
-- checkout presentation/readiness/performance instrumentation that does not own payment state;
-- server-side domain validation beyond Woo defaults;
-- checkout-order tagging and verified lifecycle observation;
-- write boundaries and duplicate containment;
-- append-only order events, integration state, queues, and projections;
-- catalog read models and compatibility intelligence;
-- schematics/media workflows;
-- repairs, returns, support, and operator workflows;
-- integration policy and redacted observability.
-
-DTB observes verified Woo/official-Stripe lifecycle events; it does not impersonate the gateway or mutate payment state independently.
-
-### Veeqo
-
-Veeqo owns sellable inventory, warehouse availability, allocation, fulfillment, labels, shipment execution/status, carrier, and tracking.
-
-Current checkout shipping rates are Woo/DTB policy rates. They are not live Veeqo carrier quotes unless a verified live carrier-rating adapter is explicitly implemented.
-
-### QuickBooks
-
-QuickBooks owns accounting projection after eligible payment/refund lifecycle events. It never creates storefront orders and never becomes the commerce source of truth.
-
-### Launch-gated capabilities
-
-Rewards and the public toolset builder remain launch-gated unless active source explicitly enables the complete backend contract.
-
-`frontend/src/utils/featureFlags.js` currently hard-disables rewards even if CI/environment contains `REACT_APP_REWARDS_ENABLED=1`. Treat the source helper as authoritative.
-
-## 6. Storefront checkout and payment contract
-
-The only approved storefront checkout path is:
+Only this storefront path may create orders:
 
 ```text
-React Store API cart / cart drawer
-  -> same-origin WooCommerce cookie-backed session + Store API Nonce
-  -> optional low-priority prewarm of DTB static checkout assets
-  -> full-document navigation to canonical /checkout/
+React Store API cart using same-origin WooCommerce cookie session
+  -> full-document /checkout/
   -> domain-root routing to WordPress
-  -> DTB native checkout runtime exempts checkout from React/headless theme overrides
+  -> DTB native checkout runtime exempts checkout from the React theme override
   -> assigned WooCommerce Checkout page
   -> WooCommerce Checkout Block
-  -> official WooCommerce Stripe Payment Gateway
+  -> Payment Plugins for Stripe WooCommerce
   -> WooCommerce order/payment lifecycle
-  -> DTB captured-payment verification and event ledger
+  -> DTB captured-payment observation
+  -> DTB event ledger
   -> dtb-orders Action Scheduler queue
-  -> Veeqo / QuickBooks / notifications / tracking projections
+  -> Veeqo / QuickBooks / notifications / tracking
 ```
 
 Mandatory invariants:
 
 - WooCommerce Checkout Block creates storefront orders.
-- React never creates Woo orders or payment objects.
-- `frontend/src/pages/WooNativeCheckout.jsx` is a compatibility handoff route only; it forces full-document navigation and includes loop protection.
-- Same-origin React cart traffic uses WooCommerce cookie session + Store API `Nonce`.
-- `Cart-Token` is compatibility-only for genuinely cross-origin clients; do not build a second persisted same-origin cart around it.
-- Never decode unsigned Cart-Token payloads or query arbitrary Woo session rows to recover browser carts.
-- Preserve root-scoped WooCommerce session continuity from React cart through native checkout.
-- Preserve the Woo/official-Stripe order/payment/webhook lifecycle.
-- Legacy raw storefront order creation remains retired, including `POST /drywall/v1/orders`.
-- Do not restore DTB-owned checkout session/finalize/payment iframe flows, WooPayments, Payment Plugins for Stripe, copied gateway internals, or fake Apple Pay/Google Pay/Link controls as parallel authorities.
+- `woo-stripe-payment` is the only active storefront Stripe card/wallet authority.
+- Do not run the WooCommerce Stripe Gateway or WooPayments simultaneously with `woo-stripe-payment` in production.
+- React never creates WooCommerce orders, PaymentIntents, Stripe Checkout Sessions, card fields, wallet tokens, provider iframes, or payment confirmations.
+- Do not copy or patch regular-plugin internals into DTB source. Use current documented provider hooks, WooCommerce contracts, and provider-owned settings.
+- Preserve idempotency, duplicate protection, customer ownership, cart/session continuity, queue integrity, captured-payment gating, refund identity, and integration state.
+- Same-origin React cart traffic uses WooCommerce cookie session plus Store API `Nonce`. Cart-Token is compatibility-only for genuinely cross-origin clients.
+- Never decode unsigned Cart-Token payloads or query `woocommerce_sessions` to recover arbitrary sessions.
+- Raw browser/external Woo REST order creation remains blocked. Legacy `POST /drywall/v1/orders` remains retired.
 
-### Responsive checkout presentation
-
-Desktop and mobile use exactly one mounted WooCommerce Checkout Block and one official Stripe payment surface.
-
-Desktop keeps a continuous two-column checkout with Express Checkout, Contact, Shipping, Payment, Place Order, and the canonical sticky Woo Order Summary.
-
-Below the mobile breakpoint, `woo-native-checkout-ui.js` applies presentation-only progressive steps:
-
-```text
-1. Contact
-   -> eligible official Express Checkout first
-   -> Woo contact/account controls
-   -> Continue to shipping
-2. Shipping
-   -> Woo shipping/billing address controls
-   -> Woo delivery/shipping methods
-   -> Continue to payment
-3. Payment
-   -> inline official Woo/Stripe payment surface
-   -> Woo terms/order notes/actions
-   -> authoritative Woo Place Order submission
-```
-
-The mobile step controller may hide/reveal existing Woo top-level checkout sections for presentation and navigate among already visited steps. It must not clone, move, reparent, remount, or duplicate provider-owned payment controls; create/confirm PaymentIntents or Checkout Sessions; calculate authoritative totals independently; replace WooCommerce Place Order submission; or intercept Stripe-owned challenge/modal behavior.
-
-The retired DTB mobile payment bottom sheet and profile-refinement override assets are not part of the current runtime and must not be restored as parallel presentation layers.
-
-The authoritative final submit remains WooCommerce's native Place Order control. DTB may style it but must not replace its behavior.
-
-### Checkout capabilities/readiness
-
-`GET /wp-json/dtb/v1/checkout/capabilities` is public/read-safe metadata only. It may expose non-secret local readiness/performance state, including official-gateway presence, checkout-block readiness, capture mode, competing-authority detection, and telemetry capability.
-
-It must not trigger slow external Stripe calls or expose secret keys, webhook secrets, client secrets, tokens, raw provider credentials, or payment state mutation surfaces.
-
-### Checkout performance and stability
-
-Owning source:
-
-```text
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/CheckoutPerformance.php
-drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/assets/woo-native-checkout-performance.js
-frontend/src/utils/checkoutPrewarm.js
-```
-
-Performance changes are fail-open and must never create a second cart/checkout/payment authority.
-
-Current contract:
-
-- never prefetch/cache the private session-owned `/checkout/` HTML document;
-- known non-essential marketing/tracking assets may be suppressed only by explicit verified policy; unknown assets are not heuristically removed;
-- checkout runtime telemetry records bounded non-secret diagnostics and must not reconstruct Woo form state;
-- provider-surface timeout recovery may reload options or point to an actually eligible express surface, but must not create fallback payment objects;
-- on enhanced mobile checkout, provider timeout monitoring begins when the inline Payment step is active;
-- SiteGround/host optimization must not rehost Stripe.js or reorder WordPress/Woo/Stripe checkout dependencies.
-
-Diagnostics route:
-
-```text
-POST /wp-json/dtb/v1/checkout/runtime-telemetry
-```
-
-It is diagnostics-only and requires dedicated nonce validation, same-origin validation when Origin is present, rate limiting, event deduplication, allowlisted event kinds, bounded/sanitized fields, and sensitive-value redaction.
-
-### Storefront return context
-
-Native checkout remains canonical at root `/checkout/`, including when a shopper originated from a staging React build.
-
-`DTB_StorefrontReturnContext` may persist only a validated public storefront base path (root or `/staging/{id}`) as routing/presentation metadata, then return a successful DTB checkout to the matching React order-tracking surface.
-
-It must never derive payment state, Stripe state, totals, or customer identity from that routing context.
-
-## 7. Captured-payment and refund contracts
-
-A storefront order is eligible for initial paid downstream effects only when the verified captured-payment contract passes. Current contract markers include:
+New provider-backed orders use:
 
 ```text
 _dtb_checkout_gateway = woo_native_stripe
-_dtb_checkout_contract_version = woo-stripe-v1
-_dtb_payment_provider = woocommerce_stripe
+_dtb_checkout_contract_version = payment-plugins-stripe-v1
+_dtb_payment_provider = payment_plugins_stripe
 WooCommerce date_paid is present
 non-secret transaction/payment reference is present
 ```
 
-`_dtb_payment_provider` is mirrored only after the selected gateway instance is verified as originating from the official `woocommerce-gateway-stripe` extension.
-
-Authorization-only/manual-capture state is not fulfillable. Automatic capture is the approved launch baseline unless a reviewed manual-capture workflow is explicitly approved and tested.
-
-Initial downstream dispatch must preserve the atomic per-order dispatch barrier and duplicate containment.
-
-WooCommerce owns refund creation. Every refund is a distinct event keyed by concrete `order_id + refund_id` through ledger/queue/idempotency/accounting projection.
-
-Never:
-
-- infer a partial refund from parent order status alone;
-- collapse multiple partial refunds into one cumulative refund identity;
-- use cumulative lifetime refunded amount as the amount for each individual refund event.
-
-## 8. Asynchronous work and integrations
-
-Order-related external effects use:
+Historical orders created before migration retain:
 
 ```text
-dtb_order_enqueue_job()
-Action Scheduler group: dtb-orders
+_dtb_checkout_contract_version = woo-stripe-v1
+_dtb_payment_provider = woocommerce_stripe
 ```
 
-New asynchronous work must define:
+Historical evidence remains readable for recovery, refunds, tracking, accounting, and audit. Do not bulk-rewrite historical paid-order identity.
 
-- owning module and system of record;
-- stable hook and argument contract;
-- idempotency/deduplication key;
-- retry limit/backoff behavior;
-- terminal failure state;
-- replay/recovery path;
-- operator-visible state and redacted diagnostics;
-- compensation behavior for partial success.
+Authorization-only/manual-capture state is not fulfillable unless a separately reviewed capture workflow is explicitly approved and tested. Launch should use automatic capture.
 
-Avoid slow external calls during checkout, webhook acknowledgement, authentication, or other interactive requests.
+## 7. Payment-provider migration contract
 
-Webhook handlers must authenticate/verify, validate, persist minimal durable state, acknowledge promptly, and defer non-essential work.
+The repository does not bundle or patch `woo-stripe-payment`; WordPress manages it as a regular plugin.
 
-Preserve queue deduplication, integration state, write boundaries, captured-payment gating, and refund-specific identity across Veeqo, QuickBooks, notifications, and tracking.
+Operator-owned migration steps include:
 
-## 9. Authentication, authorization, and security invariants
+- independent file/database backups;
+- staging clone or production-equivalent test environment;
+- deactivate the previous Stripe plugin before activating the replacement;
+- install and activate a reviewed current `woo-stripe-payment` release;
+- connect test and live Stripe accounts through the plugin's supported connection flow;
+- configure webhooks and verify delivery/signature handling;
+- configure card, Apple Pay, Google Pay, Link, BNPL, capture, order status, statement descriptor, saved methods, and payment sections;
+- register/verify wallet domains where required;
+- validate provider-managed customer/token/subscription migration;
+- run checkout, webhook, refund, recovery, and downstream acceptance;
+- cut over only after validation and retain rollback artifacts.
 
-Never expose or persist in browser code, `REACT_APP_*`, local/session storage, REST responses, logs, docs, screenshots, generated assets, or public artifacts:
+Payment Plugins migrates supported Stripe customer/payment/subscription identity but does not migrate plugin settings. Recreate settings from the reviewed checklist.
 
-- WooCommerce application passwords/consumer secrets;
-- JWT signing secrets;
-- Stripe secret keys/webhook secrets/client secrets;
-- wallet/payment tokens;
-- Veeqo/QuickBooks/marketplace credentials;
-- external-write secrets;
-- private keys or payment secrets.
+PayPal is not supplied by `woo-stripe-payment`. A real PayPal control requires a separately reviewed PayPal plugin and configuration. Never manufacture fake PayPal markup or route PayPal through Stripe.
 
-Only public configuration may reach the browser.
+## 8. Checkout UI contract
 
-Prefer HttpOnly `dtb_auth` cookies. Compatibility bearer tokens are memory-only. Preserve `credentials: 'include'` where same-origin cookie/session behavior is required and preserve confirmed application-wide `auth:expired` handling.
+The active theme owns checkout document/layout/styling and bounded presentation behavior only.
 
-Every REST route requires explicit permission behavior.
+- Desktop uses a single-page checkout with Express Checkout first and a bounded order-summary/payment rail.
+- Mobile/tablet preserve the Contact -> Shipping -> Payment presentation wizard.
+- Native WooCommerce fields and provider surfaces remain mounted and authoritative.
+- Contact owns first name, last name, email, and optional phone.
+- Shipping owns address and shipping method.
+- Express Checkout contains only approved provider-owned methods and must not be duplicated in the lower payment-method list.
+- Payment-method cards may visually suppress radio circles, but the native focusable input remains semantic and state authority.
+- Theme code must not read, modify, reparent, clone, or replace cross-origin provider iframe content.
+- No duplicate fields, payment elements, payment state, wallet state, notices, or order submission controls.
+- Header presentation is the DTB logo and provider-backed Powered by Stripe status only.
+- Preserve keyboard navigation, focus visibility, screen-reader labels, browser autofill, saved addresses, validation/error discovery, reduced motion, forced colors, safe areas, and touch targets.
 
-Public routes must be intentionally read-safe or narrowly protected by the appropriate nonce, capability, signed token, HMAC/provider signature, ownership proof, replay protection, or idempotency contract.
+## 9. Security boundaries
 
-Validate authentication and customer ownership independently. Never trust caller-supplied customer IDs.
+Never expose credentials, secrets, tokens, private keys, payment data, or server configuration.
 
-At trust boundaries:
+Server-only secrets include WooCommerce application credentials, JWT signing secrets, Stripe secret keys, Stripe webhook secrets, PaymentIntent client secrets, wallet tokens, PayPal credentials, Veeqo/QuickBooks/marketplace credentials, and external-write secrets. Browser `REACT_APP_*` values are public by definition.
 
-- sanitize and validate input;
-- escape output;
-- allowlist writable fields;
-- use `$wpdb->prepare()` for SQL values;
-- use timing-safe secret comparisons;
-- verify signatures/nonces/capabilities/origins;
-- rate-limit abuse-sensitive public writes;
-- make webhook/queue handlers idempotent.
+Every REST route requires explicit permission behavior. Public routes must be intentionally read-safe or narrowly protected. Validate ownership independently. Sanitize and validate input, escape output, allowlist writable fields, use prepared SQL, verify signatures, prevent replay, use timing-safe comparisons, redact logs, and keep queues/webhooks/integration handlers idempotent.
 
-Never weaken CORS, auth, origin, signature, nonce, capability, or ownership checks merely to make a request succeed.
+Never weaken authentication, CORS, nonces, capabilities, ownership validation, signatures, origin checks, replay protection, rate limiting, or idempotency to make requests succeed.
 
-## 10. Domain and data integrity rules
+Checkout capabilities may expose only non-secret readiness metadata. They must not return API keys, webhook secrets, PaymentIntent/Checkout Session client secrets, tokens, raw webhook payloads, or payment credentials.
 
-### Catalog
+Checkout telemetry must never persist form values, names, addresses, emails, phone numbers, order keys, bearer/JWT tokens, Stripe/PayPal secrets, client secrets, or wallet payloads.
 
-WooCommerce remains authoritative for product persistence. DTB catalog read models normalize and project product/variation/relationship/compatibility data.
+## 10. Refund contract
 
-Preserve stable SKU/variation/brand/taxonomy/external-ID relationships. Bulk operations require deterministic scripts, explicit provenance, rejection/ambiguity reporting, and audit outputs.
+WooCommerce owns refund creation. `woocommerce_order_refunded` supplies the parent `order_id` and concrete `refund_id`.
 
-Do not introduce N+1/fetch-per-item catalog access when a batched/indexed read is available.
+Each refund retains `order_id + refund_id` through event identity, queue arguments, idempotency, and QuickBooks projection. Partial refund A and partial refund B are distinct accounting events.
 
-### Schematics/media
+Do not infer cancellation from parent status after a partial refund. Do not use cumulative `get_total_refunded()` as the amount for every refund event.
 
-Schematic paths, part IDs, compatibility mappings, and image mappings are business-critical. Preserve source provenance and make sync/repair tooling repeatable and auditable.
+## 11. Async, integration, and duplicate containment
 
-### Repairs/returns/support
+Order-related external effects use `dtb_order_enqueue_job()` and Action Scheduler group `dtb-orders`.
 
-Each bounded module owns its status model, persistence, authorization, customer endpoints, operator workbench, notifications, and lifecycle events. Do not move authoritative lifecycle policy into React.
+New scheduled work defines owner, hook/arguments, idempotency key, deduplication, retry limit, terminal failure, observability, recovery, and compensation behavior.
 
-### Calculator reports
+Avoid slow Veeqo, QuickBooks, notification, or marketplace calls during checkout, payment webhook acknowledgement, or other interactive requests.
 
-Customer-facing calculator report/export presentation is owned under:
+Preserve the order write boundary, atomic initial processing-dispatch barrier, queue deduplication, integration state, refund-specific accounting identity, and captured-payment gating.
 
-```text
-frontend/src/components/calculators/report/
-```
+## 12. Database contract
 
-`calculatorReportModel.js` is the canonical presentation mapper for summary/report output. Report rendering may format existing calculator outputs but must not recalculate quantities.
+Default to read-only inspection.
 
-The PDF workflow is browser print/Save as PDF from a dedicated print-isolated report root. It does not send report data to WordPress or an external PDF service and does not add server PDF credentials/dependencies.
+Before destructive database changes:
 
-## 11. Performance, scalability, and reliability review
+- verify the active database and table prefix;
+- inspect the schema;
+- create an independent backup;
+- preserve WooCommerce, HPOS, Action Scheduler, DTB event-ledger, integration, customer, order, refund, token, and subscription data unless explicitly in scope;
+- define precise scope, rollback, and validation.
 
-For each material change, evaluate:
+Avoid `TRUNCATE`, broad deletes, unbounded updates, destructive migrations, and uncontrolled database dumps.
 
-- Big-O behavior and query count;
-- indexes and bounded pagination;
-- payload size and serialization cost;
-- external-call count and synchronous latency;
-- cache keying/invalidation;
-- queue throughput, retries, and amplification risk;
-- memory use and large-file handling;
-- frontend duplicate requests and render churn;
-- observability and failure recovery.
+The payment-provider migration introduces no DTB schema migration. Provider-managed settings and token compatibility are runtime/plugin concerns and must be validated before cutover.
 
-Prefer O(n) indexed/batched work over O(n²), unbounded scans, or fetch-per-item patterns.
+## 13. Performance contract
 
-Do not trade correctness or payment/session integrity for synthetic performance scores.
+Evaluate algorithmic complexity, query count, indexes, payload size, cache behavior, memory use, external-call latency, queue throughput, retry amplification, duplicate requests, and failure recovery.
 
-## 12. Engineering method
+Prefer indexed, batched O(n) work over O(n²), unbounded scans, or fetch-per-item designs.
+
+Checkout, callbacks, session-owned pages, payment endpoints, and account pages are private/no-store. SiteGround/host optimization must not rehost Stripe.js or reorder WooCommerce/provider checkout dependencies.
+
+## 14. Engineering workflow
 
 For every task:
 
-1. Extract acceptance criteria and non-goals.
-2. Inspect the smallest relevant current source set.
-3. Identify the owning layer/module and system of record.
-4. Trace request flow, validation, persistence, events, queues, integrations, and deployment path.
-5. Identify security, authorization, concurrency, duplicate-side-effect, compatibility, migration, scaling, rollback, and partial-failure risks.
-6. Choose the lowest-risk complete design and state material trade-offs in complexity, latency, reliability, and maintainability.
-7. Implement only in the owning layer; avoid unrelated refactors/mass formatting.
-8. Add guards, tests, smoke/static checks, observability, and recovery behavior appropriate to the change.
-9. Update durable docs when contracts change.
-10. Run available validation.
-11. Inspect the final diff for scope creep, secrets, generated files, stale references, and deployment hazards.
-12. Report changed files, validation evidence, operational actions, and residual risk truthfully.
+1. determine requirements and acceptance criteria;
+2. inspect only relevant implementation;
+3. identify the owning module and system of record;
+4. trace request flow, persistence, events, queues, integrations, dependencies, and deployment impact;
+5. evaluate security, authorization, ownership, concurrency, migration, compatibility, performance, and rollback risk;
+6. choose the simplest complete production-safe design;
+7. implement only within the owning layer;
+8. add guards, observability, tests, and recovery behavior appropriate to the change;
+9. update durable documentation;
+10. review the final diff for scope creep, secrets, stale references, generated files, and deployment hazards.
 
-Ask only when product intent, destructive cleanup, irreversible migration, credentials, or system authority is genuinely ambiguous.
+Ask questions only when product intent, destructive action, credentials, deployment authority, or ownership is genuinely ambiguous.
 
-## 13. Code standards
+## 15. Code standards
 
 ### JavaScript / React
 
-- ES modules and functional components/hooks;
-- dependency-correct, cancelable effects; avoid stale closures;
+- ES modules and functional components;
+- correct hook dependencies and cancellation;
 - centralized API/auth behavior;
-- use established providers/components/styles before adding parallel abstractions;
-- accessible responsive loading/empty/error/success states;
-- batch, paginate, coalesce, and cache where material;
-- do not introduce isolated TypeScript without an approved migration;
-- do not persist bearer/JWT/payment secrets in browser storage;
-- do not create duplicate cart/payment/order state authorities.
+- accessible responsive UI;
+- runtime validation;
+- batching, pagination, coalescing, and caching where material;
+- no duplicate cart, checkout, payment, or order authority;
+- do not introduce isolated TypeScript.
 
 ### PHP / WordPress
 
 - `defined( 'ABSPATH' ) || exit;`;
-- WordPress REST/HTTP/security conventions;
-- explicit bounded `Domain/Services/Infrastructure/Rest/Admin/Repository/Validation` responsibilities where applicable;
+- WordPress coding/security conventions;
+- explicit architectural boundaries;
+- capability and ownership checks;
+- prepared SQL;
 - no output before headers;
-- explicit permission callbacks;
-- no unbounded/N+1 queries;
-- transactions or compensation for partial writes where required;
-- idempotent event/queue/webhook handlers;
-- external calls through bounded clients with timeout/error semantics and redacted logging.
+- idempotent handlers;
+- redacted diagnostics and graceful degradation;
+- no unbounded or N+1 queries.
 
-### Scripts / data tooling
+## 16. Deployment contract
 
-- repeatable and deterministic where practical;
-- non-destructive by default;
-- explicit source/destination paths;
-- stable identifier preservation;
-- dry-run/audit output for risky bulk changes;
-- reject ambiguity rather than silently guessing.
+GitHub is the implementation source of truth. SiteGround is a deployment target only.
 
-## 14. Validation contract
+Production file transfer is operator-managed through FileZilla outside the repository. The repository must not contain FTP, FTPS, SFTP, SSH, remote-write workflows, connection helpers, credential contracts, or transport-specific deployment code.
 
-Frontend baseline:
+Deploy only reviewed production artifacts assembled from canonical source. Before transfer, require independent file and database backups, verify the complete dependency-consistent change set, and define rollback. After transfer, clear required SiteGround caches and run runtime acceptance.
+
+Never overwrite WordPress core, `wp-config.php`, regular plugins, uploads, cache, logs, runtime secrets, uncontrolled database dumps, or server-owned state.
+
+Regular plugin installation/activation/deactivation is an operator action, not FileZilla source deployment.
+
+## 17. Validation contract
+
+Frontend:
 
 ```powershell
 cd frontend
@@ -521,73 +332,46 @@ npm run lint
 npm run build
 ```
 
-Current CI also validates all custom MU-plugin/theme PHP syntax, rejects legacy production origins in active runtime source, assembles the bounded deployment payload, and rejects runtime-owned or secret paths.
+Provider migration and checkout:
 
-Targeted checkout/backend validation should include changed PHP syntax plus the relevant source/runtime contracts, including:
+```powershell
+.\scripts\smoke-dtb-payment-provider-migration.ps1
+.\scripts\smoke-dtb-checkout-ui.ps1
+.\scripts\smoke-dtb-product-express-checkout.ps1
+.\scripts\smoke-dtb-mu-modules.ps1
+```
 
-- native Checkout Block routing/rendering;
-- same-origin cart/session continuity;
-- official Stripe readiness and single-authority enforcement;
-- desktop continuous checkout and mobile Contact -> Shipping -> Payment presentation;
-- Express Checkout first on the mobile Contact step when provider eligible;
-- card success/decline and 3DS/SCA success/cancel/failure;
-- eligible/ineligible express-wallet behavior;
-- inline mobile payment surface with no duplicate Stripe runtime or payment container;
-- authoritative total parity;
-- checkout root/form-state stability;
-- payment-surface timeout recovery without a second payment flow;
-- responsive mobile -> desktop -> mobile cleanup without stale hidden sections or overlays;
-- webhook replay tolerance;
-- order creation exactly once;
-- captured-payment downstream gating;
-- partial/multiple refunds keyed by `refund_id`;
-- Veeqo and QuickBooks side effects exactly once.
+Targeted PHP syntax must cover every changed PHP file.
 
-The previously referenced checkout smoke/PageSpeed scripts are absent from current source. A public shell/PageSpeed result would not reproduce a shopper-specific Woo cookie/cart session; session-preserving staging validation remains required for release acceptance.
+Runtime acceptance must cover:
 
-Do not claim any test, smoke script, runtime payment, webhook, integration, or deployment passed unless it actually ran and produced usable evidence.
+- plugin exclusivity and version;
+- guest and authenticated checkout;
+- simple/variable products and quantity changes;
+- browser autofill and saved addresses;
+- cards and saved cards;
+- 3DS/SCA, redirects, cancellation, retries, declines, and network failures;
+- Apple Pay and Google Pay on supported devices/browsers;
+- configured Stripe BNPL methods and eligibility thresholds;
+- optional PayPal only when separately installed;
+- shipping-rate, address, tax, coupon, total, and no-rate recalculation;
+- order creation, transaction references, webhook status, captured-payment gate, event ledger, queues, Veeqo, QuickBooks, notifications, and return routing;
+- full and partial refunds with concrete refund identity;
+- no duplicate fields, payment surfaces, payment attempts, orders, notices, or downstream side effects;
+- no JavaScript errors, PHP notices, horizontal overflow, clipped provider content, or fixed-overlay collisions.
 
-If a historically referenced validation script is absent from current source, state that rather than inventing a result.
+Do not claim a smoke, syntax, build, browser, payment, webhook, integration, CI, deployment, or live-server check passed unless it was actually performed and produced evidence. Merge is not deployment.
 
-## 15. CI/CD and deployment safety
+## 18. Required final reporting
 
-`.github/workflows/ci-build.yml` currently runs on pull requests to `main`, pushes to `main`, and manual dispatch. It installs dependencies, lints, builds, validates custom PHP syntax and active origin wiring, assembles `deploy-root`, and rejects forbidden runtime payloads such as `wp-config.php`, uploads, and cache.
+When repository files change, report:
 
-Merge is not deployment.
-
-Production file transfer is operator-managed through FileZilla outside the repository. The repository contains no remote connection helper, transfer script, remote-write workflow, or production credential contract. CI validation and packaging workflows must not write to the live server or be represented as deployment.
-
-Before a manual production transfer, assemble and validate the bounded overlay, create independent file and database backups, review the complete dependency-consistent change set, transfer it through FileZilla, clear required caches, and run runtime acceptance checks. If validation fails, restore the independently verified backup before continuing. Database restoration and external payment/integration compensation remain operator-owned.
-
-Never package or deploy:
-
-- `wp-config.php`;
-- WordPress core unless an explicitly controlled core deployment is intended;
-- `wp-content/uploads/`;
-- runtime cache/upgrade state;
-- secrets;
-- uncontrolled database dumps.
-
-Selective deployment must preserve dependency completeness and routing/module consistency. A source merge, artifact build, or backup alone is not proof of live deployment.
-
-## 16. Completion and reporting standard
-
-For complex implementation work, report:
-
-1. **Architecture / Approach** — owner, authority, request/lifecycle path, risks, chosen design, trade-offs.
-2. **Implementation** — exact changed files and behavior.
-3. **Verification** — commands/checks actually run, results, operational actions, deployment state, and residual risk.
-
-For reviews, lead with findings in this order:
-
-1. security;
-2. data corruption or duplicate side effects;
-3. outage/deployment hazards;
-4. authorization/ownership;
-5. race conditions/concurrency;
-6. domain correctness;
-7. scalability/performance;
-8. validation gaps;
-9. maintainability.
-
-Zero fluff. State exact repository paths. Never overstate certainty or runtime/deployment state.
+- changed repository files;
+- owning module/layer;
+- database or migration impact;
+- deployment mechanism;
+- backup approach;
+- rollback approach;
+- validation actually performed;
+- residual risks;
+- a FileZilla Deployment Runbook containing only operator steps for backup, artifact preparation, transfer scope, cache clearing, validation, and rollback, without credentials.

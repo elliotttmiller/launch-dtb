@@ -4,10 +4,10 @@
 	/**
 	 * Mechanical checkout boot reveal only.
 	 *
-	 * WooCommerce Checkout Block and the official WooCommerce Stripe gateway own
-	 * checkout sections, validation, navigation, payment controls, eligibility,
-	 * and submission. Presentation enhancements live in a separate UI asset so
-	 * this mechanical reveal path remains independently rollback-safe.
+	 * WooCommerce Checkout Block and Payment Plugins for Stripe own checkout
+	 * sections, validation, payment controls, eligibility, and submission.
+	 * Presentation enhancements live in separate bounded assets so this reveal
+	 * path remains independently rollback-safe.
 	 */
 	function revealCheckout() {
 		window.requestAnimationFrame( () => {

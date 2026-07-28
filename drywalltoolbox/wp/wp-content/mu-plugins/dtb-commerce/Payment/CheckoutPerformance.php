@@ -2,10 +2,10 @@
 /**
  * Checkout runtime telemetry and diagnostics.
  *
- * WooCommerce Checkout Block and the official WooCommerce Stripe extension own
- * the complete checkout/payment runtime graph. This class records bounded,
- * non-secret diagnostics only; it never dequeues, preloads, reprioritizes, or
- * changes execution strategy for checkout assets. Presentation remains theme-owned.
+ * WooCommerce Checkout Block and Payment Plugins for Stripe own the complete
+ * checkout/payment runtime graph. This class records bounded, non-secret
+ * diagnostics only; it never dequeues, preloads, reprioritizes, or changes
+ * provider execution strategy. Presentation remains theme-owned.
  *
  * @package drywall-toolbox
  */
@@ -13,10 +13,10 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutPerformance {
-	private const ASSET_VERSION = '2026.07.28.2';
-	private const TELEMETRY_NONCE_ACTION = 'dtb_checkout_runtime_telemetry';
+	private const ASSET_VERSION              = '2026.07.28.3';
+	private const TELEMETRY_NONCE_ACTION     = 'dtb_checkout_runtime_telemetry';
 	private const PAYMENT_SURFACE_TIMEOUT_MS = 15000;
-	private const TELEMETRY_EVENT_TTL = 10 * MINUTE_IN_SECONDS;
+	private const TELEMETRY_EVENT_TTL        = 10 * MINUTE_IN_SECONDS;
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ __CLASS__, 'register_rest_routes' ] );
@@ -61,8 +61,7 @@ final class DTB_CheckoutPerformance {
 	}
 
 	/**
-	 * Add read-only runtime-integrity metadata to the existing capabilities route.
-	 * This performs no external calls and exposes no credentials.
+	 * Add non-secret runtime-integrity metadata to the existing capabilities route.
 	 *
 	 * @param WP_REST_Response|WP_HTTP_Response|WP_Error $response REST response.
 	 * @param array                                      $handler  Route handler.
@@ -70,6 +69,7 @@ final class DTB_CheckoutPerformance {
 	 * @return WP_REST_Response|WP_HTTP_Response|WP_Error
 	 */
 	public static function augment_checkout_capabilities( $response, array $handler, WP_REST_Request $request ) {
+		unset( $handler );
 		if ( '/dtb/v1/checkout/capabilities' !== $request->get_route() || is_wp_error( $response ) || ! $response instanceof WP_REST_Response ) {
 			return $response;
 		}
@@ -83,7 +83,7 @@ final class DTB_CheckoutPerformance {
 			'checkout_runtime_telemetry' => true,
 			'payment_surface_timeout_ms' => self::PAYMENT_SURFACE_TIMEOUT_MS,
 			'checkout_document_cache'    => 'private_no_store',
-			'runtime_asset_authority'    => 'woocommerce_wordpress_stripe',
+			'runtime_asset_authority'    => 'woocommerce_payment_plugins_stripe',
 			'dtb_asset_queue_mutation'   => false,
 			'dtb_asset_prewarm'          => false,
 		];
@@ -100,11 +100,9 @@ final class DTB_CheckoutPerformance {
 		if ( ! wp_verify_nonce( $nonce, self::TELEMETRY_NONCE_ACTION ) ) {
 			return new WP_Error( 'dtb_checkout_telemetry_forbidden', 'Invalid checkout telemetry nonce.', [ 'status' => 403 ] );
 		}
-
 		if ( ! self::request_origin_is_same_site() ) {
 			return new WP_Error( 'dtb_checkout_telemetry_origin', 'Invalid checkout telemetry origin.', [ 'status' => 403 ] );
 		}
-
 		if ( class_exists( 'DTB_RateLimiter' ) ) {
 			return DTB_RateLimiter::check( 'checkout_runtime_telemetry', 18, 5 * MINUTE_IN_SECONDS );
 		}
@@ -123,7 +121,7 @@ final class DTB_CheckoutPerformance {
 		}
 		set_transient( $dedupe_key, '1', self::TELEMETRY_EVENT_TTL );
 
-		$kind = sanitize_key( (string) $request->get_param( 'kind' ) );
+		$kind          = sanitize_key( (string) $request->get_param( 'kind' ) );
 		$allowed_kinds = [
 			'js_error',
 			'unhandled_rejection',
@@ -137,16 +135,13 @@ final class DTB_CheckoutPerformance {
 			$kind = 'js_error';
 		}
 
-		$message = self::bounded_text( (string) $request->get_param( 'message' ), 500 );
-		$source  = self::sanitize_source( (string) $request->get_param( 'source' ) );
-		$detail  = $request->get_param( 'detail' );
-		$detail  = is_array( $detail ) ? self::sanitize_detail( $detail ) : [];
-
+		$detail = $request->get_param( 'detail' );
+		$detail = is_array( $detail ) ? self::sanitize_detail( $detail ) : [];
 		$context = [
 			'kind'       => $kind,
 			'event_id'   => $event_id,
-			'message'    => $message,
-			'source'     => $source,
+			'message'    => self::bounded_text( (string) $request->get_param( 'message' ), 500 ),
+			'source'     => self::sanitize_source( (string) $request->get_param( 'source' ) ),
 			'line'       => absint( $request->get_param( 'line' ) ),
 			'column'     => absint( $request->get_param( 'column' ) ),
 			'viewport_w' => min( 10000, absint( $request->get_param( 'viewport_w' ) ) ),
@@ -159,7 +154,6 @@ final class DTB_CheckoutPerformance {
 		} else {
 			error_log( wp_json_encode( [ 'source' => 'dtb-checkout', 'level' => 'warning', 'context' => $context ], JSON_UNESCAPED_SLASHES ) );
 		}
-
 		return new WP_REST_Response( [ 'accepted' => true ], 202 );
 	}
 
@@ -168,12 +162,9 @@ final class DTB_CheckoutPerformance {
 		if ( ! $origin ) {
 			return true;
 		}
-
 		$request_origin = self::normalized_origin( $origin );
 		$home_origin    = self::normalized_origin( home_url( '/' ) );
-		return '' !== $request_origin
-			&& '' !== $home_origin
-			&& hash_equals( $home_origin, $request_origin );
+		return '' !== $request_origin && '' !== $home_origin && hash_equals( $home_origin, $request_origin );
 	}
 
 	private static function normalized_origin( string $url ): string {
@@ -183,7 +174,6 @@ final class DTB_CheckoutPerformance {
 		if ( ! in_array( $scheme, [ 'http', 'https' ], true ) || '' === $host ) {
 			return '';
 		}
-
 		$default_port = 'https' === $scheme ? 443 : 80;
 		$port_suffix  = $port > 0 && $port !== $default_port ? ':' . $port : '';
 		return $scheme . '://' . $host . $port_suffix;
@@ -244,17 +234,13 @@ final class DTB_CheckoutPerformance {
 			'/\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\b/' => '[redacted-jwt]',
 			'/client_secret\s*[=:]\s*[^\s&,;]+/i' => 'client_secret=[redacted]',
 		];
-
 		$redacted = preg_replace( array_keys( $redactions ), array_values( $redactions ), $value );
 		return is_string( $redacted ) ? $redacted : '[redacted]';
 	}
 
 	private static function bounded_text( string $value, int $max_length ): string {
 		$value = self::redact_sensitive_text( sanitize_text_field( $value ) );
-		if ( function_exists( 'mb_substr' ) ) {
-			return mb_substr( $value, 0, $max_length );
-		}
-		return substr( $value, 0, $max_length );
+		return function_exists( 'mb_substr' ) ? mb_substr( $value, 0, $max_length ) : substr( $value, 0, $max_length );
 	}
 
 	private static function is_primary_checkout_request(): bool {

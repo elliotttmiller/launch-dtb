@@ -2,15 +2,10 @@
 /**
  * Checkout runtime integrity boundary.
  *
- * WooCommerce Checkout Block and the official WooCommerce Stripe extension own
- * their complete JavaScript dependency graph and execution order. Theme-owned
- * checkout presentation may enhance the rendered DOM only after Woo has mounted;
- * it must never impose async/defer strategy or dependency coupling on critical
- * Woo/WordPress/Stripe runtime assets.
- *
- * This class remains a defensive last-line invariant against future regressions
- * and hosting-layer optimizers that could otherwise combine/defer critical
- * checkout dependencies out of their registered execution order.
+ * WooCommerce Checkout Block and Payment Plugins for Stripe own their complete
+ * JavaScript dependency graph and execution order. Theme-owned presentation may
+ * enhance same-origin wrappers only after WooCommerce mounts; it must never impose
+ * async/defer strategy or dependency coupling on critical payment assets.
  *
  * @package drywall-toolbox
  */
@@ -18,7 +13,7 @@
 defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutRuntimeIntegrity {
-	/** DTB-owned theme presentation/diagnostic handles allowed on native checkout. */
+	/** DTB-owned presentation/diagnostic handles allowed on native checkout. */
 	private const DTB_CHECKOUT_SCRIPT_HANDLES = [
 		'dtb-checkout-theme-boot',
 		'dtb-checkout-theme-ui',
@@ -27,10 +22,9 @@ final class DTB_CheckoutRuntimeIntegrity {
 	];
 
 	/**
-	 * Critical registered handles retained as an explicit contract/documentation
-	 * set. The SiteGround boundary below additionally excludes every registered
-	 * checkout script because the optimizer can combine transitive dependencies
-	 * under generated handles.
+	 * Known critical checkout handles. The SiteGround boundary also excludes every
+	 * registered checkout script because optimization plugins can combine transitive
+	 * dependencies under generated handles.
 	 */
 	private const CRITICAL_CHECKOUT_SCRIPT_HANDLES = [
 		'jquery',
@@ -55,10 +49,18 @@ final class DTB_CheckoutRuntimeIntegrity {
 		'wc-cart-checkout-vendors',
 		'wc-blocks-checkout',
 		'wc-checkout-block-frontend',
-		'wc-stripe-blocks-integration',
-		'wc-stripe-upe-blocks',
-		'wc-stripe-express-checkout',
-		'wc-stripe-payment-request',
+		'wc-stripe-checkout-modules',
+		'wc-stripe-credit-card',
+		'wc-stripe-block-credit-card',
+		'wc-stripe-applepay-checkout',
+		'wc-stripe-googlepay-checkout',
+		'wc-stripe-applepay-express-checkout',
+		'wc-stripe-googlepay-express-checkout',
+		'wc-stripe-apple-pay',
+		'wc-stripe-google-pay',
+		'wc-stripe-blocks-apple-pay',
+		'wc-stripe-blocks-googlepay',
+		'wc-stripe-link-checkout',
 	];
 
 	public static function register(): void {
@@ -86,10 +88,7 @@ final class DTB_CheckoutRuntimeIntegrity {
 		remove_filter( 'template_include', 'dtb_force_react_template', 99 );
 	}
 
-	/**
-	 * Theme presentation may load after Woo, but it must not opt itself into an
-	 * async/defer execution strategy that can race dynamic Checkout Block mounting.
-	 */
+	/** Preserve DTB presentation execution order after WooCommerce/payment assets. */
 	public static function enforce_dtb_checkout_script_invariants(): void {
 		if ( ! self::is_primary_checkout_request() ) {
 			return;
@@ -112,8 +111,8 @@ final class DTB_CheckoutRuntimeIntegrity {
 	}
 
 	/**
-	 * Exclude the complete registered script graph from SiteGround JS transforms
-	 * on the primary native checkout request.
+	 * Exclude the complete registered script graph from SiteGround transforms on
+	 * the primary native checkout request.
 	 *
 	 * @param mixed $exclude_list Existing SiteGround exclusion list.
 	 * @return array<int,string>
@@ -125,7 +124,6 @@ final class DTB_CheckoutRuntimeIntegrity {
 		}
 
 		$handles = array_merge( self::CRITICAL_CHECKOUT_SCRIPT_HANDLES, self::DTB_CHECKOUT_SCRIPT_HANDLES );
-
 		global $wp_scripts;
 		if ( $wp_scripts instanceof WP_Scripts ) {
 			$handles = array_merge( $handles, array_keys( $wp_scripts->registered ), array_values( $wp_scripts->queue ) );
@@ -135,16 +133,10 @@ final class DTB_CheckoutRuntimeIntegrity {
 			array_map( 'strval', $handles ),
 			static fn ( string $handle ): bool => '' !== $handle
 		);
-
 		return array_values( array_unique( array_merge( $exclude_list, $handles ) ) );
 	}
 
-	/**
-	 * Keep Stripe.js on Stripe's origin and out of host-generated combined bundles.
-	 *
-	 * @param mixed $exclude_list Existing SiteGround external-path exclusion list.
-	 * @return array<int,string>
-	 */
+	/** Keep Stripe.js on Stripe's origin and outside host-generated bundles. */
 	public static function exclude_checkout_external_scripts_from_combine( $exclude_list ): array {
 		$exclude_list = is_array( $exclude_list ) ? $exclude_list : [];
 		if ( ! self::is_primary_checkout_request() ) {
@@ -152,17 +144,18 @@ final class DTB_CheckoutRuntimeIntegrity {
 		}
 
 		$exclude_list[] = 'js.stripe.com';
+		$exclude_list[] = 'pay.google.com';
 		return array_values( array_unique( $exclude_list ) );
 	}
 
-	/** @param mixed $exclude @return bool */
+	/** @param mixed $exclude */
 	public static function exclude_checkout_inline_scripts_from_combine( $exclude ): bool {
 		return self::is_primary_checkout_request() ? true : (bool) $exclude;
 	}
 
 	/** @param mixed $excluded_urls @return array<int,string> */
 	public static function exclude_checkout_urls_from_cache( $excluded_urls ): array {
-		$excluded_urls = is_array( $excluded_urls ) ? $excluded_urls : [];
+		$excluded_urls   = is_array( $excluded_urls ) ? $excluded_urls : [];
 		$excluded_urls[] = '/checkout/*';
 		return array_values( array_unique( $excluded_urls ) );
 	}
@@ -187,11 +180,9 @@ final class DTB_CheckoutRuntimeIntegrity {
 		if ( ! self::is_native_checkout_request() ) {
 			return false;
 		}
-
 		if ( function_exists( 'is_wc_endpoint_url' ) && ( is_wc_endpoint_url( 'order-pay' ) || is_wc_endpoint_url( 'order-received' ) ) ) {
 			return false;
 		}
-
 		return true;
 	}
 }

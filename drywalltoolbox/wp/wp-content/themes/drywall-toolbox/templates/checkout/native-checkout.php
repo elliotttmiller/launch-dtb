@@ -4,9 +4,9 @@
  *
  * The active theme owns checkout document structure and presentation assets.
  * WooCommerce remains authoritative for checkout fields, cart/session state,
- * validation, shipping, tax, totals, order creation, and submission. The official
- * WooCommerce Stripe gateway remains authoritative for payment UI, wallets,
- * tokenization, authentication, and payment execution.
+ * validation, shipping, tax, totals, order creation, and submission. Payment
+ * Plugins for Stripe WooCommerce remains authoritative for Stripe payment UI,
+ * wallets, tokenization, authentication, capture, and payment execution.
  *
  * @package drywall-toolbox
  */
@@ -24,8 +24,8 @@ $asset_version        = static function ( string $relative_path ) use ( $theme_d
 	return is_readable( $path ) ? (string) filemtime( $path ) : DTB_VERSION;
 };
 
-/* One authoritative checkout stylesheet. WooCommerce/Stripe retain all form,
- * payment, and submission ownership; theme assets are presentation-only. */
+/* One authoritative checkout stylesheet. WooCommerce and the configured payment
+ * providers retain all form, payment, and submission ownership. */
 wp_enqueue_style(
 	'dtb-checkout-theme',
 	$theme_uri . '/assets/checkout/checkout.css',
@@ -33,10 +33,9 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout.css' )
 );
 
-/* Narrowly-scoped, dependent stylesheet for the below-1024px Contact ->
- * Shipping -> Payment step wizard. It only styles the step indicator and a
- * visual (never display:none) step-visibility state; it never hides or
- * unmounts provider-owned payment/wallet surfaces. */
+/* Narrowly-scoped dependent stylesheet for the below-1024px Contact -> Shipping
+ * -> Payment presentation wizard. Provider controls remain mounted and owned by
+ * WooCommerce/Payment Plugins throughout step navigation. */
 wp_enqueue_style(
 	'dtb-checkout-theme-flow',
 	$theme_uri . '/assets/checkout/checkout-flow.css',
@@ -44,11 +43,16 @@ wp_enqueue_style(
 	$asset_version( 'assets/checkout/checkout-flow.css' )
 );
 
-/* Keep the provider-owned Express Checkout block first in the desktop form
- * column without reparenting, cloning, or mutating its rendered controls. */
+/* Provider compatibility rules are attached to the authoritative style handle:
+ * - desktop Express Checkout remains first without DOM reparenting;
+ * - eligible express controls use a compact two-column layout and an odd final
+ *   provider may span both columns (for an independently installed PayPal plugin);
+ * - payment inputs remain native/focusable while their visible radio circles are
+ *   replaced by touch-card selected states.
+ */
 wp_add_inline_style(
 	'dtb-checkout-theme',
-	'@media (min-width:1024px){body.dtb-official-stripe-checkout .wc-block-components-main,body.dtb-official-stripe-checkout .wc-block-checkout__main{display:flex!important;flex-direction:column!important}body.dtb-official-stripe-checkout .wc-block-components-main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-official-stripe-checkout .wc-block-checkout__main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-official-stripe-checkout .wc-block-components-main>.wc-block-components-express-payment,body.dtb-official-stripe-checkout .wc-block-checkout__main>.wc-block-components-express-payment{order:-100!important}}'
+	'@media (min-width:1024px){body.dtb-payment-plugins-stripe-checkout .wc-block-components-main,body.dtb-payment-plugins-stripe-checkout .wc-block-checkout__main{display:flex!important;flex-direction:column!important}body.dtb-payment-plugins-stripe-checkout .wc-block-components-main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-payment-plugins-stripe-checkout .wc-block-checkout__main>.wp-block-woocommerce-checkout-express-payment-block,body.dtb-payment-plugins-stripe-checkout .wc-block-components-main>.wc-block-components-express-payment,body.dtb-payment-plugins-stripe-checkout .wc-block-checkout__main>.wc-block-components-express-payment{order:-100!important}}body.dtb-payment-plugins-stripe-checkout .wc-block-components-express-payment__event-buttons{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.dtb-payment-plugins-stripe-checkout .wc-block-components-express-payment__event-buttons>:last-child:nth-child(odd){grid-column:1/-1}body.dtb-payment-plugins-stripe-checkout .wc-block-components-express-payment__event-buttons>li,body.dtb-payment-plugins-stripe-checkout .wc-block-components-express-payment__event-buttons>div{border-radius:16px!important}body.dtb-payment-plugins-stripe-checkout .wc-block-components-payment-methods .wc-block-components-radio-control__input{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}body.dtb-payment-plugins-stripe-checkout .wc-block-components-payment-methods .wc-block-components-radio-control__option,body.dtb-payment-plugins-stripe-checkout .wc-block-components-payment-methods .wc-block-components-radio-control-accordion-option{padding-left:18px!important;cursor:pointer}body.dtb-payment-plugins-stripe-checkout .wc-block-components-payment-methods .wc-block-components-radio-control__option-checked,body.dtb-payment-plugins-stripe-checkout .wc-block-components-payment-methods .wc-block-components-radio-control-accordion-option--checked{border-color:var(--dtb-checkout-primary)!important;background:var(--dtb-checkout-primary-soft)!important;box-shadow:0 0 0 1px var(--dtb-checkout-primary)!important}@media (max-width:420px){body.dtb-payment-plugins-stripe-checkout .wc-block-components-express-payment__event-buttons{gap:8px!important}}'
 );
 
 wp_enqueue_script(
@@ -86,7 +90,7 @@ wp_enqueue_script(
 	</style>
 	<?php wp_head(); ?>
 </head>
-<body <?php body_class( 'dtb-native-woocommerce-document dtb-woo-native-checkout dtb-official-stripe-checkout dtb-checkout-native-page' ); ?>>
+<body <?php body_class( 'dtb-native-woocommerce-document dtb-woo-native-checkout dtb-payment-plugins-stripe-checkout dtb-official-stripe-checkout dtb-checkout-native-page' ); ?>>
 <?php wp_body_open(); ?>
 	<div class="dtb-native-checkout-loader" role="status" aria-live="polite" aria-label="<?php esc_attr_e( 'Loading secure checkout', 'drywall-toolbox' ); ?>">
 		<div class="dtb-native-checkout-loader__content">
@@ -102,14 +106,13 @@ wp_enqueue_script(
 				<img src="<?php echo esc_url( home_url( '/logos/logo-white.svg' ) ); ?>" alt="<?php esc_attr_e( 'Drywall Toolbox', 'drywall-toolbox' ); ?>" width="3000" height="917">
 			</a>
 			<?php
-			$show_stripe_badge = class_exists( 'DTB_OfficialStripeNativeCheckout' )
-				&& DTB_OfficialStripeNativeCheckout::stripe_badge_visible();
+			$show_stripe_badge = class_exists( 'DTB_PaymentPluginsStripeNativeCheckout' )
+				&& DTB_PaymentPluginsStripeNativeCheckout::stripe_badge_visible();
 			?>
 			<div class="dtb-checkout-header__secure" aria-label="<?php echo esc_attr( $show_stripe_badge ? __( 'Secure checkout powered by Stripe', 'drywall-toolbox' ) : __( 'Secure checkout', 'drywall-toolbox' ) ); ?>">
 				<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M7.5 10V7.5a4.5 4.5 0 0 1 9 0V10m-10 0h11a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-7A1.5 1.5 0 0 1 6.5 10Z" /></svg>
-				<span><?php esc_html_e( 'Secure checkout', 'drywall-toolbox' ); ?></span>
 				<?php if ( $show_stripe_badge ) : ?>
-					<img class="dtb-checkout-header__stripe" src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="" aria-hidden="true" width="2340" height="540">
+					<img class="dtb-checkout-header__stripe" src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="<?php esc_attr_e( 'Powered by Stripe', 'drywall-toolbox' ); ?>" width="2340" height="540">
 				<?php endif; ?>
 			</div>
 		</div>
