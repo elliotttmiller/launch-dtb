@@ -229,18 +229,17 @@
 		return Boolean( snapshot.available && ( snapshot.isCalculating || snapshot.cartMeta?.updatingCustomerData || snapshot.cartMeta?.updatingSelectedRate ) );
 	}
 
-	function formatMoney( raw, totals ) {
-		const minor = Number.isFinite( Number( totals?.currency_minor_unit ) ) ? Number( totals.currency_minor_unit ) : 2;
-		const amount = Number( raw || 0 ) / ( 10 ** Math.max( 0, minor ) );
-		try { return new Intl.NumberFormat( undefined, { style: 'currency', currency: String( totals?.currency_code || 'USD' ), minimumFractionDigits: minor, maximumFractionDigits: minor } ).format( amount ); }
-		catch { return `${ totals?.currency_symbol || '$' }${ amount.toFixed( minor ) }`; }
-	}
-
 	function canonicalSummary() {
 		const nodes = topLevel( unique( [ ...document.querySelectorAll( '.wp-block-woocommerce-checkout-order-summary-block' ), ...document.querySelectorAll( '.wc-block-components-order-summary' ) ] ) );
 		return nodes.find( ( node ) => node.closest( '.wc-block-components-sidebar, .wc-block-checkout__sidebar' ) ) || nodes[ 0 ] || null;
 	}
 
+	/*
+	 * This panel intentionally shows only the shipping destination — the native
+	 * WooCommerce order-summary totals (below) already render the authoritative
+	 * Shipping and Tax rows once calculated, so duplicating those figures here
+	 * would just repeat the same numbers twice in the same sidebar.
+	 */
 	function renderLiveContext() {
 		const summary = canonicalSummary();
 		if ( ! summary ) return;
@@ -250,22 +249,17 @@
 			context.className = 'dtb-checkout-live-context';
 			context.dataset.dtbCheckoutLiveContext = '1';
 			context.setAttribute( 'aria-live', 'polite' );
-			context.innerHTML = '<div class="dtb-checkout-live-context__header"><strong>Delivery &amp; tax</strong><span class="dtb-checkout-live-context__status" data-dtb-live-status>Live</span></div><div class="dtb-checkout-live-context__row"><span>Ship to</span><strong data-dtb-live-destination>Enter shipping address</strong></div><div class="dtb-checkout-live-context__row"><span>Shipping</span><strong data-dtb-live-shipping>Calculated at shipping</strong></div><div class="dtb-checkout-live-context__row"><span>Estimated tax</span><strong data-dtb-live-tax>Calculated from address</strong></div>';
+			context.innerHTML = '<div class="dtb-checkout-live-context__header"><strong>Delivery to</strong><span class="dtb-checkout-live-context__status" data-dtb-live-status>Live</span></div><div class="dtb-checkout-live-context__row"><span>Ship to</span><strong data-dtb-live-destination>Enter shipping address</strong></div>';
 			const footer = summary.querySelector( '.wc-block-components-totals-footer-item' )?.closest( '.wc-block-components-totals-wrapper' );
 			footer?.parentNode ? footer.parentNode.insertBefore( context, footer ) : summary.append( context );
 		}
 		const snapshot = commerceSnapshot();
-		const totals = snapshot.totals || {};
 		const address = snapshot.customer?.shippingAddress || snapshot.customer?.shipping_address || {};
 		const destination = [ [ address.city, address.state ].filter( Boolean ).join( ', ' ), address.postcode ].filter( Boolean ).join( ' ' ) || 'Enter shipping address';
 		const busy = commerceBusy( snapshot );
-		const shipping = snapshot.available && snapshot.hasCalculatedShipping ? ( Number( totals.total_shipping || 0 ) === 0 ? 'FREE' : formatMoney( totals.total_shipping, totals ) ) : 'Calculated at shipping';
-		const tax = snapshot.available && snapshot.hasCalculatedShipping ? formatMoney( totals.total_tax, totals ) : 'Calculated from address';
 		context.classList.toggle( 'is-updating', busy );
 		context.querySelector( '[data-dtb-live-status]' ).textContent = busy ? 'Updating…' : 'Live';
 		context.querySelector( '[data-dtb-live-destination]' ).textContent = destination;
-		context.querySelector( '[data-dtb-live-shipping]' ).textContent = busy ? 'Updating…' : shipping;
-		context.querySelector( '[data-dtb-live-tax]' ).textContent = busy ? 'Updating…' : tax;
 	}
 
 	function setBodyStep() {

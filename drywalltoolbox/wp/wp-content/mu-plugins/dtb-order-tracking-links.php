@@ -43,21 +43,6 @@ if ( ! function_exists( 'dtb_tracking_links_request_order_id' ) ) {
 	}
 }
 
-if ( ! function_exists( 'dtb_tracking_links_is_order_received_request' ) ) {
-	function dtb_tracking_links_is_order_received_request(): bool {
-		if ( absint( get_query_var( 'order-received' ) ) > 0 ) {
-			return true;
-		}
-
-		$request_uri = isset( $_SERVER['REQUEST_URI'] )
-			? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) )
-			: '';
-		$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		return (bool) preg_match( '#/(?:wp/)?checkout/order-received/\d+/?#', $path );
-	}
-}
-
 if ( ! function_exists( 'dtb_tracking_links_frontend_base_from_referer' ) ) {
 	function dtb_tracking_links_frontend_base_from_referer(): string {
 		$referer = wp_get_referer();
@@ -159,32 +144,31 @@ if ( ! function_exists( 'dtb_tracking_links_capture_frontend_base' ) ) {
 
 add_action( 'template_redirect', 'dtb_tracking_links_capture_frontend_base', 4 );
 
-add_filter(
-	'woocommerce_get_checkout_order_received_url',
-	static function ( $url, $order ) {
-		if ( $order instanceof WC_Order ) {
-			return dtb_order_tracking_checkout_complete_url( $order );
-		}
-
-		return $url;
-	},
-	20,
-	2
-);
-
+/*
+ * Deliberately NOT rewriting `woocommerce_get_checkout_order_received_url` and
+ * NOT redirecting away from `/checkout/order-received/{id}/` at `template_redirect`.
+ *
+ * That URL is also the Stripe gateway's own `return_url` for redirect-based
+ * payment methods (3DS, some wallets), and native WooCommerce order-received
+ * page loads are where the Stripe gateway synchronously verifies the payment
+ * intent and calls `$order->payment_complete()`. Bouncing the browser away from
+ * that page before it renders — as this file previously did — skips that
+ * verification entirely, leaving the order stuck on "pending" until (and
+ * unless) an external Stripe webhook eventually reconciles it.
+ *
+ * Instead, redirect to the React tracking page from `woocommerce_thankyou`,
+ * which WooCommerce's own order-received template fires only after it has
+ * already resolved the order's real payment status. The customer still lands
+ * on the tracking page; it just now reflects the correct status.
+ */
 add_action(
-	'template_redirect',
-	static function (): void {
-		if ( ! dtb_tracking_links_is_public_request() || ! dtb_tracking_links_is_order_received_request() || ! function_exists( 'wc_get_order' ) ) {
+	'woocommerce_thankyou',
+	static function ( $order_id ): void {
+		if ( ! dtb_tracking_links_is_public_request() || ! function_exists( 'wc_get_order' ) ) {
 			return;
 		}
 
-		$order_id = dtb_tracking_links_request_order_id();
-		if ( $order_id <= 0 ) {
-			return;
-		}
-
-		$order = wc_get_order( $order_id );
+		$order = wc_get_order( absint( $order_id ) );
 		if ( ! $order instanceof WC_Order ) {
 			return;
 		}
@@ -194,10 +178,10 @@ add_action(
 			return;
 		}
 
-		wp_safe_redirect( dtb_order_tracking_checkout_complete_url( $order ), 303 );
-		exit;
+		$url = dtb_order_tracking_checkout_complete_url( $order );
+		echo '<script>window.location.replace(' . wp_json_encode( $url ) . ');</script>';
 	},
-	20
+	100
 );
 
 add_action(
