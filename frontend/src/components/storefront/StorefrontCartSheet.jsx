@@ -1,9 +1,14 @@
 import { Link } from 'react-router-dom';
 import { ShoppingCart, X, Package, Minus, Plus, ArrowRight, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useCart } from '../../context/CartContext.jsx';
 import ProductModal from '../product/ProductModal.jsx';
-import ProductDetail from '../product/ProductDetail.jsx';
+
+// ProductDetail (~19KB gzip) is only needed when the cart-sheet quick-view
+// modal is actually opened, but was previously a static import here — pulling
+// the full quick-view component into every page's initial bundle even though
+// most page loads never open the cart sheet. Lazy-load it on first open.
+const ProductDetail = lazy(() => import('../product/ProductDetail.jsx'));
 import { getProduct, getProductVariations } from '../../services/api.js';
 import { getVariationSelectionMap } from '../../utils/variationSelection.js';
 
@@ -538,19 +543,28 @@ export default function StorefrontCartSheet({
         onClose={closeProductModal}
       >
         {productModalState?.product ? (
-          <ProductDetail
-            key={`${productModalState.product?.id || productModalState.key}:${productModalState.initialResolvedVariation?.id || 'parent'}`}
-            product={productModalState.product}
-            onAddToCart={handleProductModalAddToCart}
-            onClose={closeProductModal}
-            initialVariations={productModalState.initialVariations || []}
-            initialResolvedVariation={productModalState.initialResolvedVariation || null}
-            initialSelectedAttrs={productModalState.initialSelectedAttrs || {}}
-          />
+          <Suspense fallback={<div className="scs-product-detail-loading" aria-busy="true" />}>
+            <ProductDetail
+              key={`${productModalState.product?.id || productModalState.key}:${productModalState.initialResolvedVariation?.id || 'parent'}`}
+              product={productModalState.product}
+              onAddToCart={handleProductModalAddToCart}
+              onClose={closeProductModal}
+              initialVariations={productModalState.initialVariations || []}
+              initialResolvedVariation={productModalState.initialResolvedVariation || null}
+              initialSelectedAttrs={productModalState.initialSelectedAttrs || {}}
+            />
+          </Suspense>
         ) : null}
       </ProductModal>
 
       <style>{`
+        .scs-product-detail-loading {
+          min-height: 320px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
         .storefront-cart-sheet {
           display: flex;
           flex-direction: column;
