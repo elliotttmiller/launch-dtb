@@ -200,15 +200,18 @@ function dtb_qbo_admin_render_page(): void {
 						<h2><?php esc_html_e( 'Authoritative accounting workflow', 'drywall-toolbox' ); ?></h2>
 						<p><?php esc_html_e( 'QuickBooks receives accounting projections only after WooCommerce payment or refund authority is established.', 'drywall-toolbox' ); ?></p>
 					</div>
-					<button type="button" class="button button-primary" data-qbo-action="sync" disabled>
-						<span class="dashicons dashicons-update" aria-hidden="true"></span>
-						<?php esc_html_e( 'Sync unsynced orders', 'drywall-toolbox' ); ?>
-					</button>
 				</div>
-				<div class="dtb-qbo-guidance">
-					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-					<p><?php esc_html_e( 'Queues every paid/fulfilled order that has no QuickBooks record yet — including orders placed while QuickBooks was disconnected. This already runs automatically right after a new connection is established; use this to catch orders placed since, or after resolving a failed sync.', 'drywall-toolbox' ); ?></p>
-				</div>
+				<?php
+				/**
+				 * The queue/backfill control for this panel is injected by
+				 * QuickBooksAdminEnhancements.php (quickbooks-admin-sync.js —
+				 * "Synchronization operations" card), which gates on real readiness
+				 * (connection + verified item mappings + queue availability, including
+				 * detecting leftover wp-config.php placeholder item IDs) rather than
+				 * connection state alone. A duplicate static button here was removed
+				 * to avoid two controls for the same action in the same panel.
+				 */
+				?>
 				<div class="dtb-qbo-flow" aria-label="<?php esc_attr_e( 'QuickBooks accounting workflow', 'drywall-toolbox' ); ?>">
 					<div><span class="dashicons dashicons-cart" aria-hidden="true"></span><strong><?php esc_html_e( 'WooCommerce', 'drywall-toolbox' ); ?></strong><small><?php esc_html_e( 'Order, payment, refund authority', 'drywall-toolbox' ); ?></small></div>
 					<i aria-hidden="true"></i>
