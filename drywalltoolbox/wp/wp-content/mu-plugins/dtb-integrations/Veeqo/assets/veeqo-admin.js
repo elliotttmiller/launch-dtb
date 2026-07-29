@@ -8,7 +8,7 @@
 
   if (!root) return;
   if (!apiFetch) {
-    root.innerHTML = '<div class="dtb-veeqo-content"><div class="dtb-veeqo-notice is-error"><strong>WordPress REST client is unavailable.</strong><span>Verify that wp-api-fetch and its dependencies are not being removed or reordered by host optimization.</span></div></div>';
+    root.innerHTML = '<div class="dtb-veeqo-notice is-error"><strong>WordPress REST client is unavailable.</strong><span>Verify that wp-api-fetch and its dependencies are not being removed or reordered by host optimization.</span></div>';
     return;
   }
 
@@ -78,25 +78,64 @@
     if (holder) holder.innerHTML = '';
   }
 
+  const VIEWS = [
+    ['overview', 'Overview'],
+    ['orders', 'Orders'],
+    ['inventory', 'Inventory'],
+    ['fulfillment', 'Fulfillment'],
+    ['operations', 'Operations'],
+    ['settings', 'Settings'],
+  ];
+
+  // Single top hero + pill-tab navigation idiom — matches the shared
+  // dtb-admin.css / dtb-brikpanel-components tab and page-header grammar used
+  // by QuickBooks (.dtb-qbo-tabs) and the Orders status pills, replacing the
+  // previous bespoke dark sidebar sub-navigation.
   function shell() {
     root.innerHTML = `
-      <div class="dtb-veeqo-shell">
-        <header class="dtb-veeqo-product-nav">
-          <div class="dtb-veeqo-brand"><span class="dtb-veeqo-brand-mark" aria-hidden="true">V</span><span>Veeqo</span></div>
-          <nav class="dtb-veeqo-primary-nav" aria-label="Veeqo Control Center sections">
-            ${navButton('overview', 'Overview')}${navButton('orders', 'Orders')}${navButton('inventory', 'Inventory')}${navButton('fulfillment', 'Fulfillment')}${navButton('operations', 'Operations')}${navButton('settings', 'Settings')}
-          </nav>
-          <div class="dtb-veeqo-nav-spacer"></div>
-          <div class="dtb-veeqo-nav-status"><span class="dtb-veeqo-nav-dot" id="dtb-veeqo-nav-dot"></span><span id="dtb-veeqo-nav-label">Checking readiness…</span></div>
-        </header>
-        <div class="dtb-veeqo-subnav"><h1 class="dtb-veeqo-page-title" id="dtb-veeqo-page-title">Overview</h1><div class="dtb-veeqo-actions" id="dtb-veeqo-context-actions"></div></div>
-        <div class="dtb-veeqo-content"><div id="dtb-veeqo-notices" class="dtb-veeqo-notices" aria-live="polite"></div><main id="dtb-veeqo-view" aria-live="polite"></main></div>
-      </div>`;
+      <header class="dtb-veeqo-header">
+        <div class="dtb-veeqo-header__identity">
+          <span class="dtb-veeqo-mark" aria-hidden="true">V</span>
+          <div>
+            <h1>Veeqo Control Center</h1>
+            <p class="dtb-veeqo-header__status"><span class="dtb-veeqo-nav-dot" id="dtb-veeqo-nav-dot"></span><span id="dtb-veeqo-nav-label">Checking readiness…</span></p>
+          </div>
+        </div>
+        <div class="dtb-veeqo-actions" id="dtb-veeqo-context-actions"></div>
+      </header>
+      <nav class="dtb-tabs dtb-veeqo-tabs" role="tablist" aria-label="Veeqo Control Center sections">
+        ${VIEWS.map(([view, label]) => navButton(view, label)).join('')}
+      </nav>
+      <h2 class="dtb-veeqo-section-title" id="dtb-veeqo-page-title">Overview</h2>
+      <div id="dtb-veeqo-notices" class="dtb-veeqo-notices" aria-live="polite"></div>
+      <main id="dtb-veeqo-view" aria-live="polite"></main>`;
     qsa('[data-view]').forEach((button) => button.addEventListener('click', () => navigate(button.dataset.view)));
+    const tabs = qs('.dtb-veeqo-tabs');
+    if (tabs) tabs.addEventListener('keydown', handleTabKeys);
   }
 
   function navButton(view, label) {
-    return `<button type="button" data-view="${esc(view)}" class="${state.view === view ? 'is-active' : ''}">${esc(label)}</button>`;
+    const active = state.view === view;
+    return `<button type="button" role="tab" id="dtb-veeqo-tab-${esc(view)}" data-view="${esc(view)}" class="dtb-tab${active ? ' is-active' : ''}" aria-selected="${active ? 'true' : 'false'}" tabindex="${active ? '0' : '-1'}">${esc(label)}</button>`;
+  }
+
+  function handleTabKeys(event) {
+    const tab = event.target.closest('[data-view]');
+    if (!tab) return;
+    const tabs = qsa('[data-view]');
+    const current = tabs.indexOf(tab);
+    let next = current;
+    switch (event.key) {
+      case 'ArrowRight': next = (current + 1) % tabs.length; break;
+      case 'ArrowLeft': next = (current - 1 + tabs.length) % tabs.length; break;
+      case 'Home': next = 0; break;
+      case 'End': next = tabs.length - 1; break;
+      default: return;
+    }
+    event.preventDefault();
+    const target = tabs[next];
+    target.focus();
+    navigate(target.dataset.view);
   }
 
   function setContext(title, actions = '') {
@@ -107,11 +146,16 @@
   }
 
   function updateNav() {
-    qsa('[data-view]').forEach((button) => button.classList.toggle('is-active', button.dataset.view === state.view));
+    qsa('[data-view]').forEach((button) => {
+      const active = button.dataset.view === state.view;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-selected', active ? 'true' : 'false');
+      button.setAttribute('tabindex', active ? '0' : '-1');
+    });
   }
 
   async function navigate(view) {
-    if (!['overview', 'orders', 'inventory', 'fulfillment', 'operations', 'settings'].includes(view)) return;
+    if (!VIEWS.some(([id]) => id === view)) return;
     state.view = view;
     updateNav();
     clearNotice();
