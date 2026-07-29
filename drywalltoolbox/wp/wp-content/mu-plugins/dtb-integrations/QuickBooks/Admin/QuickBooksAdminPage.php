@@ -2,8 +2,11 @@
 /**
  * QuickBooks control-center wp-admin page.
  *
- * BrikPanel retains ownership of global wp-admin chrome. This module renders a
- * scoped application surface and adds only component-level layout styles.
+ * Renders a scoped application surface that shares the platform-wide DTB admin
+ * design system (dtb-admin.css + the dtb-brikpanel-components bridge layer).
+ * CSS/JS are declared through the AdminPageRegistry `assets` key so the
+ * central AdminAssets pipeline owns enqueue order and dependency wiring —
+ * matching the Orders/Repairs/Returns module pattern.
  *
  * @package drywall-toolbox
  */
@@ -13,13 +16,28 @@ defined( 'ABSPATH' ) || exit;
 const DTB_QBO_ADMIN_PAGE_SLUG = 'dtb-quickbooks';
 
 add_action( 'init', 'dtb_qbo_admin_register_page', 15 );
-add_action( 'admin_enqueue_scripts', 'dtb_qbo_admin_enqueue_assets', 100 );
+// Queue wp-api-fetch *before* the central AdminAssets pipeline (default
+// priority 10) enqueues the dtb-qbo-admin script, so wp-api-fetch is earlier
+// in the print queue — the module JS reads window.wp.apiFetch (indirectly,
+// via fetch()) and quickbooks-admin.js uses the global config synchronously.
+add_action( 'admin_enqueue_scripts', 'dtb_qbo_admin_enqueue_api_fetch', 5 );
+add_action( 'admin_enqueue_scripts', 'dtb_qbo_admin_localize_config', 20 );
 add_filter( 'admin_body_class', 'dtb_qbo_admin_body_class' );
+
+function dtb_qbo_admin_enqueue_api_fetch(): void {
+	if ( ! dtb_qbo_admin_is_current_screen() || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	wp_enqueue_script( 'wp-api-fetch' );
+}
 
 function dtb_qbo_admin_register_page(): void {
 	if ( ! function_exists( 'dtb_register_admin_page' ) ) {
 		return;
 	}
+
+	$assets_dir = dirname( __DIR__ ) . '/assets/';
+	$assets_url = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
 
 	dtb_register_admin_page(
 		[
@@ -34,6 +52,24 @@ function dtb_qbo_admin_register_page(): void {
 			'section'      => 'Integrations',
 			'icon'         => 'dashicons-chart-area',
 			'menu_visible' => true,
+			'assets'       => [
+				'css' => [
+					[
+						'id'   => 'dtb-qbo-admin',
+						'dir'  => $assets_dir,
+						'url'  => $assets_url,
+						'file' => 'quickbooks-admin.css',
+					],
+				],
+				'js'  => [
+					[
+						'id'   => 'dtb-qbo-admin',
+						'dir'  => $assets_dir,
+						'url'  => $assets_url,
+						'file' => 'quickbooks-admin.js',
+					],
+				],
+			],
 		]
 	);
 }
@@ -51,43 +87,28 @@ function dtb_qbo_admin_body_class( string $classes ): string {
 	return $classes;
 }
 
-function dtb_qbo_admin_enqueue_assets(): void {
+/**
+ * Localize runtime config onto the `dtb-qbo-admin` script handle enqueued by
+ * the central AdminAssets pipeline (registered via the page's `assets.js`).
+ * Runs after the default-priority pipeline enqueue so the handle exists.
+ */
+function dtb_qbo_admin_localize_config(): void {
 	if ( ! dtb_qbo_admin_is_current_screen() || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
 
-	$base_dir = dirname( __DIR__ );
-	$base_url = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
-	$css_path = $base_dir . '/assets/quickbooks-admin.css';
-	$js_path  = $base_dir . '/assets/quickbooks-admin.js';
-
-	// BrikPanel owns global wp-admin presentation. Add only the strictly scoped
-	// QuickBooks component layer to WordPress' stable common admin stylesheet.
-	wp_enqueue_style( 'common' );
-	if ( is_readable( $css_path ) ) {
-		$css = file_get_contents( $css_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		if ( is_string( $css ) && '' !== $css ) {
-			wp_add_inline_style( 'common', $css );
-		}
+	if ( ! wp_script_is( 'dtb-qbo-admin', 'enqueued' ) && ! wp_script_is( 'dtb-qbo-admin', 'registered' ) ) {
+		return;
 	}
 
-	wp_enqueue_script( 'wp-api-fetch' );
-	wp_enqueue_script(
-		'dtb-qbo-admin',
-		$base_url . 'quickbooks-admin.js',
-		[ 'wp-api-fetch' ],
-		is_file( $js_path ) ? (string) filemtime( $js_path ) : '1.0.0',
-		true
-	);
-
 	$config = [
-		'restRoot'  => esc_url_raw( rest_url() ),
-		'nonce'     => wp_create_nonce( 'wp_rest' ),
-		'basePath'  => 'dtb/v1/admin/qbo',
-		'pageUrl'   => esc_url_raw( admin_url( 'admin.php?page=' . DTB_QBO_ADMIN_PAGE_SLUG ) ),
-		'notice'    => sanitize_key( wp_unslash( $_GET['dtb_qbo_notice'] ?? '' ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'restRoot'    => esc_url_raw( rest_url() ),
+		'nonce'       => wp_create_nonce( 'wp_rest' ),
+		'basePath'    => 'dtb/v1/admin/qbo',
+		'pageUrl'     => esc_url_raw( admin_url( 'admin.php?page=' . DTB_QBO_ADMIN_PAGE_SLUG ) ),
+		'notice'      => sanitize_key( wp_unslash( $_GET['dtb_qbo_notice'] ?? '' ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		'environment' => dtb_qbo_environment(),
-		'labels'    => [
+		'labels'      => [
 			'confirmDisconnect' => __( 'Disconnect QuickBooks from this environment? Existing WooCommerce and QuickBooks records will not be deleted.', 'drywall-toolbox' ),
 			'connectionPassed'  => __( 'QuickBooks connection verified.', 'drywall-toolbox' ),
 			'itemsMapped'       => __( 'Accounting items discovered and mapped.', 'drywall-toolbox' ),
