@@ -39,10 +39,20 @@ There is no dependency on a `DTB Ops` menu. The permanent administrator API is:
 
 ```text
 GET  /wp-json/dtb/v1/admin/qbo/status
+GET  /wp-json/dtb/v1/admin/qbo/dashboard
 POST /wp-json/dtb/v1/admin/qbo/connect
 POST /wp-json/dtb/v1/admin/qbo/test
 POST /wp-json/dtb/v1/admin/qbo/disconnect
+POST /wp-json/dtb/v1/admin/qbo/items/discover
+POST /wp-json/dtb/v1/admin/qbo/sync
 ```
+
+`items/discover` is read-only against QuickBooks (it never creates or mutates
+remote records) and only writes local managed-mapping options. `sync` queues
+unsynced paid/fulfilled orders for accounting projection through the existing
+`dtb-orders` queue; it does not write to QuickBooks synchronously. A
+same-shaped top-level route, `POST /wp-json/dtb/v1/qbo/sync`, also exists for
+scripted/cron use outside the admin UI.
 
 Every operator route requires an authenticated WordPress administrator with `manage_options`. Browser requests also require a valid WordPress REST nonce.
 
@@ -69,18 +79,52 @@ state = 64-character random hexadecimal value
 
 ## Required QuickBooks item references
 
+Four exact-name active Service items must exist in the connected QuickBooks
+company before accounting sync can run: `DTB Product Sales`, `DTB Shipping`,
+`DTB Discount`, `DTB Refund` (see `DTB_QuickBooksItemMappingService::definitions()`).
+Missing references fail closed — sync will not create fallback or
+numeric-guessed line items.
+
+**Preferred: managed mapping via Discover and map.** Do not define
+`DTB_QBO_ITEM_*_ID` constants in `wp-config.php`. After connecting, open
+**wp-admin → QuickBooks → Configuration** and click **Discover and map**. This
+read-only operation queries the connected company for the four exact item
+names above and stores the matched IDs as WordPress options, scoped to the
+connected realm. It is idempotent, re-runnable, and re-verifies automatically
+if the connected company ever changes. This is the only path that requires no
+manual ID entry.
+
+**Advanced: explicit constant override.** Defining `DTB_QBO_ITEM_<ROLE>_ID` /
+`_NAME` in `wp-config.php` **locks** that role — the constant becomes the sole
+source of truth and Discover and map can then only *verify* it against the
+connected company, never populate or correct it. A constant containing a
+placeholder, a guessed value, or an ID from the wrong environment will show as
+"Needs verification" indefinitely; Discover and map cannot fix this for you,
+because a locked constant intentionally overrides the managed value. Use this
+only when you deliberately want an item ID pinned independent of whatever the
+connected company's items resolve to (for example, cross-checking a value that
+must never silently drift). If you don't need that guarantee, don't define
+these constants — leave item mapping to Discover and map.
+
 ```php
-define( 'DTB_QBO_ITEM_PRODUCT_ID', '<QBO product-sales item ID>' );
+// Advanced/optional only — see above. Do not define these to use the
+// managed (recommended) path.
+define( 'DTB_QBO_ITEM_PRODUCT_ID', '<verified QBO product-sales item ID>' );
 define( 'DTB_QBO_ITEM_PRODUCT_NAME', 'DTB Product Sales' );
-define( 'DTB_QBO_ITEM_SHIPPING_ID', '<QBO shipping item ID>' );
+define( 'DTB_QBO_ITEM_SHIPPING_ID', '<verified QBO shipping item ID>' );
 define( 'DTB_QBO_ITEM_SHIPPING_NAME', 'DTB Shipping' );
-define( 'DTB_QBO_ITEM_DISCOUNT_ID', '<QBO discount item ID>' );
+define( 'DTB_QBO_ITEM_DISCOUNT_ID', '<verified QBO discount item ID>' );
 define( 'DTB_QBO_ITEM_DISCOUNT_NAME', 'DTB Discount' );
-define( 'DTB_QBO_ITEM_REFUND_ID', '<QBO refund item ID>' );
+define( 'DTB_QBO_ITEM_REFUND_ID', '<verified QBO refund item ID>' );
 define( 'DTB_QBO_ITEM_REFUND_NAME', 'DTB Refund' );
 ```
 
-Missing required references fail closed. Numeric fallback IDs are prohibited.
+If any of these are currently defined with a placeholder or unverified value,
+delete them from `wp-config.php` and rerun Discover and map instead of trying
+to hand-fill the real ID — the control center now surfaces the connected
+company's real discovered ID next to any locked/unverified item precisely so
+you don't have to guess it, but removing the constant is simpler whenever
+pinning isn't actually required.
 
 ## Webhook endpoint
 
@@ -132,7 +176,9 @@ A worker failure must not create a completed deduplication marker. Exhausted ret
 5. Clear SiteGround and PHP caches.
 6. Confirm the administrator status endpoint reports `webhook_verifier_configured: true` and `ready_for_connection: true`.
 7. Save the Intuit webhook configuration with CloudEvents enabled and only the allowlisted events selected.
-8. Complete OAuth through the administrator connect endpoint.
+8. Complete OAuth through the administrator connect endpoint. This automatically queues (up to 250) any already-paid/fulfilled WooCommerce orders that have no QuickBooks record yet — including orders placed before this connection existed — so nothing already sitting in `not_configured` state is silently skipped.
+9. In the QuickBooks Control Center's Configuration tab, click **Discover and map** to resolve the four required Service items (see "Required QuickBooks item references" above). Do this before relying on sync for real orders — accounting lines fail closed without verified item references.
+10. If more orders arrive later, or a specific order's sync failed and was fixed, use **Sync unsynced orders** on the Workflow tab to re-queue rather than waiting for the next connect event.
 
 Do not expose the verifier token or temporarily weaken signature enforcement during setup.
 
