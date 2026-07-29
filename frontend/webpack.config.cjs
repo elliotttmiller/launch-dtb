@@ -425,6 +425,16 @@ module.exports = (envFlags, argv) => {
           // Keep CSS entry/chunk names stable for the same reason as JS.
           filename:      'assets/css/[name].css',
           chunkFilename: 'assets/css/[name].chunk.css',
+          // Different entry points/async chunks can require the same CSS
+          // module graph in different orders (for example after code-splitting
+          // a component like ProductDetail into its own chunk). Webpack cannot
+          // always prove a single global order is safe and warns "Conflicting
+          // order" even when the files involved have zero overlapping
+          // selectors. Verified case-by-case that our CSS files are scoped to
+          // disjoint class namespaces (BEM-style, component-scoped) with no
+          // cross-file cascade dependency, so a non-deterministic chunk-load
+          // order across pages cannot change which rule wins.
+          ignoreOrder: true,
         }),
 
         // ── Service Worker (Workbox GenerateSW) ─────────────────────────────
@@ -439,8 +449,13 @@ module.exports = (envFlags, argv) => {
           skipWaiting:  true,
           swDest:       'service-worker.js',
 
-          // Precache all webpack-emitted JS/CSS/HTML — they're content-hashed
-          // so any changed file gets a new URL and is re-fetched automatically.
+          // Precache all webpack-emitted JS/CSS/HTML. Filenames are stable
+          // (not content-hashed — see output.filename above), but Workbox's
+          // precache manifest stores a content-derived `revision` per entry
+          // independently of the URL, so updated files are still detected and
+          // re-fetched correctly; this only benefits clients with an installed
+          // service worker; see .htaccess Cache-Control for the HTTP-level
+          // fallback that covers everyone else.
           // Images, fonts, and large brand/schematic trees are intentionally
           // excluded from precache (they'd blow the storage quota at 191 MB).
           // They are instead served by the runtime caching strategies below.

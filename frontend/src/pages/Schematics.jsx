@@ -1038,6 +1038,14 @@ export default function Parts() {
     });
   };
 
+  // Build the full schematic definitions (parts + hotspot coordinates for every
+  // brand/tool, ~110 entries) once per schematicManifest change instead of on
+  // every render. This block was previously unmemoized: every keystroke in
+  // search, page navigation, or brand/category selection re-ran ~110
+  // buildPartsFromData() calls and rebuilt the entire definitions array from
+  // scratch, even though the underlying JSON data never changes and the WP
+  // media manifest (the only external input) only changes once, on load.
+  const schematics = useMemo(() => {
   // Build parts arrays from JSON data
   const predatorTaperBodyParts = buildPartsFromData(columbiaPredatorTaperBodyData);
   const predatorTaperHeadParts = buildPartsFromData(columbiaPredatorTaperHeadData);
@@ -1165,7 +1173,7 @@ export default function Parts() {
   const duraStiltsModelIV1830Parts = [];
   const duraStiltsModelIV2440Parts = [];
 
-  const schematics = [
+  const schematicsList = [
     {
       id: 'columbia-matrix',
       title: 'Predator Matrix Handle',
@@ -2469,6 +2477,9 @@ export default function Parts() {
       parts: surproS2XParts,
     },
   ];
+
+  return schematicsList;
+  }, [schImg, schPrev]);
 
   // Filter schematics to only include tools from allowed brands
   const allowedSchematics = schematics.filter(s => !s.brand || ALLOWED_BRANDS.includes(s.brand));

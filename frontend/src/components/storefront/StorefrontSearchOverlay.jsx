@@ -1,9 +1,12 @@
 import { Link } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from 'react';
 import { brandToSlug } from '../../utils/catalogUrlState.js';
 import { buildDisplayCategoryUrl, normalizeCatalogCategoryEntry } from '../../utils/catalogFacets.js';
 import ProductModal from '../product/ProductModal.jsx';
-import ProductDetail from '../product/ProductDetail.jsx';
+
+// Lazy-loaded: only needed when a search-result quick-view is actually opened.
+// See StorefrontCartSheet.jsx for the same pattern/rationale.
+const ProductDetail = lazy(() => import('../product/ProductDetail.jsx'));
 import LoadingCardTransition from '../shared/LoadingCardTransition.jsx';
 import StorefrontProductTile from './StorefrontProductTile.jsx';
 import StorefrontSearchLoading from './StorefrontSearchLoading.jsx';
@@ -222,7 +225,9 @@ export default function StorefrontSearchOverlay({
 
       <ProductModal isOpen={isModalOpen && !!modalProduct} product={modalProduct} onClose={closeQuickView}>
         {modalProduct ? (
-          <ProductDetail product={modalProduct} onAddToCart={handleAddToCart} onClose={closeQuickView} initialVariations={[]} />
+          <Suspense fallback={<div className="storefront-search-overlay__product-detail-loading" aria-busy="true" />}>
+            <ProductDetail product={modalProduct} onAddToCart={handleAddToCart} onClose={closeQuickView} initialVariations={[]} />
+          </Suspense>
         ) : null}
       </ProductModal>
     </>
