@@ -24,14 +24,14 @@ function dtb_qbo_admin_enqueue_enhancements(): void {
 		return;
 	}
 
-	$base_dir          = dirname( __DIR__ );
-	$base_url          = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
-	$shared_dir        = dirname( dirname( dirname( __DIR__ ) ) ) . '/assets/';
-	$shared_url        = content_url( 'mu-plugins/dtb-integrations/assets/' );
-	$css_path          = $base_dir . '/assets/quickbooks-admin-refinement.css';
-	$js_path           = $base_dir . '/assets/quickbooks-admin-sync.js';
-	$shared_css_path   = $shared_dir . 'integration-control-center.css';
-	$shared_js_path    = $shared_dir . 'integration-control-center.js';
+	$base_dir        = dirname( __DIR__ );
+	$base_url        = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
+	$shared_dir      = dirname( dirname( __DIR__ ) ) . '/assets/';
+	$shared_url      = content_url( 'mu-plugins/dtb-integrations/assets/' );
+	$css_path        = $base_dir . '/assets/quickbooks-admin-refinement.css';
+	$js_path         = $base_dir . '/assets/quickbooks-admin-sync.js';
+	$shared_css_path = $shared_dir . 'integration-control-center.css';
+	$shared_js_path  = $shared_dir . 'integration-control-center.js';
 
 	if ( is_readable( $css_path ) ) {
 		wp_enqueue_style(
