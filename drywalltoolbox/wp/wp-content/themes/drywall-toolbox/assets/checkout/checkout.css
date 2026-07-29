@@ -197,16 +197,30 @@ body.woocommerce-checkout .screen-reader-text {
 }
 
 .dtb-checkout__step-dot {
-	width: 18px;
-	height: 18px;
+	width: 20px;
+	height: 20px;
 	border-radius: 999px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 10px;
+	font-size: 11px;
 	font-weight: 700;
 	background: var(--dtb-surface-muted);
 	color: var(--dtb-text-muted);
+}
+
+/* Number shows for upcoming/active steps; a checkmark replaces it once a
+ * step is done, matching the reference mockup's green check circles. */
+.dtb-checkout__step-dot-check {
+	display: none;
+}
+
+.dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot-number {
+	display: none;
+}
+
+.dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot-check {
+	display: block;
 }
 
 .dtb-checkout__step-label {
@@ -214,10 +228,11 @@ body.woocommerce-checkout .screen-reader-text {
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
+	color: var(--dtb-text-muted);
 }
 
-.dtb-checkout__step[data-state="active"] {
-	color: var(--dtb-text);
+.dtb-checkout__step[data-state="active"] .dtb-checkout__step-label {
+	color: var(--dtb-accent);
 }
 
 .dtb-checkout__step[data-state="active"] .dtb-checkout__step-dot {
@@ -225,7 +240,7 @@ body.woocommerce-checkout .screen-reader-text {
 	color: #fff;
 }
 
-.dtb-checkout__step[data-state="done"] {
+.dtb-checkout__step[data-state="done"] .dtb-checkout__step-label {
 	color: var(--dtb-text);
 }
 
