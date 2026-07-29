@@ -5,7 +5,7 @@
  * Loads all platform modules in dependency order.
  * This file is required by 00-dtb-loader.php.
  *
- * @package drywalltoolbox
+ * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -119,6 +119,7 @@ require_once $_dtb_platform . '/Admin/AdminCapabilities.php';
 require_once $_dtb_platform . '/Admin/AdminPageRegistry.php';
 require_once $_dtb_platform . '/Admin/AdminMenuRegistry.php';
 require_once $_dtb_platform . '/Admin/AdminAssets.php';
+require_once $_dtb_platform . '/Admin/AdminAssetPolicy.php';
 require_once $_dtb_platform . '/Admin/AdminCacheToolbar.php';
 require_once $_dtb_platform . '/Admin/AdminShell.php';
 require_once $_dtb_platform . '/Admin/AdminUi.php';
