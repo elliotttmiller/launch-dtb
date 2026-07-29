@@ -78,6 +78,26 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 	letter-spacing: -0.01em;
 }
 
+/* This theme ships no base stylesheet (it's headless/React-first), so it
+ * never defined the standard WordPress `.screen-reader-text` visually-hidden
+ * treatment that WooCommerce Blocks' own markup depends on (it uses this
+ * exact class — e.g. an accessible step heading prefix rendered alongside
+ * the visible "Contact information" title). Without it, that text renders
+ * on-screen, overlapping the visible heading. This is the standard WordPress
+ * core implementation. */
+body.woocommerce-checkout .screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(1px, 1px, 1px, 1px);
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
+}
+
 /* ---------------------------------------------------------------------------
  * 3. Branded top bar (dtb-checkout__topbar markup lives in native-checkout.php)
  * ------------------------------------------------------------------------- */
@@ -109,32 +129,27 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 	display: block;
 }
 
-.dtb-checkout__secure {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	font-size: 12px;
-	color: rgba(255, 255, 255, 0.75);
-}
-
-.dtb-checkout__secure svg {
-	width: 13px;
-	height: 13px;
-	flex: none;
-}
-
+/* Lock icon + the official Stripe wordmark image, no pill/border — a plain
+ * inline lockup so the top bar reads as [logo] ... [lock  Stripe wordmark]
+ * and nothing else. */
 .dtb-checkout__stripe-badge {
 	display: inline-flex;
 	align-items: center;
-	gap: 5px;
-	padding: 5px 10px;
-	border-radius: 999px;
-	background: rgba(255, 255, 255, 0.08);
-	border: 1px solid rgba(255, 255, 255, 0.14);
-	font-size: 11px;
-	font-weight: 600;
-	color: rgba(255, 255, 255, 0.85);
-	white-space: nowrap;
+	gap: 6px;
+	flex: none;
+}
+
+.dtb-checkout__stripe-badge svg {
+	width: 13px;
+	height: 13px;
+	flex: none;
+	color: rgba(255, 255, 255, 0.75);
+}
+
+.dtb-checkout__stripe-badge img {
+	height: 16px;
+	width: auto;
+	display: block;
 }
 
 /* ---------------------------------------------------------------------------
@@ -145,15 +160,20 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
  * hides, gates, or reorders a native field on its own — this is chrome
  * only. If checkout.js does not run, this markup is never inserted and the
  * page renders as the plain single-scroll Woo Blocks checkout.
+ *
+ * Deliberately not part of the dark top bar: its own light surface, its own
+ * (non-sticky) place in the document flow, and a bottom border — so it reads
+ * as page content under a compact header, not as more header.
  * ------------------------------------------------------------------------- */
 
 .dtb-checkout__steps {
 	display: flex;
 	justify-content: space-between;
 	gap: 4px;
-	padding: 12px var(--dtb-gutter) 4px;
-	background: var(--dtb-ink);
+	padding: 10px var(--dtb-gutter);
+	background: var(--dtb-surface);
 	border: 0;
+	border-bottom: 1px solid var(--dtb-border);
 }
 
 .dtb-checkout__step {
@@ -167,9 +187,9 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 6px;
-	padding: 4px 2px;
-	color: rgba(255, 255, 255, 0.45);
+	gap: 5px;
+	padding: 2px;
+	color: var(--dtb-text-muted);
 }
 
 .dtb-checkout__step:disabled {
@@ -177,27 +197,27 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 }
 
 .dtb-checkout__step-dot {
-	width: 22px;
-	height: 22px;
+	width: 18px;
+	height: 18px;
 	border-radius: 999px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 700;
-	background: rgba(255, 255, 255, 0.12);
-	color: rgba(255, 255, 255, 0.7);
+	background: var(--dtb-surface-muted);
+	color: var(--dtb-text-muted);
 }
 
 .dtb-checkout__step-label {
-	font-size: 11px;
+	font-size: 10px;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.03em;
 }
 
 .dtb-checkout__step[data-state="active"] {
-	color: #fff;
+	color: var(--dtb-text);
 }
 
 .dtb-checkout__step[data-state="active"] .dtb-checkout__step-dot {
@@ -206,7 +226,7 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
 }
 
 .dtb-checkout__step[data-state="done"] {
-	color: rgba(255, 255, 255, 0.85);
+	color: var(--dtb-text);
 }
 
 .dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot {
