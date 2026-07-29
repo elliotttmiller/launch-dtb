@@ -4,8 +4,8 @@
  *
  * Registered through the shared AdminPageRegistry (dtb_register_admin_page())
  * so this page participates in the same central AdminAssets enqueue pipeline,
- * design tokens, and dtb-brikpanel-components bridge layer as every other DTB
- * admin screen (Command Center, Orders, Repairs, Returns, QuickBooks, ...).
+ * design tokens, and shared integration control-center layer as the other DTB
+ * operational screens.
  *
  * @package drywall-toolbox
  */
@@ -15,10 +15,6 @@ defined( 'ABSPATH' ) || exit;
 const DTB_VEEQO_ADMIN_PAGE_SLUG = 'dtb-veeqo-control-center';
 
 add_action( 'init', 'dtb_veeqo_admin_register_page', 15 );
-// Queue wp-api-fetch *before* the central AdminAssets pipeline (default
-// priority 10) enqueues the dtb-veeqo-admin script, so wp-api-fetch is
-// earlier in the print queue — the module JS reads window.wp.apiFetch at
-// top-level and has no formal WP_Dependencies edge to wp-api-fetch.
 add_action( 'admin_enqueue_scripts', 'dtb_veeqo_admin_enqueue_api_fetch', 5 );
 add_action( 'admin_enqueue_scripts', 'dtb_veeqo_admin_localize_config', 20 );
 
@@ -57,6 +53,8 @@ function dtb_veeqo_admin_register_page(): void {
 
 	$assets_dir = dirname( __DIR__ ) . '/assets/';
 	$assets_url = content_url( 'mu-plugins/dtb-integrations/Veeqo/assets/' );
+	$shared_dir = dirname( dirname( __DIR__ ) ) . '/assets/';
+	$shared_url = content_url( 'mu-plugins/dtb-integrations/assets/' );
 
 	dtb_register_admin_page(
 		[
@@ -85,6 +83,12 @@ function dtb_veeqo_admin_register_page(): void {
 						'url'  => $assets_url,
 						'file' => 'veeqo-inventory-workspace.css',
 					],
+					[
+						'id'   => 'dtb-integration-control-center',
+						'dir'  => $shared_dir,
+						'url'  => $shared_url,
+						'file' => 'integration-control-center.css',
+					],
 				],
 				'js'  => [
 					[
@@ -99,6 +103,12 @@ function dtb_veeqo_admin_register_page(): void {
 						'url'  => $assets_url,
 						'file' => 'veeqo-inventory-workspace.js',
 					],
+					[
+						'id'   => 'dtb-integration-control-center',
+						'dir'  => $shared_dir,
+						'url'  => $shared_url,
+						'file' => 'integration-control-center.js',
+					],
 				],
 			],
 		]
@@ -112,8 +122,7 @@ function dtb_veeqo_admin_is_current_screen(): bool {
 
 /**
  * Localize runtime config onto the `dtb-veeqo-admin` script handle enqueued
- * by the central AdminAssets pipeline. Runs after the default-priority
- * pipeline enqueue so the handle already exists.
+ * by the central AdminAssets pipeline.
  */
 function dtb_veeqo_admin_localize_config(): void {
 	if ( ! dtb_veeqo_admin_is_current_screen() || ! current_user_can( 'manage_woocommerce' ) ) {
