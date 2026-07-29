@@ -2,11 +2,10 @@
 /**
  * QuickBooks Control Center layout and synchronization enhancements.
  *
- * Adds the "Synchronization operations" card as a scoped, properly-registered
- * stylesheet/script pair that depends on the primary `dtb-qbo-admin` handle
- * (declared via the page's AdminPageRegistry `assets` key). This runs at a
- * later priority than the central AdminAssets pipeline so the dependency
- * exists, and no longer injects styles through wp_add_inline_style('common').
+ * Adds the synchronization operations UI plus the shared DTB integration
+ * control-center presentation and visibility-aware live-health observer. The
+ * accounting projection itself remains queue-owned and idempotent; this layer
+ * observes readiness and exposes operator controls only.
  *
  * @package drywall-toolbox
  */
@@ -25,10 +24,14 @@ function dtb_qbo_admin_enqueue_enhancements(): void {
 		return;
 	}
 
-	$base_dir = dirname( __DIR__ );
-	$base_url = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
-	$css_path = $base_dir . '/assets/quickbooks-admin-refinement.css';
-	$js_path  = $base_dir . '/assets/quickbooks-admin-sync.js';
+	$base_dir          = dirname( __DIR__ );
+	$base_url          = content_url( 'mu-plugins/dtb-integrations/QuickBooks/assets/' );
+	$shared_dir        = dirname( dirname( dirname( __DIR__ ) ) ) . '/assets/';
+	$shared_url        = content_url( 'mu-plugins/dtb-integrations/assets/' );
+	$css_path          = $base_dir . '/assets/quickbooks-admin-refinement.css';
+	$js_path           = $base_dir . '/assets/quickbooks-admin-sync.js';
+	$shared_css_path   = $shared_dir . 'integration-control-center.css';
+	$shared_js_path    = $shared_dir . 'integration-control-center.js';
 
 	if ( is_readable( $css_path ) ) {
 		wp_enqueue_style(
@@ -39,12 +42,31 @@ function dtb_qbo_admin_enqueue_enhancements(): void {
 		);
 	}
 
+	if ( is_readable( $shared_css_path ) ) {
+		wp_enqueue_style(
+			'dtb-integration-control-center',
+			$shared_url . 'integration-control-center.css',
+			[ 'dtb-qbo-admin-refinement' ],
+			(string) filemtime( $shared_css_path )
+		);
+	}
+
 	if ( is_file( $js_path ) ) {
 		wp_enqueue_script(
 			'dtb-qbo-admin-sync',
 			$base_url . 'quickbooks-admin-sync.js',
 			[ 'dtb-qbo-admin' ],
 			(string) filemtime( $js_path ),
+			true
+		);
+	}
+
+	if ( is_file( $shared_js_path ) ) {
+		wp_enqueue_script(
+			'dtb-integration-control-center',
+			$shared_url . 'integration-control-center.js',
+			[ 'dtb-qbo-admin', 'dtb-qbo-admin-sync' ],
+			(string) filemtime( $shared_js_path ),
 			true
 		);
 	}
