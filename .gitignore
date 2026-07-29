@@ -124,18 +124,29 @@ wp-content/plugins/
 vendor/
 
 # ---------------------------------------------------------------
-# Schematic images — managed via WordPress Media Library (WebP)
-# ---------------------------------------------------------------
-# Run scripts/convert_schematics_to_webp.py to convert PNG/JPG → WebP.
-# Run scripts/upload_schematics_to_wp.py to upload to WP Media Library.
-# After confirming all images are live in WP, delete the originals locally
-# and these gitignore patterns will prevent them from being re-added.
+# Schematic diagram images — served exclusively from the WordPress Media
+# Library (see drywalltoolbox/wp/wp-content/mu-plugins/dtb-schematics and
+# frontend/src/hooks/useSchematicMedia.js). They must never be re-added
+# here as local build assets — that defeats the point of the WP-hosted
+# pipeline and bloats every dist build and file transfer.
 #
-# The schematic_data.json metadata files ARE tracked (small JSON, no binary).
+# NOTE: the actual local path is frontend/public/brands/, not public/brands/
+# — a prior version of this pattern was anchored to a path that doesn't
+# exist and silently matched nothing. Kept both anchors below.
+#
+# schematic_data.json metadata files ARE tracked (small JSON, no binary).
 public/brands/*/Schematics/**/*.png
 public/brands/*/Schematics/**/*.jpg
 public/brands/*/Schematics/**/*.jpeg
 public/brands/*/Schematics/**/*.webp
+frontend/public/brands/*/Schematics/**/*.png
+frontend/public/brands/*/Schematics/**/*.jpg
+frontend/public/brands/*/Schematics/**/*.jpeg
+frontend/public/brands/*/Schematics/**/*.webp
+
+# Legacy/orphaned schematics tree — unreferenced by any build, workflow, or
+# runtime code. Diagram images live in the WP Media Library instead.
+/products/schematics/
 
 # Local backup directories (large binary files — not needed in the repo)
 # The originals live here after scripts/convert_schematics_to_webp.py backs them up.
