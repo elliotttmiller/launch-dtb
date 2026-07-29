@@ -236,7 +236,12 @@ if ( ! function_exists( 'dtb_quickbooks_sync_order' ) ) {
 					$entity_id = (string) ( $order->get_meta( '_dtb_quickbooks_entity_id', true ) ?: $order->get_meta( '_dtb_qbo_receipt_id', true ) );
 					return [ 'status' => 'already_synced', 'entity_id' => $entity_id ?: null, 'entity_type' => 'sales_receipt', 'message' => $message, 'retryable' => false ];
 				}
-				throw new DTB_Order_Integration_Exception( $message, ! in_array( $code, [ 'no_line_items', 'qbo_not_configured', 'already_synced' ], true ), 0 );
+				// 'qbo_not_connected' is the actual code dtb_qbo_sync_order()/dtb_qbo_sync_refund()
+				// return (see QuickBooksAccountingPipeline.php) — this previously read
+				// 'qbo_not_configured', a code that error path never emits, so a
+				// not-connected failure reaching this branch was incorrectly marked
+				// retryable instead of terminal.
+				throw new DTB_Order_Integration_Exception( $message, ! in_array( $code, [ 'no_line_items', 'qbo_not_connected', 'already_synced' ], true ), 0 );
 			}
 
 			$data      = is_array( $result ) ? $result : [];

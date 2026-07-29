@@ -67,6 +67,16 @@ final class DTB_QuickBooksAdminController {
 				'permission_callback' => [ self::class, 'can_manage' ],
 			]
 		);
+
+		register_rest_route(
+			self::REST_NAMESPACE,
+			'/admin/qbo/sync',
+			[
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => [ self::class, 'rest_sync_orders' ],
+				'permission_callback' => [ self::class, 'can_manage' ],
+			]
+		);
 	}
 
 	public static function can_manage(): bool {
@@ -87,6 +97,37 @@ final class DTB_QuickBooksAdminController {
 			[
 				'ok'        => true,
 				'discovery' => $result,
+				'dashboard' => self::read_model(),
+			],
+			200
+		);
+	}
+
+	/**
+	 * Queue unsynced paid/fulfilled orders for QuickBooks sync (admin-surfaced
+	 * alias of dtb_operational_pipeline_queue_qbo_sync_orders(), which is also
+	 * called automatically right after a successful OAuth connect). Operators
+	 * use this to catch orders placed after that initial connect, or orders
+	 * whose retries were previously exhausted while credentials were missing.
+	 */
+	public static function rest_sync_orders( WP_REST_Request $request ): WP_REST_Response|WP_Error {
+		if ( ! function_exists( 'dtb_operational_pipeline_queue_qbo_sync_orders' ) ) {
+			return new WP_Error( 'qbo_sync_unavailable', __( 'QuickBooks order sync queue is unavailable.', 'drywall-toolbox' ), [ 'status' => 503 ] );
+		}
+
+		$limit  = absint( $request->get_param( 'limit' ) ?: 250 );
+		$result = dtb_operational_pipeline_queue_qbo_sync_orders( $limit, 'admin_control_center' );
+
+		if ( '' !== $result['error'] ) {
+			return new WP_Error( 'qbo_sync_unavailable', $result['error'], [ 'status' => 503 ] );
+		}
+
+		return new WP_REST_Response(
+			[
+				'ok'        => true,
+				'queued'    => $result['queued'],
+				'skipped'   => $result['skipped'],
+				'order_ids' => $result['order_ids'],
 				'dashboard' => self::read_model(),
 			],
 			200

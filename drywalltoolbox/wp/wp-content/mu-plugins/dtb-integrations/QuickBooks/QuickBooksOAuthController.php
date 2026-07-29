@@ -159,6 +159,27 @@ final class DTB_QuickBooksOAuthController {
 		if ( function_exists( 'dtb_ops_audit_log' ) ) {
 			dtb_ops_audit_log( 'qbo_oauth_connected', [ 'environment' => dtb_qbo_environment(), 'realm_suffix' => substr( $realm_id, -4 ) ] );
 		}
+
+		// Orders paid/fulfilled while QuickBooks was disconnected were terminally
+		// marked 'not_configured' (retryable: false — see OrderIntegrationContracts.php)
+		// and nothing re-queues them on its own. Without this, every order placed
+		// before the very moment credentials are entered stays permanently
+		// unsynced. Queue a backfill pass now, at the one moment we know the
+		// connection just became live. Uncapped by design here (default limit),
+		// bounded per-run at the source in dtb_operational_pipeline_queue_qbo_sync_orders();
+		// operators can also re-run this manually from the Workflow tab for orders
+		// that arrive later than this single pass.
+		if ( function_exists( 'dtb_operational_pipeline_queue_qbo_sync_orders' ) ) {
+			$backfill = dtb_operational_pipeline_queue_qbo_sync_orders( 250, 'oauth_connected' );
+			if ( function_exists( 'dtb_ops_audit_log' ) ) {
+				dtb_ops_audit_log( 'qbo_oauth_connect_backfill', [
+					'environment' => dtb_qbo_environment(),
+					'queued'      => (int) ( $backfill['queued'] ?? 0 ),
+					'skipped'     => (int) ( $backfill['skipped'] ?? 0 ),
+				] );
+			}
+		}
+
 		self::redirect_with_notice( 'connected' );
 	}
 

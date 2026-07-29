@@ -452,6 +452,11 @@
 	line-height: 1.35;
 }
 
+.dtb-qbo-item-discovered-hint {
+	color: var(--qbo-warning);
+	font-weight: 600;
+}
+
 .dtb-qbo-item-id {
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 	font-size: 12px;

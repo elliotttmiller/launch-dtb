@@ -63,6 +63,7 @@
 			refresh: false,
 			test: !connected,
 			discover: !connected,
+			sync: !connected,
 			connect: connected || !status.ready_for_connection,
 			disconnect: !connected,
 		};
@@ -144,7 +145,7 @@
 		});
 	};
 
-	const renderItems = (items) => {
+	const renderItems = (items, discoveryByKey = {}) => {
 		const container = query('[data-qbo-items]');
 		if (!container) {
 			return;
@@ -180,6 +181,19 @@
 			}
 			name.append(mappedName, expected);
 
+			// A locked (wp-config.php constant) mapping can only be satisfied by an
+			// exact ID match — it will never self-correct. If the last discovery run
+			// found the real item under a different ID (e.g. the constant still holds
+			// a placeholder), surface that real ID so the operator knows exactly what
+			// to paste into wp-config.php instead of guessing.
+			const discovered = discoveryByKey[item.key];
+			if (item.locked && !item.verified && discovered && discovered.id && discovered.id !== item.id) {
+				const hint = document.createElement('small');
+				hint.className = 'dtb-qbo-item-discovered-hint';
+				hint.textContent = `Discovered ID in connected company: ${discovered.id} — update the wp-config.php constant to this value.`;
+				name.append(hint);
+			}
+
 			const id = document.createElement('code');
 			id.className = 'dtb-qbo-item-id';
 			id.setAttribute('role', 'cell');
@@ -206,7 +220,7 @@
 		}
 	};
 
-	const render = (dashboard) => {
+	const render = (dashboard, discoveryItems = null) => {
 		state.dashboard = dashboard;
 		const status = dashboard.status || {};
 		const checks = dashboard.readiness?.checks || {};
@@ -225,7 +239,13 @@
 				: `${completeCount} of ${checkValues.length} required readiness checks are complete.`
 		);
 		renderChecks(checks);
-		renderItems(dashboard.items || []);
+		const discoveryByKey = {};
+		(discoveryItems || []).forEach((entry) => {
+			if (entry && entry.key) {
+				discoveryByKey[entry.key] = entry;
+			}
+		});
+		renderItems(dashboard.items || [], discoveryByKey);
 
 		setText('[data-qbo-company]', dashboard.company?.name || (connected ? 'Connected company' : 'Not connected'));
 		setText('[data-qbo-environment]', String(status.environment || config.environment || '—').toUpperCase());
@@ -303,11 +323,31 @@
 			setBusy(true);
 			try {
 				const result = await api('/items/discover', { method: 'POST', body: {} });
-				render(result.dashboard);
+				// discovery.items is a PHP associative array (keyed by role: product,
+				// shipping, discount, refund) — wp_json_encode serializes it as a JSON
+				// object, not an array, so it must be unwrapped with Object.values().
+				render(result.dashboard, Object.values(result.discovery?.items || {}));
 				const ready = Boolean(result.discovery?.ready);
 				showAlert(
 					ready ? config.labels.itemsMapped : 'Discovery completed, but one or more exact active Service items still require attention.',
 					ready ? 'success' : 'warning'
+				);
+			} finally {
+				setBusy(false);
+			}
+		},
+		sync: async () => {
+			clearAlert();
+			setBusy(true);
+			try {
+				const result = await api('/sync', { method: 'POST', body: {} });
+				render(result.dashboard);
+				const queued = Number(result.queued || 0);
+				showAlert(
+					queued > 0
+						? `Queued ${queued} order${queued === 1 ? '' : 's'} for QuickBooks sync. Processing runs through Action Scheduler.`
+						: 'No unsynced orders found — everything eligible is already queued or synced.',
+					'success'
 				);
 			} finally {
 				setBusy(false);
