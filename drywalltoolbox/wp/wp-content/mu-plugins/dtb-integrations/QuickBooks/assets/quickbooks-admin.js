@@ -63,6 +63,7 @@
 			refresh: false,
 			test: !connected,
 			discover: !connected,
+			sync: !connected,
 			connect: connected || !status.ready_for_connection,
 			disconnect: !connected,
 		};
@@ -308,6 +309,23 @@
 				showAlert(
 					ready ? config.labels.itemsMapped : 'Discovery completed, but one or more exact active Service items still require attention.',
 					ready ? 'success' : 'warning'
+				);
+			} finally {
+				setBusy(false);
+			}
+		},
+		sync: async () => {
+			clearAlert();
+			setBusy(true);
+			try {
+				const result = await api('/sync', { method: 'POST', body: {} });
+				render(result.dashboard);
+				const queued = Number(result.queued || 0);
+				showAlert(
+					queued > 0
+						? `Queued ${queued} order${queued === 1 ? '' : 's'} for QuickBooks sync. Processing runs through Action Scheduler.`
+						: 'No unsynced orders found — everything eligible is already queued or synced.',
+					'success'
 				);
 			} finally {
 				setBusy(false);
