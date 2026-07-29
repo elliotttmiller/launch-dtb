@@ -1,0 +1,385 @@
+/*
+ * DTB BrikPanel-native component system.
+ *
+ * Source-derived from the public BrikPanel component grammar: neutral #303030
+ * controls, #f1f1f1 page surface, #fff cards, #e3e3e3 borders, 0.5rem control
+ * radii, compact 0.8125rem controls, restrained shadows, and 782px wp-admin
+ * mobile behavior. Selectors are restricted to DTB screens and DTB roots.
+ */
+
+body.dtb-admin-screen.dtb-brikpanel-components {
+	--dtb-bp-bg: var(--brikpanel-bg, #f1f1f1);
+	--dtb-bp-card: var(--brikpanel-card, #ffffff);
+	--dtb-bp-text: var(--brikpanel-text, #303030);
+	--dtb-bp-text-secondary: var(--brikpanel-text-secondary, #616161);
+	--dtb-bp-text-muted: var(--brikpanel-text-muted, #8a8a8a);
+	--dtb-bp-border: var(--brikpanel-border, #e3e3e3);
+	--dtb-bp-input-border: var(--brikpanel-input-border, #8a8a8a);
+	--dtb-bp-primary: var(--brikpanel-primary, #303030);
+	--dtb-bp-primary-hover: var(--brikpanel-primary-hover, #1a1a1a);
+	--dtb-bp-hover: var(--brikpanel-hover-bg, #f7f7f7);
+	--dtb-bp-success: #1a8917;
+	--dtb-bp-error: #d72c0d;
+	--dtb-bp-warning: #b45309;
+	--dtb-brand-blue: #1d4ed8;
+	--dtb-brand-amber: #f59e0b;
+	--dtb-bp-radius: 0.5rem;
+	--dtb-bp-radius-lg: 0.75rem;
+	--dtb-bp-control-height: 36px;
+	--dtb-bp-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+	--dtb-bp-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+	--dtb-bp-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+) {
+	max-width: none;
+	margin: 0;
+	color: var(--dtb-bp-text);
+	font-family: var(--dtb-bp-font);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+),
+body.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+) *,
+body.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+) *::before,
+body.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+) *::after {
+	box-sizing: border-box;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin-frame, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) {
+	width: 100%;
+	max-width: 1680px;
+	margin-inline: auto;
+	padding-inline: clamp(16px, 2vw, 28px);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-page-header, .dtb-admin-header, .dtb-qbo-hero, .dtb-veeqo-header) {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	padding-block: 1.25rem;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-page-header, .dtb-admin-header, .dtb-qbo-hero, .dtb-veeqo-header) h1 {
+	margin: 0;
+	padding: 0;
+	color: var(--dtb-bp-text);
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-card, .dtb-admin-card, .dtb-panel, .dtb-qbo-panel, .dtb-qbo-readiness, .dtb-qbo-connection, .dtb-veeqo-card, .dtb-stat-card) {
+	border: 1px solid var(--dtb-bp-border);
+	border-radius: var(--dtb-bp-radius-lg);
+	background: var(--dtb-bp-card);
+	box-shadow: var(--dtb-bp-card-shadow);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-card__header, .dtb-admin-card__header, .dtb-panel__header, .dtb-qbo-panel__header) {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1rem 1.125rem;
+	border-bottom: 1px solid var(--dtb-bp-border);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-card__body, .dtb-admin-card__body, .dtb-panel__body) {
+	padding: 1.125rem;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button, .dtb-button, button.dtb-action) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.375rem;
+	min-height: var(--dtb-bp-control-height);
+	padding: 0.5rem 1rem;
+	border: 0;
+	border-radius: var(--dtb-bp-radius);
+	font-family: var(--dtb-bp-font);
+	font-size: 0.8125rem;
+	font-weight: 550;
+	line-height: 1.3;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button-primary, .dtb-button--primary, button.dtb-action--primary) {
+	border-color: var(--dtb-bp-primary);
+	background: var(--dtb-bp-primary);
+	color: #fff;
+	box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button-primary, .dtb-button--primary, button.dtb-action--primary):hover,
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button-primary, .dtb-button--primary, button.dtb-action--primary):focus {
+	border-color: var(--dtb-bp-primary-hover);
+	background: var(--dtb-bp-primary-hover);
+	color: #fff;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button-secondary, .dtb-button--secondary) {
+	border: 1px solid var(--dtb-bp-border);
+	background: var(--dtb-bp-card);
+	color: var(--dtb-bp-text);
+	box-shadow: var(--dtb-bp-shadow);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button-secondary, .dtb-button--secondary):hover {
+	background: var(--dtb-bp-hover);
+	color: var(--dtb-bp-text);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button, .dtb-button, button.dtb-action):disabled,
+body.dtb-admin-screen.dtb-brikpanel-components :is(.button, .dtb-button, button.dtb-action)[aria-disabled="true"] {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="url"], input[type="password"], select, textarea) {
+	min-height: var(--dtb-bp-control-height);
+	padding: 8px 12px;
+	border: 1px solid var(--dtb-bp-border);
+	border-radius: var(--dtb-bp-radius);
+	background: var(--dtb-bp-card);
+	color: var(--dtb-bp-text);
+	font-family: var(--dtb-bp-font);
+	font-size: 0.8125rem;
+	line-height: 1.4;
+	outline: none;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(input, select, textarea):focus {
+	border-color: var(--dtb-bp-input-border);
+	box-shadow: 0 0 0 1px var(--dtb-bp-input-border);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components select {
+	padding-inline-end: 2rem;
+	background-position: right 0.5rem center;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-tabs, .dtb-admin-tabs, .dtb-qbo-tabs) {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex-wrap: wrap;
+	border: 0;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-tab, .dtb-admin-tab, .dtb-qbo-tab) {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	padding: 0.375rem 0.75rem;
+	border: 0;
+	border-radius: var(--dtb-bp-radius);
+	background: transparent;
+	color: var(--dtb-bp-text-secondary);
+	font-size: 0.8125rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 0.15s, color 0.15s;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-tab, .dtb-admin-tab, .dtb-qbo-tab):hover {
+	background: rgba(0, 0, 0, 0.05);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-tab, .dtb-admin-tab, .dtb-qbo-tab).is-active,
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-tab, .dtb-admin-tab, .dtb-qbo-tab)[aria-selected="true"] {
+	background: rgba(0, 0, 0, 0.08);
+	color: var(--dtb-bp-text);
+	font-weight: 600;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table-wrap, .dtb-admin-table-wrap, .dtb-qbo-item-table, .dtb-veeqo-table-wrap) {
+	max-width: 100%;
+	overflow-x: auto;
+	border: 1px solid var(--dtb-bp-border);
+	border-radius: var(--dtb-bp-radius-lg);
+	background: var(--dtb-bp-card);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) {
+	width: 100%;
+	border: 0;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: transparent;
+	color: var(--dtb-bp-text);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) thead th {
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid var(--dtb-bp-border);
+	background: var(--dtb-bp-hover);
+	color: var(--dtb-bp-text-secondary);
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-align: left;
+	white-space: nowrap;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) tbody td {
+	padding: 0.875rem 1rem;
+	border-bottom: 1px solid var(--dtb-bp-border);
+	vertical-align: middle;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) tbody tr:hover td {
+	background: var(--dtb-bp-hover);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-badge, .dtb-status, .dtb-qbo-state, .dtb-qbo-item-status, .dtb-pill) {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.25rem;
+	min-height: 1.375rem;
+	padding: 0 0.5rem;
+	border-radius: 1rem;
+	background: var(--dtb-bp-border);
+	color: var(--dtb-bp-text-secondary);
+	font-size: 0.75rem;
+	font-weight: 600;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.is-success, .status-success, .dtb-badge--success) {
+	color: var(--dtb-bp-success);
+}
+body.dtb-admin-screen.dtb-brikpanel-components :is(.is-error, .status-error, .dtb-badge--danger) {
+	color: var(--dtb-bp-error);
+}
+body.dtb-admin-screen.dtb-brikpanel-components :is(.is-warning, .status-warning, .dtb-badge--warning) {
+	color: var(--dtb-bp-warning);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-alert, .dtb-admin-alert, .dtb-notice) {
+	padding: 0.75rem 1rem;
+	border: 1px solid var(--dtb-bp-border);
+	border-inline-start: 3px solid var(--dtb-brand-blue);
+	border-radius: var(--dtb-bp-radius);
+	background: var(--dtb-bp-card);
+	color: var(--dtb-bp-text-secondary);
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-grid, .dtb-admin-grid, .dtb-stat-grid) {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 0.75rem;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-empty-state, .dtb-loading-state, .dtb-admin-empty-state) {
+	padding: 2rem 1rem;
+	border: 1px dashed var(--dtb-bp-border);
+	border-radius: var(--dtb-bp-radius-lg);
+	background: var(--dtb-bp-hover);
+	color: var(--dtb-bp-text-muted);
+	text-align: center;
+}
+
+body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) :focus-visible {
+	outline: 2px solid var(--dtb-brand-blue);
+	outline-offset: 2px;
+}
+
+@media screen and (max-width: 1100px) {
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-grid, .dtb-admin-grid, .dtb-stat-grid) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media screen and (max-width: 782px) {
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin-frame, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) {
+		max-width: none;
+		padding-inline: 10px;
+	}
+
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-page-header, .dtb-admin-header, .dtb-qbo-hero, .dtb-veeqo-header) {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-grid, .dtb-admin-grid, .dtb-stat-grid) {
+		grid-template-columns: 1fr;
+	}
+
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table-wrap, .dtb-admin-table-wrap, .dtb-qbo-item-table, .dtb-veeqo-table-wrap) {
+		-webkit-overflow-scrolling: touch;
+	}
+
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.button, .dtb-button, button.dtb-action) {
+		min-height: 40px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) *,
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) *::before,
+	body.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-admin, .dtb-qbo-admin, .dtb-veeqo-admin, .dtb-command-center, .dtb-system-manager) *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
