@@ -33,12 +33,16 @@
  * no such wrapper and is toggled directly. See classifyStepGroups() below.
  *
  * Step gating uses the platform's own HTML5 constraint validation
- * (checkValidity/reportValidity) against the fields *inside the active
- * step only*, plus the documented public WooCommerce Blocks data stores
- * (`wc/store/cart`, `wc/store/checkout`, `wc/store/validation` — see
- * WooCommerce Blocks third-party developer docs) to avoid advancing while
- * shipping/tax totals are recalculating or while Woo has flagged a field
- * invalid. No private/internal object graph is read.
+ * (checkValidity/reportValidity) against the fields *inside the active step
+ * only*, plus the documented public `wc/store/cart` and `wc/store/checkout`
+ * data stores to avoid advancing while shipping/tax totals are still
+ * recalculating. No private/internal object graph is read. An earlier
+ * version of this gate also checked `wc/store/validation`'s
+ * `hasValidationErrors()` — that selector is global across the *entire*
+ * checkout, not scoped to the step being left, so it reported true (and
+ * permanently blocked Continue with no visibly invalid field) as soon as any
+ * not-yet-visited step's required-but-empty fields existed anywhere in the
+ * form. Removed; the scoped HTML5 check above is sufficient.
  *
  * The Contact screen also collects first/last name via WooCommerce's
  * Additional Checkout Fields API (registered server-side in
@@ -224,11 +228,6 @@
 		return callSelector( cart, [ 'getHasCalculatedShipping', 'hasCalculatedShipping' ], false );
 	}
 
-	function hasStoreValidationErrors() {
-		var validation = selectStore( 'wc/store/validation' );
-		return callSelector( validation, [ 'hasValidationErrors' ], false );
-	}
-
 	/* -------------------------------------------------------------------
 	 * Native constraint validation, scoped to the fields visible in the
 	 * step being left — never touches fields belonging to other steps.
@@ -310,10 +309,6 @@
 				setStatus( 'Enter a complete shipping address before continuing.', 'error' );
 				return false;
 			}
-		}
-		if ( hasStoreValidationErrors() ) {
-			setStatus( 'Review the highlighted fields before continuing.', 'error' );
-			return false;
 		}
 		setStatus();
 		return true;
@@ -485,6 +480,7 @@
 	function goToStep( index, scroll ) {
 		activeStep = Math.max( 0, Math.min( index, STEPS.length - 1 ) );
 		highestVisited = Math.max( highestVisited, activeStep );
+		setStatus(); // Clear any error/progress message left over from the step being departed.
 		applyVisibility();
 		updateChrome();
 		if ( scroll ) {
