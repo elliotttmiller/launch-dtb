@@ -1,0 +1,72 @@
+/* DTB BrikPanel-native RTL adapter. Loaded only when WordPress is_rtl(). */
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(
+	.dtb-admin,
+	.dtb-qbo-admin,
+	.dtb-veeqo-admin,
+	.dtb-command-center,
+	.dtb-system-manager,
+	.dtb-repair-admin,
+	.dtb-returns-admin,
+	.dtb-marketplace-admin
+) {
+	direction: rtl;
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-page-header, .dtb-admin-header, .dtb-qbo-hero, .dtb-veeqo-header),
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-card__header, .dtb-admin-card__header, .dtb-panel__header, .dtb-qbo-panel__header) {
+	text-align: right;
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components select {
+	padding-right: 0.75rem;
+	padding-left: 2rem;
+	background-position: left 0.5rem center;
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-table, .dtb-admin-table, table.widefat) thead th {
+	text-align: right;
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-alert, .dtb-admin-alert, .dtb-notice) {
+	border-right-width: 3px;
+	border-right-color: var(--dtb-brand-blue);
+	border-left-width: 1px;
+	border-left-color: var(--dtb-bp-border);
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-drawer, .dtb-admin-drawer) {
+	right: auto;
+	left: 0;
+	transform: translateX(-100%);
+	box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-drawer, .dtb-admin-drawer).is-open {
+	transform: translateX(0);
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-toast-container, .dtb-admin-toast-container) {
+	right: auto;
+	left: 20px;
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-toast, .dtb-admin-toast) {
+	transform: translateX(-110%);
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-toast, .dtb-admin-toast).is-visible {
+	transform: translateX(0);
+}
+
+body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-toast-close, .dtb-admin-toast-close) {
+	margin-left: 0;
+	margin-right: auto;
+}
+
+@media screen and (max-width: 782px) {
+	body.rtl.dtb-admin-screen.dtb-brikpanel-components :is(.dtb-drawer, .dtb-admin-drawer) {
+		left: 0;
+		right: 0;
+	}
+}
