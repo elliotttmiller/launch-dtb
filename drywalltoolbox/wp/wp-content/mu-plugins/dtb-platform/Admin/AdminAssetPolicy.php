@@ -95,7 +95,12 @@ function dtb_admin_asset_policy_enforce(): void {
 
 	$bridge_file = __DIR__ . '/assets/dtb-brikpanel-bridge.css';
 	if ( is_readable( $bridge_file ) ) {
-		$dependencies = array_values( array_filter( $required_styles, static fn( string $handle ): bool => wp_style_is( $handle, 'registered' ) ) );
+		$dependencies = array_values(
+			array_filter(
+				$required_styles,
+				static fn( string $handle ): bool => wp_style_is( $handle, 'registered' )
+			)
+		);
 		wp_enqueue_style(
 			'dtb-brikpanel-bridge',
 			plugin_dir_url( __FILE__ ) . 'assets/dtb-brikpanel-bridge.css',
@@ -113,9 +118,16 @@ function dtb_admin_asset_policy_enforce(): void {
 		'bridge_loaded' => wp_style_is( 'dtb-brikpanel-bridge', 'enqueued' ),
 	];
 
-	if ( $missing && function_exists( 'dtb_log' ) ) {
-		dtb_log(
-			'warning',
+	if ( wp_script_is( 'dtb-admin', 'enqueued' ) ) {
+		wp_add_inline_script(
+			'dtb-admin',
+			'window.dtbAdminAssetDiagnostics=' . wp_json_encode( $GLOBALS['dtb_admin_asset_diagnostics'] ) . ';',
+			'before'
+		);
+	}
+
+	if ( $missing && class_exists( 'DTB_Logger' ) ) {
+		DTB_Logger::warning(
 			'DTB admin asset declaration is incomplete.',
 			[
 				'page'            => $GLOBALS['dtb_admin_asset_diagnostics']['page'],
