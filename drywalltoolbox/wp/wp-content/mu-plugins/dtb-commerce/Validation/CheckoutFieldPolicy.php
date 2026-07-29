@@ -101,7 +101,7 @@ final class DTB_CheckoutFieldPolicy {
 		woocommerce_register_additional_checkout_field(
 			[
 				'id'         => self::PHONE_FIELD,
-				'label'      => __( 'Phone (optional)', 'drywall-toolbox' ),
+				'label'      => __( 'Phone', 'drywall-toolbox' ), // WooCommerce appends "(optional)" itself for non-required fields.
 				'location'   => 'contact',
 				'type'       => 'text',
 				'required'   => false,
