@@ -89,8 +89,10 @@ dtb_integrations_require_files( [
 	'dtb-integrations/QuickBooks/QuickBooksItemMappingService.php',
 	'dtb-integrations/QuickBooks/QuickBooksOAuthController.php',
 	'dtb-integrations/QuickBooks/QuickBooksAdminController.php',
+	'dtb-integrations/QuickBooks/QuickBooksSyncAdminController.php',
 	'dtb-integrations/QuickBooks/QuickBooksWebhookController.php',
 	'dtb-integrations/QuickBooks/Admin/QuickBooksAdminPage.php',
+	'dtb-integrations/QuickBooks/Admin/QuickBooksAdminEnhancements.php',
 	'dtb-integrations/QuickBooks/QuickBooksSyncJob.php',
 	'dtb-integrations/QuickBooks/QuickBooksHealthCheck.php',
 ] );
