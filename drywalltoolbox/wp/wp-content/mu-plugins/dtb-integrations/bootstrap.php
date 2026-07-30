@@ -3,7 +3,6 @@
  * DTB Integrations bootstrap.
  *
  * Composition root for external-system integrations.
- * Rewards are intentionally not loaded for the initial production launch.
  *
  * @package drywalltoolbox
  */
@@ -71,7 +70,6 @@ dtb_integrations_require_files( [
 	'dtb-integrations/QuickBooks/QuickBooksEnterpriseController.php',
 	'dtb-integrations/QuickBooks/QuickBooksWebhookController.php',
 	'dtb-integrations/QuickBooks/Admin/QuickBooksAdminPage.php',
-	'dtb-integrations/QuickBooks/Admin/QuickBooksAdminEnhancements.php',
 	'dtb-integrations/QuickBooks/QuickBooksSyncJob.php',
 	'dtb-integrations/QuickBooks/QuickBooksHealthCheck.php',
 ] );
