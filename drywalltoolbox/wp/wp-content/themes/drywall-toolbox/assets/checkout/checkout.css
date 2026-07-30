@@ -420,6 +420,62 @@ body.woocommerce-checkout .wc-block-components-checkout-step__content {
 }
 
 /* ---------------------------------------------------------------------------
+ * 5b. Desktop two-column layout (>=1024px only).
+ *
+ * Below this breakpoint the checkout is unchanged: the mobile step wizard
+ * (checkout.js) still owns <768px, and 768–1023px still renders every step
+ * in a single flowing column exactly as it does today. None of the rules
+ * above this block, and none of the rules in section 4c's own 768px query,
+ * are touched here — this is a new, additive rule set gated behind a wider
+ * breakpoint than anything else in the file.
+ *
+ * `.wc-block-checkout__form` is the shared parent WooCommerce Blocks renders
+ * `.wc-block-checkout__main` (Contact/Shipping/Payment steps) and
+ * `.wc-block-checkout__sidebar` (Order summary) into — turning it into a
+ * grid lays them side by side without touching either region's own markup.
+ * ------------------------------------------------------------------------- */
+
+@media (min-width: 1024px) {
+	/* This theme ships no global box-sizing reset (see the screen-reader-text
+	 * comment in section 2), so padding-inline here must be explicitly kept
+	 * inside max-width rather than added on top of it under the browser
+	 * default content-box model. */
+	body.woocommerce-checkout #primary {
+		box-sizing: border-box;
+		max-width: 1180px;
+		padding-inline: var(--dtb-gutter);
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__form {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) 400px;
+		align-items: start;
+		gap: 32px;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__main,
+	body.woocommerce-checkout .wc-block-checkout__sidebar {
+		padding: 0;
+	}
+
+	/* Sidebar sticks under the sticky branded top bar while the main column
+	 * scrolls past it — `top` clears the top bar's height (logo + padding)
+	 * with room to spare; capped height + its own scroll keeps a long order
+	 * summary from running off the bottom of the viewport. */
+	body.woocommerce-checkout .wc-block-checkout__sidebar {
+		position: sticky;
+		top: 104px;
+		max-height: calc(100vh - 128px);
+		overflow-y: auto;
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-step {
+		padding: 24px 28px;
+		margin-bottom: 20px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
  * 6. Express payment row (Apple Pay / Google Pay / Link)
  * ------------------------------------------------------------------------- */
 
@@ -482,16 +538,57 @@ body.woocommerce-checkout .wc-block-components-validation-error {
 }
 
 /* ---------------------------------------------------------------------------
- * 8. Radio groups — shipping methods, saved cards
+ * 8. Radio groups — shipping methods, payment method list, saved cards
+ *
+ * WooCommerce core's own radio-control CSS reserves room for the radio dot
+ * via padding/positioning on `.wc-block-components-radio-control__option`
+ * that this file can't see or rely on (it ships from the WooCommerce plugin
+ * at runtime). Overriding that element's `padding` alone — as this file
+ * previously did — can collapse that reserved space and let the dot sit on
+ * top of the label text (this is what caused the Shipping options and
+ * Payment methods overlap). Explicitly rebuilding the row as a flex
+ * container with the input, label, and secondary label (price) as normal
+ * flex children — instead of trusting whatever positioning core applies —
+ * fixes it regardless of core's internal implementation.
  * ------------------------------------------------------------------------- */
 
 body.woocommerce-checkout .wc-block-components-radio-control__option,
 body.woocommerce-checkout .wc-block-checkout__shipping-method-option {
+	display: flex;
+	align-items: center;
+	gap: 12px;
 	min-height: var(--dtb-touch);
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-md);
 	margin-bottom: 8px;
 	padding: 12px 14px;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__input {
+	position: static;
+	flex: none;
+	width: 20px;
+	height: 20px;
+	margin: 0;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__label-group {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex: 1 1 auto;
+	min-width: 0;
+	gap: 10px;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__label,
+body.woocommerce-checkout .wc-block-components-radio-control__secondary-label {
+	min-width: 0;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__description {
+	flex-basis: 100%;
+	margin-top: 4px;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
