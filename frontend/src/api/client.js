@@ -18,12 +18,18 @@ let authExpiryCheckPromise = null;
 
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname : '';
 const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+const hostedPreview = /github\.io$/i.test(runtimeHost);
 const envApiBase = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/, '');
 
-export const API_BASE_URL =
-  envApiBase || (/github\.io$/i.test(runtimeHost) ? 'https://elliottm4.sg-host.com' : runtimeOrigin);
+// Production browser requests must remain first-party so the HttpOnly auth and
+// WooCommerce session cookies survive modern third-party-cookie restrictions.
+// A configured remote API is retained only for explicit hosted previews.
+export const API_BASE_URL = !hostedPreview && runtimeOrigin
+  ? runtimeOrigin
+  : (envApiBase || 'https://elliottm4.sg-host.com');
 
-const configuredWpBase = (process.env.REACT_APP_WP_BASE_URL || '').replace(/\/+$/, '');
+const configuredWpBaseRaw = (process.env.REACT_APP_WP_BASE_URL || '').replace(/\/+$/, '');
+const configuredWpBase = hostedPreview ? configuredWpBaseRaw : '';
 const WP_API_BASE = configuredWpBase
   ? (configuredWpBase.endsWith('/wp-json') ? configuredWpBase : `${configuredWpBase}/wp-json`)
   : `${API_BASE_URL}/wp-json`;
