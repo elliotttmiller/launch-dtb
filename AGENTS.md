@@ -310,15 +310,17 @@ Ask questions only when product intent, destructive action, credentials, deploym
 
 ## 16. Deployment contract
 
-GitHub is the implementation source of truth. SiteGround is a deployment target only.
+GitHub is the implementation source of truth. The official SiteGround Git repository tracked within the production `/wp` install is the sanctioned production deployment backend. Do not introduce a second deployment repository, alternate Git synchronization model, custom FTP/rsync engine, or any path that competes with or duplicates this system of record.
 
-Production file transfer is operator-managed through FileZilla outside the repository. The repository must not contain FTP, FTPS, SFTP, SSH, remote-write workflows, connection helpers, credential contracts, or transport-specific deployment code.
+Repository-owned deployment orchestration is permitted and expected: release planning, validation, backup, promotion, verification, history, and rollback may be implemented as first-class tooling (CI jobs, admin UI, connection/integration code) that drives the official SiteGround Git workflow. This supersedes any prior blanket prohibition on Git/SSH/SFTP deployment code. Manual FileZilla transfer remains an acceptable operator fallback but is no longer the exclusive sanctioned mechanism.
 
-Deploy only reviewed production artifacts assembled from canonical source. Before transfer, require independent file and database backups, verify the complete dependency-consistent change set, and define rollback. After transfer, clear required SiteGround caches and run runtime acceptance.
+Deploy only reviewed production releases traced from canonical source and expressed as immutable release manifests (commit/tag/branch/PR/module scoped) with full lifecycle visibility: plan, validate, back up, deploy, verify, record, and roll back. Every production promotion must be intentional, operator-initiated, capability-controlled, and fully observable — never triggered automatically on push or merge.
 
-Never overwrite WordPress core, `wp-config.php`, regular plugins, uploads, cache, logs, runtime secrets, uncontrolled database dumps, or server-owned state.
+Before promotion, require independent file and database backups, verify the complete dependency-consistent change set, enforce protected-path boundaries, and confirm rollback readiness. After promotion, clear required SiteGround caches and run automated plus operator runtime acceptance.
 
-Regular plugin installation/activation/deactivation is an operator action, not FileZilla source deployment.
+Never overwrite WordPress core, `wp-config.php`, regular plugins, uploads, cache, logs, runtime secrets, `sgs_encrypt_key.php`, uncontrolled database dumps, or other server-owned state. Never expose SiteGround Git, SSH, SFTP, or other deployment credentials in repository code, logs, admin UI, or documentation.
+
+Regular plugin installation/activation/deactivation remains an operator action, not repository-driven deployment.
 
 
 ## 18. Required final reporting
@@ -330,4 +332,4 @@ When repository files change, report:
 - database or migration impact;
 - deployment mechanism;
 - residual risks;
-- a FileZilla Deployment Runbook containing only operator steps for backup, artifact preparation, transfer scope, cache clearing, validation, and rollback, without credentials.
+- a Deployment Runbook containing only operator steps for backup, artifact preparation, release promotion scope, cache clearing, validation, and rollback, without credentials.

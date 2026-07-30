@@ -33,6 +33,7 @@ function dtb_admin_all_capabilities(): array {
 		'dtb_manage_support_settings',
 		'dtb_manage_system',
 		'dtb_manage_settings',
+		'dtb_manage_deployments',
 
 		// Marketplace
 		'dtb_view_marketplace',
@@ -114,6 +115,7 @@ function dtb_admin_role_capability_map(): array {
 			'dtb_manage_cache_tools',
 			'dtb_view_api_health',
 			'dtb_view_config_reference',
+			'dtb_manage_deployments',
 		],
 	];
 }

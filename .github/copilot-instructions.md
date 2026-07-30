@@ -19,7 +19,8 @@ Source wins. Update durable docs when architecture, routes, constants, queues, a
 
 - `frontend/`: React storefront. UI, routes, accessibility, client state, and API communication only.
 - `drywalltoolbox/wp/wp-content/mu-plugins/`: canonical backend business logic. Composition root `00-dtb-loader.php`.
-- Preserve module order: `dtb-platform`, `dtb-catalog-platform`, `dtb-commerce`, `dtb-order-platform`, `dtb-schematics`, `dtb-media`, `dtb-marketing`, `dtb-repair-service`, `dtb-integrations`, `dtb-support`, `dtb-returns`.
+- Preserve module order: `dtb-platform`, `dtb-catalog-platform`, `dtb-commerce`, `dtb-order-platform`, `dtb-schematics`, `dtb-media`, `dtb-marketing`, `dtb-repair-service`, `dtb-integrations`, `dtb-support`, `dtb-returns`, `dtb-deployment`.
+- `dtb-deployment`: Release Management — release event log, signed GitHub Actions webhook, GitHub API bridge (dispatch/drift), Deployment Center admin UI. Never holds SiteGround Git/SSH credentials; those live only in GitHub Actions secrets consumed by `.github/workflows/release-siteground.yml`.
 - `products/`: production catalog/taxonomy/media/schematic business data. Preserve stable identifiers.
 - `scripts/`: deterministic, repeatable, non-destructive operational tooling.
 - `drywalltoolbox/`: tracked SiteGround deployment source mirror. Never edit generated `dist/` as source.
