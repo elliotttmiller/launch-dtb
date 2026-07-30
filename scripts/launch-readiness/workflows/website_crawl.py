@@ -25,7 +25,7 @@ def run(config: "Config", browser: "Browser") -> StageResult:
     for path, label in ESSENTIAL_PAGES:
         url = f"{config.site_url}{path}"
 
-        def check(url=url, label=label):
+        def check(url=url, label=label, path=path):
             result = browser.visit(url, label)
             if result.error:
                 return Status.FAIL, f"{url} -> {result.error}"
@@ -34,6 +34,11 @@ def run(config: "Config", browser: "Browser") -> StageResult:
             if result.http_status >= 400:
                 return Status.WARN, f"{url} -> HTTP {result.http_status}"
             if result.body_char_count < 200:
+                if path in {"/cart", "/checkout"}:
+                    return Status.SKIP, (
+                        f"{url} -> HTTP {result.http_status}; expected empty guest-session "
+                        "surface because the crawl has no cart items"
+                    )
                 return Status.FAIL, f"{url} -> HTTP {result.http_status} but page appears blank ({result.body_char_count} chars)"
             if result.console_errors:
                 sample = "; ".join(result.console_errors[:3])

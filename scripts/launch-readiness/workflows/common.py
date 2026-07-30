@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
@@ -66,6 +66,30 @@ def resolve_product_url(config: "Config") -> str:
             f"{site.scheme}://{site.netloc}."
         )
     return url
+
+
+def order_id_from_confirmation_url(url: str) -> int | None:
+    """Recognize native Woo and DTB post-checkout confirmation routes."""
+
+    parsed = urlsplit(url)
+    path_match = re.search(
+        r"(?:order-received|order-tracking|order)/(\d+)(?:/|$)",
+        parsed.path,
+        re.I,
+    )
+    if not path_match:
+        return None
+
+    order_id = int(path_match.group(1))
+    if "/order-tracking/" not in parsed.path.lower():
+        return order_id
+
+    query = parse_qs(parsed.query)
+    order_key = (query.get("order_key") or [""])[0]
+    checkout_complete = (query.get("checkout_complete") or [""])[0]
+    if checkout_complete != "1" or not order_key.startswith("wc_order_"):
+        return None
+    return order_id
 
 
 def find_first_purchasable_product(page: "Page", config: "Config") -> ProductInfo:
@@ -278,11 +302,9 @@ def place_order(page: "Page", config: "Config") -> OrderConfirmation:
         ) from exc
 
     url = page.url
-    if not re.search(r"(order-received|/order/|thank-you)", url, re.I):
+    order_id = order_id_from_confirmation_url(url)
+    if order_id is None and not re.search(r"thank-you", url, re.I):
         raise CheckoutFlowError(f"Checkout navigated to an unexpected post-payment URL: {url}")
-
-    match = re.search(r"order-received/(\d+)|/order/(\d+)|order[-_]?id=(\d+)", url, re.I)
-    order_id = int(next(g for g in (match.groups() if match else []) if g)) if match else None
 
     body = page.inner_text("body")
     number_match = re.search(r"order\s*(?:number|#)\s*[:#]?\s*([A-Za-z0-9-]+)", body, re.I)
