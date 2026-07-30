@@ -408,9 +408,10 @@ function dtb_system_manager_collect_recent_activity( bool $can_system, bool $can
 			if ( '' === $ts ) {
 				continue;
 			}
+			$ts_unix = strtotime( $ts . ' UTC' ) ?: 0;
 			$items[] = [
-				'sort'  => strtotime( $ts ) ?: 0,
-				'time'  => dtb_time_ago( $ts ),
+				'sort'  => $ts_unix,
+				'time'  => sprintf( /* translators: %s: human-readable time difference */ __( '%s ago', 'drywall-toolbox' ), human_time_diff( $ts_unix ) ),
 				'title' => (string) ( $e['summary'] ?? $e['action'] ?? '' ),
 				'desc'  => '<code>' . esc_html( sanitize_key( (string) ( $e['module'] ?? '' ) ) ) . '</code>',
 				'badge' => 'muted',
