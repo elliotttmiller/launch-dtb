@@ -15,6 +15,7 @@ require_once $_dtb_order . '/Domain/OrderEvent.php';
 require_once $_dtb_order . '/Domain/OrderLifecycleStatus.php';
 require_once $_dtb_order . '/Domain/OrderTransition.php';
 require_once $_dtb_order . '/Domain/OrderTrackingProjection.php';
+require_once $_dtb_order . '/Email/OrderEmailIdempotency.php';
 require_once $_dtb_order . '/Infrastructure/OrderSchemaInstaller.php';
 require_once $_dtb_order . '/Infrastructure/OrderEventRepository.php';
 require_once $_dtb_order . '/Infrastructure/WooOrderStatusStore.php';

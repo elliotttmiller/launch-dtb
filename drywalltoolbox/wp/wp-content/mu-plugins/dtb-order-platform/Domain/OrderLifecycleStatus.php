@@ -68,7 +68,7 @@ function dtb_order_add_shipped_to_wc_order_statuses( array $statuses ): array {
 
 	return $new_statuses;
 }
-add_filter( 'woocommerce_order_statuses', 'dtb_order_add_shipped_to_wc_order_statuses' );
+add_filter( 'wc_order_statuses', 'dtb_order_add_shipped_to_wc_order_statuses' );
 
 function dtb_order_terminal_statuses(): array {
 return array_keys( array_filter( dtb_order_get_status_map(), static fn( $v ) => $v['is_terminal'] ) );

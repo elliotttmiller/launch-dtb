@@ -40,6 +40,26 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Veeqo mirrors fulfillment state; it is never the authority for the original
+ * paid-order confirmation email.
+ *
+ * The status update below is deliberately wrapped in a short-lived transient.
+ * Suppressing only while that marker is present prevents a Veeqo poll/webhook
+ * from re-sending WooCommerce's customer processing email while preserving the
+ * legitimate email sent by the payment/checkout lifecycle.
+ */
+add_filter( 'woocommerce_email_enabled_customer_processing_order', 'dtb_veeqo_suppress_processing_email_during_fulfillment_sync', -100, 3 );
+function dtb_veeqo_suppress_processing_email_during_fulfillment_sync( bool $enabled, $order, $email = null ): bool {
+	if ( ! $enabled || ! $order instanceof WC_Order ) {
+		return $enabled;
+	}
+
+	return get_transient( 'dtb_veeqo_webhook_updating_order_' . (int) $order->get_id() )
+		? false
+		: $enabled;
+}
+
+/**
  * Monotonic fulfillment rank per confirmed Veeqo order status.
  *
  * Only statuses confirmed against the docs above are ranked. Anything else
@@ -124,8 +144,10 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 	$tracking_carrier = sanitize_text_field( (string) ( $context['tracking_carrier'] ?? '' ) );
 	$correlation_key  = sanitize_text_field( (string) ( $context['correlation_key'] ?? '' ) );
 
-	$current_rank            = absint( $order->get_meta( '_dtb_veeqo_fulfillment_rank', true ) );
-	$previous_tracking_number = (string) $order->get_meta( '_dtb_veeqo_tracking_number', true );
+	$current_rank              = absint( $order->get_meta( '_dtb_veeqo_fulfillment_rank', true ) );
+	$previous_tracking_number  = (string) $order->get_meta( '_dtb_veeqo_tracking_number', true );
+	$previous_tracking_carrier = (string) $order->get_meta( '_dtb_veeqo_tracking_carrier', true );
+	$previous_status           = (string) $order->get_status();
 
 	if ( $rank < $current_rank ) {
 		if ( function_exists( 'dtb_order_append_event' ) ) {
@@ -151,24 +173,6 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		];
 	}
 
-	if ( $veeqo_order_id > 0 ) {
-		$order->update_meta_data( '_dtb_veeqo_order_id', $veeqo_order_id );
-		$order->update_meta_data( '_veeqo_order_id', $veeqo_order_id );
-	}
-	$order->update_meta_data( '_dtb_veeqo_fulfillment_rank', $rank );
-	if ( '' !== $correlation_key ) {
-		$order->update_meta_data( '_dtb_veeqo_correlation_key', $correlation_key );
-	}
-	if ( '' !== $tracking_number ) {
-		$order->update_meta_data( '_tracking_number', $tracking_number );
-		$order->update_meta_data( '_dtb_veeqo_tracking_number', $tracking_number );
-		if ( '' !== $tracking_carrier ) {
-			$order->update_meta_data( '_tracking_carrier', $tracking_carrier );
-			$order->update_meta_data( '_dtb_veeqo_tracking_carrier', $tracking_carrier );
-		}
-	}
-	$order->save_meta_data();
-
 	if ( function_exists( 'dtb_checkout_handoff_is_unpaid_order' ) && dtb_checkout_handoff_is_unpaid_order( $order ) && in_array( $wc_status, [ 'processing', 'shipped', 'completed' ], true ) ) {
 		return [
 			'applied'      => false,
@@ -179,10 +183,51 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		];
 	}
 
-	$rank_changed    = $rank > $current_rank;
-	$tracking_changed = '' !== $tracking_number && $tracking_number !== $previous_tracking_number;
-	$previous_status  = (string) $order->get_status();
-	$status_changed   = $previous_status !== $wc_status;
+	$rank_changed             = $rank > $current_rank;
+	$tracking_changed         = '' !== $tracking_number && $tracking_number !== $previous_tracking_number;
+	$tracking_carrier_changed = '' !== $tracking_carrier && $tracking_carrier !== $previous_tracking_carrier;
+	$identity_changed         = ( $veeqo_order_id > 0 && $veeqo_order_id !== absint( $order->get_meta( '_dtb_veeqo_order_id', true ) ) )
+		|| ( '' !== $correlation_key && $correlation_key !== (string) $order->get_meta( '_dtb_veeqo_correlation_key', true ) );
+
+	/*
+	 * A same-rank poll is not allowed to restore a WooCommerce status. Woo owns
+	 * payment/order lifecycle state and Veeqo owns fulfillment state. This is
+	 * the critical monotonicity rule that keeps a recurring poll from causing
+	 * repeated processing transitions and customer emails.
+	 */
+	$status_changed = $rank_changed && $previous_status !== $wc_status;
+
+	if ( ! $rank_changed && ! $tracking_changed && ! $tracking_carrier_changed && ! $identity_changed ) {
+		return [
+			'applied'        => false,
+			'result'         => 'no_change',
+			'wc_status'      => $wc_status,
+			'rank'           => $rank,
+			'veeqo_status'   => $veeqo_status,
+			'status_changed' => false,
+			'rank_changed'   => false,
+		];
+	}
+
+	if ( $veeqo_order_id > 0 ) {
+		$order->update_meta_data( '_dtb_veeqo_order_id', $veeqo_order_id );
+		$order->update_meta_data( '_veeqo_order_id', $veeqo_order_id );
+	}
+	if ( $rank_changed ) {
+		$order->update_meta_data( '_dtb_veeqo_fulfillment_rank', $rank );
+	}
+	if ( '' !== $correlation_key ) {
+		$order->update_meta_data( '_dtb_veeqo_correlation_key', $correlation_key );
+	}
+	if ( '' !== $tracking_number ) {
+		$order->update_meta_data( '_tracking_number', $tracking_number );
+		$order->update_meta_data( '_dtb_veeqo_tracking_number', $tracking_number );
+	}
+	if ( '' !== $tracking_carrier ) {
+		$order->update_meta_data( '_tracking_carrier', $tracking_carrier );
+		$order->update_meta_data( '_dtb_veeqo_tracking_carrier', $tracking_carrier );
+	}
+	$order->save_meta_data();
 
 	if ( $status_changed ) {
 		// Same transient key the (dead) webhook path used, so any other code
@@ -210,7 +255,7 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		] );
 	}
 
-	if ( ( $rank_changed || $tracking_changed ) && function_exists( 'dtb_order_append_event' ) ) {
+	if ( ( $rank_changed || $tracking_changed || $tracking_carrier_changed || $identity_changed ) && function_exists( 'dtb_order_append_event' ) ) {
 		dtb_order_append_event( $order_id, 'integration.veeqo.status_applied', [
 			'source'          => 'veeqo_' . $source,
 			'actor_type'      => 'veeqo',
@@ -231,7 +276,7 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		dtb_order_enqueue_job( 'dtb_order_send_notification', $order_id, [ 'template' => 'order-shipped' ] );
 	}
 
-	if ( ( $rank_changed || $tracking_changed ) && function_exists( 'dtb_order_enqueue_job' ) ) {
+	if ( ( $rank_changed || $tracking_changed || $tracking_carrier_changed ) && function_exists( 'dtb_order_enqueue_job' ) ) {
 		dtb_order_enqueue_job( 'dtb_order_refresh_tracking_projection', $order_id );
 	}
 

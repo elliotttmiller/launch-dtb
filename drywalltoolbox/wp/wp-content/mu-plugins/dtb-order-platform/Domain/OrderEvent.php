@@ -17,7 +17,7 @@ $customer_events = [
 $operator_events = [
 'order.payment_review_required','order.inventory_reservation_failed',
 'order.fulfillment_queued','integration.veeqo.queued','integration.veeqo.synced',
-'integration.veeqo.failed','integration.quickbooks.queued','integration.quickbooks.synced',
+'integration.veeqo.failed','integration.veeqo.polling_expired','integration.quickbooks.queued','integration.quickbooks.synced',
 'integration.quickbooks.failed','integration.rewards.queued','integration.rewards.issued',
 'integration.rewards.failed',
 ];

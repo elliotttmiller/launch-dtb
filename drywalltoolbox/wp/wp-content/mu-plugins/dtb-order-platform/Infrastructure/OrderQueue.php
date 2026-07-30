@@ -198,6 +198,9 @@ function dtb_order_job_sync_veeqo( int $order_id, array $args = [] ): void {
 			dtb_order_set_fulfillment_substate( $order_id, 'inventory_reserved' );
 		}
 
+		if ( function_exists( 'dtb_veeqo_order_status_poll_schedule_if_needed' ) ) {
+			dtb_veeqo_order_status_poll_schedule_if_needed( 2 * MINUTE_IN_SECONDS );
+		}
 		dtb_order_enqueue_job( 'dtb_order_refresh_tracking_projection', $order_id );
 	} catch ( Throwable $e ) {
 		$is_retryable = dtb_order_job_exception_retryable( $e );
@@ -333,6 +336,7 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 		error_log( "[DTB Orders] Skipping duplicate notification '{$template}' for order {$order_id}." );
 		return;
 	}
+	$delivery_attempted = false;
 	try {
 		$sent         = false;
 		$wc_email_map = [ 'order-confirmation' => 'WC_Email_Customer_Processing_Order', 'order-shipped' => 'WC_Email_Customer_Completed_Order', 'order-cancelled' => 'WC_Email_Customer_Note' ];
@@ -341,6 +345,13 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 			$email_class = $wc_email_map[ $template ];
 			foreach ( $mailer->get_emails() as $email ) {
 				if ( is_a( $email, $email_class ) ) {
+					/*
+					 * Once trigger() begins, delivery is uncertain if a later
+					 * callback throws. Retrying an uncertain email is less safe
+					 * than retaining the durable claim: SMTP may already have
+					 * accepted the message.
+					 */
+					$delivery_attempted = true;
 					$email->trigger( $order_id, $order );
 					$sent = true;
 					break;
@@ -351,9 +362,13 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 		dtb_order_append_event( $order_id, $notification_type, [ 'source' => 'cron', 'actor_type' => 'system', 'visibility' => 'customer', 'payload' => [ 'template' => $template, 'sent' => $sent ] ] );
 		dtb_order_update_integration_state( $order_id, 'notifications', [ 'template' => $template, 'sent' => $sent ] );
 	} catch ( Throwable $e ) {
-		dtb_order_release_notification_send( $order_id, $template );
 		error_log( "[DTB Orders] Notification '{$template}' failed for order {$order_id}: " . $e->getMessage() );
-		dtb_order_retry_job( 'dtb_order_send_notification', $order_id, $args );
+		if ( ! $delivery_attempted ) {
+			dtb_order_release_notification_send( $order_id, $template );
+			dtb_order_retry_job( 'dtb_order_send_notification', $order_id, $args );
+		} else {
+			error_log( "[DTB Orders] Notification '{$template}' delivery is uncertain for order {$order_id}; retained idempotency claim and did not retry." );
+		}
 	}
 }
 
