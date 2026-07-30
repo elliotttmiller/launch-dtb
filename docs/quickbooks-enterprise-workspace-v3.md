@@ -1,0 +1,1 @@
+Enterprise QuickBooks workspace implementation source. Final rollout requires a fresh branch from current main, CI, runtime visual validation, and sandbox reconciliation acceptance.
