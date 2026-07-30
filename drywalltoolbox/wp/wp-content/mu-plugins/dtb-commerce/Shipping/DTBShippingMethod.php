@@ -302,13 +302,17 @@ function dtb_commerce_zone_matches_us( WC_Shipping_Zone $zone ): bool {
  * zones are created on first admin visit even if woocommerce_init ran too
  * early during a non-WC request).
  *
- * The version gate prevents repeated DB writes on every request. When the
- * constant version is bumped the migration re-runs once and updates the option.
- *
- * SELF-HEALING: Even when the version matches, we do a lightweight check for
- * the Rest-of-World zone (zone 0) having a DTB method. This catches the case
- * where an admin accidentally removed the method without triggering a version
- * bump.
+ * SELF-HEALING: every run re-checks every real zone matching a US location
+ * (not just the Rest-of-World zone 0) and re-attaches the DTB method to any
+ * of them that are missing it, regardless of the version option. This
+ * previously short-circuited on zone 0 alone once the version option
+ * matched — a US zone that lost its DTB method (recreated by an admin,
+ * method removed, etc.) was never repaired because the zone-0 check
+ * returned before the US-zone loop ever ran, silently leaving checkout with
+ * whatever bare shipping method was left in that zone (e.g. a single flat
+ * "Free shipping" rate) instead of the Standard/Express/Overnight tiers.
+ * The version option is now only a write-avoidance signal, not a gate on
+ * whether the repair loop runs.
  */
 add_action( 'woocommerce_init', 'dtb_bootstrap_shipping_zones', 20 );
 add_action( 'admin_init', 'dtb_bootstrap_shipping_zones' );
@@ -319,13 +323,7 @@ function dtb_bootstrap_shipping_zones(): void {
 	}
 
 	$version_match = DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION === (string) get_option( 'dtb_shipping_zones_bootstrapped' );
-
-	if ( $version_match ) {
-		$row_zone = new WC_Shipping_Zone( 0 );
-		if ( dtb_commerce_zone_has_shipping_method( $row_zone ) ) {
-			return;
-		}
-	}
+	$repaired      = false;
 
 	$has_us_zone = false;
 	foreach ( (array) WC_Shipping_Zones::get_zones() as $zone_data ) {
@@ -337,6 +335,7 @@ function dtb_bootstrap_shipping_zones(): void {
 		$has_us_zone = true;
 		if ( ! dtb_commerce_zone_has_shipping_method( $zone ) ) {
 			$zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
+			$repaired = true;
 		}
 	}
 
@@ -347,12 +346,16 @@ function dtb_bootstrap_shipping_zones(): void {
 		$us_zone->add_location( 'US', 'country' );
 		$us_zone->save();
 		$us_zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
+		$repaired = true;
 	}
 
 	$row_zone = new WC_Shipping_Zone( 0 );
 	if ( ! dtb_commerce_zone_has_shipping_method( $row_zone ) ) {
 		$row_zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
+		$repaired = true;
 	}
 
-	update_option( 'dtb_shipping_zones_bootstrapped', DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION );
+	if ( $repaired || ! $version_match ) {
+		update_option( 'dtb_shipping_zones_bootstrapped', DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION );
+	}
 }

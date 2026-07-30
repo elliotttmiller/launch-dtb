@@ -110,10 +110,10 @@ body.woocommerce-checkout .screen-reader-text {
 	align-items: center;
 	justify-content: space-between;
 	gap: 12px;
-	padding: 14px var(--dtb-gutter);
+	padding: 20px var(--dtb-gutter);
 	background: var(--dtb-ink);
 	color: #fff;
-	padding-top: max(14px, env(safe-area-inset-top, 0px));
+	padding-top: max(20px, env(safe-area-inset-top, 0px));
 }
 
 .dtb-checkout__brand {
@@ -123,8 +123,11 @@ body.woocommerce-checkout .screen-reader-text {
 	line-height: 0;
 }
 
+/* Logo height scales with viewport so it reads clearly as the store's brand
+ * mark on mobile and grows further on tablet/desktop, rather than staying
+ * pinned to one small mobile-era size at every width. */
 .dtb-checkout__brand img {
-	height: 22px;
+	height: clamp(30px, 7vw, 40px);
 	width: auto;
 	display: block;
 }
@@ -140,16 +143,31 @@ body.woocommerce-checkout .screen-reader-text {
 }
 
 .dtb-checkout__stripe-badge svg {
-	width: 13px;
-	height: 13px;
+	width: 14px;
+	height: 14px;
 	flex: none;
 	color: rgba(255, 255, 255, 0.75);
 }
 
 .dtb-checkout__stripe-badge img {
-	height: 16px;
+	height: 18px;
 	width: auto;
 	display: block;
+}
+
+@media (min-width: 768px) {
+	.dtb-checkout__topbar {
+		padding-top: 24px;
+		padding-bottom: 24px;
+	}
+
+	.dtb-checkout__brand img {
+		height: 44px;
+	}
+
+	.dtb-checkout__stripe-badge img {
+		height: 20px;
+	}
 }
 
 /* ---------------------------------------------------------------------------
