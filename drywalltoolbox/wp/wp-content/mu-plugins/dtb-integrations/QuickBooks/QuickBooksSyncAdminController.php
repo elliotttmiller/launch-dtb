@@ -111,6 +111,7 @@ final class DTB_QuickBooksSyncAdminController {
 		$connected = function_exists( 'dtb_qbo_enabled' ) && dtb_qbo_enabled();
 		$mapped    = class_exists( 'DTB_QuickBooksItemMappingService' ) && DTB_QuickBooksItemMappingService::ready();
 		$queue     = function_exists( 'dtb_operational_pipeline_queue_qbo_sync_orders' );
+		$policy    = class_exists( 'DTB_QBO_AccountingLedger' ) ? DTB_QBO_AccountingLedger::policy() : [];
 
 		if ( ! $connected ) {
 			$blockers[] = __( 'QuickBooks is not connected.', 'drywall-toolbox' );
@@ -121,9 +122,12 @@ final class DTB_QuickBooksSyncAdminController {
 		if ( ! $queue ) {
 			$blockers[] = __( 'The canonical dtb-orders queue service is unavailable.', 'drywall-toolbox' );
 		}
+		if ( empty( $policy['tax_code_id'] ) ) {
+			$blockers[] = __( 'An accountant-approved QuickBooks transaction tax code is required.', 'drywall-toolbox' );
+		}
 
 		$placeholder_constants = [];
-		foreach ( [ 'PRODUCT', 'SHIPPING', 'DISCOUNT', 'REFUND' ] as $key ) {
+		foreach ( [ 'PRODUCT', 'SHIPPING', 'FEE', 'DISCOUNT', 'REFUND' ] as $key ) {
 			$constant = 'DTB_QBO_ITEM_' . $key . '_ID';
 			$value    = defined( $constant ) ? trim( (string) constant( $constant ) ) : '';
 			if ( '' !== $value && preg_match( '/^(PASTE_|REPLACE_|YOUR_|TODO|TBD)/i', $value ) ) {

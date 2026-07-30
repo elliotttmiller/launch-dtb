@@ -464,8 +464,13 @@ function dtb_qbo_rest_test_connection(): WP_REST_Response|WP_Error {
 	return is_wp_error( $result ) ? $result : new WP_REST_Response( [ 'ok' => true, 'company' => $result ], 200 );
 }
 
-function dtb_qbo_get_or_create_customer( WC_Order $order ): string {
+function dtb_qbo_get_or_create_customer( WC_Order $order ): string|WP_Error {
 	$user_id = (int) $order->get_user_id();
+	$order_cache_key = '_dtb_qbo_customer_id_' . dtb_qbo_environment();
+	$order_cached    = sanitize_text_field( (string) $order->get_meta( $order_cache_key, true ) );
+	if ( '' !== $order_cached ) {
+		return $order_cached;
+	}
 	if ( $user_id > 0 ) {
 		$cached = (string) get_user_meta( $user_id, '_dtb_qbo_customer_id_' . dtb_qbo_environment(), true );
 		if ( '' !== $cached ) {
@@ -474,24 +479,63 @@ function dtb_qbo_get_or_create_customer( WC_Order $order ): string {
 	}
 	$email = sanitize_email( $order->get_billing_email() );
 	if ( '' === $email ) {
-		return '';
+		return new WP_Error( 'qbo_customer_email_missing', 'A valid billing email is required for QuickBooks customer matching.', [ 'retryable' => false ] );
 	}
-	$safe_email = str_replace( "'", "''", $email );
-	$query = dtb_qbo_request( 'GET', '/query', [ 'query' => "SELECT Id FROM Customer WHERE PrimaryEmailAddr = '{$safe_email}' MAXRESULTS 1" ] );
-	$id = (string) ( $query['data']['QueryResponse']['Customer'][0]['Id'] ?? '' );
+	$safe_email = str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $email );
+	$query      = dtb_qbo_request( 'GET', '/query', [ 'query' => "SELECT * FROM Customer WHERE PrimaryEmailAddr = '{$safe_email}' MAXRESULTS 2" ] );
+	if ( empty( $query['ok'] ) ) {
+		return new WP_Error(
+			'qbo_customer_lookup_failed',
+			sanitize_text_field( (string) ( $query['error'] ?? 'QuickBooks customer lookup failed.' ) ),
+			[ 'retryable' => (bool) ( $query['retryable'] ?? true ) ]
+		);
+	}
+	$customers = (array) ( $query['data']['QueryResponse']['Customer'] ?? [] );
+	if ( count( $customers ) > 1 ) {
+		return new WP_Error( 'qbo_customer_ambiguous', 'Multiple QuickBooks customers use this billing email; accountant review is required.', [ 'retryable' => false ] );
+	}
+	$id = sanitize_text_field( (string) ( $customers[0]['Id'] ?? '' ) );
 	if ( '' === $id ) {
-		$name     = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
-		$external = $user_id > 0 ? 'DTB-C-' . $user_id : 'DTB-G-' . $order->get_id();
+		$name         = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+		$external     = $user_id > 0 ? 'DTB-C-' . $user_id : 'DTB-G-' . $order->get_id();
+		$display_name = substr( ( $name ?: 'DTB Customer' ) . ' [' . $external . ']', 0, 100 );
+		$safe_display = str_replace( [ '\\', "'" ], [ '\\\\', "\\'" ], $display_name );
+		$by_display   = dtb_qbo_request( 'GET', '/query', [ 'query' => "SELECT * FROM Customer WHERE DisplayName = '{$safe_display}' MAXRESULTS 2" ] );
+		if ( empty( $by_display['ok'] ) ) {
+			return new WP_Error( 'qbo_customer_lookup_failed', sanitize_text_field( (string) ( $by_display['error'] ?? 'QuickBooks customer identity lookup failed.' ) ), [ 'retryable' => (bool) ( $by_display['retryable'] ?? true ) ] );
+		}
+		$display_rows = (array) ( $by_display['data']['QueryResponse']['Customer'] ?? [] );
+		if ( count( $display_rows ) > 1 ) {
+			return new WP_Error( 'qbo_customer_ambiguous', 'Multiple QuickBooks customers match the deterministic DTB customer identity.', [ 'retryable' => false ] );
+		}
+		$id = sanitize_text_field( (string) ( $display_rows[0]['Id'] ?? '' ) );
+	}
+	if ( '' === $id ) {
+		$name         = trim( $order->get_billing_first_name() . ' ' . $order->get_billing_last_name() );
+		$external     = $user_id > 0 ? 'DTB-C-' . $user_id : 'DTB-G-' . $order->get_id();
+		$display_name = substr( ( $name ?: 'DTB Customer' ) . ' [' . $external . ']', 0, 100 );
 		$create = dtb_qbo_request( 'POST', '/customer', [], [
-			'DisplayName'      => substr( ( $name ?: 'DTB Customer' ) . ' [' . $external . ']', 0, 100 ),
+			'DisplayName'      => $display_name,
 			'GivenName'        => sanitize_text_field( $order->get_billing_first_name() ),
 			'FamilyName'       => sanitize_text_field( $order->get_billing_last_name() ),
 			'PrimaryEmailAddr' => [ 'Address' => $email ],
 		] );
-		$id = (string) ( $create['data']['Customer']['Id'] ?? '' );
+		if ( empty( $create['ok'] ) ) {
+			return new WP_Error(
+				'qbo_customer_create_failed',
+				sanitize_text_field( (string) ( $create['error'] ?? 'QuickBooks customer creation failed.' ) ),
+				[ 'retryable' => (bool) ( $create['retryable'] ?? false ) ]
+			);
+		}
+		$id = sanitize_text_field( (string) ( $create['data']['Customer']['Id'] ?? '' ) );
+		if ( '' === $id ) {
+			return new WP_Error( 'qbo_customer_invalid_success', 'QuickBooks did not return a customer ID.', [ 'retryable' => false ] );
+		}
 	}
-	if ( '' !== $id && $user_id > 0 ) {
+	if ( $user_id > 0 ) {
 		update_user_meta( $user_id, '_dtb_qbo_customer_id_' . dtb_qbo_environment(), $id );
 	}
+	$order->update_meta_data( $order_cache_key, $id );
+	$order->save_meta_data();
 	return $id;
 }

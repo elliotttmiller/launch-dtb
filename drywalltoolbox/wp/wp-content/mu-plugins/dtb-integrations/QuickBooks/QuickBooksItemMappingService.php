@@ -25,6 +25,11 @@ final class DTB_QuickBooksItemMappingService {
 				'label'       => __( 'Shipping', 'drywall-toolbox' ),
 				'description' => __( 'Customer shipping and delivery charges.', 'drywall-toolbox' ),
 			],
+			'fee'      => [
+				'name'        => 'DTB Order Fees',
+				'label'       => __( 'Order fees', 'drywall-toolbox' ),
+				'description' => __( 'WooCommerce surcharges and other customer-facing order fees.', 'drywall-toolbox' ),
+			],
 			'discount' => [
 				'name'        => 'DTB Discount',
 				'label'       => __( 'Discounts', 'drywall-toolbox' ),

@@ -33,8 +33,8 @@ if ( ! function_exists( 'dtb_pipeline_preview_order_payloads' ) ) {
 
 		$veeqo_payload = function_exists( 'dtb_veeqo_build_order_payload' ) ? dtb_veeqo_build_order_payload( $order ) : null;
 		$veeqo_order   = is_array( $veeqo_payload['order'] ?? null ) ? $veeqo_payload['order'] : [];
-		$qbo_lines     = function_exists( 'dtb_qbo_build_sales_lines_for_order' ) ? dtb_qbo_build_sales_lines_for_order( $order, false ) : [];
-		$qbo_refund    = function_exists( 'dtb_qbo_build_refund_lines_for_order' ) ? dtb_qbo_build_refund_lines_for_order( $order ) : [];
+		$qbo_preview   = class_exists( 'DTB_QBO_AccountingService' ) ? DTB_QBO_AccountingService::prepare_order( $order, false ) : [];
+		$qbo_lines     = is_array( $qbo_preview ) ? (array) ( $qbo_preview['body']['Line'] ?? [] ) : [];
 
 		$issues = [];
 		if ( null === $veeqo_payload ) {
@@ -64,9 +64,8 @@ if ( ! function_exists( 'dtb_pipeline_preview_order_payloads' ) ) {
 				'configured'       => function_exists( 'dtb_qbo_enabled' ) ? dtb_qbo_enabled() : false,
 				'sales_lines'      => $qbo_lines,
 				'sales_line_count' => count( $qbo_lines ),
-				'refund_endpoint'  => '/refundreceipt',
-				'refund_lines'     => $qbo_refund,
-				'refund_line_count'=> count( $qbo_refund ),
+				'payload_hash'     => is_array( $qbo_preview ) ? (string) ( $qbo_preview['payload_hash'] ?? '' ) : '',
+				'invariant_errors' => is_wp_error( $qbo_preview ) ? $qbo_preview->get_error_messages() : [],
 			],
 		];
 	}

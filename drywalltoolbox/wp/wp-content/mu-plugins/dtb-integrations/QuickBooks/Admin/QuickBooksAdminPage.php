@@ -70,18 +70,20 @@ function dtb_qbo_admin_render_page(): void {
 	}
 	$tabs = [
 		'overview' => [ __( 'Overview', 'drywall-toolbox' ), 'dashboard' ],
-		'transactions' => [ __( 'Sales', 'drywall-toolbox' ), 'cart' ],
-		'refunds' => [ __( 'Refunds', 'drywall-toolbox' ), 'undo' ],
-		'customers' => [ __( 'Customers', 'drywall-toolbox' ), 'groups' ],
-		'reconciliation' => [ __( 'Reconciliation', 'drywall-toolbox' ), 'yes-alt' ],
-		'activity' => [ __( 'Activity', 'drywall-toolbox' ), 'backup' ],
-		'settings' => [ __( 'Settings', 'drywall-toolbox' ), 'admin-generic' ],
+		'transactions' => [ __( 'Transactions', 'drywall-toolbox' ), 'list-view' ],
+		'exceptions' => [ __( 'Exceptions', 'drywall-toolbox' ), 'warning' ],
+		'tax' => [ __( 'Tax Center', 'drywall-toolbox' ), 'location-alt' ],
+		'settlement' => [ __( 'Settlement', 'drywall-toolbox' ), 'money-alt' ],
+		'reports' => [ __( 'Reports & Close', 'drywall-toolbox' ), 'media-spreadsheet' ],
+		'rules' => [ __( 'Rules', 'drywall-toolbox' ), 'filter' ],
+		'automation' => [ __( 'Automation', 'drywall-toolbox' ), 'controls-repeat' ],
+		'audit' => [ __( 'Audit', 'drywall-toolbox' ), 'shield' ],
 	];
 	?>
 	<div class="wrap dtb-qbo-admin" id="dtb-qbo-admin-root" aria-live="polite">
 		<header class="dtb-qbo-appbar">
-			<div class="dtb-qbo-brand"><span class="dtb-qbo-mark" aria-hidden="true">qb</span><div><h1><?php esc_html_e( 'QuickBooks', 'drywall-toolbox' ); ?></h1><p><?php esc_html_e( 'Accounting operations, synchronization, reconciliation, and controls.', 'drywall-toolbox' ); ?></p></div></div>
-			<div class="dtb-qbo-appbar__status"><span class="dtb-qbo-live"><i></i><?php esc_html_e( 'Local projection live', 'drywall-toolbox' ); ?></span><span data-qbo-last-refresh>—</span><button class="button" type="button" data-qbo-action="refresh"><?php esc_html_e( 'Refresh', 'drywall-toolbox' ); ?></button></div>
+			<div class="dtb-qbo-brand"><span class="dtb-qbo-mark" aria-hidden="true">qb</span><div><h1><?php esc_html_e( 'QuickBooks Accounting', 'drywall-toolbox' ); ?></h1><p><?php esc_html_e( 'Drywall Toolbox · accounting, tax, settlement, and close controls', 'drywall-toolbox' ); ?></p></div></div>
+			<div class="dtb-qbo-appbar__status"><span class="dtb-qbo-live"><i></i><?php esc_html_e( 'Projection ledger active', 'drywall-toolbox' ); ?></span><span data-qbo-last-refresh>—</span><a class="button" href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=dtb_qbo_accounting_export' ), 'dtb_qbo_accounting_export' ) ); ?>"><?php esc_html_e( 'Export', 'drywall-toolbox' ); ?></a><button class="button button-primary" type="button" data-qbo-action="refresh"><?php esc_html_e( 'Refresh', 'drywall-toolbox' ); ?></button></div>
 		</header>
 		<div class="dtb-qbo-alert" data-qbo-alert hidden role="status"></div>
 		<nav class="dtb-qbo-primary-nav" role="tablist" aria-label="<?php esc_attr_e( 'QuickBooks sections', 'drywall-toolbox' ); ?>">
@@ -90,23 +92,37 @@ function dtb_qbo_admin_render_page(): void {
 			<?php endforeach; ?>
 		</nav>
 		<main class="dtb-qbo-content">
-			<?php foreach ( [ 'overview', 'transactions', 'refunds', 'customers', 'reconciliation', 'activity' ] as $view ) : ?>
+			<div class="dtb-qbo-toolbar">
+				<label><span><?php esc_html_e( 'Search', 'drywall-toolbox' ); ?></span><input type="search" data-qbo-filter="search" placeholder="<?php esc_attr_e( 'Document, source, or QBO ID', 'drywall-toolbox' ); ?>"></label>
+				<label><span><?php esc_html_e( 'From', 'drywall-toolbox' ); ?></span><input type="date" data-qbo-filter="from"></label>
+				<label><span><?php esc_html_e( 'To', 'drywall-toolbox' ); ?></span><input type="date" data-qbo-filter="to"></label>
+				<label><span><?php esc_html_e( 'Saved view', 'drywall-toolbox' ); ?></span><select data-qbo-saved-view><option value="default"><?php esc_html_e( 'Default view', 'drywall-toolbox' ); ?></option><option value="month"><?php esc_html_e( 'This month', 'drywall-toolbox' ); ?></option><option value="attention"><?php esc_html_e( 'Needs attention', 'drywall-toolbox' ); ?></option></select></label>
+				<button class="button" type="button" data-qbo-action="apply-filters"><?php esc_html_e( 'Apply', 'drywall-toolbox' ); ?></button>
+				<button class="button" type="button" data-qbo-action="save-view"><?php esc_html_e( 'Save view', 'drywall-toolbox' ); ?></button>
+			</div>
+			<?php foreach ( array_keys( $tabs ) as $view ) : ?>
 			<section id="dtb-qbo-panel-<?php echo esc_attr( $view ); ?>" class="dtb-qbo-panel<?php echo 'overview' === $view ? ' is-active' : ''; ?>" role="tabpanel" aria-labelledby="dtb-qbo-tab-<?php echo esc_attr( $view ); ?>" data-qbo-panel="<?php echo esc_attr( $view ); ?>" <?php echo 'overview' === $view ? '' : 'hidden'; ?>>
-				<div class="dtb-qbo-panel__header"><div><h2 data-qbo-title><?php echo esc_html( $tabs[ $view ][0] ); ?></h2><p data-qbo-subtitle></p></div><div class="dtb-qbo-pagination" data-qbo-pagination hidden></div></div>
+				<div class="dtb-qbo-panel__header"><div><h2 data-qbo-title><?php echo esc_html( $tabs[ $view ][0] ); ?></h2><p data-qbo-subtitle><?php echo esc_html( dtb_qbo_admin_tab_description( $view ) ); ?></p></div><div class="dtb-qbo-panel__actions" data-qbo-panel-actions="<?php echo esc_attr( $view ); ?>"></div><div class="dtb-qbo-pagination" data-qbo-pagination hidden></div></div>
 				<div class="dtb-qbo-kpis" data-qbo-kpis hidden></div>
 				<div data-qbo-table="<?php echo esc_attr( $view ); ?>"><div class="dtb-qbo-loading"><span class="spinner is-active"></span><?php esc_html_e( 'Loading…', 'drywall-toolbox' ); ?></div></div>
 			</section>
 			<?php endforeach; ?>
-			<section id="dtb-qbo-panel-settings" class="dtb-qbo-panel" role="tabpanel" aria-labelledby="dtb-qbo-tab-settings" data-qbo-panel="settings" hidden>
-				<div class="dtb-qbo-settings-grid">
-					<section class="dtb-qbo-settings-card"><div class="dtb-qbo-panel__header"><div><h2><?php esc_html_e( 'Connection and readiness', 'drywall-toolbox' ); ?></h2><p><?php esc_html_e( 'Active environment, company, token, webhook, and accounting prerequisites.', 'drywall-toolbox' ); ?></p></div><span class="dtb-qbo-score" data-qbo-readiness-score>—</span></div><div class="dtb-qbo-connection-summary"><strong data-qbo-company>—</strong><span class="dtb-qbo-state" data-qbo-connection-state>—</span></div><dl class="dtb-qbo-facts"><div><dt><?php esc_html_e( 'Environment', 'drywall-toolbox' ); ?></dt><dd data-qbo-environment>—</dd></div><div><dt><?php esc_html_e( 'Realm', 'drywall-toolbox' ); ?></dt><dd data-qbo-realm>—</dd></div><div><dt><?php esc_html_e( 'Token expiration', 'drywall-toolbox' ); ?></dt><dd data-qbo-token>—</dd></div><div><dt><?php esc_html_e( 'Last verified', 'drywall-toolbox' ); ?></dt><dd data-qbo-verified>—</dd></div></dl><div class="dtb-qbo-actions"><button class="button" data-qbo-action="test"><?php esc_html_e( 'Test connection', 'drywall-toolbox' ); ?></button><button class="button button-primary" data-qbo-action="connect" hidden><?php esc_html_e( 'Connect QuickBooks', 'drywall-toolbox' ); ?></button><a class="button" data-qbo-open-link href="#" target="_blank" rel="noopener noreferrer" hidden><?php esc_html_e( 'Open QuickBooks', 'drywall-toolbox' ); ?></a></div><div class="dtb-qbo-checks" data-qbo-checks></div></section>
-					<section class="dtb-qbo-settings-card"><div class="dtb-qbo-panel__header"><div><h2><?php esc_html_e( 'Accounting mappings', 'drywall-toolbox' ); ?></h2><p><?php esc_html_e( 'Exact active QuickBooks Service items used by the accounting projection.', 'drywall-toolbox' ); ?></p></div><button class="button button-primary" data-qbo-action="discover"><?php esc_html_e( 'Discover and map', 'drywall-toolbox' ); ?></button></div><div data-qbo-items></div></section>
-					<section class="dtb-qbo-settings-card"><div class="dtb-qbo-panel__header"><div><h2><?php esc_html_e( 'Synchronization and recovery', 'drywall-toolbox' ); ?></h2><p><?php esc_html_e( 'Queue eligible captured-payment orders through the canonical dtb-orders pipeline.', 'drywall-toolbox' ); ?></p></div><button class="button button-primary" data-qbo-action="queue"><?php esc_html_e( 'Queue eligible orders', 'drywall-toolbox' ); ?></button></div><div data-qbo-sync-status></div><div class="dtb-qbo-links"><a data-qbo-orders-link href="#"><?php esc_html_e( 'WooCommerce orders', 'drywall-toolbox' ); ?></a><a data-qbo-scheduler-link href="#"><?php esc_html_e( 'Action Scheduler', 'drywall-toolbox' ); ?></a></div></section>
-					<section class="dtb-qbo-settings-card"><div class="dtb-qbo-panel__header"><div><h2><?php esc_html_e( 'Diagnostics', 'drywall-toolbox' ); ?></h2><p><?php esc_html_e( 'Redacted endpoints and environment controls.', 'drywall-toolbox' ); ?></p></div></div><div class="dtb-qbo-endpoints"><div><span><?php esc_html_e( 'OAuth redirect URI', 'drywall-toolbox' ); ?></span><code data-qbo-redirect>—</code><button class="button-link" data-qbo-copy="redirect"><?php esc_html_e( 'Copy', 'drywall-toolbox' ); ?></button></div><div><span><?php esc_html_e( 'Webhook endpoint', 'drywall-toolbox' ); ?></span><code data-qbo-webhook>—</code><button class="button-link" data-qbo-copy="webhook"><?php esc_html_e( 'Copy', 'drywall-toolbox' ); ?></button></div></div><div class="dtb-qbo-danger"><div><h3><?php esc_html_e( 'Disconnect this environment', 'drywall-toolbox' ); ?></h3><p><?php esc_html_e( 'Tokens and company connection state are cleared. Orders and QuickBooks records are not deleted.', 'drywall-toolbox' ); ?></p></div><button class="button" data-qbo-action="disconnect"><?php esc_html_e( 'Disconnect', 'drywall-toolbox' ); ?></button></div></section>
-				</div>
-			</section>
 		</main>
 	</div>
 	<noscript><div class="notice notice-error"><p><?php esc_html_e( 'The QuickBooks workspace requires JavaScript in wp-admin.', 'drywall-toolbox' ); ?></p></div></noscript>
 	<?php
+}
+
+function dtb_qbo_admin_tab_description( string $view ): string {
+	return [
+		'overview'     => __( 'Month-to-date accounting health and the latest projection activity.', 'drywall-toolbox' ),
+		'transactions' => __( 'Full-range sales, refunds, and accounting documents with QBO comparison.', 'drywall-toolbox' ),
+		'exceptions'   => __( 'Failed invariants, remote mismatches, and retryable operational failures.', 'drywall-toolbox' ),
+		'tax'          => __( 'Jurisdiction, rate, liability, exemption, and refund-reversal visibility.', 'drywall-toolbox' ),
+		'settlement'   => __( 'Stripe fees, payouts, clearing, deposits, and bank reconciliation evidence.', 'drywall-toolbox' ),
+		'reports'      => __( 'Read-only QuickBooks reports, period close, and accountant exports.', 'drywall-toolbox' ),
+		'rules'        => __( 'Accountant-approved tax, item, clearing, fee, deposit, and bank mappings.', 'drywall-toolbox' ),
+		'automation'   => __( 'Queue schedules, report refresh, settlement import, and health controls.', 'drywall-toolbox' ),
+		'audit'        => __( 'Immutable source identity, policy version, payload hash, trace, and review history.', 'drywall-toolbox' ),
+	][ $view ] ?? '';
 }

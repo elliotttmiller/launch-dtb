@@ -49,18 +49,26 @@ final class DTB_QuickBooksEnterpriseController {
 		$view    = sanitize_key( (string) $request->get_param( 'view' ) );
 		$page    = max( 1, absint( $request->get_param( 'page' ) ) );
 		$limit   = min( self::MAX_PAGE_SIZE, max( 1, absint( $request->get_param( 'limit' ) ) ) );
-		$allowed = [ 'overview', 'transactions', 'refunds', 'customers', 'reconciliation', 'activity' ];
+		$filters = [
+			'date_from' => sanitize_text_field( (string) $request->get_param( 'date_from' ) ),
+			'date_to'   => sanitize_text_field( (string) $request->get_param( 'date_to' ) ),
+			'search'    => sanitize_text_field( (string) $request->get_param( 'search' ) ),
+		];
+		$allowed = [ 'overview', 'transactions', 'exceptions', 'tax', 'settlement', 'reports', 'rules', 'automation', 'audit' ];
 		if ( ! in_array( $view, $allowed, true ) ) {
 			return new WP_Error( 'qbo_invalid_enterprise_view', 'Unsupported QuickBooks operations view.', [ 'status' => 400 ] );
 		}
 
 		$payload = match ( $view ) {
-			'overview'       => self::overview(),
-			'transactions'   => self::transactions( $page, $limit ),
-			'refunds'        => self::refunds( $page, $limit ),
-			'customers'      => self::customers( $page, $limit ),
-			'reconciliation' => self::reconciliation( $page, $limit ),
-			'activity'       => self::activity( $page, $limit ),
+			'overview'     => self::ledger_overview(),
+			'transactions' => self::ledger_view( $page, $limit, [], '', $filters ),
+			'exceptions'   => self::ledger_view( $page, $limit, [ 'exception', 'failed' ], '', $filters ),
+			'tax'          => self::tax_center(),
+			'settlement'   => self::ledger_view( $page, $limit, [], 'stripe_payout', $filters ),
+			'reports'      => self::reports(),
+			'rules'        => [ 'policy' => DTB_QBO_AccountingLedger::policy(), 'items' => array_values( DTB_QuickBooksItemMappingService::status() ) ],
+			'automation'   => self::automation(),
+			'audit'        => self::ledger_view( $page, $limit, [], '', $filters ),
 		};
 
 		return new WP_REST_Response(
@@ -72,6 +80,75 @@ final class DTB_QuickBooksEnterpriseController {
 			],
 			200
 		);
+	}
+
+	private static function ledger_overview(): array {
+		$to     = gmdate( 'Y-m-d' );
+		$from   = gmdate( 'Y-m-d', strtotime( '-30 days' ) );
+		$ledger = DTB_QBO_AccountingLedger::query( [ 'page' => 1, 'limit' => 8 ] );
+		return [
+			'metrics'    => DTB_QBO_AccountingLedger::metrics( $from, $to ),
+			'latest'     => $ledger['rows'],
+			'period'     => [ 'from' => $from, 'to' => $to ],
+			'connection' => DTB_QuickBooksAdminController::read_model(),
+		];
+	}
+
+	private static function ledger_view( int $page, int $limit, array $states = [], string $source_type = '', array $filters = [] ): array {
+		$args = array_merge( [ 'page' => $page, 'limit' => $limit ], array_filter( $filters ) );
+		if ( $states ) {
+			$args['states'] = $states;
+		}
+		if ( $source_type ) {
+			$args['source_type'] = $source_type;
+		}
+		return DTB_QBO_AccountingLedger::query( $args );
+	}
+
+	private static function tax_center(): array {
+		$totals        = [];
+		$collected     = 0.0;
+		$reversed      = 0.0;
+		$page          = 1;
+		do {
+			$result = DTB_QBO_AccountingLedger::query( [ 'page' => $page, 'limit' => 100 ] );
+			foreach ( $result['rows'] as $document ) {
+				$direction = (string) ( $document['direction'] ?? '' );
+				$collected += 'sale' === $direction ? (float) ( $document['tax_total'] ?? 0 ) : 0;
+				$reversed  += 'refund' === $direction ? (float) ( $document['refunded_tax'] ?? 0 ) : 0;
+				foreach ( (array) ( $document['taxes'] ?? [] ) as $tax ) {
+					$key = (string) ( $tax['rate_id'] ?? 0 ) . '|' . (string) ( $tax['label'] ?? 'Unclassified' );
+					if ( ! isset( $totals[ $key ] ) ) {
+						$totals[ $key ] = [ 'rateId' => absint( $tax['rate_id'] ?? 0 ), 'jurisdiction' => sanitize_text_field( (string) ( $tax['label'] ?? 'Unclassified' ) ), 'rate' => (float) ( $tax['rate_percent'] ?? 0 ), 'collected' => 0.0, 'reversed' => 0.0 ];
+					}
+					$totals[ $key ][ 'refund' === $direction ? 'reversed' : 'collected' ] += (float) ( $tax['total'] ?? 0 );
+				}
+			}
+			++$page;
+		} while ( $page <= (int) ( $result['pages'] ?? 1 ) );
+		$reports = get_option( dtb_qbo_option_name( 'accounting_reports' ), [] );
+		return [
+			'rows'          => array_values( $totals ),
+			'collected'     => DTB_QBO_AccountingMath::money( $collected ),
+			'reversed'      => DTB_QBO_AccountingMath::money( $reversed ),
+			'liability'     => DTB_QBO_AccountingMath::money( $collected - $reversed ),
+			'taxPreference' => (array) ( $reports['taxPreference'] ?? [] ),
+			'policy'        => DTB_QBO_AccountingLedger::policy(),
+		];
+	}
+
+	private static function reports(): array {
+		return (array) get_option( dtb_qbo_option_name( 'accounting_reports' ), [ 'reports' => [], 'refreshedAt' => '' ] );
+	}
+
+	private static function automation(): array {
+		return [
+			'policy'     => DTB_QBO_AccountingLedger::policy(),
+			'sync'       => DTB_QuickBooksSyncAdminController::read_model(),
+			'settlement' => (array) get_option( 'dtb_qbo_stripe_settlement_status', [ 'state' => 'never_run' ] ),
+			'cdc'        => (array) get_option( dtb_qbo_option_name( 'accounting_cdc_status' ), [ 'state' => 'never_run' ] ),
+			'queueGroup' => 'dtb-orders',
+		];
 	}
 
 	private static function overview(): array {

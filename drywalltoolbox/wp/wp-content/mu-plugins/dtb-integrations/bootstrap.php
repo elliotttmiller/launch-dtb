@@ -62,6 +62,10 @@ dtb_integrations_require_files( [
 ] );
 
 dtb_integrations_require_files( [
+	'dtb-integrations/QuickBooks/Accounting/AccountingMath.php',
+	'dtb-integrations/QuickBooks/Accounting/AccountingLedger.php',
+	'dtb-integrations/QuickBooks/Accounting/AccountingService.php',
+	'dtb-integrations/QuickBooks/Accounting/AccountingOperations.php',
 	'dtb-integrations/QuickBooks/QuickBooksConfig.php',
 	'dtb-integrations/QuickBooks/QuickBooksCustomerMapper.php',
 	'dtb-integrations/QuickBooks/QuickBooksInvoiceService.php',

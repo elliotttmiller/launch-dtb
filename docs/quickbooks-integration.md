@@ -79,16 +79,16 @@ state = 64-character random hexadecimal value
 
 ## Required QuickBooks item references
 
-Four exact-name active Service items must exist in the connected QuickBooks
+Five exact-name active Service items must exist in the connected QuickBooks
 company before accounting sync can run: `DTB Product Sales`, `DTB Shipping`,
-`DTB Discount`, `DTB Refund` (see `DTB_QuickBooksItemMappingService::definitions()`).
+`DTB Order Fees`, `DTB Discount`, `DTB Refund` (see `DTB_QuickBooksItemMappingService::definitions()`).
 Missing references fail closed — sync will not create fallback or
 numeric-guessed line items.
 
 **Preferred: managed mapping via Discover and map.** Do not define
 `DTB_QBO_ITEM_*_ID` constants in `wp-config.php`. After connecting, open
-**wp-admin → QuickBooks → Configuration** and click **Discover and map**. This
-read-only operation queries the connected company for the four exact item
+**wp-admin → QuickBooks → Rules** and click **Discover service items**. This
+read-only operation queries the connected company for the five exact item
 names above and stores the matched IDs as WordPress options, scoped to the
 connected realm. It is idempotent, re-runnable, and re-verifies automatically
 if the connected company ever changes. This is the only path that requires no
@@ -113,6 +113,8 @@ define( 'DTB_QBO_ITEM_PRODUCT_ID', '<verified QBO product-sales item ID>' );
 define( 'DTB_QBO_ITEM_PRODUCT_NAME', 'DTB Product Sales' );
 define( 'DTB_QBO_ITEM_SHIPPING_ID', '<verified QBO shipping item ID>' );
 define( 'DTB_QBO_ITEM_SHIPPING_NAME', 'DTB Shipping' );
+define( 'DTB_QBO_ITEM_FEE_ID', '<verified QBO order-fee item ID>' );
+define( 'DTB_QBO_ITEM_FEE_NAME', 'DTB Order Fees' );
 define( 'DTB_QBO_ITEM_DISCOUNT_ID', '<verified QBO discount item ID>' );
 define( 'DTB_QBO_ITEM_DISCOUNT_NAME', 'DTB Discount' );
 define( 'DTB_QBO_ITEM_REFUND_ID', '<verified QBO refund item ID>' );
@@ -177,7 +179,7 @@ A worker failure must not create a completed deduplication marker. Exhausted ret
 6. Confirm the administrator status endpoint reports `webhook_verifier_configured: true` and `ready_for_connection: true`.
 7. Save the Intuit webhook configuration with CloudEvents enabled and only the allowlisted events selected.
 8. Complete OAuth through the administrator connect endpoint. This automatically queues (up to 250) any already-paid/fulfilled WooCommerce orders that have no QuickBooks record yet — including orders placed before this connection existed — so nothing already sitting in `not_configured` state is silently skipped.
-9. In the QuickBooks Control Center's Configuration tab, click **Discover and map** to resolve the four required Service items (see "Required QuickBooks item references" above). Do this before relying on sync for real orders — accounting lines fail closed without verified item references.
+9. In the QuickBooks Control Center's Rules tab, discover and approve the five required Service items (see "Required QuickBooks item references" above). Do this before relying on sync for real orders — accounting lines fail closed without verified item references.
 10. If more orders arrive later, or a specific order's sync failed and was fixed, use **Sync unsynced orders** on the Workflow tab to re-queue rather than waiting for the next connect event.
 
 Do not expose the verifier token or temporarily weaken signature enforcement during setup.

@@ -1,84 +1,68 @@
-# QuickBooks Enterprise Operations Workspace
+# QuickBooks Accounting Control Center
 
-## Ownership
+## Authority and scope
 
-- WooCommerce owns orders, captured payments, refunds, and customers.
-- DTB owns accounting eligibility, event-ledger state, queueing, retries, idempotency, reconciliation, and operator recovery.
-- QuickBooks owns the accounting projection.
+The control center is an administrator workspace over the DTB accounting projection. WooCommerce remains the source of truth for orders, tax, payments, and refunds. Payment Plugins for Stripe remains payment authority. QuickBooks receives accounting documents only. Stripe settlement access is read-only and cannot capture, refund, or otherwise affect a payment.
 
-All accounting writes remain queue-owned through `dtb-orders`.
+All external accounting writes and reporting imports run through Action Scheduler group `dtb-orders`. Browser actions can preview, filter, export, approve rules, or enqueue work; they do not perform a QuickBooks or Stripe write.
 
 ## Workspace
 
-Route:
+- **Overview** — 30-day sales, refunds, tax, Stripe fees, reconciliation, exceptions, and recent documents.
+- **Transactions** — indexed, full-range accounting ledger with Woo expected total, QBO total, variance, state, and trace.
+- **Exceptions** — invariant, customer-match, mapping, API, and remote comparison failures.
+- **Tax Center** — Woo tax jurisdiction/rate totals, collected tax, concrete refund reversals, net liability, QBO tax-preference detection, and approved tax-code policy.
+- **Settlement** — paid Stripe payouts, balance-transaction fees, clearing/deposit evidence, currency, arrival date, and request trace.
+- **Reports & Close** — queued read-only Profit and Loss, Balance Sheet, and Trial Balance snapshots; accountant CSV export; and a close gate that refuses unresolved or pending documents.
+- **Rules** — accountant-approved QBO item, tax, deposit, clearing, fee, and bank mappings. Rules are environment scoped, policy-versioned, and approval stamped.
+- **Automation** — `dtb-orders` health, daily report refresh, daily reconciliation setting, and settlement-import status.
+- **Audit** — source identity, document identity, totals, state, policy version, payload hash, trace, external state, and timestamps.
+
+The toolbar provides date/search filters and saved operational presets. Dry-run produces the exact pre-customer QBO payload and hash without a remote write. Reconcile, report refresh, settlement import, and backfill controls enqueue bounded work.
+
+## Correctness gate
+
+`DTB_QBO_AccountingService` snapshots authoritative WooCommerce totals excluding tax at line level, then applies Woo's exact transaction tax total once. It includes shipping and fees, preserves authoritative line `Amount`, and emits `Qty`/`UnitPrice` only when their multiplication rounds back to that amount. A document is rejected if:
+
+- required QBO item or tax references are unverified;
+- line plus tax total differs from the Woo document total;
+- a customer lookup fails or matches more than one QBO customer;
+- the date is in a closed period;
+- the retrieved QBO document differs in document number, currency, total, or total tax.
+
+Only an exact retrieved-QBO comparison marks the source order/refund synced. Run deterministic coverage with:
 
 ```text
-/wp/wp-admin/admin.php?page=dtb-quickbooks
+php scripts/tests/quickbooks-accounting-fixtures.php
 ```
 
-Primary sections:
+Fixtures cover coupons, fees, shipping tax, multiple tax rates, partial refunds, quantity rounding, guest arithmetic, multiple currencies, and an intentional total-invariant failure.
 
-- **Overview** — recent accounting volume, projection health, readiness, and latest orders.
-- **Sales** — WooCommerce orders and their SalesReceipt projection state.
-- **Refunds** — concrete refunds and RefundReceipt projection state.
-- **Customers** — bounded customer projection summary.
-- **Reconciliation** — paid orders not yet reconciled to a QuickBooks entity.
-- **Activity** — QuickBooks-related Action Scheduler activity in `dtb-orders`.
-- **Settings** — connection, readiness, accounting mappings, workflow, and diagnostics.
+## Ledger and migration
 
-Configuration, workflow, and diagnostics are consolidated under Settings. Operational tabs are reserved for production usage.
+The versioned `wp_dtb_accounting_documents` table is installed idempotently with `dbDelta`. Its natural key is active environment + hashed QBO realm + source type + source key. Indexes support order, state/time, transaction date, QBO entity, and external-state queries.
 
-## Live synchronization model
+The migration changes no WooCommerce, Stripe-provider, or QBO schema. Rollback restores the previous reviewed MU-plugin release. Preserve the table during rollback for audit and recovery; remove it only after an independent backup and a separately approved decommission.
 
-The browser polls the active bounded read model every 15 seconds while visible and refreshes immediately when the tab regains focus. This is near-real-time operator observability, not inline remote accounting execution.
+## Settlement configuration
 
-```text
-WooCommerce captured order/refund
-→ DTB event ledger and eligibility guards
-→ Action Scheduler group dtb-orders
-→ deterministic document-number reconciliation
-→ QuickBooks SalesReceipt or RefundReceipt
-→ read-after-write verification
-→ WooCommerce projection metadata
-```
+Define a server-only Stripe restricted key as `DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY` with only payout and balance-transaction read permissions. Never use or expose a browser key or checkout-provider secret. With no key, settlement automation reports `disabled` and makes no request.
 
-The application never creates QuickBooks accounting records directly from a browser request. Reconciliation controls only queue eligible work through the canonical pipeline.
+Payout import records the bank deposit amount and associated Stripe fees. Accountant-approved clearing, fee-expense, deposit, and bank mappings are retained as policy. This does not manufacture checkout state or bypass provider-owned WooCommerce refunds.
 
-## REST contracts
+## Deployment and acceptance
 
-```text
-GET  /wp-json/dtb/v1/admin/qbo/dashboard
-POST /wp-json/dtb/v1/admin/qbo/items/discover
-POST /wp-json/dtb/v1/admin/qbo/test
-POST /wp-json/dtb/v1/admin/qbo/connect
-POST /wp-json/dtb/v1/admin/qbo/disconnect
-GET  /wp-json/dtb/v1/admin/qbo/enterprise?view=<view>&limit=<1-100>&page=<n>
-POST /wp-json/dtb/v1/admin/qbo/sync/queue
-```
+Promote the dependency-consistent MU-plugin, documentation, and fixture set through the official SiteGround Git workflow. Production promotion is operator initiated and is never triggered automatically by push or merge.
 
-Enterprise views:
+Before promotion, create independent file and database backups and verify rollback readiness. After promotion, clear required SiteGround caches and PHP OPcache. Confirm:
 
-```text
-overview
-transactions
-refunds
-customers
-reconciliation
-activity
-```
+1. the ledger table installed with expected indexes;
+2. all nine tabs load for an administrator;
+3. a sandbox dry run passes for coupon, fee, shipping-tax, and multi-rate orders;
+4. one paid order and one partial refund produce exact QBO comparisons;
+5. an intentional mismatch is visible in Exceptions and is not marked synced;
+6. report and settlement actions appear in `dtb-orders`;
+7. the close gate refuses an open exception;
+8. CSV export contains hashes and traces but no customer PII or secrets.
 
-Every route requires an authenticated administrator and WordPress REST nonce behavior. Responses are redacted and do not expose OAuth tokens, secrets, full realm IDs, payment data, or server paths.
-
-## Bounded reads
-
-- Overview samples the 100 most recent orders.
-- Paginated transaction views default to 25 and cap at 100.
-- Customer aggregation is bounded to recent orders.
-- Activity is limited to recent `dtb-orders` actions and filtered to QuickBooks hooks.
-- No remote QuickBooks query is executed on every browser poll.
-
-## Deployment and rollback
-
-Deploy the complete dependency-consistent QuickBooks application change set from merged canonical source. Back up changed files and the database, transfer through FileZilla, clear SiteGround caches and PHP OPcache, then validate every workspace tab and one controlled sandbox projection.
-
-Rollback restores the previous QuickBooks admin page, enterprise controller, JavaScript, CSS, and integration bootstrap as one set. Do not delete WooCommerce records, event-ledger records, Action Scheduler history, OAuth state, mappings, or QuickBooks transactions.
+Rollback by promoting the prior immutable release through SiteGround Git, clearing caches, and verifying checkout plus `dtb-orders`. Do not delete Woo orders/refunds, QBO transactions, Action Scheduler history, OAuth state, accounting ledger rows, or Stripe records.
