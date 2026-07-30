@@ -21,7 +21,7 @@ cp .env.example .env                    # then fill in credentials
 ## Run
 
 ```bash
-python scripts/launch-readiness/main.py
+
 # or, from the repo root:
 python scripts/launch-readiness
 ```

@@ -18,6 +18,14 @@ $ ssh-keyscan -p 18765 giowm1315.siteground.biz 2>/dev/null
 Copy the entire line for:
   • GitHub Actions secret: SITEGROUND_GIT_KNOWN_HOSTS
 
+────────────────────────────────────────────────────────────────────────────
+STEP 2A: Register a Dedicated SiteGround Deployment Key
+
+Generate an unencrypted ED25519 key used only by GitHub Actions → SiteGround.
+  • Import the PUBLIC .pub line in SiteGround SSH Keys Manager > Add new.
+  • Store the PRIVATE key only in SITEGROUND_GIT_SSH_PRIVATE_KEY.
+  • Do NOT add this key under GitHub repository Deploy keys.
+
 
 STEP 3: Create GitHub Personal Access Token (PAT)
 ────────────────────────────────────────────────────────────────────────────
@@ -48,13 +56,13 @@ Create these (click "New repository secret" each time):
 
 ┌─ Secret 2 ───────────────────────────────────────────────────────────────┐
 │ Name:  SITEGROUND_GIT_BRANCH                                             │
-│ Value: main  (verify with SiteGround)                                    │
+│ Value: master  (verified from SiteGround remote HEAD on 2026-07-30)      │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ┌─ Secret 3 ───────────────────────────────────────────────────────────────┐
 │ Name:  SITEGROUND_GIT_SSH_PRIVATE_KEY                                    │
-│ Value: (Paste full SSH private key from SiteGround SSH Key Manager)      │
-│        Include -----BEGIN PRIVATE KEY----- and -----END PRIVATE KEY-----  │
+│ Value: (Paste the full unencrypted dedicated OpenSSH private key)        │
+│        Matching public key must be registered in SiteGround SSH Manager  │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ┌─ Secret 4 ───────────────────────────────────────────────────────────────┐

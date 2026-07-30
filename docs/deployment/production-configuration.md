@@ -24,6 +24,8 @@ openssl rand -hex 32
 - GitHub Actions secret: `DTB_DEPLOYMENT_WEBHOOK_SECRET`
 - wp-config.php constant: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (**must match exactly**)
 
+For the ignored local runtime file only, `.\scripts\deployment\configure-local-webhook-secret.ps1 -Rotate` generates one value in memory and updates both the local constant and GitHub Actions secret without logging it. It does not update SiteGround's live `wp-config.php`.
+
 Example output:
 ```
 a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1
@@ -41,6 +43,19 @@ Output:
 ```
 
 **Save the entire line** for GitHub Actions secret: `SITEGROUND_GIT_KNOWN_HOSTS`
+
+### Generate and Register a Dedicated SiteGround Deployment Key
+
+Generate a dedicated ED25519 key pair for the one-way GitHub Actions → SiteGround connection:
+
+```bash
+ssh-keygen -t ed25519 -a 100 -N '' -C 'dtb-siteground-github-actions' -f ~/.ssh/dtb-siteground-github-actions
+```
+
+- Keep the private file outside the repository. Store its complete contents only in `SITEGROUND_GIT_SSH_PRIVATE_KEY`.
+- Register the `.pub` line in SiteGround Site Tools → Devs → SSH Keys Manager → Add new → Import.
+- Do not add this key under GitHub repository **Deploy keys**. GitHub Actions reads this repository with its job-scoped `GITHUB_TOKEN`.
+- The dedicated automation key must be unencrypted because the workflow cannot prompt for a passphrase.
 
 ## Phase 2: Create GitHub Deployment Token (PAT)
 
@@ -70,12 +85,23 @@ Use for: `DTB_GITHUB_DEPLOYMENT_TOKEN` in wp-config.php
 | Secret Name | Value | Source |
 |---|---|---|
 | `SITEGROUND_GIT_REMOTE` | `ssh://u2350-gksz9clvygx0@giowm1315.siteground.biz:18765/home/customer/www/elliottm4.sg-host.com/public_html/wp` | Provided SiteGround URL |
-| `SITEGROUND_GIT_BRANCH` | `main` | Verify with SiteGround (typically `main` or `master`) |
-| `SITEGROUND_GIT_SSH_PRIVATE_KEY` | Full PEM-format SSH key | From SiteGround SSH Key Manager |
+| `SITEGROUND_GIT_BRANCH` | `master` | Verified from the production SiteGround Git remote HEAD on 2026-07-30 |
+| `SITEGROUND_GIT_SSH_PRIVATE_KEY` | Full unencrypted OpenSSH private key | Dedicated key whose public half is registered in SiteGround SSH Key Manager |
 | `SITEGROUND_GIT_KNOWN_HOSTS` | Output from ssh-keyscan (Phase 1) | Run command above |
 | `DTB_DEPLOYMENT_WEBHOOK_SECRET` | Hex string from openssl (Phase 1) | Must match wp-config.php |
 
 **Important:** Paste values exactly. No extra whitespace.
+
+### Protect the Production Environment
+
+The workflow's deploy and rollback jobs target the GitHub environment `siteground-production`. Configure it before the first dispatch with:
+
+- required reviewer: `elliotttmiller`;
+- prevent self-review: disabled, because the repository currently has one production operator;
+- wait timer: `0`;
+- no branch policy, because the workflow accepts an explicitly reviewed branch, tag, or commit SHA.
+
+This approval is separate from the workflow's typed `DEPLOY` or `ROLLBACK` confirmation and is required before the production job starts.
 
 ## Phase 4: Add wp-config.php Constants
 
@@ -207,9 +233,11 @@ Once you have a successful deployment:
 - Raw hex string — no special characters needed
 
 ### SiteGround SSH Authentication Failed
-- Verify `SITEGROUND_GIT_SSH_PRIVATE_KEY` includes full PEM header/footer
+- Verify `SITEGROUND_GIT_SSH_PRIVATE_KEY` includes the full OpenSSH header/footer and has no surrounding whitespace
+- Verify the key is unencrypted: `ssh-keygen -y -P "" -f /path/to/private-key`
+- Verify the matching `.pub` key is active in SiteGround SSH Key Manager
 - Verify `SITEGROUND_GIT_KNOWN_HOSTS` matches exactly (run ssh-keyscan again)
-- Check SiteGround SSH Key Manager that key is active
+- Do not add the SiteGround public key to GitHub repository Deploy keys
 
 ### Deployment Hangs
 - Check System Manager Overview for stuck status

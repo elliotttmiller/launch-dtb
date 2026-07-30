@@ -290,20 +290,26 @@ jobs:
 
       - name: Configure SiteGround Git SSH access
         shell: bash
+        env:
+          SITEGROUND_SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_GIT_SSH_PRIVATE_KEY }}
+          SITEGROUND_SSH_KNOWN_HOSTS: ${{ secrets.SITEGROUND_GIT_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           umask 077
-          echo "${{ secrets.SITEGROUND_GIT_SSH_PRIVATE_KEY }}" > ~/.ssh/siteground_deploy_key
+          printf '%s\n' "$SITEGROUND_SSH_PRIVATE_KEY" > ~/.ssh/siteground_deploy_key
           chmod 600 ~/.ssh/siteground_deploy_key
-          echo "${{ secrets.SITEGROUND_GIT_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$SITEGROUND_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/siteground_deploy_key
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-          git config --global core.sshCommand "ssh -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+
+          if ! ssh-keygen -y -P "" -f ~/.ssh/siteground_deploy_key > /dev/null 2>&1; then
+            echo "::error::SITEGROUND_GIT_SSH_PRIVATE_KEY must be a valid, unencrypted dedicated deployment key."
+            exit 1
+          fi
+
+          git config --global core.sshCommand \
+            "ssh -i $HOME/.ssh/siteground_deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
 
       - name: Report release_backup_started
         run: |
@@ -449,20 +455,26 @@ jobs:
 
       - name: Configure SiteGround Git SSH access
         shell: bash
+        env:
+          SITEGROUND_SSH_PRIVATE_KEY: ${{ secrets.SITEGROUND_GIT_SSH_PRIVATE_KEY }}
+          SITEGROUND_SSH_KNOWN_HOSTS: ${{ secrets.SITEGROUND_GIT_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           umask 077
-          echo "${{ secrets.SITEGROUND_GIT_SSH_PRIVATE_KEY }}" > ~/.ssh/siteground_deploy_key
+          printf '%s\n' "$SITEGROUND_SSH_PRIVATE_KEY" > ~/.ssh/siteground_deploy_key
           chmod 600 ~/.ssh/siteground_deploy_key
-          echo "${{ secrets.SITEGROUND_GIT_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf '%s\n' "$SITEGROUND_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
-          eval "$(ssh-agent -s)"
-          ssh-add ~/.ssh/siteground_deploy_key
-          echo "SSH_AUTH_SOCK=$SSH_AUTH_SOCK" >> "$GITHUB_ENV"
-          echo "SSH_AGENT_PID=$SSH_AGENT_PID" >> "$GITHUB_ENV"
-          git config --global core.sshCommand "ssh -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+
+          if ! ssh-keygen -y -P "" -f ~/.ssh/siteground_deploy_key > /dev/null 2>&1; then
+            echo "::error::SITEGROUND_GIT_SSH_PRIVATE_KEY must be a valid, unencrypted dedicated deployment key."
+            exit 1
+          fi
+
+          git config --global core.sshCommand \
+            "ssh -i $HOME/.ssh/siteground_deploy_key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
 
       - name: Report release_rollback_started
         env:

@@ -5,7 +5,10 @@ Use these values for the operator-controlled `/wp` release workflow. Never paste
 ## Phase 1 — Generate and register secrets
 
 - `DTB_DEPLOYMENT_WEBHOOK_SECRET`: generated and configured in the runtime `wp-config.php`; copy that exact 64-character hexadecimal value into the GitHub Actions secret of the same name.
+- For the ignored local runtime mirror only, `.\scripts\deployment\configure-local-webhook-secret.ps1 -Rotate` safely updates both the local constant and GitHub Actions secret. It does not update production.
 - `SITEGROUND_GIT_KNOWN_HOSTS`: run `ssh-keyscan -p 18765 giowm1315.siteground.biz` from a trusted network and save the complete verified host-key line as the GitHub Actions secret.
+- Register the dedicated unencrypted ED25519 key's `.pub` line in SiteGround Site Tools → Devs → SSH Keys Manager → Add new → Import. Store only its private half in `SITEGROUND_GIT_SSH_PRIVATE_KEY`.
+- Do not create a GitHub repository Deploy Key for this flow.
 
 ## Phase 2 — GitHub deployment token
 
@@ -22,8 +25,8 @@ Repository settings: `https://github.com/elliotttmiller/launch-dtb/settings/secr
 | Secret | Input |
 |---|---|
 | `SITEGROUND_GIT_REMOTE` | `ssh://u2350-gksz9clvygx0@giowm1315.siteground.biz:18765/home/customer/www/elliottm4.sg-host.com/public_html/wp` |
-| `SITEGROUND_GIT_BRANCH` | `main` — confirm against the SiteGround Git repository |
-| `SITEGROUND_GIT_SSH_PRIVATE_KEY` | Full SiteGround private key, including PEM header and footer |
+| `SITEGROUND_GIT_BRANCH` | `master` — verified from the production SiteGround Git remote HEAD on 2026-07-30 |
+| `SITEGROUND_GIT_SSH_PRIVATE_KEY` | Full unencrypted dedicated private key; matching public key registered in SiteGround |
 | `SITEGROUND_GIT_KNOWN_HOSTS` | Verified Phase 1 host-key line |
 | `DTB_DEPLOYMENT_WEBHOOK_SECRET` | Exact Phase 1 secret; must match `wp-config.php` |
 
@@ -42,7 +45,7 @@ Runtime file: `/home/customer/www/elliottm4.sg-host.com/public_html/wp-config.ph
 - Confirm all five GitHub Actions secrets exist.
 - Confirm the webhook values match exactly with no whitespace.
 - Confirm independent file and database backups and rollback readiness.
-- Confirm the `siteground-production` GitHub environment requires protected approval.
+- Confirm the `siteground-production` GitHub environment requires approval from `elliotttmiller`; self-review remains allowed while there is only one production operator.
 - Confirm the release scope is the dependency-consistent production `/wp` payload only.
 
 ## Phase 6 — Deploy
