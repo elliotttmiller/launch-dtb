@@ -38,7 +38,7 @@ final class DTB_OperationalPipelineHealthCheck {
 		$orders = wc_get_orders( [
 			'limit'      => max( 1, min( 500, $limit ) ),
 			'return'     => 'ids',
-			'status'     => [ 'pending', 'processing', 'completed', 'on-hold', 'cancelled', 'refunded', 'failed' ],
+			'status'     => [ 'pending', 'processing', 'shipped', 'completed', 'on-hold', 'cancelled', 'refunded', 'failed' ],
 			'meta_query' => [
 				[
 					'key'   => sanitize_key( $meta_key ),

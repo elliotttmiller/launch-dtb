@@ -318,7 +318,7 @@
     view.innerHTML = `
       <form class="dtb-veeqo-toolbar" id="dtb-veeqo-order-filters">
         <label class="dtb-veeqo-search"><span class="screen-reader-text">Search orders</span><input name="search" value="${esc(state[key].search)}" placeholder="Search order ID, email, or customer"></label>
-        ${select('status', state[key].status, [['','All statuses'],['processing','Processing'],['on-hold','On hold'],['completed','Completed'],['failed','Failed'],['cancelled','Cancelled']])}
+        ${select('status', state[key].status, [['','All statuses'],['processing','Processing'],['on-hold','On hold'],['shipped','Shipped'],['completed','Completed'],['failed','Failed'],['cancelled','Cancelled']])}
         <button type="submit" class="dtb-veeqo-button">Filter</button><button type="button" class="dtb-veeqo-button" data-action="clear-order-filters" data-list="${key}">Clear</button>
         <span class="dtb-veeqo-results-meta">${fmtNumber(data.total)} orders</span>
       </form>

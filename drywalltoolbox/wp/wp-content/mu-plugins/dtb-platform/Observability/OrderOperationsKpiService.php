@@ -678,7 +678,7 @@ function dtb_oo_inline_js(): string {
 
     function statusBadgeClass(status) {
         var completed = ['completed', 'closed', 'delivered', 'done'];
-        var active    = ['processing', 'in_progress', 'in-progress', 'parts_allocated', 'ready_to_ship'];
+        var active    = ['processing', 'shipped', 'in_progress', 'in-progress', 'parts_allocated', 'ready_to_ship'];
         var waiting   = ['pending', 'on-hold', 'awaiting_customer', 'reviewed', 'quoted', 'quote_accepted', 'submitted', 'approved'];
         var failed    = ['failed', 'cancelled', 'canceled', 'quote_declined', 'refunded'];
 

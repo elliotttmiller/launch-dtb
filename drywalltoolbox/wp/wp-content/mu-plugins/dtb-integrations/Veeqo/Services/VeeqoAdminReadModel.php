@@ -259,7 +259,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 	}
 
 	public static function order_summary(): array {
-		$statuses = [ 'processing', 'on-hold', 'completed', 'failed', 'cancelled' ];
+		$statuses = [ 'processing', 'shipped', 'on-hold', 'completed', 'failed', 'cancelled' ];
 		$counts   = [];
 		foreach ( $statuses as $status ) {
 			$counts[ str_replace( '-', '_', $status ) ] = function_exists( 'wc_orders_count' ) ? absint( wc_orders_count( $status ) ) : 0;

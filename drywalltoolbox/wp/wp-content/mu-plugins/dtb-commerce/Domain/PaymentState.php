@@ -73,7 +73,7 @@ function dtb_checkout_handoff_is_order_unpaid( WC_Order $order ): bool {
 	return dtb_checkout_handoff_is_order( $order )
 		&& (float) $order->get_total() > 0
 		&& ! dtb_checkout_handoff_has_captured_payment( $order )
-		&& ! in_array( (string) $order->get_status(), [ 'completed', 'cancelled', 'refunded', 'trash' ], true )
+		&& ! in_array( (string) $order->get_status(), [ 'shipped', 'completed', 'cancelled', 'refunded', 'trash' ], true )
 		&& ! in_array( sanitize_key( (string) $order->get_payment_method() ), [ 'cod', 'bacs', 'cheque' ], true );
 }
 
