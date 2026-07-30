@@ -58,6 +58,7 @@ require_once $_dtb_platform . '/Auth/AuthCookieCandidates.php';
 require_once $_dtb_platform . '/Auth/AuthRoutes.php';
 require_once $_dtb_platform . '/Auth/AuthCookieCanonicalization.php';
 require_once $_dtb_platform . '/Auth/AuthCookieRuntimeHardening.php';
+require_once $_dtb_platform . '/Auth/AdminLoginIdentityBoundary.php';
 
 // 5. Cache.
 require_once $_dtb_platform . '/Cache/CacheKeyBuilder.php';
