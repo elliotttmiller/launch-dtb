@@ -60,7 +60,7 @@ function dtb_release_known_event_types(): array {
  * @return string[]
  */
 function dtb_release_deployed_event_types(): array {
-	return [ DTB_RELEASE_EVENT_DEPLOYED, DTB_RELEASE_EVENT_ROLLED_BACK ];
+	return [ DTB_RELEASE_EVENT_DEPLOYED, DTB_RELEASE_EVENT_ROLLED_BACK, DTB_RELEASE_EVENT_ROLLED_BACK_AUTOMATICALLY ];
 }
 
 /**
@@ -81,11 +81,11 @@ function dtb_release_status_for_events( array $event_types ): string {
 	if ( isset( $present[ DTB_RELEASE_EVENT_ROLLED_BACK ] ) ) {
 		return 'rolled_back';
 	}
-	if ( isset( $present[ DTB_RELEASE_EVENT_ROLLBACK_STARTED ] ) ) {
-		return 'rolling_back';
-	}
 	if ( isset( $present[ DTB_RELEASE_EVENT_ROLLED_BACK_AUTOMATICALLY ] ) ) {
 		return 'auto_rolled_back';
+	}
+	if ( isset( $present[ DTB_RELEASE_EVENT_ROLLBACK_STARTED ] ) ) {
+		return 'rolling_back';
 	}
 	if ( isset( $present[ DTB_RELEASE_EVENT_FAILED ] ) ) {
 		return 'failed';

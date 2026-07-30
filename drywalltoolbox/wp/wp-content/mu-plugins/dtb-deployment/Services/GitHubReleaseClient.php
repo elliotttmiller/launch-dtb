@@ -21,6 +21,18 @@ defined( 'ABSPATH' ) || exit;
 const DTB_GITHUB_API_BASE = 'https://api.github.com';
 
 /**
+ * URL-encode a Git ref (branch, tag, or SHA) for use as a GitHub API path
+ * segment, without breaking branch names that legitimately contain slashes
+ * (e.g. "feature/foo") — each slash-delimited component is encoded
+ * individually and rejoined with literal "/" so GitHub's router still sees
+ * the ref's hierarchy, while special characters within a component
+ * (spaces, "#", "?", etc.) are safely escaped.
+ */
+function dtb_deployment_github_encode_ref( string $ref ): string {
+	return implode( '/', array_map( 'rawurlencode', explode( '/', $ref ) ) );
+}
+
+/**
  * Resolve GitHub integration configuration from wp-config.php constants.
  *
  * Required for any GitHub-backed Deployment Center feature (drift
@@ -125,7 +137,7 @@ function dtb_deployment_github_default_branch_head(): array {
 	}
 
 	$branch = sanitize_text_field( (string) ( $repo['data']['default_branch'] ?? 'main' ) );
-	$commit = dtb_deployment_github_request( 'GET', "/repos/{$cfg['owner']}/{$cfg['repo']}/commits/{$branch}" );
+	$commit = dtb_deployment_github_request( 'GET', "/repos/{$cfg['owner']}/{$cfg['repo']}/commits/" . dtb_deployment_github_encode_ref( $branch ) );
 	if ( ! $commit['ok'] ) {
 		return [ 'ok' => false, 'branch' => $branch, 'sha' => '', 'error' => $commit['error'] ];
 	}
@@ -155,7 +167,10 @@ function dtb_deployment_github_compare( string $base, string $head ): array {
 	}
 
 	$cfg    = dtb_deployment_github_config();
-	$result = dtb_deployment_github_request( 'GET', "/repos/{$cfg['owner']}/{$cfg['repo']}/compare/{$base}...{$head}" );
+	$result = dtb_deployment_github_request(
+		'GET',
+		"/repos/{$cfg['owner']}/{$cfg['repo']}/compare/" . dtb_deployment_github_encode_ref( $base ) . '...' . dtb_deployment_github_encode_ref( $head )
+	);
 
 	if ( ! $result['ok'] ) {
 		return [ 'ok' => false, 'ahead_by' => 0, 'behind_by' => 0, 'error' => $result['error'] ];

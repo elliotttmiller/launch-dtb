@@ -410,7 +410,7 @@ function dtb_system_manager_collect_recent_activity( bool $can_system, bool $can
 			}
 			$items[] = [
 				'sort'  => strtotime( $ts ) ?: 0,
-				'time'  => human_time_diff( strtotime( $ts ) ) . ' ago',
+				'time'  => dtb_time_ago( $ts ),
 				'title' => (string) ( $e['summary'] ?? $e['action'] ?? '' ),
 				'desc'  => '<code>' . esc_html( sanitize_key( (string) ( $e['module'] ?? '' ) ) ) . '</code>',
 				'badge' => 'muted',
@@ -427,7 +427,7 @@ function dtb_system_manager_collect_recent_activity( bool $can_system, bool $can
 				}
 				$items[] = [
 					'sort'  => strtotime( $ts . ' UTC' ) ?: 0,
-					'time'  => human_time_diff( strtotime( $ts . ' UTC' ) ) . ' ago',
+					'time'  => dtb_time_ago( $ts, true ),
 					'title' => sprintf( '%s — %s', $release['release_id'], dtb_release_status_label( dtb_release_status_for_events( [ (string) $event['event_type'] ] ) ) ),
 					'desc'  => '<code>' . esc_html( (string) $event['event_type'] ) . '</code>',
 					'badge' => str_contains( (string) $event['event_type'], 'failed' ) ? 'danger' : 'primary',

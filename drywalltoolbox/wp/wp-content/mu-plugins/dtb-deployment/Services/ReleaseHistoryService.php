@@ -61,10 +61,16 @@ function dtb_release_history_summarize( string $release_id, array $events ): arr
  */
 function dtb_release_history_get( int $limit = 50 ): array {
 	$release_ids = dtb_release_recent_release_ids( $limit );
-	$summaries   = [];
+	if ( empty( $release_ids ) ) {
+		return [];
+	}
+
+	// One batch query instead of one query per release.
+	$grouped   = dtb_release_events_for_many( $release_ids );
+	$summaries = [];
 
 	foreach ( $release_ids as $release_id ) {
-		$events = dtb_release_events_for( $release_id );
+		$events = $grouped[ $release_id ] ?? [];
 		if ( empty( $events ) ) {
 			continue;
 		}
@@ -125,10 +131,14 @@ function dtb_release_history_in_progress(): ?array {
  * Compare the currently deployed commit against the GitHub default branch
  * HEAD to report repository drift ("N commits available to deploy").
  *
+ * @param array<string,mixed>|null $current_production Pass the caller's
+ *        already-computed dtb_release_history_current_production() result
+ *        to avoid recomputing it (it scans release history); omit to have
+ *        this function compute it itself.
  * @return array{ok:bool, deployed_sha:string, github_branch:string, github_sha:string, ahead_by:int, error:string}
  */
-function dtb_release_history_drift(): array {
-	$current      = dtb_release_history_current_production();
+function dtb_release_history_drift( ?array $current_production = null ): array {
+	$current      = $current_production ?? dtb_release_history_current_production();
 	$deployed_sha = $current['commit_sha'] ?? '';
 
 	if ( ! dtb_deployment_github_enabled() ) {

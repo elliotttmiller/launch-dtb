@@ -57,9 +57,12 @@ final class DTB_DeploymentWebhookController {
 			return new WP_Error( 'dtb_deployment_webhook_invalid_event', 'Unknown or missing release event.', [ 'status' => 400 ] );
 		}
 
-		$context             = $payload;
-		$context['source']   = 'github_actions';
-		$recorded            = dtb_release_event_record( $release_id, $event_type, $context );
+		$context = self::allowlisted_context( $payload );
+		$recorded = dtb_release_event_record( $release_id, $event_type, $context );
+
+		if ( null === $recorded ) {
+			return new WP_Error( 'dtb_deployment_webhook_storage_failed', 'Failed to record release event.', [ 'status' => 503 ] );
+		}
 
 		if ( in_array( $event_type, dtb_release_deployed_event_types(), true ) ) {
 			self::purge_caches_after_deploy();
@@ -70,6 +73,40 @@ final class DTB_DeploymentWebhookController {
 		}
 
 		return new WP_REST_Response( [ 'ok' => true, 'recorded' => $recorded ], 200 );
+	}
+
+	/**
+	 * Extract and sanitize only the recognised metadata fields the release
+	 * workflow sends, rather than persisting the full, unbounded request
+	 * payload verbatim.
+	 *
+	 * @param array<string,mixed> $payload Decoded, signature-verified webhook body.
+	 * @return array<string,string>
+	 */
+	private static function allowlisted_context( array $payload ): array {
+		$allowed_keys = [
+			'ref_type',
+			'ref',
+			'commit_sha',
+			'actor',
+			'workflow_run_id',
+			'workflow_run_url',
+			'backup_ref',
+			'restored_ref',
+			'deploy_commit',
+			'restoring_release_id',
+			'restored_release_id',
+		];
+
+		$context = [];
+		foreach ( $allowed_keys as $key ) {
+			if ( isset( $payload[ $key ] ) && is_scalar( $payload[ $key ] ) ) {
+				$context[ $key ] = sanitize_text_field( (string) $payload[ $key ] );
+			}
+		}
+		$context['source'] = 'github_actions';
+
+		return $context;
 	}
 
 	/**

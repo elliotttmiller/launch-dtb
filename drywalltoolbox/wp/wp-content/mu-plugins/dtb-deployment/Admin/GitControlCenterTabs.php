@@ -43,7 +43,7 @@ function dtb_deployment_center_render_deployment_tab(): void {
 			'icon_color' => $current ? 'success' : 'neutral',
 		],
 		[
-			'value' => $current ? human_time_diff( strtotime( $current['updated_at'] . ' UTC' ) ) . ' ago' : '—',
+			'value' => $current ? dtb_time_ago( $current['updated_at'], true ) : '—',
 			'label' => __( 'Deployed', 'drywall-toolbox' ),
 			'icon'  => 'dashicons-clock',
 		],
@@ -140,7 +140,7 @@ function dtb_deployment_center_render_repository_tab(): void {
 		echo dtb_admin_ui_detail_row( __( 'Default Branch', 'drywall-toolbox' ), '<code>' . esc_html( $r['default_branch'] ) . '</code>' );
 		echo dtb_admin_ui_detail_row( __( 'Visibility', 'drywall-toolbox' ), dtb_admin_ui_badge( ucfirst( $r['visibility'] ), 'private' === $r['visibility'] ? 'neutral' : 'info' ) );
 		echo dtb_admin_ui_detail_row( __( 'Open Issues', 'drywall-toolbox' ), esc_html( (string) $r['open_issues_count'] ) );
-		echo dtb_admin_ui_detail_row( __( 'Last Push', 'drywall-toolbox' ), $r['pushed_at'] ? esc_html( human_time_diff( strtotime( $r['pushed_at'] ) ) . ' ago' ) : '—' );
+		echo dtb_admin_ui_detail_row( __( 'Last Push', 'drywall-toolbox' ), $r['pushed_at'] ? esc_html( dtb_time_ago( $r['pushed_at'] ) ) : '—' );
 		$body = ob_get_clean();
 		echo dtb_admin_ui_card( $body, [ 'title' => __( 'Repository', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
@@ -177,7 +177,7 @@ function dtb_deployment_center_render_repository_tab(): void {
 				esc_html( substr( $c['sha'], 0, 7 ) ),
 				esc_html( $c['message'] ),
 				esc_html( $c['author'] ?: '—' ),
-				$c['date'] ? esc_html( human_time_diff( strtotime( $c['date'] ) ) . ' ago' ) : '—'
+				$c['date'] ? esc_html( dtb_time_ago( $c['date'] ) ) : '—'
 			);
 		}
 		echo '</ul>';
@@ -217,7 +217,7 @@ function dtb_deployment_center_render_pull_requests_tab(): void {
 		echo '<td><code class="dtb-gcc-sha">' . esc_html( $pr['head'] ) . '</code> &rarr; <code class="dtb-gcc-sha">' . esc_html( $pr['base'] ) . '</code></td>';
 		echo '<td>' . esc_html( $pr['author'] ?: '—' ) . '</td>';
 		echo '<td>' . dtb_admin_ui_badge( $pr['draft'] ? __( 'Draft', 'drywall-toolbox' ) : __( 'Open', 'drywall-toolbox' ), $pr['draft'] ? 'neutral' : 'success' ) . '</td>';
-		echo '<td>' . ( $pr['updated_at'] ? esc_html( human_time_diff( strtotime( $pr['updated_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+		echo '<td>' . ( $pr['updated_at'] ? esc_html( dtb_time_ago( $pr['updated_at'] ) ) : '—' ) . '</td>';
 		echo '</tr>';
 	}
 	echo dtb_admin_ui_table_close();
@@ -257,7 +257,7 @@ function dtb_deployment_center_render_workflow_runs_tab(): void {
 		echo '<td>' . esc_html( $run['event'] ) . '</td>';
 		echo '<td>' . dtb_admin_ui_badge( $status_label, $badge_type ) . '</td>';
 		echo '<td>' . esc_html( $run['actor'] ?: '—' ) . '</td>';
-		echo '<td>' . ( $run['created_at'] ? esc_html( human_time_diff( strtotime( $run['created_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+		echo '<td>' . ( $run['created_at'] ? esc_html( dtb_time_ago( $run['created_at'] ) ) : '—' ) . '</td>';
 		echo '</tr>';
 	}
 	echo dtb_admin_ui_table_close();
@@ -285,7 +285,7 @@ function dtb_deployment_center_render_releases_tab(): void {
 				echo '<td><a href="' . esc_url( $r['html_url'] ) . '" target="_blank" rel="noopener noreferrer"><code>' . esc_html( $r['tag_name'] ) . '</code></a></td>';
 				echo '<td>' . esc_html( $r['name'] ?: '—' ) . '</td>';
 				echo '<td>' . dtb_admin_ui_badge( $r['draft'] ? __( 'Draft', 'drywall-toolbox' ) : ( $r['prerelease'] ? __( 'Pre-release', 'drywall-toolbox' ) : __( 'Published', 'drywall-toolbox' ) ), $r['draft'] ? 'neutral' : ( $r['prerelease'] ? 'warning' : 'success' ) ) . '</td>';
-				echo '<td>' . ( $r['published_at'] ? esc_html( human_time_diff( strtotime( $r['published_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+				echo '<td>' . ( $r['published_at'] ? esc_html( dtb_time_ago( $r['published_at'] ) ) : '—' ) . '</td>';
 				echo '</tr>';
 			}
 			echo dtb_admin_ui_table_close();
@@ -486,20 +486,38 @@ function dtb_deployment_center_render_script(): void {
 		return;
 	}
 	$printed = true;
+
+	// The DEPLOY/ROLLBACK confirmation tokens themselves are a fixed,
+	// case-sensitive protocol shared with DeploymentActionValidator.php and
+	// must stay in English; only the surrounding operator-facing copy is
+	// translated here.
+	$i18n = [
+		'dispatching'      => __( 'Dispatching…', 'drywall-toolbox' ),
+		'dispatched'       => __( 'Dispatched.', 'drywall-toolbox' ),
+		'dispatchFailed'   => __( 'Dispatch failed.', 'drywall-toolbox' ),
+		'enterRef'         => __( 'Enter a branch, tag, or commit SHA.', 'drywall-toolbox' ),
+		/* translators: %s: branch, tag, or commit SHA to deploy */
+		'confirmDeploy'    => __( 'Type DEPLOY to confirm releasing "%s" to production:', 'drywall-toolbox' ),
+		'selectRelease'    => __( 'Select a release to restore.', 'drywall-toolbox' ),
+		/* translators: %s: release ID to restore */
+		'confirmRollback'  => __( 'Type ROLLBACK to confirm restoring "%s" to production:', 'drywall-toolbox' ),
+	];
 	?>
 	<script>
 	( function () {
+		var i18n = <?php echo wp_json_encode( $i18n ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
+
 		function dispatchAction( button, endpoint, body, statusEl ) {
 			button.disabled = true;
-			if ( statusEl ) statusEl.textContent = 'Dispatching…';
+			if ( statusEl ) statusEl.textContent = i18n.dispatching;
 
 			window.DtbAdmin.apiFetch( endpoint, {
 				method: 'POST',
 				body: JSON.stringify( body ),
 			} ).then( function ( data ) {
-				if ( statusEl ) statusEl.textContent = data.message || 'Dispatched.';
+				if ( statusEl ) statusEl.textContent = data.message || i18n.dispatched;
 			} ).catch( function ( err ) {
-				if ( statusEl ) statusEl.textContent = ( err && err.message ) || 'Dispatch failed.';
+				if ( statusEl ) statusEl.textContent = ( err && err.message ) || i18n.dispatchFailed;
 			} ).finally( function () {
 				button.disabled = false;
 			} );
@@ -510,8 +528,8 @@ function dtb_deployment_center_render_script(): void {
 			if ( deployBtn ) {
 				const refEl = document.getElementById( 'dtb-deploy-ref' );
 				const ref = refEl ? refEl.value.trim() : '';
-				if ( ! ref ) { window.alert( 'Enter a branch, tag, or commit SHA.' ); return; }
-				const confirmText = window.prompt( 'Type DEPLOY to confirm releasing "' + ref + '" to production:' );
+				if ( ! ref ) { window.alert( i18n.enterRef ); return; }
+				const confirmText = window.prompt( i18n.confirmDeploy.replace( '%s', ref ) );
 				if ( 'DEPLOY' !== confirmText ) { return; }
 				dispatchAction( deployBtn, '/dtb/v1/deployment/dispatch/deploy', { ref: ref, confirm: 'DEPLOY' }, document.getElementById( 'dtb-deploy-status' ) );
 				return;
@@ -521,8 +539,8 @@ function dtb_deployment_center_render_script(): void {
 			if ( rollbackBtn ) {
 				const selectEl = document.getElementById( 'dtb-rollback-release' );
 				const releaseId = selectEl ? selectEl.value : '';
-				if ( ! releaseId ) { window.alert( 'Select a release to restore.' ); return; }
-				const confirmText = window.prompt( 'Type ROLLBACK to confirm restoring "' + releaseId + '" to production:' );
+				if ( ! releaseId ) { window.alert( i18n.selectRelease ); return; }
+				const confirmText = window.prompt( i18n.confirmRollback.replace( '%s', releaseId ) );
 				if ( 'ROLLBACK' !== confirmText ) { return; }
 				dispatchAction( rollbackBtn, '/dtb/v1/deployment/dispatch/rollback', { release_id: releaseId, confirm: 'ROLLBACK' }, document.getElementById( 'dtb-rollback-status' ) );
 			}

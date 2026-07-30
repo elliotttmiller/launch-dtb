@@ -22,14 +22,18 @@ defined( 'ABSPATH' ) || exit;
  *                                      actor, source, workflow_run_id) are
  *                                      promoted to indexed columns; the full
  *                                      context is always retained as JSON.
- * @return bool True when a new row was inserted; false on duplicate/error.
+ * @return bool|null True when a new row was inserted, false when the
+ *                    (release_id, event_type) pair was already recorded
+ *                    (an idempotent no-op, not a failure), or null when the
+ *                    database insert itself failed — callers should treat
+ *                    null as retryable and false as a definitive success.
  */
-function dtb_release_event_record( string $release_id, string $event_type, array $context = [] ): bool {
+function dtb_release_event_record( string $release_id, string $event_type, array $context = [] ): ?bool {
 	$release_id = substr( sanitize_text_field( $release_id ), 0, 80 );
 	$event_type = substr( sanitize_key( $event_type ), 0, 64 );
 
 	if ( '' === $release_id || ! in_array( $event_type, dtb_release_known_event_types(), true ) ) {
-		return false;
+		return null;
 	}
 
 	global $wpdb;
@@ -62,7 +66,12 @@ function dtb_release_event_record( string $release_id, string $event_type, array
 		)
 	); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-	return (bool) $inserted;
+	if ( false === $inserted ) {
+		error_log( '[DTB Deployment] release event insert failed: ' . $wpdb->last_error ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return null;
+	}
+
+	return $inserted > 0;
 }
 
 /**
@@ -81,6 +90,46 @@ function dtb_release_events_for( string $release_id ): array {
 	);
 
 	return array_map( 'dtb_release_event_row_normalize', is_array( $rows ) ? $rows : [] );
+}
+
+/**
+ * Events for multiple releases in a single query, grouped by release_id
+ * (each group ordered oldest → newest). Used by history listing to avoid
+ * one query per release.
+ *
+ * @param string[] $release_ids
+ * @return array<string, array<int,array<string,mixed>>>
+ */
+function dtb_release_events_for_many( array $release_ids ): array {
+	$release_ids = array_values( array_unique( array_filter( array_map(
+		static fn( $id ): string => substr( sanitize_text_field( (string) $id ), 0, 80 ),
+		$release_ids
+	) ) ) );
+
+	if ( empty( $release_ids ) ) {
+		return [];
+	}
+
+	global $wpdb;
+	$table        = $wpdb->prefix . 'dtb_release_events';
+	$placeholders = implode( ',', array_fill( 0, count( $release_ids ), '%s' ) );
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT * FROM {$table} WHERE release_id IN ({$placeholders}) ORDER BY created_at ASC, id ASC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+			$release_ids
+		),
+		ARRAY_A
+	);
+
+	$grouped = [];
+	foreach ( is_array( $rows ) ? $rows : [] as $row ) {
+		$normalized                             = dtb_release_event_row_normalize( $row );
+		$grouped[ $normalized['release_id'] ][] = $normalized;
+	}
+
+	return $grouped;
 }
 
 /**

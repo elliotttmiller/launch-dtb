@@ -51,5 +51,19 @@ function dtb_release_events_maybe_create_table(): void {
 	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 	dbDelta( $sql );
 
+	// dbDelta() does not reliably surface failures (insufficient privileges,
+	// unexpected charset/collation, etc.). Verify the table and its unique
+	// key actually exist before marking the schema installed — otherwise a
+	// silent failure would be recorded as "installed" and never retried.
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$table_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	$key_exists = $table_exists && (bool) $wpdb->get_row( "SHOW KEYS FROM {$table} WHERE Key_name = 'release_event'" );
+
+	if ( ! $table_exists || ! $key_exists ) {
+		error_log( '[DTB Deployment] wp_dtb_release_events schema installation failed — table or unique key missing.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return;
+	}
+
 	update_option( 'dtb_release_events_db_version', DTB_RELEASE_EVENTS_DB_VERSION );
 }

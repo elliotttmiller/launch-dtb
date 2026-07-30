@@ -92,10 +92,12 @@ function dtb_deployment_admin_register_routes(): void {
  * @return array<string,mixed>
  */
 function dtb_deployment_overview_get(): array {
+	$current_production = dtb_release_history_current_production();
+
 	return [
-		'current_production' => dtb_release_history_current_production(),
+		'current_production' => $current_production,
 		'in_progress'        => dtb_release_history_in_progress(),
-		'drift'               => dtb_release_history_drift(),
+		'drift'               => dtb_release_history_drift( $current_production ),
 		'github_enabled'      => dtb_deployment_github_enabled(),
 		'webhook_enabled'     => dtb_deployment_webhook_configured(),
 		'recent_workflow_runs' => dtb_deployment_github_enabled()

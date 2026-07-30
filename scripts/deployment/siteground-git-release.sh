@@ -32,10 +32,12 @@
 #   SITEGROUND_RELEASE_OUTPUT   Path to append key=value result lines to
 #                                (BACKUP_REF=<sha>, DEPLOY_COMMIT=<sha>).
 #
-# Known limitation: path matching for the protected-path assertion assumes
-# no spaces in tracked file/directory names, which holds for this repository
-# (WordPress mu-plugin/theme source). Do not introduce space-containing
-# paths into the owned trees without revisiting this script.
+# The protected-path assertion parses `git status --porcelain=v1 --no-renames`
+# by fixed offset (status code + space, then path) rather than field
+# splitting, so paths containing spaces are handled correctly; it does not
+# attempt to unescape git's octal quoting of exotic characters (newlines,
+# control characters), which do not occur in this repository's WordPress
+# mu-plugin/theme source.
 
 set -euo pipefail
 
@@ -117,9 +119,17 @@ deploy)
 
 	# Protected-path enforcement: every changed path must fall under an
 	# owned path, or the release is refused before anything is committed.
-	changed="$(git -C "$clone" status --porcelain=v1 | awk '{print $2}')"
-	while IFS= read -r changed_path; do
-		[[ -z "$changed_path" ]] && continue
+	# --no-renames forces every change to a separate delete/add porcelain
+	# line with one path each; without it, a rename shows as a single
+	# "R  old -> new" line, and naive field-based parsing would check only
+	# the old path and silently miss the actual (new) destination.
+	changed="$(git -C "$clone" status --porcelain=v1 --no-renames)"
+	while IFS= read -r status_line; do
+		[[ -z "$status_line" ]] && continue
+		# Porcelain v1 lines are a 2-character status code, one space, then
+		# the path — slicing by offset (rather than field-splitting) keeps
+		# paths with embedded spaces intact.
+		changed_path="${status_line:3}"
 		if ! path_is_owned "$changed_path"; then
 			echo "[siteground-git-release] Refusing release: change outside the owned-path boundary: $changed_path" >&2
 			exit 1
