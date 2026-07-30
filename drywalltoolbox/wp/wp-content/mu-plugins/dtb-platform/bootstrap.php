@@ -121,6 +121,7 @@ require_once $_dtb_platform . '/Admin/AdminMenuRegistry.php';
 require_once $_dtb_platform . '/Admin/AdminAssets.php';
 require_once $_dtb_platform . '/Admin/AdminAssetPolicy.php';
 require_once $_dtb_platform . '/Admin/AdminCacheToolbar.php';
+require_once $_dtb_platform . '/Admin/AdminGlobalNavigation.php';
 require_once $_dtb_platform . '/Admin/AdminShell.php';
 require_once $_dtb_platform . '/Admin/AdminUi.php';
 require_once $_dtb_platform . '/Admin/OperationsMenu.php';
