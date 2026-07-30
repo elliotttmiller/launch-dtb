@@ -3,7 +3,7 @@
 defined( 'ABSPATH' ) || exit;
 
 defined( 'DTB_SHIPPING_METHOD_ID' ) || define( 'DTB_SHIPPING_METHOD_ID', 'dtb_veeqo_rates' );
-defined( 'DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION' ) || define( 'DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION', '3' );
+defined( 'DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION' ) || define( 'DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION', '4' );
 
 // =============================================================================
 // SERVER-AUTHORITATIVE WOOCOMMERCE SHIPPING METHOD
@@ -12,7 +12,15 @@ defined( 'DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION' ) || define( 'DTB_SHIPPING_ZONE_B
 // WooCommerce shipping method available in WooCommerce shipping zones.
 //
 // The method derives its inputs from WooCommerce's server-side cart package.
-// It is a policy method, not a live Veeqo carrier-rating adapter.
+// For a domestic (US) destination it is a policy method *and* a live Veeqo
+// carrier-rating adapter: the free/discounted Standard tier is always DTB's
+// own merchant policy (Veeqo has no concept of a subsidized "free" rate),
+// but Express/Overnight are live carrier quotes from Veeqo's Rate Shopping
+// API (see DTB_VeeqoShippingService::live_domestic_rates() in
+// mu-plugins/dtb-integrations/Veeqo/VeeqoShippingService.php) whenever
+// Veeqo is configured and reachable, falling back to the local weight-tiered
+// estimates otherwise. International destinations remain entirely local
+// policy — the Rate Shopping API is documented as US-only.
 // =============================================================================
 
 add_action( 'woocommerce_shipping_init', 'dtb_commerce_register_shipping_method' );
@@ -116,16 +124,41 @@ function dtb_commerce_register_shipping_method(): void {
 							: __( 'Standard Shipping (5–7 business days)', 'woocommerce' ),
 						'cost'  => $standard,
 					] );
-					$this->add_rate( [
-						'id'    => $this->get_rate_id( 'express' ),
-						'label' => __( 'Express Shipping (2–3 business days)', 'woocommerce' ),
-						'cost'  => max( 0.00, $standard + 10.00 ),
-					] );
-					$this->add_rate( [
-						'id'    => $this->get_rate_id( 'overnight' ),
-						'label' => __( 'Overnight Shipping (next business day)', 'woocommerce' ),
-						'cost'  => max( 0.00, $standard + 30.00 ),
-					] );
+
+					// Live carrier quotes (Veeqo's Rate Shopping API — see
+					// DTB_VeeqoShippingService::live_domestic_rates()) replace the
+					// synthetic Express/Overnight estimates below whenever they're
+					// available. The free/discounted Standard tier above is a DTB
+					// merchant policy, not a carrier rate, so it always stays as-is
+					// regardless of live-rate availability.
+					$live_rates = class_exists( 'DTB_VeeqoShippingService' )
+						? DTB_VeeqoShippingService::live_domestic_rates( $destination, $total_weight )
+						: [ 'ok' => false, 'quotes' => [] ];
+
+					if ( ! empty( $live_rates['ok'] ) && ! empty( $live_rates['quotes'] ) ) {
+						foreach ( $live_rates['quotes'] as $quote ) {
+							$this->add_rate( [
+								'id'    => $this->get_rate_id( 'veeqo_' . $quote['id'] ),
+								'label' => sprintf( '%s — %s', $quote['carrier'], $quote['service'] ),
+								'cost'  => $quote['cost'],
+							] );
+						}
+					} else {
+						// Live rates unavailable (Veeqo not configured, API error,
+						// incomplete address, non-US, or no usable quotes) — fall back
+						// to the local weight-tiered estimates so checkout always shows
+						// expedited options.
+						$this->add_rate( [
+							'id'    => $this->get_rate_id( 'express' ),
+							'label' => __( 'Express Shipping (2–3 business days)', 'woocommerce' ),
+							'cost'  => max( 0.00, $standard + 10.00 ),
+						] );
+						$this->add_rate( [
+							'id'    => $this->get_rate_id( 'overnight' ),
+							'label' => __( 'Overnight Shipping (next business day)', 'woocommerce' ),
+							'cost'  => max( 0.00, $standard + 30.00 ),
+						] );
+					}
 				} else {
 					$base = $total_weight <= 2.0 ? 29.99 : ( $total_weight <= 10.0 ? 49.99 : 79.99 );
 					$this->add_rate( [
@@ -256,6 +289,32 @@ function dtb_commerce_remove_overlapping_free_shipping_rate( array $rates, array
 add_filter( 'woocommerce_package_rates', 'dtb_commerce_remove_overlapping_free_shipping_rate', 110, 2 );
 
 /**
+ * Force every visitor's cached shipping rates stale, not just the current
+ * request's own session.
+ *
+ * WooCommerce caches calculated package rates in each customer's own session
+ * (`shipping_for_package_N`), keyed by a hash of the package plus
+ * `WC_Cache_Helper::get_transient_version( 'shipping' )`. The admin UI bumps
+ * that version whenever a shipping zone/method is edited through wp-admin
+ * (see WC_AJAX / WC_Admin shipping-zone handlers), so a saved change is
+ * immediately visible to every customer regardless of what they already had
+ * cached. `dtb_bootstrap_shipping_zones()` calls `add_shipping_method()`
+ * programmatically, which bypasses those admin-side hooks entirely — so a
+ * zone repair alone left every customer who already had a package-rate
+ * calculation cached (from before the zone had a working DTB method)
+ * permanently stuck on that stale result until their session expired or
+ * their address changed, even though the zone itself was already fixed.
+ * Bumping the version here (the same `get_transient_version( group, true )`
+ * pattern already used elsewhere in this codebase for 'settings' and
+ * 'product') invalidates every cached package hash at once.
+ */
+function dtb_commerce_bump_shipping_cache_version(): void {
+	if ( class_exists( 'WC_Cache_Helper' ) ) {
+		WC_Cache_Helper::get_transient_version( 'shipping', true );
+	}
+}
+
+/**
  * Clear WooCommerce's request/session package-rate cache.
  *
  * @param array<int,array<string,mixed>> $packages Current cart shipping packages.
@@ -356,6 +415,13 @@ function dtb_bootstrap_shipping_zones(): void {
 	}
 
 	if ( $repaired || ! $version_match ) {
+		// A repaired zone (or a version bump, e.g. this fix shipping in the
+		// first place) means some request may already have a stale rate
+		// list cached from before the fix — bump the shared version so
+		// every visitor's next calculation recomputes against the current
+		// zone state instead of quietly keeping whatever it cached earlier.
+		dtb_commerce_bump_shipping_cache_version();
+		dtb_commerce_invalidate_shipping_package_cache();
 		update_option( 'dtb_shipping_zones_bootstrapped', DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION );
 	}
 }
