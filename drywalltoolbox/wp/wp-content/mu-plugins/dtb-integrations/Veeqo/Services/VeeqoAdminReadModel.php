@@ -17,8 +17,9 @@ final class DTB_Veeqo_Admin_Read_Model {
 		$diagnostics = defined( 'DTB_VEEQO_INVENTORY_DIAGNOSTICS' )
 			? (array) get_option( DTB_VEEQO_INVENTORY_DIAGNOSTICS, [] )
 			: [];
-		$last_sync = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
-		$active    = class_exists( 'DTB_Veeqo_Operation_Store' ) ? DTB_Veeqo_Operation_Store::active() : [];
+		$last_sync       = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
+		$last_order_poll = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'order_status_poll' ) : 0;
+		$active          = class_exists( 'DTB_Veeqo_Operation_Store' ) ? DTB_Veeqo_Operation_Store::active() : [];
 
 		return [
 			'readiness' => function_exists( 'dtb_veeqo_runtime_readiness' )
@@ -31,6 +32,11 @@ final class DTB_Veeqo_Admin_Read_Model {
 				'last_inventory_sync_at' => $last_sync > 0 ? gmdate( 'c', $last_sync ) : null,
 				'stale'                  => $last_sync <= 0 || ( time() - $last_sync ) > 2 * HOUR_IN_SECONDS,
 				'diagnostics'            => self::diagnostic_summary( $diagnostics ),
+				// Order-status polling (VeeqoOrderStatusPoller.php) runs every
+				// DTB_VEEQO_ORDER_STATUS_POLL_INTERVAL_SECONDS (5 min); flag stale
+				// at 6x that interval to allow for a missed run or two before alarm.
+				'last_order_status_poll_at' => $last_order_poll > 0 ? gmdate( 'c', $last_order_poll ) : null,
+				'order_status_poll_stale'   => $last_order_poll <= 0 || ( time() - $last_order_poll ) > 30 * MINUTE_IN_SECONDS,
 			],
 			'active_operation'  => empty( $active ) || ! class_exists( 'DTB_Veeqo_Operation_Store' ) ? null : DTB_Veeqo_Operation_Store::summary( $active ),
 			'recent_operations' => class_exists( 'DTB_Veeqo_Operation_Store' ) ? DTB_Veeqo_Operation_Store::recent() : [],

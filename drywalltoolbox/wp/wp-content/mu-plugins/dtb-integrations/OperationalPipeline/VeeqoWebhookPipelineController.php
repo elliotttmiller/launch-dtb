@@ -164,17 +164,19 @@ function dtb_operational_pipeline_veeqo_webhook_order( WP_REST_Request $request 
 	return dtb_operational_pipeline_veeqo_response( 'webhook_accepted', 'Webhook accepted for asynchronous processing.', 202, [ 'event_hash' => $event_hash, 'order_id' => $order_id, 'job_id' => $job ] );
 }
 
-function dtb_operational_pipeline_veeqo_status_rank( string $status ): int {
-	return [
-		'awaiting_fulfillment' => 10,
-		'allocated'            => 20,
-		'printed'              => 30,
-		'shipped'              => 40,
-		'cancelled'            => 50,
-		'refunded'             => 60,
-	][ sanitize_key( $status ) ] ?? 0;
-}
-
+/**
+ * Process a queued, signature-verified webhook ingress record.
+ *
+ * This function owns the webhook-specific concerns only: resolving the
+ * queued ingress record, claiming it for processing, and recording the
+ * outcome back onto that record. The actual "given a known Veeqo status,
+ * apply it to the WooCommerce order" logic — status→WC-status mapping, rank
+ * comparison, tracking meta, order event/notification — is the single shared
+ * implementation in Veeqo/VeeqoOrderStatusApplier.php, also used by the
+ * VeeqoOrderStatusPoller.php polling job. This keeps the mapping/apply logic
+ * defined exactly once even though this route stays fail-closed (see
+ * VeeqoRuntimePolicy.php) since Veeqo never actually calls it.
+ */
 function dtb_operational_pipeline_process_veeqo_webhook( int $order_id, array $args = [] ): void {
 	$event_hash = sanitize_key( (string) ( $args['ingress_hash'] ?? '' ) );
 	if ( '' === $event_hash ) {
@@ -197,82 +199,32 @@ function dtb_operational_pipeline_process_veeqo_webhook( int $order_id, array $a
 			update_option( $ingress_key, $record, false );
 			return;
 		}
-		$payload       = is_array( $record['payload'] ?? null ) ? $record['payload'] : [];
-		$veeqo_status  = sanitize_key( (string) ( $payload['status'] ?? '' ) );
-		$rank          = dtb_operational_pipeline_veeqo_status_rank( $veeqo_status );
-		$status_map    = [ 'awaiting_fulfillment' => 'processing', 'allocated' => 'processing', 'printed' => 'processing', 'shipped' => 'shipped', 'cancelled' => 'cancelled', 'refunded' => 'refunded' ];
-		$wc_status     = $status_map[ $veeqo_status ] ?? '';
-		$current_rank  = absint( $order->get_meta( '_dtb_veeqo_fulfillment_rank', true ) );
-		$tracking      = 'shipped' === $veeqo_status ? dtb_operational_pipeline_extract_veeqo_tracking( $payload ) : [ 'tracking_number' => '', 'tracking_carrier' => '' ];
+		$payload         = is_array( $record['payload'] ?? null ) ? $record['payload'] : [];
+		$veeqo_status    = sanitize_key( (string) ( $payload['status'] ?? '' ) );
+		$tracking        = dtb_operational_pipeline_extract_veeqo_tracking( $payload );
+		$veeqo_order_id  = absint( $record['veeqo_order_id'] ?? 0 );
+		$correlation_key = ( ! empty( $record['order_number'] ) && str_starts_with( (string) $record['order_number'], 'veeqo-order:' ) )
+			? sanitize_text_field( (string) $record['order_number'] )
+			: '';
 
-		if ( '' === $wc_status || $rank <= 0 ) {
-			$record['status'] = 'done';
-			$record['result'] = 'unmapped_status';
-			update_option( $ingress_key, $record, false );
-			return;
-		}
-		if ( $rank < $current_rank ) {
-			if ( function_exists( 'dtb_order_append_event' ) ) {
-				dtb_order_append_event( $order_id, 'integration.veeqo.webhook_stale', [ 'source' => 'veeqo_webhook', 'actor_type' => 'veeqo', 'visibility' => 'operator', 'idempotency_key' => 'veeqo-webhook-stale:' . $event_hash, 'payload' => [ 'veeqo_status' => $veeqo_status, 'current_rank' => $current_rank, 'incoming_rank' => $rank ] ] );
-			}
-			$record['status'] = 'done';
-			$record['result'] = 'stale';
-			update_option( $ingress_key, $record, false );
-			return;
-		}
+		$result = function_exists( 'dtb_veeqo_apply_order_fulfillment_status' )
+			? dtb_veeqo_apply_order_fulfillment_status( $order, $veeqo_status, [
+				'source'           => 'webhook',
+				'reference'        => $event_hash,
+				'veeqo_order_id'   => $veeqo_order_id,
+				'tracking_number'  => $tracking['tracking_number'],
+				'tracking_carrier' => $tracking['tracking_carrier'],
+				'correlation_key'  => $correlation_key,
+			] )
+			: [ 'applied' => false, 'result' => 'unmapped_status' ];
 
-		$veeqo_order_id = absint( $record['veeqo_order_id'] ?? 0 );
-		if ( $veeqo_order_id > 0 ) {
-			$order->update_meta_data( '_dtb_veeqo_order_id', $veeqo_order_id );
-			$order->update_meta_data( '_veeqo_order_id', $veeqo_order_id );
-		}
-		$order->update_meta_data( '_dtb_veeqo_fulfillment_rank', $rank );
-		if ( ! empty( $record['order_number'] ) && str_starts_with( (string) $record['order_number'], 'veeqo-order:' ) ) {
-			$order->update_meta_data( '_dtb_veeqo_correlation_key', sanitize_text_field( (string) $record['order_number'] ) );
-		}
-		if ( '' !== $tracking['tracking_number'] ) {
-			$order->update_meta_data( '_tracking_number', $tracking['tracking_number'] );
-			$order->update_meta_data( '_dtb_veeqo_tracking_number', $tracking['tracking_number'] );
-			if ( '' !== $tracking['tracking_carrier'] ) {
-				$order->update_meta_data( '_tracking_carrier', $tracking['tracking_carrier'] );
-				$order->update_meta_data( '_dtb_veeqo_tracking_carrier', $tracking['tracking_carrier'] );
-			}
-		}
-		$order->save_meta_data();
+		$record['status'] = 'unpaid_order' === ( $result['result'] ?? '' ) ? 'quarantined' : 'done';
+		$record['result'] = $result['result'] ?? 'unknown';
+		update_option( $ingress_key, $record, false );
 
-		$previous_status = (string) $order->get_status();
-		if ( function_exists( 'dtb_checkout_handoff_is_unpaid_order' ) && dtb_checkout_handoff_is_unpaid_order( $order ) && in_array( $wc_status, [ 'processing', 'shipped', 'completed' ], true ) ) {
-			$record['status'] = 'quarantined';
-			$record['result'] = 'unpaid_order';
-			update_option( $ingress_key, $record, false );
-			return;
-		}
-		if ( $previous_status !== $wc_status ) {
-			set_transient( 'dtb_veeqo_webhook_updating_order_' . $order_id, '1', 60 );
-			try {
-				$order->update_status( $wc_status, sprintf( '[Veeqo] Status processed from event %s.', $event_hash ) );
-			} finally {
-				delete_transient( 'dtb_veeqo_webhook_updating_order_' . $order_id );
-			}
-		}
-		if ( function_exists( 'dtb_order_update_integration_state' ) ) {
-			dtb_order_update_integration_state( $order_id, 'veeqo', [ 'status' => 'synced', 'order_id' => $veeqo_order_id ?: null, 'source_status' => $veeqo_status, 'tracking' => $tracking['tracking_number'] ?: null, 'carrier' => $tracking['tracking_carrier'] ?: null, 'last_success_at' => current_time( 'mysql', true ), 'error' => null ] );
-		}
-		if ( function_exists( 'dtb_order_append_event' ) ) {
-			dtb_order_append_event( $order_id, 'integration.veeqo.webhook_processed', [ 'source' => 'veeqo_webhook', 'actor_type' => 'veeqo', 'visibility' => 'operator', 'idempotency_key' => 'veeqo-webhook:' . $event_hash, 'payload' => [ 'veeqo_status' => $veeqo_status, 'wc_status' => $wc_status, 'veeqo_order_id' => $veeqo_order_id ?: null, 'tracking_number' => $tracking['tracking_number'] ?: null ] ] );
-		}
-		if ( 'shipped' === $veeqo_status && $rank > $current_rank && function_exists( 'dtb_order_enqueue_job' ) ) {
-			dtb_order_enqueue_job( 'dtb_order_send_notification', $order_id, [ 'template' => 'order-shipped' ] );
-		}
-		if ( function_exists( 'dtb_order_enqueue_job' ) ) {
-			dtb_order_enqueue_job( 'dtb_order_refresh_tracking_projection', $order_id );
-		}
-		if ( function_exists( 'dtb_veeqo_log_sync_timestamp' ) ) {
+		if ( ! empty( $result['applied'] ) && function_exists( 'dtb_veeqo_log_sync_timestamp' ) ) {
 			dtb_veeqo_log_sync_timestamp( 'order_webhook' );
 		}
-		$record['status'] = 'done';
-		$record['result'] = 'processed';
-		update_option( $ingress_key, $record, false );
 	} finally {
 		delete_option( $claim_key );
 	}
