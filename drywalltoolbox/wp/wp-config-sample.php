@@ -67,7 +67,6 @@ define( 'ADMIN_COOKIE_PATH', '/' );
  * Existing narrowly scoped topology compatibility switches.
  */
 define( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', true );
-define( 'DTB_ENABLE_ROOT_AUTH_COOKIE_MIGRATION', true );
 
 /**
  * HTTPS and production hardening.

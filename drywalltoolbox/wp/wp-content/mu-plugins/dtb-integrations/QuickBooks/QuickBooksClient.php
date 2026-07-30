@@ -46,16 +46,39 @@ function dtb_qbo_redirect_uri(): string {
 	return admin_url( 'admin-ajax.php?action=dtb_qbo_oauth_callback' );
 }
 
+/**
+ * Settings saved from System Manager -> Integration Settings
+ * (dtb-platform/SystemManager/Rest/IntegrationSettingsController.php).
+ * wp-config.php constants always take priority when defined, matching the
+ * override precedent already used by dtb_veeqo_config().
+ */
+function dtb_qbo_settings_option(): array {
+	return (array) get_option( 'dtb_qbo_settings', [] );
+}
+
 function dtb_qbo_config(): array {
 	$realm_option = (string) get_option( dtb_qbo_option_name( 'realm_id' ), '' );
+	$stored       = dtb_qbo_settings_option();
 	return [
 		'environment'   => dtb_qbo_environment(),
-		'client_id'     => defined( 'DTB_QBO_CLIENT_ID' ) ? trim( (string) DTB_QBO_CLIENT_ID ) : '',
-		'client_secret' => defined( 'DTB_QBO_CLIENT_SECRET' ) ? trim( (string) DTB_QBO_CLIENT_SECRET ) : '',
+		'client_id'     => defined( 'DTB_QBO_CLIENT_ID' ) ? trim( (string) DTB_QBO_CLIENT_ID ) : trim( (string) ( $stored['client_id'] ?? '' ) ),
+		'client_secret' => defined( 'DTB_QBO_CLIENT_SECRET' ) ? trim( (string) DTB_QBO_CLIENT_SECRET ) : trim( (string) ( $stored['client_secret'] ?? '' ) ),
 		'realm_id'      => defined( 'DTB_QBO_REALM_ID' ) ? trim( (string) DTB_QBO_REALM_ID ) : $realm_option,
 		'sandbox'       => 'sandbox' === dtb_qbo_environment(),
 		'redirect_uri'  => dtb_qbo_redirect_uri(),
 	];
+}
+
+/**
+ * Resolve the Stripe restricted reporting key used for Settlement Import
+ * (DTB_QBO_AccountingOperations::sync_settlements()). Constant takes
+ * priority; falls back to the System Manager-configured option.
+ */
+function dtb_qbo_stripe_restricted_key(): string {
+	if ( defined( 'DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY' ) && '' !== trim( (string) DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY ) ) {
+		return trim( (string) DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY );
+	}
+	return trim( (string) ( dtb_qbo_settings_option()['stripe_restricted_key'] ?? '' ) );
 }
 
 function dtb_qbo_api_base(): string {

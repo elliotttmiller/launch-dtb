@@ -203,6 +203,36 @@ if ( ! class_exists( 'DTB_EbayOAuthTokenService' ) ) {
 			delete_option( self::OPTION_EXPIRES_AT );
 		}
 
+		/**
+		 * Manually store a refresh token obtained outside this codebase (eBay
+		 * has no in-app OAuth authorize/callback flow yet — see System Manager
+		 * -> Integration Settings, where an operator pastes a token obtained
+		 * via eBay's own OAuth consent flow). Clears any cached access token
+		 * so the next request re-derives one from the new refresh token.
+		 */
+		public static function store_refresh_token( string $refresh_token ): bool {
+			$refresh_token = trim( $refresh_token );
+			if ( '' === $refresh_token || ! class_exists( 'DTB_MarketplaceCredentialFacade' ) ) {
+				return false;
+			}
+
+			$enc = DTB_MarketplaceCredentialFacade::encrypt( $refresh_token );
+			if ( false === $enc ) {
+				return false;
+			}
+
+			update_option( self::OPTION_REFRESH_ENCRYPTED, $enc, false );
+			self::invalidate();
+			return true;
+		}
+
+		/**
+		 * Whether a refresh token is currently stored (never returns the value).
+		 */
+		public static function has_refresh_token(): bool {
+			return '' !== (string) get_option( self::OPTION_REFRESH_ENCRYPTED, '' );
+		}
+
 		// ── Private helpers ───────────────────────────────────────────────────
 
 		private static function record_auth_failure( string $message ): void {

@@ -75,6 +75,11 @@ final class DTB_QuickBooksWebhookController {
 		return new WP_REST_Response( [ 'ok' => true, 'accepted' => $accepted ], 200 );
 	}
 
+	/**
+	 * Constants take priority; falls back to the System Manager -> Integration
+	 * Settings-configured `dtb_qbo_settings` option (see QuickBooksClient.php's
+	 * dtb_qbo_settings_option()) when the environment-specific constant isn't defined.
+	 */
 	private static function verifier_token(): string {
 		$environment = function_exists( 'dtb_qbo_environment' ) ? dtb_qbo_environment() : 'production';
 		if ( 'sandbox' === $environment && defined( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN' ) ) {
@@ -83,7 +88,13 @@ final class DTB_QuickBooksWebhookController {
 		if ( 'production' === $environment && defined( 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN' ) ) {
 			return trim( (string) DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN );
 		}
-		return defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ? trim( (string) DTB_QBO_WEBHOOK_VERIFIER_TOKEN ) : '';
+		if ( defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ) {
+			return trim( (string) DTB_QBO_WEBHOOK_VERIFIER_TOKEN );
+		}
+
+		$stored = function_exists( 'dtb_qbo_settings_option' ) ? dtb_qbo_settings_option() : [];
+		$field  = 'sandbox' === $environment ? 'sandbox_webhook_verifier_token' : 'production_webhook_verifier_token';
+		return trim( (string) ( $stored[ $field ] ?? '' ) );
 	}
 
 	private static function normalize_event( mixed $event ): ?array {

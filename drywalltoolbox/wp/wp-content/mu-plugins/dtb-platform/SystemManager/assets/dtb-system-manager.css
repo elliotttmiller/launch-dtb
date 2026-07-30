@@ -379,3 +379,61 @@
 		grid-column: 1;
 	}
 }
+
+/* Integration Settings tab (IntegrationSettingsTab.php) */
+.dtb-settings-form__status {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.dtb-settings-form__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(220px, 1fr));
+	gap: 12px 16px;
+}
+
+.dtb-settings-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 13px;
+}
+
+.dtb-settings-field span {
+	font-weight: 600;
+}
+
+.dtb-settings-field input[type="text"],
+.dtb-settings-field input[type="password"] {
+	width: 100%;
+}
+
+.dtb-settings-field--toggle {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+}
+
+.dtb-settings-field--toggle span {
+	order: 2;
+}
+
+.dtb-settings-form__actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-top: 14px;
+}
+
+.dtb-settings-form__message {
+	font-size: 13px;
+	color: var(--dtb-text-muted, #666);
+}
+
+@media (max-width: 782px) {
+	.dtb-settings-form__grid {
+		grid-template-columns: 1fr;
+	}
+}

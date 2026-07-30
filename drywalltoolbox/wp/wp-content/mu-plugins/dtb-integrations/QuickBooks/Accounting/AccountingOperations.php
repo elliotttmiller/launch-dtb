@@ -199,7 +199,7 @@ final class DTB_QBO_AccountingOperations {
 	 * No payment, capture, refund, or checkout behavior is changed.
 	 */
 	public static function sync_settlements(): void {
-		if ( ! defined( 'DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY' ) || '' === trim( (string) DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY ) ) {
+		if ( ! function_exists( 'dtb_qbo_stripe_restricted_key' ) || '' === dtb_qbo_stripe_restricted_key() ) {
 			update_option( 'dtb_qbo_stripe_settlement_status', [ 'state' => 'disabled', 'message' => 'Restricted Stripe reporting key is not configured.', 'checkedAt' => gmdate( 'c' ) ], false );
 			return;
 		}
@@ -378,7 +378,7 @@ final class DTB_QBO_AccountingOperations {
 			[
 				'timeout' => 20,
 				'headers' => [
-					'Authorization'  => 'Bearer ' . trim( (string) DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY ),
+					'Authorization'  => 'Bearer ' . dtb_qbo_stripe_restricted_key(),
 					'Stripe-Version'=> '2026-02-25.clover',
 				],
 			]

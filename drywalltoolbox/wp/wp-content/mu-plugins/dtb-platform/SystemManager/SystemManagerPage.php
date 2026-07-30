@@ -73,6 +73,12 @@ function dtb_system_manager_tab_groups(): array {
 				[ 'id' => 'logs',  'label' => __( 'Debug Log', 'drywall-toolbox' ) ],
 			],
 		],
+		'settings' => [
+			'label' => __( 'Settings', 'drywall-toolbox' ),
+			'tabs'  => [
+				[ 'id' => 'integration-settings', 'label' => __( 'Integration Settings', 'drywall-toolbox' ) ],
+			],
+		],
 	];
 }
 
@@ -212,6 +218,9 @@ function dtb_system_manager_dispatch_tab( string $active_tab, bool $can_system, 
 			break;
 		case 'system':
 			dtb_system_manager_render_system_tab();
+			break;
+		case 'integration-settings':
+			dtb_system_manager_render_integration_settings_tab();
 			break;
 		default:
 			dtb_system_manager_render_overview_tab( $can_system, $can_deployments );

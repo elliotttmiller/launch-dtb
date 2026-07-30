@@ -148,7 +148,9 @@ require_once $_dtb_platform . '/SystemManager/CronHealthService.php';
 require_once $_dtb_platform . '/SystemManager/IntegrationHealthService.php';
 require_once $_dtb_platform . '/SystemManager/WebhookHealthService.php';
 require_once $_dtb_platform . '/SystemManager/AuditLogService.php';
+require_once $_dtb_platform . '/SystemManager/IntegrationSettingsTab.php';
 require_once $_dtb_platform . '/SystemManager/SystemManagerPage.php';
 require_once $_dtb_platform . '/SystemManager/Rest/SystemManagerController.php';
+require_once $_dtb_platform . '/SystemManager/Rest/IntegrationSettingsController.php';
 
 unset( $_dtb_platform );
