@@ -49,16 +49,14 @@
 	align-items: center;
 }
 
+/* NOTE: the previous fixed-width 5-column grid + overflow-x:auto here is what
+ * caused the "Launch readiness" steps row to overflow its container and cut
+ * off the last step behind a horizontal scrollbar. The base rule in
+ * quickbooks-admin.css already wraps responsively via auto-fit, so this
+ * refinement layer only adjusts spacing — it must not reintroduce a fixed
+ * track width. */
 .dtb-qbo-checks {
-	grid-template-columns: repeat(5, minmax(125px, 1fr));
 	gap: 10px;
-	overflow-x: auto;
-	padding-bottom: 4px;
-}
-
-.dtb-qbo-check {
-	min-width: 125px;
-	padding-right: 8px;
 }
 
 .dtb-qbo-check strong {

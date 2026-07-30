@@ -1,0 +1,155 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║           SITEGROUND GIT RELEASE MANAGEMENT - QUICK REFERENCE               ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+STEP 1: Generate Webhook Secret
+────────────────────────────────────────────────────────────────────────────
+$ openssl rand -hex 32
+
+Copy the output — you'll use it for:
+  • GitHub Actions secret: DTB_DEPLOYMENT_WEBHOOK_SECRET
+  • wp-config.php constant: DTB_DEPLOYMENT_WEBHOOK_SECRET (must match!)
+
+
+STEP 2: Get SiteGround SSH Host Key
+────────────────────────────────────────────────────────────────────────────
+$ ssh-keyscan -p 18765 giowm1315.siteground.biz 2>/dev/null
+
+Copy the entire line for:
+  • GitHub Actions secret: SITEGROUND_GIT_KNOWN_HOSTS
+
+────────────────────────────────────────────────────────────────────────────
+STEP 2A: Register a Dedicated SiteGround Deployment Key
+
+Generate an unencrypted ED25519 key used only by GitHub Actions → SiteGround.
+  • Import the PUBLIC .pub line in SiteGround SSH Keys Manager > Add new.
+  • Store the PRIVATE key only in SITEGROUND_GIT_SSH_PRIVATE_KEY.
+  • Do NOT add this key under GitHub repository Deploy keys.
+
+
+STEP 3: Create GitHub Personal Access Token (PAT)
+────────────────────────────────────────────────────────────────────────────
+1. Visit: https://github.com/settings/tokens?type=beta
+2. Click "Generate new token"
+3. Settings:
+   ✓ Token name: DTB Release Deployment
+   ✓ Repository: elliotttmiller/launch-dtb (select only)
+   ✓ Permissions: Actions (read+write), Contents (read), Pull requests (read)
+   ✓ Expiration: 90 days
+4. COPY immediately (cannot be viewed again)
+
+Use for:
+  • wp-config.php: DTB_GITHUB_DEPLOYMENT_TOKEN
+
+
+STEP 4: Create 5 GitHub Actions Secrets
+────────────────────────────────────────────────────────────────────────────
+Go to: https://github.com/elliotttmiller/launch-dtb/settings/secrets/actions
+
+Create these (click "New repository secret" each time):
+
+┌─ Secret 1 ───────────────────────────────────────────────────────────────┐
+│ Name:  SITEGROUND_GIT_REMOTE                                             │
+│ Value: ssh://u2350-gksz9clvygx0@giowm1315.siteground.biz:18765/home/...  │
+│        .../elliottm4.sg-host.com/public_html/wp                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ Secret 2 ───────────────────────────────────────────────────────────────┐
+│ Name:  SITEGROUND_GIT_BRANCH                                             │
+│ Value: master  (verified from SiteGround remote HEAD on 2026-07-30)      │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ Secret 3 ───────────────────────────────────────────────────────────────┐
+│ Name:  SITEGROUND_GIT_SSH_PRIVATE_KEY                                    │
+│ Value: (Paste the full unencrypted dedicated OpenSSH private key)        │
+│        Matching public key must be registered in SiteGround SSH Manager  │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ Secret 4 ───────────────────────────────────────────────────────────────┐
+│ Name:  SITEGROUND_GIT_KNOWN_HOSTS                                        │
+│ Value: (Paste output from ssh-keyscan — Step 2 above)                    │
+└──────────────────────────────────────────────────────────────────────────┘
+
+┌─ Secret 5 ───────────────────────────────────────────────────────────────┐
+│ Name:  DTB_DEPLOYMENT_WEBHOOK_SECRET                                     │
+│ Value: (Paste hex string from openssl rand — Step 1 above)               │
+└──────────────────────────────────────────────────────────────────────────┘
+
+
+STEP 5: Add wp-config.php Constants
+────────────────────────────────────────────────────────────────────────────
+On SiteGround, edit: /home/customer/www/elliottm4.sg-host.com/public_html/wp-config.php
+
+Add BEFORE "That's all, stop editing!" line:
+
+────────────────────────────────────────────────────────────────────────────
+define( 'DTB_DEPLOYMENT_WEBHOOK_SECRET', 'YOUR_HEX_STRING_HERE' );
+define( 'DTB_GITHUB_DEPLOYMENT_TOKEN', 'ghp_YOUR_PAT_HERE' );
+define( 'DTB_GITHUB_REPO_OWNER', 'elliotttmiller' );
+define( 'DTB_GITHUB_REPO_NAME', 'launch-dtb' );
+define( 'DTB_GITHUB_RELEASE_WORKFLOW_FILE', 'release-siteground.yml' );
+────────────────────────────────────────────────────────────────────────────
+
+Replace:
+  • YOUR_HEX_STRING_HERE     ← From Step 1 (openssl rand -hex 32)
+  • ghp_YOUR_PAT_HERE        ← From Step 3 (GitHub PAT token)
+
+⚠️  CRITICAL: DTB_DEPLOYMENT_WEBHOOK_SECRET must match GitHub Actions secret EXACTLY
+
+
+STEP 6: Verify Configuration
+────────────────────────────────────────────────────────────────────────────
+✓ All 5 GitHub Actions secrets created?
+✓ wp-config.php constants added?
+✓ Webhook secrets match between GitHub and wp-config.php?
+✓ No extra whitespace in secret values?
+
+
+STEP 7: Test First Deployment
+────────────────────────────────────────────────────────────────────────────
+1. Visit WordPress admin: https://elliottm4.sg-host.com/wp-admin/
+2. Go to System Manager → Release Management tab
+3. Click "Deploy"
+4. Select ref: develop (low-risk test)
+5. Type confirmation: DEPLOY
+6. Monitor in System Manager Overview (updates every 5 seconds)
+7. Check GitHub Actions run: https://github.com/elliotttmiller/launch-dtb/actions
+
+Expected progression:
+  Planning → Validated → Backing up → Deploying → Verified → Completed
+
+Post-deploy checks:
+  ✓ Site loads: https://elliottm4.sg-host.com/
+  ✓ Health: curl https://elliottm4.sg-host.com/wp-json/dtb/v1/health
+  ✓ System Manager shows "Deployed"
+  ✓ Release appears in History tab
+  ✓ Stripe/Veeqo integrations working
+
+
+TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────
+Problem: Workflow fails at "Configure SiteGround Git SSH access"
+  → Verify SSH private key has full PEM headers
+  → Re-run ssh-keyscan for fresh host key
+  → Check SiteGround SSH key is active
+
+Problem: Webhook signature invalid error
+  → Verify DTB_DEPLOYMENT_WEBHOOK_SECRET in wp-config.php matches GitHub secret
+  → Check for leading/trailing whitespace
+  → They must be identical
+
+Problem: Deployment hangs/timeout
+  → Check System Manager Overview for stuck status
+  → May need to increase timeout-minutes in workflow file
+  → Check GitHub Actions logs for errors
+
+
+QUICK LINKS
+────────────────────────────────────────────────────────────────────────────
+Full guide:         docs/deployment/production-configuration.md
+Workflow:           .github/workflows/release-siteground.yml
+GitHub Actions:     https://github.com/elliotttmiller/launch-dtb/actions
+System Manager:     https://elliottm4.sg-host.com/wp-admin/admin.php?page=dtb-system-manager
+Release History:    Database table wp_dtb_release_events
+GitHub Secrets:     https://github.com/elliotttmiller/launch-dtb/settings/secrets/actions
+GitHub PAT:         https://github.com/settings/tokens?type=beta

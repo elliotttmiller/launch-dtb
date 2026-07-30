@@ -9,9 +9,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
+const SESSION_COOKIE_ERROR = 'Sign-in succeeded, but the server could not establish the secure browser session. Please try again.';
 const CHECKOUT_SESSION_SYNC_ERROR = 'Your signed-in session is not ready for checkout yet. Please try again.';
 const CHECKOUT_SESSION_CHANGED_ERROR = 'Your secure checkout identity changed while we reconciled your session. We refreshed your cart for safety. Review it, then select checkout again.';
-const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800];
+const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800, 1500, 2500];
 const PUBLIC_ENV = {
   REACT_APP_API_BASE_URL: process.env.REACT_APP_API_BASE_URL,
   REACT_APP_SITE_URL: process.env.REACT_APP_SITE_URL,
@@ -30,11 +31,23 @@ function trimSlash(value = '') {
   return String(value || '').replace(/\/+$/, '');
 }
 
+/**
+ * Resolve the auth authority.
+ *
+ * Production authentication must remain first-party so modern browser cookie
+ * restrictions cannot block the HttpOnly session between /login and /validate.
+ * The configured remote API origin is retained only for explicit hosted preview
+ * environments such as GitHub Pages.
+ */
 function baseUrl() {
   const runtimeHost = typeof window !== 'undefined' ? window.location.hostname : '';
   const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+  const hostedPreview = /github\.io$/i.test(runtimeHost);
+
+  if (!hostedPreview && runtimeOrigin) return trimSlash(runtimeOrigin);
+
   return trimSlash(readPublicEnv('REACT_APP_API_BASE_URL'))
-    || (/github\.io$/i.test(runtimeHost) ? 'https://elliottm4.sg-host.com' : trimSlash(runtimeOrigin));
+    || (hostedPreview ? 'https://elliottm4.sg-host.com' : trimSlash(runtimeOrigin));
 }
 
 function authUrl(path) {
@@ -111,6 +124,18 @@ function checkoutSessionError(code, message, state) {
   return error;
 }
 
+function sessionHandoffError(message, session = {}) {
+  const error = new Error(message);
+  error.name = 'AuthSessionHandoffError';
+  error.code = 'auth_session_handoff_failed';
+  error.session = {
+    cookieQueued: session?.cookie_queued === true,
+    cookieSameSite: String(session?.cookie_samesite || ''),
+    cookieDomain: String(session?.cookie_domain || ''),
+  };
+  return error;
+}
+
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -134,7 +159,7 @@ export function useAuth() {
           setUser(nextUser);
           if (publish) emitAuthChanged('login');
         }
-        return { user: nextUser, nativeCheckout: nativeCheckoutStateRef.current };
+        return { user: nextUser, nativeCheckout: nativeCheckoutStateRef.current, session: data?.session || {} };
       }
     }
 
@@ -143,7 +168,7 @@ export function useAuth() {
       setUser(null);
       if (publish) emitAuthChanged('logout');
     }
-    return { user: null, nativeCheckout: nativeCheckoutStateRef.current };
+    return { user: null, nativeCheckout: nativeCheckoutStateRef.current, session: {} };
   }, []);
 
   useEffect(() => {
@@ -215,8 +240,9 @@ export function useAuth() {
     try {
       const data = await authJson('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Login failed.');
-      const confirmed = await validateSession({ retries: 3, publish: true, epoch });
-      if (!confirmed.user) throw new Error(SESSION_SYNC_ERROR);
+      if (data?.session?.cookie_queued !== true) throw sessionHandoffError(SESSION_COOKIE_ERROR, data?.session);
+      const confirmed = await validateSession({ retries: 5, publish: true, epoch });
+      if (!confirmed.user) throw sessionHandoffError(SESSION_SYNC_ERROR, data?.session);
       return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {
@@ -239,8 +265,9 @@ export function useAuth() {
         body: JSON.stringify({ first_name: firstName, last_name: lastName, email, password }),
       });
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Registration failed.');
-      const confirmed = await validateSession({ retries: 3, publish: true, epoch });
-      if (!confirmed.user) throw new Error(SESSION_SYNC_ERROR);
+      if (data?.session?.cookie_queued !== true) throw sessionHandoffError(SESSION_COOKIE_ERROR, data?.session);
+      const confirmed = await validateSession({ retries: 5, publish: true, epoch });
+      if (!confirmed.user) throw sessionHandoffError(SESSION_SYNC_ERROR, data?.session);
       return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {

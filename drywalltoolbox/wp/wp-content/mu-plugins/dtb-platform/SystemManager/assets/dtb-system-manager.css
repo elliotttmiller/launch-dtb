@@ -1,7 +1,36 @@
-/* DTB System Manager — live operations console polish */
+/* DTB System Manager — unified live operations console (platform health +
+   Git-backed release management). Page-scoped to avoid touching the shared
+   admin design system used across every other DTB admin page. */
+
 .dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-page-body {
 	position: relative;
 }
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-card {
+	border-radius: 20px;
+}
+
+/* =============================================================================
+   TAB BAR — visual grouping (Overview / Platform Health / Release Management
+   / Diagnostics) without touching the shared AdminShell tab component.
+   ============================================================================= */
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-section-nav {
+	flex-wrap: wrap;
+	row-gap: 6px;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-section-nav__tab[data-dtb-live-tab="system"],
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-section-nav__tab[data-dtb-live-tab="deployment"],
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-section-nav__tab[data-dtb-live-tab="audit"] {
+	margin-left: 14px;
+	padding-left: 14px;
+	border-left: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+/* =============================================================================
+   LIVE TOOLBAR
+   ============================================================================= */
 
 .dtb-system-live-toolbar {
 	display: flex;
@@ -43,18 +72,31 @@
 	border-radius: 999px;
 	background: #22c55e;
 	box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.12);
+	animation: dtb-system-live-pulse 1600ms ease-in-out infinite;
+}
+
+.dtb-system-live-toolbar[data-state="fast"] .dtb-system-live-toolbar__dot {
+	background: #f59e0b;
+	box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.14);
+	animation-duration: 700ms;
 }
 
 .dtb-system-live-toolbar[data-state="refreshing"] .dtb-system-live-toolbar__dot {
 	background: #3b82f6;
 	box-shadow: 0 0 0 5px rgba(59, 130, 246, 0.12);
-	animation: dtb-system-live-pulse 900ms ease-in-out infinite;
+	animation-duration: 700ms;
 }
 
-.dtb-system-live-toolbar[data-state="stale"] .dtb-system-live-toolbar__dot,
+.dtb-system-live-toolbar[data-state="paused"] .dtb-system-live-toolbar__dot {
+	background: #94a3b8;
+	box-shadow: 0 0 0 5px rgba(148, 163, 184, 0.14);
+	animation: none;
+}
+
 .dtb-system-live-toolbar[data-state="error"] .dtb-system-live-toolbar__dot {
-	background: #f59e0b;
-	box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.12);
+	background: #ef4444;
+	box-shadow: 0 0 0 5px rgba(239, 68, 68, 0.14);
+	animation: none;
 }
 
 .dtb-system-live-toolbar__meta {
@@ -62,6 +104,8 @@
 	font-size: 12px;
 	font-weight: 650;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .dtb-system-live-toolbar__button {
@@ -87,6 +131,18 @@
 	transform: translateY(-1px);
 }
 
+.dtb-system-live-toolbar__button--primary {
+	background: #1d4ed8;
+	border-color: #1d4ed8;
+	color: #ffffff;
+}
+
+.dtb-system-live-toolbar__button--primary:hover,
+.dtb-system-live-toolbar__button--primary:focus-visible {
+	background: #1e40af;
+	box-shadow: 0 10px 24px rgba(29, 78, 216, 0.24);
+}
+
 .dtb-system-live-region {
 	position: relative;
 }
@@ -106,13 +162,14 @@
 	animation: dtb-system-content-fade 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-card {
-	border-radius: 20px;
-}
+/* =============================================================================
+   TABLES
+   ============================================================================= */
 
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-table-wrap,
 .dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-table-wrapper,
 .dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-table-scroll {
-	max-height: min(66vh, 720px);
+	max-height: min(60vh, 640px);
 	overflow: auto;
 }
 
@@ -139,6 +196,145 @@
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* =============================================================================
+   OVERVIEW — Attention Needed / Recent Activity
+   ============================================================================= */
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-columns {
+	align-items: start;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-row {
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-row:last-child {
+	border-bottom: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-row a {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 9px 4px;
+	color: inherit;
+	text-decoration: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-row a:hover .dtb-sm-attention-text {
+	text-decoration: underline;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-sm-attention-text {
+	font-size: 13px;
+	font-weight: 600;
+	color: #0f172a;
+}
+
+/* =============================================================================
+   GIT CONTROL CENTER TABS (Repository / Pull Requests / Workflow Runs /
+   Releases & Tags) — commit/branch/tag chip and list styling.
+   ============================================================================= */
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-columns {
+	align-items: start;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-sha {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.06);
+	color: #334155;
+	font-family: var(--dtb-font-mono, ui-monospace, 'SFMono-Regular', Menlo, monospace);
+	font-size: 11.5px;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-sha a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-sha a:hover {
+	text-decoration: underline;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-branch-list,
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-list,
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-tag-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-branch-row,
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-tag-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 9px 4px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-branch-row:last-child,
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-tag-row:last-child {
+	border-bottom: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-branch-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 650;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-row {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	column-gap: 10px;
+	row-gap: 2px;
+	padding: 9px 4px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-row:last-child {
+	border-bottom: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-message {
+	font-size: 13px;
+	font-weight: 600;
+	color: #0f172a;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-meta {
+	grid-column: 2;
+	color: rgba(15, 23, 42, 0.5);
+	font-size: 11.5px;
+}
+
+/* =============================================================================
+   KEYFRAMES
+   ============================================================================= */
+
 @keyframes dtb-system-live-pulse {
 	50% { transform: scale(1.22); }
 }
@@ -160,6 +356,10 @@
 	100% { box-shadow: inset 0 0 0 transparent; }
 }
 
+/* =============================================================================
+   RESPONSIVE
+   ============================================================================= */
+
 @media (max-width: 782px) {
 	.dtb-system-live-toolbar {
 		align-items: flex-start;
@@ -169,5 +369,13 @@
 	.dtb-system-live-toolbar__right {
 		width: 100%;
 		justify-content: space-between;
+	}
+
+	.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-row {
+		grid-template-columns: 1fr;
+	}
+
+	.dtb-admin[data-dtb-page="dtb-system-manager"] .dtb-gcc-commit-meta {
+		grid-column: 1;
 	}
 }

@@ -36,7 +36,7 @@
   const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
   function isInventoryView() {
-    const active = qs('.dtb-veeqo-primary-nav .is-active, .dtb-veeqo-primary-nav [aria-current="page"]');
+    const active = qs('.dtb-veeqo-tabs [data-view].is-active, .dtb-veeqo-tabs [aria-selected="true"]');
     return Boolean(active && /inventory/i.test(active.textContent || ''));
   }
 

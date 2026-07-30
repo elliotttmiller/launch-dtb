@@ -54,8 +54,11 @@ require_once $_dtb_platform . '/Auth/TokenService.php';
 require_once $_dtb_platform . '/Auth/AuthController.php';
 require_once $_dtb_platform . '/Auth/NativeCheckoutIdentityBridge.php';
 require_once $_dtb_platform . '/Auth/CheckoutSessionContinuityGuard.php';
+require_once $_dtb_platform . '/Auth/AuthCookieCandidates.php';
 require_once $_dtb_platform . '/Auth/AuthRoutes.php';
+require_once $_dtb_platform . '/Auth/AuthCookieCanonicalization.php';
 require_once $_dtb_platform . '/Auth/AuthCookieRuntimeHardening.php';
+require_once $_dtb_platform . '/Auth/AdminLoginIdentityBoundary.php';
 
 // 5. Cache.
 require_once $_dtb_platform . '/Cache/CacheKeyBuilder.php';
@@ -121,6 +124,7 @@ require_once $_dtb_platform . '/Admin/AdminMenuRegistry.php';
 require_once $_dtb_platform . '/Admin/AdminAssets.php';
 require_once $_dtb_platform . '/Admin/AdminAssetPolicy.php';
 require_once $_dtb_platform . '/Admin/AdminCacheToolbar.php';
+require_once $_dtb_platform . '/Admin/AdminGlobalNavigation.php';
 require_once $_dtb_platform . '/Admin/AdminShell.php';
 require_once $_dtb_platform . '/Admin/AdminUi.php';
 require_once $_dtb_platform . '/Admin/OperationsMenu.php';

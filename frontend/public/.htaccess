@@ -59,7 +59,17 @@ ErrorDocument 511 __DTB_PUBLIC_URL__/errors/511.html
   RewriteRule ^xmlrpc\.php$ wp/xmlrpc.php [QSA,L]
   RewriteRule ^wp-comments-post\.php$ wp/wp-comments-post.php [QSA,L]
 
+  # Canonicalize wp-prefixed WooCommerce endpoints back to their public URLs.
+  RewriteRule ^wp/checkout/order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA]
+  RewriteRule ^wp/order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA]
+  RewriteRule ^wp/checkout/order-received/(.*)$ /checkout/order-received/$1 [R=302,L,QSA]
+
   # Native WooCommerce/WordPress storefront routes must be served by WP.
+  # Keep nested endpoints before the base checkout rule so successful payment
+  # redirects cannot fall through to the static SPA/error-file boundary.
+  RewriteRule ^checkout/order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
+  RewriteRule ^order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
+  RewriteRule ^checkout/order-received/([0-9]+)/?$ wp/index.php?pagename=checkout&order-received=$1 [QSA,L]
   RewriteRule ^checkout/?$ wp/index.php?pagename=checkout [QSA,L]
   RewriteRule ^cart/?$ wp/index.php?pagename=cart [QSA,L]
   RewriteRule ^my-account/?$ wp/index.php?pagename=my-account [QSA,L]

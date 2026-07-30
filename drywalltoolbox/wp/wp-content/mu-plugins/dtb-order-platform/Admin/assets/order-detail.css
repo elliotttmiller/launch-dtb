@@ -1,0 +1,201 @@
+/*
+ * DTB WooCommerce order-detail visual refinement.
+ *
+ * Safety contract:
+ * - WooCommerce and BrikPanel retain all structural layout ownership.
+ * - This file does not set display, grid, float, width, max-width, position,
+ *   order, overflow, or column geometry on core order-editor containers.
+ * - Rules are scoped to .dtb-order-detail-screen.
+ */
+
+.dtb-order-detail-screen {
+	--dtb-order-card-radius: 10px;
+	--dtb-order-card-border: #dfe3e8;
+	--dtb-order-card-bg: #fff;
+	--dtb-order-muted-bg: #f7f8fa;
+	--dtb-order-text: #17202a;
+	--dtb-order-muted: #667085;
+	--dtb-order-accent: #2563eb;
+	--dtb-order-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.dtb-order-detail-screen #wpbody-content {
+	background: #f4f6f8;
+}
+
+.dtb-order-detail-screen .postbox,
+.dtb-order-detail-screen .woocommerce-order-data,
+.dtb-order-detail-screen .woocommerce-order-items {
+	border-color: var(--dtb-order-card-border);
+	border-radius: var(--dtb-order-card-radius);
+	background: var(--dtb-order-card-bg);
+	box-shadow: var(--dtb-order-shadow);
+}
+
+.dtb-order-detail-screen .postbox {
+	margin-bottom: 16px;
+}
+
+.dtb-order-detail-screen .postbox .postbox-header,
+.dtb-order-detail-screen .postbox > h2.hndle {
+	min-height: 48px;
+	border-bottom-color: var(--dtb-order-card-border);
+	background: var(--dtb-order-card-bg);
+}
+
+.dtb-order-detail-screen .postbox .hndle,
+.dtb-order-detail-screen .postbox .postbox-header h2 {
+	font-size: 14px;
+	font-weight: 650;
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen .postbox .inside {
+	padding: 16px;
+}
+
+.dtb-order-detail-screen input[type="text"],
+.dtb-order-detail-screen input[type="email"],
+.dtb-order-detail-screen input[type="number"],
+.dtb-order-detail-screen input[type="tel"],
+.dtb-order-detail-screen input[type="url"],
+.dtb-order-detail-screen input[type="date"],
+.dtb-order-detail-screen select,
+.dtb-order-detail-screen textarea {
+	border-color: #cfd6df;
+	border-radius: 7px;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen input:focus,
+.dtb-order-detail-screen select:focus,
+.dtb-order-detail-screen textarea:focus,
+.dtb-order-detail-screen button:focus-visible,
+.dtb-order-detail-screen a:focus-visible {
+	border-color: var(--dtb-order-accent);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+	outline: 0;
+}
+
+.dtb-order-detail-screen .button,
+.dtb-order-detail-screen .button-secondary {
+	border-radius: 7px;
+}
+
+.dtb-order-detail-screen .button-primary {
+	border-color: var(--dtb-order-accent);
+	background: var(--dtb-order-accent);
+}
+
+.dtb-order-detail-screen .woocommerce_order_items thead th {
+	background: var(--dtb-order-muted-bg);
+	color: var(--dtb-order-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items tbody td,
+.dtb-order-detail-screen .woocommerce_order_items tbody th {
+	border-bottom-color: #edf0f3;
+	vertical-align: top;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items .thumb img {
+	border: 1px solid var(--dtb-order-card-border);
+	border-radius: 7px;
+	background: #fff;
+}
+
+.dtb-order-detail-screen ul.order_notes li .note_content {
+	border: 1px solid var(--dtb-order-card-border);
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen ul.order_notes li p.meta {
+	color: var(--dtb-order-muted);
+	font-size: 11px;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline .inside {
+	padding: 14px;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline table {
+	font-size: 12px !important;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline th {
+	padding: 9px 10px !important;
+	border-bottom: 1px solid var(--dtb-order-card-border) !important;
+	background: var(--dtb-order-muted-bg);
+	color: var(--dtb-order-muted);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline td {
+	padding: 8px 10px !important;
+	border-bottom: 1px solid #edf0f3 !important;
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen #dtb-order-timeline tbody tr:hover td {
+	background: #f8fafc;
+}
+
+.dtb-order-detail-screen #dtb-integration-state .inside {
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.dtb-order-detail-screen #dtb-integration-state strong {
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen #dtb-integration-state small {
+	color: var(--dtb-order-muted) !important;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .inside {
+	padding: 14px;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .dtb-op-btn {
+	margin: 4px 0 !important;
+	border-color: #cfd6df;
+	border-radius: 7px;
+	background: #fff;
+	color: #1d4ed8;
+	font-weight: 600;
+	text-align: left;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .dtb-op-btn:hover {
+	border-color: #9db5e8;
+	background: #f5f8ff;
+}
+
+.dtb-order-detail-screen a {
+	color: #2457d6;
+	text-underline-offset: 2px;
+}
+
+.dtb-order-detail-screen .order-status {
+	border-radius: 999px;
+	font-weight: 650;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dtb-order-detail-screen *,
+	.dtb-order-detail-screen *::before,
+	.dtb-order-detail-screen *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}

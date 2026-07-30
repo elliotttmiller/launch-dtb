@@ -52,6 +52,7 @@ Each plugin follows a consistent layered architecture:
 | `dtb-returns` | Return portal workflow |
 | `dtb-support` | Support tickets, contact form, SLA, admin workbench |
 | `dtb-marketing` | SEO, coming-soon page |
+| `dtb-deployment` | Release Management: release event log, signed GitHub Actions webhook, GitHub API bridge (dispatch/drift), System Manager admin UI (Release Management tabs) |
 
 ### Plugin Internal Layers (consistent across all plugins)
 
@@ -81,11 +82,25 @@ The frontend production artifact does not own schematic image binaries. Stable s
 
 ## Deployment Pipeline
 
+Two independent, non-competing deployment paths, split by ownership boundary:
+
+**Frontend + site root** (`frontend/` build, root `.htaccess`, logos) — unchanged, operator-managed:
+
 1. `frontend/` → Webpack production build
 2. `launch/scripts/assemble-siteground.ps1` reconstructs the bounded `launch/live/` overlay
 3. CI validates source, PHP, JavaScript, routing, and payload boundaries without writing to production
 4. An operator creates independent backups and transfers the reviewed `launch/live/` change set manually through FileZilla
 5. Runtime caches and production acceptance checks are completed separately
+
+**Production `/wp` application tree** (mu-plugins, themes, `.htaccess`, `index.php`) — the Release Management platform, built around the official SiteGround Git repository:
+
+1. An operator dispatches `.github/workflows/release-siteground.yml` (from System Manager's Release Management tabs or GitHub Actions directly) with a reviewed ref and a typed `DEPLOY`/`ROLLBACK` confirmation.
+2. The workflow plans and validates the release, assembles a payload scoped to `scripts/deployment/protected-paths.json`'s owned paths, and tags an immutable manifest (`dtb-release/<id>`) on this repository.
+3. `scripts/deployment/siteground-git-release.sh` backs up the current SiteGround Git state (tag), then applies the payload as a scoped commit pushed to the SiteGround Git remote — the official deployment backend. Any change outside the owned paths aborts the release before a commit is created.
+4. The workflow verifies production (root, `/wp-json/dtb/v1/health`, `/checkout/`) and auto-restores from the backup tag on any failure.
+5. Every stage reports a signed event to `dtb-deployment`'s webhook, which records it in `wp_dtb_release_events`, purges PHP OPcache/SiteGround Dynamic Cache on success, and powers System Manager (production status, history, drift, rollback).
+
+See `docs/deployment/release-management-architecture.md` for the full design.
 
 ## Key Architectural Patterns
 
