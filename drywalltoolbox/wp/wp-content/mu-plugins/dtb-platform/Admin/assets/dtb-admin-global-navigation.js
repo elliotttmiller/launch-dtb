@@ -35,7 +35,20 @@
 	const host = candidates[0];
 	if (host) {
 		host.classList.add('has-dtb-global-quick-nav');
-		host.append(nav);
+
+		// Insert inside the topbar's own inner flex row (between the brand and
+		// the icon cluster) so this nav is a real item of the existing single
+		// row, not a second row appended after it. Appending directly to the
+		// outer topbar element made this render below the bar's fixed height,
+		// overlapping the sidebar and content area (both offset to match a
+		// single-row bar).
+		const inner = host.querySelector(':scope > .brikpanel-topbar-inner') || host;
+		const trailingCluster = inner.querySelector(':scope > .brikpanel-topbar-right');
+		if (trailingCluster) {
+			inner.insertBefore(nav, trailingCluster);
+		} else {
+			inner.append(nav);
+		}
 		return;
 	}
 

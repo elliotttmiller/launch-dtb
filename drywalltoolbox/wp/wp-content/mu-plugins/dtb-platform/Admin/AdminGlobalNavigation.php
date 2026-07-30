@@ -21,18 +21,21 @@ add_action( 'admin_enqueue_scripts', 'dtb_admin_global_navigation_enqueue', 90 )
 function dtb_admin_global_navigation_items(): array {
 	$items = [];
 
+	if ( current_user_can( 'dtb_view_command_center' ) ) {
+		$items[] = [ 'label' => __( 'Command Center', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-command-center' ), 'match' => 'dtb-command-center', 'group' => 'operations' ];
+	}
+
 	if ( current_user_can( 'manage_woocommerce' ) ) {
-		$items[] = [ 'label' => __( 'Orders', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=wc-orders' ), 'match' => 'wc-orders', 'group' => 'commerce' ];
-		$items[] = [ 'label' => __( 'Products', 'drywall-toolbox' ), 'url' => admin_url( 'edit.php?post_type=product' ), 'match' => 'post_type=product', 'group' => 'commerce' ];
-		$items[] = [ 'label' => __( 'Customers', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=wc-admin&path=/customers' ), 'match' => '/customers', 'group' => 'commerce' ];
-		$items[] = [ 'label' => __( 'Repairs', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-repairs' ), 'match' => 'dtb-repairs', 'group' => 'operations' ];
-		$items[] = [ 'label' => __( 'Returns', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-returns' ), 'match' => 'dtb-returns', 'group' => 'operations' ];
+		$items[] = [ 'label' => __( 'WooCommerce', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=wc-admin' ), 'match' => 'wc-admin', 'group' => 'commerce' ];
 		$items[] = [ 'label' => __( 'Veeqo', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-veeqo-control-center' ), 'match' => 'dtb-veeqo-control-center', 'group' => 'integrations' ];
 	}
 
 	if ( current_user_can( 'manage_options' ) ) {
 		$items[] = [ 'label' => __( 'QuickBooks', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-quickbooks' ), 'match' => 'dtb-quickbooks', 'group' => 'integrations' ];
-		$items[] = [ 'label' => __( 'System', 'drywall-toolbox' ), 'url' => admin_url( 'admin.php?page=dtb-system-manager' ), 'match' => 'dtb-system-manager', 'group' => 'system' ];
+	}
+
+	if ( current_user_can( 'manage_woocommerce' ) ) {
+		$items[] = [ 'label' => __( 'Products', 'drywall-toolbox' ), 'url' => admin_url( 'edit.php?post_type=product' ), 'match' => 'post_type=product', 'group' => 'commerce' ];
 	}
 
 	return $items;
