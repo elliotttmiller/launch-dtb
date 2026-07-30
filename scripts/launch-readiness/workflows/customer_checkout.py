@@ -102,13 +102,18 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
         return CustomerCheckoutRun(stage=stage, order=None, email=email)
 
     def step_place_order():
-        order = common.place_order(page, config)
-        order_box["order"] = order
-        return Status.PASS, f"Order confirmed: #{order.order_number} at {order.confirmation_url}"
+        try:
+            order = common.place_order(page, config)
+        except common.OrderConfirmationPageError as exc:
+            order_box["order"] = exc.confirmation
+            return Status.FAIL, str(exc)
+        else:
+            order_box["order"] = order
+            return Status.PASS, f"Order confirmed: #{order.order_number} at {order.confirmation_url}"
 
     tui.run_step(stage, "Place order and confirm", step_place_order)
     if stage.status is Status.FAIL:
-        return CustomerCheckoutRun(stage=stage, order=None, email=email)
+        return CustomerCheckoutRun(stage=stage, order=order_box.get("order"), email=email)
     order = order_box["order"]
 
     def step_logout():

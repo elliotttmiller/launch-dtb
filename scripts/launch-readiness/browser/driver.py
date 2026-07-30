@@ -72,6 +72,11 @@ class Browser:
         if _PROXY_URL:
             launch_kwargs["proxy"] = {"server": _PROXY_URL}
         self._browser = self._playwright.chromium.launch(**launch_kwargs)
+        self._new_context()
+        return self
+
+    def _new_context(self) -> None:
+        assert self._browser is not None
         self._context = self._browser.new_context(
             viewport={"width": 1440, "height": 900},
             user_agent=(
@@ -84,7 +89,6 @@ class Browser:
         self.page = self._context.new_page()
         self.page.on("console", self._on_console)
         self.page.on("pageerror", self._on_page_error)
-        return self
 
     def __exit__(self, exc_type, exc, tb) -> None:
         if self._context is not None:
@@ -101,16 +105,14 @@ class Browser:
     def _on_page_error(self, exc) -> None:
         self._console_errors.append(str(exc))
 
-    def reset_page(self) -> Page:
-        """Start a clean page while retaining this run's browser-session cookies."""
+    def reset_session(self) -> Page:
+        """Start an isolated browser context with no cookies or local state."""
 
-        assert self._context is not None
-        if self.page is not None:
-            self.page.close()
+        if self._context is not None:
+            self._context.close()
         self._console_errors = []
-        self.page = self._context.new_page()
-        self.page.on("console", self._on_console)
-        self.page.on("pageerror", self._on_page_error)
+        self._new_context()
+        assert self.page is not None
         return self.page
 
     def visit(self, url: str, label: str, min_body_chars: int = 200) -> PageVisitResult:

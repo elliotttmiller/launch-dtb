@@ -103,9 +103,14 @@ def run(config: "Config", browser: "Browser") -> GuestCheckoutRun:
         return GuestCheckoutRun(stage=stage, order=None, email=email)
 
     def step_place_order():
-        order = common.place_order(page, config)
-        order_box["order"] = order
-        return Status.PASS, f"Order confirmed: #{order.order_number} at {order.confirmation_url}"
+        try:
+            order = common.place_order(page, config)
+        except common.OrderConfirmationPageError as exc:
+            order_box["order"] = exc.confirmation
+            return Status.FAIL, str(exc)
+        else:
+            order_box["order"] = order
+            return Status.PASS, f"Order confirmed: #{order.order_number} at {order.confirmation_url}"
 
     tui.run_step(stage, "Place order and confirm", step_place_order)
 

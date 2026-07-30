@@ -42,6 +42,14 @@ class CheckoutFlowError(RuntimeError):
     """Raised when a customer-simulation step cannot complete as expected."""
 
 
+class OrderConfirmationPageError(CheckoutFlowError):
+    """Raised when an order exists but its confirmation document did not render."""
+
+    def __init__(self, message: str, confirmation: OrderConfirmation) -> None:
+        super().__init__(message)
+        self.confirmation = confirmation
+
+
 def resolve_product_url(config: "Config") -> str:
     """Resolve the configured product path without permitting another origin."""
 
@@ -65,11 +73,11 @@ def find_first_purchasable_product(page: "Page", config: "Config") -> ProductInf
 
     if config.product_url_path:
         url = resolve_product_url(config)
-        page.goto(url, wait_until="networkidle")
+        page.goto(url, wait_until="domcontentloaded")
         title = page.title()
         return ProductInfo(name=title, url=url)
 
-    page.goto(f"{config.site_url}/products", wait_until="networkidle")
+    page.goto(f"{config.site_url}/products", wait_until="domcontentloaded")
     link = page.locator('a[href*="/products/"]').first
     try:
         link.wait_for(state="visible", timeout=config.browser_timeout_ms)
@@ -83,7 +91,7 @@ def find_first_purchasable_product(page: "Page", config: "Config") -> ProductInf
 
 
 def add_product_to_cart(page: "Page", config: "Config", product: ProductInfo) -> None:
-    page.goto(product.url, wait_until="networkidle")
+    page.goto(product.url, wait_until="domcontentloaded")
     add_to_cart = page.get_by_role("button", name=re.compile("add to cart", re.I)).first
     add_to_cart.wait_for(state="visible", timeout=config.browser_timeout_ms)
     add_to_cart.click()
@@ -93,7 +101,7 @@ def add_product_to_cart(page: "Page", config: "Config", product: ProductInfo) ->
 
 
 def go_to_cart(page: "Page", config: "Config") -> None:
-    page.goto(f"{config.site_url}/cart", wait_until="networkidle")
+    page.goto(f"{config.site_url}/cart", wait_until="domcontentloaded")
 
 
 def cart_has_items(page: "Page") -> bool:
@@ -255,18 +263,24 @@ def pay_with_stripe_test_card(page: "Page", config: "Config") -> None:
 def place_order(page: "Page", config: "Config") -> OrderConfirmation:
     place_order_button = page.get_by_role("button", name=re.compile("place order", re.I)).first
     place_order_button.wait_for(state="visible", timeout=config.browser_timeout_ms)
-    place_order_button.click()
 
     try:
-        page.wait_for_url(re.compile(r"(order-received|/order/|thank-you)", re.I), timeout=config.browser_timeout_ms * 2)
+        with page.expect_navigation(
+            wait_until="domcontentloaded",
+            timeout=config.browser_timeout_ms * 4,
+        ) as navigation:
+            place_order_button.click()
+        response = navigation.value
     except PlaywrightTimeoutError as exc:
         raise CheckoutFlowError(
             "Checkout did not reach an order-confirmation page after placing the order "
             "(payment may have failed or requires manual 3-D Secure handling)."
         ) from exc
 
-    page.wait_for_load_state("networkidle")
     url = page.url
+    if not re.search(r"(order-received|/order/|thank-you)", url, re.I):
+        raise CheckoutFlowError(f"Checkout navigated to an unexpected post-payment URL: {url}")
+
     match = re.search(r"order-received/(\d+)|/order/(\d+)|order[-_]?id=(\d+)", url, re.I)
     order_id = int(next(g for g in (match.groups() if match else []) if g)) if match else None
 
@@ -277,7 +291,15 @@ def place_order(page: "Page", config: "Config") -> OrderConfirmation:
     if not order_number:
         raise CheckoutFlowError("Order confirmation page did not expose an order number.")
 
-    return OrderConfirmation(order_number=order_number, order_id=order_id, confirmation_url=url)
+    confirmation = OrderConfirmation(order_number=order_number, order_id=order_id, confirmation_url=url)
+    if response is not None and response.status >= 400:
+        raise OrderConfirmationPageError(
+            f"Order #{order_number} was created, but its confirmation document returned "
+            f"HTTP {response.status} at {url}",
+            confirmation,
+        )
+
+    return confirmation
 
 
 def register_account(
