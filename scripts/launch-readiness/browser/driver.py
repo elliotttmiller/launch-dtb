@@ -101,6 +101,18 @@ class Browser:
     def _on_page_error(self, exc) -> None:
         self._console_errors.append(str(exc))
 
+    def reset_page(self) -> Page:
+        """Start a clean page while retaining this run's browser-session cookies."""
+
+        assert self._context is not None
+        if self.page is not None:
+            self.page.close()
+        self._console_errors = []
+        self.page = self._context.new_page()
+        self.page.on("console", self._on_console)
+        self.page.on("pageerror", self._on_page_error)
+        return self.page
+
     def visit(self, url: str, label: str, min_body_chars: int = 200) -> PageVisitResult:
         """Navigate to `url` and capture status, console errors, and blank-page risk."""
 

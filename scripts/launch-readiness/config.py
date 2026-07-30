@@ -89,7 +89,8 @@ class Config:
     # -- Checkout simulation safety gate --------------------------------------
     enable_checkout_simulation: bool = False
     test_customer_email_domain: str = "launch-readiness.drywalltoolbox.test"
-    product_url_path: str = ""  # optional explicit product path, e.g. /products/some-tool
+    # Optional product path or same-origin absolute URL.
+    product_url_path: str = ""
 
     # Stripe test card (default is Stripe's standard successful test card).
     stripe_test_card_number: str = "4242424242424242"

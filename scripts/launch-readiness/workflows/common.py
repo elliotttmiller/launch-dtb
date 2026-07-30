@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin, urlsplit
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
@@ -41,11 +42,29 @@ class CheckoutFlowError(RuntimeError):
     """Raised when a customer-simulation step cannot complete as expected."""
 
 
+def resolve_product_url(config: "Config") -> str:
+    """Resolve the configured product path without permitting another origin."""
+
+    configured = config.product_url_path.strip()
+    if not configured:
+        return ""
+
+    url = urljoin(f"{config.site_url}/", configured)
+    site = urlsplit(config.site_url)
+    product = urlsplit(url)
+    if (product.scheme, product.netloc) != (site.scheme, site.netloc):
+        raise CheckoutFlowError(
+            "LAUNCH_PRODUCT_URL_PATH must be a path or an absolute URL on "
+            f"{site.scheme}://{site.netloc}."
+        )
+    return url
+
+
 def find_first_purchasable_product(page: "Page", config: "Config") -> ProductInfo:
     """Return the first product listed on the Shop page, or the configured one."""
 
     if config.product_url_path:
-        url = f"{config.site_url}{config.product_url_path}"
+        url = resolve_product_url(config)
         page.goto(url, wait_until="networkidle")
         title = page.title()
         return ProductInfo(name=title, url=url)
@@ -85,14 +104,16 @@ def cart_has_items(page: "Page") -> bool:
 
 
 def proceed_to_checkout(page: "Page", config: "Config") -> None:
-    checkout_link = page.get_by_role("link", name=re.compile("checkout", re.I)).first
-    try:
-        checkout_link.wait_for(state="visible", timeout=config.browser_timeout_ms)
-        checkout_link.click()
-    except PlaywrightTimeoutError:
-        # Fall back to the canonical full-document checkout route directly.
-        page.goto(f"{config.site_url}/checkout/", wait_until="networkidle")
-    page.wait_for_load_state("networkidle")
+    # Checkout is intentionally a full-document WooCommerce handoff, not a
+    # client-side React transition.
+    page.goto(f"{config.site_url}/checkout/", wait_until="domcontentloaded")
+
+    # Stripe and Woo Blocks keep background connections active, so
+    # `networkidle` is not a reliable checkout-readiness signal.
+    page.locator("#email, .wc-block-checkout").first.wait_for(
+        state="visible",
+        timeout=config.browser_timeout_ms * 2,
+    )
 
 
 def _fill_first_matching(page: "Page", selectors: list[str], value: str) -> bool:
@@ -108,16 +129,43 @@ def _fill_first_matching(page: "Page", selectors: list[str], value: str) -> bool
 
 
 def fill_billing_details(page: "Page", email: str, first_name: str, last_name: str) -> None:
-    """Fill the native WooCommerce Checkout Block billing/contact fields."""
+    """Fill DTB contact fields and the native Checkout Block shipping address."""
 
     fields: list[tuple[list[str], str]] = [
         (["#email", 'input[name="email"]'], email),
-        (["#billing-first_name", "#billing_first_name"], first_name),
-        (["#billing-last_name", "#billing_last_name"], last_name),
-        (["#billing-address_1", "#billing_address_1"], "123 Contractor Way"),
-        (["#billing-city", "#billing_city"], "Chicago"),
-        (["#billing-postcode", "#billing_postcode"], "60601"),
-        (["#billing-phone", "#billing_phone"], "3125551234"),
+        (
+            [
+                "#contact-dtb-first_name",
+                'input[name="contact_dtb/first_name"]',
+                "#shipping-first_name",
+                "#billing-first_name",
+                "#billing_first_name",
+            ],
+            first_name,
+        ),
+        (
+            [
+                "#contact-dtb-last_name",
+                'input[name="contact_dtb/last_name"]',
+                "#shipping-last_name",
+                "#billing-last_name",
+                "#billing_last_name",
+            ],
+            last_name,
+        ),
+        (["#shipping-address_1", "#billing-address_1", "#billing_address_1"], "123 Contractor Way"),
+        (["#shipping-city", "#billing-city", "#billing_city"], "Chicago"),
+        (["#shipping-postcode", "#billing-postcode", "#billing_postcode"], "60601"),
+        (
+            [
+                "#contact-dtb-phone",
+                'input[name="contact_dtb/phone"]',
+                "#shipping-phone",
+                "#billing-phone",
+                "#billing_phone",
+            ],
+            "3125551234",
+        ),
     ]
     missing = []
     for selectors, value in fields:
@@ -131,7 +179,7 @@ def fill_billing_details(page: "Page", email: str, first_name: str, last_name: s
 
 
 def _select_state(page: "Page", state_code: str) -> None:
-    for selector in ["#billing-state", "#billing_state"]:
+    for selector in ["#shipping-state", "#billing-state", "#billing_state"]:
         locator = page.locator(selector).first
         if not locator.count():
             continue
@@ -163,12 +211,38 @@ def select_a_shipping_method(page: "Page") -> None:
 def pay_with_stripe_test_card(page: "Page", config: "Config") -> None:
     """Fill the Stripe Payment Element inside its secure iframe with a test card."""
 
+    gateway = page.locator(
+        '#radio-control-wc-payment-method-options-stripe_upm, '
+        'input[type="radio"][value="stripe_upm"]'
+    ).first
+    try:
+        if gateway.count() and not gateway.is_checked():
+            gateway.check()
+    except PlaywrightTimeoutError:
+        pass
+
     frame = page.frame_locator('iframe[title*="Secure payment input frame"]').first
     try:
-        frame.get_by_placeholder(re.compile("card number", re.I)).fill(config.stripe_test_card_number)
-        frame.get_by_placeholder(re.compile("mm\\s*/\\s*yy", re.I)).fill(config.stripe_test_card_exp)
-        frame.get_by_placeholder(re.compile("cvc", re.I)).fill(config.stripe_test_card_cvc)
-        zip_field = frame.get_by_placeholder(re.compile("zip|postal", re.I))
+        card_method = frame.get_by_text(re.compile(r"^Card$", re.I)).first
+        card_method.wait_for(state="visible", timeout=config.browser_timeout_ms)
+        card_method.click()
+
+        number = frame.locator(
+            'input[name="number"], input[autocomplete="cc-number"], input[aria-label*="card number" i]'
+        ).first
+        number.wait_for(state="visible", timeout=config.browser_timeout_ms)
+        number.fill(config.stripe_test_card_number)
+
+        frame.locator(
+            'input[name="expiry"], input[autocomplete="cc-exp"], input[aria-label*="expiration" i]'
+        ).first.fill(config.stripe_test_card_exp)
+        frame.locator(
+            'input[name="cvc"], input[autocomplete="cc-csc"], input[aria-label*="security code" i]'
+        ).first.fill(config.stripe_test_card_cvc)
+        zip_field = frame.locator(
+            'input[name="postalCode"], input[autocomplete="postal-code"], '
+            'input[aria-label*="postal" i], input[aria-label*="ZIP" i]'
+        ).first
         if zip_field.count():
             zip_field.fill(config.stripe_test_card_zip)
     except PlaywrightTimeoutError as exc:
@@ -206,15 +280,39 @@ def place_order(page: "Page", config: "Config") -> OrderConfirmation:
     return OrderConfirmation(order_number=order_number, order_id=order_id, confirmation_url=url)
 
 
-def register_account(page: "Page", config: "Config", email: str, password: str, first_name: str) -> None:
+def register_account(
+    page: "Page",
+    config: "Config",
+    email: str,
+    password: str,
+    first_name: str,
+    last_name: str,
+) -> None:
     page.goto(f"{config.site_url}/register", wait_until="networkidle")
-    if not _fill_first_matching(page, ['input[name="email"]', "#email"], email):
+    if not _fill_first_matching(page, ["#signup-email", 'input[name="email"]', "#email"], email):
         raise CheckoutFlowError("Registration form email field not found.")
-    _fill_first_matching(page, ['input[name="firstName"]', 'input[name="first_name"]', "#first_name"], first_name)
     if not _fill_first_matching(
-        page, ['input[name="password"]', "#password", 'input[type="password"]'], password
+        page,
+        ["#signup-first-name", 'input[autocomplete="given-name"]', 'input[name="first_name"]'],
+        first_name,
+    ):
+        raise CheckoutFlowError("Registration form first-name field not found.")
+    if not _fill_first_matching(
+        page,
+        ["#signup-last-name", 'input[autocomplete="family-name"]', 'input[name="last_name"]'],
+        last_name,
+    ):
+        raise CheckoutFlowError("Registration form last-name field not found.")
+    if not _fill_first_matching(
+        page, ["#signup-password", 'input[name="password"]', "#password", 'input[type="password"]'], password
     ):
         raise CheckoutFlowError("Registration form password field not found.")
+    if not _fill_first_matching(
+        page,
+        ["#signup-confirm-password", 'input[name="confirm_password"]', 'input[autocomplete="new-password"]:nth-of-type(2)'],
+        password,
+    ):
+        raise CheckoutFlowError("Registration form password-confirmation field not found.")
     submit = page.get_by_role("button", name=re.compile("register|create account|sign up", re.I)).first
     submit.click()
     page.wait_for_load_state("networkidle")

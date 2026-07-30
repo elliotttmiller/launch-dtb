@@ -66,11 +66,13 @@ def run(config: Config) -> RunReport:
         report.stages.append(crawl_stage)
 
         tui.stage_header(guest_checkout.STAGE_NAME, 3, TOTAL_STAGES)
+        browser.reset_page()
         guest_run = guest_checkout.run(config, browser)
         tui.stage_footer(guest_run.stage)
         report.stages.append(guest_run.stage)
 
         tui.stage_header(customer_checkout.STAGE_NAME, 4, TOTAL_STAGES)
+        browser.reset_page()
         customer_run = customer_checkout.run(config, browser)
         tui.stage_footer(customer_run.stage)
         report.stages.append(customer_run.stage)

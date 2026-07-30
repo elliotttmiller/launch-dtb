@@ -54,7 +54,7 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
     order_box: dict[str, "OrderConfirmation"] = {}
 
     def step_register():
-        common.register_account(page, config, email, password, "Registered")
+        common.register_account(page, config, email, password, "Registered", "Contractor")
         return Status.PASS, f"Registered account for {email}."
 
     tui.run_step(stage, "Create account", step_register)
