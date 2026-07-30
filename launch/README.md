@@ -6,8 +6,7 @@
 
 - `frontend/` is the canonical React source. A production build is copied to `launch/live/`.
 - `drywalltoolbox/.htaccess` is the canonical public-root router and is copied to `launch/live/.htaccess`.
-- `drywalltoolbox/wp/.htaccess` and `drywalltoolbox/wp/index.php` are copied to `launch/live/wp/`.
-- `drywalltoolbox/wp/wp-content/mu-plugins/` and `themes/` are canonical backend source and are copied into the matching `launch/live/wp/wp-content/` paths.
+- `drywalltoolbox/wp/.htaccess`, `drywalltoolbox/wp/index.php`, `drywalltoolbox/wp/wp-content/mu-plugins/`, and `drywalltoolbox/wp/wp-content/themes/` are canonical backend source. `launch/live/wp/` still assembles them locally for a complete overlay preview, but production promotion of this exact set of paths is owned by the Release Management platform (`.github/workflows/release-siteground.yml`, built around the official SiteGround Git repository) — see `docs/deployment/release-management-architecture.md`. Do not hand-transfer these paths through FileZilla; use System Manager (Drywall Toolbox > System Manager) or dispatch the workflow directly.
 - WordPress core, regular plugins, uploads, caches, logs, `sgs_encrypt_key.php`, and `wp-config.php` are runtime-owned. They are intentionally excluded from source control and normal deployment payloads.
 
 ## Domain contract
@@ -35,20 +34,29 @@ The assembly script installs dependencies, lints and builds the frontend, then r
 
 Do not upload `dist-staging/` to `public_html/`. The staging build is compiled for `/staging/2972/` and will produce 404s for root-deployed assets such as `/staging/2972/assets/js/main.js`.
 
-## Manual FileZilla deployment
+## Manual FileZilla deployment — frontend and site root only
 
-Remote file transfer is operator-managed through FileZilla and is intentionally outside the repository. The repository contains no remote-transfer workflow, transport script, credential contract, or production connection helper.
+Scope: the frontend build and site-root files (`index.html`, root `.htaccess`, `.user.ini`, `logos/`) — everything in `launch/live/` **outside** `wp/`. Remote file transfer for this scope is operator-managed through FileZilla and is intentionally outside the repository. The repository contains no remote-transfer workflow, transport script, credential contract, or production connection helper for this path.
 
 Before each transfer:
 
 1. Build and validate `launch/live/` from canonical source.
 2. Create independent SiteGround file and database backups.
 3. Review the complete bounded overlay and confirm that runtime-owned paths are absent.
-4. Transfer the complete dependency-consistent change set with FileZilla; do not upload isolated composition files.
+4. Transfer the complete dependency-consistent change set with FileZilla, scoped to the site root only; do not upload isolated composition files or anything under `wp/`.
 5. Clear required SiteGround caches through Site Tools.
 6. Run the runtime acceptance checks below.
 
 FileZilla connection details and credentials are operator-owned and must not be committed, documented in repository files, or pasted into support messages.
+
+## Production `/wp` application tree deployment — Release Management platform
+
+Scope: `.htaccess`, `index.php`, `wp-content/mu-plugins/`, `wp-content/themes/` inside the production `/wp` install. This set of paths is promoted exclusively through `.github/workflows/release-siteground.yml`, an operator-dispatched GitHub Actions workflow built around the official SiteGround Git repository — never through FileZilla, and never automatically on push or merge. Deploy, monitor, and roll back through the System Manager (wp-admin → Drywall Toolbox → System Manager) or by dispatching the workflow directly in GitHub Actions.
+
+Required one-time operator setup (see `docs/deployment/release-management-architecture.md` for full detail):
+
+- GitHub Actions repository secrets: `SITEGROUND_GIT_REMOTE`, `SITEGROUND_GIT_BRANCH`, `SITEGROUND_GIT_SSH_PRIVATE_KEY`, `SITEGROUND_GIT_KNOWN_HOSTS`, `DTB_DEPLOYMENT_WEBHOOK_SECRET`.
+- `wp-config.php` constants: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (must match the GitHub secret above) and, to enable one-click dispatch/drift detection from System Manager, `DTB_GITHUB_DEPLOYMENT_TOKEN`.
 
 ## Required runtime actions
 

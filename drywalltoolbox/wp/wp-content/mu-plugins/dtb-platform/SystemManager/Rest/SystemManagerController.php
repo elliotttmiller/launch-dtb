@@ -62,11 +62,14 @@ function dtb_system_manager_register_routes(): void {
 		'permission_callback' => $read_cap,
 	] );
 
-	// Live-region refresh endpoint for the System Manager admin page.
+	// Live-region refresh endpoint for the unified System Manager console
+	// (platform health tabs and, when the requester holds
+	// dtb_manage_deployments, release-management tabs — see
+	// dtb_system_manager_admin_system_handler()).
 	register_rest_route( 'dtb/v1', '/admin/system', [
 		'methods'             => WP_REST_Server::READABLE,
 		'callback'            => 'dtb_system_manager_admin_system_handler',
-		'permission_callback' => fn() => current_user_can( 'dtb_manage_system' ),
+		'permission_callback' => fn() => current_user_can( 'dtb_manage_system' ) || current_user_can( 'dtb_manage_deployments' ),
 		'args'                => [
 			'tab' => [ 'sanitize_callback' => 'sanitize_key' ],
 		],
@@ -157,34 +160,36 @@ function dtb_system_workbench_contract_diagnostics(): array {
 /**
  * Live-region refresh handler for GET /dtb/v1/admin/system.
  *
- * Renders the active tab content for the System Manager live region.
+ * Renders the active tab's content for the unified System Manager console
+ * — both platform-health tabs and release-management tabs, delegating to
+ * the same dtb_system_manager_dispatch_tab() the page itself uses so the
+ * two code paths can never drift out of sync. Per-tab capability gating
+ * happens inside that dispatcher.
+ *
+ * The response's meta.fast_poll reflects whether a release is *currently*
+ * in progress (recomputed on every request), which dtb-system-manager.js
+ * uses to speed up polling in real time — the page's own initial
+ * dtb-live-fast CSS class only covers the very first paint.
  */
 function dtb_system_manager_admin_system_handler( WP_REST_Request $request ): WP_REST_Response {
-	$active_tab = sanitize_key( $request->get_param( 'tab' ) ?: 'system' );
+	$active_tab      = sanitize_key( $request->get_param( 'tab' ) ?: 'overview' );
+	$can_system      = current_user_can( 'dtb_manage_system' );
+	$can_deployments = current_user_can( 'dtb_manage_deployments' );
 
 	ob_start();
-
-	switch ( $active_tab ) {
-		case 'queues':
-			dtb_system_manager_render_queues_tab();
-			break;
-		case 'integrations':
-			dtb_system_manager_render_integrations_tab();
-			break;
-		case 'webhooks':
-			dtb_system_manager_render_webhooks_tab();
-			break;
-		case 'audit':
-			dtb_system_manager_render_audit_tab();
-			break;
-		case 'logs':
-			dtb_system_manager_render_logs_tab();
-			break;
-		default:
-			dtb_system_manager_render_system_tab();
-			break;
-	}
-
+	dtb_system_manager_dispatch_tab( $active_tab, $can_system, $can_deployments );
 	$html = ob_get_clean();
-	return new WP_REST_Response( [ 'ok' => true, 'html' => $html ], 200 );
+
+	$fast_poll = $can_deployments
+		&& function_exists( 'dtb_release_history_in_progress' )
+		&& null !== dtb_release_history_in_progress();
+
+	return new WP_REST_Response( [
+		'ok'   => true,
+		'html' => $html,
+		'meta' => [
+			'updated_at' => current_time( 'H:i:s' ),
+			'fast_poll'  => $fast_poll,
+		],
+	], 200 );
 }

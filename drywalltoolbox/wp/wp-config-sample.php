@@ -164,6 +164,29 @@ define( 'DTB_VEEQO_CHANNEL_ID', 0 );
 define( 'DTB_VEEQO_DELIVERY_METHOD_ID', 0 );
 define( 'DTB_VEEQO_DEBUG', false );
 
+/**
+ * Deployment Center / Release Management integration constants.
+ *
+ * DTB_DEPLOYMENT_WEBHOOK_SECRET verifies release lifecycle events posted by
+ * .github/workflows/release-siteground.yml (scripts/deployment/report-release-event.sh).
+ * It must match the DTB_DEPLOYMENT_WEBHOOK_SECRET GitHub Actions repository
+ * secret exactly.
+ *
+ * DTB_GITHUB_DEPLOYMENT_TOKEN is a fine-grained GitHub personal access token
+ * scoped to this repository only, with "Actions: write" and "Contents: read"
+ * permissions. It is used solely to call GitHub's workflow_dispatch API and
+ * to read repository/workflow-run state for drift detection — it is never
+ * sent to the browser and never used to write repository content.
+ *
+ * DTB_GITHUB_REPO_OWNER / DTB_GITHUB_REPO_NAME / DTB_GITHUB_RELEASE_WORKFLOW_FILE
+ * may be left undefined; they default to this repository's own values.
+ */
+define( 'DTB_DEPLOYMENT_WEBHOOK_SECRET', 'replace-with-strong-webhook-secret' );
+define( 'DTB_GITHUB_DEPLOYMENT_TOKEN', '' );
+define( 'DTB_GITHUB_REPO_OWNER', 'elliotttmiller' );
+define( 'DTB_GITHUB_REPO_NAME', 'launch-dtb' );
+define( 'DTB_GITHUB_RELEASE_WORKFLOW_FILE', 'release-siteground.yml' );
+
 
 /* That's all, stop editing! Happy publishing. */
 
