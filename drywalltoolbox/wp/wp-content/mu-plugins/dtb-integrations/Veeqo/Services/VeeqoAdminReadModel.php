@@ -17,7 +17,11 @@ final class DTB_Veeqo_Admin_Read_Model {
 		$diagnostics = defined( 'DTB_VEEQO_INVENTORY_DIAGNOSTICS' )
 			? (array) get_option( DTB_VEEQO_INVENTORY_DIAGNOSTICS, [] )
 			: [];
-		$last_sync       = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
+		$last_sync            = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'inventory' ) : 0;
+		$last_catalog_sync    = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'catalog_weight' ) : 0;
+		$catalog_diagnostics  = defined( 'DTB_VEEQO_CATALOG_SYNC_DIAGNOSTICS' )
+			? (array) get_option( DTB_VEEQO_CATALOG_SYNC_DIAGNOSTICS, [] )
+			: [];
 		$last_order_poll = class_exists( 'DTB_VeeqoSyncJob' ) ? (int) DTB_VeeqoSyncJob::last_timestamp( 'order_status_poll' ) : 0;
 		$poll_state      = defined( 'DTB_VEEQO_ORDER_STATUS_POLL_STATE_OPTION' )
 			? (array) get_option( DTB_VEEQO_ORDER_STATUS_POLL_STATE_OPTION, [] )
@@ -35,6 +39,22 @@ final class DTB_Veeqo_Admin_Read_Model {
 				'last_inventory_sync_at' => $last_sync > 0 ? gmdate( 'c', $last_sync ) : null,
 				'stale'                  => $last_sync <= 0 || ( time() - $last_sync ) > 2 * HOUR_IN_SECONDS,
 				'diagnostics'            => self::diagnostic_summary( $diagnostics ),
+				// No "stale" flag here on purpose: this job is on-demand, not scheduled
+				// (see VeeqoCatalogWeightSyncService.php), so there's no expected
+				// recency to measure it against — it's just "when did we last run it."
+				'last_catalog_weight_sync_at' => $last_catalog_sync > 0 ? gmdate( 'c', $last_catalog_sync ) : null,
+				'catalog_weight_sync_diagnostics' => [
+					'completed_at'        => sanitize_text_field( (string) ( $catalog_diagnostics['completed_at'] ?? '' ) ),
+					'partial'             => ! empty( $catalog_diagnostics['partial'] ),
+					'pages'               => absint( $catalog_diagnostics['pages'] ?? 0 ),
+					'sellables_seen'      => absint( $catalog_diagnostics['sellables_seen'] ?? 0 ),
+					'updated'             => absint( $catalog_diagnostics['updated'] ?? 0 ),
+					'unchanged'           => absint( $catalog_diagnostics['unchanged'] ?? 0 ),
+					'mapped'              => absint( $catalog_diagnostics['mapped'] ?? 0 ),
+					'unmapped_count'      => count( (array) ( $catalog_diagnostics['unmapped_skus'] ?? [] ) ),
+					'duplicate_count'     => count( (array) ( $catalog_diagnostics['duplicate_skus'] ?? [] ) ),
+					'push_failure_count'  => count( (array) ( $catalog_diagnostics['push_failures'] ?? [] ) ),
+				],
 				'last_order_status_poll_at' => $last_order_poll > 0 ? gmdate( 'c', $last_order_poll ) : null,
 				'order_status_poll_state'   => sanitize_key( (string) ( $poll_state['status'] ?? 'idle' ) ),
 				'order_status_poll_next_at' => ! empty( $poll_state['next_run_at'] ) ? gmdate( 'c', (int) $poll_state['next_run_at'] ) : null,

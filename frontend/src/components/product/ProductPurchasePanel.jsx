@@ -1,5 +1,5 @@
 import { Minus, Plus, ShoppingCart } from 'lucide-react';
-import ProductExpressCheckout from './ProductExpressCheckout.jsx';
+import ProductBuyNow from './ProductBuyNow.jsx';
 
 export default function ProductPurchasePanel({
   quantity,
@@ -7,9 +7,9 @@ export default function ProductPurchasePanel({
   onIncrease,
   onQuantityChange,
   onAddToCart,
-  onExpressCheckout,
-  isExpressCheckoutPending,
-  canExpressCheckout,
+  onBuyNow,
+  isBuyNowPending,
+  canBuyNow,
   canAddToCart,
   isOutOfStock,
   needsVariation,
@@ -24,13 +24,13 @@ export default function ProductPurchasePanel({
   };
 
   const addToCartPending = addToCartState === 'adding' || addToCartState === 'added';
-  const purchaseBusy = addToCartPending || isExpressCheckoutPending;
+  const purchaseBusy = addToCartPending || isBuyNowPending;
   const addToCartLabel = isOutOfStock
     ? 'Out of Stock'
     : needsVariation && !hasCompleteSelection
       ? 'Select Options'
       : 'Add to Cart';
-  const expressCheckoutDisabledReason = isOutOfStock
+  const buyNowDisabledReason = isOutOfStock
     ? 'This product is currently out of stock.'
     : needsVariation && !hasCompleteSelection
       ? 'Select all required product options before continuing to secure checkout.'
@@ -100,11 +100,11 @@ export default function ProductPurchasePanel({
         </button>
       </div>
 
-      <ProductExpressCheckout
-        onExpressCheckout={onExpressCheckout}
-        pending={isExpressCheckoutPending}
-        disabled={!canExpressCheckout || addToCartPending}
-        disabledReason={expressCheckoutDisabledReason}
+      <ProductBuyNow
+        onBuyNow={onBuyNow}
+        pending={isBuyNowPending}
+        disabled={!canBuyNow || addToCartPending}
+        disabledReason={buyNowDisabledReason}
       />
     </div>
   );

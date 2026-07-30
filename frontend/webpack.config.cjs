@@ -394,6 +394,10 @@ module.exports = (envFlags, argv) => {
             },
           },
           {
+            from: path.resolve(__dirname, '..', 'products', 'logos', 'afterpay.svg'),
+            to:   'payment_logos/afterpay.svg',
+          },
+          {
             from: 'public/robots.txt',
             to: 'robots.txt',
             toType: 'file',

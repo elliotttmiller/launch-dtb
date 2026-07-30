@@ -43,7 +43,7 @@ function unavailableReasons(checks) {
     .filter(Boolean);
 }
 
-export function normalizeProductExpressCheckoutReadiness(capabilities) {
+export function normalizeProductBuyNowReadiness(capabilities) {
   const readiness = capabilities?.readiness && typeof capabilities.readiness === 'object'
     ? capabilities.readiness
     : {};
@@ -99,12 +99,16 @@ export function normalizeProductExpressCheckoutReadiness(capabilities) {
       applePay: asBoolean(readiness.apple_pay_enabled),
       googlePay: asBoolean(readiness.google_pay_enabled),
       link: asBoolean(readiness.link_enabled),
+      affirm: asBoolean(readiness.affirm_enabled),
+      klarna: asBoolean(readiness.klarna_enabled),
+      afterpay: asBoolean(readiness.afterpay_enabled),
+      paypal: asBoolean(readiness.paypal_enabled),
       bnplCount: asNonNegativeInteger(readiness.bnpl_gateway_count),
     },
   };
 }
 
-export async function getProductExpressCheckoutReadiness({ force = false } = {}) {
+export async function getProductBuyNowReadiness({ force = false } = {}) {
   if (inFlightRequest) {
     return inFlightRequest;
   }
@@ -119,7 +123,7 @@ export async function getProductExpressCheckoutReadiness({ force = false } = {})
     cache: 'no-store',
     headers: { Accept: 'application/json' },
   })
-    .then((capabilities) => normalizeProductExpressCheckoutReadiness(capabilities))
+    .then((capabilities) => normalizeProductBuyNowReadiness(capabilities))
     .catch(() => ({
       state: 'unknown',
       provider: 'Payment Plugins for Stripe',

@@ -541,7 +541,7 @@ export default function ProductDetail({
   const [activeTab, setActiveTab] = useState('description');
   const [addToCartError, setAddToCartError] = useState('');
   const [addToCartState, setAddToCartState] = useState('idle');
-  const [isExpressCheckoutPending, setIsExpressCheckoutPending] = useState(false);
+  const [isBuyNowPending, setIsBuyNowPending] = useState(false);
   const addToCartFeedbackTimerRef = useRef(null);
   const seededVariations = buildSeedVariations(initialVariations, initialResolvedVariation);
   const initialVariationSelection = buildInitialVariationSelection({
@@ -840,17 +840,17 @@ export default function ProductDetail({
     }
   };
 
-  const handleExpressCheckout = async () => {
-    if (!canAddToCart || isExpressCheckoutPending) return;
+  const handleBuyNow = async () => {
+    if (!canAddToCart || isBuyNowPending) return;
     const productToAdd = selectedVariation ? effectiveProduct : product;
 
     try {
       setAddToCartError('');
-      setIsExpressCheckoutPending(true);
+      setIsBuyNowPending(true);
       await addToCart(productToAdd, quantity);
       navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
     } catch (err) {
-      setIsExpressCheckoutPending(false);
+      setIsBuyNowPending(false);
       setAddToCartError(
         err?.message ||
         'Unable to prepare checkout. Please check your selection and try again.'
@@ -989,9 +989,9 @@ export default function ProductDetail({
                 }}
                 onAddToCart={handleAddToCart}
                 addToCartState={addToCartState}
-                onExpressCheckout={handleExpressCheckout}
-                isExpressCheckoutPending={isExpressCheckoutPending}
-                canExpressCheckout={canAddToCart}
+                onBuyNow={handleBuyNow}
+                isBuyNowPending={isBuyNowPending}
+                canBuyNow={canAddToCart}
                 canAddToCart={canAddToCart}
                 isOutOfStock={isOutOfStock}
                 needsVariation={needsVariation}

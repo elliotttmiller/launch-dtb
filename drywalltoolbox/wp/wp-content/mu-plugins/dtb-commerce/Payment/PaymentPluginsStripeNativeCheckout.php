@@ -100,6 +100,10 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 					'google_pay_enabled'                 => self::upm_method_enabled( 'stripe_googlepay', $upm ),
 					'google_pay_express_checkout'        => false,
 					'link_enabled'                       => self::upm_method_enabled( 'stripe_link', $upm ),
+					'affirm_enabled'                     => self::upm_method_enabled( 'stripe_affirm', $upm ),
+					'klarna_enabled'                     => self::upm_method_enabled( 'stripe_klarna', $upm ),
+					'afterpay_enabled'                   => self::upm_method_enabled( 'stripe_afterpay', $upm ),
+					'paypal_enabled'                     => self::is_any_gateway_enabled( [ 'ppcp-gateway', 'paypal' ] ),
 					'express_checkout_enabled'           => false,
 					'express_checkout_checkout_location' => false,
 					'bnpl_gateway_count'                 => self::enabled_upm_method_count( self::BNPL_GATEWAY_IDS, $upm ),
@@ -291,6 +295,16 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 
 	private static function is_gateway_enabled_by_id( string $gateway_id ): bool {
 		return self::gateway_enabled( self::gateway_by_id( $gateway_id ) );
+	}
+
+	/** @param array<int,string> $gateway_ids */
+	private static function is_any_gateway_enabled( array $gateway_ids ): bool {
+		foreach ( $gateway_ids as $gateway_id ) {
+			if ( self::is_gateway_enabled_by_id( $gateway_id ) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static function upm_method_enabled( string $gateway_id, $upm = null ): bool {
