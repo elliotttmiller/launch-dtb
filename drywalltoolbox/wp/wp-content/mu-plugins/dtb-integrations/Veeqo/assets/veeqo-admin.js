@@ -200,51 +200,59 @@
     const dot = qs('#dtb-veeqo-nav-dot');
     const label = qs('#dtb-veeqo-nav-label');
     if (dot) dot.className = `dtb-veeqo-nav-dot ${ready ? 'is-ready' : 'is-warning'}`;
-    if (label) label.textContent = ready ? 'Production ready' : 'Configuration required';
+    if (label) label.textContent = ready ? 'Connected and syncing' : 'Setup needed';
   }
 
   async function loadOverview() {
-    setContext('Overview', '<button type="button" class="dtb-veeqo-button" data-action="refresh-current">Refresh</button><button type="button" class="dtb-veeqo-button is-primary" data-action="test-connection" data-write-action>Test connection</button>');
+    setContext('Overview', '<button type="button" class="dtb-veeqo-button" data-action="refresh-current">Refresh</button><button type="button" class="dtb-veeqo-button is-primary" data-action="test-connection" data-write-action>Check connection</button>');
     const data = await ensureOverview();
     const inv = data.inventory || {};
     const sync = data.sync || {};
     const orders = data.orders || {};
     const readiness = data.readiness || {};
-    const diagnostics = (sync && sync.diagnostics) || {};
     const view = qs('#dtb-veeqo-view');
     view.innerHTML = `
       <div class="dtb-veeqo-kpis">
         ${kpi('Inventory SKUs', inv.total, `${fmtNumber(inv.in_stock)} in stock`, '')}
         ${kpi('Low stock', inv.low_stock, 'At or below threshold', inv.low_stock > 0 ? 'warning' : 'success')}
-        ${kpi('Out of stock', inv.out_of_stock, 'Woo checkout projection', inv.out_of_stock > 0 ? 'danger' : 'success')}
-        ${kpi('Unmapped', inv.unmapped, 'Missing Veeqo sellable ID', inv.unmapped > 0 ? 'warning' : 'success')}
+        ${kpi('Out of stock', inv.out_of_stock, 'Currently unavailable at checkout', inv.out_of_stock > 0 ? 'danger' : 'success')}
+        ${kpi('Needs Veeqo link', inv.unmapped, 'Products not yet connected to Veeqo', inv.unmapped > 0 ? 'warning' : 'success')}
         ${kpi('Processing orders', orders.processing, `${fmtNumber(orders.on_hold || 0)} on hold`, '')}
       </div>
       <div class="dtb-veeqo-grid">
         <div>
-          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Inventory synchronization</h2><p>Configured-warehouse Veeqo availability projected into WooCommerce.</p></div><div class="dtb-veeqo-actions"><button class="dtb-veeqo-button" data-action="queue-dry-run" data-write-action>Queue dry run</button><button class="dtb-veeqo-button is-primary" data-action="queue-reconcile" data-write-action>Reconcile now</button></div></div><div class="dtb-veeqo-panel-body">
+          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Inventory sync</h2><p>Keeping your website's stock levels in sync with Veeqo.</p></div><div class="dtb-veeqo-actions"><button class="dtb-veeqo-button" data-action="queue-dry-run" data-write-action>Preview sync</button><button class="dtb-veeqo-button is-primary" data-action="queue-reconcile" data-write-action>Sync now</button></div></div><div class="dtb-veeqo-panel-body">
             <div class="dtb-veeqo-detail-grid">
-              ${detail('Last completed', sync.last_inventory_sync_at ? fmtDate(sync.last_inventory_sync_at) : 'Never')}
-              ${detail('Status', sync.stale ? 'Stale or uninitialized' : 'Current')}
-              ${detail('Pages processed', diagnostics.pages || 0)}
-              ${detail('Sellables inspected', diagnostics.sellables_seen || 0)}
-              ${detail('Updated products', diagnostics.updated || 0)}
-              ${detail('Unmapped exceptions', diagnostics.unmapped_count || 0)}
-              ${detail('Duplicate SKUs', diagnostics.duplicate_count || 0)}
-              ${detail('Missing warehouse stock', diagnostics.missing_warehouse_count || 0)}
+              ${detail('Last synced', sync.last_inventory_sync_at ? fmtDate(sync.last_inventory_sync_at) : 'Not yet run')}
+              ${detail('Status', sync.stale ? 'Needs attention' : 'Up to date')}
             </div>
           </div></section>
-          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Recent operations</h2><p>Durable Action Scheduler inventory operations.</p></div><button class="dtb-veeqo-button is-small" data-view-jump="operations">View all</button></div><div class="dtb-veeqo-panel-body is-flush">${operationsTable(data.recent_operations || [], 6)}</div></section>
+          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Recent activity</h2><p>Your latest inventory sync history.</p></div><button class="dtb-veeqo-button is-small" data-view-jump="operations">View all</button></div><div class="dtb-veeqo-panel-body is-flush">${operationsTable(data.recent_operations || [], 6)}</div></section>
         </div>
         <aside>
-          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Production readiness</h2><p>Redacted configuration and authority checks.</p></div></div><div class="dtb-veeqo-panel-body">${readinessRows(readiness, data.configuration || {}, sync)}</div></section>
-          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Exact SKU inspector</h2><p>Compare Woo projection with live Veeqo warehouse entries.</p></div></div><div class="dtb-veeqo-panel-body"><form id="dtb-veeqo-overview-sku" class="dtb-veeqo-inline-search"><label class="screen-reader-text" for="dtb-veeqo-overview-sku-input">Exact SKU</label><input id="dtb-veeqo-overview-sku-input" maxlength="100" placeholder="Enter exact SKU" required><button class="dtb-veeqo-button" type="submit">Inspect</button></form></div></section>
+          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Connection status</h2><p>Your Veeqo integration at a glance.</p></div></div><div class="dtb-veeqo-panel-body">${connectionSummary(readiness, sync)}</div></section>
+          <section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Look up a product</h2><p>Check a product's live stock directly from Veeqo.</p></div></div><div class="dtb-veeqo-panel-body"><form id="dtb-veeqo-overview-sku" class="dtb-veeqo-inline-search"><label class="screen-reader-text" for="dtb-veeqo-overview-sku-input">Product SKU</label><input id="dtb-veeqo-overview-sku-input" maxlength="100" placeholder="Enter a product SKU" required><button class="dtb-veeqo-button" type="submit">Look up</button></form></div></section>
         </aside>
       </div>`;
     bindCommonActions();
     const form = qs('#dtb-veeqo-overview-sku');
     if (form) form.addEventListener('submit', (event) => { event.preventDefault(); inspectSku(qs('#dtb-veeqo-overview-sku-input').value); });
     if (data.active_operation) pollOperation(data.active_operation.operation_id, true);
+  }
+
+  // Overview-only, plain-language connection summary. Deliberately takes no
+  // raw configuration (API key/constant names, numeric channel/warehouse/
+  // delivery-method IDs) — that detail belongs on the Settings tab, where an
+  // operator is actually there to configure something. Overview should read
+  // like a business dashboard, not a backend diagnostics dump.
+  function connectionSummary(readiness, sync) {
+    const rows = [
+      ['Veeqo connection', Boolean(readiness.order_projection_ready && readiness.inventory_ready), readiness.order_projection_ready && readiness.inventory_ready ? 'Connected' : 'Needs setup — see Settings'],
+      ['Inventory sync', readiness.inventory_ready, sync.stale ? 'Needs attention' : 'Up to date'],
+      ['Order sync', readiness.order_projection_ready, readiness.order_projection_ready ? 'Active' : 'Paused until setup is complete'],
+      ['Real-time updates', readiness.webhooks_enabled, readiness.webhooks_enabled ? 'Enabled' : 'Using scheduled checks'],
+    ];
+    return `<div class="dtb-veeqo-readiness">${rows.map(([label, ok, value]) => `<div class="dtb-veeqo-readiness-row"><span class="dtb-veeqo-state-icon ${ok ? 'is-success' : 'is-warning'}"></span><div><span class="dtb-veeqo-state-label">${esc(label)}</span><span class="dtb-veeqo-state-detail">${esc(value)}</span></div><span class="dtb-veeqo-state-value">${ok ? 'Good' : 'Check Settings'}</span></div>`).join('')}</div>`;
   }
 
   function kpi(label, value, detailText, tone) {
@@ -361,16 +369,23 @@
     if (data.active) pollOperation(data.active.operation_id, true);
   }
 
+  function modeLabel(mode) {
+    const value = String(mode || '').toLowerCase();
+    if (value === 'dry_run') return 'Preview';
+    if (value === 'reconcile') return 'Sync';
+    return mode ? esc(String(mode).replaceAll('_', ' ')) : '—';
+  }
+
   function operationCard(operation, full) {
     const counts = operation.counts || {};
     const progress = Math.min(100, Math.max(3, Number(counts.pages || 0) * 10));
-    return `<div class="dtb-veeqo-operation-card"><div class="dtb-veeqo-operation-head"><strong>${esc(operation.mode || 'operation')}</strong>${statusBadge(operation.status, toneForStatus(operation.status))}</div><span class="dtb-veeqo-secondary">${esc(operation.operation_id || '')}</span>${full ? `<div class="dtb-veeqo-progress"><span style="width:${progress}%"></span></div><div class="dtb-veeqo-detail-grid" style="margin-top:12px">${detail('Pages',counts.pages||0)}${detail('Sellables',counts.sellables_seen||0)}${detail('Updated',counts.updated||0)}${detail('Unmapped',counts.unmapped||0)}${detail('Next page',operation.next_page||1)}${detail('Attempt',operation.attempt||0)}</div>` : ''}${operation.error ? `<p class="dtb-veeqo-secondary">${esc(operation.error)}</p>` : ''}</div>`;
+    return `<div class="dtb-veeqo-operation-card"><div class="dtb-veeqo-operation-head"><strong>${modeLabel(operation.mode)}</strong>${statusBadge(operation.status, toneForStatus(operation.status))}</div><span class="dtb-veeqo-secondary">${esc(operation.operation_id || '')}</span>${full ? `<div class="dtb-veeqo-progress"><span style="width:${progress}%"></span></div><div class="dtb-veeqo-detail-grid" style="margin-top:12px">${detail('Pages',counts.pages||0)}${detail('Sellables',counts.sellables_seen||0)}${detail('Updated',counts.updated||0)}${detail('Unmapped',counts.unmapped||0)}${detail('Next page',operation.next_page||1)}${detail('Attempt',operation.attempt||0)}</div>` : ''}${operation.error ? `<p class="dtb-veeqo-secondary">${esc(operation.error)}</p>` : ''}</div>`;
   }
 
   function operationsTable(items, limit) {
     const rows = items.slice(0, limit);
-    if (!rows.length) return '<div class="dtb-veeqo-empty"><strong>No operations recorded</strong>Inventory operations will appear here.</div>';
-    return `<table class="dtb-veeqo-table"><thead><tr><th>Created</th><th>Mode</th><th>Status</th><th>Pages</th><th>Updated</th><th>Exceptions</th></tr></thead><tbody>${rows.map((op) => `<tr><td>${fmtDate(op.created_at)}</td><td>${esc(op.mode)}</td><td>${statusBadge(op.status,toneForStatus(op.status))}</td><td>${fmtNumber(op.counts && op.counts.pages)}</td><td>${fmtNumber(op.counts && op.counts.updated)}</td><td>${fmtNumber((op.counts&&op.counts.unmapped||0)+(op.counts&&op.counts.duplicates||0)+(op.counts&&op.counts.missing_stock||0))}</td></tr>`).join('')}</tbody></table>`;
+    if (!rows.length) return '<div class="dtb-veeqo-empty"><strong>No sync activity yet</strong>Your inventory sync history will appear here.</div>';
+    return `<table class="dtb-veeqo-table"><thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Products checked</th><th>Updated</th><th>Needs review</th></tr></thead><tbody>${rows.map((op) => `<tr><td>${fmtDate(op.created_at)}</td><td>${modeLabel(op.mode)}</td><td>${statusBadge(op.status,toneForStatus(op.status))}</td><td>${fmtNumber(op.counts && op.counts.sellables_seen)}</td><td>${fmtNumber(op.counts && op.counts.updated)}</td><td>${fmtNumber((op.counts&&op.counts.unmapped||0)+(op.counts&&op.counts.duplicates||0)+(op.counts&&op.counts.missing_stock||0))}</td></tr>`).join('')}</tbody></table>`;
   }
 
   function policyRow(label, value) {
