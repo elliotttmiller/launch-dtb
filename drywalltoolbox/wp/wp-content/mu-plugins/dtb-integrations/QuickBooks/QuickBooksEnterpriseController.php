@@ -2,9 +2,8 @@
 /**
  * Enterprise QuickBooks wp-admin read models.
  *
- * Exposes bounded, redacted operational views derived from WooCommerce,
- * QuickBooks projection metadata, and Action Scheduler. Remote accounting writes
- * remain queue-owned by the canonical dtb-orders pipeline.
+ * Bounded, redacted operational views over WooCommerce projection state and
+ * Action Scheduler. Accounting writes remain queue-owned by dtb-orders.
  *
  * @package drywall-toolbox
  */
@@ -14,6 +13,8 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_QuickBooksEnterpriseController {
 	private const REST_NAMESPACE = 'dtb/v1';
 	private const MAX_PAGE_SIZE  = 100;
+	private const MAX_SCAN       = 500;
+	private const CACHE_TTL      = 10;
 
 	public static function register(): void {
 		add_action( 'rest_api_init', [ self::class, 'register_routes' ] );
@@ -28,21 +29,9 @@ final class DTB_QuickBooksEnterpriseController {
 				'callback'            => [ self::class, 'rest_view' ],
 				'permission_callback' => [ self::class, 'can_manage' ],
 				'args'                => [
-					'view' => [
-						'type'              => 'string',
-						'default'           => 'overview',
-						'sanitize_callback' => 'sanitize_key',
-					],
-					'page' => [
-						'type'              => 'integer',
-						'default'           => 1,
-						'sanitize_callback' => 'absint',
-					],
-					'limit' => [
-						'type'              => 'integer',
-						'default'           => 25,
-						'sanitize_callback' => 'absint',
-					],
+					'view'  => [ 'type' => 'string', 'default' => 'overview', 'sanitize_callback' => 'sanitize_key' ],
+					'page'  => [ 'type' => 'integer', 'default' => 1, 'sanitize_callback' => 'absint' ],
+					'limit' => [ 'type' => 'integer', 'default' => 25, 'sanitize_callback' => 'absint' ],
 				],
 			]
 		);
@@ -57,10 +46,9 @@ final class DTB_QuickBooksEnterpriseController {
 			return new WP_Error( 'qbo_woocommerce_unavailable', 'WooCommerce order services are unavailable.', [ 'status' => 503 ] );
 		}
 
-		$view  = sanitize_key( (string) $request->get_param( 'view' ) );
-		$page  = max( 1, absint( $request->get_param( 'page' ) ) );
-		$limit = min( self::MAX_PAGE_SIZE, max( 1, absint( $request->get_param( 'limit' ) ) ) );
-
+		$view    = sanitize_key( (string) $request->get_param( 'view' ) );
+		$page    = max( 1, absint( $request->get_param( 'page' ) ) );
+		$limit   = min( self::MAX_PAGE_SIZE, max( 1, absint( $request->get_param( 'limit' ) ) ) );
 		$allowed = [ 'overview', 'transactions', 'refunds', 'customers', 'reconciliation', 'activity' ];
 		if ( ! in_array( $view, $allowed, true ) ) {
 			return new WP_Error( 'qbo_invalid_enterprise_view', 'Unsupported QuickBooks operations view.', [ 'status' => 400 ] );
@@ -70,9 +58,9 @@ final class DTB_QuickBooksEnterpriseController {
 			'overview'       => self::overview(),
 			'transactions'   => self::transactions( $page, $limit ),
 			'refunds'        => self::refunds( $page, $limit ),
-			'customers'      => self::customers( $limit ),
+			'customers'      => self::customers( $page, $limit ),
 			'reconciliation' => self::reconciliation( $page, $limit ),
-			'activity'       => self::activity( $limit ),
+			'activity'       => self::activity( $page, $limit ),
 		};
 
 		return new WP_REST_Response(
@@ -87,223 +75,209 @@ final class DTB_QuickBooksEnterpriseController {
 	}
 
 	private static function overview(): array {
-		$orders = wc_get_orders(
-			[
-				'limit'   => 100,
-				'orderby' => 'date',
-				'order'   => 'DESC',
-				'status'  => array_keys( wc_get_order_statuses() ),
-			]
-		);
+		$cache_key = 'dtb_qbo_enterprise_overview_' . dtb_qbo_environment();
+		$cached    = get_transient( $cache_key );
+		if ( is_array( $cached ) ) {
+			$cached['cached'] = true;
+			return $cached;
+		}
 
-		$gross = 0.0;
-		$refunded = 0.0;
-		$synced = 0;
-		$pending = 0;
-		$failed = 0;
-		$latest = [];
+		$orders     = self::recent_orders( 100 );
+		$gross      = 0.0;
+		$refunded   = 0.0;
+		$eligible   = 0;
+		$synced     = 0;
+		$pending    = 0;
+		$failed     = 0;
+		$latest     = [];
 
 		foreach ( $orders as $order ) {
-			if ( ! $order instanceof WC_Order ) {
-				continue;
-			}
-			$gross += (float) $order->get_total();
+			$gross    += (float) $order->get_total();
 			$refunded += abs( (float) $order->get_total_refunded() );
-			$state = self::projection_state( $order );
-			if ( 'synced' === $state ) {
-				++$synced;
-			} elseif ( 'failed' === $state ) {
-				++$failed;
-			} elseif ( $order->get_date_paid() ) {
-				++$pending;
+			if ( self::is_accounting_eligible( $order ) ) {
+				++$eligible;
+				$state = self::projection_state( $order );
+				if ( 'synced' === $state ) {
+					++$synced;
+				} elseif ( 'failed' === $state ) {
+					++$failed;
+				} else {
+					++$pending;
+				}
 			}
 			if ( count( $latest ) < 8 ) {
 				$latest[] = self::order_row( $order );
 			}
 		}
 
-		$total = count( $orders );
-		$rate  = $total > 0 ? round( ( $synced / $total ) * 100, 1 ) : 0.0;
-
-		return [
+		$data = [
 			'metrics' => [
-				'gross'          => wc_format_decimal( $gross, 2 ),
-				'refunded'       => wc_format_decimal( $refunded, 2 ),
-				'synced'         => $synced,
-				'pending'        => $pending,
-				'failed'         => $failed,
-				'syncRate'       => $rate,
-				'sampleSize'     => $total,
-				'currency'       => get_woocommerce_currency(),
+				'gross'      => wc_format_decimal( $gross, 2 ),
+				'refunded'   => wc_format_decimal( $refunded, 2 ),
+				'eligible'   => $eligible,
+				'synced'     => $synced,
+				'pending'    => $pending,
+				'failed'     => $failed,
+				'syncRate'   => $eligible > 0 ? round( ( $synced / $eligible ) * 100, 1 ) : 0.0,
+				'sampleSize' => count( $orders ),
+				'currency'   => get_woocommerce_currency(),
 			],
-			'latest' => $latest,
+			'latest'     => $latest,
 			'connection' => DTB_QuickBooksAdminController::read_model(),
+			'cached'     => false,
 		];
+		set_transient( $cache_key, $data, self::CACHE_TTL );
+		return $data;
 	}
 
 	private static function transactions( int $page, int $limit ): array {
-		$result = wc_get_orders(
-			[
-				'limit'    => $limit,
-				'page'     => $page,
-				'paginate' => true,
-				'orderby'  => 'date',
-				'order'    => 'DESC',
-				'status'   => array_keys( wc_get_order_statuses() ),
-			]
-		);
+		$result = wc_get_orders( [
+			'limit' => $limit, 'page' => $page, 'paginate' => true,
+			'orderby' => 'date', 'order' => 'DESC', 'status' => array_keys( wc_get_order_statuses() ),
+		] );
 		$rows = [];
 		foreach ( (array) $result->orders as $order ) {
 			if ( $order instanceof WC_Order ) {
 				$rows[] = self::order_row( $order );
 			}
 		}
-		return [ 'rows' => $rows, 'page' => $page, 'pages' => (int) $result->max_num_pages, 'total' => (int) $result->total ];
+		return self::page_payload( $rows, $page, $limit, (int) $result->total, false );
 	}
 
 	private static function refunds( int $page, int $limit ): array {
-		$orders = wc_get_orders(
-			[
-				'limit'   => min( 100, $limit * 4 ),
-				'page'    => $page,
-				'orderby' => 'date',
-				'order'   => 'DESC',
-				'status'  => array_keys( wc_get_order_statuses() ),
-			]
-		);
 		$rows = [];
-		foreach ( $orders as $order ) {
-			if ( ! $order instanceof WC_Order ) {
-				continue;
-			}
+		foreach ( self::recent_orders( self::MAX_SCAN ) as $order ) {
 			foreach ( $order->get_refunds() as $refund ) {
 				if ( ! $refund instanceof WC_Order_Refund ) {
 					continue;
 				}
 				$entity_id = (string) $order->get_meta( dtb_qbo_refund_meta_key( $refund->get_id() ), true );
 				$rows[] = [
-					'id'          => $refund->get_id(),
-					'orderId'     => $order->get_id(),
-					'orderNumber' => $order->get_order_number(),
-					'amount'      => wc_format_decimal( abs( (float) $refund->get_amount() ), 2 ),
-					'currency'    => $order->get_currency(),
-					'reason'      => sanitize_text_field( $refund->get_reason() ),
-					'date'        => $refund->get_date_created() ? gmdate( 'c', $refund->get_date_created()->getTimestamp() ) : '',
-					'entityId'    => $entity_id,
-					'state'       => '' !== $entity_id ? 'synced' : 'pending',
+					'id' => $refund->get_id(), 'orderId' => $order->get_id(), 'orderNumber' => $order->get_order_number(),
+					'amount' => wc_format_decimal( abs( (float) $refund->get_amount() ), 2 ), 'currency' => $order->get_currency(),
+					'reason' => sanitize_text_field( $refund->get_reason() ),
+					'date' => $refund->get_date_created() ? gmdate( 'c', $refund->get_date_created()->getTimestamp() ) : '',
+					'entityId' => sanitize_text_field( $entity_id ), 'state' => '' !== $entity_id ? 'synced' : 'pending',
+					'adminUrl' => admin_url( 'admin.php?page=wc-orders&action=edit&id=' . $order->get_id() ),
 				];
-				if ( count( $rows ) >= $limit ) {
-					break 2;
-				}
 			}
 		}
-		return [ 'rows' => $rows, 'page' => $page ];
+		usort( $rows, static fn( array $a, array $b ): int => strcmp( (string) $b['date'], (string) $a['date'] ) );
+		return self::slice_payload( $rows, $page, $limit, count( self::recent_orders( self::MAX_SCAN ) ) >= self::MAX_SCAN );
 	}
 
-	private static function customers( int $limit ): array {
-		$orders = wc_get_orders( [ 'limit' => min( 250, $limit * 5 ), 'orderby' => 'date', 'order' => 'DESC', 'status' => array_keys( wc_get_order_statuses() ) ] );
+	private static function customers( int $page, int $limit ): array {
 		$customers = [];
-		foreach ( $orders as $order ) {
-			if ( ! $order instanceof WC_Order ) {
-				continue;
-			}
+		foreach ( self::recent_orders( self::MAX_SCAN ) as $order ) {
 			$email = sanitize_email( $order->get_billing_email() );
 			$key   = '' !== $email ? strtolower( $email ) : 'order-' . $order->get_id();
 			if ( ! isset( $customers[ $key ] ) ) {
+				$user_id   = (int) $order->get_user_id();
+				$entity_id = $user_id > 0 ? (string) get_user_meta( $user_id, '_dtb_qbo_customer_id_' . dtb_qbo_environment(), true ) : '';
 				$customers[ $key ] = [
-					'name'       => sanitize_text_field( trim( $order->get_formatted_billing_full_name() ) ),
-					'email'      => $email,
-					'orders'     => 0,
-					'total'      => 0.0,
-					'entityId'   => sanitize_text_field( (string) $order->get_meta( '_dtb_qbo_customer_id', true ) ),
-					'lastOrder'  => '',
+					'name' => sanitize_text_field( trim( $order->get_formatted_billing_full_name() ) ), 'email' => $email,
+					'orders' => 0, 'total' => 0.0, 'entityId' => sanitize_text_field( $entity_id ),
+					'lastOrder' => $order->get_date_created() ? gmdate( 'c', $order->get_date_created()->getTimestamp() ) : '',
+					'registered' => $user_id > 0,
 				];
 			}
 			++$customers[ $key ]['orders'];
 			$customers[ $key ]['total'] += (float) $order->get_total();
-			if ( '' === $customers[ $key ]['lastOrder'] && $order->get_date_created() ) {
-				$customers[ $key ]['lastOrder'] = gmdate( 'c', $order->get_date_created()->getTimestamp() );
-			}
 		}
-		$rows = array_slice( array_values( $customers ), 0, $limit );
+		$rows = array_values( $customers );
+		usort( $rows, static fn( array $a, array $b ): int => strcmp( (string) $b['lastOrder'], (string) $a['lastOrder'] ) );
 		foreach ( $rows as &$row ) {
 			$row['total'] = wc_format_decimal( $row['total'], 2 );
-			$row['state'] = '' !== $row['entityId'] ? 'synced' : 'unmapped';
+			$row['state'] = '' !== $row['entityId'] ? 'synced' : ( $row['registered'] ? 'unmapped' : 'guest' );
 		}
 		unset( $row );
-		return [ 'rows' => $rows ];
+		return self::slice_payload( $rows, $page, $limit, count( self::recent_orders( self::MAX_SCAN ) ) >= self::MAX_SCAN );
 	}
 
 	private static function reconciliation( int $page, int $limit ): array {
-		$result = self::transactions( $page, $limit );
 		$rows = [];
-		foreach ( $result['rows'] as $row ) {
-			if ( 'synced' !== $row['state'] ) {
-				$rows[] = $row;
+		$orders = self::recent_orders( self::MAX_SCAN );
+		foreach ( $orders as $order ) {
+			if ( self::is_accounting_eligible( $order ) && 'synced' !== self::projection_state( $order ) ) {
+				$rows[] = self::order_row( $order );
 			}
 		}
-		return [ 'rows' => $rows, 'page' => $page, 'pages' => $result['pages'], 'total' => count( $rows ) ];
+		return self::slice_payload( $rows, $page, $limit, count( $orders ) >= self::MAX_SCAN );
 	}
 
-	private static function activity( int $limit ): array {
+	private static function activity( int $page, int $limit ): array {
 		$rows = [];
 		if ( function_exists( 'as_get_scheduled_actions' ) ) {
-			$actions = as_get_scheduled_actions(
-				[
-					'group'    => 'dtb-orders',
-					'per_page' => $limit,
-					'orderby'  => 'date',
-					'order'    => 'DESC',
-				],
-				'OBJECT'
-			);
+			$candidate_limit = min( self::MAX_SCAN, max( $limit * 5, 100 ) );
+			$actions = as_get_scheduled_actions( [
+				'group' => 'dtb-orders', 'per_page' => $candidate_limit, 'orderby' => 'date', 'order' => 'DESC',
+			], 'OBJECT' );
 			foreach ( (array) $actions as $action ) {
 				if ( ! is_object( $action ) || ! method_exists( $action, 'get_hook' ) ) {
 					continue;
 				}
 				$hook = sanitize_key( (string) $action->get_hook() );
-				if ( ! str_contains( $hook, 'quickbooks' ) && ! str_contains( $hook, 'qbo' ) ) {
+				if ( ! in_array( $hook, [ 'dtb_order_sync_quickbooks', 'dtb_qbo_sync_order', 'dtb_qbo_sync_refund' ], true ) && ! str_contains( $hook, 'quickbooks' ) ) {
 					continue;
 				}
-				$date = method_exists( $action, 'get_schedule' ) ? $action->get_schedule()->get_date() : null;
-				$rows[] = [
-					'hook'   => $hook,
+				$schedule = method_exists( $action, 'get_schedule' ) ? $action->get_schedule() : null;
+				$date     = is_object( $schedule ) && method_exists( $schedule, 'get_date' ) ? $schedule->get_date() : null;
+				$rows[]   = [
+					'hook' => $hook,
 					'status' => method_exists( $action, 'get_status' ) ? sanitize_key( (string) $action->get_status() ) : 'unknown',
-					'date'   => $date instanceof DateTimeInterface ? $date->format( DATE_ATOM ) : '',
+					'date' => $date instanceof DateTimeInterface ? $date->format( DATE_ATOM ) : '',
 				];
 			}
+			return self::slice_payload( $rows, $page, $limit, count( (array) $actions ) >= $candidate_limit );
 		}
-		return [ 'rows' => $rows ];
+		return self::page_payload( [], $page, $limit, 0, false );
+	}
+
+	private static function recent_orders( int $limit ): array {
+		$orders = wc_get_orders( [ 'limit' => min( self::MAX_SCAN, max( 1, $limit ) ), 'orderby' => 'date', 'order' => 'DESC', 'status' => array_keys( wc_get_order_statuses() ) ] );
+		return array_values( array_filter( (array) $orders, static fn( $order ): bool => $order instanceof WC_Order ) );
+	}
+
+	private static function is_accounting_eligible( WC_Order $order ): bool {
+		return (bool) $order->get_date_paid() && '' !== (string) $order->get_transaction_id();
 	}
 
 	private static function order_row( WC_Order $order ): array {
 		$entity_id = (string) ( $order->get_meta( '_dtb_quickbooks_entity_id', true ) ?: $order->get_meta( '_dtb_qbo_receipt_id', true ) );
 		return [
-			'id'          => $order->get_id(),
-			'number'      => $order->get_order_number(),
-			'date'        => $order->get_date_created() ? gmdate( 'c', $order->get_date_created()->getTimestamp() ) : '',
-			'customer'    => sanitize_text_field( trim( $order->get_formatted_billing_full_name() ) ),
-			'email'       => sanitize_email( $order->get_billing_email() ),
-			'total'       => wc_format_decimal( (float) $order->get_total(), 2 ),
-			'currency'    => $order->get_currency(),
-			'orderStatus' => sanitize_key( $order->get_status() ),
-			'paid'        => (bool) $order->get_date_paid(),
-			'entityId'    => sanitize_text_field( $entity_id ),
-			'docNumber'   => function_exists( 'dtb_qbo_order_doc_number' ) ? dtb_qbo_order_doc_number( $order ) : 'DTB-' . $order->get_id(),
-			'state'       => self::projection_state( $order ),
-			'adminUrl'    => esc_url_raw( $order->get_edit_order_url() ),
+			'id' => $order->get_id(), 'number' => $order->get_order_number(),
+			'date' => $order->get_date_created() ? gmdate( 'c', $order->get_date_created()->getTimestamp() ) : '',
+			'customer' => sanitize_text_field( trim( $order->get_formatted_billing_full_name() ) ), 'email' => sanitize_email( $order->get_billing_email() ),
+			'total' => wc_format_decimal( (float) $order->get_total(), 2 ), 'currency' => $order->get_currency(),
+			'orderStatus' => sanitize_key( $order->get_status() ), 'paid' => self::is_accounting_eligible( $order ),
+			'entityId' => sanitize_text_field( $entity_id ),
+			'docNumber' => function_exists( 'dtb_qbo_order_doc_number' ) ? dtb_qbo_order_doc_number( $order ) : 'DTB-' . $order->get_id(),
+			'state' => self::projection_state( $order ),
+			'adminUrl' => admin_url( 'admin.php?page=wc-orders&action=edit&id=' . $order->get_id() ),
 		];
 	}
 
 	private static function projection_state( WC_Order $order ): string {
-		if ( (string) $order->get_meta( '_dtb_qbo_synced', true ) === '1' || '' !== (string) $order->get_meta( '_dtb_quickbooks_entity_id', true ) ) {
+		if ( '' !== (string) ( $order->get_meta( '_dtb_quickbooks_entity_id', true ) ?: $order->get_meta( '_dtb_qbo_receipt_id', true ) ) ) {
 			return 'synced';
 		}
-		$error = (string) $order->get_meta( '_dtb_qbo_last_error', true );
-		if ( '' !== $error ) {
+		if ( $order->get_meta( '_dtb_qbo_sync_error', true ) || $order->get_meta( '_dtb_quickbooks_error', true ) ) {
 			return 'failed';
 		}
-		return $order->get_date_paid() ? 'pending' : 'ineligible';
+		return self::is_accounting_eligible( $order ) ? 'pending' : 'ineligible';
+	}
+
+	private static function slice_payload( array $rows, int $page, int $limit, bool $truncated ): array {
+		$total  = count( $rows );
+		$offset = ( $page - 1 ) * $limit;
+		return self::page_payload( array_slice( $rows, $offset, $limit ), $page, $limit, $total, $truncated );
+	}
+
+	private static function page_payload( array $rows, int $page, int $limit, int $total, bool $truncated ): array {
+		return [
+			'rows' => array_values( $rows ), 'page' => $page, 'limit' => $limit, 'total' => $total,
+			'pages' => max( 1, (int) ceil( $total / $limit ) ), 'truncated' => $truncated,
+		];
 	}
 }
 
