@@ -83,7 +83,7 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
         common.add_product_to_cart(page, config, product)
         common.go_to_cart(page, config)
         if not common.cart_has_items(page):
-            return Status.FAIL, "Cart page shows no items after Add to Cart."
+            return Status.FAIL, "Cart page did not render the added item and checkout control."
         return Status.PASS, "Product added to cart."
 
     tui.run_step(stage, "Add product to cart", step_add_to_cart)
@@ -91,7 +91,7 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
         return CustomerCheckoutRun(stage=stage, order=None, email=email)
 
     def step_checkout():
-        common.proceed_to_checkout(page, config)
+        common.proceed_to_checkout(page, config, registered_customer=True)
         common.fill_billing_details(page, email, "Registered", "Contractor")
         common.select_a_shipping_method(page)
         common.pay_with_stripe_test_card(page, config)

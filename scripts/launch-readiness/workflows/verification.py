@@ -39,7 +39,11 @@ def _resolve_order(client: WooCommerceClient, order_id: int | None, order_number
 
 
 def run_woocommerce(
-    config: "Config", order_id: int | None, order_number: str | None, email: str | None
+    config: "Config",
+    order_id: int | None,
+    order_number: str | None,
+    email: str | None,
+    expect_registered_customer: bool = False,
 ) -> tuple[StageResult, OrderSnapshot | None]:
     stage = StageResult(name=WOOCOMMERCE_STAGE)
 
@@ -74,7 +78,10 @@ def run_woocommerce(
         return stage, None
 
     snapshot = box["snapshot"]
-    expectation = CheckoutExpectation(email=email or snapshot.billing_email)
+    expectation = CheckoutExpectation(
+        email=email or snapshot.billing_email,
+        expect_registered_customer=expect_registered_customer,
+    )
     for check_name, ok, detail in client.verify(snapshot, expectation):
         tui.run_step(stage, check_name, lambda ok=ok, detail=detail: (Status.PASS if ok else Status.FAIL, detail))
 

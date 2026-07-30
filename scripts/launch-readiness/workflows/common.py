@@ -129,15 +129,72 @@ def go_to_cart(page: "Page", config: "Config") -> None:
 
 
 def cart_has_items(page: "Page") -> bool:
-    body = page.inner_text("body").lower()
+    body = page.inner_text("body").strip().lower()
+    if not body:
+        return False
     if "your cart is empty" in body or "cart is empty" in body:
         return False
-    return True
+    return page.locator('a[href*="/checkout"]').count() > 0
 
 
-def proceed_to_checkout(page: "Page", config: "Config") -> None:
-    # Checkout is intentionally a full-document WooCommerce handoff, not a
-    # client-side React transition.
+def proceed_to_checkout(
+    page: "Page",
+    config: "Config",
+    *,
+    registered_customer: bool = False,
+) -> None:
+    handoff = page.evaluate(
+        """async ({ registeredCustomer }) => {
+            const request = async (url, options = {}) => {
+                const response = await fetch(url, {
+                    credentials: 'include',
+                    cache: 'no-store',
+                    headers: {
+                        Accept: 'application/json',
+                        'Cache-Control': 'no-store',
+                        Pragma: 'no-cache',
+                        ...(options.headers || {}),
+                    },
+                    ...options,
+                });
+                const data = await response.json().catch(() => null);
+                return { ok: response.ok, status: response.status, data };
+            };
+
+            let auth = null;
+            if (registeredCustomer) {
+                auth = await request('/wp-json/dtb/v1/auth/validate', { method: 'POST' });
+            }
+            const cart = await request('/wp-json/wc/store/v1/cart');
+            return { auth, cart };
+        }""",
+        {"registeredCustomer": registered_customer},
+    )
+
+    cart_response = handoff.get("cart") or {}
+    cart_data = cart_response.get("data") or {}
+    if not cart_response.get("ok") or not cart_data.get("items"):
+        raise CheckoutFlowError(
+            "The Store API did not confirm an authoritative cart before checkout."
+        )
+
+    if registered_customer:
+        auth_response = handoff.get("auth") or {}
+        auth_data = auth_response.get("data") or {}
+        native_checkout = (auth_data.get("session") or {}).get("native_checkout") or {}
+        native_status = str(native_checkout.get("status") or "unknown")
+        if (
+            not auth_response.get("ok")
+            or not auth_data.get("user")
+            or native_checkout.get("ready") is not True
+            or native_status not in {"aligned", "bridged"}
+            or native_checkout.get("identity_conflict_contained") is True
+        ):
+            raise CheckoutFlowError(
+                "The registered WordPress/Woo checkout identity is not ready "
+                f"(status={native_status!r}, ready={native_checkout.get('ready')!r})."
+            )
+
     page.goto(f"{config.site_url}/checkout/", wait_until="domcontentloaded")
 
     # Stripe and Woo Blocks keep background connections active, so

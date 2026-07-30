@@ -84,7 +84,11 @@ def run(config: Config) -> RunReport:
 
     tui.stage_header(verification.WOOCOMMERCE_STAGE, 5, TOTAL_STAGES)
     wc_stage, snapshot = verification.run_woocommerce(
-        config, order.order_id if order else None, order.order_number if order else None, email
+        config,
+        order.order_id if order else None,
+        order.order_number if order else None,
+        email,
+        expect_registered_customer=bool(customer_run.order),
     )
     tui.stage_footer(wc_stage)
     report.stages.append(wc_stage)

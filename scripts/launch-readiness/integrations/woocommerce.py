@@ -52,6 +52,7 @@ class CheckoutExpectation:
     currency: str = "USD"
     expect_tax: bool = False
     expect_shipping: bool = True
+    expect_registered_customer: bool = False
 
 
 class WooCommerceClient:
@@ -155,11 +156,26 @@ class WooCommerceClient:
         ))
 
         if expectation.expect_shipping:
-            shipping_ok = order.shipping_total > 0
+            shipping_lines = order.raw.get("shipping_lines", []) or []
+            shipping_methods = [
+                str(line.get("method_title") or line.get("method_id") or "").strip()
+                for line in shipping_lines
+                if isinstance(line, dict)
+            ]
+            shipping_methods = [method for method in shipping_methods if method]
+            shipping_ok = bool(shipping_methods)
             checks.append((
-                "Shipping total was recorded",
+                "Shipping method was recorded",
                 shipping_ok,
-                f"shipping_total={order.shipping_total}",
+                f"methods={shipping_methods!r} shipping_total={order.shipping_total}",
+            ))
+
+        if expectation.expect_registered_customer:
+            customer_ok = order.customer_id > 0
+            checks.append((
+                "Order is assigned to the registered WooCommerce customer",
+                customer_ok,
+                f"customer_id={order.customer_id}",
             ))
 
         if expectation.expect_tax:

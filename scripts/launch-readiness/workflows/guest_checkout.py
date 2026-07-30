@@ -68,7 +68,7 @@ def run(config: "Config", browser: "Browser") -> GuestCheckoutRun:
     def step_cart():
         common.go_to_cart(page, config)
         if not common.cart_has_items(page):
-            return Status.FAIL, "Cart page shows no items after Add to Cart."
+            return Status.FAIL, "Cart page did not render the added item and checkout control."
         return Status.PASS, "Cart contains the added product."
 
     tui.run_step(stage, "View cart", step_cart)
