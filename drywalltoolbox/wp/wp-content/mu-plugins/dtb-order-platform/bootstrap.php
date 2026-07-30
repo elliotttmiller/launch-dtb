@@ -50,6 +50,7 @@ require_once $_dtb_order . '/Admin/OrderAdminMenu.php';
 require_once $_dtb_order . '/Admin/OrderTimelinePanel.php';
 require_once $_dtb_order . '/Admin/OrderQueuePanel.php';
 require_once $_dtb_order . '/Admin/OrderDetailPage.php';
+require_once $_dtb_order . '/Admin/OrderDetailExperience.php';
 require_once $_dtb_order . '/Admin/OrderBulkActions.php';
 require_once $_dtb_order . '/Admin/OrderDashboardPanel.php';
 require_once $_dtb_order . '/Admin/ProductOrderDashboardPanel.php';
