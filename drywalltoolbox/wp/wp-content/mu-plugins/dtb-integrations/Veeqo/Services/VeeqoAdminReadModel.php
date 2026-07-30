@@ -79,6 +79,10 @@ final class DTB_Veeqo_Admin_Read_Model {
 		unset( $settings['api_key'], $settings['webhook_secret'] );
 		update_option( 'woocommerce_dtb_veeqo_settings', $settings, false );
 		unset( $GLOBALS['_dtb_veeqo_config'] );
+		// A changed warehouse_id invalidates the checkout rate-shopping
+		// origin-address cache (DTB_VeeqoShippingService::warehouse_origin_address())
+		// immediately rather than waiting up to an hour for it to expire.
+		delete_transient( 'dtb_veeqo_warehouse_origin_address' );
 		return self::settings();
 	}
 
