@@ -11,9 +11,10 @@
  *     history/current-production/drift projections;
  *   - the signed webhook that records lifecycle events reported by
  *     .github/workflows/release-siteground.yml;
- *   - the GitHub API bridge used to dispatch deploy/rollback and to
- *     detect repository drift;
- *   - the Deployment Center admin UI (Drywall Toolbox > Deployment Center).
+ *   - the GitHub API bridge used to dispatch deploy/rollback, detect
+ *     repository drift, and browse branches/commits/pull requests/workflow
+ *     runs/releases/tags read-only;
+ *   - the Git Control Center admin UI (Drywall Toolbox > Git Control Center).
  *
  * This module never holds SiteGround Git/SSH credentials and never writes
  * to SiteGround directly — all production file changes happen inside the
@@ -39,6 +40,7 @@ require_once $_dtb_deployment . '/Infrastructure/ReleaseEventRepository.php';
 require_once $_dtb_deployment . '/Services/ProtectedPathPolicy.php';
 require_once $_dtb_deployment . '/Services/DeploymentLockService.php';
 require_once $_dtb_deployment . '/Services/GitHubReleaseClient.php';
+require_once $_dtb_deployment . '/Services/GitHubRepositoryClient.php';
 require_once $_dtb_deployment . '/Services/ReleaseHistoryService.php';
 
 // 4. Validation.
@@ -48,9 +50,10 @@ require_once $_dtb_deployment . '/Validation/DeploymentActionValidator.php';
 // 5. Rest.
 require_once $_dtb_deployment . '/Rest/DeploymentWebhookController.php';
 require_once $_dtb_deployment . '/Rest/DeploymentAdminController.php';
+require_once $_dtb_deployment . '/Rest/GitControlCenterController.php';
 
 // 6. Admin.
-require_once $_dtb_deployment . '/Admin/DeploymentCenterPage.php';
-require_once $_dtb_deployment . '/Admin/DeploymentAdminMenu.php';
+require_once $_dtb_deployment . '/Admin/GitControlCenterPage.php';
+require_once $_dtb_deployment . '/Admin/GitControlCenterAdminMenu.php';
 
 unset( $_dtb_deployment );

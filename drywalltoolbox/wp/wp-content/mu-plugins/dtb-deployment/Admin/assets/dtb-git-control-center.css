@@ -1,0 +1,119 @@
+/* DTB Git Control Center — repository visibility + release console polish */
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-card {
+	border-radius: 20px;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-columns {
+	align-items: start;
+}
+
+/* Shared monospace "sha/ref" chip used across branches, commits, PRs, runs, tags */
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-sha {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 999px;
+	background: rgba(15, 23, 42, 0.06);
+	color: #334155;
+	font-family: var(--dtb-font-mono, ui-monospace, 'SFMono-Regular', Menlo, monospace);
+	font-size: 11.5px;
+	line-height: 1.6;
+	white-space: nowrap;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-sha a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-sha a:hover {
+	text-decoration: underline;
+}
+
+/* Branches list */
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-branch-list,
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-list,
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-tag-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-branch-row,
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-tag-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	padding: 9px 4px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-branch-row:last-child,
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-tag-row:last-child {
+	border-bottom: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-branch-name {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 650;
+	font-size: 13px;
+	color: #0f172a;
+}
+
+/* Commit rows */
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-row {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	column-gap: 10px;
+	row-gap: 2px;
+	padding: 9px 4px;
+	border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-row:last-child {
+	border-bottom: none;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-message {
+	font-size: 13px;
+	font-weight: 600;
+	color: #0f172a;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-meta {
+	grid-column: 2;
+	color: rgba(15, 23, 42, 0.5);
+	font-size: 11.5px;
+}
+
+/* Sticky table headers for long lists (Pull Requests, Workflow Runs, Releases, History) */
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-table-wrap {
+	max-height: min(60vh, 640px);
+	overflow: auto;
+}
+
+.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: rgba(248, 250, 252, 0.98);
+	backdrop-filter: blur(10px);
+}
+
+@media (max-width: 782px) {
+	.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-row {
+		grid-template-columns: 1fr;
+	}
+
+	.dtb-admin[data-dtb-page="dtb-git-control-center"] .dtb-gcc-commit-meta {
+		grid-column: 1;
+	}
+}

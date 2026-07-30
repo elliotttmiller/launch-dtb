@@ -2,10 +2,14 @@
 /**
  * Rest — DeploymentAdminController
  *
- * Deployment Center admin API. All routes require the dtb_manage_deployments
- * capability. Dispatch endpoints never touch SiteGround directly — they only
- * call GitHub's workflow_dispatch API; the actual release execution and its
- * secrets stay entirely inside .github/workflows/release-siteground.yml.
+ * Git Control Center admin API — the release-management half (Overview,
+ * History, Rollback, Settings tabs, and the shared live-region refresh
+ * endpoint). Repository browsing endpoints (Repository, Pull Requests,
+ * Workflow Runs, Releases & Tags tabs) live in GitControlCenterController.php.
+ * All routes require the dtb_manage_deployments capability. Dispatch
+ * endpoints never touch SiteGround directly — they only call GitHub's
+ * workflow_dispatch API; the actual release execution and its secrets stay
+ * entirely inside .github/workflows/release-siteground.yml.
  *
  * Endpoints:
  *   GET  /dtb/v1/deployment/overview
@@ -14,7 +18,7 @@
  *   GET  /dtb/v1/deployment/policy
  *   POST /dtb/v1/deployment/dispatch/deploy
  *   POST /dtb/v1/deployment/dispatch/rollback
- *   GET  /dtb/v1/admin/deployment  (live-region tab refresh)
+ *   GET  /dtb/v1/admin/deployment  (live-region tab refresh — all 8 tabs)
  *
  * @package drywall-toolbox
  */
@@ -206,6 +210,18 @@ function dtb_deployment_admin_live_handler( WP_REST_Request $request ): WP_REST_
 
 	ob_start();
 	switch ( $active_tab ) {
+		case 'repository':
+			dtb_deployment_center_render_repository_tab();
+			break;
+		case 'pull-requests':
+			dtb_deployment_center_render_pull_requests_tab();
+			break;
+		case 'workflow-runs':
+			dtb_deployment_center_render_workflow_runs_tab();
+			break;
+		case 'releases':
+			dtb_deployment_center_render_releases_tab();
+			break;
 		case 'history':
 			dtb_deployment_center_render_history_tab();
 			break;

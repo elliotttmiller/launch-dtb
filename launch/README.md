@@ -6,7 +6,7 @@
 
 - `frontend/` is the canonical React source. A production build is copied to `launch/live/`.
 - `drywalltoolbox/.htaccess` is the canonical public-root router and is copied to `launch/live/.htaccess`.
-- `drywalltoolbox/wp/.htaccess`, `drywalltoolbox/wp/index.php`, `drywalltoolbox/wp/wp-content/mu-plugins/`, and `drywalltoolbox/wp/wp-content/themes/` are canonical backend source. `launch/live/wp/` still assembles them locally for a complete overlay preview, but production promotion of this exact set of paths is owned by the Release Management platform (`.github/workflows/release-siteground.yml`, built around the official SiteGround Git repository) — see `docs/deployment/release-management-architecture.md`. Do not hand-transfer these paths through FileZilla; use the Deployment Center (Drywall Toolbox > Deployment Center) or dispatch the workflow directly.
+- `drywalltoolbox/wp/.htaccess`, `drywalltoolbox/wp/index.php`, `drywalltoolbox/wp/wp-content/mu-plugins/`, and `drywalltoolbox/wp/wp-content/themes/` are canonical backend source. `launch/live/wp/` still assembles them locally for a complete overlay preview, but production promotion of this exact set of paths is owned by the Release Management platform (`.github/workflows/release-siteground.yml`, built around the official SiteGround Git repository) — see `docs/deployment/release-management-architecture.md`. Do not hand-transfer these paths through FileZilla; use the Git Control Center (Drywall Toolbox > Git Control Center) or dispatch the workflow directly.
 - WordPress core, regular plugins, uploads, caches, logs, `sgs_encrypt_key.php`, and `wp-config.php` are runtime-owned. They are intentionally excluded from source control and normal deployment payloads.
 
 ## Domain contract
@@ -51,12 +51,12 @@ FileZilla connection details and credentials are operator-owned and must not be 
 
 ## Production `/wp` application tree deployment — Release Management platform
 
-Scope: `.htaccess`, `index.php`, `wp-content/mu-plugins/`, `wp-content/themes/` inside the production `/wp` install. This set of paths is promoted exclusively through `.github/workflows/release-siteground.yml`, an operator-dispatched GitHub Actions workflow built around the official SiteGround Git repository — never through FileZilla, and never automatically on push or merge. Deploy, monitor, and roll back through the Deployment Center (wp-admin → Drywall Toolbox → Deployment Center) or by dispatching the workflow directly in GitHub Actions.
+Scope: `.htaccess`, `index.php`, `wp-content/mu-plugins/`, `wp-content/themes/` inside the production `/wp` install. This set of paths is promoted exclusively through `.github/workflows/release-siteground.yml`, an operator-dispatched GitHub Actions workflow built around the official SiteGround Git repository — never through FileZilla, and never automatically on push or merge. Deploy, monitor, and roll back through the Git Control Center (wp-admin → Drywall Toolbox → Git Control Center) or by dispatching the workflow directly in GitHub Actions.
 
 Required one-time operator setup (see `docs/deployment/release-management-architecture.md` for full detail):
 
 - GitHub Actions repository secrets: `SITEGROUND_GIT_REMOTE`, `SITEGROUND_GIT_BRANCH`, `SITEGROUND_GIT_SSH_PRIVATE_KEY`, `SITEGROUND_GIT_KNOWN_HOSTS`, `DTB_DEPLOYMENT_WEBHOOK_SECRET`.
-- `wp-config.php` constants: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (must match the GitHub secret above) and, to enable one-click dispatch/drift detection from the Deployment Center, `DTB_GITHUB_DEPLOYMENT_TOKEN`.
+- `wp-config.php` constants: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (must match the GitHub secret above) and, to enable one-click dispatch/drift detection from the Git Control Center, `DTB_GITHUB_DEPLOYMENT_TOKEN`.
 
 ## Required runtime actions
 

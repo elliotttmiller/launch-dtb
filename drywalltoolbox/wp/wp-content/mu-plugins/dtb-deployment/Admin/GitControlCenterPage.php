@@ -1,15 +1,21 @@
 <?php
 /**
- * Admin — DeploymentCenterPage
+ * Admin — GitControlCenterPage
  *
- * Renders dtb-deployment-center — the Release Management console. Tabs:
- * Overview | History | Rollback | Settings.
+ * Renders dtb-git-control-center — the Git Control Center. A single
+ * enterprise release-management console covering both GitHub repository
+ * visibility and SiteGround production release control:
+ *
+ *   Overview | Repository | Pull Requests | Workflow Runs | Releases & Tags
+ *   | History | Rollback | Settings
  *
  * Production status is read directly from the wp_dtb_release_events log
- * (reported by .github/workflows/release-siteground.yml) and from the
- * GitHub API (repository drift, recent workflow runs). Deploy/rollback
- * actions dispatch the release workflow; this page never talks to
- * SiteGround directly.
+ * (reported by .github/workflows/release-siteground.yml). Repository,
+ * branches, commits, pull requests, workflow runs, and releases/tags are
+ * read live from the GitHub API. Deploy/rollback actions dispatch the
+ * release workflow; this page never talks to SiteGround directly and never
+ * writes to the repository — every GitHub call here is read-only except the
+ * two workflow_dispatch actions on the Overview and Rollback tabs.
  *
  * @package drywall-toolbox
  */
@@ -24,33 +30,49 @@ function dtb_deployment_center_render_page(): void {
 
 	$active_tab = sanitize_key( $_GET['tab'] ?? 'overview' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
-	$base_url = admin_url( 'admin.php?page=dtb-deployment-center' );
+	$base_url = admin_url( 'admin.php?page=dtb-git-control-center' );
 	$tabs = [
-		[ 'id' => 'overview', 'label' => __( 'Overview', 'drywall-toolbox' ), 'active' => 'overview' === $active_tab, 'url' => add_query_arg( 'tab', 'overview', $base_url ) ],
-		[ 'id' => 'history',  'label' => __( 'History', 'drywall-toolbox' ),  'active' => 'history' === $active_tab,  'url' => add_query_arg( 'tab', 'history', $base_url ) ],
-		[ 'id' => 'rollback', 'label' => __( 'Rollback', 'drywall-toolbox' ), 'active' => 'rollback' === $active_tab, 'url' => add_query_arg( 'tab', 'rollback', $base_url ) ],
-		[ 'id' => 'settings', 'label' => __( 'Settings', 'drywall-toolbox' ), 'active' => 'settings' === $active_tab, 'url' => add_query_arg( 'tab', 'settings', $base_url ) ],
+		[ 'id' => 'overview',       'label' => __( 'Overview', 'drywall-toolbox' ),        'active' => 'overview' === $active_tab,       'url' => add_query_arg( 'tab', 'overview', $base_url ) ],
+		[ 'id' => 'repository',     'label' => __( 'Repository', 'drywall-toolbox' ),      'active' => 'repository' === $active_tab,     'url' => add_query_arg( 'tab', 'repository', $base_url ) ],
+		[ 'id' => 'pull-requests',  'label' => __( 'Pull Requests', 'drywall-toolbox' ),    'active' => 'pull-requests' === $active_tab,  'url' => add_query_arg( 'tab', 'pull-requests', $base_url ) ],
+		[ 'id' => 'workflow-runs',  'label' => __( 'Workflow Runs', 'drywall-toolbox' ),    'active' => 'workflow-runs' === $active_tab,  'url' => add_query_arg( 'tab', 'workflow-runs', $base_url ) ],
+		[ 'id' => 'releases',       'label' => __( 'Releases & Tags', 'drywall-toolbox' ),  'active' => 'releases' === $active_tab,       'url' => add_query_arg( 'tab', 'releases', $base_url ) ],
+		[ 'id' => 'history',        'label' => __( 'History', 'drywall-toolbox' ),          'active' => 'history' === $active_tab,        'url' => add_query_arg( 'tab', 'history', $base_url ) ],
+		[ 'id' => 'rollback',       'label' => __( 'Rollback', 'drywall-toolbox' ),         'active' => 'rollback' === $active_tab,       'url' => add_query_arg( 'tab', 'rollback', $base_url ) ],
+		[ 'id' => 'settings',       'label' => __( 'Settings', 'drywall-toolbox' ),         'active' => 'settings' === $active_tab,       'url' => add_query_arg( 'tab', 'settings', $base_url ) ],
 	];
 
 	dtb_admin_shell_open( [
-		'title'       => __( 'Deployment Center', 'drywall-toolbox' ),
-		'subtitle'    => __( 'Release Management for the production WordPress application tree via the official SiteGround Git repository.', 'drywall-toolbox' ),
+		'title'       => __( 'Git Control Center', 'drywall-toolbox' ),
+		'subtitle'    => __( 'Repository visibility and production release management, built around the official SiteGround Git repository.', 'drywall-toolbox' ),
 		'section'     => 'operations',
-		'page'        => 'dtb-deployment-center',
+		'page'        => 'dtb-git-control-center',
 		'template'    => 'dashboard',
 		'icon'        => 'dashicons-cloud-upload',
 		'tabs'        => $tabs,
-		'live_target' => 'dtb-deployment-workspace',
+		'live_target' => 'dtb-git-control-workspace',
 	] );
 
 	dtb_admin_shell_live_region_open( [
-		'id'       => 'dtb-deployment-workspace',
-		'module'   => 'deployment-center',
+		'id'       => 'dtb-git-control-workspace',
+		'module'   => 'git-control-center',
 		'endpoint' => add_query_arg( 'tab', $active_tab, rest_url( 'dtb/v1/admin/deployment' ) ),
-		'interval' => 15000,
+		'interval' => 20000,
 	] );
 
 	switch ( $active_tab ) {
+		case 'repository':
+			dtb_deployment_center_render_repository_tab();
+			break;
+		case 'pull-requests':
+			dtb_deployment_center_render_pull_requests_tab();
+			break;
+		case 'workflow-runs':
+			dtb_deployment_center_render_workflow_runs_tab();
+			break;
+		case 'releases':
+			dtb_deployment_center_render_releases_tab();
+			break;
 		case 'history':
 			dtb_deployment_center_render_history_tab();
 			break;
@@ -163,6 +185,215 @@ function dtb_deployment_center_render_overview_tab(): void {
 	] );
 }
 
+function dtb_deployment_center_render_repository_tab(): void {
+	$info     = dtb_git_control_center_repository_info();
+	$branches = dtb_git_control_center_branches( 15 );
+	$commits  = dtb_git_control_center_commits( '', 15 );
+
+	if ( ! $info['ok'] || ! $branches['ok'] || ! $commits['ok'] ) {
+		echo dtb_admin_ui_alert( esc_html( $info['error'] ?: $branches['error'] ?: $commits['error'] ?: __( 'GitHub API is unavailable.', 'drywall-toolbox' ) ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		if ( ! dtb_deployment_github_enabled() ) {
+			return;
+		}
+	}
+
+	if ( $info['ok'] ) {
+		$r = $info['data'];
+		ob_start();
+		echo dtb_admin_ui_detail_row( __( 'Repository', 'drywall-toolbox' ), '<a href="' . esc_url( $r['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $r['full_name'] ) . '</a>' );
+		echo dtb_admin_ui_detail_row( __( 'Description', 'drywall-toolbox' ), esc_html( $r['description'] ?: '—' ) );
+		echo dtb_admin_ui_detail_row( __( 'Default Branch', 'drywall-toolbox' ), '<code>' . esc_html( $r['default_branch'] ) . '</code>' );
+		echo dtb_admin_ui_detail_row( __( 'Visibility', 'drywall-toolbox' ), dtb_admin_ui_badge( ucfirst( $r['visibility'] ), 'private' === $r['visibility'] ? 'neutral' : 'info' ) );
+		echo dtb_admin_ui_detail_row( __( 'Open Issues', 'drywall-toolbox' ), esc_html( (string) $r['open_issues_count'] ) );
+		echo dtb_admin_ui_detail_row( __( 'Last Push', 'drywall-toolbox' ), $r['pushed_at'] ? esc_html( human_time_diff( strtotime( $r['pushed_at'] ) ) . ' ago' ) : '—' );
+		$body = ob_get_clean();
+		echo dtb_admin_ui_card( $body, [ 'title' => __( 'Repository', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	echo '<div class="dtb-grid dtb-grid--two dtb-gcc-columns">';
+
+	ob_start();
+	if ( empty( $branches['branches'] ) ) {
+		echo dtb_admin_ui_empty_state( __( 'No Branches Found', 'drywall-toolbox' ) );
+	} else {
+		echo '<ul class="dtb-gcc-branch-list">';
+		foreach ( $branches['branches'] as $b ) {
+			printf(
+				'<li class="dtb-gcc-branch-row"><span class="dtb-gcc-branch-name">%s%s</span><code class="dtb-gcc-sha">%s</code></li>',
+				esc_html( $b['name'] ),
+				$b['protected'] ? ' ' . dtb_admin_ui_badge( __( 'Protected', 'drywall-toolbox' ), 'info' ) : '',
+				esc_html( substr( $b['sha'], 0, 7 ) )
+			);
+		}
+		echo '</ul>';
+	}
+	$body = ob_get_clean();
+	echo dtb_admin_ui_card( $body, [ 'title' => __( 'Branches', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+	ob_start();
+	if ( empty( $commits['commits'] ) ) {
+		echo dtb_admin_ui_empty_state( __( 'No Commits Found', 'drywall-toolbox' ) );
+	} else {
+		echo '<ul class="dtb-gcc-commit-list">';
+		foreach ( $commits['commits'] as $c ) {
+			printf(
+				'<li class="dtb-gcc-commit-row"><code class="dtb-gcc-sha"><a href="%s" target="_blank" rel="noopener noreferrer">%s</a></code><span class="dtb-gcc-commit-message">%s</span><span class="dtb-gcc-commit-meta">%s &middot; %s</span></li>',
+				esc_url( $c['html_url'] ),
+				esc_html( substr( $c['sha'], 0, 7 ) ),
+				esc_html( $c['message'] ),
+				esc_html( $c['author'] ?: '—' ),
+				$c['date'] ? esc_html( human_time_diff( strtotime( $c['date'] ) ) . ' ago' ) : '—'
+			);
+		}
+		echo '</ul>';
+	}
+	$body = ob_get_clean();
+	echo dtb_admin_ui_card( $body, [ 'title' => __( 'Recent Commits', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+	echo '</div>';
+}
+
+function dtb_deployment_center_render_pull_requests_tab(): void {
+	$open = dtb_git_control_center_pull_requests( 'open', 25 );
+
+	if ( ! $open['ok'] ) {
+		echo dtb_admin_ui_alert( esc_html( $open['error'] ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	if ( empty( $open['pulls'] ) ) {
+		echo dtb_admin_ui_empty_state( __( 'No Open Pull Requests', 'drywall-toolbox' ), __( 'Everything on GitHub is merged or closed.', 'drywall-toolbox' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	ob_start();
+	echo dtb_admin_ui_table_open( [
+		[ 'label' => __( '#', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Title', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Branch', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Author', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Status', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Updated', 'drywall-toolbox' ) ],
+	], [] );
+	foreach ( $open['pulls'] as $pr ) {
+		echo '<tr>';
+		echo '<td><code>#' . absint( $pr['number'] ) . '</code></td>';
+		echo '<td><a href="' . esc_url( $pr['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $pr['title'] ) . '</a></td>';
+		echo '<td><code class="dtb-gcc-sha">' . esc_html( $pr['head'] ) . '</code> &rarr; <code class="dtb-gcc-sha">' . esc_html( $pr['base'] ) . '</code></td>';
+		echo '<td>' . esc_html( $pr['author'] ?: '—' ) . '</td>';
+		echo '<td>' . dtb_admin_ui_badge( $pr['draft'] ? __( 'Draft', 'drywall-toolbox' ) : __( 'Open', 'drywall-toolbox' ), $pr['draft'] ? 'neutral' : 'success' ) . '</td>';
+		echo '<td>' . ( $pr['updated_at'] ? esc_html( human_time_diff( strtotime( $pr['updated_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+		echo '</tr>';
+	}
+	echo dtb_admin_ui_table_close();
+	$body = ob_get_clean();
+	echo dtb_admin_ui_card( $body, [ 'title' => __( 'Open Pull Requests', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+
+function dtb_deployment_center_render_workflow_runs_tab(): void {
+	$runs = dtb_git_control_center_workflow_runs( 20 );
+
+	if ( ! $runs['ok'] ) {
+		echo dtb_admin_ui_alert( esc_html( $runs['error'] ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	if ( empty( $runs['runs'] ) ) {
+		echo dtb_admin_ui_empty_state( __( 'No Workflow Runs Yet', 'drywall-toolbox' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	ob_start();
+	echo dtb_admin_ui_table_open( [
+		[ 'label' => __( 'Workflow', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Branch', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Event', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Status', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Actor', 'drywall-toolbox' ) ],
+		[ 'label' => __( 'Started', 'drywall-toolbox' ) ],
+	], [] );
+	foreach ( $runs['runs'] as $run ) {
+		$status_label = $run['conclusion'] ? ucfirst( $run['conclusion'] ) : ucfirst( str_replace( '_', ' ', $run['status'] ) );
+		$badge_type   = 'success' === $run['conclusion'] ? 'success' : ( in_array( $run['conclusion'], [ 'failure', 'cancelled', 'timed_out' ], true ) ? 'danger' : ( in_array( $run['status'], [ 'in_progress', 'queued' ], true ) ? 'processing' : 'neutral' ) );
+
+		echo '<tr>';
+		echo '<td><a href="' . esc_url( $run['html_url'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $run['name'] ) . '</a></td>';
+		echo '<td><code class="dtb-gcc-sha">' . esc_html( $run['branch'] ) . '</code></td>';
+		echo '<td>' . esc_html( $run['event'] ) . '</td>';
+		echo '<td>' . dtb_admin_ui_badge( $status_label, $badge_type ) . '</td>';
+		echo '<td>' . esc_html( $run['actor'] ?: '—' ) . '</td>';
+		echo '<td>' . ( $run['created_at'] ? esc_html( human_time_diff( strtotime( $run['created_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+		echo '</tr>';
+	}
+	echo dtb_admin_ui_table_close();
+	$body = ob_get_clean();
+	echo dtb_admin_ui_card( $body, [ 'title' => __( 'Recent Workflow Runs', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+
+function dtb_deployment_center_render_releases_tab(): void {
+	$releases = dtb_git_control_center_releases( 10 );
+	$tags     = dtb_git_control_center_tags( 100 );
+
+	if ( $releases['ok'] ) {
+		ob_start();
+		if ( empty( $releases['releases'] ) ) {
+			echo dtb_admin_ui_empty_state( __( 'No GitHub Releases Published', 'drywall-toolbox' ) );
+		} else {
+			echo dtb_admin_ui_table_open( [
+				[ 'label' => __( 'Tag', 'drywall-toolbox' ) ],
+				[ 'label' => __( 'Name', 'drywall-toolbox' ) ],
+				[ 'label' => __( 'Status', 'drywall-toolbox' ) ],
+				[ 'label' => __( 'Published', 'drywall-toolbox' ) ],
+			], [] );
+			foreach ( $releases['releases'] as $r ) {
+				echo '<tr>';
+				echo '<td><a href="' . esc_url( $r['html_url'] ) . '" target="_blank" rel="noopener noreferrer"><code>' . esc_html( $r['tag_name'] ) . '</code></a></td>';
+				echo '<td>' . esc_html( $r['name'] ?: '—' ) . '</td>';
+				echo '<td>' . dtb_admin_ui_badge( $r['draft'] ? __( 'Draft', 'drywall-toolbox' ) : ( $r['prerelease'] ? __( 'Pre-release', 'drywall-toolbox' ) : __( 'Published', 'drywall-toolbox' ) ), $r['draft'] ? 'neutral' : ( $r['prerelease'] ? 'warning' : 'success' ) ) . '</td>';
+				echo '<td>' . ( $r['published_at'] ? esc_html( human_time_diff( strtotime( $r['published_at'] ) ) . ' ago' ) : '—' ) . '</td>';
+				echo '</tr>';
+			}
+			echo dtb_admin_ui_table_close();
+		}
+		$body = ob_get_clean();
+		echo dtb_admin_ui_card( $body, [ 'title' => __( 'GitHub Releases', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	if ( $tags['ok'] ) {
+		echo '<div class="dtb-grid dtb-grid--two dtb-gcc-columns">';
+
+		ob_start();
+		if ( empty( $tags['release_tags'] ) ) {
+			echo dtb_admin_ui_empty_state( __( 'No Release Manifests Yet', 'drywall-toolbox' ), __( 'Created automatically by the plan-and-validate stage of each deploy.', 'drywall-toolbox' ) );
+		} else {
+			echo '<ul class="dtb-gcc-tag-list">';
+			foreach ( array_slice( $tags['release_tags'], 0, 20 ) as $t ) {
+				printf( '<li class="dtb-gcc-tag-row"><code>%s</code><code class="dtb-gcc-sha">%s</code></li>', esc_html( $t['name'] ), esc_html( substr( $t['sha'], 0, 7 ) ) );
+			}
+			echo '</ul>';
+		}
+		$body = ob_get_clean();
+		echo dtb_admin_ui_card( $body, [ 'title' => __( 'Release Manifests (dtb-release/*)', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		ob_start();
+		if ( empty( $tags['backup_tags'] ) ) {
+			echo dtb_admin_ui_empty_state( __( 'No Backup Tags Yet', 'drywall-toolbox' ), __( 'Created on the SiteGround remote before every deploy/rollback.', 'drywall-toolbox' ) );
+		} else {
+			echo '<ul class="dtb-gcc-tag-list">';
+			foreach ( array_slice( $tags['backup_tags'], 0, 20 ) as $t ) {
+				printf( '<li class="dtb-gcc-tag-row"><code>%s</code><code class="dtb-gcc-sha">%s</code></li>', esc_html( $t['name'] ), esc_html( substr( $t['sha'], 0, 7 ) ) );
+			}
+			echo '</ul>';
+		}
+		$body = ob_get_clean();
+		echo dtb_admin_ui_card( $body, [ 'title' => __( 'Backup Tags (dtb-backup/*, SiteGround remote)', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+		echo '</div>';
+	} elseif ( ! $releases['ok'] ) {
+		echo dtb_admin_ui_alert( esc_html( $releases['error'] ?: $tags['error'] ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
+
 function dtb_deployment_center_render_history_tab(): void {
 	$releases = dtb_release_history_get( 50 );
 
@@ -247,7 +478,7 @@ function dtb_deployment_center_render_settings_tab(): void {
 	];
 
 	ob_start();
-	echo dtb_admin_ui_detail_row( __( 'GitHub Dispatch (wp-admin → GitHub Actions)', 'drywall-toolbox' ), dtb_admin_ui_badge( $policy['github_enabled'] ? __( 'Configured', 'drywall-toolbox' ) : __( 'Not Configured', 'drywall-toolbox' ), $policy['github_enabled'] ? 'success' : 'warning' ) );
+	echo dtb_admin_ui_detail_row( __( 'GitHub Dispatch & Repository Browsing (wp-admin → GitHub)', 'drywall-toolbox' ), dtb_admin_ui_badge( $policy['github_enabled'] ? __( 'Configured', 'drywall-toolbox' ) : __( 'Not Configured', 'drywall-toolbox' ), $policy['github_enabled'] ? 'success' : 'warning' ) );
 	echo dtb_admin_ui_detail_row( __( 'Release Webhook (GitHub Actions → wp-admin)', 'drywall-toolbox' ), dtb_admin_ui_badge( $policy['webhook_enabled'] ? __( 'Configured', 'drywall-toolbox' ) : __( 'Not Configured', 'drywall-toolbox' ), $policy['webhook_enabled'] ? 'success' : 'warning' ) );
 	$body = ob_get_clean();
 	echo dtb_admin_ui_card( $body, [ 'title' => __( 'Integration Status', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -256,6 +487,10 @@ function dtb_deployment_center_render_settings_tab(): void {
 	echo '<p><strong>' . esc_html__( 'wp-config.php constants', 'drywall-toolbox' ) . '</strong></p><ul>';
 	foreach ( [ 'DTB_DEPLOYMENT_WEBHOOK_SECRET', 'DTB_GITHUB_DEPLOYMENT_TOKEN', 'DTB_GITHUB_REPO_OWNER (optional)', 'DTB_GITHUB_REPO_NAME (optional)' ] as $c ) {
 		echo '<li><code>' . esc_html( $c ) . '</code></li>';
+	}
+	echo '</ul><p><strong>' . esc_html__( 'DTB_GITHUB_DEPLOYMENT_TOKEN required scopes', 'drywall-toolbox' ) . '</strong></p><ul>';
+	foreach ( [ 'Contents: Read-only (branches, commits, tags, releases)', 'Actions: Read and write (dispatch releases, list workflow runs)', 'Pull requests: Read-only (Pull Requests tab)' ] as $s ) {
+		echo '<li>' . esc_html( $s ) . '</li>';
 	}
 	echo '</ul><p><strong>' . esc_html__( 'GitHub Actions repository secrets', 'drywall-toolbox' ) . '</strong></p><ul>';
 	foreach ( [ 'SITEGROUND_GIT_REMOTE', 'SITEGROUND_GIT_BRANCH', 'SITEGROUND_GIT_SSH_PRIVATE_KEY', 'SITEGROUND_GIT_KNOWN_HOSTS', 'DTB_DEPLOYMENT_WEBHOOK_SECRET' ] as $s ) {
@@ -301,7 +536,7 @@ function dtb_deployment_center_render_timeline( array $events ): string {
 }
 
 /**
- * Inline admin script: wires the Deploy/Rollback buttons to the Deployment
+ * Inline admin script: wires the Deploy/Rollback buttons to the Git Control
  * Center REST API via the shared DtbAdmin.apiFetch() helper.
  */
 function dtb_deployment_center_render_script(): void {
