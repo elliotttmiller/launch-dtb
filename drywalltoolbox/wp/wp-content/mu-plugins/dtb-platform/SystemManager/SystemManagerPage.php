@@ -383,7 +383,7 @@ function dtb_system_manager_collect_attention( ?array $h, ?array $q, ?array $ih,
 			$out[] = [ 'label' => __( 'Release', 'drywall-toolbox' ), 'type' => 'warning', 'text' => __( 'GitHub dispatch or webhook reporting is not configured.', 'drywall-toolbox' ), 'href' => add_query_arg( 'tab', 'deploy-settings', $base ) ];
 		}
 		if ( $dep['drift']['ok'] && $dep['drift']['ahead_by'] > 0 ) {
-			$out[] = [ 'label' => __( 'Release', 'drywall-toolbox' ), 'type' => 'warning', 'text' => sprintf( /* translators: %d: commit count */ __( '%d commit(s) on GitHub are not yet deployed.', 'drywall-toolbox' ), $dep['drift']['ahead_by'] ), 'href' => add_query_arg( 'tab', 'repository', $base ) ];
+			$out[] = [ 'label' => __( 'Release', 'drywall-toolbox' ), 'type' => 'warning', 'text' => sprintf( /* translators: %d: commit count */ _n( '%d commit on GitHub is not yet deployed.', '%d commits on GitHub are not yet deployed.', (int) $dep['drift']['ahead_by'], 'drywall-toolbox' ), (int) $dep['drift']['ahead_by'] ), 'href' => add_query_arg( 'tab', 'repository', $base ) ];
 		}
 		if ( $dep['in_progress'] && in_array( $dep['in_progress']['status'], [ 'failed', 'rollback_failed' ], true ) ) {
 			$out[] = [ 'label' => __( 'Release', 'drywall-toolbox' ), 'type' => 'danger', 'text' => sprintf( /* translators: %s: release id */ __( 'Release %s needs operator attention.', 'drywall-toolbox' ), $dep['in_progress']['release_id'] ), 'href' => add_query_arg( 'tab', 'history', $base ) ];
