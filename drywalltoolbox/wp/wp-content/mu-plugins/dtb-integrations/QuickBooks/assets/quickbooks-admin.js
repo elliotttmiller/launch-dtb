@@ -4,377 +4,216 @@
 	const root = document.getElementById('dtb-qbo-admin-root');
 	if (!config || !root) return;
 
-	const state = { active: 'overview', timer: null, busy: false, dashboard: null };
-	const q = (s, c = root) => c.querySelector(s);
-	const qa = (s, c = root) => Array.from(c.querySelectorAll(s));
-	const endpoint = (path) => `${String(config.restRoot).replace(/\/?$/, '/')}${String(config.basePath).replace(/^\//, '').replace(/\/$/, '')}${path}`;
-	const api = async (path, options = {}) => {
+	const state = { active: 'overview', page: 1, busy: false, timer: null, controller: null, failures: 0, dashboard: null };
+	const q = (selector, context = root) => context.querySelector(selector);
+	const qa = (selector, context = root) => Array.from(context.querySelectorAll(selector));
+	const endpoint = (path) => `${String(config.restRoot || '').replace(/\/?$/, '/')}${String(config.basePath || '').replace(/^\//, '').replace(/\/$/, '')}${path}`;
+	const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[ch]));
+	const formatDate = (value) => {
+		if (!value) return '—';
+		const parsed = new Date(value);
+		return Number.isNaN(parsed.getTime()) ? '—' : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(parsed);
+	};
+	const money = (value, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(Number(value || 0));
+	const badge = (value) => `<span class="dtb-qbo-badge is-${esc(value || 'unknown')}">${esc(value || 'unknown')}</span>`;
+
+	async function api(path, options = {}) {
+		if (state.controller) state.controller.abort();
+		state.controller = new AbortController();
 		const response = await fetch(endpoint(path), {
-			method: options.method || 'GET', credentials: 'same-origin', cache: 'no-store',
+			method: options.method || 'GET', credentials: 'same-origin', cache: 'no-store', signal: state.controller.signal,
 			headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-WP-Nonce': config.nonce },
 			body: options.body ? JSON.stringify(options.body) : undefined,
 		});
 		const payload = await response.json().catch(() => ({}));
 		if (!response.ok) throw new Error(payload.message || `QuickBooks request failed (${response.status}).`);
 		return payload;
-	};
-	const esc = (value) => String(value ?? '').replace(/[&<>'"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[ch]));
-	const money = (value, currency = 'USD') => new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(Number(value || 0));
-	const date = (value) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
-	const badge = (value) => `<span class="dtb-qbo-badge is-${esc(value)}">${esc(value || 'unknown')}</span>`;
-	const alert = (message, tone = 'info') => { const el = q('[data-qbo-alert]'); if (!el) return; el.hidden = !message; el.className = `dtb-qbo-alert is-${tone}`; el.textContent = message || ''; };
-	const setText = (selector, value) => { const el = q(selector); if (el) el.textContent = value; };
+	}
+
+	function setBusy(busy) {
+		state.busy = busy;
+		root.classList.toggle('is-busy', busy);
+		root.setAttribute('aria-busy', busy ? 'true' : 'false');
+		qa('[data-qbo-action]').forEach((el) => { el.disabled = busy; });
+	}
+
+	function showAlert(message, tone = 'info') {
+		const el = q('[data-qbo-alert]');
+		if (!el) return;
+		el.hidden = !message;
+		el.className = `dtb-qbo-alert is-${tone}`;
+		el.textContent = message || '';
+	}
 
 	function table(headers, rows) {
 		if (!rows.length) return '<div class="dtb-qbo-empty">No records are available for this view.</div>';
 		return `<div class="dtb-qbo-table-wrap"><table class="dtb-qbo-table"><thead><tr>${headers.map((h) => `<th>${esc(h.label)}</th>`).join('')}</tr></thead><tbody>${rows.map((row) => `<tr>${headers.map((h) => `<td>${h.render ? h.render(row) : esc(row[h.key])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 	}
 
-	function renderRows(view, data) {
-		const target = q(`[data-qbo-table="${view}"]`); if (!target) return;
-		const rows = data.rows || data.latest || [];
-		const schemas = {
-			overview: [
-				{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a><small>${esc(r.docNumber)}</small>` },
-				{ label: 'Customer', render: (r) => `${esc(r.customer || 'Guest')}<small>${esc(r.email)}</small>` },
-				{ label: 'Total', render: (r) => money(r.total, r.currency) },
-				{ label: 'Projection', render: (r) => badge(r.state) },
-				{ label: 'Created', render: (r) => date(r.date) },
-			],
-			transactions: [
-				{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a><small>${esc(r.docNumber)}</small>` },
-				{ label: 'Customer', render: (r) => `${esc(r.customer || 'Guest')}<small>${esc(r.email)}</small>` },
-				{ label: 'Amount', render: (r) => money(r.total, r.currency) },
-				{ label: 'Woo status', key: 'orderStatus' },
-				{ label: 'QuickBooks', render: (r) => badge(r.state) },
-				{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
-			],
-			refunds: [
-				{ label: 'Refund', render: (r) => `#${esc(r.id)}<small>Order #${esc(r.orderNumber)}</small>` },
-				{ label: 'Amount', render: (r) => money(r.amount, r.currency) },
-				{ label: 'Reason', key: 'reason' },
-				{ label: 'Projection', render: (r) => badge(r.state) },
-				{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
-				{ label: 'Created', render: (r) => date(r.date) },
-			],
-			customers: [
-				{ label: 'Customer', render: (r) => `${esc(r.name || 'Guest')}<small>${esc(r.email)}</small>` },
-				{ label: 'Orders', key: 'orders' },
-				{ label: 'Revenue', render: (r) => money(r.total) },
-				{ label: 'QuickBooks', render: (r) => badge(r.state) },
-				{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
-				{ label: 'Last order', render: (r) => date(r.lastOrder) },
-			],
-			reconciliation: [
-				{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a>` },
-				{ label: 'Document', key: 'docNumber' },
-				{ label: 'Amount', render: (r) => money(r.total, r.currency) },
-				{ label: 'State', render: (r) => badge(r.state) },
-				{ label: 'Paid', render: (r) => r.paid ? 'Yes' : 'No' },
-				{ label: 'Created', render: (r) => date(r.date) },
-			],
-			activity: [
-				{ label: 'Hook', render: (r) => `<code>${esc(r.hook)}</code>` },
-				{ label: 'Status', render: (r) => badge(r.status) },
-				{ label: 'Scheduled', render: (r) => date(r.date) },
-			],
-		};
-		return labels[source] || source || '—';
+	const schemas = {
+		overview: [
+			{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a><small>${esc(r.docNumber)}</small>` },
+			{ label: 'Customer', render: (r) => `${esc(r.customer || 'Guest')}<small>${esc(r.email)}</small>` },
+			{ label: 'Total', render: (r) => money(r.total, r.currency) },
+			{ label: 'Projection', render: (r) => badge(r.state) },
+			{ label: 'Created', render: (r) => formatDate(r.date) },
+		],
+		transactions: [
+			{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a><small>${esc(r.docNumber)}</small>` },
+			{ label: 'Customer', render: (r) => `${esc(r.customer || 'Guest')}<small>${esc(r.email)}</small>` },
+			{ label: 'Amount', render: (r) => money(r.total, r.currency) },
+			{ label: 'Woo status', key: 'orderStatus' },
+			{ label: 'QuickBooks', render: (r) => badge(r.state) },
+			{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
+		],
+		refunds: [
+			{ label: 'Refund', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.id)}</a><small>Order #${esc(r.orderNumber)}</small>` },
+			{ label: 'Amount', render: (r) => money(r.amount, r.currency) },
+			{ label: 'Reason', key: 'reason' },
+			{ label: 'Projection', render: (r) => badge(r.state) },
+			{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
+			{ label: 'Created', render: (r) => formatDate(r.date) },
+		],
+		customers: [
+			{ label: 'Customer', render: (r) => `${esc(r.name || 'Guest')}<small>${esc(r.email)}</small>` },
+			{ label: 'Orders', key: 'orders' },
+			{ label: 'Revenue', render: (r) => money(r.total) },
+			{ label: 'QuickBooks', render: (r) => badge(r.state) },
+			{ label: 'Entity ID', render: (r) => `<code>${esc(r.entityId || '—')}</code>` },
+			{ label: 'Last order', render: (r) => formatDate(r.lastOrder) },
+		],
+		reconciliation: [
+			{ label: 'Order', render: (r) => `<a href="${esc(r.adminUrl)}">#${esc(r.number)}</a>` },
+			{ label: 'Document', key: 'docNumber' },
+			{ label: 'Amount', render: (r) => money(r.total, r.currency) },
+			{ label: 'State', render: (r) => badge(r.state) },
+			{ label: 'Paid', render: (r) => r.paid ? 'Yes' : 'No' },
+			{ label: 'Created', render: (r) => formatDate(r.date) },
+		],
+		activity: [
+			{ label: 'Hook', render: (r) => `<code>${esc(r.hook)}</code>` },
+			{ label: 'Status', render: (r) => badge(r.status) },
+			{ label: 'Scheduled', render: (r) => formatDate(r.date) },
+		],
 	};
 
-	const renderChecks = (checks) => {
-		const list = query('[data-qbo-checks]');
-		if (!list) {
-			return;
+	function renderPagination(data) {
+		const host = q(`[data-qbo-panel="${state.active}"] [data-qbo-pagination]`);
+		if (!host || !data || !data.pages || data.pages <= 1) { if (host) host.hidden = true; return; }
+		host.hidden = false;
+		host.innerHTML = `<button class="button" data-qbo-page="${Math.max(1, data.page - 1)}" ${data.page <= 1 ? 'disabled' : ''}>Previous</button><span>Page ${data.page} of ${data.pages}${data.truncated ? ' · bounded scan' : ''}</span><button class="button" data-qbo-page="${Math.min(data.pages, data.page + 1)}" ${data.page >= data.pages ? 'disabled' : ''}>Next</button>`;
+	}
+
+	function renderOverview(data) {
+		const metrics = data.metrics || {};
+		const host = q('[data-qbo-panel="overview"] [data-qbo-kpis]');
+		if (host) {
+			host.hidden = false;
+			host.innerHTML = [
+				['Gross sampled', money(metrics.gross, metrics.currency)], ['Refunded sampled', money(metrics.refunded, metrics.currency)],
+				['Eligible', metrics.eligible || 0], ['Synced', metrics.synced || 0], ['Pending', metrics.pending || 0],
+				['Failed', metrics.failed || 0], ['Sync rate', `${Number(metrics.syncRate || 0).toFixed(1)}%`], ['Sample size', metrics.sampleSize || 0],
+			].map(([label, value]) => `<article class="dtb-qbo-kpi"><span>${esc(label)}</span><strong>${esc(value)}</strong></article>`).join('');
 		}
-		list.replaceChildren();
-		Object.values(checks || {}).forEach((check) => {
-			const item = document.createElement('li');
-			item.className = `dtb-qbo-check${check.complete ? ' is-complete' : ''}`;
+	}
 
-			const label = document.createElement('strong');
-			label.textContent = check.label || 'Check';
-			const description = document.createElement('small');
-			description.textContent = check.description || '';
+	function renderView(view, payload) {
+		const data = payload.data || {};
+		if (view === 'overview') renderOverview(data);
+		const host = q(`[data-qbo-table="${view}"]`);
+		if (host) host.innerHTML = table(schemas[view] || [], data.rows || data.latest || []);
+		renderPagination(data);
+		const updated = q('[data-qbo-last-refresh]');
+		if (updated) updated.textContent = `Updated ${formatDate(payload.generatedAt)}${data.cached ? ' · cached' : ''}`;
+	}
 
-			item.append(label, description);
-			list.append(item);
-		});
-	};
-
-	const renderItems = (items, discoveryByKey = {}) => {
-		const container = query('[data-qbo-items]');
-		if (!container) {
-			return;
-		}
-		container.replaceChildren();
-
-		(items || []).forEach((item) => {
-			const row = document.createElement('div');
-			row.className = 'dtb-qbo-item-row';
-			row.setAttribute('role', 'row');
-
-			const role = document.createElement('div');
-			role.className = 'dtb-qbo-item-role';
-			role.setAttribute('role', 'cell');
-			const roleName = document.createElement('strong');
-			roleName.textContent = item.label || item.key;
-			const roleDescription = document.createElement('small');
-			roleDescription.textContent = item.description || '';
-			role.append(roleName, roleDescription);
-
-			const name = document.createElement('div');
-			name.className = 'dtb-qbo-item-name';
-			name.setAttribute('role', 'cell');
-			const mappedName = document.createElement('strong');
-			mappedName.textContent = item.name || item.expected || '—';
-			const expected = document.createElement('small');
-			if (item.verified) {
-				expected.textContent = `Verified for connected company: ${item.expected}`;
-			} else if (item.configured) {
-				expected.textContent = `Configured but not verified for connected company: ${item.expected}`;
-			} else {
-				expected.textContent = `Expected: ${item.expected}`;
-			}
-			name.append(mappedName, expected);
-
-			// A locked (wp-config.php constant) mapping can only be satisfied by an
-			// exact ID match — it will never self-correct. If the last discovery run
-			// found the real item under a different ID (e.g. the constant still holds
-			// a placeholder), surface that real ID so the operator knows exactly what
-			// to paste into wp-config.php instead of guessing.
-			const discovered = discoveryByKey[item.key];
-			if (item.locked && !item.verified && discovered && discovered.id && discovered.id !== item.id) {
-				const hint = document.createElement('small');
-				hint.className = 'dtb-qbo-item-discovered-hint';
-				hint.textContent = `Discovered ID in connected company: ${discovered.id} — update the wp-config.php constant to this value.`;
-				name.append(hint);
-			}
-
-			const id = document.createElement('code');
-			id.className = 'dtb-qbo-item-id';
-			id.setAttribute('role', 'cell');
-			id.textContent = item.id || '—';
-
-			const source = document.createElement('span');
-			source.setAttribute('role', 'cell');
-			source.textContent = sourceLabel(item.source);
-
-			const status = document.createElement('span');
-			status.className = `dtb-qbo-item-status ${item.verified ? 'is-ready' : 'is-missing'}`;
-			status.setAttribute('role', 'cell');
-			status.textContent = item.verified ? 'Verified' : item.configured ? 'Needs verification' : 'Missing';
-
-			row.append(role, name, id, source, status);
-			container.append(row);
-		});
-	};
-
-	const setText = (selector, value) => {
-		const element = query(selector);
-		if (element) {
-			element.textContent = value;
-		}
-	};
-
-	const render = (dashboard, discoveryItems = null) => {
+	async function loadDashboard() {
+		const dashboard = await api('/dashboard');
 		state.dashboard = dashboard;
-		const status = dashboard.status || {};
-		const checks = dashboard.readiness?.checks || {};
-		const checkValues = Object.values(checks);
-		const completeCount = checkValues.filter((check) => check.complete).length;
-		const score = checkValues.length ? Math.round((completeCount / checkValues.length) * 100) : 0;
-		const connected = Boolean(status.connected);
-		const ready = Boolean(dashboard.readiness?.ready);
-
-		setText('[data-qbo-readiness-score]', `${score}%`);
-		setText('[data-qbo-readiness-title]', ready ? 'Ready for accounting projection' : 'Configuration requires attention');
-		setText(
-			'[data-qbo-readiness-copy]',
-			ready
-				? 'All required connection, company, webhook, and accounting item checks are complete.'
-				: `${completeCount} of ${checkValues.length} required readiness checks are complete.`
-		);
-		renderChecks(checks);
-		const discoveryByKey = {};
-		(discoveryItems || []).forEach((entry) => {
-			if (entry && entry.key) {
-				discoveryByKey[entry.key] = entry;
-			}
-		});
-		renderItems(dashboard.items || [], discoveryByKey);
-
-		setText('[data-qbo-company]', dashboard.company?.name || (connected ? 'Connected company' : 'Not connected'));
-		setText('[data-qbo-environment]', String(status.environment || config.environment || '—').toUpperCase());
-		setText('[data-qbo-realm]', dashboard.company?.realmSuffix ? `••••${dashboard.company.realmSuffix}` : '—');
-		setText('[data-qbo-token]', date(dashboard.token?.expiresAtIso));
-		setText('[data-qbo-verified]', date(dashboard.company?.verifiedAt));
-		setText('[data-qbo-webhook]', status.webhook_endpoint || '—');
-		setText('[data-qbo-redirect]', status.redirect_uri || '—');
-		setText('[data-qbo-readiness-score]', `${checks.length ? Math.round((complete / checks.length) * 100) : 0}%`);
-		setText('[data-qbo-readiness-title]', dashboard.readiness?.ready ? 'Ready for accounting projection' : 'Configuration requires attention');
-		const stateEl = q('[data-qbo-connection-state]'); if (stateEl) { stateEl.textContent = status.connected ? 'Connected' : 'Disconnected'; stateEl.className = `dtb-qbo-state ${status.connected ? 'is-connected' : 'is-disconnected'}`; }
-		const checksEl = q('[data-qbo-checks]'); if (checksEl) checksEl.innerHTML = checks.map((item) => `<div class="dtb-qbo-check ${item.complete ? 'is-complete' : ''}"><strong>${esc(item.label)}</strong><span>${esc(item.description)}</span></div>`).join('');
-		const itemsEl = q('[data-qbo-items]'); if (itemsEl) itemsEl.innerHTML = table([
+		const checks = Object.values(dashboard.readiness?.checks || {});
+		const complete = checks.filter((item) => item.complete).length;
+		const text = (selector, value) => { const el = q(selector); if (el) el.textContent = value; };
+		text('[data-qbo-company]', dashboard.company?.name || 'Not connected');
+		text('[data-qbo-environment]', String(dashboard.status?.environment || config.environment || '—').toUpperCase());
+		text('[data-qbo-realm]', dashboard.company?.realmSuffix ? `••••${dashboard.company.realmSuffix}` : '—');
+		text('[data-qbo-token]', formatDate(dashboard.token?.expiresAtIso));
+		text('[data-qbo-verified]', formatDate(dashboard.company?.verifiedAt));
+		text('[data-qbo-redirect]', dashboard.status?.redirect_uri || '—');
+		text('[data-qbo-webhook]', dashboard.status?.webhook_endpoint || '—');
+		text('[data-qbo-readiness-score]', `${checks.length ? Math.round((complete / checks.length) * 100) : 0}%`);
+		const connection = q('[data-qbo-connection-state]');
+		if (connection) { connection.textContent = dashboard.status?.connected ? 'Connected' : 'Disconnected'; connection.className = `dtb-qbo-state ${dashboard.status?.connected ? 'is-connected' : 'is-disconnected'}`; }
+		const checksHost = q('[data-qbo-checks]');
+		if (checksHost) checksHost.innerHTML = checks.map((item) => `<div class="dtb-qbo-check ${item.complete ? 'is-complete' : ''}"><strong>${esc(item.label)}</strong><span>${esc(item.description)}</span></div>`).join('');
+		const itemsHost = q('[data-qbo-items]');
+		if (itemsHost) itemsHost.innerHTML = table([
 			{ label: 'Role', render: (r) => `${esc(r.label)}<small>${esc(r.description)}</small>` },
 			{ label: 'QuickBooks item', render: (r) => `${esc(r.name || r.expected)}<small>${esc(r.expected)}</small>` },
 			{ label: 'Item ID', render: (r) => `<code>${esc(r.id || '—')}</code>` },
 			{ label: 'Source', key: 'source' },
 			{ label: 'Status', render: (r) => badge(r.verified ? 'verified' : 'attention') },
 		], dashboard.items || []);
+		const open = q('[data-qbo-open-link]'); if (open) { open.hidden = !dashboard.status?.connected; open.href = dashboard.links?.quickbooks || '#'; }
+		const connect = q('[data-qbo-action="connect"]'); if (connect) connect.hidden = Boolean(dashboard.status?.connected);
+		const orders = q('[data-qbo-orders-link]'); if (orders) orders.href = dashboard.links?.orders || '#';
+		const scheduler = q('[data-qbo-scheduler-link]'); if (scheduler) scheduler.href = dashboard.links?.scheduler || '#';
 	}
 
-		const connectionState = query('[data-qbo-connection-state]');
-		if (connectionState) {
-			connectionState.textContent = connected ? 'Connected' : 'Disconnected';
-			connectionState.className = `dtb-qbo-state ${connected ? 'is-connected' : 'is-disconnected'}`;
-		}
-
-		const connectButton = query('[data-qbo-action="connect"]');
-		const openLink = query('[data-qbo-open-link]');
-		if (connectButton) {
-			connectButton.hidden = connected;
-		}
-		if (openLink) {
-			openLink.hidden = !connected;
-			openLink.href = dashboard.links?.quickbooks || '#';
-		}
-
-		const ordersLink = query('[data-qbo-orders-link]');
-		if (ordersLink) {
-			ordersLink.href = dashboard.links?.orders || '#';
-		}
-		const schedulerLink = query('[data-qbo-scheduler-link]');
-		if (schedulerLink) {
-			schedulerLink.href = dashboard.links?.scheduler || '#';
-		}
-
-		syncActionStates();
-		root.classList.add('is-ready');
-	};
-
-	const loadDashboard = async ({ quiet = false } = {}) => {
-		if (!quiet) {
-			setBusy(true);
-		}
-		try {
-			const dashboard = await api('/dashboard');
-			render(dashboard);
-			return dashboard;
-		} catch (error) {
-			showAlert(error.message, 'error');
-			throw error;
-		} finally {
-			if (!quiet) {
-				setBusy(false);
-			}
-		}
-	};
-
-	const actions = {
-		refresh: async () => {
-			clearAlert();
-			await loadDashboard();
-		},
-		test: async () => {
-			clearAlert();
-			setBusy(true);
-			try {
-				await api('/test', { method: 'POST', body: {} });
-				showAlert(config.labels.connectionPassed, 'success');
-				await loadDashboard({ quiet: true });
-			} finally {
-				setBusy(false);
-			}
-		},
-		discover: async () => {
-			clearAlert();
-			setBusy(true);
-			try {
-				const result = await api('/items/discover', { method: 'POST', body: {} });
-				// discovery.items is a PHP associative array (keyed by role: product,
-				// shipping, discount, refund) — wp_json_encode serializes it as a JSON
-				// object, not an array, so it must be unwrapped with Object.values().
-				render(result.dashboard, Object.values(result.discovery?.items || {}));
-				const ready = Boolean(result.discovery?.ready);
-				showAlert(
-					ready ? config.labels.itemsMapped : 'Discovery completed, but one or more exact active Service items still require attention.',
-					ready ? 'success' : 'warning'
-				);
-			} finally {
-				setBusy(false);
-			}
-		},
-		connect: async () => {
-			clearAlert();
-			setBusy(true);
-			try {
-				const result = await api('/connect', { method: 'POST', body: {} });
-				if (!result?.authorization_url) {
-					throw new Error('QuickBooks did not return an authorization URL.');
-				}
-				window.location.assign(result.authorization_url);
-			} finally {
-				setBusy(false);
-			}
-		},
-		disconnect: async () => {
-			if (!window.confirm(config.labels.confirmDisconnect)) {
-				return;
-			}
-			clearAlert();
-			setBusy(true);
-			try {
-				await api('/disconnect', { method: 'POST', body: { confirm: true } });
-				showAlert('QuickBooks was disconnected from the active environment.', 'success');
-				await loadDashboard({ quiet: true });
-			} finally {
-				setBusy(false);
-			}
-		},
-	};
-
-	async function load(view = state.active, quiet = false) {
+	async function loadView(view = state.active, quiet = false) {
 		if (state.busy) return;
-		state.busy = true;
-		root.classList.toggle('is-busy', !quiet);
+		setBusy(true);
+		if (!quiet) showAlert('');
 		try {
-			if (view === 'settings') {
-				renderSettings(await api('/dashboard'));
-			} else {
-				const payload = await api(`/enterprise?view=${encodeURIComponent(view)}&limit=25`);
-				if (view === 'overview') renderOverview(payload.data || {}); else renderRows(view, payload.data || {});
-			}
-			setText('[data-qbo-last-refresh]', `Updated ${new Intl.DateTimeFormat(undefined, { timeStyle: 'short' }).format(new Date())}`);
-			alert('');
-		} catch (error) { alert(error.message, 'error'); }
-		finally { state.busy = false; root.classList.remove('is-busy'); }
+			if (view === 'settings') await loadDashboard();
+			else renderView(view, await api(`/enterprise?view=${encodeURIComponent(view)}&page=${state.page}&limit=${Number(config.pageSize || 25)}`));
+			state.failures = 0;
+		} catch (error) {
+			if (error.name !== 'AbortError') { state.failures += 1; showAlert(error.message, 'error'); }
+		} finally { setBusy(false); schedule(); }
 	}
 
-	function activate(view) {
-		state.active = view;
-		qa('[data-qbo-tab]').forEach((el) => { const active = el.dataset.qboTab === view; el.classList.toggle('is-active', active); el.setAttribute('aria-selected', active ? 'true' : 'false'); });
-		qa('[data-qbo-view]').forEach((el) => { const active = el.dataset.qboView === view; el.classList.toggle('is-active', active); el.hidden = !active; });
-		load(view);
+	function schedule() {
+		clearTimeout(state.timer);
+		if (document.hidden) return;
+		const delay = Math.min(120000, Number(config.pollInterval || 15000) * Math.max(1, 2 ** state.failures));
+		state.timer = window.setTimeout(() => loadView(state.active, true), delay);
 	}
 
-	async function action(name) {
+	function activate(view, focus = false) {
+		state.active = view; state.page = 1;
+		qa('[data-qbo-tab]').forEach((tab) => { const active = tab.dataset.qboTab === view; tab.classList.toggle('is-active', active); tab.setAttribute('aria-selected', active ? 'true' : 'false'); tab.tabIndex = active ? 0 : -1; if (active && focus) tab.focus(); });
+		qa('[data-qbo-panel]').forEach((panel) => { const active = panel.dataset.qboPanel === view; panel.hidden = !active; panel.classList.toggle('is-active', active); });
+		loadView(view);
+	}
+
+	async function handleAction(action) {
+		if (action === 'refresh') return loadView(state.active);
+		setBusy(true); showAlert('');
 		try {
-			if (name === 'refresh') return load(state.active);
-			if (name === 'test') { await api('/test', { method: 'POST', body: {} }); alert(config.labels.connectionPassed, 'success'); return load('settings', true); }
-			if (name === 'discover') { await api('/items/discover', { method: 'POST', body: {} }); alert(config.labels.itemsMapped, 'success'); return load('settings', true); }
-			if (name === 'connect') { const result = await api('/connect', { method: 'POST', body: {} }); if (result.authorization_url) window.location.assign(result.authorization_url); return; }
-			if (name === 'disconnect') { if (!window.confirm(config.labels.confirmDisconnect)) return; await api('/disconnect', { method: 'POST', body: { confirm: true } }); return load('settings'); }
-		} catch (error) { alert(error.message, 'error'); }
+			if (action === 'test') { await api('/test', { method: 'POST', body: {} }); showAlert(config.labels.connectionPassed, 'success'); }
+			if (action === 'discover') { await api('/items/discover', { method: 'POST', body: {} }); showAlert(config.labels.itemsMapped, 'success'); }
+			if (action === 'queue') { const result = await api('/sync/queue', { method: 'POST', body: { limit: 25 } }); showAlert(`Queued ${Number(result.queued || result.count || 0)} eligible order(s).`, 'success'); }
+			if (action === 'connect') { const result = await api('/connect', { method: 'POST', body: {} }); if (!result.authorization_url) throw new Error('QuickBooks did not return an authorization URL.'); window.location.assign(result.authorization_url); return; }
+			if (action === 'disconnect') { if (!window.confirm(config.labels.confirmDisconnect)) return; await api('/disconnect', { method: 'POST', body: { confirm: true } }); showAlert('QuickBooks disconnected.', 'success'); }
+			await loadDashboard();
+		} finally { setBusy(false); }
 	}
 
-	root.addEventListener('click', async (event) => {
+	root.addEventListener('click', (event) => {
 		const tab = event.target.closest('[data-qbo-tab]'); if (tab) { activate(tab.dataset.qboTab); return; }
-		const button = event.target.closest('[data-qbo-action]'); if (button) { await action(button.dataset.qboAction); return; }
-		const queue = event.target.closest('[data-qbo-queue]'); if (queue) { try { const result = await api('/sync/queue', { method: 'POST', body: { limit: 25 } }); alert(`Queued ${result.queued || 0} eligible orders.`, 'success'); await load('reconciliation', true); } catch (error) { alert(error.message, 'error'); } }
+		const page = event.target.closest('[data-qbo-page]'); if (page && !page.disabled) { state.page = Number(page.dataset.qboPage || 1); loadView(state.active); return; }
+		const action = event.target.closest('[data-qbo-action]'); if (action && !action.disabled) { handleAction(action.dataset.qboAction).catch((error) => showAlert(error.message, 'error')); return; }
+		const copy = event.target.closest('[data-qbo-copy]'); if (copy) { const selector = copy.dataset.qboCopy === 'redirect' ? '[data-qbo-redirect]' : '[data-qbo-webhook]'; navigator.clipboard.writeText(q(selector)?.textContent || '').then(() => showAlert(config.labels.copied, 'success')); }
 	});
-
-	document.addEventListener('visibilitychange', () => { if (!document.hidden) load(state.active, true); });
-	state.timer = window.setInterval(() => { if (!document.hidden) load(state.active, true); }, Math.max(10000, Number(config.pollMs || 15000)));
-	load('overview');
+	root.addEventListener('keydown', (event) => {
+		const current = event.target.closest('[data-qbo-tab]'); if (!current || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+		const tabs = qa('[data-qbo-tab]'); let index = tabs.indexOf(current);
+		if (event.key === 'ArrowRight') index = (index + 1) % tabs.length;
+		if (event.key === 'ArrowLeft') index = (index - 1 + tabs.length) % tabs.length;
+		if (event.key === 'Home') index = 0; if (event.key === 'End') index = tabs.length - 1;
+		event.preventDefault(); activate(tabs[index].dataset.qboTab, true);
+	});
+	document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(state.timer); if (state.controller) state.controller.abort(); } else loadView(state.active, true); });
+	window.addEventListener('focus', () => { if (!document.hidden) loadView(state.active, true); });
+	activate('overview');
 })();
