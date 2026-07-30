@@ -76,7 +76,7 @@ Key variables:
 Two deployment paths, split by ownership boundary — see `docs/deployment/release-management-architecture.md` for the full design:
 
 - **Frontend + site root**: `npm run build` → `dist/` → `launch/scripts/assemble-siteground.ps1` → `launch/live/` → manual operator upload through FileZilla; connection details and credentials remain outside the repository.
-- **Production `/wp` application tree** (mu-plugins, themes, `.htaccess`, `index.php`): `.github/workflows/release-siteground.yml`, an operator-dispatched Release Management workflow built around the official SiteGround Git repository. Immutable release manifests, protected-path enforcement, automatic backup/rollback, and signed webhook reporting into `dtb-deployment`'s `wp_dtb_release_events` log, surfaced by the Git Control Center admin UI (Drywall Toolbox > Git Control Center).
+- **Production `/wp` application tree** (mu-plugins, themes, `.htaccess`, `index.php`): `.github/workflows/release-siteground.yml`, an operator-dispatched Release Management workflow built around the official SiteGround Git repository. Immutable release manifests, protected-path enforcement, automatic backup/rollback, and signed webhook reporting into `dtb-deployment`'s `wp_dtb_release_events` log, surfaced by System Manager's Release Management tabs (Drywall Toolbox > System Manager).
 - CI: GitHub Actions (`ci-build.yml`) validates and packages source on every push/PR; it does not write to production. `release-siteground.yml` only runs on explicit `workflow_dispatch`.
 - Smoke tests: PowerShell scripts in `scripts/smoke-dtb-*.ps1`
 

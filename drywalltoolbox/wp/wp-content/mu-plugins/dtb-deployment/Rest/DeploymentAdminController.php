@@ -2,10 +2,15 @@
 /**
  * Rest — DeploymentAdminController
  *
- * Git Control Center admin API — the release-management half (Overview,
- * History, Rollback, Settings tabs, and the shared live-region refresh
- * endpoint). Repository browsing endpoints (Repository, Pull Requests,
- * Workflow Runs, Releases & Tags tabs) live in GitControlCenterController.php.
+ * Release-management admin API consumed by the unified System Manager
+ * console (Deployment/Release History/Rollback/Deploy Settings tabs).
+ * Repository browsing endpoints (Repository, Pull Requests, Workflow Runs,
+ * Releases & Tags tabs) live in GitControlCenterController.php. The
+ * live-region tab-refresh endpoint for the merged console is
+ * /dtb/v1/admin/system (dtb-platform/SystemManager/Rest/SystemManagerController.php),
+ * which dispatches to this module's tab renderers for release-management
+ * tabs — there is no separate live-region endpoint here.
+ *
  * All routes require the dtb_manage_deployments capability. Dispatch
  * endpoints never touch SiteGround directly — they only call GitHub's
  * workflow_dispatch API; the actual release execution and its secrets stay
@@ -18,7 +23,6 @@
  *   GET  /dtb/v1/deployment/policy
  *   POST /dtb/v1/deployment/dispatch/deploy
  *   POST /dtb/v1/deployment/dispatch/rollback
- *   GET  /dtb/v1/admin/deployment  (live-region tab refresh — all 8 tabs)
  *
  * @package drywall-toolbox
  */
@@ -78,16 +82,6 @@ function dtb_deployment_admin_register_routes(): void {
 		'methods'             => WP_REST_Server::CREATABLE,
 		'callback'            => 'dtb_deployment_route_dispatch_rollback',
 		'permission_callback' => $cap,
-	] );
-
-	// Live-region refresh endpoint for the Deployment Center admin page.
-	register_rest_route( 'dtb/v1', '/admin/deployment', [
-		'methods'             => WP_REST_Server::READABLE,
-		'callback'            => 'dtb_deployment_admin_live_handler',
-		'permission_callback' => $cap,
-		'args'                => [
-			'tab' => [ 'sanitize_callback' => 'sanitize_key' ],
-		],
 	] );
 }
 
@@ -198,44 +192,6 @@ function dtb_deployment_route_dispatch_rollback( WP_REST_Request $request ): WP_
 
 	return new WP_REST_Response( [
 		'success' => true,
-		'message' => sprintf( 'Rollback workflow dispatched to restore %s. Track progress in the History tab or GitHub Actions.', $release_id ),
+		'message' => sprintf( 'Rollback workflow dispatched to restore %s. Track progress in the Release History tab or GitHub Actions.', $release_id ),
 	], 202 );
-}
-
-/**
- * Live-region refresh handler for GET /dtb/v1/admin/deployment.
- */
-function dtb_deployment_admin_live_handler( WP_REST_Request $request ): WP_REST_Response {
-	$active_tab = sanitize_key( $request->get_param( 'tab' ) ?: 'overview' );
-
-	ob_start();
-	switch ( $active_tab ) {
-		case 'repository':
-			dtb_deployment_center_render_repository_tab();
-			break;
-		case 'pull-requests':
-			dtb_deployment_center_render_pull_requests_tab();
-			break;
-		case 'workflow-runs':
-			dtb_deployment_center_render_workflow_runs_tab();
-			break;
-		case 'releases':
-			dtb_deployment_center_render_releases_tab();
-			break;
-		case 'history':
-			dtb_deployment_center_render_history_tab();
-			break;
-		case 'rollback':
-			dtb_deployment_center_render_rollback_tab();
-			break;
-		case 'settings':
-			dtb_deployment_center_render_settings_tab();
-			break;
-		default:
-			dtb_deployment_center_render_overview_tab();
-			break;
-	}
-	$html = ob_get_clean();
-
-	return new WP_REST_Response( [ 'ok' => true, 'html' => $html ], 200 );
 }

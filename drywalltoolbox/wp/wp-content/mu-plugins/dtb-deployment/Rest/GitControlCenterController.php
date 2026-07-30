@@ -2,7 +2,9 @@
 /**
  * Rest — GitControlCenterController
  *
- * Read-only repository visibility endpoints for the Git Control Center.
+ * Read-only repository visibility endpoints (Repository, Pull Requests,
+ * Workflow Runs, Releases & Tags tabs of the unified System Manager
+ * console — see dtb-platform/SystemManager/SystemManagerPage.php).
  * All routes require dtb_manage_deployments — the same capability that
  * gates release dispatch, since this is one console.
  *

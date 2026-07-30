@@ -1,100 +1,35 @@
 <?php
 /**
- * Admin — GitControlCenterPage
+ * Admin — GitControlCenterTabs
  *
- * Renders dtb-git-control-center — the Git Control Center. A single
- * enterprise release-management console covering both GitHub repository
- * visibility and SiteGround production release control:
+ * Tab-content renderers for the release-management and GitHub-repository
+ * portion of the unified System Manager console (Drywall Toolbox > System
+ * Manager). This file owns rendering only — the page shell, tab bar, and
+ * live-region wiring belong to dtb-platform/SystemManager/SystemManagerPage.php,
+ * which surfaces these functions without owning their behavior (the same
+ * pattern dtb-media's admin screen already uses to surface, but not own,
+ * dtb-schematics registration).
  *
- *   Overview | Repository | Pull Requests | Workflow Runs | Releases & Tags
- *   | History | Rollback | Settings
+ * Tabs rendered here: Deployment | Repository | Pull Requests |
+ * Workflow Runs | Releases & Tags | Release History | Rollback |
+ * Deploy Settings.
  *
  * Production status is read directly from the wp_dtb_release_events log
  * (reported by .github/workflows/release-siteground.yml). Repository,
  * branches, commits, pull requests, workflow runs, and releases/tags are
  * read live from the GitHub API. Deploy/rollback actions dispatch the
- * release workflow; this page never talks to SiteGround directly and never
- * writes to the repository — every GitHub call here is read-only except the
- * two workflow_dispatch actions on the Overview and Rollback tabs.
+ * release workflow; nothing here talks to SiteGround directly and nothing
+ * here writes to the repository — every GitHub call is read-only except the
+ * two workflow_dispatch actions (Deployment and Rollback tabs).
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
-function dtb_deployment_center_render_page(): void {
-	if ( ! current_user_can( 'dtb_manage_deployments' ) ) {
-		dtb_admin_shell_access_denied();
-		return;
-	}
-
-	$active_tab = sanitize_key( $_GET['tab'] ?? 'overview' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-	$base_url = admin_url( 'admin.php?page=dtb-git-control-center' );
-	$tabs = [
-		[ 'id' => 'overview',       'label' => __( 'Overview', 'drywall-toolbox' ),        'active' => 'overview' === $active_tab,       'url' => add_query_arg( 'tab', 'overview', $base_url ) ],
-		[ 'id' => 'repository',     'label' => __( 'Repository', 'drywall-toolbox' ),      'active' => 'repository' === $active_tab,     'url' => add_query_arg( 'tab', 'repository', $base_url ) ],
-		[ 'id' => 'pull-requests',  'label' => __( 'Pull Requests', 'drywall-toolbox' ),    'active' => 'pull-requests' === $active_tab,  'url' => add_query_arg( 'tab', 'pull-requests', $base_url ) ],
-		[ 'id' => 'workflow-runs',  'label' => __( 'Workflow Runs', 'drywall-toolbox' ),    'active' => 'workflow-runs' === $active_tab,  'url' => add_query_arg( 'tab', 'workflow-runs', $base_url ) ],
-		[ 'id' => 'releases',       'label' => __( 'Releases & Tags', 'drywall-toolbox' ),  'active' => 'releases' === $active_tab,       'url' => add_query_arg( 'tab', 'releases', $base_url ) ],
-		[ 'id' => 'history',        'label' => __( 'History', 'drywall-toolbox' ),          'active' => 'history' === $active_tab,        'url' => add_query_arg( 'tab', 'history', $base_url ) ],
-		[ 'id' => 'rollback',       'label' => __( 'Rollback', 'drywall-toolbox' ),         'active' => 'rollback' === $active_tab,       'url' => add_query_arg( 'tab', 'rollback', $base_url ) ],
-		[ 'id' => 'settings',       'label' => __( 'Settings', 'drywall-toolbox' ),         'active' => 'settings' === $active_tab,       'url' => add_query_arg( 'tab', 'settings', $base_url ) ],
-	];
-
-	dtb_admin_shell_open( [
-		'title'       => __( 'Git Control Center', 'drywall-toolbox' ),
-		'subtitle'    => __( 'Repository visibility and production release management, built around the official SiteGround Git repository.', 'drywall-toolbox' ),
-		'section'     => 'operations',
-		'page'        => 'dtb-git-control-center',
-		'template'    => 'dashboard',
-		'icon'        => 'dashicons-cloud-upload',
-		'tabs'        => $tabs,
-		'live_target' => 'dtb-git-control-workspace',
-	] );
-
-	dtb_admin_shell_live_region_open( [
-		'id'       => 'dtb-git-control-workspace',
-		'module'   => 'git-control-center',
-		'endpoint' => add_query_arg( 'tab', $active_tab, rest_url( 'dtb/v1/admin/deployment' ) ),
-		'interval' => 20000,
-	] );
-
-	switch ( $active_tab ) {
-		case 'repository':
-			dtb_deployment_center_render_repository_tab();
-			break;
-		case 'pull-requests':
-			dtb_deployment_center_render_pull_requests_tab();
-			break;
-		case 'workflow-runs':
-			dtb_deployment_center_render_workflow_runs_tab();
-			break;
-		case 'releases':
-			dtb_deployment_center_render_releases_tab();
-			break;
-		case 'history':
-			dtb_deployment_center_render_history_tab();
-			break;
-		case 'rollback':
-			dtb_deployment_center_render_rollback_tab();
-			break;
-		case 'settings':
-			dtb_deployment_center_render_settings_tab();
-			break;
-		default:
-			dtb_deployment_center_render_overview_tab();
-			break;
-	}
-
-	dtb_admin_shell_live_region_close();
-	dtb_deployment_center_render_script();
-	dtb_admin_shell_close();
-}
-
 // ── Tab renderers ───────────────────────────────────────────────────────────
 
-function dtb_deployment_center_render_overview_tab(): void {
+function dtb_deployment_center_render_deployment_tab(): void {
 	$overview = dtb_deployment_overview_get();
 	$current  = $overview['current_production'];
 	$progress = $overview['in_progress'];
@@ -163,7 +98,7 @@ function dtb_deployment_center_render_overview_tab(): void {
 	// Deploy action.
 	ob_start();
 	if ( ! $overview['github_enabled'] || ! $overview['webhook_enabled'] ) {
-		echo dtb_admin_ui_alert( __( 'GitHub dispatch and/or webhook reporting is not fully configured yet. See the Settings tab.', 'drywall-toolbox' ), 'warning' );
+		echo dtb_admin_ui_alert( __( 'GitHub dispatch and/or webhook reporting is not fully configured yet. See the Deploy Settings tab.', 'drywall-toolbox' ), 'warning' );
 	}
 	?>
 	<div class="dtb-field">
@@ -398,7 +333,7 @@ function dtb_deployment_center_render_history_tab(): void {
 	$releases = dtb_release_history_get( 50 );
 
 	if ( empty( $releases ) ) {
-		echo dtb_admin_ui_empty_state( __( 'No Releases Yet', 'drywall-toolbox' ), __( 'Dispatch a release from the Overview tab to begin building history.', 'drywall-toolbox' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo dtb_admin_ui_empty_state( __( 'No Releases Yet', 'drywall-toolbox' ), __( 'Dispatch a release from the Deployment tab to begin building history.', 'drywall-toolbox' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		return;
 	}
 
@@ -536,64 +471,60 @@ function dtb_deployment_center_render_timeline( array $events ): string {
 }
 
 /**
- * Inline admin script: wires the Deploy/Rollback buttons to the Git Control
- * Center REST API via the shared DtbAdmin.apiFetch() helper.
+ * Inline admin script: wires the Deploy/Rollback buttons to the release
+ * dispatch REST API via the shared DtbAdmin.apiFetch() helper.
+ *
+ * Uses event delegation on `document` rather than binding directly to the
+ * buttons — the Deployment/Rollback tab content lives inside System
+ * Manager's auto-refreshing live region, so the actual DOM nodes are
+ * replaced on every refresh. A delegated listener keeps working across
+ * every swap without needing to re-bind after each live-region update.
  */
 function dtb_deployment_center_render_script(): void {
+	static $printed = false;
+	if ( $printed ) {
+		return;
+	}
+	$printed = true;
 	?>
 	<script>
 	( function () {
-		document.addEventListener( 'DOMContentLoaded', function () {
-			var deployBtn = document.getElementById( 'dtb-deploy-dispatch' );
+		function dispatchAction( button, endpoint, body, statusEl ) {
+			button.disabled = true;
+			if ( statusEl ) statusEl.textContent = 'Dispatching…';
+
+			window.DtbAdmin.apiFetch( endpoint, {
+				method: 'POST',
+				body: JSON.stringify( body ),
+			} ).then( function ( data ) {
+				if ( statusEl ) statusEl.textContent = data.message || 'Dispatched.';
+			} ).catch( function ( err ) {
+				if ( statusEl ) statusEl.textContent = ( err && err.message ) || 'Dispatch failed.';
+			} ).finally( function () {
+				button.disabled = false;
+			} );
+		}
+
+		document.addEventListener( 'click', function ( e ) {
+			const deployBtn = e.target.closest( '#dtb-deploy-dispatch' );
 			if ( deployBtn ) {
-				deployBtn.addEventListener( 'click', function () {
-					var refEl = document.getElementById( 'dtb-deploy-ref' );
-					var ref = refEl ? refEl.value.trim() : '';
-					if ( ! ref ) { window.alert( 'Enter a branch, tag, or commit SHA.' ); return; }
-					var confirmText = window.prompt( 'Type DEPLOY to confirm releasing "' + ref + '" to production:' );
-					if ( 'DEPLOY' !== confirmText ) { return; }
-
-					var statusEl = document.getElementById( 'dtb-deploy-status' );
-					deployBtn.disabled = true;
-					if ( statusEl ) statusEl.textContent = 'Dispatching…';
-
-					window.DtbAdmin.apiFetch( '/dtb/v1/deployment/dispatch/deploy', {
-						method: 'POST',
-						body: JSON.stringify( { ref: ref, confirm: 'DEPLOY' } ),
-					} ).then( function ( data ) {
-						if ( statusEl ) statusEl.textContent = data.message || 'Dispatched.';
-					} ).catch( function ( err ) {
-						if ( statusEl ) statusEl.textContent = ( err && err.message ) || 'Dispatch failed.';
-					} ).finally( function () {
-						deployBtn.disabled = false;
-					} );
-				} );
+				const refEl = document.getElementById( 'dtb-deploy-ref' );
+				const ref = refEl ? refEl.value.trim() : '';
+				if ( ! ref ) { window.alert( 'Enter a branch, tag, or commit SHA.' ); return; }
+				const confirmText = window.prompt( 'Type DEPLOY to confirm releasing "' + ref + '" to production:' );
+				if ( 'DEPLOY' !== confirmText ) { return; }
+				dispatchAction( deployBtn, '/dtb/v1/deployment/dispatch/deploy', { ref: ref, confirm: 'DEPLOY' }, document.getElementById( 'dtb-deploy-status' ) );
+				return;
 			}
 
-			var rollbackBtn = document.getElementById( 'dtb-rollback-dispatch' );
+			const rollbackBtn = e.target.closest( '#dtb-rollback-dispatch' );
 			if ( rollbackBtn ) {
-				rollbackBtn.addEventListener( 'click', function () {
-					var selectEl = document.getElementById( 'dtb-rollback-release' );
-					var releaseId = selectEl ? selectEl.value : '';
-					if ( ! releaseId ) { window.alert( 'Select a release to restore.' ); return; }
-					var confirmText = window.prompt( 'Type ROLLBACK to confirm restoring "' + releaseId + '" to production:' );
-					if ( 'ROLLBACK' !== confirmText ) { return; }
-
-					var statusEl = document.getElementById( 'dtb-rollback-status' );
-					rollbackBtn.disabled = true;
-					if ( statusEl ) statusEl.textContent = 'Dispatching…';
-
-					window.DtbAdmin.apiFetch( '/dtb/v1/deployment/dispatch/rollback', {
-						method: 'POST',
-						body: JSON.stringify( { release_id: releaseId, confirm: 'ROLLBACK' } ),
-					} ).then( function ( data ) {
-						if ( statusEl ) statusEl.textContent = data.message || 'Dispatched.';
-					} ).catch( function ( err ) {
-						if ( statusEl ) statusEl.textContent = ( err && err.message ) || 'Dispatch failed.';
-					} ).finally( function () {
-						rollbackBtn.disabled = false;
-					} );
-				} );
+				const selectEl = document.getElementById( 'dtb-rollback-release' );
+				const releaseId = selectEl ? selectEl.value : '';
+				if ( ! releaseId ) { window.alert( 'Select a release to restore.' ); return; }
+				const confirmText = window.prompt( 'Type ROLLBACK to confirm restoring "' + releaseId + '" to production:' );
+				if ( 'ROLLBACK' !== confirmText ) { return; }
+				dispatchAction( rollbackBtn, '/dtb/v1/deployment/dispatch/rollback', { release_id: releaseId, confirm: 'ROLLBACK' }, document.getElementById( 'dtb-rollback-status' ) );
 			}
 		} );
 	} )();

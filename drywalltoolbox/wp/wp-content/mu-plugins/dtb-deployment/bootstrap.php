@@ -14,7 +14,11 @@
  *   - the GitHub API bridge used to dispatch deploy/rollback, detect
  *     repository drift, and browse branches/commits/pull requests/workflow
  *     runs/releases/tags read-only;
- *   - the Git Control Center admin UI (Drywall Toolbox > Git Control Center).
+ *   - the Deployment/Repository/Pull Requests/Workflow Runs/Releases & Tags/
+ *     Release History/Rollback/Deploy Settings tab content surfaced inside
+ *     the unified System Manager console (Drywall Toolbox > System Manager),
+ *     owned by dtb-platform/SystemManager/SystemManagerPage.php. See
+ *     Admin/GitControlCenterTabs.php.
  *
  * This module never holds SiteGround Git/SSH credentials and never writes
  * to SiteGround directly — all production file changes happen inside the
@@ -52,8 +56,7 @@ require_once $_dtb_deployment . '/Rest/DeploymentWebhookController.php';
 require_once $_dtb_deployment . '/Rest/DeploymentAdminController.php';
 require_once $_dtb_deployment . '/Rest/GitControlCenterController.php';
 
-// 6. Admin.
-require_once $_dtb_deployment . '/Admin/GitControlCenterPage.php';
-require_once $_dtb_deployment . '/Admin/GitControlCenterAdminMenu.php';
+// 6. Admin. Tab renderers only — surfaced by dtb-platform's SystemManagerPage.php.
+require_once $_dtb_deployment . '/Admin/GitControlCenterTabs.php';
 
 unset( $_dtb_deployment );

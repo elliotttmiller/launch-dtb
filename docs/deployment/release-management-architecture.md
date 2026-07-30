@@ -36,8 +36,8 @@ The prior state of this repository (see `AGENTS.md` history) briefly hosted, the
 | Release workflow | `.github/workflows/release-siteground.yml` | The release engine. Plans, validates, tags an immutable manifest, backs up, deploys, verifies, and reports every stage. Operator-dispatched only (`workflow_dispatch`), never on push/merge. |
 | Boundary policy | `scripts/deployment/protected-paths.json` | Single declared source of truth for owned vs. protected paths. Mirrored (with a documented sync obligation) in `dtb-deployment/Services/ProtectedPathPolicy.php` for admin-UI display, since the JSON file itself is never part of the deployed payload. |
 | Git release engine | `scripts/deployment/siteground-git-release.sh` | The only code that clones, commits to, and pushes the SiteGround Git remote. Enforces the protected-path boundary before any commit is created. `backup` and `deploy` actions only — rollback reuses `deploy` with a different payload source. |
-| Webhook reporter | `scripts/deployment/report-release-event.sh` | HMAC-signs and POSTs each lifecycle event to the Git Control Center webhook. Best-effort — a reporting failure never blocks or falsely fails a release already in flight. |
-| `dtb-deployment` mu-plugin | `drywalltoolbox/wp/wp-content/mu-plugins/dtb-deployment/` | WordPress-side bounded context: release event log, signed webhook receiver, GitHub API bridge, Git Control Center admin UI. Never holds SiteGround Git/SSH credentials. |
+| Webhook reporter | `scripts/deployment/report-release-event.sh` | HMAC-signs and POSTs each lifecycle event to the System Manager webhook. Best-effort — a reporting failure never blocks or falsely fails a release already in flight. |
+| `dtb-deployment` mu-plugin | `drywalltoolbox/wp/wp-content/mu-plugins/dtb-deployment/` | WordPress-side bounded context: release event log, signed webhook receiver, GitHub API bridge, and the Release Management tab content surfaced inside System Manager (`dtb-platform/SystemManager/SystemManagerPage.php`). Never holds SiteGround Git/SSH credentials. |
 
 ## 4. Release boundary and protected-path enforcement
 
@@ -93,25 +93,27 @@ Every deploy first tags the SiteGround remote's **current** HEAD as `dtb-backup/
 Three recovery paths exist:
 
 - **Automatic, in-workflow**: if backup, deploy, or verification fails during a deploy run, a bash `trap` immediately extracts the just-created backup tag and re-applies it via the same scoped `deploy` logic, restoring production before the job ends. This reports `release_rolled_back_automatically`.
-- **Operator-initiated rollback**: from the Git Control Center (or `workflow_dispatch` directly) with `action: rollback` and a target `release_id`. The workflow fetches that release's `dtb-release/<id>` manifest tag from GitHub, backs up current state again, applies the manifest via `deploy`, and verifies.
+- **Operator-initiated rollback**: from the System Manager (or `workflow_dispatch` directly) with `action: rollback` and a target `release_id`. The workflow fetches that release's `dtb-release/<id>` manifest tag from GitHub, backs up current state again, applies the manifest via `deploy`, and verifies.
 - **Manual, host-side**: because every backup is a real tag on the SiteGround remote itself, an operator retains the option of restoring via SiteGround's own Git tooling as a last resort, independent of this platform.
 
 Rollback never uses ad hoc file replacement — it always replays a specific, previously validated release state through the same protected-path-enforced code path as a forward deploy.
 
-## 8. Observability: Git Control Center
+## 8. Observability: System Manager
 
-`Admin/GitControlCenterPage.php` (wp-admin → Drywall Toolbox → Git Control Center, capability `dtb_manage_deployments`) is the single console for both GitHub repository visibility and SiteGround release control, across eight tabs:
+Release management and GitHub repository visibility are surfaced inside the existing **System Manager** console (wp-admin → Drywall Toolbox → System Manager, `dtb-platform/SystemManager/SystemManagerPage.php`) rather than as a separate admin page — one unified operator console instead of two overlapping "technical operations" surfaces. The page shell, tab bar, and live-region wiring belong to `dtb-platform`; release-management tab *content* is rendered by `dtb-deployment/Admin/GitControlCenterTabs.php` and surfaced without being owned by `dtb-platform` — the same pattern `dtb-media`'s admin screen already uses to surface, without owning, `dtb-schematics` registration.
 
-- **Overview** — currently deployed commit/ref, when it deployed, live progress timeline for an in-progress release, GitHub/production drift (commits ahead of production, via the GitHub compare API), and a Deploy action.
-- **Repository** — repository summary (default branch, visibility, open issues, last push), recent branches, and recent commits — read live from the GitHub API (`Services/GitHubRepositoryClient.php`).
-- **Pull Requests** — open pull requests: title, head/base branch, author, draft/open status, last updated.
-- **Workflow Runs** — recent GitHub Actions runs across every workflow in the repository (not just the release workflow), with status/conclusion and a link to each run.
-- **Releases & Tags** — published GitHub Releases, plus the platform's own `dtb-release/*` manifest tags and `dtb-backup/*` SiteGround backup tags, so every immutable manifest and backup point is directly visible.
-- **History** — every recorded release from `wp_dtb_release_events`, its kind (deploy/rollback), ref/commit, derived status, actor, and timestamps.
-- **Rollback** — a picker limited to releases that reached at least a validated manifest, with a typed `ROLLBACK` confirmation before dispatch.
-- **Settings** — integration status (GitHub dispatch, webhook), the exact required `wp-config.php` constants / GitHub Actions secrets, the required `DTB_GITHUB_DEPLOYMENT_TOKEN` PAT scopes, and the live owned/protected path policy.
+Tabs are organized in four groups:
 
-The page uses the existing DTB admin shell, UI component library, and live-region auto-refresh, with a small dedicated stylesheet (`Admin/assets/dtb-git-control-center.css`) for commit/branch/tag chips and sticky table headers — styled as part of the same operator console as System Manager, Command Center, and the other DTB admin surfaces, not a bolted-on tool. Repository-browsing endpoints (`Rest/GitControlCenterController.php`) are strictly read-only and cache every GitHub list call for two minutes (`Services/GitHubRepositoryClient.php`) so the live region's auto-refresh cannot amplify into excessive GitHub API traffic.
+- **Overview** — a mission-control view: KPI tiles across system health, queue failures, integration status, webhook failures, deployed commit, GitHub drift, and release status; an "Attention Needed" panel aggregating warnings from every subsystem with deep links to the relevant tab; a "Recent Activity" feed merging the audit log and release events into one chronological timeline; and a live progress timeline when a release is in flight.
+- **Platform Health** — System Info, Queues & Cron, Integrations, Webhooks (unchanged from the previous System Manager, capability `dtb_manage_system`).
+- **Release Management** — Deployment (current release, drift, Deploy action), Repository (repo summary, branches, recent commits), Pull Requests, Workflow Runs (every workflow in the repository, not just the release workflow), Releases & Tags (GitHub Releases plus this platform's own `dtb-release/*` manifest and `dtb-backup/*` SiteGround backup tags), Release History, Rollback (typed `ROLLBACK` confirmation), and Deploy Settings (integration status, required secrets/constants, required PAT scopes, live owned/protected path policy) — all capability `dtb_manage_deployments`.
+- **Diagnostics** — Audit Log, Debug Log (unchanged, capability `dtb_manage_system`).
+
+The page is viewable by anyone holding `dtb_manage_system` **or** `dtb_manage_deployments`; each Release Management tab additionally enforces `dtb_manage_deployments` on its own content (an operator with only `dtb_manage_system` sees the tab but gets an inline "insufficient permission" notice rather than the content), and vice versa for platform-health tabs against `dtb_manage_system`. The shared live-region refresh endpoint (`GET /dtb/v1/admin/system`) dispatches to the exact same per-tab function the page itself calls, so the two code paths cannot drift out of sync.
+
+**Live by default.** Unlike the previous System Manager (manual-snapshot-only, no auto-polling), this console polls its active tab automatically: every 15 seconds normally, dropping to every 5 seconds the moment a release is actively deploying or rolling back — recomputed on every response (`meta.fast_poll`), not just at page load, so the cadence tracks release state in real time. A live toolbar (pulsing status dot, "Updated Xs ago" label, Pause/Resume and Refresh-now controls) makes the sync state visible at a glance; polling pauses automatically when the browser tab is hidden and resumes on return. Deploy/Rollback button handlers use event delegation rather than direct bindings so they keep working across every live-region content swap. See `dtb-platform/SystemManager/assets/dtb-system-manager.js` and `.css`.
+
+Repository-browsing endpoints (`dtb-deployment/Rest/GitControlCenterController.php`) are strictly read-only and cache every GitHub list call for two minutes (`Services/GitHubRepositoryClient.php`) so the live region's auto-refresh cannot amplify into excessive GitHub API traffic.
 
 ## 9. Security model
 
@@ -120,18 +122,18 @@ The page uses the existing DTB admin shell, UI component library, and live-regio
 - **GitHub Actions → WordPress** trust is a shared HMAC-SHA256 secret (`DTB_DEPLOYMENT_WEBHOOK_SECRET`), the same pattern already used for the QuickBooks webhook (`dtb-integrations/QuickBooks/QuickBooksWebhookController.php`), just with GitHub Actions as signer and WordPress as verifier.
 - **Every release requires a typed confirmation** (`DEPLOY` / `ROLLBACK`) at both the admin-UI layer and the workflow's own `guard` job — a release can never be triggered by an accidental click or a malformed request.
 - **No automatic deployment on push or merge.** `release-siteground.yml` has `workflow_dispatch` as its only trigger.
-- **Concurrency-limited**: the workflow's `concurrency: group: siteground-production-release` guarantees only one release/rollback runs at a time; the Git Control Center additionally blocks new dispatches while a release is in progress and applies a short dispatch lock to prevent accidental double-submission.
+- **Concurrency-limited**: the workflow's `concurrency: group: siteground-production-release` guarantees only one release/rollback runs at a time; the System Manager additionally blocks new dispatches while a release is in progress and applies a short dispatch lock to prevent accidental double-submission.
 - Standard DTB security invariants apply throughout: capability-gated REST routes (`dtb_manage_deployments`), sanitized input, prepared SQL, timing-safe signature comparison, and redacted audit logging (`dtb_ops_audit_log`).
 
 ## 10. Operational considerations and residual risks
 
 - **Required one-time operator setup** before this platform can run a real release:
   - GitHub Actions repository secrets: `SITEGROUND_GIT_REMOTE`, `SITEGROUND_GIT_BRANCH`, `SITEGROUND_GIT_SSH_PRIVATE_KEY`, `SITEGROUND_GIT_KNOWN_HOSTS`, `DTB_DEPLOYMENT_WEBHOOK_SECRET`.
-  - `wp-config.php` constants: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (must match the secret above) and `DTB_GITHUB_DEPLOYMENT_TOKEN` (to enable dispatch/drift from the Git Control Center — read-only history/webhook recording works without it).
+  - `wp-config.php` constants: `DTB_DEPLOYMENT_WEBHOOK_SECRET` (must match the secret above) and `DTB_GITHUB_DEPLOYMENT_TOKEN` (to enable dispatch/drift from the System Manager — read-only history/webhook recording works without it).
   - Confirm the exact tracked scope of the existing SiteGround Git repository matches `scripts/deployment/protected-paths.json`'s `owned_paths`/`protected_paths` assumptions before the first real release; the protected-path guard will refuse any release whose diff falls outside `owned_paths`, so a mismatch fails safe rather than writing unexpected files.
-- **First release is unverified against live infrastructure.** This implementation could not be exercised against the real SiteGround Git remote or a live GitHub Actions run from this session — validate with a low-risk ref on a quiet window, and watch the Git Control Center + workflow logs closely for the first dispatch.
+- **First release is unverified against live infrastructure.** This implementation could not be exercised against the real SiteGround Git remote or a live GitHub Actions run from this session — validate with a low-risk ref on a quiet window, and watch the System Manager + workflow logs closely for the first dispatch.
 - **Path duplication**: the owned/protected path lists are declared once in `scripts/deployment/protected-paths.json` (CI's source of truth) and mirrored in `dtb-deployment/Services/ProtectedPathPolicy.php` (display-only, since the JSON file is never part of the deployed `/wp` payload). Both carry a comment cross-referencing the other; keep them in sync when the boundary changes.
-- **Webhook delivery is best-effort.** If `DTB_DEPLOYMENT_WEBHOOK_SECRET` is misconfigured or production is briefly unreachable during a release, the release itself still completes or rolls back correctly — only Git Control Center visibility for that run is degraded. GitHub Actions' own step summary and run log remain the fallback source of truth for that run.
+- **Webhook delivery is best-effort.** If `DTB_DEPLOYMENT_WEBHOOK_SECRET` is misconfigured or production is briefly unreachable during a release, the release itself still completes or rolls back correctly — only System Manager visibility for that run is degraded. GitHub Actions' own step summary and run log remain the fallback source of truth for that run.
 - **Drift detection depends on `DTB_GITHUB_DEPLOYMENT_TOKEN`.** Without it, the Overview tab still shows recorded release history but cannot compute "commits ahead on GitHub."
 
 ## 11. Extensibility
