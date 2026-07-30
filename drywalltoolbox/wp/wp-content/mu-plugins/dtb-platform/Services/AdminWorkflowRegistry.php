@@ -202,6 +202,10 @@ function dtb_admin_get_workflow_definitions(): array {
 					'label'    => __( 'Processing', 'drywall-toolbox' ),
 					'statuses' => [ 'processing' ],
 				],
+				'shipped'    => [
+					'label'    => __( 'Shipped', 'drywall-toolbox' ),
+					'statuses' => [ 'shipped' ],
+				],
 				'completed'  => [
 					'label'    => __( 'Completed', 'drywall-toolbox' ),
 					'statuses' => [ 'completed' ],
@@ -211,6 +215,7 @@ function dtb_admin_get_workflow_definitions(): array {
 				'on-hold'    => __( 'Review payment or fulfillment hold', 'drywall-toolbox' ),
 				'failed'     => __( 'Review failed payment', 'drywall-toolbox' ),
 				'processing' => __( 'Monitor fulfillment', 'drywall-toolbox' ),
+				'shipped'    => __( 'Monitor delivery', 'drywall-toolbox' ),
 			],
 			'risk_states'               => [ 'on-hold', 'failed' ],
 			'aliases'                   => [],

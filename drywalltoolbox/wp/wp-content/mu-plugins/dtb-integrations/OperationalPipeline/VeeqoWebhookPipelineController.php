@@ -200,7 +200,7 @@ function dtb_operational_pipeline_process_veeqo_webhook( int $order_id, array $a
 		$payload       = is_array( $record['payload'] ?? null ) ? $record['payload'] : [];
 		$veeqo_status  = sanitize_key( (string) ( $payload['status'] ?? '' ) );
 		$rank          = dtb_operational_pipeline_veeqo_status_rank( $veeqo_status );
-		$status_map    = [ 'awaiting_fulfillment' => 'processing', 'allocated' => 'processing', 'printed' => 'processing', 'shipped' => 'completed', 'cancelled' => 'cancelled', 'refunded' => 'refunded' ];
+		$status_map    = [ 'awaiting_fulfillment' => 'processing', 'allocated' => 'processing', 'printed' => 'processing', 'shipped' => 'shipped', 'cancelled' => 'cancelled', 'refunded' => 'refunded' ];
 		$wc_status     = $status_map[ $veeqo_status ] ?? '';
 		$current_rank  = absint( $order->get_meta( '_dtb_veeqo_fulfillment_rank', true ) );
 		$tracking      = 'shipped' === $veeqo_status ? dtb_operational_pipeline_extract_veeqo_tracking( $payload ) : [ 'tracking_number' => '', 'tracking_carrier' => '' ];
@@ -241,7 +241,7 @@ function dtb_operational_pipeline_process_veeqo_webhook( int $order_id, array $a
 		$order->save_meta_data();
 
 		$previous_status = (string) $order->get_status();
-		if ( function_exists( 'dtb_checkout_handoff_is_unpaid_order' ) && dtb_checkout_handoff_is_unpaid_order( $order ) && in_array( $wc_status, [ 'processing', 'completed' ], true ) ) {
+		if ( function_exists( 'dtb_checkout_handoff_is_unpaid_order' ) && dtb_checkout_handoff_is_unpaid_order( $order ) && in_array( $wc_status, [ 'processing', 'shipped', 'completed' ], true ) ) {
 			$record['status'] = 'quarantined';
 			$record['result'] = 'unpaid_order';
 			update_option( $ingress_key, $record, false );

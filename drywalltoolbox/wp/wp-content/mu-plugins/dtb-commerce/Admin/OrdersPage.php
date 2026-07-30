@@ -50,6 +50,7 @@ function dtb_orders_render_page(): void {
 		[ 'id' => 'processing', 'label' => __( 'Processing', 'drywall-toolbox' ),       'active' => $status === 'processing', 'url' => add_query_arg( 'status', 'processing', $status_base ) ],
 		[ 'id' => 'pending',    'label' => __( 'Pending', 'drywall-toolbox' ),          'active' => $status === 'pending',    'url' => add_query_arg( 'status', 'pending', $status_base ) ],
 		[ 'id' => 'failed',     'label' => __( 'Failed', 'drywall-toolbox' ),           'active' => $status === 'failed',     'url' => add_query_arg( 'status', 'failed', $status_base ) ],
+		[ 'id' => 'shipped',    'label' => __( 'Shipped', 'drywall-toolbox' ),          'active' => $status === 'shipped',    'url' => add_query_arg( 'status', 'shipped', $status_base ) ],
 		[ 'id' => 'completed',  'label' => __( 'Completed', 'drywall-toolbox' ),        'active' => $status === 'completed',  'url' => add_query_arg( 'status', 'completed', $status_base ) ],
 	];
 
