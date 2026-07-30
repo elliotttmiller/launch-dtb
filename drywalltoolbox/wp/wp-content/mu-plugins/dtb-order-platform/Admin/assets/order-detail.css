@@ -1,0 +1,412 @@
+/*
+ * DTB WooCommerce order-detail presentation.
+ * Scoped to the HPOS/legacy order editor through .dtb-order-detail-screen.
+ * BrikPanel custom CSS may safely override the variables below.
+ */
+
+.dtb-order-detail-screen {
+	--dtb-order-page-gap: 18px;
+	--dtb-order-card-radius: 12px;
+	--dtb-order-card-border: #dfe3e8;
+	--dtb-order-card-bg: #fff;
+	--dtb-order-muted-bg: #f7f8fa;
+	--dtb-order-text: #17202a;
+	--dtb-order-muted: #667085;
+	--dtb-order-accent: #2563eb;
+	--dtb-order-success: #16833f;
+	--dtb-order-warning: #9a6700;
+	--dtb-order-danger: #c62828;
+	--dtb-order-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 8px 24px rgba(16, 24, 40, 0.04);
+}
+
+/* Page rhythm and native HPOS workspace. */
+.dtb-order-detail-screen #wpcontent,
+.dtb-order-detail-screen #wpbody-content {
+	background: #f4f6f8;
+}
+
+.dtb-order-detail-screen .woocommerce-layout__main,
+.dtb-order-detail-screen .wrap.woocommerce,
+.dtb-order-detail-screen .woocommerce_page_wc-orders .wrap {
+	max-width: 1680px;
+}
+
+.dtb-order-detail-screen .woocommerce-layout__header {
+	border-bottom: 1px solid var(--dtb-order-card-border);
+	box-shadow: 0 1px 0 rgba(16, 24, 40, 0.03);
+}
+
+.dtb-order-detail-screen .woocommerce-layout__header-heading,
+.dtb-order-detail-screen .woocommerce-layout__header-breadcrumbs {
+	color: var(--dtb-order-text);
+}
+
+/* Main metabox columns. */
+.dtb-order-detail-screen #poststuff {
+	padding-top: var(--dtb-order-page-gap);
+}
+
+.dtb-order-detail-screen #post-body.columns-2 {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+	gap: var(--dtb-order-page-gap);
+}
+
+.dtb-order-detail-screen #post-body-content,
+.dtb-order-detail-screen #postbox-container-1,
+.dtb-order-detail-screen #postbox-container-2 {
+	min-width: 0;
+	float: none;
+	width: auto;
+	margin: 0;
+}
+
+.dtb-order-detail-screen #postbox-container-1 {
+	position: sticky;
+	top: 84px;
+	align-self: start;
+}
+
+/* Unified card language for WooCommerce and DTB panels. */
+.dtb-order-detail-screen .postbox,
+.dtb-order-detail-screen .order_data_column_container,
+.dtb-order-detail-screen .woocommerce_order_items_wrapper,
+.dtb-order-detail-screen .wc-order-data-row,
+.dtb-order-detail-screen .woocommerce_order_notes,
+.dtb-order-detail-screen .woocommerce-order-data,
+.dtb-order-detail-screen .woocommerce-order-items {
+	border: 1px solid var(--dtb-order-card-border);
+	border-radius: var(--dtb-order-card-radius);
+	background: var(--dtb-order-card-bg);
+	box-shadow: var(--dtb-order-shadow);
+	overflow: hidden;
+}
+
+.dtb-order-detail-screen .postbox {
+	margin-bottom: var(--dtb-order-page-gap);
+}
+
+.dtb-order-detail-screen .postbox .postbox-header,
+.dtb-order-detail-screen .postbox > h2.hndle {
+	min-height: 52px;
+	padding: 0 18px;
+	border-bottom: 1px solid var(--dtb-order-card-border);
+	background: var(--dtb-order-card-bg);
+}
+
+.dtb-order-detail-screen .postbox .hndle,
+.dtb-order-detail-screen .postbox .postbox-header h2 {
+	font-size: 14px;
+	font-weight: 650;
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen .postbox .inside {
+	margin: 0;
+	padding: 18px;
+}
+
+/* Native order data and address sections. */
+.dtb-order-detail-screen #woocommerce-order-data .inside {
+	padding: 22px;
+}
+
+.dtb-order-detail-screen .order_data_column_container {
+	border: 0;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen .order_data_column {
+	padding: 0 18px 0 0;
+}
+
+.dtb-order-detail-screen .order_data_column h3,
+.dtb-order-detail-screen .wc-order-data-row h3 {
+	margin-bottom: 14px;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen input[type="text"],
+.dtb-order-detail-screen input[type="email"],
+.dtb-order-detail-screen input[type="number"],
+.dtb-order-detail-screen input[type="tel"],
+.dtb-order-detail-screen input[type="url"],
+.dtb-order-detail-screen input[type="date"],
+.dtb-order-detail-screen select,
+.dtb-order-detail-screen textarea {
+	min-height: 38px;
+	border-color: #cfd6df;
+	border-radius: 8px;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen textarea {
+	min-height: 92px;
+}
+
+.dtb-order-detail-screen input:focus,
+.dtb-order-detail-screen select:focus,
+.dtb-order-detail-screen textarea:focus,
+.dtb-order-detail-screen button:focus-visible,
+.dtb-order-detail-screen a:focus-visible {
+	border-color: var(--dtb-order-accent);
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+	outline: 0;
+}
+
+/* Buttons: restrained and consistent. */
+.dtb-order-detail-screen .button,
+.dtb-order-detail-screen .button-secondary {
+	min-height: 36px;
+	padding: 5px 13px;
+	border-radius: 8px;
+}
+
+.dtb-order-detail-screen .button-primary {
+	border-color: var(--dtb-order-accent);
+	background: var(--dtb-order-accent);
+}
+
+.dtb-order-detail-screen .button-primary:hover,
+.dtb-order-detail-screen .button-primary:focus {
+	border-color: #1d4ed8;
+	background: #1d4ed8;
+}
+
+/* Products, shipping and totals. */
+.dtb-order-detail-screen #woocommerce-order-items .inside {
+	padding: 0;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items_wrapper table.woocommerce_order_items {
+	border: 0;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items thead th {
+	padding: 12px 14px;
+	background: var(--dtb-order-muted-bg);
+	color: var(--dtb-order-muted);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.045em;
+	text-transform: uppercase;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items tbody td,
+.dtb-order-detail-screen .woocommerce_order_items tbody th {
+	padding: 16px 14px;
+	border-bottom-color: #edf0f3;
+	vertical-align: top;
+}
+
+.dtb-order-detail-screen .woocommerce_order_items .thumb img {
+	border: 1px solid var(--dtb-order-card-border);
+	border-radius: 8px;
+	background: #fff;
+}
+
+.dtb-order-detail-screen .wc-order-data-row {
+	margin: 16px;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen .wc-order-totals {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Notes rail. */
+.dtb-order-detail-screen #woocommerce-order-notes .inside {
+	padding: 14px;
+}
+
+.dtb-order-detail-screen ul.order_notes li .note_content {
+	padding: 12px 14px;
+	border: 1px solid var(--dtb-order-card-border);
+	border-radius: 9px;
+	background: #fff;
+	box-shadow: none;
+}
+
+.dtb-order-detail-screen ul.order_notes li .note_content::after {
+	display: none;
+}
+
+.dtb-order-detail-screen ul.order_notes li p.meta {
+	margin: 6px 4px 14px;
+	color: var(--dtb-order-muted);
+	font-size: 11px;
+}
+
+/* DTB timeline: reduce visual dominance without changing event authority. */
+.dtb-order-detail-screen #dtb-order-timeline {
+	order: 20;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline .inside {
+	max-height: 430px;
+	overflow: auto;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline table {
+	width: 100% !important;
+	border-collapse: separate !important;
+	border-spacing: 0;
+	font-size: 12px !important;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	padding: 10px 12px !important;
+	border-bottom: 1px solid var(--dtb-order-card-border) !important;
+	background: var(--dtb-order-muted-bg);
+	color: var(--dtb-order-muted);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.dtb-order-detail-screen #dtb-order-timeline td {
+	padding: 9px 12px !important;
+	border-bottom: 1px solid #edf0f3 !important;
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen #dtb-order-timeline tbody tr:hover td {
+	background: #f8fafc;
+}
+
+/* DTB integration state: convert loose text into a clean compact card. */
+.dtb-order-detail-screen #dtb-integration-state .inside {
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.dtb-order-detail-screen #dtb-integration-state strong {
+	color: var(--dtb-order-text);
+}
+
+.dtb-order-detail-screen #dtb-integration-state small {
+	display: inline-block;
+	margin-top: 4px;
+	color: var(--dtb-order-muted) !important;
+	line-height: 1.45;
+}
+
+/* Operator actions: compact, separated and easier to scan. */
+.dtb-order-detail-screen #dtb-operator-actions .inside {
+	display: grid;
+	gap: 8px;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .dtb-op-btn {
+	min-height: 38px;
+	margin: 0 !important;
+	padding: 7px 10px !important;
+	border-color: #cfd6df;
+	border-radius: 8px;
+	background: #fff;
+	color: #1d4ed8;
+	font-weight: 600;
+	text-align: left;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .dtb-op-btn:hover {
+	border-color: #9db5e8;
+	background: #f5f8ff;
+}
+
+.dtb-order-detail-screen #dtb-operator-actions .dtb-op-btn:disabled {
+	cursor: wait;
+	opacity: 0.58;
+}
+
+/* Status tones and links. */
+.dtb-order-detail-screen a {
+	color: #2457d6;
+	text-underline-offset: 2px;
+}
+
+.dtb-order-detail-screen .order-status {
+	border-radius: 999px;
+	font-weight: 650;
+}
+
+/* Reduce large dead space caused by unequal native columns. */
+.dtb-order-detail-screen #poststuff::after,
+.dtb-order-detail-screen #post-body::after {
+	content: "";
+	display: table;
+	clear: both;
+}
+
+@media (max-width: 1180px) {
+	.dtb-order-detail-screen #post-body.columns-2 {
+		grid-template-columns: minmax(0, 1fr) 280px;
+	}
+
+	.dtb-order-detail-screen #dtb-order-timeline .inside {
+		overflow-x: auto;
+	}
+}
+
+@media (max-width: 960px) {
+	.dtb-order-detail-screen #post-body.columns-2 {
+		display: block;
+	}
+
+	.dtb-order-detail-screen #postbox-container-1 {
+		position: static;
+	}
+
+	.dtb-order-detail-screen .order_data_column {
+		width: 100%;
+		padding-right: 0;
+	}
+}
+
+@media (max-width: 782px) {
+	.dtb-order-detail-screen {
+		--dtb-order-page-gap: 12px;
+		--dtb-order-card-radius: 9px;
+	}
+
+	.dtb-order-detail-screen #wpbody-content {
+		padding-bottom: 28px;
+	}
+
+	.dtb-order-detail-screen .postbox .inside,
+	.dtb-order-detail-screen #woocommerce-order-data .inside {
+		padding: 14px;
+	}
+
+	.dtb-order-detail-screen #dtb-order-timeline .inside {
+		max-height: 360px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dtb-order-detail-screen *,
+	.dtb-order-detail-screen *::before,
+	.dtb-order-detail-screen *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+	}
+}
+
+@media (forced-colors: active) {
+	.dtb-order-detail-screen .postbox,
+	.dtb-order-detail-screen .woocommerce_order_items_wrapper,
+	.dtb-order-detail-screen ul.order_notes li .note_content {
+		border: 1px solid CanvasText;
+		box-shadow: none;
+	}
+}
