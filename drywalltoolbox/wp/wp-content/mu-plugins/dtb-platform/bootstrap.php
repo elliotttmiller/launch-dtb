@@ -54,7 +54,9 @@ require_once $_dtb_platform . '/Auth/TokenService.php';
 require_once $_dtb_platform . '/Auth/AuthController.php';
 require_once $_dtb_platform . '/Auth/NativeCheckoutIdentityBridge.php';
 require_once $_dtb_platform . '/Auth/CheckoutSessionContinuityGuard.php';
+require_once $_dtb_platform . '/Auth/AuthCookieCandidates.php';
 require_once $_dtb_platform . '/Auth/AuthRoutes.php';
+require_once $_dtb_platform . '/Auth/AuthCookieCanonicalization.php';
 require_once $_dtb_platform . '/Auth/AuthCookieRuntimeHardening.php';
 
 // 5. Cache.
