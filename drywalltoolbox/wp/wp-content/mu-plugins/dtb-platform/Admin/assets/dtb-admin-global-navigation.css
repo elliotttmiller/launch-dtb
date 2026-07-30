@@ -1,0 +1,120 @@
+/* DTB quick navigation extension for the BrikPanel admin top bar. */
+.dtb-global-quick-nav {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-width: 0;
+	margin-inline: 18px auto;
+	font-size: 13px;
+}
+
+.dtb-global-quick-nav__links {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	min-width: 0;
+}
+
+.dtb-global-quick-nav__link,
+.dtb-global-quick-nav__more > summary,
+.dtb-global-quick-nav__menu-link {
+	color: #4b5563;
+	font-weight: 600;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.dtb-global-quick-nav__link,
+.dtb-global-quick-nav__more > summary {
+	display: inline-flex;
+	align-items: center;
+	min-height: 34px;
+	padding: 0 10px;
+	border: 1px solid transparent;
+	border-radius: 8px;
+	cursor: pointer;
+}
+
+.dtb-global-quick-nav__link:hover,
+.dtb-global-quick-nav__more > summary:hover {
+	background: #f6f7f7;
+	color: #1f2937;
+}
+
+.dtb-global-quick-nav__link.is-active {
+	border-color: #dbe4f3;
+	background: #eef4ff;
+	color: #1d4ed8;
+}
+
+.dtb-global-quick-nav__more {
+	position: relative;
+}
+
+.dtb-global-quick-nav__more > summary {
+	list-style: none;
+}
+
+.dtb-global-quick-nav__more > summary::-webkit-details-marker {
+	display: none;
+}
+
+.dtb-global-quick-nav__menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	right: 0;
+	z-index: 100000;
+	display: grid;
+	min-width: 190px;
+	padding: 6px;
+	border: 1px solid #e3e3e3;
+	border-radius: 10px;
+	background: #fff;
+	box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+}
+
+.dtb-global-quick-nav__menu-link {
+	padding: 9px 10px;
+	border-radius: 7px;
+}
+
+.dtb-global-quick-nav__menu-link:hover,
+.dtb-global-quick-nav__menu-link.is-active {
+	background: #f6f7f7;
+	color: #1d4ed8;
+}
+
+.dtb-global-quick-nav a:focus-visible,
+.dtb-global-quick-nav summary:focus-visible {
+	outline: 2px solid #2563eb;
+	outline-offset: 2px;
+}
+
+/* Avoid competing with the existing BrikPanel search/actions at narrower widths. */
+@media (max-width: 1280px) {
+	.dtb-global-quick-nav__links .dtb-global-quick-nav__link:nth-child(n+5) {
+		display: none;
+	}
+}
+
+@media (max-width: 960px) {
+	.dtb-global-quick-nav {
+		margin-inline: 10px auto;
+	}
+
+	.dtb-global-quick-nav__links .dtb-global-quick-nav__link:nth-child(n+3) {
+		display: none;
+	}
+}
+
+@media (max-width: 782px) {
+	.dtb-global-quick-nav {
+		display: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dtb-global-quick-nav * {
+		scroll-behavior: auto;
+	}
+}
