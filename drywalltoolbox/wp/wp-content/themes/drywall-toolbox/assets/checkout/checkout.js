@@ -32,6 +32,14 @@
  * its fields rather than leaving an empty shell behind. Express payment has
  * no such wrapper and is toggled directly. See classifyStepGroups() below.
  *
+ * Any `.wc-block-components-checkout-step` card the selectors above don't
+ * match (a markup variant this pass didn't anticipate — e.g. a "Shipping
+ * options" placeholder rendered before an address exists) is bucketed with
+ * whichever classified step precedes it in document order, so it is always
+ * owned by exactly one step instead of staying permanently visible on every
+ * step — this was observed live as a "Shipping options" card bleeding
+ * through onto the Contact screen.
+ *
  * Step gating uses the platform's own HTML5 constraint validation
  * (checkValidity/reportValidity) against the fields *inside the active step
  * only*, plus the documented public `wc/store/cart` and `wc/store/checkout`
@@ -154,7 +162,54 @@
 			} );
 		} );
 
+		// Any `.wc-block-components-checkout-step` card that none of the
+		// semantic selectors above matched (a Woo Blocks markup variant this
+		// pass didn't anticipate, e.g. a "Shipping options" placeholder
+		// rendered before an address exists) must still end up in exactly
+		// one group instead of staying permanently unhidden on every step —
+		// an unclassified card was observed bleeding through onto the
+		// Contact screen. Bucket it with whichever classified step wrapper
+		// precedes it in document order (falling back to Contact if none
+		// does), so every real WooCommerce step card is always owned by
+		// some step and gets hidden/shown with the rest of that step.
+		var classified = allGroupNodes( groups );
+		var allStepWrappers = root.querySelectorAll( STEP_WRAPPER_SELECTOR );
+		var lastGroupIndex = 0;
+		allStepWrappers.forEach( function ( wrapper ) {
+			var ownerIndex = groupIndexOf( groups, wrapper );
+			if ( ownerIndex !== -1 ) {
+				lastGroupIndex = ownerIndex;
+				return;
+			}
+			if ( classified.indexOf( wrapper ) !== -1 ) {
+				return;
+			}
+			groups[ lastGroupIndex ].push( wrapper );
+			classified.push( wrapper );
+		} );
+
 		return groups;
+	}
+
+	function allGroupNodes( groups ) {
+		var all = [];
+		groups.forEach( function ( nodes ) {
+			nodes.forEach( function ( node ) {
+				if ( all.indexOf( node ) === -1 ) {
+					all.push( node );
+				}
+			} );
+		} );
+		return all;
+	}
+
+	function groupIndexOf( groups, node ) {
+		for ( var i = 0; i < groups.length; i++ ) {
+			if ( groups[ i ].indexOf( node ) !== -1 ) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	/** All groups for a step that currently exist in the DOM. */
@@ -331,7 +386,7 @@
 			wrapper.className = 'dtb-checkout__step';
 			wrapper.dataset.state = 'upcoming';
 			wrapper.innerHTML =
-				'<span class="dtb-checkout__step-dot" aria-hidden="true">' + ( index + 1 ) + '</span>' +
+				'<span class="dtb-checkout__step-dot" aria-hidden="true"><span class="dtb-checkout__step-dot-number">' + ( index + 1 ) + '</span><span class="dtb-checkout__step-dot-check">&#10003;</span></span>' +
 				'<span class="dtb-checkout__step-label">' + step.label + '</span>';
 			wrapper.addEventListener( 'click', function () {
 				if ( index <= highestVisited ) {

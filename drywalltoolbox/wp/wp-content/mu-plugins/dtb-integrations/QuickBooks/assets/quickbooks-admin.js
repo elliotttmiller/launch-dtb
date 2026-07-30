@@ -79,15 +79,132 @@
 				{ label: 'Scheduled', render: (r) => date(r.date) },
 			],
 		};
-		target.innerHTML = table(schemas[view] || [], rows);
-	}
+		return labels[source] || source || '—';
+	};
 
-	function renderSettings(dashboard) {
+	const renderChecks = (checks) => {
+		const list = query('[data-qbo-checks]');
+		if (!list) {
+			return;
+		}
+		list.replaceChildren();
+		Object.values(checks || {}).forEach((check) => {
+			const item = document.createElement('li');
+			item.className = `dtb-qbo-check${check.complete ? ' is-complete' : ''}`;
+
+			const label = document.createElement('strong');
+			label.textContent = check.label || 'Check';
+			const description = document.createElement('small');
+			description.textContent = check.description || '';
+
+			item.append(label, description);
+			list.append(item);
+		});
+	};
+
+	const renderItems = (items, discoveryByKey = {}) => {
+		const container = query('[data-qbo-items]');
+		if (!container) {
+			return;
+		}
+		container.replaceChildren();
+
+		(items || []).forEach((item) => {
+			const row = document.createElement('div');
+			row.className = 'dtb-qbo-item-row';
+			row.setAttribute('role', 'row');
+
+			const role = document.createElement('div');
+			role.className = 'dtb-qbo-item-role';
+			role.setAttribute('role', 'cell');
+			const roleName = document.createElement('strong');
+			roleName.textContent = item.label || item.key;
+			const roleDescription = document.createElement('small');
+			roleDescription.textContent = item.description || '';
+			role.append(roleName, roleDescription);
+
+			const name = document.createElement('div');
+			name.className = 'dtb-qbo-item-name';
+			name.setAttribute('role', 'cell');
+			const mappedName = document.createElement('strong');
+			mappedName.textContent = item.name || item.expected || '—';
+			const expected = document.createElement('small');
+			if (item.verified) {
+				expected.textContent = `Verified for connected company: ${item.expected}`;
+			} else if (item.configured) {
+				expected.textContent = `Configured but not verified for connected company: ${item.expected}`;
+			} else {
+				expected.textContent = `Expected: ${item.expected}`;
+			}
+			name.append(mappedName, expected);
+
+			// A locked (wp-config.php constant) mapping can only be satisfied by an
+			// exact ID match — it will never self-correct. If the last discovery run
+			// found the real item under a different ID (e.g. the constant still holds
+			// a placeholder), surface that real ID so the operator knows exactly what
+			// to paste into wp-config.php instead of guessing.
+			const discovered = discoveryByKey[item.key];
+			if (item.locked && !item.verified && discovered && discovered.id && discovered.id !== item.id) {
+				const hint = document.createElement('small');
+				hint.className = 'dtb-qbo-item-discovered-hint';
+				hint.textContent = `Discovered ID in connected company: ${discovered.id} — update the wp-config.php constant to this value.`;
+				name.append(hint);
+			}
+
+			const id = document.createElement('code');
+			id.className = 'dtb-qbo-item-id';
+			id.setAttribute('role', 'cell');
+			id.textContent = item.id || '—';
+
+			const source = document.createElement('span');
+			source.setAttribute('role', 'cell');
+			source.textContent = sourceLabel(item.source);
+
+			const status = document.createElement('span');
+			status.className = `dtb-qbo-item-status ${item.verified ? 'is-ready' : 'is-missing'}`;
+			status.setAttribute('role', 'cell');
+			status.textContent = item.verified ? 'Verified' : item.configured ? 'Needs verification' : 'Missing';
+
+			row.append(role, name, id, source, status);
+			container.append(row);
+		});
+	};
+
+	const setText = (selector, value) => {
+		const element = query(selector);
+		if (element) {
+			element.textContent = value;
+		}
+	};
+
+	const render = (dashboard, discoveryItems = null) => {
 		state.dashboard = dashboard;
 		const status = dashboard.status || {};
-		const checks = Object.values(dashboard.readiness?.checks || {});
-		const complete = checks.filter((item) => item.complete).length;
-		setText('[data-qbo-company]', dashboard.company?.name || 'Not connected');
+		const checks = dashboard.readiness?.checks || {};
+		const checkValues = Object.values(checks);
+		const completeCount = checkValues.filter((check) => check.complete).length;
+		const score = checkValues.length ? Math.round((completeCount / checkValues.length) * 100) : 0;
+		const connected = Boolean(status.connected);
+		const ready = Boolean(dashboard.readiness?.ready);
+
+		setText('[data-qbo-readiness-score]', `${score}%`);
+		setText('[data-qbo-readiness-title]', ready ? 'Ready for accounting projection' : 'Configuration requires attention');
+		setText(
+			'[data-qbo-readiness-copy]',
+			ready
+				? 'All required connection, company, webhook, and accounting item checks are complete.'
+				: `${completeCount} of ${checkValues.length} required readiness checks are complete.`
+		);
+		renderChecks(checks);
+		const discoveryByKey = {};
+		(discoveryItems || []).forEach((entry) => {
+			if (entry && entry.key) {
+				discoveryByKey[entry.key] = entry;
+			}
+		});
+		renderItems(dashboard.items || [], discoveryByKey);
+
+		setText('[data-qbo-company]', dashboard.company?.name || (connected ? 'Connected company' : 'Not connected'));
 		setText('[data-qbo-environment]', String(status.environment || config.environment || '—').toUpperCase());
 		setText('[data-qbo-realm]', dashboard.company?.realmSuffix ? `••••${dashboard.company.realmSuffix}` : '—');
 		setText('[data-qbo-token]', date(dashboard.token?.expiresAtIso));
@@ -107,18 +224,115 @@
 		], dashboard.items || []);
 	}
 
-	function renderOverview(data) {
-		const m = data.metrics || {};
-		const kpis = q('[data-qbo-kpis]');
-		if (kpis) kpis.innerHTML = [
-			['Gross sales', money(m.gross, m.currency)], ['Refunded', money(m.refunded, m.currency)], ['Synced', m.synced || 0], ['Pending', m.pending || 0], ['Exceptions', m.failed || 0], ['Sync rate', `${m.syncRate || 0}%`],
-		].map(([label, value]) => `<article class="dtb-qbo-kpi"><span>${esc(label)}</span><strong>${esc(value)}</strong><small>Recent ${esc(m.sampleSize || 0)} orders</small></article>`).join('');
-		renderRows('overview', { rows: data.latest || [] });
-		const health = q('[data-qbo-health]');
-		const dashboard = data.connection || {};
-		if (health) health.innerHTML = `<header><div><span class="dtb-qbo-eyebrow">Integration health</span><h2>${dashboard.readiness?.ready ? 'Operational' : 'Attention required'}</h2></div>${badge(dashboard.readiness?.ready ? 'synced' : 'failed')}</header><div class="dtb-qbo-health-list"><div><span>Company</span><strong>${esc(dashboard.company?.name || 'Not connected')}</strong></div><div><span>Environment</span><strong>${esc(String(dashboard.status?.environment || '').toUpperCase())}</strong></div><div><span>Mappings</span><strong>${dashboard.mapping?.ready ? 'Verified' : 'Incomplete'}</strong></div><div><span>Webhook</span><strong>${dashboard.status?.webhook_verifier_configured ? 'Verified' : 'Missing'}</strong></div></div>`;
-		renderSettings(dashboard);
-	}
+		const connectionState = query('[data-qbo-connection-state]');
+		if (connectionState) {
+			connectionState.textContent = connected ? 'Connected' : 'Disconnected';
+			connectionState.className = `dtb-qbo-state ${connected ? 'is-connected' : 'is-disconnected'}`;
+		}
+
+		const connectButton = query('[data-qbo-action="connect"]');
+		const openLink = query('[data-qbo-open-link]');
+		if (connectButton) {
+			connectButton.hidden = connected;
+		}
+		if (openLink) {
+			openLink.hidden = !connected;
+			openLink.href = dashboard.links?.quickbooks || '#';
+		}
+
+		const ordersLink = query('[data-qbo-orders-link]');
+		if (ordersLink) {
+			ordersLink.href = dashboard.links?.orders || '#';
+		}
+		const schedulerLink = query('[data-qbo-scheduler-link]');
+		if (schedulerLink) {
+			schedulerLink.href = dashboard.links?.scheduler || '#';
+		}
+
+		syncActionStates();
+		root.classList.add('is-ready');
+	};
+
+	const loadDashboard = async ({ quiet = false } = {}) => {
+		if (!quiet) {
+			setBusy(true);
+		}
+		try {
+			const dashboard = await api('/dashboard');
+			render(dashboard);
+			return dashboard;
+		} catch (error) {
+			showAlert(error.message, 'error');
+			throw error;
+		} finally {
+			if (!quiet) {
+				setBusy(false);
+			}
+		}
+	};
+
+	const actions = {
+		refresh: async () => {
+			clearAlert();
+			await loadDashboard();
+		},
+		test: async () => {
+			clearAlert();
+			setBusy(true);
+			try {
+				await api('/test', { method: 'POST', body: {} });
+				showAlert(config.labels.connectionPassed, 'success');
+				await loadDashboard({ quiet: true });
+			} finally {
+				setBusy(false);
+			}
+		},
+		discover: async () => {
+			clearAlert();
+			setBusy(true);
+			try {
+				const result = await api('/items/discover', { method: 'POST', body: {} });
+				// discovery.items is a PHP associative array (keyed by role: product,
+				// shipping, discount, refund) — wp_json_encode serializes it as a JSON
+				// object, not an array, so it must be unwrapped with Object.values().
+				render(result.dashboard, Object.values(result.discovery?.items || {}));
+				const ready = Boolean(result.discovery?.ready);
+				showAlert(
+					ready ? config.labels.itemsMapped : 'Discovery completed, but one or more exact active Service items still require attention.',
+					ready ? 'success' : 'warning'
+				);
+			} finally {
+				setBusy(false);
+			}
+		},
+		connect: async () => {
+			clearAlert();
+			setBusy(true);
+			try {
+				const result = await api('/connect', { method: 'POST', body: {} });
+				if (!result?.authorization_url) {
+					throw new Error('QuickBooks did not return an authorization URL.');
+				}
+				window.location.assign(result.authorization_url);
+			} finally {
+				setBusy(false);
+			}
+		},
+		disconnect: async () => {
+			if (!window.confirm(config.labels.confirmDisconnect)) {
+				return;
+			}
+			clearAlert();
+			setBusy(true);
+			try {
+				await api('/disconnect', { method: 'POST', body: { confirm: true } });
+				showAlert('QuickBooks was disconnected from the active environment.', 'success');
+				await loadDashboard({ quiet: true });
+			} finally {
+				setBusy(false);
+			}
+		},
+	};
 
 	async function load(view = state.active, quiet = false) {
 		if (state.busy) return;

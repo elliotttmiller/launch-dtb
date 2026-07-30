@@ -67,6 +67,7 @@ final class DTB_QuickBooksAdminController {
 				'permission_callback' => [ self::class, 'can_manage' ],
 			]
 		);
+
 	}
 
 	public static function can_manage(): bool {

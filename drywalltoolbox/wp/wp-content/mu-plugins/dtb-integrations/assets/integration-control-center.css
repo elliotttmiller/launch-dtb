@@ -1,0 +1,175 @@
+/* Shared operational presentation for DTB integration control centers.
+ *
+ * This layer intentionally removes decorative dashboard treatment and keeps the
+ * operator focused on connection state, blockers, queue activity, exceptions,
+ * and explicit recovery actions. It is scoped to the Veeqo and QuickBooks
+ * control centers only.
+ */
+
+.dtb-qbo-admin,
+.dtb-veeqo-admin {
+	--dtb-integration-border: #dcdcde;
+	--dtb-integration-muted: #646970;
+	--dtb-integration-surface: #fff;
+	--dtb-integration-subtle: #f6f7f7;
+	--dtb-integration-good: #008a20;
+	--dtb-integration-warning: #996800;
+	--dtb-integration-danger: #b32d2e;
+}
+
+.dtb-qbo-hero,
+.dtb-veeqo-header {
+	min-height: 0 !important;
+	padding: 18px 20px !important;
+	border: 1px solid var(--dtb-integration-border) !important;
+	border-radius: 8px !important;
+	background: var(--dtb-integration-surface) !important;
+	box-shadow: none !important;
+}
+
+.dtb-qbo-mark,
+.dtb-veeqo-mark,
+.dtb-qbo-hero .dashicons,
+.dtb-qbo-panel__header .dashicons,
+.dtb-qbo-guidance .dashicons {
+	display: none !important;
+}
+
+.dtb-qbo-hero h1,
+.dtb-veeqo-header h1 {
+	margin: 0 !important;
+	font-size: 23px !important;
+	line-height: 1.25 !important;
+}
+
+.dtb-qbo-hero p,
+.dtb-veeqo-header p {
+	max-width: 760px;
+	margin: 5px 0 0 !important;
+	color: var(--dtb-integration-muted) !important;
+}
+
+.dtb-integration-live-status {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 12px 0;
+	padding: 9px 12px;
+	border: 1px solid var(--dtb-integration-border);
+	border-radius: 6px;
+	background: var(--dtb-integration-subtle);
+	color: #1d2327;
+	font-size: 12px;
+}
+
+.dtb-integration-live-status__state {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-weight: 600;
+}
+
+.dtb-integration-live-status__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--dtb-integration-warning);
+}
+
+.dtb-integration-live-status.is-live .dtb-integration-live-status__dot {
+	background: var(--dtb-integration-good);
+}
+
+.dtb-integration-live-status.is-error .dtb-integration-live-status__dot {
+	background: var(--dtb-integration-danger);
+}
+
+.dtb-integration-live-status__meta {
+	color: var(--dtb-integration-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.dtb-qbo-readiness,
+.dtb-qbo-connection,
+.dtb-qbo-panel,
+.dtb-veeqo-panel,
+.dtb-veeqo-kpi,
+.dtb-qbo-sync-card,
+.dtb-qbo-sync-metric {
+	border: 1px solid var(--dtb-integration-border) !important;
+	border-radius: 8px !important;
+	background: var(--dtb-integration-surface) !important;
+	box-shadow: none !important;
+}
+
+/* Replace dashboard-style KPI tiles with a compact operational summary row. */
+.dtb-veeqo-kpis {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+	gap: 8px !important;
+	margin-bottom: 12px !important;
+}
+
+.dtb-veeqo-kpi {
+	min-height: 0 !important;
+	padding: 12px 14px !important;
+}
+
+.dtb-veeqo-kpi strong {
+	font-size: 20px !important;
+	line-height: 1.2 !important;
+}
+
+.dtb-veeqo-kpi p,
+.dtb-veeqo-kpi small {
+	margin-top: 3px !important;
+	font-size: 11px !important;
+}
+
+/* Workflow diagrams are documentation, not an operator control. Keep the
+ * authoritative text and links while removing the decorative flow graphic. */
+.dtb-qbo-flow {
+	display: none !important;
+}
+
+.dtb-qbo-tabs,
+.dtb-veeqo-tabs {
+	margin-top: 12px !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: transparent !important;
+}
+
+.dtb-qbo-tab,
+.dtb-veeqo-tabs .dtb-tab {
+	min-height: 36px !important;
+	padding: 7px 12px !important;
+	border-radius: 6px !important;
+	box-shadow: none !important;
+}
+
+.dtb-qbo-item-table,
+.dtb-veeqo-table-wrap {
+	border-radius: 6px !important;
+	box-shadow: none !important;
+}
+
+.dtb-qbo-guidance,
+.dtb-veeqo-notice {
+	border-radius: 6px !important;
+	box-shadow: none !important;
+}
+
+@media (max-width: 782px) {
+	.dtb-integration-live-status {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.dtb-qbo-hero,
+	.dtb-veeqo-header {
+		padding: 14px !important;
+	}
+}
