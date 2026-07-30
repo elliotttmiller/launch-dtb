@@ -285,7 +285,7 @@ function dtb_deployment_center_render_releases_tab(): void {
 				echo '<td><a href="' . esc_url( $r['html_url'] ) . '" target="_blank" rel="noopener noreferrer"><code>' . esc_html( $r['tag_name'] ) . '</code></a></td>';
 				echo '<td>' . esc_html( $r['name'] ?: '—' ) . '</td>';
 				echo '<td>' . dtb_admin_ui_badge( $r['draft'] ? __( 'Draft', 'drywall-toolbox' ) : ( $r['prerelease'] ? __( 'Pre-release', 'drywall-toolbox' ) : __( 'Published', 'drywall-toolbox' ) ), $r['draft'] ? 'neutral' : ( $r['prerelease'] ? 'warning' : 'success' ) ) . '</td>';
-				echo '<td>' . ( $r['published_at'] ? esc_html( dtb_time_ago( $r['published_at'] ) ) : '—' ) . '</td>';
+				echo '<td>' . ( $r['published_at'] ? esc_html( human_time_diff( strtotime( $r['published_at'] ) ) . ' ago' ) : '—' ) . '</td>';
 				echo '</tr>';
 			}
 			echo dtb_admin_ui_table_close();
@@ -324,8 +324,10 @@ function dtb_deployment_center_render_releases_tab(): void {
 		echo dtb_admin_ui_card( $body, [ 'title' => __( 'Backup Tags (dtb-backup/*, SiteGround remote)', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
 		echo '</div>';
-	} elseif ( ! $releases['ok'] ) {
-		echo dtb_admin_ui_alert( esc_html( $releases['error'] ?: $tags['error'] ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	if ( ! $releases['ok'] || ! $tags['ok'] ) {
+		echo dtb_admin_ui_alert( esc_html( $releases['error'] ?: $tags['error'] ?: __( 'GitHub API is unavailable.', 'drywall-toolbox' ) ), 'warning' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
