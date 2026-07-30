@@ -2,7 +2,7 @@
  * DTB System Manager — live operations console runtime.
  *
  * The unified System Manager console (platform health + Git-backed release
- * management) polls its active tab automatically: every 15s normally, every
+ * management) polls its active tab automatically: every 60s normally, every
  * 5s while a release is actively deploying or rolling back (server-reported
  * via meta.fast_poll on every response, so the cadence updates in real time
  * as a release's state changes — not just at page load). Operators can pause
@@ -19,7 +19,7 @@
 	const cfg = window.dtbAdminConfig || {};
 	const DtbAdmin = window.DtbAdmin || null;
 
-	const BASE_INTERVAL_MS = 15000;
+	const BASE_INTERVAL_MS = 60000;
 	const FAST_INTERVAL_MS = 5000;
 
 	function isSystemManagerPage() {
@@ -210,7 +210,7 @@
 					setToolbarState(
 						toolbar,
 						state.fast ? 'fast' : 'live',
-						'Updated ' + nowLabel + ' · refreshing every ' + ( state.fast ? '5s' : '15s' )
+						'Updated ' + nowLabel + ' · refreshing every ' + ( state.fast ? '5s' : '60s' )
 					);
 				} )
 				.catch( function ( error ) {

@@ -127,7 +127,7 @@ function dtb_system_manager_render_page(): void {
 		'id'       => 'dtb-system-workspace',
 		'module'   => 'system-manager',
 		'endpoint' => add_query_arg( 'tab', $active_tab, rest_url( 'dtb/v1/admin/system' ) ),
-		'interval' => 15000,
+		'interval' => 60000,
 		'class'    => $in_progress ? 'dtb-live-fast' : '',
 	] );
 
