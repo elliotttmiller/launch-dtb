@@ -550,10 +550,27 @@ body.woocommerce-checkout .wc-block-components-validation-error {
  * container with the input, label, and secondary label (price) as normal
  * flex children — instead of trusting whatever positioning core applies —
  * fixes it regardless of core's internal implementation.
+ *
+ * The Shipping options list specifically still shipped this overlap live
+ * (radio dot punched through "Free shipping"'s label text) even with the
+ * rule above in place: WooCommerce's Shipping Rates Control component nests
+ * its radio input one level deeper than the plain payment-method radios, so
+ * core's own `.wc-block-checkout__shipping-method-option .…__input` rule
+ * (two classes) outranks this file's single-class `__input` selector and its
+ * `position: absolute` keeps winning. The `input[type="radio"]` rule below
+ * targets the actual element wherever core nests it and carries `!important`
+ * as the documented provider-compatibility escalation this is (entry
+ * criterion 4) so it wins regardless of how deep or how specific core's own
+ * selector is. Depending on live carrier rates (Redesign v10) also means a
+ * label + price pair can be long enough to wrap ("USPS — Priority Mail
+ * Express" + "$24.13"); `flex-wrap` on the label group plus `overflow-wrap`
+ * on the label keep that wrap contained inside the row instead of
+ * overflowing it horizontally.
  * ------------------------------------------------------------------------- */
 
 body.woocommerce-checkout .wc-block-components-radio-control__option,
 body.woocommerce-checkout .wc-block-checkout__shipping-method-option {
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -562,33 +579,48 @@ body.woocommerce-checkout .wc-block-checkout__shipping-method-option {
 	border-radius: var(--dtb-radius-md);
 	margin-bottom: 8px;
 	padding: 12px 14px;
+	overflow: hidden;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__input {
-	position: static;
-	flex: none;
-	width: 20px;
-	height: 20px;
-	margin: 0;
+body.woocommerce-checkout .wc-block-components-radio-control__option input[type="radio"],
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option input[type="radio"] {
+	position: static !important;
+	flex: none !important;
+	width: 20px !important;
+	height: 20px !important;
+	margin: 0 !important;
+	inset: auto !important;
+	transform: none !important;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__label-group {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	justify-content: space-between;
+	row-gap: 2px;
 	flex: 1 1 auto;
 	min-width: 0;
-	gap: 10px;
+	gap: 4px 10px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label,
+body.woocommerce-checkout .wc-block-components-radio-control__label {
+	min-width: 0;
+	flex: 1 1 auto;
+	overflow-wrap: anywhere;
+}
+
 body.woocommerce-checkout .wc-block-components-radio-control__secondary-label {
 	min-width: 0;
+	flex: 0 0 auto;
+	white-space: nowrap;
+	font-weight: 600;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__description {
 	flex-basis: 100%;
 	margin-top: 4px;
+	overflow-wrap: anywhere;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
