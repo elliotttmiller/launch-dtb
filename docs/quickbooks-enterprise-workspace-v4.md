@@ -1,1 +1,0 @@
-The enterprise QuickBooks workspace changes are committed after PR #62 merged. Open a follow-up PR from this branch to current main and resolve any merge-base drift before deployment.
