@@ -42,6 +42,24 @@
 		{ id: 'mobile', breakpoint: 'mobile', icon: 'dashicons-smartphone', label: 'Mobile' },
 	];
 
+	// Fixed CSS-pixel canvas per device, scaled to fit the available stage
+	// space (see layoutPreview()) — the same "shrink a real device viewport
+	// to fit the screen" technique browser devtools use, so the storefront's
+	// own responsive CSS/JS reacts to a genuine device-width viewport instead
+	// of us guessing breakpoints from the outside. `base`/desktop has no
+	// entry: it simply fills the available space at 100%.
+	var DEVICE_CANVAS = {
+		tablet: { w: 834, h: 1194 },
+		mobile: { w: 390, h: 844 },
+	};
+	var STAGE_PADDING = 16;
+
+	// Tracks what's currently loaded in the (persistent) preview iframe so we
+	// only ever recreate/reload it when the surface or preview session truly
+	// changes — never on a breakpoint switch, an inspector edit, or toggling
+	// the inspector panel. Those just trigger layoutPreview()'s resize.
+	var stageIdentity = { surfaceId: null, previewToken: null };
+
 	// ── REST helpers ──────────────────────────────────────────────────────
 
 	function restUrl(path) {
@@ -95,7 +113,7 @@
 		api('POST', '/dtb/v1/design/preview/session', { draftKey: 'default' })
 			.then(function (session) {
 				state.previewToken = session.token;
-				renderStage();
+				render();
 			})
 			.catch(function () {
 				/* Preview is optional enhancement; editor still works without it. */
@@ -119,13 +137,107 @@
 		return el;
 	}
 
+	/**
+	 * Renders are frequent (every keystroke on a slider, every tab switch),
+	 * but the preview iframe is expensive to recreate — doing so reloads the
+	 * whole storefront, resets scroll position, and is exactly the kind of
+	 * "unstable, over-eager rendering" this pass fixes. So render() rebuilds
+	 * the topbar/tree/inspector every time (cheap, no external resources) but
+	 * only replaces the stage/iframe when the surface or preview session
+	 * actually changed; a plain layout pass (layoutAll()) handles everything
+	 * else, including responsive resizing when the device switcher changes.
+	 */
 	function render() {
-		root.innerHTML = '';
-		root.appendChild(renderTopbar());
-		var workspaceChildren = [renderTree(), renderStageContainer()];
-		if (state.inspectorOpen) workspaceChildren.push(renderInspector());
-		var workspace = h('div', { class: 'dtb-vd__workspace' }, workspaceChildren);
-		root.appendChild(workspace);
+		var firstRender = !root.firstChild;
+
+		var newTopbar = renderTopbar();
+		var newTree = renderTree();
+
+		if (firstRender) {
+			root.appendChild(newTopbar);
+			var workspace = h('div', { class: 'dtb-vd__workspace' }, [newTree, renderStageContainer()]);
+			if (state.inspectorOpen) workspace.appendChild(renderInspector());
+			root.appendChild(workspace);
+			stageIdentity.surfaceId = state.selectedSurfaceId;
+			stageIdentity.previewToken = state.previewToken;
+			requestAnimationFrame(layoutAll);
+			return;
+		}
+
+		root.querySelector('.dtb-vd__topbar').replaceWith(newTopbar);
+
+		var workspaceEl = root.querySelector('.dtb-vd__workspace');
+		workspaceEl.querySelector('.dtb-vd__nav').replaceWith(newTree);
+
+		var stageChanged = stageIdentity.surfaceId !== state.selectedSurfaceId || stageIdentity.previewToken !== state.previewToken;
+		if (stageChanged) {
+			document.getElementById('dtb-vd-stage').replaceWith(renderStageContainer());
+			stageIdentity.surfaceId = state.selectedSurfaceId;
+			stageIdentity.previewToken = state.previewToken;
+		}
+
+		var existingInspector = workspaceEl.querySelector('.dtb-vd__inspector');
+		if (state.inspectorOpen) {
+			var newInspector = renderInspector();
+			if (existingInspector) existingInspector.replaceWith(newInspector);
+			else workspaceEl.appendChild(newInspector);
+		} else if (existingInspector) {
+			existingInspector.remove();
+		}
+
+		requestAnimationFrame(layoutAll);
+	}
+
+	/**
+	 * Fits the shell to whatever vertical space is actually available below
+	 * wp-admin/BrikPanel chrome (measured at runtime rather than a hardcoded
+	 * offset, so it stays correct across admin themes and viewport sizes —
+	 * including when the admin menu/toolbar reflows on narrow screens) and
+	 * scales the preview canvas to the real device size (see DEVICE_CANVAS)
+	 * within whatever stage space remains. Runs after every render() and on
+	 * window resize; cheap enough (a few getBoundingClientRect calls) to run
+	 * freely.
+	 */
+	function layoutAll() {
+		layoutShell();
+		layoutPreview();
+	}
+
+	function layoutShell() {
+		var top = root.getBoundingClientRect().top;
+		var available = window.innerHeight - top - 12;
+		root.style.height = Math.max(480, available) + 'px';
+	}
+
+	function layoutPreview() {
+		var wrap = root.querySelector('.dtb-vd__stage-frame-wrap');
+		if (!wrap) return;
+		var canvas = wrap.querySelector('.dtb-vd__device-canvas');
+		var iframe = wrap.querySelector('iframe');
+		if (!canvas || !iframe) return;
+
+		var device = DEVICE_CANVAS[state.breakpoint];
+
+		if (!device) {
+			canvas.style.width = '100%';
+			canvas.style.height = '100%';
+			iframe.style.width = '100%';
+			iframe.style.height = '100%';
+			iframe.style.transform = 'none';
+			return;
+		}
+
+		var rect = wrap.getBoundingClientRect();
+		var availW = Math.max(100, rect.width - STAGE_PADDING * 2);
+		var availH = Math.max(100, rect.height - STAGE_PADDING * 2);
+		var scale = Math.min(availW / device.w, availH / device.h, 1);
+		scale = Math.max(scale, 0.25);
+
+		canvas.style.width = Math.round(device.w * scale) + 'px';
+		canvas.style.height = Math.round(device.h * scale) + 'px';
+		iframe.style.width = device.w + 'px';
+		iframe.style.height = device.h + 'px';
+		iframe.style.transform = 'scale(' + scale + ')';
 	}
 
 	function renderFatalError(err) {
@@ -310,14 +422,6 @@
 		return h('div', { class: 'dtb-vd__stage', id: 'dtb-vd-stage' }, [renderStageBanner(), renderStageFrame()]);
 	}
 
-	function renderStage() {
-		var stage = document.getElementById('dtb-vd-stage');
-		if (!stage) return;
-		stage.innerHTML = '';
-		stage.appendChild(renderStageBanner());
-		stage.appendChild(renderStageFrame());
-	}
-
 	function renderStageBanner() {
 		return h('div', { class: 'dtb-vd__stage-banner' }, [
 			'⬤ Live Preview — unpublished draft, visible only to you in this session',
@@ -342,13 +446,12 @@
 		// frontend/src/designer/usePreviewRouteSync.js). Only WooCommerce-hosted
 		// pages (checkout) are real server routes; framing those directly at
 		// their own path also works, but routing them through `/` first keeps
-		// one consistent code path for every surface.
+		// one consistent code path for every surface. Note there is no forced
+		// breakpoint param: the iframe is sized to a real device viewport (see
+		// layoutPreview()) so the storefront's own responsive detection reacts
+		// to a genuine resize instead of us telling it what to pretend to be.
 		var targetRoute = surfaceTargetRoute(surface);
-		var params = [
-			'dtb_preview=1',
-			'dtb_preview_token=' + encodeURIComponent(state.previewToken),
-			'dtb_preview_bp=' + encodeURIComponent(state.breakpoint),
-		];
+		var params = ['dtb_preview=1', 'dtb_preview_token=' + encodeURIComponent(state.previewToken)];
 		if (targetRoute !== '/') {
 			params.push('dtb_preview_route=' + encodeURIComponent(targetRoute));
 		}
@@ -356,7 +459,8 @@
 		var src = (vd.storefrontOrigin || '') + '/?' + params.join('&');
 
 		var iframe = h('iframe', { src: src, title: 'Storefront preview', loading: 'lazy' }, []);
-		wrap.appendChild(iframe);
+		var canvas = h('div', { class: 'dtb-vd__device-canvas' }, [iframe]);
+		wrap.appendChild(canvas);
 		return wrap;
 	}
 
@@ -803,6 +907,15 @@
 			});
 		});
 	}
+
+	var resizeRaf = null;
+	window.addEventListener('resize', function () {
+		if (resizeRaf) return;
+		resizeRaf = requestAnimationFrame(function () {
+			resizeRaf = null;
+			layoutAll();
+		});
+	});
 
 	boot();
 })();
