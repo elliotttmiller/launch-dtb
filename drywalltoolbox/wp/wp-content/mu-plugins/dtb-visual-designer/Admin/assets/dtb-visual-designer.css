@@ -16,12 +16,24 @@
 
 /* ── 1. Shell layout ─────────────────────────────────────────────────── */
 
+.dtb-vd,
+.dtb-vd *,
+.dtb-vd *::before,
+.dtb-vd *::after {
+  box-sizing: border-box;
+}
+
 .dtb-vd {
   --dtb-vd-panel-w: 220px;
   --dtb-vd-inspector-w: 340px;
   --dtb-vd-topbar-h: 56px;
+  /* Fallback only — JS measures actual available space at runtime (see
+     layoutShell() in dtb-visual-designer.js) since wp-admin/BrikPanel chrome
+     height varies by admin theme and viewport, and overrides this inline. */
   height: calc(100vh - 68px);
-  min-height: 640px;
+  min-height: 480px;
+  width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   background: var(--dtb-bg);
@@ -244,29 +256,43 @@
   border-bottom: 1px solid var(--dtb-border-soft);
 }
 
+/*
+ * The wrap never scrolls — .dtb-vd__device-canvas is sized in JS
+ * (layoutPreview()) to exactly fit whatever space is available here, so
+ * there is nothing left to overflow. For tablet/mobile the canvas holds a
+ * real fixed-CSS-pixel-size iframe (matching an actual device viewport)
+ * scaled down with `transform: scale()` — the same technique browser
+ * devtools' device toolbar uses — so the storefront's own responsive CSS/JS
+ * reacts to a genuine viewport width instead of us faking a breakpoint.
+ * Desktop/base skips scaling entirely and just fills the space at 100%.
+ */
 .dtb-vd__stage-frame-wrap {
   flex: 1 1 auto;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  overflow: auto;
-  padding: 20px;
+  overflow: hidden;
+  padding: 16px;
+  min-height: 0;
+  min-width: 0;
 }
 
-.dtb-vd__stage-frame-wrap iframe {
+.dtb-vd__device-canvas {
+  position: relative;
+  overflow: hidden;
   background: #fff;
   border: 1px solid var(--dtb-border);
   border-radius: var(--dtb-radius-md);
   box-shadow: var(--dtb-shadow-card, 0 8px 22px rgba(15, 23, 42, 0.08));
-  width: 100%;
-  height: 100%;
-  min-height: 480px;
-  transition: max-width 180ms var(--dtb-ease, ease), min-height 180ms var(--dtb-ease, ease);
+  flex: 0 0 auto;
 }
 
-.dtb-vd__stage-frame-wrap[data-device="mobile"] iframe { max-width: 390px; }
-.dtb-vd__stage-frame-wrap[data-device="tablet"] iframe { max-width: 820px; }
-.dtb-vd__stage-frame-wrap[data-device="desktop"] iframe { max-width: 100%; }
+.dtb-vd__device-canvas iframe {
+  display: block;
+  border: none;
+  background: #fff;
+  transform-origin: top left;
+}
 
 /* ── 5. Inspector panel ───────────────────────────────────────────────── */
 
@@ -412,7 +438,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-vd__spinner { animation-duration: 1600ms; }
-  .dtb-vd__stage-frame-wrap iframe { transition: none; }
 }
 
 /* ── 8. Responsive ────────────────────────────────────────────────────── */
@@ -422,7 +447,23 @@
 }
 
 @media (max-width: 960px) {
-  .dtb-vd__workspace { flex-direction: column; }
+  .dtb-vd__workspace { flex-direction: column; min-height: 0; }
   .dtb-vd__nav,
-  .dtb-vd__inspector { width: 100%; border: none; border-bottom: 1px solid var(--dtb-border); max-height: 240px; }
+  .dtb-vd__inspector { width: 100%; border: none; border-bottom: 1px solid var(--dtb-border); max-height: 200px; }
+  .dtb-vd__stage { min-height: 260px; }
+}
+
+@media (max-width: 720px) {
+  /* layoutShell() re-measures on every render/resize, so letting the topbar
+     wrap to a second line here is safe — the shell height simply accounts
+     for the extra row instead of clipping or scrolling. */
+  .dtb-vd__topbar {
+    height: auto;
+    min-height: var(--dtb-vd-topbar-h);
+    flex-wrap: wrap;
+    row-gap: 8px;
+    padding: 8px 12px;
+  }
+  .dtb-vd__title { flex: 1 1 100%; }
+  .dtb-vd__surface-select { flex: 1 1 auto; min-width: 0; max-width: none; }
 }
