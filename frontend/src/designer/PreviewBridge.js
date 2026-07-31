@@ -21,8 +21,11 @@
  */
 
 const registry = new Map();
-let overlayEl = null;
+let selectOverlayEl = null;
+let hoverOverlayEl = null;
+let selectLabelEl = null;
 let selectedKey = null;
+let hoveredKey = null;
 let initialized = false;
 
 function isPreviewFrame() {
@@ -42,26 +45,55 @@ export function registerComponentNode(surfaceId, componentId, node) {
   }
 }
 
-function ensureOverlay() {
-  if (overlayEl || typeof document === 'undefined') return overlayEl;
-  overlayEl = document.createElement('div');
-  overlayEl.setAttribute('data-dtb-preview-overlay', 'true');
-  Object.assign(overlayEl.style, {
+function buildOverlay(borderColor, withLabel) {
+  const overlay = document.createElement('div');
+  overlay.setAttribute('data-dtb-preview-overlay', 'true');
+  Object.assign(overlay.style, {
     position: 'fixed',
     pointerEvents: 'none',
     zIndex: '2147483000',
-    border: '2px solid #2255ee',
+    border: `2px solid ${borderColor}`,
     borderRadius: '4px',
-    boxShadow: '0 0 0 2px rgba(34,85,238,0.25)',
-    transition: 'all 80ms ease',
+    boxSizing: 'border-box',
     display: 'none',
   });
-  document.body.appendChild(overlayEl);
-  return overlayEl;
+  document.body.appendChild(overlay);
+
+  let label = null;
+  if (withLabel) {
+    label = document.createElement('div');
+    label.setAttribute('data-dtb-preview-label', 'true');
+    Object.assign(label.style, {
+      position: 'fixed',
+      pointerEvents: 'none',
+      zIndex: '2147483001',
+      background: '#2255ee',
+      color: '#fff',
+      font: '600 11px/1.4 -apple-system, BlinkMacSystemFont, sans-serif',
+      padding: '2px 7px',
+      borderRadius: '3px',
+      whiteSpace: 'nowrap',
+      display: 'none',
+    });
+    document.body.appendChild(label);
+  }
+
+  return { overlay, label };
 }
 
-function positionOverlayOn(node) {
-  const overlay = ensureOverlay();
+function ensureOverlays() {
+  if (!hoverOverlayEl && typeof document !== 'undefined') {
+    hoverOverlayEl = buildOverlay('rgba(34,85,238,0.5)', false).overlay;
+  }
+  if (!selectOverlayEl && typeof document !== 'undefined') {
+    const built = buildOverlay('#2255ee', true);
+    selectOverlayEl = built.overlay;
+    selectOverlayEl.style.boxShadow = '0 0 0 2px rgba(34,85,238,0.25)';
+    selectLabelEl = built.label;
+  }
+}
+
+function positionOverlay(overlay, node, labelText) {
   if (!overlay || !node) return;
   const rect = node.getBoundingClientRect();
   overlay.style.display = 'block';
@@ -69,17 +101,50 @@ function positionOverlayOn(node) {
   overlay.style.left = `${rect.left}px`;
   overlay.style.width = `${rect.width}px`;
   overlay.style.height = `${rect.height}px`;
+
+  if (labelText && selectLabelEl) {
+    selectLabelEl.textContent = labelText;
+    selectLabelEl.style.display = 'block';
+    const top = rect.top > 20 ? rect.top - 20 : rect.top + rect.height + 2;
+    selectLabelEl.style.top = `${top}px`;
+    selectLabelEl.style.left = `${rect.left}px`;
+  }
 }
 
-function hideOverlay() {
-  if (overlayEl) overlayEl.style.display = 'none';
+function hideHoverOverlay() {
+  if (hoverOverlayEl) hoverOverlayEl.style.display = 'none';
 }
 
-function highlightSelection() {
-  if (!selectedKey) return hideOverlay();
+function hideSelectOverlay() {
+  if (selectOverlayEl) selectOverlayEl.style.display = 'none';
+  if (selectLabelEl) selectLabelEl.style.display = 'none';
+}
+
+function refreshSelectOverlay() {
+  if (!selectedKey) return hideSelectOverlay();
   const entry = registry.get(selectedKey);
-  if (!entry) return hideOverlay();
-  positionOverlayOn(entry.node);
+  if (!entry) return hideSelectOverlay();
+  ensureOverlays();
+  positionOverlay(selectOverlayEl, entry.node, entry.componentId);
+}
+
+function refreshHoverOverlay() {
+  if (!hoveredKey || hoveredKey === selectedKey) return hideHoverOverlay();
+  const entry = registry.get(hoveredKey);
+  if (!entry) return hideHoverOverlay();
+  ensureOverlays();
+  positionOverlay(hoverOverlayEl, entry.node, null);
+}
+
+function findEditableAncestor(startNode) {
+  let node = startNode;
+  while (node && node !== document.body) {
+    const surfaceId = node.getAttribute && node.getAttribute('data-dtb-surface');
+    const componentId = node.getAttribute && node.getAttribute('data-dtb-component');
+    if (surfaceId && componentId) return { surfaceId, componentId };
+    node = node.parentElement;
+  }
+  return null;
 }
 
 export function selectComponent(surfaceId, componentId, { scroll = false } = {}) {
@@ -88,7 +153,8 @@ export function selectComponent(surfaceId, componentId, { scroll = false } = {})
   if (entry && scroll) {
     entry.node.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  highlightSelection();
+  refreshSelectOverlay();
+  hideHoverOverlay();
 
   if (isPreviewFrame() && window.parent) {
     window.parent.postMessage({ type: 'dtb-preview:component-selected', surfaceId, componentId }, '*');
@@ -111,22 +177,47 @@ export function initPreviewBridge() {
   if (initialized || !isPreviewFrame() || typeof window === 'undefined') return;
   initialized = true;
 
+  ensureOverlays();
+
   window.addEventListener('message', handleMessage);
-  window.addEventListener('resize', highlightSelection);
-  window.addEventListener('scroll', highlightSelection, true);
+  window.addEventListener('resize', () => {
+    refreshSelectOverlay();
+    refreshHoverOverlay();
+  });
+  window.addEventListener(
+    'scroll',
+    () => {
+      refreshSelectOverlay();
+      refreshHoverOverlay();
+    },
+    true
+  );
+
+  document.addEventListener(
+    'mouseover',
+    (event) => {
+      const match = findEditableAncestor(event.target);
+      hoveredKey = match ? keyFor(match.surfaceId, match.componentId) : null;
+      refreshHoverOverlay();
+    },
+    true
+  );
+
+  document.addEventListener('mouseout', (event) => {
+    if (!event.relatedTarget) {
+      hoveredKey = null;
+      hideHoverOverlay();
+    }
+  });
 
   document.addEventListener(
     'click',
     (event) => {
-      let node = event.target;
-      while (node && node !== document.body) {
-        const surfaceId = node.getAttribute && node.getAttribute('data-dtb-surface');
-        const componentId = node.getAttribute && node.getAttribute('data-dtb-component');
-        if (surfaceId && componentId) {
-          selectComponent(surfaceId, componentId);
-          return;
-        }
-        node = node.parentElement;
+      const match = findEditableAncestor(event.target);
+      if (match) {
+        event.preventDefault();
+        event.stopPropagation();
+        selectComponent(match.surfaceId, match.componentId);
       }
     },
     true

@@ -9,6 +9,7 @@ import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import { beginCheckoutHandoff } from '../utils/checkoutHandoff.js';
+import { useEditableComponent } from '../designer/useEditableComponent.js';
 
 function parseStoreMoney(value, minorUnit) {
   const raw = Number(value);
@@ -22,6 +23,11 @@ export default function Cart() {
   const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
   const [checkoutPending, setCheckoutPending] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState('');
+
+  const itemsList = useEditableComponent('cart', 'cart-items-list');
+  const orderSummary = useEditableComponent('cart', 'order-summary');
+  const checkoutButton = useEditableComponent('cart', 'proceed-to-checkout');
+  const checkoutWidth = checkoutButton.getValue('width', 'full') === 'auto' ? 'auto' : '100%';
 
   const localSubtotal = cartItems.reduce((sum, item) => sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1), 0);
   const serverSubtotal = parseStoreMoney(cart?.totals?.total_items, cart?.totals?.currency_minor_unit);
@@ -85,7 +91,7 @@ export default function Cart() {
         )}
 
         <div className="dtb-cart-page__layout grid lg:grid-cols-[1fr_360px] gap-6 items-start">
-          <div className="dtb-cart-page__items space-y-3">
+          <div {...itemsList.rootProps} className="dtb-cart-page__items space-y-3">
             <AnimatePresence mode="popLayout" initial={false}>
               {cartItems.map((item, index) => {
                 const itemKey = item.cartKey || item.id;
@@ -108,7 +114,7 @@ export default function Cart() {
           </div>
 
           <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="dtb-cart-page__summary-wrap sticky top-6">
-            <div className="dtb-cart-summary-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_16px_rgba(15,23,42,0.06)] overflow-hidden"><div className="h-[3px] bg-gradient-to-r from-primary-700 via-primary-500 to-primary-600" /><div className="p-5 sm:p-6"><h2 className="text-lg font-bold text-slate-900 mb-5">Order Summary</h2><div className="flex justify-between text-sm mb-4"><span className="text-slate-500">Merchandise subtotal</span><span className="font-semibold text-slate-900 tabular-nums">${subtotal.toFixed(2)}</span></div><p className="mb-5 border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">Shipping, discounts, and taxes are calculated at checkout.</p><a href={getWooCheckoutUrl()} onClick={handleCheckout} aria-disabled={checkoutDisabled ? 'true' : undefined} aria-busy={checkoutPending ? 'true' : undefined} className={`w-full inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${checkoutDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}><Lock size={14} strokeWidth={2.5} />{checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : checkoutNotice ? 'Confirm refreshed cart and checkout' : 'Continue to secure checkout'}<ArrowRight size={14} strokeWidth={2.5} /></a></div></div>
+            <div {...orderSummary.rootProps} className="dtb-cart-summary-card bg-white rounded-2xl border border-slate-200/80 shadow-[0_2px_16px_rgba(15,23,42,0.06)] overflow-hidden"><div className="h-[3px] bg-gradient-to-r from-primary-700 via-primary-500 to-primary-600" /><div className="p-5 sm:p-6"><h2 className="text-lg font-bold text-slate-900 mb-5">Order Summary</h2><div className="flex justify-between text-sm mb-4"><span className="text-slate-500">Merchandise subtotal</span><span className="font-semibold text-slate-900 tabular-nums">${subtotal.toFixed(2)}</span></div><p className="mb-5 border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">Shipping, discounts, and taxes are calculated at checkout.</p><a {...checkoutButton.rootProps} href={getWooCheckoutUrl()} onClick={handleCheckout} aria-disabled={checkoutDisabled ? 'true' : undefined} aria-busy={checkoutPending ? 'true' : undefined} style={{ width: checkoutWidth }} className={`inline-flex min-h-[48px] items-center justify-center gap-2.5 rounded-xl bg-primary-600 py-3.5 text-sm font-bold tracking-wide text-white shadow-sm transition-all ${checkoutDisabled ? 'cursor-not-allowed opacity-60' : 'hover:bg-primary-700 active:scale-[0.99]'}`}><Lock size={14} strokeWidth={2.5} />{checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : checkoutNotice ? 'Confirm refreshed cart and checkout' : 'Continue to secure checkout'}<ArrowRight size={14} strokeWidth={2.5} /></a></div></div>
           </Motion.div>
         </div>
       </div>

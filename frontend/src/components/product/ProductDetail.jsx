@@ -26,6 +26,7 @@ import { getSchematicLinkForProduct } from '../../data/schematicMappings';
 import { getWooCheckoutUrl } from '../../utils/checkoutUrl.js';
 import { navigateDocument } from '../../utils/documentNavigation.js';
 import DOMPurify from 'dompurify';
+import { useEditableComponent } from '../../designer/useEditableComponent.js';
 
 function buildSeedVariations(initialVariations = [], initialResolvedVariation = null) {
   const seeded = [];
@@ -536,6 +537,10 @@ export default function ProductDetail({
   variationsHydrating = false,
 }) {
   const { addToCart } = useCart();
+  const gallery = useEditableComponent('product-detail', 'image-gallery');
+  const purchasePanel = useEditableComponent('product-detail', 'purchase-panel');
+  const detailTabs = useEditableComponent('product-detail', 'detail-tabs');
+  const specTable = useEditableComponent('product-detail', 'spec-table');
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [activeTab, setActiveTab] = useState('description');
@@ -926,7 +931,7 @@ export default function ProductDetail({
       <div className="overflow-x-hidden">
         <div className="dtb-pdp__inner max-w-full">
           <div className="dtb-pdp__hero grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
-            <div className="dtb-pdp-gallery">
+            <div {...gallery.rootProps} className="dtb-pdp-gallery" style={{ aspectRatio: gallery.getValue('aspect_ratio', 'auto').replace(':', ' / ') }}>
               <ProductImageGallery product={effectiveProduct} />
             </div>
 
@@ -966,7 +971,11 @@ export default function ProductDetail({
                 ) : null}
               </div>
 
-              <div className="dtb-pdp__purchase-region">
+              <div
+                {...purchasePanel.rootProps}
+                className="dtb-pdp__purchase-region"
+                style={purchasePanel.getValue('sticky', true) ? { position: 'sticky', top: 'var(--dtb-header-height, 72px)' } : undefined}
+              >
                 <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock ? 'is-out' : ''}`}>
                   <p className="dtb-pdp-stock-meter__label"><Check aria-hidden="true" />{stockHint}</p>
                   {!isOutOfStock ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
@@ -1026,11 +1035,17 @@ export default function ProductDetail({
             </div>
           ) : null}
 
+          {!detailTabs.hidden && (
+          <div {...detailTabs.rootProps}>
           <ProductDetailTabs
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             descriptionNode={descriptionNode}
-            specsNode={<ProductSpecTable specs={productSpecifications} onItemClick={onClose} />}
+            specsNode={specTable.hidden ? null : (
+              <div {...specTable.rootProps}>
+                <ProductSpecTable specs={productSpecifications} onItemClick={onClose} />
+              </div>
+            )}
             compatibilityNode={(
               <div className="dtb-pdp-compatibility">
                 <p>Confirm fit using this product&apos;s specifications and available options.</p>
@@ -1039,6 +1054,8 @@ export default function ProductDetail({
             )}
             reviewsNode={<Reviews productId={effectiveProduct.id || product.id || effectiveSku || product.slug || product.name} />}
           />
+          </div>
+          )}
 
           <div className="dtb-pdp-browse-parts-row">
             <Link to={browsePartsUrl} className="dtb-pdp-browse-parts-row__link">
