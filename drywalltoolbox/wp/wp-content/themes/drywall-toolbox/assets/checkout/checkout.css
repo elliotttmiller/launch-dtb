@@ -84,8 +84,22 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
  * exact class — e.g. an accessible step heading prefix rendered alongside
  * the visible "Contact information" title). Without it, that text renders
  * on-screen, overlapping the visible heading. This is the standard WordPress
- * core implementation. */
-body.woocommerce-checkout .screen-reader-text {
+ * core implementation.
+ *
+ * `.components-visually-hidden` is the same treatment under Gutenberg's own
+ * `@wordpress/components` package name (its `<VisuallyHidden>` component,
+ * which WooCommerce Blocks also uses in places, e.g. for a step's accessible
+ * heading prefix) — a *different* class name than WordPress core's
+ * `.screen-reader-text` above, and just as undefined by this theme's empty
+ * base stylesheet. Depending on which of the two a given WooCommerce Blocks
+ * version/component happens to render, either one being unhandled reproduces
+ * the exact same on-screen text collision (observed live as "Contact
+ * information" with stray overlapping text baked into the heading). Both are
+ * covered here with the same rule so a future WooCommerce Blocks update that
+ * switches which one it emits for a given element doesn't regress this
+ * again. */
+body.woocommerce-checkout .screen-reader-text,
+body.woocommerce-checkout .components-visually-hidden {
 	position: absolute !important;
 	width: 1px;
 	height: 1px;
@@ -828,6 +842,28 @@ body.woocommerce-checkout .wc-block-components-checkbox__input {
 	border-radius: 5px;
 	accent-color: var(--dtb-accent);
 	flex: none;
+	transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+/* WooCommerce Blocks' own checked-state fill for this control (its
+ * `.wc-block-components-checkbox__input:checked` background) is keyed to
+ * `var(--wp-admin-theme-color)` — a WordPress admin/block-editor custom
+ * property, never a storefront one, and this theme ships no base stylesheet
+ * to define it either (the same class of gap as the `.screen-reader-text` /
+ * `.components-visually-hidden` fix above). With that variable unset, the
+ * box's background never actually changes on check, so the white checkmark
+ * (`__mark`, below) renders invisible against the still-white/bordered box:
+ * "Use same address for billing" toggles the billing form correctly (the
+ * underlying input's checked state is real and functional) but *looks* like
+ * nothing happened, because the only thing communicating checked/unchecked
+ * silently depended on an external variable this page never defines.
+ * Defining the checked-state fill explicitly with the brand accent — rather
+ * than depending on that variable being set by something else — fixes this
+ * regardless of whether/how core ever defines it here, and the transition
+ * above turns it into a visible, animated toggle instead of a silent flip. */
+body.woocommerce-checkout .wc-block-components-checkbox__input:checked {
+	background-color: var(--dtb-accent);
+	border-color: var(--dtb-accent);
 }
 
 body.woocommerce-checkout .wc-block-components-checkbox__mark {
