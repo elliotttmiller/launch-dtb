@@ -1,14 +1,12 @@
 .dtb-product-buy-now {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.62rem;
   min-width: 0;
-  padding: 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  background: #ffffff;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 12px 30px rgba(15, 23, 42, 0.06);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .dtb-product-buy-now__button {
@@ -16,10 +14,10 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 58px;
+  min-height: 52px;
   padding: 0.9rem 2rem;
   border: 0;
-  border-radius: 16px;
+  border-radius: 7px;
   background: linear-gradient(135deg, #071329 0%, #0f2150 54%, #173d9c 100%);
   color: #fffefc;
   font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
@@ -35,6 +33,14 @@
     background-color 150ms ease,
     box-shadow 150ms ease,
     transform 120ms ease;
+}
+
+.dtb-product-buy-now__eyebrow {
+  margin: 0.15rem 0 0;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-align: center;
 }
 
 .dtb-product-buy-now__button:hover:not(:disabled) {

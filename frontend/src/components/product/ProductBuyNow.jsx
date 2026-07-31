@@ -190,6 +190,7 @@ export default function ProductBuyNow({
         <span aria-live="polite">{buttonLabel}</span>
       </button>
 
+      <p className="dtb-product-buy-now__eyebrow">Express checkout with</p>
       <ul
         className="dtb-product-buy-now__methods"
         aria-label="Payment methods available at checkout"

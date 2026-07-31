@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Reviews from './Reviews';
 import { useCart } from '../../context/CartContext';
@@ -802,7 +802,10 @@ export default function ProductDetail({
   // Check if all required variation attributes have been selected
   // Allows numeric values like 0, booleans like false, but rejects null/undefined and empty strings
   const hasCompleteSelection = !needsVariation || variationAttributes.every((attr) => {
-    const value = selectedAttrs?.[attr.name];
+    const value = selectedAttrs?.[attr.name]
+      ?? Object.entries(selectedAttrs || {}).find(
+        ([name]) => normalizeAttributeKey(name) === normalizeAttributeKey(attr.name)
+      )?.[1];
     // Check for null/undefined and empty strings, but allow 0, false, etc.
     return value != null && (typeof value !== 'string' || value.trim() !== '');
   });
@@ -880,11 +883,6 @@ export default function ProductDetail({
     : baseProductSpecifications;
   const stockQuantityRaw = selectedVariation?.stock_quantity ?? effectiveProduct?.stock_quantity ?? product?.stock_quantity;
   const stockQuantity = Number.isFinite(Number(stockQuantityRaw)) ? Number(stockQuantityRaw) : null;
-  const stockProgress = isOutOfStock
-    ? 0
-    : stockQuantity && stockQuantity > 0
-      ? Math.max(18, Math.min(100, Math.round((Math.min(stockQuantity, 36) / 36) * 100)))
-      : 72;
   const stockHint = isOutOfStock
     ? 'Temporarily out of stock'
     : stockQuantity && stockQuantity > 0
@@ -967,10 +965,8 @@ export default function ProductDetail({
               ) : null}
 
               <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock ? 'is-out' : ''}`}>
-                <p className="dtb-pdp-stock-meter__label">{stockHint}</p>
-                <div className="dtb-pdp-stock-meter__track" aria-hidden="true">
-                  <span className="dtb-pdp-stock-meter__fill" style={{ width: `${stockProgress}%` }} />
-                </div>
+                <p className="dtb-pdp-stock-meter__label"><Check aria-hidden="true" />{stockHint}</p>
+                {!isOutOfStock ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
               </div>
 
               <ProductPurchasePanel
@@ -1031,6 +1027,12 @@ export default function ProductDetail({
             setActiveTab={setActiveTab}
             descriptionNode={descriptionNode}
             specsNode={<ProductSpecTable specs={productSpecifications} onItemClick={onClose} />}
+            compatibilityNode={(
+              <div className="dtb-pdp-compatibility">
+                <p>Confirm fit using this product&apos;s specifications and available options.</p>
+                <Link to={browsePartsUrl}>View compatible schematics and parts</Link>
+              </div>
+            )}
             reviewsNode={<Reviews productId={effectiveProduct.id || product.id || effectiveSku || product.slug || product.name} />}
           />
 

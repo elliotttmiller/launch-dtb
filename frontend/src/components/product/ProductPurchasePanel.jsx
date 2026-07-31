@@ -1,4 +1,4 @@
-import { Minus, Plus } from 'lucide-react';
+import { LockKeyhole, Minus, Plus, RotateCcw, Truck } from 'lucide-react';
 import ProductBuyNow from './ProductBuyNow.jsx';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
 
@@ -91,6 +91,12 @@ export default function ProductPurchasePanel({
         disabled={!canBuyNow || addToCartPending}
         disabledReason={buyNowDisabledReason}
       />
+
+      <div className="dtb-pdp-trust-row" aria-label="Purchase assurances">
+        <div><LockKeyhole aria-hidden="true" /><span><strong>Secure Checkout</strong><small>SSL encrypted payments</small></span></div>
+        <div><Truck aria-hidden="true" /><span><strong>Fast Shipping</strong><small>Orders ship same day</small></span></div>
+        <div><RotateCcw aria-hidden="true" /><span><strong>Easy Returns</strong><small>90-day returns</small></span></div>
+      </div>
     </div>
   );
 }

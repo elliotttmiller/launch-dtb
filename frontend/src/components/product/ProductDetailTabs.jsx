@@ -1,7 +1,8 @@
-export default function ProductDetailTabs({ activeTab, setActiveTab, descriptionNode, specsNode, reviewsNode }) {
+export default function ProductDetailTabs({ activeTab, setActiveTab, descriptionNode, specsNode, compatibilityNode, reviewsNode }) {
   const tabs = [
     { key: 'description', label: 'Description' },
     { key: 'specs', label: 'Specifications' },
+    { key: 'compatibility', label: 'Compatibility' },
     { key: 'reviews', label: 'Reviews' },
   ];
 
@@ -9,6 +10,7 @@ export default function ProductDetailTabs({ activeTab, setActiveTab, description
   const contentByTab = {
     description: descriptionNode,
     specs: specsNode,
+    compatibility: compatibilityNode,
     reviews: reviewsNode,
   };
 

@@ -230,7 +230,7 @@ export default function ProductDetailPage() {
         links={heroImage ? [{ rel: 'preload', href: heroImage, as: 'image' }] : []}
       />
 
-      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+      <div className="dtb-product-page-shell container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
         <nav aria-label="Breadcrumb" style={{ marginBottom: '24px', fontSize: '0.8rem', color: '#64748b' }}>
           <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>Home</Link>
           <span style={{ margin: '0 8px' }}>›</span>
@@ -244,7 +244,12 @@ export default function ProductDetailPage() {
           onVariationChange={handleVariationChange}
           initialVariations={variations}
           initialResolvedVariation={selectedVariation}
-          initialSelectedAttrs={selectedVariation ? getVariationSelectionMap(selectedVariation) : {}}
+          initialSelectedAttrs={selectedVariation
+            ? getVariationSelectionMap(
+                variations.find((variation) => Number(variation?.id) === Number(selectedVariation?.id))
+                  || selectedVariation
+              )
+            : {}}
           initialComputedData={computed}
           disableLegacyDetailFetch
         />

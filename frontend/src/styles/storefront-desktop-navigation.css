@@ -1,24 +1,24 @@
 @media (min-width: 1025px) {
   .site-header {
-    min-height: 88px;
+    min-height: 98px;
   }
 
   .site-header .site-header-inner {
     width: 100%;
     max-width: none;
-    height: 88px !important;
-    min-height: 88px !important;
-    padding: 0 clamp(22px, 2.4vw, 48px) !important;
+    height: 98px !important;
+    min-height: 98px !important;
+    padding: 0 clamp(40px, 3.4vw, 64px) !important;
   }
 
   .site-header .header-desktop-layout {
     grid-template-columns:
-      clamp(164px, 11.5vw, 218px)
+      clamp(190px, 12vw, 226px)
       minmax(0, 1fr)
-      clamp(240px, 20vw, 390px)
+      clamp(300px, 20.5vw, 390px)
       auto;
     gap: clamp(12px, 1.35vw, 26px);
-    height: 88px;
+    height: 98px;
   }
 
   .site-header .header-left {
@@ -34,9 +34,9 @@
 
   .site-header .logo-image {
     width: 100%;
-    max-width: 218px;
+    max-width: 188px;
     height: auto;
-    max-height: 58px;
+    max-height: 62px;
   }
 
   .site-header .header-center--desktop-search {

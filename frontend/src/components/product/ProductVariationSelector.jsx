@@ -1,4 +1,5 @@
 import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { normalizeAttributeKey } from '../../utils/variationSelection.js';
 
 function attributeLabel(attr) {
   return (attr?.name || '').replace(/^pa_/i, '').replace(/[_-]+/g, ' ').trim();
@@ -20,9 +21,16 @@ export default function ProductVariationSelector({
   return (
     <div className="product-variation-panel" aria-label="Product options">
       {variationAttributes.map((attr) => {
-        const selectedValue = selectedAttrs?.[attr.name] || '';
+        const selectedValue = selectedAttrs?.[attr.name]
+          ?? Object.entries(selectedAttrs || {}).find(
+            ([name]) => normalizeAttributeKey(name) === normalizeAttributeKey(attr.name)
+          )?.[1]
+          ?? '';
         const options = variantOptionMeta[attr.name] || [];
-        const label = usesGenericOptionsLabel ? 'Options' : attributeLabel(attr);
+        const normalizedLabel = attributeLabel(attr);
+        const label = usesGenericOptionsLabel
+          ? (/corner/i.test(`${attr?.name || ''} ${normalizedLabel}`) ? 'Select Corner Style' : `Select ${normalizedLabel || 'Options'}`)
+          : normalizedLabel;
 
         return (
           <section key={attr.name} className="product-variation-group">

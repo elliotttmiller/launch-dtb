@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion as Motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
 import { apiClient } from '../../api/client.js';
 
@@ -509,6 +509,9 @@ export default function ProductImageGallery({ product }) {
             }
           }}
         >
+          <span className="product-image-gallery__zoom" aria-hidden="true">
+            <Search size={21} strokeWidth={2} />
+          </span>
           <AnimatePresence>
             {!imgLoaded[activeIndex] && (
               <Motion.div
