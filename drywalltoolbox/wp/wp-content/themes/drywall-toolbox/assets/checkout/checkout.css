@@ -575,6 +575,23 @@ body.woocommerce-checkout .wc-block-components-validation-error {
  * ("USPS — Priority Mail Express" + "$24.13"); `flex-wrap` on the label
  * group plus `overflow-wrap` on the label keep that wrap contained inside
  * the row instead of overflowing it horizontally.
+ *
+ * Redesign v14 fixed a live regression the flex row above introduced:
+ * WooCommerce's Payment Methods selector is *also* one `.wc-block-components-
+ * radio-control__option` — a single-choice RadioControl whose entire "Card /
+ * Cash App Pay / Affirm / Afterpay / Klarna" content renders as this one
+ * option's `.wc-block-components-radio-control__description` (the exact
+ * element `flex-basis: 100%` below is meant to push onto its own line), not
+ * as a short shipping-style secondary label. Without `flex-wrap: wrap` on
+ * the option itself, `flex-basis: 100%` on a flex *child* does nothing to
+ * start a new line — the browser still tries to fit every child in one
+ * nowrap row, so the label got crushed into a vertical sliver next to the
+ * entire payment-method list rather than the description dropping to a row
+ * beneath it. This never surfaced on shipping methods (which have no real
+ * description content) or the plain BNPL accordion rows (no description at
+ * all) — only on the one option whose "description" is a large nested
+ * sub-tree. `flex-wrap: wrap` on the option container is the actual fix;
+ * everything else in this section already assumed it would wrap.
  * ------------------------------------------------------------------------- */
 
 body.woocommerce-checkout .wc-block-components-radio-control__option,
@@ -582,6 +599,7 @@ body.woocommerce-checkout .wc-block-checkout__shipping-method-option,
 body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
 	position: relative;
 	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
 	gap: 12px;
 	min-height: var(--dtb-touch);
