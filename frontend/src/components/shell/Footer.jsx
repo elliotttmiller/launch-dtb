@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import LogoWhite from '/logo-white.svg';
 import '../../styles/storefront-footer-template.css';
+import { useEditableComponent } from '../../designer/useEditableComponent.js';
 
 const FOOTER_GROUPS = [
   {
@@ -67,8 +68,10 @@ function FooterLinkGroup({ title, links }) {
 }
 
 export default function Footer() {
+  const { rootProps, getColorVar } = useEditableComponent('global-footer', 'footer-root');
+
   return (
-    <footer className="site-footer dtb-footer-template">
+    <footer {...rootProps} className="site-footer dtb-footer-template" style={{ background: getColorVar('background_color', undefined) }}>
       <div className="dtb-footer-template__inner">
         <div className="dtb-footer-template__grid">
           <section className="dtb-footer-template__brand" aria-label="Drywall Toolbox">

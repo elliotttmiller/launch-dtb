@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
 import TrustedBrands from './TrustedBrands';
 import NavigationCarousel from './NavigationCarousel';
+import { useEditableComponent } from '../../designer/useEditableComponent.js';
 
 const HERO_TITLE_AURORA_COLORS = [
   '#ffffff',
@@ -75,19 +76,27 @@ export default function HeroSection({
   showCarousel = true,
   className = '',
 }) {
+  const { rootProps, hidden, getValue, getColorVar } = useEditableComponent('home', 'hero-section');
+
+  if (hidden) return null;
+
+  const contentAlign = getValue('content_align', 'center');
+  const ctaVisible = getValue('cta_visible', true);
+
   return (
     <section
+      {...rootProps}
       className={`dtb-ui-hero${className ? ` ${className}` : ''}`}
       style={{
         position: 'relative',
         width: '100%',
-        minHeight: '520px',
+        minHeight: `${getValue('min_height', 520)}px`,
         overflow: 'hidden',
-        background: '#070d1c',
+        background: getColorVar('background_color', '#070d1c'),
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
+        alignItems: contentAlign === 'left' ? 'flex-start' : contentAlign === 'right' ? 'flex-end' : 'center',
         justifyContent: 'center',
       }}
     >
@@ -146,7 +155,7 @@ export default function HeroSection({
           </Motion.p>
         )}
 
-        {ctaLinks.length > 0 && (
+        {ctaVisible && ctaLinks.length > 0 && (
           <Motion.div variants={item} className="dtb-hero-cta-wrap" style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', justifyContent: 'center', marginBottom: '0', width: '100%' }}>
             {ctaLinks.map(({ to, label }, i) => (
               <Link key={to} to={to} style={{ textDecoration: 'none' }}>
