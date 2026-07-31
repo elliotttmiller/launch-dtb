@@ -462,6 +462,11 @@ function dtb_veeqo_order_status_poll_run(): void {
 					'veeqo_order_id'   => $veeqo_order_id,
 					'tracking_number'  => $tracking['tracking_number'],
 					'tracking_carrier' => $tracking['tracking_carrier'],
+					// Forwarded so a future confirmed shipment-identity field
+					// (see VeeqoFulfillmentProjector.php::dtb_veeqo_resolve_shipment_identity())
+					// has real Veeqo data to resolve against without any
+					// further poller changes.
+					'veeqo_payload'    => $data,
 				] )
 				: [ 'applied' => false, 'result' => 'unmapped_status' ];
 

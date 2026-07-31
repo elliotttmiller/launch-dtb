@@ -272,8 +272,8 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		] );
 	}
 
-	if ( $rank_changed && 'shipped' === $wc_status && function_exists( 'dtb_order_enqueue_job' ) ) {
-		dtb_order_enqueue_job( 'dtb_order_send_notification', $order_id, [ 'template' => 'order-shipped' ] );
+	if ( $rank_changed && 'shipped' === $wc_status ) {
+		dtb_veeqo_dispatch_shipped_notification( $order, $context );
 	}
 
 	if ( ( $rank_changed || $tracking_changed || $tracking_carrier_changed ) && function_exists( 'dtb_order_enqueue_job' ) ) {
@@ -289,4 +289,45 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
 		'status_changed' => $status_changed,
 		'rank_changed'  => $rank_changed,
 	];
+}
+
+/**
+ * Notify the customer that an order has shipped, preferring the native
+ * WooCommerce Fulfillment projection and falling back to the legacy ad-hoc
+ * notification exactly when the native path does not (yet) own this
+ * shipment. Never both, never neither.
+ *
+ * @param WC_Order $order   Woo order.
+ * @param array    $context Same context passed to dtb_veeqo_apply_order_fulfillment_status().
+ * @return void
+ */
+function dtb_veeqo_dispatch_shipped_notification( WC_Order $order, array $context ): void {
+	$disposition = 'legacy_fallback_used';
+
+	if ( function_exists( 'dtb_veeqo_project_fulfillment' ) ) {
+		$veeqo_payload = is_array( $context['veeqo_payload'] ?? null ) ? $context['veeqo_payload'] : [];
+
+		$projection = dtb_veeqo_project_fulfillment(
+			$order,
+			$veeqo_payload,
+			[
+				'line_items'      => is_array( $context['veeqo_line_items'] ?? null ) ? $context['veeqo_line_items'] : [],
+				'carrier'         => (string) ( $context['tracking_carrier'] ?? '' ),
+				'tracking_number' => (string) ( $context['tracking_number'] ?? '' ),
+				'source_revision' => (string) ( $context['reference'] ?? '' ),
+			]
+		);
+
+		if ( in_array( $projection['result'] ?? '', [ 'created', 'updated', 'no_change' ], true ) ) {
+			$disposition = 'native_notified';
+		}
+	}
+
+	if ( 'native_notified' === $disposition ) {
+		return;
+	}
+
+	if ( function_exists( 'dtb_order_enqueue_job' ) ) {
+		dtb_order_enqueue_job( 'dtb_order_send_notification', (int) $order->get_id(), [ 'template' => 'order-shipped' ] );
+	}
 }

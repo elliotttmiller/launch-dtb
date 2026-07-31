@@ -74,7 +74,11 @@ Catalog/product/variation/brand/taxonomy models and normalization, relationships
 - checkout runtime integrity/performance telemetry;
 - checkout-order contract tagging and non-secret paid-reference mirroring;
 - DTB shipping policy method;
-- order-type/query and branded email support;
+- order-type/query support;
+- deterministic WooCommerce classic HTML email template routing (`Email/TemplateOverride.php`),
+  registered via an allowlisted `woocommerce_locate_template` filter rather
+  than the retired output-buffer wrap — see
+  `docs/operations/woocommerce-html-email-architecture.md`;
 - commerce-facing REST/admin surfaces.
 
 `dtb-commerce` does not own payment confirmation, provider webhooks, a parallel order route, or a second checkout presentation system.
@@ -169,7 +173,7 @@ It requires a dedicated nonce, same-origin validation when Origin is present, ra
 - `dtb-schematics` / `dtb-media`: schematic and media models/synchronization/validation/operator tooling.
 - `dtb-marketing`: coming-soon/subscriber and SEO support.
 - `dtb-repair-service`: repair intake/status/events/media/quotes/SLA/queues/notifications/workbenches.
-- `dtb-integrations`: Woo adapters, Veeqo fulfillment, QuickBooks projection, notifications, marketplace infrastructure.
+- `dtb-integrations`: Woo adapters, Veeqo fulfillment, QuickBooks projection, notifications, marketplace infrastructure. Owns the Veeqo → native WooCommerce Fulfillment projector (`Veeqo/VeeqoFulfillmentProjector.php`) — shipment identity, fingerprinting, locking, and native-notification ownership for `customer_fulfillment_created`/`updated`, with legacy-notification fallback; see `docs/operations/woocommerce-html-email-architecture.md`.
 - `dtb-support` / `dtb-returns`: independent support and return lifecycle domains.
 
 ## 3. Checkout/payment trust boundary

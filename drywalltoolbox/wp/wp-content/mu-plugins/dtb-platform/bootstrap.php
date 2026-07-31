@@ -28,6 +28,7 @@ require_once $_dtb_platform . '/Support/Str.php';
 require_once $_dtb_platform . '/Support/DateTime.php';
 require_once $_dtb_platform . '/Support/Money.php';
 require_once $_dtb_platform . '/Support/Email.php';
+require_once $_dtb_platform . '/Support/Email/OrderItemPresentation.php';
 
 // 3. Security and request boundaries.
 require_once $_dtb_platform . '/Security/OriginAllowlist.php';

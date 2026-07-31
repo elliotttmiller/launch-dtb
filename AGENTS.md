@@ -145,7 +145,10 @@ Module ownership:
   catalog-facing REST/admin behavior.
 - `dtb-commerce`: cart extension data, checkout policy, native checkout runtime,
   Stripe-provider readiness and order tagging, shipping policy, order typing,
-  and commerce-facing REST/email behavior.
+  WooCommerce classic HTML email template routing/registration (deterministic
+  `woocommerce_locate_template` overrides — see
+  `docs/operations/woocommerce-html-email-architecture.md`), and
+  commerce-facing REST behavior.
 - `dtb-order-platform`: order transitions, append-only order events, tracking
   projections, captured-payment observation, refund events, integration state,
   and the `dtb-orders` queue boundary.
@@ -157,7 +160,10 @@ Module ownership:
 - `dtb-repair-service`: repair intake, status, events, media, quotes, queues,
   notifications, and operator workflows.
 - `dtb-integrations`: Woo adapters, Veeqo, QuickBooks, notifications, Amazon,
-  eBay, marketplace records, and integration pipeline controls.
+  eBay, marketplace records, and integration pipeline controls. Owns the
+  Veeqo → native WooCommerce Fulfillment projector (shipment identity,
+  idempotency, and native customer-notification ownership for
+  `customer_fulfillment_created`/`updated`).
 - `dtb-support`: support tickets, events, outbox/automation, macros, APIs, and
   operator workbench behavior.
 - `dtb-returns`: return domain records, workflow, persistence, APIs, and operator

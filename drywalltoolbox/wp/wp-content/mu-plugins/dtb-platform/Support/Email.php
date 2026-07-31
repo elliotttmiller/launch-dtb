@@ -266,6 +266,58 @@ if ( ! function_exists( 'dtb_email_button' ) ) {
 	}
 }
 
+if ( ! function_exists( 'dtb_email_status_badge' ) ) {
+	/**
+	 * Render a small pill-shaped status badge for order/shipment/refund state.
+	 *
+	 * @param string $label Badge text.
+	 * @param string $tone  One of: neutral, info, success, warning, danger.
+	 * @return string
+	 */
+	function dtb_email_status_badge( string $label, string $tone = 'info' ): string {
+		$label = esc_html( dtb_email_clean_text( $label ) );
+		if ( '' === $label ) {
+			return '';
+		}
+
+		$tones = [
+			'neutral' => [ 'bg' => '#eef2f7', 'text' => '#475569' ],
+			'info'    => [ 'bg' => '#e8f1ff', 'text' => '#1e4fd8' ],
+			'success' => [ 'bg' => '#e3f6ea', 'text' => '#0f7a3d' ],
+			'warning' => [ 'bg' => '#fef3e2', 'text' => '#a15c00' ],
+			'danger'  => [ 'bg' => '#fde8e8', 'text' => '#b91c1c' ],
+		];
+		$colors = $tones[ $tone ] ?? $tones['info'];
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 0 14px;"><tr><td style="background:' . esc_attr( $colors['bg'] ) . ';background-color:' . esc_attr( $colors['bg'] ) . ';color:' . esc_attr( $colors['text'] ) . ';font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:12px;font-weight:760;letter-spacing:0.04em;text-transform:uppercase;padding:6px 14px;border-radius:999px;">' . $label . '</td></tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_next_steps_list' ) ) {
+	/**
+	 * Render a compact "what happens next" checklist used across order-lifecycle emails.
+	 *
+	 * @param array<int,string> $steps Plain-text step descriptions, in order.
+	 * @return string
+	 */
+	function dtb_email_next_steps_list( array $steps ): string {
+		$rows = '';
+		foreach ( $steps as $step ) {
+			$step = dtb_email_clean_text( $step );
+			if ( '' === $step ) {
+				continue;
+			}
+			$rows .= '<tr><td width="24" valign="top" style="padding:0 10px 12px 0;color:#2563eb;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:15px;font-weight:800;">&#8250;</td><td valign="top" style="padding:0 0 12px;color:#334155;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:14px;line-height:150%;">' . esc_html( $step ) . '</td></tr>';
+		}
+
+		if ( '' === $rows ) {
+			return '';
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:20px 0 0;">' . $rows . '</table>';
+	}
+}
+
 if ( ! function_exists( 'dtb_email_details_table' ) ) {
 	/**
 	 * Render label/value rows for transactional email details.
@@ -301,6 +353,32 @@ if ( ! function_exists( 'dtb_email_details_table' ) ) {
 		}
 
 		return '<table class="dtb-details-table" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:24px 0;border-collapse:separate;border-spacing:0;background:' . esc_attr( $bg ) . ';background-color:' . esc_attr( $bg ) . ';background-image:linear-gradient(' . esc_attr( $bg ) . ',' . esc_attr( $bg ) . ');border:1px solid ' . esc_attr( $border ) . ';border-radius:16px;overflow:hidden;">' . $body . '</table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_details_table_light' ) ) {
+	/**
+	 * dtb_email_details_table() pre-styled for a white-card context (the
+	 * WooCommerce classic email templates in dtb-commerce), instead of the
+	 * dark-card defaults used by the standalone dtb_render_branded_email()
+	 * shell.
+	 *
+	 * @param array<int,array{label:string,value:string}> $rows Detail rows.
+	 * @return string
+	 */
+	function dtb_email_details_table_light( array $rows ): string {
+		$palette = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' ) : [];
+
+		return dtb_email_details_table(
+			$rows,
+			[
+				'bg'     => $palette['details_bg'] ?? '#f8fbff',
+				'row_bg' => $palette['card_bg'] ?? '#ffffff',
+				'border' => $palette['card_border'] ?? '#dce6f3',
+				'label'  => $palette['details_label'] ?? '#738196',
+				'value'  => $palette['details_value'] ?? '#111827',
+			]
+		);
 	}
 }
 

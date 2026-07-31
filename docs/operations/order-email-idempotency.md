@@ -47,3 +47,40 @@ No database migration is required. Existing order metadata is retained. Rollback
 is the prior release through the official SiteGround Git deployment workflow;
 if rollback is necessary, pause the Veeqo order-status recurring action first to
 contain the original five-minute trigger.
+
+## Fulfillment-projection idempotency
+
+Separate from the `customer_processing_order` invariants above.
+`dtb-integrations/Veeqo/VeeqoFulfillmentProjector.php` owns fulfillment
+create/update idempotency end to end, keyed by a resolved Veeqo shipment
+identity (private Fulfillment meta `_dtb_veeqo_shipment_id`) — never the
+tracking number. dtb-order-platform does not own this idempotency; it only
+records the resulting outcome as an order event
+(`integration.veeqo.fulfillment_projected` /
+`_projection_deferred` / `_projection_rejected`) via the existing
+`dtb_order_append_event()`.
+
+- A canonical fingerprint (`_dtb_veeqo_projection_fingerprint`) is built over
+  only customer-visible fulfillment state — identity, status, item/quantity
+  set, carrier, tracking number, tracking URL, fulfilled timestamp, and a
+  Veeqo source-revision marker when available. Poll/sync cursor timestamps
+  are excluded, so a poll that re-observes identical Veeqo state always
+  yields `no_change` — no repeat save, no repeat native notification.
+- A short-lived, ownership-tokened transient lock
+  (`dtb_veeqo_fp_lock_{md5(order_id:identity)}`, 60s expiry,
+  `try/finally`-released) prevents concurrent poller/webhook runs from
+  creating duplicate native Fulfillment records for the same shipment.
+- Native customer-notification ownership transfers only after all four
+  conditions hold: `Fulfillment::save()` succeeds; the committed record is
+  verified (id assigned, `get_is_fulfilled()` true); the correct
+  `woocommerce_fulfillment_{created,updated}_notification` action is
+  invoked without throwing; and the identity+fingerprint meta persisted with
+  the record makes that ownership idempotent. Until all four hold, the
+  legacy `dtb_order_send_notification` / `order-shipped` path — unchanged —
+  remains eligible, called from
+  `VeeqoOrderStatusApplier.php::dtb_veeqo_dispatch_shipped_notification()`.
+  The two paths are mutually exclusive per shipment.
+
+See `docs/operations/woocommerce-html-email-architecture.md` for the full
+fulfillment-authority chain and the open shipment-identity verification
+item.

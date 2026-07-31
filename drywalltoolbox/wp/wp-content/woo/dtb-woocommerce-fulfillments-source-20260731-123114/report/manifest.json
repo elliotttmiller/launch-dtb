@@ -1,0 +1,555 @@
+{
+    "generated_at_utc": "2026-07-31T12:31:14+00:00",
+    "generator": "DTB WooCommerce Fulfillments Source Exporter 1.0.0",
+    "wordpress_version": "7.0.2",
+    "woocommerce_version": "10.9.4",
+    "php_version": "8.2.33",
+    "files": [
+        {
+            "path": "assets/client/admin/fulfillments/style.asset.php",
+            "bytes": 57,
+            "sha256": "ee20823f45e8db772d3e8326a77befc30bf0b701c930fb5da259f77343382cf8"
+        },
+        {
+            "path": "assets/client/admin/wp-admin-scripts/fulfillments.asset.php",
+            "bytes": 301,
+            "sha256": "d1223491492bbc036e4a02b132aefbf9dca47b517b786da774bb0ededb687146"
+        },
+        {
+            "path": "assets/client/admin/wp-admin-scripts/fulfillments.js",
+            "bytes": 53344,
+            "sha256": "563592481a78b4d1abf03a030c42a46cbb6acc66a9e963922a39cfa68bc08406"
+        },
+        {
+            "path": "assets/client/admin/wp-admin-scripts/fulfillments.js.LICENSE.txt",
+            "bytes": 249,
+            "sha256": "78d27c81cf67f4817c9d6d5df6c23d9e2b87b2d6338cdcf9bea5f1f5481648f7"
+        },
+        {
+            "path": "includes/class-wc-emails.php",
+            "bytes": 40588,
+            "sha256": "0e6de1ed3729522e09e76a5dd2a71db6188bb826173215c2a788bbe8d0c8f2e4"
+        },
+        {
+            "path": "includes/emails/class-wc-email-customer-fulfillment-created.php",
+            "bytes": 7644,
+            "sha256": "b783d53b85feca7c803eb21dbb0d8b19e1d78c38cb9b9b32fced677c798ac459"
+        },
+        {
+            "path": "includes/emails/class-wc-email-customer-fulfillment-deleted.php",
+            "bytes": 6169,
+            "sha256": "d944f379e1bd79bda89c702d93b219211b94dbda5976208036e88bcb7ef00b57"
+        },
+        {
+            "path": "includes/emails/class-wc-email-customer-fulfillment-updated.php",
+            "bytes": 7338,
+            "sha256": "a4d3757f6ad4a131af2b894c6bd2450861be1a58930ee3f275bfdeee97e39a2a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/DataStore/FulfillmentsDataStore.php",
+            "bytes": 19783,
+            "sha256": "12b99f17ab6344634c7bf41c4c629b5e6b0ae0e90353bb35af062e9b01be46d8"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/DataStore/FulfillmentsDataStoreInterface.php",
+            "bytes": 667,
+            "sha256": "771690af44810073bfb28b12ef0db3184ebbfa52355dfc9b0526b89db8a6de0a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Fulfillment.php",
+            "bytes": 14614,
+            "sha256": "192dd1c838c19ddb10e6c1fc8cafeef0eae0f2b46d888b371289b3b0076b3086"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentException.php",
+            "bytes": 1095,
+            "sha256": "24a6564b0348f6435ab89e0e3933988c1ef4d086eeb4296b0d81b873fb928873"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentOrderNotes.php",
+            "bytes": 12654,
+            "sha256": "e587e06078a465ae0480912e5cf0a68260bfaa440dc17d071f4af6d6b6205579"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentUtils.php",
+            "bytes": 23544,
+            "sha256": "0fb4232e84cd4c56760148af588f0b0ab8d28f0c052885292c4e1c236ce27221"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentsController.php",
+            "bytes": 8652,
+            "sha256": "102878a616b30119fac2e93ac32b74ca267d41c2e33c67bf4311bec3f9498604"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentsManager.php",
+            "bytes": 20871,
+            "sha256": "80a7ae91454f2776445c9e2468febb05b207230d001f60a5ace181ff86535414"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentsRenderer.php",
+            "bytes": 29737,
+            "sha256": "7ae78dc53e8b1a97d84ceed8a8da654f1b416c223f6347b8a6371abccb61e0e6"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentsSettings.php",
+            "bytes": 6233,
+            "sha256": "efb36ce2fd680e07061a3d4c8ae483ae855a6f9ee6fea2c8dc7ca948ec8e6199"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/FulfillmentsTracker.php",
+            "bytes": 16003,
+            "sha256": "686ede39e4ffddc3cde927cb40d748d4be0a0c5610094f19cb6c65fe24cedde9"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/OrderFulfillmentsRestController.php",
+            "bytes": 47848,
+            "sha256": "4209f2b23da46ad1feb8d10cadb1ecc6771e8013cecd324704a22151edf3fb56"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ACSCourierShippingProvider.php",
+            "bytes": 1032,
+            "sha256": "1bc4f8a41755a695882a57a78c3cd13194b3abc1c970e9baa19bf71d3a23c110"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/AbstractShippingProvider.php",
+            "bytes": 3283,
+            "sha256": "803237b20c7254c0cbb790f83dc8a6f18d61fad4972989d6cba0cba24c574b9c"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/AmazonLogisticsShippingProvider.php",
+            "bytes": 6418,
+            "sha256": "34692899531702197523e80f48c0a35c806135d3cc1ade1db5315634e72f30f2"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/AnPostShippingProvider.php",
+            "bytes": 1003,
+            "sha256": "14875aa6f64bc3b204c281f91ac1f5f3d3d8b002751e59a6002a2fc74cb632be"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ArasKargoShippingProvider.php",
+            "bytes": 1039,
+            "sha256": "55735daede3915753a2bcd479e0b23ad84aef659b25d6feaee49dd56aa03720d"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/AustraliaPostShippingProvider.php",
+            "bytes": 8373,
+            "sha256": "a62083eb892779b876f43b5a6bd0140e2892e5d33b82fd2c57c27cff120091d8"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/AzerpostShippingProvider.php",
+            "bytes": 1000,
+            "sha256": "a4cd0240a24211b20c4ec171fe73e989a1d91f5b22b0d9195463b35114166351"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/BartoliniBRTShippingProvider.php",
+            "bytes": 1038,
+            "sha256": "d8dbc39f93425943a3ff5eb41a457c4fd8f2e333c3193d8e0a1d8108d4a07992"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/BelpochtaShippingProvider.php",
+            "bytes": 1004,
+            "sha256": "46ee886f4b39edb04b4fd3d8cd84d6292c90c6e2d098c8b2aa5b3b1786dfa412"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/BpostShippingProvider.php",
+            "bytes": 1002,
+            "sha256": "6e7d8b53e31e2577feb6649c3d919dd346af29b82d96508051c7f4834edb7e57"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/BulgarianPostsShippingProvider.php",
+            "bytes": 1067,
+            "sha256": "a98b01932ffcd76ba000111b848410a467bb582d2aba962ff77a1765d111403b"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CDEKShippingProvider.php",
+            "bytes": 996,
+            "sha256": "efc15e74c958eee6f4761a0d78d3c964f65e4eeac429d32ab12031fe91458b22"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CTTShippingProvider.php",
+            "bytes": 1016,
+            "sha256": "2a2ef155845a39ff9c1db278088c0495b1e4433bbe6e0d0f96e7ba53d7af2a8f"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CanadaPostShippingProvider.php",
+            "bytes": 8800,
+            "sha256": "3e3cf85a7f3cefb1f1e9c577368e8f9be386ad2288e83e1838b8fa0a209c0cd9"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CeskaPostaShippingProvider.php",
+            "bytes": 1031,
+            "sha256": "b2e040e7f0b4280e830241fa35280f11de9f419c14e5ace580211916952fcd9d"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ChronopostShippingProvider.php",
+            "bytes": 1015,
+            "sha256": "f2be20a060779d5e197df80516d283eb9446c12e50514a5433d64c9a32790346"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CorreosShippingProvider.php",
+            "bytes": 1052,
+            "sha256": "93847a7cb6eb2c5f63f3b0bcb4a3134748d90552deb111210eb200952e749e60"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CustomShippingProvider.php",
+            "bytes": 2961,
+            "sha256": "66ee48279abbdbb45f8dd1b1dc34956eeda7210f726a4a66a6358f06595c3d26"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/CyprusPostShippingProvider.php",
+            "bytes": 1020,
+            "sha256": "1184da25a7439f628d1e4fe9a63b317030c3abdd02c5f846b79a43e7a9e49a1f"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/DHLShippingProvider.php",
+            "bytes": 7244,
+            "sha256": "7ad164ef4a040202cde3cea3ab71260fabd17248bf2947d76f869d18126bbf8f"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/DPDShippingProvider.php",
+            "bytes": 12467,
+            "sha256": "3b73fa38acfaea7f480c98d2794d57d75762929740d0cc78434d2cff87adaff9"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/DeutschePostShippingProvider.php",
+            "bytes": 1057,
+            "sha256": "cfc91d3335bf527eb41c4780fa9e232969d51d8ce71524a13d1d946aa32e4837"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ELTAShippingProvider.php",
+            "bytes": 975,
+            "sha256": "ba6c0322bb37a945d933312db72d46a7b071f27b2d9e8864df4ceee16015258c"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/EcontShippingProvider.php",
+            "bytes": 986,
+            "sha256": "9cf860b0e01fd7f48d60a2583726f4589db0c1aaf3d1abee3674663ad75db669"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/EimskipShippingProvider.php",
+            "bytes": 994,
+            "sha256": "89b34b479f7778c9cb03916c840b83c8f4c083d3c70f24f22f23f3e73be2b3ae"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/EvriHermesShippingProvider.php",
+            "bytes": 5985,
+            "sha256": "d8c560a15550af27e1c0f667ffc009f345fa0b1d8fabbf4ec31e692b071c5029"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/FanCourierShippingProvider.php",
+            "bytes": 1019,
+            "sha256": "cdd85b0712235e11fcd585963daa8d408918a15320614f86390e22f363cc8214"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/FastwayShippingProvider.php",
+            "bytes": 994,
+            "sha256": "4c510a7f4af67131c0552b8525fa297992fde3e94da72e26d05421be3b2e6bfa"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/FedExShippingProvider.php",
+            "bytes": 6655,
+            "sha256": "d7f27852c52cedafcedad221868a645cd7e5cca5be2181713785b33daec89813"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/GLSShippingProvider.php",
+            "bytes": 988,
+            "sha256": "0c44750bf6f34d6ab7e72d57fc4595cca3f744053801d2507c7a444f5e66b376"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/GenikiTaxydromikiShippingProvider.php",
+            "bytes": 1056,
+            "sha256": "ae9a5c17c06901cd95eb42f21416562c77731f34f031408c2bc5c9148d2f0ad4"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/HayPostShippingProvider.php",
+            "bytes": 997,
+            "sha256": "5579616b1372eeaba82086350cacebace6b3263456ab25f6816463565121d9f4"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/HelthjemShippingProvider.php",
+            "bytes": 1002,
+            "sha256": "7c08962fbbeb17830b92fc7ca0b6854f407b8c013f280b286c93ebd013ee6599"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/HrvatskaPostaShippingProvider.php",
+            "bytes": 1027,
+            "sha256": "8ffe3490ba440d202f67322c89868a972bebfa71abd2bb846eba01d6f75187f2"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/InPostShippingProvider.php",
+            "bytes": 998,
+            "sha256": "19322b25a25e2dee9d7801e08558a703b0db2575ee62ea76b902794606d84a1c"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/IslandsposturShippingProvider.php",
+            "bytes": 1088,
+            "sha256": "0f35e0a6d83b4712b6b4c8820ef9e45607ee8104cc37f16b5986b488163ce8be"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ItellaShippingProvider.php",
+            "bytes": 1005,
+            "sha256": "e02776213997813d74f2784e6ce82da626f34b2b2845c9f65f3f3704de0e91cb"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/KazpostShippingProvider.php",
+            "bytes": 994,
+            "sha256": "41067162f23ec58b4a3825ac5b273fa584b1197e2f0a7fb1315651dc0d1af6ec"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/LaPosteColissimoShippingProvider.php",
+            "bytes": 1075,
+            "sha256": "a005a561cecbca598bf03d7e9543f57e086e0c5ca992c2a98b6c5b93b330efda"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/LasershipOntracShippingProvider.php",
+            "bytes": 1041,
+            "sha256": "6d1d4c31ca4483ee5080011fb6f77c567f5374c7c7cfd8bf15346abecc2ee88d"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/LatvijasPastsShippingProvider.php",
+            "bytes": 1029,
+            "sha256": "528d0d40e186a26d24b74860e3d592dd4939bc08dac7d9daff27999f168d8a56"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/LiechtensteinischePostShippingProvider.php",
+            "bytes": 1073,
+            "sha256": "210c36941a9d7846c6fabb6e32363a4e1c553157ab7e6f734f82e759ed8bd22b"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MPLShippingProvider.php",
+            "bytes": 974,
+            "sha256": "e4827aee560517d784c69100ff43f491412c456329bfeb2e0a4a67fb43b7fdba"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MRWShippingProvider.php",
+            "bytes": 976,
+            "sha256": "fb76f43dba53af581d4c834c27c527e5802e35295ee952d1676275fe4505c8b5"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MagyarPostaShippingProvider.php",
+            "bytes": 1012,
+            "sha256": "58a556e39187388adfacec9c9306adc6e1676591b5b6763984e1b51d130f9281"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MakedonskaPostaShippingProvider.php",
+            "bytes": 1061,
+            "sha256": "209fd3a6391745906759a968d218fe1eebf7b9c6a6fe89063057dd58c9e7d079"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MaltaPostShippingProvider.php",
+            "bytes": 1007,
+            "sha256": "88625d570915b811ff7150a0bca55362d620fcb8bb0aa2494859ffc82e450d6a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MatkahuoltoShippingProvider.php",
+            "bytes": 1062,
+            "sha256": "f1aacb3880528bb276659c1061e25960ea96a4202ab18b1054ef4dade8a9f67e"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/MondialRelayShippingProvider.php",
+            "bytes": 1034,
+            "sha256": "4c46b7172012eaeb814cb730b45442e35c044297e4da0c3dfcaab564d520092b"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/NewZealandPostShippingProvider.php",
+            "bytes": 1054,
+            "sha256": "fa3e510c6e92c0325b37a12d4eb70d790df64821b682389938281a513c92e38e"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/NovaPoshtaShippingProvider.php",
+            "bytes": 1018,
+            "sha256": "69c1c0d3eab95cc0b3b06b49d13fa46be1de19ac38809efd6fcdf647d7e6df9a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/OmnivaShippingProvider.php",
+            "bytes": 988,
+            "sha256": "d19e1b40637727a46070213c3b6f36e1a407672aa3c702d5c9beded649bbd6de"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/OsterreichischePostShippingProvider.php",
+            "bytes": 1059,
+            "sha256": "a0d748f019e293b917c68b569df562d025b8e78325b06af5fc894957c148d277"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ParcelForceShippingProvider.php",
+            "bytes": 1025,
+            "sha256": "1c12baf842394989fdf707c14184cdf2c6d85e429d49500ce9071da6af3da12a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PocztaPolskaShippingProvider.php",
+            "bytes": 1037,
+            "sha256": "849e9037d5e783ae2d59818cd5b1b2d3b4a39a559d6cf2dc5b393495cda67570"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostLuxembourgShippingProvider.php",
+            "bytes": 1033,
+            "sha256": "e7fc24ebb799048040871f7c9f98708b8c0963b5a8e5d607574bd040b6dc708a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostNLShippingProvider.php",
+            "bytes": 997,
+            "sha256": "4149d77b1fc45e78122c62768f65088895485283c037c5b9fe6705ec705ae70f"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostNordShippingProvider.php",
+            "bytes": 1010,
+            "sha256": "1a2b797b168e0a52790e79aa491531087e4b55ae92f418277405efdd7519e0d6"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostaMoldoveiShippingProvider.php",
+            "bytes": 1027,
+            "sha256": "2ebe3bb3b23d6bb16d8350aebd40666e040e9dcafbcd5ba2f7d2c74a90f8462e"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostaRomanaShippingProvider.php",
+            "bytes": 1036,
+            "sha256": "aeb76664aa05364916f3a59a0f5e377f6905b1a2469dfe3859b8f40e8ec1c32c"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PosteItalianeShippingProvider.php",
+            "bytes": 1026,
+            "sha256": "bdc0b06d7da6dbdb076421972b34cf92568fafdddbd87e1eb3bad376cbe511b1"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PosteSanMarinoShippingProvider.php",
+            "bytes": 1059,
+            "sha256": "4ec9fa4a9152f068256431f34496fa23a23b4a13bc9a8e2f1a225001bbb6bbed"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PostenNorgeBringShippingProvider.php",
+            "bytes": 1052,
+            "sha256": "c769b8e0e7268f26026e62d35b588d299fd9d06fb213d7ecfa3ae8687be0ef66"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/PurolatorShippingProvider.php",
+            "bytes": 1022,
+            "sha256": "00a00f82c3a2c83bdf2bd43738432b81c475b8afbff202067544e6a3d58e61bd"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/RoyalMailShippingProvider.php",
+            "bytes": 9233,
+            "sha256": "e0da91ee484162ae3244310a596917b5247f6625c24e9b8d3d4b2331b9fd3fe8"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/RussianPostShippingProvider.php",
+            "bytes": 1020,
+            "sha256": "00021335723a6ffc6d26eeaa2b2221ed60cf8283ff85a493680f4b312da1a8b8"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/SDAShippingProvider.php",
+            "bytes": 970,
+            "sha256": "ec16d03202510fff062d043472670fcb9daf7a83599405580f95d5bfffe76797"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/SeurShippingProvider.php",
+            "bytes": 983,
+            "sha256": "e6d30f58b85f07537776347c55539f3e27516999cd67b361f5160559a099616b"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/SlovenskaPostaShippingProvider.php",
+            "bytes": 1033,
+            "sha256": "2ea4f1e0edd062ce8a2e6c6b19d8f6d33deb95353062fe010cda87edb25237ad"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/SpeeDeeDeliveryShippingProvider.php",
+            "bytes": 1051,
+            "sha256": "ea32542691a6704f350cbd459684d707d01db093cfea8d49e3ab487b543de6f1"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/StarTrackShippingProvider.php",
+            "bytes": 1010,
+            "sha256": "3941b86b4c0b9177e409f0ef08c398f82088d61a7297787fe0d8ec4814d48448"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/SwissPostShippingProvider.php",
+            "bytes": 1025,
+            "sha256": "00dd07739326b1e6774bedce82b3bca63fce610b63edb53ac44f9d568f095ec5"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/TollShippingProvider.php",
+            "bytes": 982,
+            "sha256": "dbba88de9ba66ab5600e982bde7d6f45d672b2a845c3d65a5b982527fe4f028a"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/UPSShippingProvider.php",
+            "bytes": 7604,
+            "sha256": "3bc3ad1a29bc9ee5a7a310f615b7df6cec31e236425c3ccd02060482d45d18bd"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/USPSShippingProvider.php",
+            "bytes": 6292,
+            "sha256": "556ec6ad74bd673783ad4a13a8d56f4021a26d6416ba8500101e09646176f5f2"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/UkrposhtaShippingProvider.php",
+            "bytes": 1006,
+            "sha256": "9c2b85308399998cf2eb593e7ea8d84b22f55a3b1f6509a3c005f99bda0ae6bc"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/UrgentCargusShippingProvider.php",
+            "bytes": 1031,
+            "sha256": "c2d4a6bcc06659a2d2864bdc9fd0988964ef301e4f7b633ee30c49f7c830304e"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/YurticiKargoShippingProvider.php",
+            "bytes": 1040,
+            "sha256": "c51680eddbfdfe5de00343014439ff89935ded0b78b0c29d4f47a8d0651941bc"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/Providers/ZasilkovnaShippingProvider.php",
+            "bytes": 1013,
+            "sha256": "8b4a9d94809f755a6e657009d7b265b99509ab74d79d795fac10dc83ea04ab39"
+        },
+        {
+            "path": "src/Admin/Features/Fulfillments/ShippingProviders.php",
+            "bytes": 6493,
+            "sha256": "111fd5ef618ab90fb3e73c3f6aa177cea003e8d6341675c5f8b8bd1e86bfede4"
+        },
+        {
+            "path": "src/Internal/RestApi/Routes/V4/Fulfillments/Controller.php",
+            "bytes": 19485,
+            "sha256": "c780950393b14329b45caaf2e2144700179db8f69c03c5abe4b442bf803f7cf3"
+        },
+        {
+            "path": "src/Internal/RestApi/Routes/V4/Fulfillments/Schema/FulfillmentSchema.php",
+            "bytes": 6095,
+            "sha256": "a9043cdb2af209707243d1a7284cb01ac3ee404deca73b0719c9a94cb07fb9df"
+        },
+        {
+            "path": "src/Utilities/FeaturesUtil.php",
+            "bytes": 5314,
+            "sha256": "994a85b43ee582264fc898cde1209a34970af01163832aa57e874dfec89baa1c"
+        },
+        {
+            "path": "templates/emails/customer-fulfillment-created.php",
+            "bytes": 3369,
+            "sha256": "1366534d693c6ff9ca7505c243aa3b52f27f21c194ea98aecb193f3f8298d6dd"
+        },
+        {
+            "path": "templates/emails/customer-fulfillment-deleted.php",
+            "bytes": 3538,
+            "sha256": "e3f3feadb9b2a8d5669d304c9e9f1cf456ca8e5ce33f969a2cc1e682c7737327"
+        },
+        {
+            "path": "templates/emails/customer-fulfillment-updated.php",
+            "bytes": 3834,
+            "sha256": "92d90d09a3531337e64727c1d9c0cd1d42a35fc3131a2bdd56447a79c9af0fa8"
+        },
+        {
+            "path": "templates/emails/email-fulfillment-details.php",
+            "bytes": 4337,
+            "sha256": "714f111e547878881e1c00f9024c27d48f5a389ca7ed8efb3616dc37c740224f"
+        },
+        {
+            "path": "templates/emails/email-fulfillment-items.php",
+            "bytes": 5551,
+            "sha256": "99e01b6062761a468415fb769aa6704b12a91193075d4094a604ebb177a14a4b"
+        }
+    ],
+    "skipped": [],
+    "total_bytes": 529168,
+    "limits": {
+        "per_file_bytes": 2097152,
+        "total_bytes": 26214400
+    }
+}
