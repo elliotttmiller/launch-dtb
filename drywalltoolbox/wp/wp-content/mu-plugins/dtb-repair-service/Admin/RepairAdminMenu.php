@@ -7,17 +7,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-add_action( 'init', 'dtb_repair_admin_add_capability' );
-
-/**
- * Ensure the Administrator role has the dtb_manage_repairs capability.
- */
-function dtb_repair_admin_add_capability(): void {
-	$role = get_role( 'administrator' );
-	if ( $role && ! $role->has_cap( 'dtb_manage_repairs' ) ) {
-		$role->add_cap( 'dtb_manage_repairs', true );
-	}
-}
+// `dtb_manage_repairs` capability grants are owned centrally by
+// `dtb-platform/Admin/AdminCapabilities.php` (`dtb_admin_all_capabilities()` /
+// `dtb_admin_role_capability_map()`) — see that file's header comment. This
+// used to independently re-grant the same capability to `administrator` on
+// every `init`; removed as a redundant duplicate of that canonical grant.
 
 // =============================================================================
 // SECTION 2 — ADMIN MENU

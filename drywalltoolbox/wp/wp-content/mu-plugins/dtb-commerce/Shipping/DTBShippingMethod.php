@@ -199,6 +199,32 @@ function dtb_commerce_zone_has_shipping_method( WC_Shipping_Zone $zone ): bool {
 }
 
 /**
+ * Return whether the zone's DTB policy instance is present *and enabled*.
+ *
+ * Distinct from `dtb_commerce_zone_has_shipping_method()` above on purpose:
+ * that check intentionally treats a disabled instance as "present" so the
+ * self-heal below never overrides an operator's explicit disable. But that
+ * same design means a disabled instance is otherwise invisible — checkout
+ * silently falls back to whatever other method is enabled on the zone (e.g.
+ * a bare flat rate) with no signal to an operator that anything is
+ * unusual. This helper exists only to let the bootstrap below detect that
+ * specific, easy-to-miss state and surface it via an admin notice, without
+ * changing the self-heal's behavior of respecting the disable itself.
+ */
+function dtb_commerce_zone_shipping_method_enabled( WC_Shipping_Zone $zone ): bool {
+	foreach ( (array) $zone->get_shipping_methods( false, 'admin' ) as $method ) {
+		if ( ! is_object( $method ) || DTB_SHIPPING_METHOD_ID !== (string) ( $method->id ?? '' ) ) {
+			continue;
+		}
+		return method_exists( $method, 'is_enabled' )
+			? (bool) $method->is_enabled()
+			: 'yes' === (string) ( $method->enabled ?? '' );
+	}
+
+	return false;
+}
+
+/**
  * Add DTB policy rates in memory when the matching zone has no DTB instance.
  *
  * This keeps public quote requests read-only. The rate fallback uses the same
@@ -357,24 +383,54 @@ function dtb_commerce_zone_matches_us( WC_Shipping_Zone $zone ): bool {
 /**
  * Bootstrap and repair the required persisted policy instances.
  *
- * Runs on woocommerce_init (covers all request types) and admin_init (ensures
- * zones are created on first admin visit even if woocommerce_init ran too
- * early during a non-WC request).
+ * Runs on a single `init` hook (covers frontend and wp-admin requests alike;
+ * previously two separate hooks — `woocommerce_init` and `admin_init` — did
+ * the same job, which was never actually necessary once this function
+ * guards its own class-existence check itself).
  *
- * SELF-HEALING: every run re-checks every real zone matching a US location
- * (not just the Rest-of-World zone 0) and re-attaches the DTB method to any
- * of them that are missing it, regardless of the version option. This
- * previously short-circuited on zone 0 alone once the version option
- * matched — a US zone that lost its DTB method (recreated by an admin,
- * method removed, etc.) was never repaired because the zone-0 check
- * returned before the US-zone loop ever ran, silently leaving checkout with
- * whatever bare shipping method was left in that zone (e.g. a single flat
- * "Free shipping" rate) instead of the Standard/Express/Overnight tiers.
- * The version option is now only a write-avoidance signal, not a gate on
- * whether the repair loop runs.
+ * SELF-HEALING: re-checks every real zone matching a US location (not just
+ * the Rest-of-World zone 0) and re-attaches the DTB method to any of them
+ * that are missing it, regardless of the version option — see git history
+ * for the bug this fixed (a version-gated short-circuit on zone 0 alone
+ * used to skip the US-zone repair loop entirely). The version option is
+ * only a write-avoidance signal for the cache-bump below, not a gate on
+ * whether repair happens.
+ *
+ * RATE-LIMITED, NOT PER-REQUEST: the checks above require live DB reads
+ * (zone list, zone locations, zone methods) for state that essentially
+ * never changes between one request and the next — running them on every
+ * single storefront and wp-admin page load in perpetuity was pure
+ * overhead for a condition that, in practice, only changes when an
+ * operator edits shipping settings or this code ships a new bootstrap
+ * version. A transient caps the actual DB work at once per hour
+ * site-wide; a version bump (a real code change to what "correct" means)
+ * always forces an immediate full check regardless of the transient,
+ * since the transient has no way to know about a change that happened
+ * only in code.
+ *
+ * WHAT SELF-HEALING CANNOT AND SHOULD NOT DO: if the DTB method exists on
+ * the US zone but an operator disabled it, that is respected as explicit
+ * intent and never silently re-enabled — but that also means it's
+ * otherwise invisible, since checkout just quietly falls back to whatever
+ * other method is enabled instead. This exact, easy-to-miss state is what
+ * produced a real production incident (checkout showing only a flat "Free
+ * shipping" rate with no visible cause). Auto-repair cannot both respect
+ * an intentional disable and safely guess whether a given disable was
+ * intentional, so instead of adding more repair logic here, this now
+ * surfaces that state as a wp-admin notice — see
+ * `dtb_commerce_render_shipping_method_disabled_notice()` below — so an
+ * operator sees it directly instead of it requiring an investigation.
  */
-add_action( 'woocommerce_init', 'dtb_bootstrap_shipping_zones', 20 );
-add_action( 'admin_init', 'dtb_bootstrap_shipping_zones' );
+add_action( 'init', 'dtb_bootstrap_shipping_zones', 20 );
+// Priority 1: dtb_commerce_render_shipping_method_disabled_notice() below
+// calls DTB_AdminNoticeService::add_error(), which itself registers another
+// default-priority (10) admin_notices callback. If this function ran at the
+// default priority too, that registration would happen *while* WordPress is
+// already iterating the priority-10 bucket on this same admin_notices firing,
+// and the newly-added callback can be skipped for this page load — the
+// notice would silently not render. Running this at priority 1 guarantees
+// its add_error() call registers before priority 10 is ever reached.
+add_action( 'admin_notices', 'dtb_commerce_render_shipping_method_disabled_notice', 1 );
 
 function dtb_bootstrap_shipping_zones(): void {
 	if ( ! class_exists( 'WC_Shipping_Zones' ) || ! class_exists( 'WC_Shipping_Zone' ) ) {
@@ -382,7 +438,27 @@ function dtb_bootstrap_shipping_zones(): void {
 	}
 
 	$version_match = DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION === (string) get_option( 'dtb_shipping_zones_bootstrapped' );
-	$repaired      = false;
+
+	if ( $version_match && false !== get_transient( 'dtb_shipping_zone_bootstrap_checked' ) ) {
+		return;
+	}
+
+	// get_transient()/set_transient() alone are not atomic: two requests
+	// arriving after the transient expires (or on first-ever load) could
+	// both pass the check above and both run the repair below concurrently.
+	// WooCommerce's own WC_Shipping_Zone::add_shipping_method() has no
+	// built-in duplicate guard — it always inserts a new zone-method row —
+	// so an unguarded race here could leave a zone with two DTB method
+	// instances. add_option() is atomic (a single INSERT relying on the
+	// unique key on option_name, unlike update_option()/set_transient()),
+	// which makes it WordPress's standard lightweight mutex idiom; used here
+	// instead of a bespoke locking mechanism.
+	if ( ! dtb_commerce_acquire_shipping_bootstrap_lock() ) {
+		return;
+	}
+
+	$repaired            = false;
+	$disabled_on_us_zone = false;
 
 	$has_us_zone = false;
 	foreach ( (array) WC_Shipping_Zones::get_zones() as $zone_data ) {
@@ -395,6 +471,8 @@ function dtb_bootstrap_shipping_zones(): void {
 		if ( ! dtb_commerce_zone_has_shipping_method( $zone ) ) {
 			$zone->add_shipping_method( DTB_SHIPPING_METHOD_ID );
 			$repaired = true;
+		} elseif ( ! dtb_commerce_zone_shipping_method_enabled( $zone ) ) {
+			$disabled_on_us_zone = true;
 		}
 	}
 
@@ -414,6 +492,8 @@ function dtb_bootstrap_shipping_zones(): void {
 		$repaired = true;
 	}
 
+	update_option( 'dtb_shipping_zone_method_disabled_warning', $disabled_on_us_zone ? '1' : '', false );
+
 	if ( $repaired || ! $version_match ) {
 		// A repaired zone (or a version bump, e.g. this fix shipping in the
 		// first place) means some request may already have a stale rate
@@ -424,4 +504,68 @@ function dtb_bootstrap_shipping_zones(): void {
 		dtb_commerce_invalidate_shipping_package_cache();
 		update_option( 'dtb_shipping_zones_bootstrapped', DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION );
 	}
+
+	// The transient is set only after a full pass completes, and only marks
+	// "recently checked" as a cheap fast-path skip for the common case —
+	// the add_option() lock above (not this) is what actually prevents a
+	// concurrent duplicate repair.
+	set_transient( 'dtb_shipping_zone_bootstrap_checked', 1, HOUR_IN_SECONDS );
+	dtb_commerce_release_shipping_bootstrap_lock();
+}
+
+/**
+ * Acquire a short-lived, atomic lock so two concurrent requests can never
+ * both run the shipping-zone repair pass at once. `add_option()` fails
+ * (returns false) if the option row already exists — an atomic DB-level
+ * check, unlike `update_option()`/transients — making it WordPress's
+ * standard idiom for a lightweight mutex. Reclaims a lock older than 60
+ * seconds (far longer than this repair pass should ever take) so a request
+ * that crashed mid-repair can't wedge every future bootstrap attempt.
+ */
+function dtb_commerce_acquire_shipping_bootstrap_lock(): bool {
+	$lock_option = 'dtb_shipping_zone_bootstrap_lock';
+
+	if ( add_option( $lock_option, time(), '', 'no' ) ) {
+		return true;
+	}
+
+	$acquired_at = (int) get_option( $lock_option );
+	if ( $acquired_at > 0 && ( time() - $acquired_at ) > 60 ) {
+		delete_option( $lock_option );
+		return add_option( $lock_option, time(), '', 'no' );
+	}
+
+	return false;
+}
+
+/**
+ * Release the lock acquired by `dtb_commerce_acquire_shipping_bootstrap_lock()`.
+ */
+function dtb_commerce_release_shipping_bootstrap_lock(): void {
+	delete_option( 'dtb_shipping_zone_bootstrap_lock' );
+}
+
+/**
+ * Warn an operator in wp-admin if the United States zone's DTB shipping
+ * method is disabled — the state `dtb_bootstrap_shipping_zones()` above
+ * deliberately never auto-corrects (see that function's comment). Reads
+ * only the option that function already computed during its last rate-
+ * limited pass; performs no DB query of its own on every admin page load.
+ */
+function dtb_commerce_render_shipping_method_disabled_notice(): void {
+	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+		return;
+	}
+	if ( '1' !== get_option( 'dtb_shipping_zone_method_disabled_warning' ) ) {
+		return;
+	}
+	if ( ! class_exists( 'DTB_AdminNoticeService' ) ) {
+		return;
+	}
+
+	DTB_AdminNoticeService::add_error(
+		'Drywall Toolbox Shipping is disabled on the "United States" shipping zone. ' .
+		'Customers only see whatever other method is enabled there (e.g. a flat Free Shipping rate) ' .
+		'instead of Standard/Express/Overnight. Enable it under WooCommerce → Settings → Shipping → United States.'
+	);
 }

@@ -5,6 +5,21 @@
  * Registers all DTB custom capabilities and assigns them to roles.
  * Called during 'init' with low priority so WooCommerce roles are available.
  *
+ * This is the single canonical source for every DTB capability grant. Before
+ * this consolidation, three other files (`dtb-repair-service/Admin/RepairAdminMenu.php`,
+ * `dtb-platform/Observability/OrderOperationsKpiService.php`,
+ * `dtb-support/Infrastructure/SupportSchemaInstaller.php`) each independently
+ * re-implemented the same "check role, add_cap() if missing, on every `init`"
+ * pattern for their own capability subset — three more per-request DB checks
+ * doing the same conceptual repair `dtb_admin_assign_capabilities()` below
+ * already does for every role, plus two capabilities (`dtb_manage_order_operations`,
+ * `dtb_manage_support_automation`) that only existed in those scattered
+ * functions and were never part of this canonical registry at all. Add any
+ * new DTB capability here — to `dtb_admin_all_capabilities()` and, if it
+ * belongs on a non-administrator role, to that role's array in
+ * `dtb_admin_role_capability_map()` — instead of adding another one-off grant
+ * function elsewhere.
+ *
  * @package drywall-toolbox
  */
 
@@ -34,6 +49,8 @@ function dtb_admin_all_capabilities(): array {
 		'dtb_manage_system',
 		'dtb_manage_settings',
 		'dtb_manage_deployments',
+		'dtb_manage_order_operations',
+		'dtb_manage_support_automation',
 
 		// Marketplace
 		'dtb_view_marketplace',
