@@ -1,20 +1,20 @@
 /*
  * Global customer-facing typography authority.
  *
- * Geist owns headings, title-like labels, and primary desktop navigation.
- * Nunito owns supporting copy, controls, form content, and numeric commerce
- * detail. This file is intentionally imported last so route-level and legacy
- * component styles cannot silently collapse the two-font hierarchy.
+ * Inter owns customer-facing commerce typography: headings, labels, controls,
+ * metadata, and numeric commerce detail. This file is intentionally imported
+ * last so route-level and legacy component styles cannot silently reintroduce
+ * older font stacks.
  */
 
 :root {
-  --dtb-font-body: "Nunito", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --dtb-font-display: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --dtb-font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --dtb-font-display: var(--dtb-font-body);
   --dtb-font-ui: var(--dtb-font-body);
   --dtb-font-sans: var(--dtb-font-body);
 
-  /* Legacy aliases remain body-copy aliases. Display aliases are explicit so
-     components cannot accidentally turn supporting content into Geist. */
+  /* Legacy aliases remain Inter aliases so older components inherit the same
+     commerce typography authority. */
   --font-main: var(--dtb-font-body);
   --font-sans: var(--dtb-font-body);
   --font-mono: var(--dtb-font-body);
@@ -44,8 +44,10 @@ body {
 }
 
 body {
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.55;
+  letter-spacing: -0.005em;
+  font-synthesis: none;
 }
 
 body :is(
@@ -85,7 +87,7 @@ body :is(
 /*
  * Hero and section titles frequently wrap gradient/highlight text in spans.
  * The body-copy authority above applies to every element, so title descendants
- * must explicitly stay in the display face instead of falling back to Nunito.
+ * must explicitly stay in the display face.
  */
 body :is(
   h1,
@@ -118,9 +120,9 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 800;
+  font-weight: 750;
   line-height: 1.12;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
@@ -146,14 +148,15 @@ option {
 
 button,
 [role="button"] {
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 input,
 select,
 textarea,
 option {
-  font-weight: 600;
+  font-weight: 450;
 }
 
 code,

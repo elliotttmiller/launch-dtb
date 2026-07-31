@@ -35,9 +35,10 @@ const EXPRESS_CHECKOUT_METHODS = Object.freeze([
   },
   {
     readinessKey: 'afterpay',
-    id: 'afterpay-clearpay',
-    label: 'Afterpay Clearpay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay-clearpay.svg`,
+    id: 'afterpay',
+    label: 'Afterpay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay.svg`,
+    framed: true,
   },
   {
     readinessKey: 'affirm',

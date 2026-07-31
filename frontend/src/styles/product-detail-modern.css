@@ -670,7 +670,7 @@
   text-align: center;
   font-size: 1.05rem;
   font-weight: 800;
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-feature-settings: 'tnum';
   color: #0f172a;
   background: transparent;
@@ -750,9 +750,9 @@
   border-radius: 12px;
   background: #ffffff;
   color: #0f172a;
-  font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
+  font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
   font-size: 0.88rem;
-  font-weight: 760;
+  font-weight: 650;
   letter-spacing: 0.01em;
   align-items: center;
   justify-content: center;
@@ -1741,11 +1741,11 @@
 
   .dtb-pdp-header__title {
     margin: 0;
-    font-family: var(--font-display, 'Geist', system-ui, sans-serif);
-    font-size: clamp(1.95rem, 2.08vw, 2.28rem);
-    font-weight: 780;
+    font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+    font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+    font-weight: 750;
     letter-spacing: -0.035em;
-    line-height: 1.06;
+    line-height: 1.04;
   }
 
   .dtb-pdp-header__desktop-reviews {
@@ -1763,7 +1763,9 @@
   }
 
   .dtb-pdp-header__price {
-    font-size: 2.05rem;
+    font-size: clamp(2rem, 2.7vw, 2.5rem);
+    font-weight: 750;
+    line-height: 1;
     letter-spacing: -0.035em;
   }
 
@@ -1772,7 +1774,10 @@
     align-items: center;
     gap: 5px;
     margin: 10px 0 0;
-    line-height: 1;
+    font-size: 0.875rem;
+    font-weight: 450;
+    letter-spacing: -0.005em;
+    line-height: 1.45;
   }
 
   .product-variation-panel {
@@ -1782,9 +1787,9 @@
 
   .product-variation-group__label {
     text-transform: none;
-    letter-spacing: 0;
-    font-size: 0.82rem;
-    font-weight: 750;
+    letter-spacing: -0.01em;
+    font-size: 0.875rem;
+    font-weight: 650;
   }
 
   .dtb-variant-pill {
@@ -1815,8 +1820,9 @@
     gap: 8px;
     margin: 0;
     color: #167b3b;
-    font-size: 0.78rem;
-    font-weight: 750;
+    font-size: 0.875rem;
+    font-weight: 650;
+    letter-spacing: -0.005em;
   }
 
   .dtb-pdp-stock-meter__label svg {
@@ -1831,8 +1837,9 @@
 
   .dtb-pdp-stock-meter__dispatch {
     color: #172033;
-    font-size: 0.75rem;
-    font-weight: 650;
+    font-size: 0.875rem;
+    font-weight: 450;
+    letter-spacing: -0.005em;
   }
 
   .dtb-pdp-stock-meter__track {
@@ -1922,8 +1929,9 @@
     min-height: 58px;
     padding: 0 12px;
     color: #64748b;
-    font-size: 0.83rem;
-    font-weight: 700;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 
   .dtb-pdp-tabs__tab.is-active {
