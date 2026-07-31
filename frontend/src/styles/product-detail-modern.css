@@ -1634,17 +1634,17 @@
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.145fr) minmax(500px, 1fr);
+    grid-template-columns: minmax(0, 1.16fr) minmax(470px, 0.84fr);
     align-items: stretch;
-    gap: 38px !important;
+    gap: 42px !important;
     margin-bottom: 14px !important;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery,
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
     box-sizing: border-box;
-    height: 620px;
-    min-height: 0;
+    min-height: 620px;
+    height: auto;
     border: 1px solid #dfe5ed;
     border-radius: 16px;
     background: #fff;
@@ -1727,7 +1727,7 @@
     display: flex !important;
     flex-direction: column;
     gap: 0 !important;
-    padding: 20px 30px 18px;
+    padding: 28px 36px 26px;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column > * {
@@ -1736,29 +1736,30 @@
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-header {
     gap: 0;
+    margin-bottom: 0;
   }
 
   .dtb-pdp-header__title {
     margin: 0;
     font-family: var(--font-display, 'Geist', system-ui, sans-serif);
-    font-size: clamp(1.85rem, 2vw, 2.15rem);
+    font-size: clamp(1.95rem, 2.08vw, 2.28rem);
     font-weight: 780;
     letter-spacing: -0.035em;
     line-height: 1.06;
   }
 
   .dtb-pdp-header__desktop-reviews {
-    margin-top: 12px;
+    margin-top: 14px;
     line-height: 1;
   }
 
   .dtb-pdp-header__meta {
-    margin-top: 16px;
+    margin-top: 18px;
     line-height: 1;
   }
 
   .dtb-pdp-header__price-block {
-    margin-top: 14px;
+    margin-top: 16px;
   }
 
   .dtb-pdp-header__price {
@@ -1770,13 +1771,13 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    margin: 8px 0 0;
+    margin: 10px 0 0;
     line-height: 1;
   }
 
   .product-variation-panel {
     gap: 8px;
-    margin: 24px 0 0;
+    margin: 28px 0 0;
   }
 
   .product-variation-group__label {
@@ -1796,7 +1797,7 @@
     align-items: center;
     justify-content: space-between;
     min-height: 42px;
-    margin: 8px 0;
+    margin: 18px 0 14px;
     padding: 0 14px;
     border: 1px solid #ccebd5;
     border-radius: 7px;
@@ -1839,7 +1840,7 @@
   }
 
   .dtb-pdp-purchase-panel {
-    gap: 12px;
+    gap: 13px;
   }
 
   .dtb-pdp-purchase-row {
@@ -1860,8 +1861,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-top: 0;
-    padding-top: 12px;
+    margin-top: 7px;
+    padding-top: 15px;
     border-top: 1px solid #e4e9ef;
   }
 

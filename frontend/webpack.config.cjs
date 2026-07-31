@@ -394,23 +394,6 @@ module.exports = (envFlags, argv) => {
             },
           },
           {
-            from: path.resolve(__dirname, '..', 'products', 'logos', 'upm-logos'),
-            to:   'payment_logos/[name][ext]',
-            globOptions: {
-              dot: false,
-              glob: '*.svg',
-              ignore: [
-                '**/logos-upm.svg',
-                '**/upm-logos.svg',
-                '**/visa.svg',
-                '**/mastercard.svg',
-                '**/discover.svg',
-                '**/american-express.svg',
-                '**/paypal.svg',
-              ],
-            },
-          },
-          {
             from: 'public/robots.txt',
             to: 'robots.txt',
             toType: 'file',
