@@ -148,12 +148,18 @@
 	 * else, including responsive resizing when the device switcher changes.
 	 */
 	function render() {
-		var firstRender = !root.firstChild;
+		// Admin/DesignerPage.php pre-renders a static loading placeholder
+		// inside #dtb-vd-root before this script ever runs, so root always has
+		// a child on the very first call — checking for the topbar specifically
+		// (rather than "any child at all") is what actually distinguishes
+		// "nothing rendered by JS yet" from "already rendered, just update it".
+		var firstRender = !root.querySelector('.dtb-vd__topbar');
 
 		var newTopbar = renderTopbar();
 		var newTree = renderTree();
 
 		if (firstRender) {
+			root.innerHTML = '';
 			root.appendChild(newTopbar);
 			var workspace = h('div', { class: 'dtb-vd__workspace' }, [newTree, renderStageContainer()]);
 			if (state.inspectorOpen) workspace.appendChild(renderInspector());
