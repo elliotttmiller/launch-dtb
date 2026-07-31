@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import { WooCommerceProvider } from './context/WooCommerceContext';
 import { WorkflowTransitionProvider } from './context/WorkflowTransitionContext.jsx';
 import { AuthProvider, useAuthContext } from './auth/AuthContext.js';
+import { DesignConfigProvider } from './context/DesignConfigContext.jsx';
 import AppErrorBoundary from './components/system/AppErrorBoundary.jsx';
 import CustomerErrorPage from './components/errors/CustomerErrorPage.jsx';
 import Header from './components/shell/Header';
@@ -300,16 +301,18 @@ function App() {
   return (
     <AppErrorBoundary>
       <AuthProvider>
-        <WooCommerceProvider>
-          <CartProvider>
-            <WorkflowTransitionProvider>
-              <Router basename={basename}>
-                <ScrollToTop />
-                <AppShell cartOpen={cartOpen} toggleCart={toggleCart} closeCart={closeCart} />
-              </Router>
-            </WorkflowTransitionProvider>
-          </CartProvider>
-        </WooCommerceProvider>
+        <DesignConfigProvider>
+          <WooCommerceProvider>
+            <CartProvider>
+              <WorkflowTransitionProvider>
+                <Router basename={basename}>
+                  <ScrollToTop />
+                  <AppShell cartOpen={cartOpen} toggleCart={toggleCart} closeCart={closeCart} />
+                </Router>
+              </WorkflowTransitionProvider>
+            </CartProvider>
+          </WooCommerceProvider>
+        </DesignConfigProvider>
       </AuthProvider>
     </AppErrorBoundary>
   );

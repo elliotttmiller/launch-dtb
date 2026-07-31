@@ -51,6 +51,7 @@ function dtb_admin_all_capabilities(): array {
 		'dtb_manage_deployments',
 		'dtb_manage_order_operations',
 		'dtb_manage_support_automation',
+		'dtb_manage_visual_designer',
 
 		// Marketplace
 		'dtb_view_marketplace',
@@ -133,6 +134,7 @@ function dtb_admin_role_capability_map(): array {
 			'dtb_view_api_health',
 			'dtb_view_config_reference',
 			'dtb_manage_deployments',
+			'dtb_manage_visual_designer',
 		],
 	];
 }
