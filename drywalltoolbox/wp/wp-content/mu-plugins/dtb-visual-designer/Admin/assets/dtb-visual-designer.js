@@ -29,7 +29,18 @@
 		conflict: null,
 		pendingOps: [],
 		flushTimer: null,
+		inspectorOpen: true,
 	};
+
+	// The editor exposes only three device sizes. "Desktop" authors the
+	// non-responsive baseline (breakpoint `base`); Tablet/Mobile author
+	// explicit responsive overrides on top of it. `dashicons` ship with
+	// wp-admin already, so no new icon assets are needed.
+	var DEVICES = [
+		{ id: 'desktop', breakpoint: 'base', icon: 'dashicons-desktop', label: 'Desktop' },
+		{ id: 'tablet', breakpoint: 'tablet', icon: 'dashicons-tablet', label: 'Tablet' },
+		{ id: 'mobile', breakpoint: 'mobile', icon: 'dashicons-smartphone', label: 'Mobile' },
+	];
 
 	// ── REST helpers ──────────────────────────────────────────────────────
 
@@ -111,11 +122,9 @@
 	function render() {
 		root.innerHTML = '';
 		root.appendChild(renderTopbar());
-		var workspace = h('div', { class: 'dtb-vd__workspace' }, [
-			renderNav(),
-			renderStageContainer(),
-			renderInspector(),
-		]);
+		var workspaceChildren = [renderTree(), renderStageContainer()];
+		if (state.inspectorOpen) workspaceChildren.push(renderInspector());
+		var workspace = h('div', { class: 'dtb-vd__workspace' }, workspaceChildren);
 		root.appendChild(workspace);
 	}
 
@@ -149,30 +158,80 @@
 		]);
 	}
 
+	function renderSurfaceSelect() {
+		var surfaces = state.registry.surfaces || {};
+		var byCategory = {};
+		Object.keys(surfaces).forEach(function (id) {
+			var s = surfaces[id];
+			byCategory[s.category] = byCategory[s.category] || [];
+			byCategory[s.category].push(s);
+		});
+
+		var groups = Object.keys(byCategory).map(function (cat) {
+			var options = byCategory[cat].map(function (surface) {
+				return h(
+					'option',
+					{ value: surface.id, selected: surface.id === state.selectedSurfaceId ? 'selected' : null },
+					[surface.name + (surface.commerce_critical ? ' (commerce)' : '')]
+				);
+			});
+			return h('optgroup', { label: cat.replace(/-/g, ' ') }, options);
+		});
+
+		return h(
+			'select',
+			{
+				class: 'dtb-vd__surface-select',
+				'aria-label': 'Surface',
+				onchange: function (e) {
+					state.selectedSurfaceId = e.target.value;
+					state.selectedComponentId = null;
+					render();
+				},
+			},
+			groups
+		);
+	}
+
 	function renderTopbar() {
-		var deviceBtns = (vd.breakpoints || ['base', 'desktop', 'tablet', 'mobile']).map(function (bp) {
+		var deviceBtns = DEVICES.map(function (device) {
 			return h(
 				'button',
 				{
 					class: 'dtb-vd__device-btn',
-					'aria-pressed': String(state.breakpoint === bp),
-					'aria-label': bp,
-					title: bp.charAt(0).toUpperCase() + bp.slice(1),
+					'aria-pressed': String(state.breakpoint === device.breakpoint),
+					'aria-label': device.label,
+					title: device.label,
 					onclick: function () {
-						state.breakpoint = bp;
+						state.breakpoint = device.breakpoint;
 						render();
 					},
 				},
-				[bp.slice(0, 1).toUpperCase()]
+				[h('span', { class: 'dashicons ' + device.icon, 'aria-hidden': 'true' }, [])]
 			);
 		});
 
 		return h('div', { class: 'dtb-vd__topbar' }, [
 			h('span', { class: 'dtb-vd__title' }, ['DTB Visual Designer']),
+			renderSurfaceSelect(),
 			statusBadge(),
 			h('div', { class: 'dtb-vd__topbar-spacer' }, []),
 			h('div', { class: 'dtb-vd__device-toolbar', role: 'group', 'aria-label': 'Responsive preview size' }, deviceBtns),
 			h('div', { class: 'dtb-vd__actions' }, [
+				h(
+					'button',
+					{
+						class: 'dtb-vd__btn dtb-vd__btn--ghost',
+						'aria-pressed': String(state.inspectorOpen),
+						'aria-label': 'Toggle inspector panel',
+						title: 'Toggle inspector panel',
+						onclick: function () {
+							state.inspectorOpen = !state.inspectorOpen;
+							render();
+						},
+					},
+					[h('span', { class: 'dashicons dashicons-align-right', 'aria-hidden': 'true' }, [])]
+				),
 				h(
 					'button',
 					{
@@ -187,56 +246,29 @@
 		]);
 	}
 
-	function renderNav() {
+	/**
+	 * The left panel is component-tree-only — surface selection lives in the
+	 * compact topbar dropdown (see renderSurfaceSelect()) instead of a wide
+	 * always-visible list, so the workspace keeps most of its width for the
+	 * live preview and inspector.
+	 */
+	function renderTree() {
 		var surfaces = state.registry.surfaces || {};
-		var byCategory = {};
-		Object.keys(surfaces).forEach(function (id) {
-			var s = surfaces[id];
-			byCategory[s.category] = byCategory[s.category] || [];
-			byCategory[s.category].push(s);
-		});
+		var surface = surfaces[state.selectedSurfaceId];
 
-		var children = [];
-		Object.keys(byCategory).forEach(function (cat) {
-			children.push(h('div', { class: 'dtb-vd__nav-section' }, [cat.replace(/-/g, ' ')]));
-			byCategory[cat].forEach(function (surface) {
-				var isCurrent = surface.id === state.selectedSurfaceId;
-				children.push(
-					h(
-						'button',
-						{
-							class: 'dtb-vd__nav-item',
-							'aria-current': String(isCurrent),
-							onclick: function () {
-								state.selectedSurfaceId = surface.id;
-								state.selectedComponentId = null;
-								render();
-							},
-						},
-						[
-							surface.name,
-							surface.commerce_critical
-								? h('span', { class: 'dtb-vd__nav-badge dtb-vd__nav-badge--commerce' }, ['commerce'])
-								: null,
-						]
-					)
-				);
-			});
-		});
-
-		if (state.selectedSurfaceId) {
-			children.push(renderTree(surfaces[state.selectedSurfaceId]));
+		if (!surface) {
+			return h('nav', { class: 'dtb-vd__nav', 'aria-label': 'Component tree' }, [
+				h('div', { class: 'dtb-vd__empty' }, ['Choose a surface above to see its components.']),
+			]);
 		}
 
-		return h('nav', { class: 'dtb-vd__nav', 'aria-label': 'Surfaces' }, children);
-	}
-
-	function renderTree(surface) {
 		var components = surface.components || {};
 		var ids = Object.keys(components);
 
 		if (!ids.length) {
-			return h('div', { class: 'dtb-vd__empty' }, ['This surface has no registered components yet.']);
+			return h('nav', { class: 'dtb-vd__nav', 'aria-label': 'Component tree' }, [
+				h('div', { class: 'dtb-vd__empty' }, ['This surface has no registered components yet.']),
+			]);
 		}
 
 		function depthOf(id, seen) {
@@ -268,7 +300,10 @@
 			return node;
 		});
 
-		return h('div', { class: 'dtb-vd__tree', role: 'tree', 'aria-label': surface.name + ' components' }, nodes);
+		return h('nav', { class: 'dtb-vd__nav', 'aria-label': surface.name + ' components' }, [
+			h('div', { class: 'dtb-vd__nav-section' }, [surface.name]),
+			h('div', { class: 'dtb-vd__tree', role: 'tree' }, nodes),
+		]);
 	}
 
 	function renderStageContainer() {
@@ -293,35 +328,50 @@
 		var surface = state.registry.surfaces[state.selectedSurfaceId];
 		var wrap = h('div', { class: 'dtb-vd__stage-frame-wrap', 'data-device': state.breakpoint === 'base' ? 'desktop' : state.breakpoint }, []);
 
-		if (!surface || !state.previewToken || !looksLikeRoute(surface.route)) {
+		if (!surface || !state.previewToken) {
 			wrap.appendChild(
-				h('div', { class: 'dtb-vd__empty' }, [
-					'Live embedded preview is not yet wired for this surface.',
-					h('span', {}, ['Token and property edits are still fully authored, drafted, and published below.']),
-				])
+				h('div', { class: 'dtb-vd__empty' }, ['Starting preview session…'])
 			);
 			return wrap;
 		}
 
-		var src =
-			(vd.storefrontOrigin || '') +
-			firstRoute(surface.route) +
-			(firstRoute(surface.route).indexOf('?') === -1 ? '?' : '&') +
-			'dtb_preview=1&dtb_preview_token=' +
-			encodeURIComponent(state.previewToken) +
-			'&dtb_preview_bp=' +
-			encodeURIComponent(state.breakpoint);
+		// The iframe always loads the storefront's root document — client-side
+		// React routes (e.g. /cart) have no server-side deep link and would
+		// 404/blank if framed directly. The SPA reads `dtb_preview_route` on
+		// mount and client-navigates to it once loaded (see
+		// frontend/src/designer/usePreviewRouteSync.js). Only WooCommerce-hosted
+		// pages (checkout) are real server routes; framing those directly at
+		// their own path also works, but routing them through `/` first keeps
+		// one consistent code path for every surface.
+		var targetRoute = surfaceTargetRoute(surface);
+		var params = [
+			'dtb_preview=1',
+			'dtb_preview_token=' + encodeURIComponent(state.previewToken),
+			'dtb_preview_bp=' + encodeURIComponent(state.breakpoint),
+		];
+		if (targetRoute !== '/') {
+			params.push('dtb_preview_route=' + encodeURIComponent(targetRoute));
+		}
+
+		var src = (vd.storefrontOrigin || '') + '/?' + params.join('&');
 
 		var iframe = h('iframe', { src: src, title: 'Storefront preview', loading: 'lazy' }, []);
 		wrap.appendChild(iframe);
 		return wrap;
 	}
 
-	function looksLikeRoute(route) {
-		return typeof route === 'string' && route.indexOf('/') === 0;
-	}
-	function firstRoute(route) {
-		return String(route).split(',')[0].split(' ')[0].replace(/:[a-zA-Z]+/g, '1');
+	/**
+	 * Resolve the concrete path to navigate the preview to once the SPA has
+	 * mounted. Surfaces with a real, unparameterized route (like /cart) use it
+	 * directly; global surfaces (header/footer) and descriptive/non-path
+	 * routes fall back to the homepage, since those components render on
+	 * every page.
+	 */
+	function surfaceTargetRoute(surface) {
+		var route = String(surface.route || '');
+		var first = route.split(',')[0].split(' ')[0];
+		if (first.indexOf('/') !== 0) return '/';
+		return first.replace(/:[a-zA-Z]+/g, '1');
 	}
 
 	function postToPreview(message) {

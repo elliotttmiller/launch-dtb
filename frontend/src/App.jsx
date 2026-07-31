@@ -6,6 +6,7 @@ import { WooCommerceProvider } from './context/WooCommerceContext';
 import { WorkflowTransitionProvider } from './context/WorkflowTransitionContext.jsx';
 import { AuthProvider, useAuthContext } from './auth/AuthContext.js';
 import { DesignConfigProvider } from './context/DesignConfigContext.jsx';
+import { usePreviewRouteSync } from './designer/usePreviewRouteSync.js';
 import AppErrorBoundary from './components/system/AppErrorBoundary.jsx';
 import CustomerErrorPage from './components/errors/CustomerErrorPage.jsx';
 import Header from './components/shell/Header';
@@ -323,6 +324,7 @@ function AppShell({ cartOpen, toggleCart, closeCart }) {
   const { user } = useAuthContext();
   const routeKey = `${location.pathname}${location.search}${location.hash}`;
   const previousRouteKeyRef = useRef(routeKey);
+  usePreviewRouteSync();
 
   const isHome = location.pathname === '/';
   const minimalChrome = location.pathname === '/checkout';

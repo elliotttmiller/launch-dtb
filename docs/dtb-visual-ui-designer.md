@@ -241,11 +241,28 @@ revisions readable after a component is renamed or removed.
 vanilla-JS-progressive-enhancement pattern as every other DTB admin screen
 (see `dtb-integrations/Veeqo/Admin/VeeqoAdminPage.php`) — no build step, no
 framework, `dtbAdminConfig`/`dtbVisualDesignerConfig` localized the same way.
-`Admin/assets/dtb-visual-designer.js` renders a three-pane workspace (surface
-navigator + component tree, live preview stage with a device toolbar,
-tabbed inspector for properties/tokens/history) styled by
+`Admin/assets/dtb-visual-designer.js` renders a workspace of: a compact
+surface picker (`<select>`, grouped by category) in the topbar rather than a
+persistent sidebar list; a narrow component-tree panel for whichever surface
+is selected; the live preview stage with a 3-icon device switcher
+(desktop/tablet/mobile — desktop authors the non-responsive `base` scope,
+tablet/mobile author explicit responsive overrides); and a tabbed inspector
+(properties/tokens/history) that can be toggled closed to give the preview
+the full remaining width. All of it is styled by
 `Admin/assets/dtb-visual-designer.css`, built entirely on the shared
 `.dtb-admin` design-token system — no parallel palette.
+
+### Preview routing
+
+The preview iframe always loads the storefront's root document (`/`), not
+the surface's own path. Most surfaces are client-side React routes with no
+server-side deep link (framing `/cart` directly can 404 or blank-page
+depending on host rewrite rules); only WooCommerce-hosted checkout is a real
+server route. The editor instead passes the intended path via a
+`dtb_preview_route` query param, and
+`frontend/src/designer/usePreviewRouteSync.js` performs one client-side
+`navigate()` to it once the SPA has mounted inside the iframe — one
+consistent code path for every surface, global or route-specific.
 
 ## Extensibility
 
