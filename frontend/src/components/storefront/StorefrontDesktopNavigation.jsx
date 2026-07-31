@@ -44,7 +44,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
           }
         }}
       >
-        <span>{item.label}</span>
+        <span className="dtb-desktop-nav-tab__label">{item.label}</span>
         <ChevronDown size={14} aria-hidden="true" />
       </button>
 
@@ -111,7 +111,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
           className={`dtb-desktop-nav-tab${isItemActive(item) ? ' is-active' : ''}`}
           onClick={onNavigate}
         >
-          {item.label}
+          <span className="dtb-desktop-nav-tab__label">{item.label}</span>
         </Link>
       ))}
     </nav>

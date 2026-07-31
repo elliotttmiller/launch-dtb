@@ -2,7 +2,7 @@ const REPAIR_PACKAGE_STORAGE_KEY = 'dtb:repair:selected-package';
 const MAX_SELECTION_AGE_MS = 10 * 60 * 1000;
 
 function normalizeAppPath(pathname = '') {
-  return String(pathname || '').replace(/^\/staging\/\d+(?=\/|$)/, '') || '/';
+  return String(pathname || '') || '/';
 }
 
 function readPersistedPackageId() {

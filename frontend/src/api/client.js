@@ -11,6 +11,7 @@
 import axios from 'axios';
 import { getToken, clearToken } from '../auth/tokenStore.js';
 import { emitGlobalLoadingEnd, emitGlobalLoadingStart } from '../utils/globalLoadingEvents.js';
+import { PUBLIC_SITE_URL } from '../utils/siteUrl.js';
 
 const inflightGetRequests = new Map();
 const getCooldowns = new Map();
@@ -26,7 +27,7 @@ const envApiBase = (process.env.REACT_APP_API_BASE_URL || '').replace(/\/+$/, ''
 // A configured remote API is retained only for explicit hosted previews.
 export const API_BASE_URL = !hostedPreview && runtimeOrigin
   ? runtimeOrigin
-  : (envApiBase || 'https://elliottm4.sg-host.com');
+  : (envApiBase || PUBLIC_SITE_URL);
 
 const configuredWpBaseRaw = (process.env.REACT_APP_WP_BASE_URL || '').replace(/\/+$/, '');
 const configuredWpBase = hostedPreview ? configuredWpBaseRaw : '';

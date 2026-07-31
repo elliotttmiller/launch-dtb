@@ -18,81 +18,8 @@ if ( ! function_exists( 'dtb_tracking_links_is_public_request' ) ) {
 	}
 }
 
-if ( ! function_exists( 'dtb_tracking_links_request_order_id' ) ) {
-	function dtb_tracking_links_request_order_id(): int {
-		$order_id = absint( get_query_var( 'order-received' ) );
-		if ( $order_id > 0 ) {
-			return $order_id;
-		}
-
-		$order_id = absint( get_query_var( 'order-pay' ) );
-		if ( $order_id > 0 ) {
-			return $order_id;
-		}
-
-		$request_uri = isset( $_SERVER['REQUEST_URI'] )
-			? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) )
-			: '';
-		$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
-
-		if ( preg_match( '#/(?:wp/)?checkout/(?:order-pay|order-received)/(\d+)/?#', $path, $matches ) ) {
-			return absint( $matches[1] );
-		}
-
-		return 0;
-	}
-}
-
-if ( ! function_exists( 'dtb_tracking_links_frontend_base_from_referer' ) ) {
-	function dtb_tracking_links_frontend_base_from_referer(): string {
-		$referer = wp_get_referer();
-		if ( ! $referer ) {
-			return '';
-		}
-
-		$home_parts = wp_parse_url( home_url( '/' ) );
-		$ref_parts  = wp_parse_url( $referer );
-		if ( ! is_array( $home_parts ) || ! is_array( $ref_parts ) ) {
-			return '';
-		}
-
-		$home_host = strtolower( (string) ( $home_parts['host'] ?? '' ) );
-		$ref_host  = strtolower( (string) ( $ref_parts['host'] ?? '' ) );
-		if ( '' === $home_host || '' === $ref_host || $home_host !== $ref_host ) {
-			return '';
-		}
-
-		$scheme = (string) ( $ref_parts['scheme'] ?? ( $home_parts['scheme'] ?? 'https' ) );
-		$host   = (string) ( $ref_parts['host'] ?? $home_host );
-		$path   = (string) ( $ref_parts['path'] ?? '' );
-
-		if ( preg_match( '#^(/staging/\d+)(?:/|$)#', $path, $matches ) ) {
-			return esc_url_raw( $scheme . '://' . $host . $matches[1] );
-		}
-
-		return esc_url_raw( home_url( '/' ) );
-	}
-}
-
 if ( ! function_exists( 'dtb_tracking_links_frontend_base_for_order' ) ) {
-	function dtb_tracking_links_frontend_base_for_order( WC_Order $order ): string {
-		$storefront_base_path = function_exists( 'dtb_order_storefront_base_path' )
-			? (string) dtb_order_storefront_base_path( $order )
-			: '';
-		if ( preg_match( '#^/staging/\d+$#', $storefront_base_path ) ) {
-			return rtrim( home_url( $storefront_base_path . '/' ), '/' );
-		}
-
-		$stored = esc_url_raw( (string) $order->get_meta( '_dtb_frontend_tracking_base_url', true ) );
-		if ( '' !== $stored ) {
-			return rtrim( $stored, '/' );
-		}
-
-		$from_referer = dtb_tracking_links_frontend_base_from_referer();
-		if ( '' !== $from_referer ) {
-			return rtrim( $from_referer, '/' );
-		}
-
+	function dtb_tracking_links_frontend_base_for_order( WC_Order $order ): string { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		return rtrim( home_url( '/' ), '/' );
 	}
 }
@@ -111,38 +38,6 @@ if ( ! function_exists( 'dtb_order_tracking_checkout_complete_url' ) ) {
 		return add_query_arg( 'checkout_complete', '1', dtb_order_tracking_url( $order ) );
 	}
 }
-
-if ( ! function_exists( 'dtb_tracking_links_capture_frontend_base' ) ) {
-	function dtb_tracking_links_capture_frontend_base(): void {
-		if ( ! dtb_tracking_links_is_public_request() || ! function_exists( 'wc_get_order' ) ) {
-			return;
-		}
-
-		$order_id = dtb_tracking_links_request_order_id();
-		if ( $order_id <= 0 ) {
-			return;
-		}
-
-		$order = wc_get_order( $order_id );
-		if ( ! $order instanceof WC_Order ) {
-			return;
-		}
-
-		if ( '' !== (string) $order->get_meta( '_dtb_frontend_tracking_base_url', true ) ) {
-			return;
-		}
-
-		$frontend_base = dtb_tracking_links_frontend_base_from_referer();
-		if ( '' === $frontend_base ) {
-			return;
-		}
-
-		$order->update_meta_data( '_dtb_frontend_tracking_base_url', rtrim( $frontend_base, '/' ) );
-		$order->save();
-	}
-}
-
-add_action( 'template_redirect', 'dtb_tracking_links_capture_frontend_base', 4 );
 
 /*
  * Deliberately NOT rewriting `woocommerce_get_checkout_order_received_url` and

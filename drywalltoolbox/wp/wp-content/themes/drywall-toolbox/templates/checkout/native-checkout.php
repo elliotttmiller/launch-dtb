@@ -18,8 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$storefront_base_path = function_exists( 'dtb_detect_storefront_base_path' ) ? dtb_detect_storefront_base_path() : '';
-$storefront_home_url  = home_url( $storefront_base_path . '/' );
+$storefront_home_url = home_url( '/' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>

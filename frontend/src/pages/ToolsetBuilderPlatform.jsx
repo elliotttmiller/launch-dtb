@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import SEOHead from '../components/shared/SEOHead';
 import Toast from '../components/ui/Toast';
+import AddToCartButton from '../components/ui/AddToCartButton.jsx';
 import { useCart } from '../context/CartContext';
 import { useToolsetBuilder } from '../hooks/useToolsetBuilder.js';
 
@@ -29,6 +30,7 @@ export default function ToolsetBuilderPlatform() {
 
   const [toast, setToast] = useState(null);
   const [validationErrors, setValidationErrors] = useState([]);
+  const [addingKit, setAddingKit] = useState(false);
 
   const requiredSlotIds = useMemo(
     () => (activeTemplate?.slots || []).filter((s) => s.required).map((s) => s.id),
@@ -38,24 +40,32 @@ export default function ToolsetBuilderPlatform() {
   const missingRequired = requiredSlotIds.filter((slotId) => !selections?.[slotId]);
 
   const handleAddConfiguredKit = async () => {
-    const result = await validate();
-    const errs = Array.isArray(result?.errors) ? result.errors : [];
-    setValidationErrors(errs);
-    if (!result?.valid) {
-      setToast({ type: 'error', message: errs[0]?.message || 'Validation failed.' });
-      return;
-    }
+    if (addingKit) return;
+    setAddingKit(true);
+    try {
+      const result = await validate();
+      const errs = Array.isArray(result?.errors) ? result.errors : [];
+      setValidationErrors(errs);
+      if (!result?.valid) {
+        setToast({ type: 'error', message: errs[0]?.message || 'Validation failed.' });
+        return;
+      }
 
-    if (!Array.isArray(cartLines) || cartLines.length === 0) {
-      setToast({ type: 'error', message: 'No selected items to add.' });
-      return;
-    }
+      if (!Array.isArray(cartLines) || cartLines.length === 0) {
+        setToast({ type: 'error', message: 'No selected items to add.' });
+        return;
+      }
 
-    for (const line of cartLines) {
-      await addToCart(line, line.quantity || 1, { announce: false });
-    }
+      for (const line of cartLines) {
+        await addToCart(line, line.quantity || 1, { announce: false });
+      }
 
-    setToast({ type: 'cart', message: 'Configured toolset added to cart.' });
+      setToast({ type: 'cart', message: 'Configured toolset added to cart.' });
+    } catch (cartError) {
+      setToast({ type: 'error', message: cartError?.message || 'Could not add this toolset to the cart.' });
+    } finally {
+      setAddingKit(false);
+    }
   };
 
   return (
@@ -63,7 +73,7 @@ export default function ToolsetBuilderPlatform() {
       <SEOHead
         title="Toolset Builder"
         description="Configure toolsets from canonical DTB templates and eligible slot options."
-        canonical="https://elliottm4.sg-host.com/toolset-builder"
+        canonical="/toolset-builder"
       />
 
       <div className="container mx-auto px-4 py-6 space-y-6">
@@ -169,14 +179,14 @@ export default function ToolsetBuilderPlatform() {
                 ))}
               </ul>
             ) : null}
-            <button
+            <AddToCartButton
               onClick={handleAddConfiguredKit}
-              disabled={validating || missingRequired.length > 0}
+              disabled={validating || addingKit || missingRequired.length > 0}
               className="px-4 py-2 rounded-md bg-primary-600 text-white disabled:opacity-50"
-              data-dtb-cart-action="add"
-            >
-              {validating ? 'Validating…' : 'Validate and add configured kit'}
-            </button>
+              size="default"
+              label={validating ? 'Validating…' : 'Validate and add configured kit'}
+              state={addingKit ? 'adding' : 'idle'}
+            />
             {error ? <p className="text-sm text-red-700">{error.message || 'Unexpected error.'}</p> : null}
           </section>
         )}

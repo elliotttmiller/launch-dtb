@@ -4,7 +4,7 @@
  * Centralized image constants.
  *
  * Product galleries must never emit environment-relative placeholder URLs such as
- * /staging/2972/no-image-placeholder.webp. Use an inline data URI fallback so a
+ * /no-image-placeholder.webp. Use an inline data URI fallback so a
  * missing image never becomes a persisted or rendered external image link.
  */
 

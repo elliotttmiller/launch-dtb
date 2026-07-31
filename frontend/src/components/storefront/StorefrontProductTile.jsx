@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Eye, Info } from 'lucide-react';
+import { Eye, Info } from 'lucide-react';
 import ProductCardImage from '../product/ProductCardImage';
+import AddToCartButton from '../ui/AddToCartButton.jsx';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(
@@ -333,19 +334,16 @@ export default function StorefrontProductTile({
           </div>
 
           {!isVariable && (
-            <button
-              type="button"
+            <AddToCartButton
               onClick={handleAddButtonClick}
               disabled={outOfStock}
               className={`dtb-product-card__action${isMobile ? ' dtb-product-card__action--hidden-mobile' : ''}`}
-              data-dtb-card-action="add"
-              data-dtb-cart-action="add"
-              data-dtb-cart-product-id={displayProduct.id}
+              size="card"
+              label="Add"
+              productId={displayProduct.id}
               aria-label={`Add ${name} to cart`}
-            >
-              <ShoppingCart size={14} />
-              <span>Add</span>
-            </button>
+              data-dtb-card-action="add"
+            />
           )}
         </div>
       </div>

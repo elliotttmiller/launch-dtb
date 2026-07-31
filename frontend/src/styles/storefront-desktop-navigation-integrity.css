@@ -37,7 +37,9 @@
     font-weight: 650;
     text-decoration: none;
     position: relative;
-    transition: color 0.4s ease;
+    transition:
+      color 240ms cubic-bezier(0.22, 1, 0.36, 1),
+      text-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .site-header .dtb-desktop-nav {
@@ -64,7 +66,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .site-header .dtb-desktop-nav-tab,
-    .site-header .dtb-desktop-nav-tab::after {
+    .site-header .dtb-desktop-nav-tab::before,
+    .site-header .dtb-desktop-nav-tab__label::after {
       transition: none;
     }
   }

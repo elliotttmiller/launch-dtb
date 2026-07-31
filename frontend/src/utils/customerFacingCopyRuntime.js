@@ -25,7 +25,7 @@ const CUSTOMER_FACING_COPY_ATTRIBUTE_NAMES = [
 ];
 
 function normalizeAppPath(pathname = '') {
-  return String(pathname || '').replace(/^\/staging\/\d+(?=\/|$)/, '') || '/';
+  return String(pathname || '') || '/';
 }
 
 function shouldNormalizeCustomerCopy() {

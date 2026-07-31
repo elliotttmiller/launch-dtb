@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import Toast from '../components/ui/Toast';
+import AddToCartButton from '../components/ui/AddToCartButton.jsx';
 import { getProducts } from '../services/catalog';
 import { PLACEHOLDER_IMAGE } from '../constants/images.js';
 import { getProductVariations } from '../services/api';
@@ -47,10 +48,10 @@ import {
   BUILDER_BRANDS, getSlotProducts,
 } from '../data/toolsetTemplates';
 
-const tapeTechLogo  = 'https://elliottm4.sg-host.com/logos/tapetech_logo.svg';
-const columbiaLogo  = 'https://elliottm4.sg-host.com/logos/columbia_taping_tools_logo.svg';
-const level5Logo    = 'https://elliottm4.sg-host.com/logos/Level5.svg';
-const asgardLogo    = 'https://elliottm4.sg-host.com/logos/asgard_logo.svg';
+const tapeTechLogo  = '/logos/tapetech_logo.svg';
+const columbiaLogo  = '/logos/columbia_taping_tools_logo.svg';
+const level5Logo    = '/logos/Level5.svg';
+const asgardLogo    = '/logos/asgard_logo.svg';
 
 import '../styles/toolset-builder.css';
 
@@ -333,12 +334,12 @@ function Stage1({ allProducts, loading, onConfigure }) {
                 {brandTemplates.map((template, index) => {
                   // Use a representative image for each kit type
                   const kitImage = template.scope === 'full' 
-                    ? 'https://elliottm4.sg-host.com/products/automatic-taping-tools-placeholder.jpg'
+                    ? '/products/automatic-taping-tools-placeholder.jpg'
                     : template.scope === 'finishing'
-                    ? 'https://elliottm4.sg-host.com/products/finishing-boxes-placeholder.jpg'
+                    ? '/products/finishing-boxes-placeholder.jpg'
                     : template.scope === 'taping'
-                    ? 'https://elliottm4.sg-host.com/products/taper-placeholder.jpg'
-                    : 'https://elliottm4.sg-host.com/products/flat-box-placeholder.jpg';
+                    ? '/products/taper-placeholder.jpg'
+                    : '/products/flat-box-placeholder.jpg';
                   
                   return (
                     <button
@@ -756,7 +757,7 @@ function Stage2({ template, allProducts, slotSelections, onSlotSelect, onBack, o
 
 // ─── Stage 3: Review & Cart ───────────────────────────────────────────────────
 
-function Stage3({ template, slotSelections, onRemove, onBack, onAddToCart, success, onStartOver }) {
+function Stage3({ template, slotSelections, onRemove, onBack, onAddToCart, adding, success, onStartOver }) {
   const selectedItems = useMemo(
     () => template.slots.map((s) => ({ slot: s, product: slotSelections[s.id] || null })).filter((i) => i.product),
     [template, slotSelections]
@@ -851,14 +852,14 @@ function Stage3({ template, slotSelections, onRemove, onBack, onAddToCart, succe
         </div>
         <div className="tsb-stage3-ctas">
           <button className="tsb-back-btn" onClick={onBack}><ChevronLeft size={13} /> Edit Kit</button>
-          <button
+          <AddToCartButton
             className="tsb-add-cart-btn"
-            disabled={selectedItems.length === 0}
+            size="wide"
+            label="Add Complete Kit to Cart"
+            state={adding ? 'adding' : 'idle'}
+            disabled={selectedItems.length === 0 || adding}
             onClick={onAddToCart}
-            data-dtb-cart-action="add"
-          >
-            <ShoppingCart size={16} /> Add Complete Kit to Cart
-          </button>
+          />
         </div>
       </div>
     </div>
@@ -876,6 +877,7 @@ export default function ToolsetBuilder() {
   const [loading, setLoading]                 = useState(true);
   const [toast, setToast]                     = useState(null);
   const [success, setSuccess]                 = useState(false);
+  const [addingKit, setAddingKit]             = useState(false);
 
   // Load catalog
   useEffect(() => {
@@ -903,16 +905,19 @@ export default function ToolsetBuilder() {
   }, []);
 
   const handleAddToCart = useCallback(async () => {
-    if (!template) return;
+    if (!template || addingKit) return;
     const products = template.slots.map((s) => slotSelections[s.id]).filter(Boolean);
+    setAddingKit(true);
     try {
       await Promise.all(products.map((product) => addToCart(product, 1, { announce: false })));
       setSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
       setSuccess(false);
+    } finally {
+      setAddingKit(false);
     }
-  }, [template, slotSelections, addToCart]);
+  }, [template, slotSelections, addToCart, addingKit]);
 
   const handleStartOver = useCallback(() => {
     setStage(1); setTemplate(null); setSlotSelections({}); setSuccess(false);
@@ -929,7 +934,7 @@ export default function ToolsetBuilder() {
       <SEOHead
         title="Kit Builder — Build Your Custom Drywall Toolset | Drywall Toolbox"
         description="Build your perfect drywall toolset step by step. Choose your workflow, configure every tool slot with real photos and prices, compare options side-by-side, and add your complete kit to cart."
-        canonical="https://elliottm4.sg-host.com/toolset-builder"
+        canonical="/toolset-builder"
       />
 
       <div className="tsb-page">
@@ -1008,6 +1013,7 @@ export default function ToolsetBuilder() {
               onRemove={handleSlotRemove}
               onBack={() => handleBack(2)}
               onAddToCart={handleAddToCart}
+              adding={addingKit}
               success={success}
               onStartOver={handleStartOver}
             />

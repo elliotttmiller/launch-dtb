@@ -1,6 +1,9 @@
 import './calculator-report.css'
 
-const LOGO_URL = 'https://elliottm4.sg-host.com/logos/logo-white.svg'
+import { absoluteSiteUrl, PUBLIC_SITE_URL } from '../../../utils/siteUrl.js'
+
+const LOGO_URL = absoluteSiteUrl('/logos/logo-white.svg')
+const SITE_HOST = new URL(PUBLIC_SITE_URL).host
 
 export default function CalculatorReport({ report }) {
   return (
@@ -98,7 +101,7 @@ export default function CalculatorReport({ report }) {
       <footer className="dtb-report-footer">
         <div className="dtb-report-footer-brand">
           <strong>Drywall Toolbox</strong>
-          <span>elliottm4.sg-host.com</span>
+          <span>{SITE_HOST}</span>
         </div>
         <p>{report.disclaimer}</p>
       </footer>

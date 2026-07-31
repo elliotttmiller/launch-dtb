@@ -13,8 +13,7 @@ if ( ! function_exists( 'dtb_repair_normalize_frontend_base_url' ) ) {
 	 *
 	 * The frontend base is the SPA root, not the repair status route.
 	 * Accepted examples:
-	 * - https://elliottm4.sg-host.com
-	 * - https://elliottm4.sg-host.com/staging/2962
+	 * - https://drywalltoolbox.com
 	 *
 	 * @param string $raw Raw URL or path.
 	 * @return string Normalized absolute base URL, without trailing slash.
@@ -47,19 +46,12 @@ if ( ! function_exists( 'dtb_repair_normalize_frontend_base_url' ) ) {
 
 		$scheme = (string) ( $parts['scheme'] ?? $home_scheme );
 		$host   = strtolower( (string) ( $parts['host'] ?? $home_host ) );
-		$path   = '/' . trim( (string) ( $parts['path'] ?? '/' ), '/' );
 
 		if ( '' === $host || $host !== $home_host || ! in_array( $scheme, [ 'http', 'https' ], true ) ) {
 			return '';
 		}
 
-		if ( preg_match( '#^/staging/\d+(?:/|$)#', $path, $matches ) ) {
-			$path = rtrim( $matches[0], '/' );
-		} else {
-			$path = '';
-		}
-
-		return rtrim( esc_url_raw( $scheme . '://' . $host . $path ), '/' );
+		return rtrim( esc_url_raw( $scheme . '://' . $host ), '/' );
 	}
 }
 
@@ -87,8 +79,8 @@ if ( ! function_exists( 'dtb_repair_configured_frontend_base_url' ) ) {
 	/**
 	 * Resolve configured frontend base.
 	 *
-	 * Constants/env/options allow production to override the development staging
-	 * route without touching repair workflow code.
+	 * Constants/env/options may declare the canonical same-origin frontend
+	 * without changing repair workflow code.
 	 *
 	 * @return string
 	 */
@@ -117,18 +109,6 @@ if ( ! function_exists( 'dtb_repair_configured_frontend_base_url' ) ) {
 		}
 
 		return '';
-	}
-}
-
-if ( ! function_exists( 'dtb_repair_development_frontend_base_url' ) ) {
-	/**
-	 * Development fallback for the current staging SPA deployment.
-	 *
-	 * @return string
-	 */
-	function dtb_repair_development_frontend_base_url(): string {
-		$path = (string) apply_filters( 'dtb_repair_development_frontend_path', '/staging/2962' );
-		return dtb_repair_normalize_frontend_base_url( $path );
 	}
 }
 
@@ -166,11 +146,6 @@ if ( ! function_exists( 'dtb_repair_resolve_frontend_base_url' ) ) {
 		$configured_base = dtb_repair_configured_frontend_base_url();
 		if ( '' !== $configured_base ) {
 			return $configured_base;
-		}
-
-		$development_base = dtb_repair_development_frontend_base_url();
-		if ( '' !== $development_base ) {
-			return $development_base;
 		}
 
 		return rtrim( home_url( '/' ), '/' );

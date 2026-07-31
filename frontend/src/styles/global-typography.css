@@ -82,6 +82,36 @@ body :is(
   font-family: var(--dtb-font-display) !important;
 }
 
+/*
+ * Hero and section titles frequently wrap gradient/highlight text in spans.
+ * The body-copy authority above applies to every element, so title descendants
+ * must explicitly stay in the display face instead of falling back to Nunito.
+ */
+body :is(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  [role="heading"],
+  .dtb-title-eyebrow,
+  [class$="__title"],
+  [class*="__title "],
+  [class$="-title"],
+  [class*="-title "],
+  [class$="__heading"],
+  [class*="__heading "],
+  [class$="-heading"],
+  [class*="-heading "],
+  [class$="__headline"],
+  [class*="__headline "],
+  [class$="-headline"],
+  [class*="-headline "]
+) * {
+  font-family: var(--dtb-font-display) !important;
+}
+
 h1,
 h2,
 h3,

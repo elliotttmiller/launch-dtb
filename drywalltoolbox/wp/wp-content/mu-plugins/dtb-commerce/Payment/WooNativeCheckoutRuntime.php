@@ -96,7 +96,7 @@ final class DTB_WooNativeCheckoutRuntime {
 			: '';
 		$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 
-		return (bool) preg_match( '#/(?:staging/[A-Za-z0-9_-]+/)?checkout(?:/|$)#i', $path );
+		return (bool) preg_match( '#/checkout(?:/|$)#i', $path );
 	}
 }
 

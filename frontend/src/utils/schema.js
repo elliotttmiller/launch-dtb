@@ -5,7 +5,9 @@
  * No side effects — every function receives data and returns a plain object.
  */
 
-const SITE_URL  = 'https://elliottm4.sg-host.com';
+import { absoluteSiteUrl, canonicalSiteUrl, PUBLIC_SITE_URL } from './siteUrl.js';
+
+const SITE_URL  = PUBLIC_SITE_URL;
 const SITE_NAME = 'Drywall Toolbox';
 
 /** Remove HTML tags and decode common entities for clean schema descriptions. */
@@ -56,7 +58,7 @@ export function buildProductSchema(product, reviews = []) {
     ...(brand     && { brand: { '@type': 'Brand', name: brand } }),
     offers: {
       '@type':            'Offer',
-      url:                product.permalink || (product.slug ? `${SITE_URL}/products/${product.slug}` : `${SITE_URL}/products/${product.id}`),
+      url:                canonicalSiteUrl(product.permalink || (product.slug ? `/products/${product.slug}` : `/products/${product.id}`)),
       priceCurrency:      'USD',
       price:              salePrice || price,
       ...(price && salePrice && { priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10) }),
@@ -116,7 +118,7 @@ export function buildBreadcrumbSchema(crumbs) {
       '@type':  'ListItem',
       position: index + 1,
       name:     crumb.label,
-      item:     `${SITE_URL}${crumb.path}`,
+      item:     canonicalSiteUrl(crumb.path),
     })),
   };
 }
@@ -132,7 +134,7 @@ export function buildOrganizationSchema() {
     '@type':      'Organization',
     name:         SITE_NAME,
     url:          SITE_URL,
-    logo:         `${SITE_URL}/logo-black.svg`,
+    logo:         absoluteSiteUrl('/logo-black.svg'),
     description:  'Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more.',
     contactPoint: {
       '@type':            'ContactPoint',
@@ -162,7 +164,7 @@ export function buildSiteLinksSearchBoxSchema() {
       '@type':       'SearchAction',
       target:        {
         '@type':      'EntryPoint',
-        urlTemplate:  `${SITE_URL}/all-products?search={search_term_string}`,
+        urlTemplate:  absoluteSiteUrl('/all-products?search={search_term_string}'),
       },
       'query-input': 'required name=search_term_string',
     },

@@ -2,22 +2,20 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { startTransition, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
-import { ShoppingCart, X, ChevronRight, User, LogIn, UserPlus, LogOut, Search } from 'lucide-react';
+import { ShoppingCart, X, ChevronRight, User, LogIn, UserPlus, LogOut } from 'lucide-react';
 import LogoWhite from '/logo-white.svg';
 import StorefrontSearchOverlay from './StorefrontSearchOverlay';
 import StorefrontMobileDrawer from './StorefrontMobileDrawer';
 import AccountHubSheet from '../account/AccountHubSheet.jsx';
 import { searchProducts } from '../../services/catalog';
-import { searchWithNivo } from '../../api/nivoSearch.js';
 import StorefrontSearchDock from './StorefrontSearchDock';
-import StorefrontSearchLoading from './StorefrontSearchLoading.jsx';
 import StorefrontDesktopNavigation from './StorefrontDesktopNavigation.jsx';
+import StorefrontCatalogAutocomplete from './StorefrontCatalogAutocomplete.jsx';
 import { useCatalogFacets } from '../../hooks/useCatalogFacets.js';
 import { getRepairPackageGroups } from '../../data/repairPackages.js';
 import { SCHEMATIC_BRANDS } from '../../data/schematicBrands.js';
 import '../../styles/mobile-hamburger.css';
 import '../../styles/mobile-header-actions.css';
-import '../../styles/storefront-nivo-runtime-bridge.css';
 import {
   buildDisplayCategoryUrl,
   mapCatalogBrands,
@@ -26,10 +24,8 @@ import {
 } from '../../utils/catalogFacets.js';
 
 const SEARCH_OVERLAY_EXIT_MS = 360;
-const DESKTOP_SEARCH_DELAY_MS = 180;
 const MOBILE_SEARCH_DELAY_MS = 220;
 const MAX_SEARCH_PRODUCTS = 6;
-const MAX_SEARCH_SUGGESTIONS = 8;
 
 const DRAWER_NAV_ROWS = [
   { to: '/products?sort=newest', label: 'New Arrivals' },
@@ -78,18 +74,12 @@ const buildProductsBrandRoute = (slug) => `/products/brands/${slug}`;
 const buildPartsBrandRoute = (slug) => `/parts?brand=${encodeURIComponent(slug)}`;
 const buildSchematicsBrandRoute = (slug) => `/schematics?brand=${encodeURIComponent(slug)}`;
 
-function toFallbackSearchProduct(product) {
+function toSearchProduct(product) {
   return {
     ...product,
     priceText: typeof product?.price === 'number' ? `$${product.price.toFixed(2)}` : 'View product',
-    source: product?.source || 'dtb-fallback',
+    source: product?.source || 'dtb-catalog',
   };
-}
-
-function searchProductPrice(product) {
-  if (product?.priceText) return product.priceText;
-  if (typeof product?.price === 'number') return `$${product.price.toFixed(2)}`;
-  return 'View product';
 }
 
 export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = false }) {
@@ -108,13 +98,9 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
   const [accountUnreadCount, setAccountUnreadCount] = useState(0);
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
   const [desktopSearchQuery, setDesktopSearchQuery] = useState('');
-  const [desktopSearchResults, setDesktopSearchResults] = useState([]);
-  const [desktopSearchSuggestions, setDesktopSearchSuggestions] = useState([]);
-  const [desktopSearchLoading, setDesktopSearchLoading] = useState(false);
   const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
   const [mobileSearchQuery, setMobileSearchQuery] = useState('');
   const [mobileSearchResults, setMobileSearchResults] = useState([]);
-  const [mobileSearchSuggestions, setMobileSearchSuggestions] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const { facets } = useCatalogFacets();
   const { facets: partsFacets } = useCatalogFacets({ isParts: 1 });
@@ -122,10 +108,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
   const desktopSearchRef = useRef(null);
   const desktopSearchInputRef = useRef(null);
   const mobileSearchInputRef = useRef(null);
-  const desktopSearchRequestIdRef = useRef(0);
   const searchOverlayRequestIdRef = useRef(0);
-  const desktopSearchAbortRef = useRef(null);
-  const mobileSearchAbortRef = useRef(null);
   const searchOverlayResetTimerRef = useRef(null);
   const prevPathnameRef = useRef(location.pathname);
   const [isTablet, setIsTablet] = useState(() => {
@@ -258,12 +241,10 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
       window.clearTimeout(searchOverlayResetTimerRef.current);
     }
     searchOverlayRequestIdRef.current += 1;
-    mobileSearchAbortRef.current?.abort();
     setSearchOverlayOpen(false);
     searchOverlayResetTimerRef.current = window.setTimeout(() => {
       setMobileSearchQuery('');
       setMobileSearchResults([]);
-      setMobileSearchSuggestions([]);
       setSearchLoading(false);
       searchOverlayResetTimerRef.current = null;
     }, SEARCH_OVERLAY_EXIT_MS);
@@ -281,8 +262,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
     if (searchOverlayResetTimerRef.current) {
       window.clearTimeout(searchOverlayResetTimerRef.current);
     }
-    desktopSearchAbortRef.current?.abort();
-    mobileSearchAbortRef.current?.abort();
   }, []);
 
   const handleMobileMenuCheckedChange = useCallback((checked) => {
@@ -398,115 +377,30 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
   }, [hasTopTicker, mobileMenuOpen, isTablet]);
 
   useEffect(() => {
-    const query = desktopSearchQuery.trim();
-    const requestId = desktopSearchRequestIdRef.current + 1;
-    desktopSearchRequestIdRef.current = requestId;
-    desktopSearchAbortRef.current?.abort();
-    desktopSearchAbortRef.current = null;
-
-    if (!query) {
-      setDesktopSearchResults([]);
-      setDesktopSearchSuggestions([]);
-      setDesktopSearchLoading(false);
-      return undefined;
-    }
-
-    setDesktopSearchLoading(true);
-    const t = window.setTimeout(async () => {
-      const controller = new AbortController();
-      desktopSearchAbortRef.current = controller;
-      try {
-        const result = await searchWithNivo(query, { signal: controller.signal });
-        if (controller.signal.aborted || desktopSearchRequestIdRef.current !== requestId) return;
-
-        let products = Array.isArray(result?.products) ? result.products.slice(0, MAX_SEARCH_PRODUCTS) : [];
-        if (products.length === 0 && result?.didYouMean) {
-          products = (await searchProducts(result.didYouMean)).slice(0, MAX_SEARCH_PRODUCTS).map(toFallbackSearchProduct);
-        }
-
-        if (controller.signal.aborted || desktopSearchRequestIdRef.current !== requestId) return;
-        startTransition(() => {
-          setDesktopSearchResults(products);
-          setDesktopSearchSuggestions((Array.isArray(result?.suggestions) ? result.suggestions : []).slice(0, MAX_SEARCH_SUGGESTIONS));
-        });
-      } catch (err) {
-        if (controller.signal.aborted || desktopSearchRequestIdRef.current !== requestId) return;
-        console.warn('[search] NivoSearch unavailable; using DTB catalog fallback.', err);
-        try {
-          const products = (await searchProducts(query)).slice(0, MAX_SEARCH_PRODUCTS).map(toFallbackSearchProduct);
-          if (desktopSearchRequestIdRef.current === requestId) {
-            startTransition(() => {
-              setDesktopSearchResults(products);
-              setDesktopSearchSuggestions([]);
-            });
-          }
-        } catch (fallbackError) {
-          if (desktopSearchRequestIdRef.current === requestId) {
-            console.error('Desktop search error:', fallbackError);
-            setDesktopSearchResults([]);
-            setDesktopSearchSuggestions([]);
-          }
-        }
-      } finally {
-        if (desktopSearchRequestIdRef.current === requestId) setDesktopSearchLoading(false);
-      }
-    }, DESKTOP_SEARCH_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(t);
-      controllerAbortSafe(desktopSearchAbortRef.current);
-    };
-  }, [desktopSearchQuery]);
-
-  useEffect(() => {
     const query = mobileSearchQuery.trim();
     const requestId = searchOverlayRequestIdRef.current + 1;
     searchOverlayRequestIdRef.current = requestId;
-    mobileSearchAbortRef.current?.abort();
-    mobileSearchAbortRef.current = null;
 
     if (!query) {
       setMobileSearchResults([]);
-      setMobileSearchSuggestions([]);
       setSearchLoading(false);
       return undefined;
     }
 
     setSearchLoading(true);
     const t = window.setTimeout(async () => {
-      const controller = new AbortController();
-      mobileSearchAbortRef.current = controller;
       try {
-        const result = await searchWithNivo(query, { signal: controller.signal });
-        if (controller.signal.aborted || searchOverlayRequestIdRef.current !== requestId) return;
-
-        let products = Array.isArray(result?.products) ? result.products.slice(0, MAX_SEARCH_PRODUCTS) : [];
-        if (products.length === 0 && result?.didYouMean) {
-          products = (await searchProducts(result.didYouMean)).slice(0, MAX_SEARCH_PRODUCTS).map(toFallbackSearchProduct);
-        }
-
-        if (controller.signal.aborted || searchOverlayRequestIdRef.current !== requestId) return;
+        const products = (await searchProducts(query))
+          .slice(0, MAX_SEARCH_PRODUCTS)
+          .map(toSearchProduct);
+        if (searchOverlayRequestIdRef.current !== requestId) return;
         startTransition(() => {
           setMobileSearchResults(products);
-          setMobileSearchSuggestions((Array.isArray(result?.suggestions) ? result.suggestions : []).slice(0, MAX_SEARCH_SUGGESTIONS));
         });
       } catch (err) {
-        if (controller.signal.aborted || searchOverlayRequestIdRef.current !== requestId) return;
-        console.warn('[search] NivoSearch unavailable; using DTB catalog fallback.', err);
-        try {
-          const products = (await searchProducts(query)).slice(0, MAX_SEARCH_PRODUCTS).map(toFallbackSearchProduct);
-          if (searchOverlayRequestIdRef.current === requestId) {
-            startTransition(() => {
-              setMobileSearchResults(products);
-              setMobileSearchSuggestions([]);
-            });
-          }
-        } catch (fallbackError) {
-          if (searchOverlayRequestIdRef.current === requestId) {
-            console.error('Search overlay error:', fallbackError);
-            setMobileSearchResults([]);
-            setMobileSearchSuggestions([]);
-          }
+        if (searchOverlayRequestIdRef.current === requestId) {
+          console.error('Mobile catalog search error:', err);
+          setMobileSearchResults([]);
         }
       } finally {
         if (searchOverlayRequestIdRef.current === requestId) setSearchLoading(false);
@@ -515,7 +409,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
 
     return () => {
       window.clearTimeout(t);
-      controllerAbortSafe(mobileSearchAbortRef.current);
     };
   }, [mobileSearchQuery]);
 
@@ -524,16 +417,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
     navigate(target);
     setDesktopSearchOpen(false);
     setDesktopSearchQuery('');
-    setDesktopSearchResults([]);
-    setDesktopSearchSuggestions([]);
-  };
-
-  const handleDesktopSuggestionClick = (suggestion) => {
-    const value = suggestion?.value || suggestion?.label || '';
-    if (!value) return;
-    setDesktopSearchQuery(value);
-    setDesktopSearchOpen(true);
-    window.requestAnimationFrame(() => desktopSearchInputRef.current?.focus());
   };
 
   const handleDesktopViewAll = () => {
@@ -574,13 +457,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
     navigate(`/products${q ? `?search=${encodeURIComponent(q)}` : ''}`);
     closeSearchOverlay();
   }, [mobileSearchQuery, navigate, closeSearchOverlay]);
-
-  const handleMobileSuggestionSelect = useCallback((suggestion) => {
-    const value = suggestion?.value || suggestion?.label || '';
-    if (!value) return;
-    setMobileSearchQuery(value);
-    window.requestAnimationFrame(() => mobileSearchInputRef.current?.focus());
-  }, []);
 
   const desktopSearchHasQuery = desktopSearchQuery.trim().length > 0;
   const desktopSearchVisible = desktopSearchOpen && desktopSearchHasQuery;
@@ -696,45 +572,22 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
             </div>
             <div className="header-center header-center--desktop-search">
               <div ref={desktopSearchRef} className="dtb-desktop-search dtb-desktop-search--header" data-results-open={desktopSearchVisible ? 'true' : 'false'}>
-                <div className="dtb-desktop-search-pill">
-                  <span className="dtb-desktop-search-icon-wrap" aria-hidden="true"><Search className="dtb-desktop-search-icon" /></span>
-                  <input ref={desktopSearchInputRef} type="search" value={desktopSearchQuery} onChange={(e) => { setDesktopSearchQuery(e.target.value); setDesktopSearchOpen(true); }} onFocus={() => { setDesktopNavOpen(null); setDesktopSearchOpen(true); }} onKeyDown={(e) => { if (e.key === 'Enter') handleDesktopViewAll(); if (e.key === 'Escape') { e.preventDefault(); setDesktopSearchOpen(false); e.currentTarget.blur(); } }} placeholder="Search products..." className="dtb-desktop-search-input" aria-label="Search products" aria-autocomplete="list" aria-controls="dtb-desktop-search-results" aria-expanded={desktopSearchVisible} autoComplete="off" />
-                </div>
-                <div id="dtb-desktop-search-results" className="dtb-desktop-search-dropdown" data-open={desktopSearchVisible ? 'true' : 'false'} aria-hidden={!desktopSearchVisible}>
-                  {desktopSearchLoading ? <StorefrontSearchLoading compact /> : desktopSearchHasQuery ? (
-                    <div className="dtb-nivo-runtime-layer" data-source="storefront-header">
-                      <div className="dtb-nivo-runtime__layout">
-                        <section className="dtb-nivo-runtime__products" aria-label="Product results">
-                          <p className="dtb-nivo-runtime__eyebrow">Products</p>
-                          {desktopSearchResults.length > 0 ? desktopSearchResults.map((product, index) => (
-                            <button key={product.id || product.slug || product.sku || index} type="button" className="dtb-nivo-runtime__product" onClick={() => handleDesktopResultClick(product)}>
-                              <span className="dtb-nivo-runtime__thumb">{product.image ? <img src={product.image} alt="" loading="lazy" /> : <Search size={17} aria-hidden="true" />}</span>
-                              <span className="dtb-nivo-runtime__product-copy">
-                                <strong>{product.name}</strong>
-                                {product.sku ? <small>SKU {product.sku}</small> : null}
-                              </span>
-                              <span className="dtb-nivo-runtime__price">{searchProductPrice(product)}</span>
-                            </button>
-                          )) : <p className="dtb-nivo-runtime__empty">No products found.</p>}
-                        </section>
-                        {desktopSearchSuggestions.length > 0 ? (
-                          <section className="dtb-nivo-runtime__suggestions" aria-label="Search suggestions">
-                            <p className="dtb-nivo-runtime__eyebrow">Suggestions</p>
-                            <div className="dtb-nivo-runtime__suggestion-list">
-                              {desktopSearchSuggestions.map((suggestion) => (
-                                <button key={suggestion.id || `${suggestion.type}-${suggestion.label}`} type="button" className="dtb-nivo-runtime__suggestion" onClick={() => handleDesktopSuggestionClick(suggestion)}>
-                                  <span>{suggestion.label}</span>
-                                  {suggestion.type === 'correction' ? <small>Did you mean</small> : suggestion.type ? <small>{suggestion.type}</small> : null}
-                                </button>
-                              ))}
-                            </div>
-                          </section>
-                        ) : null}
-                      </div>
-                      <button type="button" className="dtb-nivo-runtime__view-all" onClick={handleDesktopViewAll}>View All Results</button>
-                    </div>
-                  ) : null}
-                </div>
+                <StorefrontCatalogAutocomplete
+                  inputRef={desktopSearchInputRef}
+                  query={desktopSearchQuery}
+                  open={desktopSearchVisible}
+                  onOpenChange={(nextOpen) => setDesktopSearchOpen(nextOpen)}
+                  onQueryChange={(nextQuery) => {
+                    setDesktopSearchQuery(nextQuery);
+                    setDesktopSearchOpen(true);
+                  }}
+                  onFocus={() => {
+                    setDesktopNavOpen(null);
+                    setDesktopSearchOpen(true);
+                  }}
+                  onProductSelect={handleDesktopResultClick}
+                  onViewAll={handleDesktopViewAll}
+                />
               </div>
             </div>
             <div className="header-right header-desktop-actions">
@@ -868,11 +721,9 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
         query={mobileSearchQuery}
         setQuery={setMobileSearchQuery}
         results={mobileSearchResults}
-        suggestions={mobileSearchSuggestions}
         loading={searchLoading}
         onClose={closeSearchOverlay}
         onViewAll={handleMobileViewAll}
-        onSuggestionSelect={handleMobileSuggestionSelect}
       />
 
       <AccountHubSheet
@@ -884,12 +735,4 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
       />
     </>
   );
-}
-
-function controllerAbortSafe(controller) {
-  try {
-    controller?.abort();
-  } catch {
-    // Abort cleanup is best-effort and must not disrupt unmount/rerender.
-  }
 }

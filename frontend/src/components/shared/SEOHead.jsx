@@ -17,10 +17,10 @@
  *   links       {object[]}        — extra <link> tag objects: [{ rel, href, as, type, crossOrigin }]
  */
 import { Helmet } from 'react-helmet-async';
+import { absoluteSiteUrl, canonicalSiteUrl } from '../../utils/siteUrl.js';
 
 const SITE_NAME      = 'Drywall Toolbox';
-const SITE_URL       = 'https://elliottm4.sg-host.com';
-const DEFAULT_OG_IMG = `${SITE_URL}/logo-black.svg`;
+const DEFAULT_OG_IMG = absoluteSiteUrl('/logo-black.svg');
 const MAX_DESC_LEN   = 160;
 const SEARCH_INDEXING_ENABLED =
   process.env.REACT_APP_ENV === 'production' && process.env.REACT_APP_SEARCH_INDEXING !== '0';
@@ -58,8 +58,7 @@ const STATIC_ROUTE_TITLES = {
 };
 
 function normalizedRoutePath(pathname) {
-  const withoutTrailingSlash = String(pathname || '').replace(/\/+$/, '') || '/';
-  return withoutTrailingSlash.replace(/^\/staging\/[^/]+(?=\/|$)/, '') || '/';
+  return String(pathname || '').replace(/\/+$/, '') || '/';
 }
 
 function currentPathname() {
@@ -106,11 +105,12 @@ export default function SEOHead({
     : description;
 
   // Canonical URL
-  const canonicalUrl = canonical || (typeof window !== 'undefined' ? window.location.href : SITE_URL);
+  const canonicalPath = canonical || (typeof window !== 'undefined' ? window.location.pathname : '/');
+  const canonicalUrl = canonicalSiteUrl(canonicalPath);
 
   // Open Graph
   const ogType     = og.type     || 'website';
-  const ogImage    = og.image    || DEFAULT_OG_IMG;
+  const ogImage    = og.image ? absoluteSiteUrl(og.image) : DEFAULT_OG_IMG;
   const ogImageAlt = og.imageAlt || SITE_NAME;
 
   // Normalise schema to an array so we can render multiple blocks

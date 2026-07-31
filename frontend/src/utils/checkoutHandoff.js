@@ -148,8 +148,7 @@ export function isCheckoutHandoffTarget(value) {
 
   try {
     const url = new URL(value, window.location.origin);
-    return /\/checkout\/?$/i.test(url.pathname)
-      || /\/staging\/[A-Za-z0-9_-]+\/checkout\/?$/i.test(url.pathname);
+    return /\/checkout\/?$/i.test(url.pathname);
   } catch {
     return false;
   }

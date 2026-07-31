@@ -88,7 +88,7 @@ export default function StorePolicies() {
       <SEOHead
         title="Store Policies"
         description="Drywall Toolbox store policies for returns, shipping, warranty support, order changes, payments, and customer support."
-        canonical="https://elliottm4.sg-host.com/policies"
+        canonical="/policies"
       />
 
       <section className="store-policy-hero store-policy-hero--hub">

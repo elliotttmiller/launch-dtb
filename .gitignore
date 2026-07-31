@@ -14,7 +14,6 @@ scripts/reports/
 
 .idea/
 dist/
-dist-staging/
 build/
 *.tmp
 *.cache
@@ -43,11 +42,9 @@ coverage/
 
 /.env
 /.env.development
-/.env.staging
 /.env.production
 frontend/.env
 frontend/.env.development
-frontend/.env.staging
 frontend/.env.production
 frontend/.env.*.local
 
@@ -82,7 +79,6 @@ wp-config-*.php
 
 # WordPress server-side .env (real secrets — only .env.example is committed)
 wp/.env
-wp/.env.staging
 wp/.env.local
 
 # WordPress uploads (binary assets; use Media Library, not Git)

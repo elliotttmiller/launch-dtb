@@ -30,7 +30,7 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const { GenerateSW }            = require('workbox-webpack-plugin');
 // ─── Load environment-specific .env files ──────────────────────────────────
 // This MUST happen inside module.exports so we can read argv/env flags passed
-// by webpack CLI (for example: --env appEnv=staging).
+// by webpack CLI (for example: --env appEnv=test).
 //
 // Resolution order:
 //   1. CLI --env appEnv=... (explicit build target)
@@ -56,7 +56,7 @@ module.exports = (envFlags, argv) => {
   // Determine build mode from webpack argv FIRST
   const mode   = (argv && argv.mode) ? argv.mode : (process.env.NODE_ENV || 'development');
 
-  // Resolve application environment (production/staging/development).
+  // Resolve application environment (production/development/test).
   const cliAppEnv = (envFlags && envFlags.appEnv) ? String(envFlags.appEnv).trim() : '';
   const inferredAppEnv = mode === 'production' ? 'production' : 'development';
   const appEnv = (
@@ -67,10 +67,14 @@ module.exports = (envFlags, argv) => {
     inferredAppEnv
   ).trim().toLowerCase();
 
+  const supportedAppEnvironments = new Set(['development', 'production', 'test']);
+  if (!supportedAppEnvironments.has(appEnv)) {
+    throw new Error(`Unsupported APP_ENV "${appEnv}". Expected development, production, or test.`);
+  }
+
   const envFileByAppEnv = {
     development: '.env.development',
     production: '.env.production',
-    staging: '.env.staging',
     test: '.env.test',
   };
 
@@ -101,24 +105,21 @@ module.exports = (envFlags, argv) => {
   // Production: assets are served from / at the domain root.
   // Development: serve from / (webpack-dev-server).
   const PUBLIC_URL = env('PUBLIC_URL').replace(/\/+$/, '');
+  if (!isDev && appEnv === 'production' && PUBLIC_URL !== '') {
+    throw new Error('Production is root-mounted; PUBLIC_URL must be / (or empty).');
+  }
   const publicPath = isDev ? '/' : (PUBLIC_URL ? `${PUBLIC_URL}/` : '/');
 
-  // Production writes to repo-root dist/ for clean CI separation.
-  // Staging writes to repo-root dist-staging/ to avoid clobbering production.
-  // Development writes to a local dist/ inside frontend/.
+  // Production writes to repo-root dist/ for release assembly.
+  // Development and test write to frontend/dist/.
   const outputPath = isDev
     ? path.resolve(__dirname, 'dist')
-    : appEnv === 'staging'
-      ? path.resolve(__dirname, '..', 'dist-staging')
-      : path.resolve(__dirname, '..', 'dist');
+    : path.resolve(__dirname, '..', 'dist');
 
   const DEV_PROXY_TARGET = env('REACT_APP_API_BASE_URL') || 'https://elliottm4.sg-host.com';
   const cacheName = `${mode}-${appEnv}-${PUBLIC_URL || 'root'}`.replace(/[^a-z0-9_.-]+/gi, '-');
   const siteUrl = (env('REACT_APP_SITE_URL') || 'https://elliottm4.sg-host.com').replace(/\/+$/, '');
   const searchIndexingEnabled = env('REACT_APP_SEARCH_INDEXING') !== '0' && appEnv === 'production';
-  const robotsContent = searchIndexingEnabled
-    ? 'index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1'
-    : 'noindex, nofollow, noarchive';
   const robotsRule = searchIndexingEnabled ? 'Allow: /' : 'Disallow: /';
 
   // ─── DefinePlugin values ────────────────────────────────────────────────
@@ -351,7 +352,6 @@ module.exports = (envFlags, argv) => {
         template:  './index.html',
         publicPath,
         siteUrl,
-        robotsContent,
         inject:    'body',
         minify: isDev ? false : {
           removeComments:                true,
@@ -409,12 +409,9 @@ module.exports = (envFlags, argv) => {
             },
           },
           {
-            from: 'public/.htaccess',
+            from: path.resolve(__dirname, '..', 'drywalltoolbox', '.htaccess'),
             to: '.htaccess',
             toType: 'file',
-            transform(content) {
-              return content.toString().replaceAll('__DTB_PUBLIC_URL__', PUBLIC_URL);
-            },
           },
         ],
       }),
@@ -483,7 +480,7 @@ module.exports = (envFlags, argv) => {
             /\/wp-json\//,
             /\/wp-admin\//,
             /\/wp\//,
-            /\/(?:staging\/\d+\/)?checkout(?:\/|$)/,
+            /\/checkout(?:\/|$)/,
             /\/order-pay(?:\/|$)/,
             /\/wp-login\.php(?:\?|$)/,
             /\/(?:dtb|wc-api)(?:\/|$)/,
@@ -550,7 +547,7 @@ module.exports = (envFlags, argv) => {
         cacheGroups: {
           // Disable Webpack's implicit default groups. They emit numeric shared
           // async chunks (for example 770.chunk.js) that are easy to miss during
-          // selective staging deploys, leaving lazy checkout routes unable to
+          // selective file transfers, leaving lazy checkout routes unable to
           // load even when their route-specific chunk exists.
           default: false,
           defaultVendors: false,
@@ -655,7 +652,7 @@ module.exports = (envFlags, argv) => {
       },
     },
 
-    // Production/staging maps are opt-in. Hidden maps are useful only when an
+    // Production maps are opt-in. Hidden maps are useful only when an
     // error-monitoring upload consumes them; otherwise they add deploy weight.
     devtool: isDev
       ? 'eval-cheap-module-source-map'

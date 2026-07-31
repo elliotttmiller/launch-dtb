@@ -23,7 +23,7 @@
   var code = Number(document.body.getAttribute('data-error-code')) || 500;
   var selected = content[code] || content[500];
   var path = window.location.pathname || '/';
-  var match = path.match(/^\/(staging\/\d+|drywall-toolbox)(?:\/|$)/);
+  var match = path.match(/^\/(drywall-toolbox)(?:\/|$)/);
   var base = match ? '/' + match[1] : '';
   var linkMap = { home: '/', products: '/products', contact: '/contact' };
 

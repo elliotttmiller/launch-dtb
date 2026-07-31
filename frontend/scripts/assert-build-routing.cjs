@@ -8,18 +8,19 @@ const repositoryRoot = path.resolve(frontendRoot, '..');
 const appEnv = String(process.env.APP_ENV || '').trim().toLowerCase();
 const publicUrl = String(process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
 
-if (!['production', 'staging'].includes(appEnv)) {
-  throw new Error('APP_ENV must be production or staging for routing validation.');
+if (appEnv !== 'production') {
+  throw new Error('APP_ENV must be production for routing validation.');
 }
 
-const outputRoot = path.join(repositoryRoot, appEnv === 'staging' ? 'dist-staging' : 'dist');
-const emittedPath = path.join(outputRoot, '.htaccess');
-const sourcePath = appEnv === 'production'
-  ? path.join(repositoryRoot, 'drywalltoolbox', '.htaccess')
-  : path.join(frontendRoot, 'public', '.htaccess');
+if (publicUrl !== '') {
+  throw new Error('Production routing must be root-mounted with PUBLIC_URL=/ (normalized to empty).');
+}
 
-const expected = fs.readFileSync(sourcePath, 'utf8')
-  .replaceAll('__DTB_PUBLIC_URL__', publicUrl);
+const outputRoot = path.join(repositoryRoot, 'dist');
+const emittedPath = path.join(outputRoot, '.htaccess');
+const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', '.htaccess');
+
+const expected = fs.readFileSync(sourcePath, 'utf8');
 const emitted = fs.readFileSync(emittedPath, 'utf8');
 
 if (emitted !== expected) {

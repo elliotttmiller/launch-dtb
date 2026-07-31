@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 
 const frontendRoot = path.resolve(__dirname, '..');
 const mode = process.argv[2] || 'pre';
-const envFilenames = ['.env', '.env.development', '.env.production', '.env.staging', '.env.test'];
+const envFilenames = ['.env', '.env.development', '.env.production', '.env.test'];
 const forbiddenKeys = new Set([
   'REACT_APP_WC_AUTH_USER',
   'REACT_APP_WC_AUTH_PASS',
@@ -123,9 +123,10 @@ async function runPost(secrets) {
   const appEnv = String(
     process.env.APP_ENV || process.env.REACT_APP_APP_ENV || process.env.REACT_APP_ENV || 'production',
   ).toLowerCase();
-  const outputRoot = appEnv === 'staging'
-    ? path.resolve(frontendRoot, '..', 'dist-staging')
-    : path.resolve(frontendRoot, '..', 'dist');
+  if (appEnv !== 'production') {
+    fail(`Post-build safety validation only accepts APP_ENV=production; received ${appEnv}.`, []);
+  }
+  const outputRoot = path.resolve(frontendRoot, '..', 'dist');
 
   if (!fs.existsSync(outputRoot)) fail(`Frontend output directory not found: ${outputRoot}`, []);
 

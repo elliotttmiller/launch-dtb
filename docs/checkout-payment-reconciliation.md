@@ -71,7 +71,7 @@ Storefront authentication validation and logout clear a native WordPress cookie 
 
 If one browser carries both a signed administrator/operator cookie and a DTB customer JWT, the valid native administrator identity wins. The storefront auth boundary rejects the conflicting customer handoff rather than rewriting the commerce request to guest user `0`. Rewriting a valid native user after WooCommerce has issued a customer-bound session causes WooCommerce to invalidate or rotate that session, leaving Checkout Block without the `wp_woocommerce_session_*` cookie and producing `woocommerce_rest_cart_empty`.
 
-WooCommerce empty-cart and continue-shopping actions route to the React catalog (`/products` or `/staging/{id}/products`), not the unused native `/shop/` path.
+WooCommerce empty-cart and continue-shopping actions route to the root-mounted React catalog (`/products`), not the unused native `/shop/` path.
 
 ## Acceptance
 

@@ -4,7 +4,6 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight,
   Check,
-  ClipboardCheck,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import PageHeroBanner from '../components/shared/PageHeroBanner.jsx';
@@ -16,8 +15,25 @@ function formatPackageCount(count) {
 }
 
 function isFeaturedPackage(pkg, index, packageCount) {
-  if (pkg.routeType !== 'standard_package') return packageCount === 1;
-  return index === Math.min(1, packageCount - 1) || /standard|full|rebuild|overhaul/i.test(pkg.id);
+  return pkg.routeType === 'standard_package'
+    && packageCount > 1
+    && index === Math.min(1, packageCount - 1);
+}
+
+function getPriceDisplay(pkg) {
+  if (Number.isFinite(pkg.startingPrice)) {
+    return {
+      label: 'Starts at',
+      value: `$${pkg.startingPrice}`,
+      note: 'Starting estimate. Final quote confirmed after inspection.',
+    };
+  }
+
+  return {
+    label: 'Pricing',
+    value: pkg.priceLabel,
+    note: 'Your final quote is confirmed after inspection.',
+  };
 }
 
 function persistSelectedPackage(pkg) {
@@ -160,6 +176,7 @@ function CategoryTabs({ groups, activeGroupId, focusGroupId, onChange }) {
 function PackageCard({ pkg, index, packageCount, resumeState }) {
   const familyLabel = REPAIR_TOOL_FAMILIES[pkg.toolFamily]?.label || 'Repair Service';
   const featured = isFeaturedPackage(pkg, index, packageCount);
+  const price = getPriceDisplay(pkg);
   const startUrl = `/repairs/start?package=${encodeURIComponent(pkg.id)}`;
 
   return (
@@ -170,8 +187,14 @@ function PackageCard({ pkg, index, packageCount, resumeState }) {
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: 12, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -4 }}
     >
+      {featured && (
+        <div className="repair-package-card__recommended">
+          Recommended
+        </div>
+      )}
+
       <div className="repair-package-card__header">
         <div>
           <p className="repair-package-card__eyebrow">{familyLabel}</p>
@@ -180,12 +203,13 @@ function PackageCard({ pkg, index, packageCount, resumeState }) {
       </div>
 
       <div className="repair-package-card__price">
+        <span className="repair-package-card__price-label">{price.label}</span>
         <AnimatePresence mode="wait">
-          <AnimatedPrice price={pkg.priceLabel} />
+          <AnimatedPrice price={price.value} />
         </AnimatePresence>
       </div>
       <p className="repair-package-card__price-note">
-        Starting estimate. Final quote confirmed after inspection.
+        {price.note}
       </p>
 
       <p className="repair-package-card__summary">
@@ -203,10 +227,7 @@ function PackageCard({ pkg, index, packageCount, resumeState }) {
 
       {pkg.requiresApproval && (
         <div className="repair-package-card__meta">
-          <span>
-            <ClipboardCheck size={14} aria-hidden="true" />
-            Approval before work
-          </span>
+          <span>Approval before work</span>
         </div>
       )}
 
@@ -257,7 +278,7 @@ export default function RepairPackages() {
       <SEOHead
         title="Repair Service Packages"
         description="Compare DTB standard repair packages and diagnostic quote-first paths."
-        canonical="https://elliottm4.sg-host.com/repairs/packages"
+        canonical="/repairs/packages"
       />
 
       <section className="repair-packages-hero">
@@ -291,10 +312,15 @@ export default function RepairPackages() {
             <Link
               to="/repairs/start"
               state={{ repairFormResume: resumeState }}
-              className="repair-packages-quote-link"
+              className="repair-packages-new-repair"
             >
-              Start quote-first repair
-              <ArrowRight size={16} aria-hidden="true" />
+              <span className="repair-packages-new-repair__copy">
+                <strong>Start New Repair</strong>
+                <small>Not sure which service fits? Start here.</small>
+              </span>
+              <span className="repair-packages-new-repair__arrow" aria-hidden="true">
+                <ArrowRight size={18} />
+              </span>
             </Link>
           </div>
 

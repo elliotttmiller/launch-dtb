@@ -1,5 +1,6 @@
-import { Minus, Plus, ShoppingCart } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import ProductBuyNow from './ProductBuyNow.jsx';
+import AddToCartButton from '../ui/AddToCartButton.jsx';
 
 export default function ProductPurchasePanel({
   quantity,
@@ -73,31 +74,15 @@ export default function ProductPurchasePanel({
           </button>
         </div>
 
-        <button
-          type="button"
+        <AddToCartButton
           onClick={onAddToCart}
           disabled={!canAddToCart || purchaseBusy}
-          className={`dtb-pdp-add-to-cart is-${addToCartState}`}
-          data-dtb-cart-action="add"
-          data-dtb-cart-feedback-mode="controlled"
-          data-state={addToCartState}
-          aria-busy={addToCartState === 'adding'}
-        >
-          {addToCartState === 'added' ? (
-            <>
-              <svg className="dtb-pdp-add-to-cart__success-mark" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="dtb-pdp-add-to-cart__success-circle" cx="12" cy="12" r="9" fill="none" />
-                <path className="dtb-pdp-add-to-cart__success-check" fill="none" d="m7.5 12.2 3 3 6-6" />
-              </svg>
-              <span className="sr-only" aria-live="polite">Added to cart</span>
-            </>
-          ) : (
-            <>
-              <ShoppingCart className="dtb-pdp-add-to-cart__cart" size={16} aria-hidden="true" />
-              <span>{addToCartLabel}</span>
-            </>
-          )}
-        </button>
+          className="dtb-pdp-add-to-cart"
+          size="wide"
+          label={addToCartLabel}
+          state={addToCartState}
+          feedbackMode="controlled"
+        />
       </div>
 
       <ProductBuyNow

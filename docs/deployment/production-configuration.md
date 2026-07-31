@@ -2,6 +2,11 @@
 
 This guide covers configuring the Release Management system for production deployment to SiteGround's official Git repository.
 
+The current public authority remains the SiteGround preview host until an
+explicit launch cutover. See
+[`public-domain-cutover.md`](./public-domain-cutover.md) for the coordinated
+`drywalltoolbox.com` transition contract.
+
 ## Prerequisites
 
 - PR #70 (Release Management system) merged and deployed to production

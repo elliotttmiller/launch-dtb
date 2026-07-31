@@ -266,7 +266,7 @@ function dtb_native_checkout_identity_bridge_request(): bool {
 		: '';
 	$path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
 
-	if ( preg_match( '#^/(?:staging/[A-Za-z0-9_-]+/)?checkout(?:/|$)#i', $path ) ) {
+	if ( preg_match( '#^/checkout(?:/|$)#i', $path ) ) {
 		return true;
 	}
 

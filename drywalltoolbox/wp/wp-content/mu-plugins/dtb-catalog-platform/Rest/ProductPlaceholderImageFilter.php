@@ -4,7 +4,7 @@
  *
  * Removes environment-relative no-image placeholder URLs from product/catalog
  * REST payloads so PDP galleries, variation galleries, thumbnails, and product
- * cards never receive links like /staging/2972/no-image-placeholder.webp.
+ * cards never receive environment-relative links like /no-image-placeholder.webp.
  *
  * @package drywall-toolbox
  */

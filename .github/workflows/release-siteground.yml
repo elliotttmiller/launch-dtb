@@ -407,7 +407,7 @@ jobs:
             echo '### DTB SiteGround release'
             echo "- Release ID: \`${{ needs.guard.outputs.release_id }}\`"
             echo "- Ref: \`${DISPATCH_REF}\` @ \`${{ needs.plan-and-validate.outputs.commit_sha }}\`"
-            echo '- Host: `https://elliottm4.sg-host.com`'
+            echo "- Host: \`${DTB_PRODUCTION_BASE_URL}\`"
             echo "- Backup ref (SiteGround): \`${{ steps.backup.outputs.backup_ref }}\`"
             echo "- Manifest tag (GitHub): \`dtb-release/${{ needs.guard.outputs.release_id }}\`"
             echo "- Result: \`${{ job.status }}\`"
@@ -528,6 +528,6 @@ jobs:
             echo '### DTB SiteGround rollback'
             echo "- Release ID: \`${{ needs.guard.outputs.release_id }}\`"
             echo "- Restored release: \`${DISPATCH_ROLLBACK_RELEASE_ID}\`"
-            echo '- Host: `https://elliottm4.sg-host.com`'
+            echo "- Host: \`${DTB_PRODUCTION_BASE_URL}\`"
             echo "- Result: \`${{ job.status }}\`"
           } >> "$GITHUB_STEP_SUMMARY"

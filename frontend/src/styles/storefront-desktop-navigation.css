@@ -150,7 +150,7 @@
     border: 0;
     border-radius: 0;
     background: transparent;
-    color: rgba(241, 245, 249, 0.92);
+    color: #fff;
     font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
     font-size: clamp(0.85rem, 0.76vw, 0.95rem);
     font-weight: 600;
@@ -165,20 +165,51 @@
   }
 
   /*
-   * AnimatedUnderlineLinks "slide in" interaction: a full-width underline
-   * scales from the left edge without changing the tab's layout geometry.
+   * A restrained white surface reinforces the hovered tab without changing
+   * the header's geometry or competing with an open mega-menu.
    */
-  .dtb-desktop-nav-tab::after {
+  .dtb-desktop-nav-tab::before {
     content: "";
     position: absolute;
+    top: 50%;
+    right: 2px;
+    left: 2px;
+    height: 38px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.055);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    opacity: 0;
+    transform: translateY(-50%) scale(0.94);
+    transition:
+      opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  /*
+   * AnimatedUnderlineLinks interaction, scoped to the label so the underline
+   * remains tightly coupled to the text instead of the 88px tab.
+   */
+  .dtb-desktop-nav-tab__label {
+    position: relative;
+    z-index: 1;
+    display: inline-block;
+    margin-inline: -5px;
+    padding: 0 5px 4px;
+  }
+
+  .dtb-desktop-nav-tab__label::after {
+    background: none repeat scroll 0 0 transparent;
     bottom: 0;
-    left: 0;
-    width: 100%;
+    content: "";
+    display: block;
     height: 2px;
-    background: #818cf8;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
+    position: absolute;
+    left: 50%;
+    background: #fff;
+    transition: width 0.3s ease 0s, left 0.3s ease 0s;
+    width: 0;
     pointer-events: none;
   }
 
@@ -191,19 +222,32 @@
     text-shadow: 0 0 18px rgba(147, 197, 253, 0.16);
   }
 
-  .dtb-desktop-nav-tab:hover::after,
-  .dtb-desktop-nav-tab:focus-visible::after,
-  .dtb-desktop-nav-tab.is-active::after,
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::after {
-    transform: scaleX(1);
+  .dtb-desktop-nav-tab:hover::before,
+  .dtb-desktop-nav-tab:focus-visible::before,
+  .dtb-desktop-nav-tab.is-active::before,
+  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+
+  .dtb-desktop-nav-tab:hover .dtb-desktop-nav-tab__label::after,
+  .dtb-desktop-nav-tab:focus-visible .dtb-desktop-nav-tab__label::after,
+  .dtb-desktop-nav-tab.is-active .dtb-desktop-nav-tab__label::after,
+  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab .dtb-desktop-nav-tab__label::after {
+    left: 0;
+    width: 100%;
   }
 
   .dtb-desktop-nav-tab svg {
+    position: relative;
+    z-index: 1;
     flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.78);
     transition: transform 240ms var(--dtb-ease);
   }
 
   .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab svg {
+    color: #fff;
     transform: rotate(180deg);
   }
 
@@ -423,7 +467,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-desktop-nav-tab,
-  .dtb-desktop-nav-tab::after {
+  .dtb-desktop-nav-tab::before,
+  .dtb-desktop-nav-tab__label::after {
     transition-duration: 1ms !important;
   }
+
 }

@@ -71,13 +71,7 @@ function generateIdempotencyKey() {
 
 function getRuntimeFrontendBaseUrl() {
   if ( typeof window === 'undefined' ) return '';
-
-  const publicUrl = ( process.env.PUBLIC_URL || '' ).replace( /\/+$/, '' );
-  const stagingMatch = window.location.pathname.match( /^\/staging\/\d+(?:\/|$)/ );
-  const stagingBase = stagingMatch ? stagingMatch[0].replace( /\/+$/, '' ) : '';
-  const basePath = stagingBase || ( publicUrl && publicUrl !== '/' ? publicUrl : '' );
-
-  return `${ window.location.origin }${ basePath }`;
+  return window.location.origin;
 }
 
 // Keep this field-picking behavior aligned with

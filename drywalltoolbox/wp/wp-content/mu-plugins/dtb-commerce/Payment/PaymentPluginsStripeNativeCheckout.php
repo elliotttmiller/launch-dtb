@@ -250,12 +250,6 @@ final class DTB_PaymentPluginsStripeNativeCheckout {
 			$order->update_meta_data( '_dtb_checkout_source', sanitize_key( $source ) );
 		}
 		$order->update_meta_data( '_dtb_order_type', 'product' );
-		if ( function_exists( 'dtb_detect_storefront_base_path' ) ) {
-			$base_path = dtb_detect_storefront_base_path();
-			if ( '' !== $base_path || '' === (string) $order->get_meta( '_dtb_storefront_base_path', true ) ) {
-				$order->update_meta_data( '_dtb_storefront_base_path', $base_path );
-			}
-		}
 	}
 
 	private static function is_payment_plugins_order( WC_Order $order ): bool {

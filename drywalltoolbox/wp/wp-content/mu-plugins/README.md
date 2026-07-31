@@ -274,7 +274,6 @@ Root routing must send these to WordPress before SPA fallback:
 
 ```text
 /checkout/
-/staging/{id}/checkout/
 /checkout/order-pay/{id}
 /checkout/order-received/{id}
 /wp-json/*

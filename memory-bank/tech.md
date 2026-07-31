@@ -39,7 +39,6 @@
 ```bash
 npm run dev                  # Webpack dev server on :5173, proxies /wp-json to live backend
 npm run build                # Production build → dist/ (root)
-npm run build:staging        # Staging build → dist-staging/ (root)
 npm run lint                 # ESLint src/
 npm run reviews-server       # Local Express reviews server
 ANALYZE=true npm run build   # Bundle analyzer
@@ -55,7 +54,7 @@ Key variables:
 - `REACT_APP_STORE_API_BASE` — WooCommerce Store API base
 - `REACT_APP_JWT_AUTH_ENDPOINT` — JWT auth endpoint
 - `REACT_APP_SITE_URL` — canonical site URL
-- `REACT_APP_APP_ENV` — `production` | `staging` | `development`
+- `REACT_APP_APP_ENV` — `production` | `development` | `test`
 - `REACT_APP_DTB_CATALOG_PLATFORM` — enables catalog platform mode
 - `REACT_APP_GOOGLE_MAPS_PLACES_API_KEY` — address autocomplete
 

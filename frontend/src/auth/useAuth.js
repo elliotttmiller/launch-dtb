@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { PUBLIC_SITE_URL } from '../utils/siteUrl.js';
 
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
@@ -47,7 +48,7 @@ function baseUrl() {
   if (!hostedPreview && runtimeOrigin) return trimSlash(runtimeOrigin);
 
   return trimSlash(readPublicEnv('REACT_APP_API_BASE_URL'))
-    || (hostedPreview ? 'https://elliottm4.sg-host.com' : trimSlash(runtimeOrigin));
+    || (hostedPreview ? PUBLIC_SITE_URL : trimSlash(runtimeOrigin));
 }
 
 function authUrl(path) {

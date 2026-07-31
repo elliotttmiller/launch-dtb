@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { getProductBySku, resolveProductBySku } from '../../api/products';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
+import AddToCartButton from '../ui/AddToCartButton.jsx';
 import {
   productMatchesSchematicPart,
   resolveSchematicVariantPart,
@@ -284,8 +285,6 @@ export default function SchematicHotspotCard({
   const canAdd = Boolean(effectiveProduct?.id) && effectiveStockStatus != null;
   const isUnavailable = !canAdd && !isResolving;
 
-  const ctaLabel = isAdding ? 'Adding…' : canAdd ? 'Add' : '';
-
   const titleNode = effectiveProductUrl ? (
     <Link
       to={effectiveProductUrl}
@@ -402,14 +401,15 @@ export default function SchematicHotspotCard({
                         </span>
                       ) : null}
                     </span>
-                    <button
+                    <AddToCartButton
                       className="schematic-hotspot-card__cta"
+                      size="card"
+                      label={canAdd ? 'Add' : ''}
+                      state={isAdding ? 'adding' : 'idle'}
+                      productId={effectiveProduct?.id}
                       disabled={!canAdd || isAdding}
                       onClick={handleAdd}
-                      data-dtb-cart-action="add"
-                    >
-                      {ctaLabel}
-                    </button>
+                    />
                   </>
                 ) : null}
               </div>

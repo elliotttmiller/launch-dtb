@@ -77,7 +77,7 @@ export default function Contact() {
       <SEOHead
         title="Contact Us"
         description="Get in touch with the Drywall Toolbox team. Expert support from real people who know drywall tools."
-        canonical="https://elliottm4.sg-host.com/contact"
+        canonical="/contact"
       />
 
       {/* Hero strip */}

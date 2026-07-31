@@ -51,13 +51,6 @@ function normalizePath(pathname = '/') {
     .join('/')}`;
 }
 
-function getStagingMountPath(segments) {
-  const stagingIndex = segments.findIndex((segment) => segment === 'staging');
-  if (stagingIndex < 0 || !segments[stagingIndex + 1]) return '';
-
-  return `/${segments.slice(0, stagingIndex + 2).join('/')}`;
-}
-
 function getAppBasePath() {
   const pathname = normalizePath(window.location.pathname || '/');
   const segments = pathname.split('/').filter(Boolean);
@@ -66,9 +59,6 @@ function getAppBasePath() {
   if (routeIndex > 0) {
     return `/${segments.slice(0, routeIndex).join('/')}`;
   }
-
-  const stagingMountPath = getStagingMountPath(segments);
-  if (stagingMountPath) return stagingMountPath;
 
   return '';
 }

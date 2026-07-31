@@ -22,17 +22,14 @@ export default function StorefrontSearchOverlay({
   recent = [],
   brands = [],
   categories = [],
-  suggestions = [],
   results = [],
-  onSuggestionSelect,
 }) {
   const { addToCart } = useCart();
   const [modalProduct, setModalProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasQuery = useMemo(() => query.trim().length > 0, [query]);
   const productResults = useMemo(() => (Array.isArray(results) ? results : []), [results]);
-  const termSuggestions = useMemo(() => (Array.isArray(suggestions) ? suggestions : []), [suggestions]);
-  const hasLoadedResults = !loading && (productResults.length > 0 || termSuggestions.length > 0);
+  const hasLoadedResults = !loading && productResults.length > 0;
   const normalizedCategories = useMemo(
     () => categories
       .map((category) => normalizeCatalogCategoryEntry(category))
@@ -79,13 +76,6 @@ export default function StorefrontSearchOverlay({
   const handleAddToCart = useCallback(async (product, quantity = 1) => {
     await addToCart(product, quantity);
   }, [addToCart]);
-
-  const handleSuggestion = useCallback((suggestion) => {
-    const value = suggestion?.value || suggestion?.label || '';
-    if (!value) return;
-    if (onSuggestionSelect) onSuggestionSelect(suggestion);
-    else setQuery?.(value);
-  }, [onSuggestionSelect, setQuery]);
 
   const searchSkeleton = (
     <section className="storefront-search-overlay__results" aria-hidden="true">
@@ -187,27 +177,7 @@ export default function StorefrontSearchOverlay({
                   label="Loading search results"
                   className="storefront-search-overlay__transition"
                 >
-                  <>
-                    {termSuggestions.length > 0 ? (
-                      <section className="dtb-nivo-runtime__suggestions dtb-nivo-runtime__suggestions--mobile" aria-label="Search suggestions">
-                        <p className="dtb-nivo-runtime__eyebrow">Suggestions</p>
-                        <div className="dtb-nivo-runtime__suggestion-list">
-                          {termSuggestions.map((suggestion) => (
-                            <button
-                              key={suggestion.id || `${suggestion.type}-${suggestion.label}`}
-                              type="button"
-                              className="dtb-nivo-runtime__suggestion"
-                              onClick={() => handleSuggestion(suggestion)}
-                            >
-                              <span>{suggestion.label}</span>
-                              {suggestion.type === 'correction' ? <small>Did you mean</small> : suggestion.type ? <small>{suggestion.type}</small> : null}
-                            </button>
-                          ))}
-                        </div>
-                      </section>
-                    ) : null}
-                    {searchResults}
-                  </>
+                  {searchResults}
                 </LoadingCardTransition>
               ) : null}
             </div>

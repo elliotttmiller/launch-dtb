@@ -1,16 +1,18 @@
 /**
  * WooCommerce Store API cart operations.
  *
- * On the production/staging same-origin storefront, WooCommerce's cookie-backed
+ * On the same-origin storefront, WooCommerce's cookie-backed
  * session is the cart authority so a full-document handoff to the native
  * `/checkout/` page sees the exact same cart. Cart-Token is retained only for a
  * genuinely cross-origin headless client where cookie session continuity cannot
  * be used.
  */
+import { PUBLIC_SITE_URL } from '../utils/siteUrl.js';
+
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname : '';
 const runtimeOrigin = typeof window !== 'undefined' ? window.location.origin : '';
 const envApiBase = ( process.env.REACT_APP_API_BASE_URL || '' ).replace( /\/+$/, '' );
-const resolvedApiBase = envApiBase || ( /github\.io$/i.test( runtimeHost ) ? 'https://elliottm4.sg-host.com' : runtimeOrigin );
+const resolvedApiBase = envApiBase || ( /github\.io$/i.test( runtimeHost ) ? PUBLIC_SITE_URL : runtimeOrigin );
 const configuredStorePath = ( process.env.REACT_APP_STORE_API_BASE || '/wp-json/wc/store/v1' ).replace( /\/+$/, '' );
 const CART_TOKEN_STORAGE_KEY = 'dtb:store-api-cart-token:v1';
 

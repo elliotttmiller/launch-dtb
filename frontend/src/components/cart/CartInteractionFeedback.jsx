@@ -67,9 +67,9 @@ function resolveButtonCommit(productId, announce) {
   trigger.setAttribute('data-dtb-cart-feedback', 'added');
   trigger.removeAttribute('aria-busy');
   announce('Added to cart');
-  window.setTimeout(pulseCartTarget, 320);
+  window.setTimeout(pulseCartTarget, 430);
 
-  const resetTimer = window.setTimeout(() => clearFeedback(trigger), 920);
+  const resetTimer = window.setTimeout(() => clearFeedback(trigger), 1220);
   feedbackTimers.set(trigger, [resetTimer]);
 }
 
