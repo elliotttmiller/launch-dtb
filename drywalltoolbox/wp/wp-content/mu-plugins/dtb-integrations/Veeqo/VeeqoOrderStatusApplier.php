@@ -302,28 +302,19 @@ function dtb_veeqo_apply_order_fulfillment_status( WC_Order $order, string $veeq
  * @return void
  */
 function dtb_veeqo_dispatch_shipped_notification( WC_Order $order, array $context ): void {
-	$disposition = 'legacy_fallback_used';
+	$native_notified = false;
 
-	if ( function_exists( 'dtb_veeqo_project_fulfillment' ) ) {
-		$veeqo_payload = is_array( $context['veeqo_payload'] ?? null ) ? $context['veeqo_payload'] : [];
+	if ( function_exists( 'dtb_veeqo_project_order_shipments' ) ) {
+		$veeqo_payload  = is_array( $context['veeqo_payload'] ?? null ) ? $context['veeqo_payload'] : [];
+		$veeqo_order_id = absint( $context['veeqo_order_id'] ?? 0 );
 
-		$projection = dtb_veeqo_project_fulfillment(
-			$order,
-			$veeqo_payload,
-			[
-				'line_items'      => is_array( $context['veeqo_line_items'] ?? null ) ? $context['veeqo_line_items'] : [],
-				'carrier'         => (string) ( $context['tracking_carrier'] ?? '' ),
-				'tracking_number' => (string) ( $context['tracking_number'] ?? '' ),
-				'source_revision' => (string) ( $context['reference'] ?? '' ),
-			]
-		);
-
-		if ( in_array( $projection['result'] ?? '', [ 'created', 'updated', 'no_change' ], true ) ) {
-			$disposition = 'native_notified';
+		if ( $veeqo_order_id > 0 ) {
+			$projection       = dtb_veeqo_project_order_shipments( $order, $veeqo_payload, $veeqo_order_id );
+			$native_notified  = ! empty( $projection['native_notified'] );
 		}
 	}
 
-	if ( 'native_notified' === $disposition ) {
+	if ( $native_notified ) {
 		return;
 	}
 

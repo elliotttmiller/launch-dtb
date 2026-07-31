@@ -161,22 +161,56 @@ falls through to the legacy `dtb_order_send_notification` /
 The two paths are mutually exclusive per shipment — never both, never
 neither.
 
-### Open verification item
+### Shipment identity contract (confirmed 2026-07-31)
 
-`VeeqoFulfillmentProjector.php::dtb_veeqo_resolve_shipment_identity()`
-currently always returns `null` (→ `deferred_incomplete_source` →
-legacy path for every shipment). This codebase's own existing polling code
-(`VeeqoOrderStatusPoller.php::dtb_veeqo_order_status_poll_extract_tracking()`)
-already documents that Veeqo's `allocations[].shipment` shape is
-nullable/unconfirmed against a real payload, and no confirmed-stable
-per-allocation or per-shipment identifier has been observed by this
-integration. Confirming the real field (inspect one real Veeqo order payload
-for a shipped order) and filling in that one function is the only remaining
-step to activate native fulfillment emails; nothing else in the design
-changes. The identity is never the tracking number (mutable, correctable
-after the fact) and is stored as **private** Fulfillment meta
-(`_dtb_veeqo_shipment_id`), alongside a canonical fingerprint
-(`_dtb_veeqo_projection_fingerprint`) over only customer-visible state.
+Confirmed by inspecting two real shipped Veeqo orders (WooCommerce 5834 /
+Veeqo 1995719253 and WooCommerce 5829 / Veeqo 1994169794):
+`allocations[*].shipment.id` is the immutable native shipment identifier;
+every real shipment carries a `shipment.allocation_id` back-reference to its
+owning `allocations[*].id`, and `shipment.order_id` back-references the
+Veeqo order. `shipment.tracking_number` is itself a child object with its
+own `id` and `shipment_id` — tracking data is mutable and is never used as
+identity.
+
+`VeeqoFulfillmentProjector.php::dtb_veeqo_normalize_shipment_observations()`
+iterates every allocation in a Veeqo order payload and emits one observation
+per allocation: `valid` (all four identity checks pass — positive
+allocation id, positive shipment id, `shipment.allocation_id` matches the
+enclosing allocation, `shipment.order_id` matches the correlated Veeqo
+order), `deferred_incomplete_source` (allocation id/shipment id missing or
+malformed — e.g. shipment absent), or `rejected_identity_conflict`
+(allocation/order mismatch, or duplicate conflicting shipment records for
+the same shipment id within one payload — identical duplicates collapse
+idempotently instead). Each valid shipment is projected independently
+(`dtb_veeqo_project_order_shipments()`), one native Fulfillment record per
+shipment, so a partial shipment followed later by the remainder produces two
+independent records and two independent typed outcomes — never one
+conflated result.
+
+Persisted as **private** Fulfillment meta on each projected record:
+
+```text
+_dtb_source_system            = veeqo
+_dtb_veeqo_order_id           Veeqo order ID
+_dtb_veeqo_allocation_id      Veeqo allocation ID
+_dtb_veeqo_shipment_id        Veeqo shipment ID — the identity key
+_dtb_veeqo_source_revision    Veeqo-supplied revision/updated_at marker
+_dtb_veeqo_payload_fingerprint  Canonical customer-visible-state fingerprint
+_dtb_projected_at             UTC timestamp of the last successful projection
+```
+
+The per-shipment lock/idempotency namespace is `veeqo:shipment:{shipment_id}`
+— a Veeqo shipment ID is globally unique, so the lock is not scoped by
+order. Cross-order reuse of a shipment ID is explicitly rejected
+(`rejected_identity_conflict`) by checking whether any *other* WooCommerce
+order's Fulfillment record already claims that `_dtb_veeqo_shipment_id`.
+
+Fixtures for the full identity/idempotency/rejection matrix (one
+allocation/one shipment, multiple allocations/separate shipments, shipment
+absent, duplicate identical replay, duplicate conflicting shipment,
+mismatched allocation/order reference, tracking-only change, cross-order
+shipment ID collision, partial-then-later shipment) live in
+`scripts/tests/veeqo-fulfillment-projector-fixtures.php`.
 
 ### Failure recovery
 
