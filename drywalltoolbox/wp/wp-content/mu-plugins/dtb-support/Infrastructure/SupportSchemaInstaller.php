@@ -254,35 +254,12 @@ function dtb_support_force_reinstall_schema(): void {
 	dtb_support_maybe_install_schema();
 }
 
-/**
- * Grant support capabilities to administrators.
- */
-function dtb_support_grant_admin_capability(): void {
-	$role = get_role( 'administrator' );
-	if ( ! $role ) {
-		return;
-	}
-
-	$caps = [
-		'dtb_manage_support',
-		'dtb_read_support_tickets',
-		'dtb_reply_support_tickets',
-		'dtb_add_support_notes',
-		'dtb_change_support_status',
-		'dtb_change_support_priority',
-		'dtb_manage_support_macros',
-		'dtb_manage_support_automation',
-		'dtb_view_support_reports',
-		'dtb_manage_support_settings',
-	];
-
-	foreach ( $caps as $cap ) {
-		if ( ! $role->has_cap( $cap ) ) {
-			$role->add_cap( $cap );
-		}
-	}
-}
-add_action( 'init', 'dtb_support_grant_admin_capability', 1 );
+// Support capability grants (dtb_manage_support, dtb_read_support_tickets,
+// dtb_manage_support_automation, etc.) are owned centrally by
+// `dtb-platform/Admin/AdminCapabilities.php` (`dtb_admin_all_capabilities()`)
+// — see that file's header comment. This used to independently re-grant the
+// same capability subset to `administrator` on every `init`; removed as a
+// redundant duplicate of that canonical grant.
 
 /**
  * Return the stored support schema version.

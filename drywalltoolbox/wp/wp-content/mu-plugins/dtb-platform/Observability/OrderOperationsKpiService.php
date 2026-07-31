@@ -27,18 +27,12 @@ if ( ! is_admin() && ! ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 // =============================================================================
 // SECTION 1 — CAPABILITY BOOTSTRAP
 // =============================================================================
-
-add_action( 'init', 'dtb_oo_bootstrap_capability' );
-
-/**
- * Ensure the Administrator role has the dtb_manage_order_operations capability.
- */
-function dtb_oo_bootstrap_capability(): void {
-	$role = get_role( 'administrator' );
-	if ( $role && ! $role->has_cap( 'dtb_manage_order_operations' ) ) {
-		$role->add_cap( 'dtb_manage_order_operations', true );
-	}
-}
+//
+// `dtb_manage_order_operations` is granted centrally by
+// `dtb-platform/Admin/AdminCapabilities.php` (`dtb_admin_all_capabilities()`)
+// — see that file's header comment. This used to independently re-grant the
+// same capability to `administrator` on every `init`; removed as a redundant
+// duplicate of that canonical grant.
 
 // =============================================================================
 // SECTION 2 — ADMIN MENU REGISTRATION
