@@ -231,12 +231,12 @@ export default function ProductDetailPage() {
       />
 
       <div className="dtb-product-page-shell container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
-        <nav aria-label="Breadcrumb" style={{ marginBottom: '24px', fontSize: '0.8rem', color: '#64748b' }}>
-          <Link to="/" style={{ color: '#64748b', textDecoration: 'none' }}>Home</Link>
-          <span style={{ margin: '0 8px' }}>›</span>
-          <Link to="/products" style={{ color: '#64748b', textDecoration: 'none' }}>Products</Link>
-          <span style={{ margin: '0 8px' }}>›</span>
-          <span style={{ color: '#0f172a', fontWeight: 600 }}>{effectiveProductName}</span>
+        <nav className="dtb-product-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <span aria-hidden="true">›</span>
+          <Link to="/products">Products</Link>
+          <span aria-hidden="true">›</span>
+          <span className="dtb-product-breadcrumb__current">{effectiveProductName}</span>
         </nav>
         <ProductDetail
           product={product}

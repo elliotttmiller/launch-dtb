@@ -39,6 +39,9 @@ import './styles/cart-drawer-checkout-fixes.css'
 import './styles/mobile-ui-polish.css'
 // Final customer-facing typography authority; keep after component styles.
 import './styles/global-typography.css'
+// Final accepted mobile mockup authority; keep after every shared style layer.
+import './styles/mobile-header-mockup.css'
+import './styles/mobile-product-detail-mockup.css'
 import App from './App.jsx'
 import ErrorBoundary from './components/errors/ErrorBoundary.jsx'
 import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js'

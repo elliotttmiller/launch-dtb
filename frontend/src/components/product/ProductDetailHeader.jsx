@@ -112,7 +112,7 @@ export default function ProductDetailHeader({
       </div>
 
       <div className="dtb-pdp-header__price-block">
-        <div className="dtb-pdp-header__price-row">
+        <div className="dtb-pdp-header__price-row" aria-live="polite" aria-atomic="true">
           <span className="dtb-pdp-header__price">
             {pricePrefix}{displayPrice}
           </span>
