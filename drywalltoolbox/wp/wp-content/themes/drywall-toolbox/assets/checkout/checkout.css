@@ -540,20 +540,33 @@ body.woocommerce-checkout .wc-block-components-validation-error {
 /* ---------------------------------------------------------------------------
  * 8. Radio groups — shipping methods, payment method list, saved cards
  *
- * WooCommerce core's own radio-control CSS reserves room for the radio dot
- * via padding/positioning on `.wc-block-components-radio-control__option`
- * that this file can't see or rely on (it ships from the WooCommerce plugin
- * at runtime). Overriding that element's `padding` alone — as this file
- * previously did — can collapse that reserved space and let the dot sit on
- * top of the label text (this is what caused the Shipping options and
- * Payment methods overlap). Explicitly rebuilding the row as a flex
- * container with the input, label, and secondary label (price) as normal
- * flex children — instead of trusting whatever positioning core applies —
- * fixes it regardless of core's internal implementation.
+ * Redesign v11 fixed a live overlap (radio dot punched through "Free
+ * shipping"'s label text) by rebuilding the row as a flex container and
+ * force-positioning the actual `<input type="radio">` with `!important`
+ * (WooCommerce's Shipping Rates Control nests it deeper than the plain
+ * payment-method radios, so core's own more-specific selector kept winning).
+ * Redesign v12 goes further per brand direction: no visible radio circle at
+ * all — the whole card is the toggle. Each of these elements is already a
+ * native `<label>` wrapping its `<input>`, so tapping anywhere on the card
+ * already checks it; nothing about the click target changes. The input
+ * itself is visually hidden with the same clip-path technique as
+ * `.screen-reader-text` above (not `display: none`, which would drop it from
+ * some accessibility trees and break the `:has(:checked)` /
+ * `:has(:focus-visible)` selectors this file now uses to style the card). A
+ * `::before` pseudo-element takes over the dot's old 20px footprint so
+ * nothing shifts on selection, rendering an accent checkmark once `:checked`
+ * and nothing otherwise; `:focus-visible` on the input rings the whole card
+ * instead of the now-invisible control. Depending on live carrier rates
+ * (Redesign v10) also means a label + price pair can be long enough to wrap
+ * ("USPS — Priority Mail Express" + "$24.13"); `flex-wrap` on the label
+ * group plus `overflow-wrap` on the label keep that wrap contained inside
+ * the row instead of overflowing it horizontally.
  * ------------------------------------------------------------------------- */
 
 body.woocommerce-checkout .wc-block-components-radio-control__option,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option {
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option,
+body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
+	position: relative;
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -562,43 +575,113 @@ body.woocommerce-checkout .wc-block-checkout__shipping-method-option {
 	border-radius: var(--dtb-radius-md);
 	margin-bottom: 8px;
 	padding: 12px 14px;
+	overflow: hidden;
+	cursor: pointer;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__input {
-	position: static;
+/* No radio circle: the entire card is the toggle (this element is a native
+ * <label> wrapping the input, so a click/tap anywhere on it already checks
+ * the input — nothing about the click target changes here). The input stays
+ * in the DOM, in its natural tab position, and fully operable for keyboard
+ * and assistive tech — only its visual circle is removed, using the same
+ * clip-path technique as `.screen-reader-text` above (not `display: none`,
+ * which drops an element from some accessibility trees and would also break
+ * the very `:checked`/`:focus-visible` state selectors this file uses below
+ * to style the card itself). */
+body.woocommerce-checkout .wc-block-components-radio-control__option input[type="radio"],
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option input[type="radio"],
+body.woocommerce-checkout .wc-block-components-radio-control-accordion-option input[type="radio"] {
+	position: absolute !important;
+	width: 1px !important;
+	height: 1px !important;
+	margin: -1px !important;
+	padding: 0 !important;
+	overflow: hidden !important;
+	clip-path: inset(50%) !important;
+	white-space: nowrap !important;
+	border: 0 !important;
+}
+
+/* Stand-in for the removed radio dot: an empty circular slot at the card's
+ * leading edge (same 20px footprint the dot used to occupy, so nothing
+ * shifts when a card becomes selected) that fills with a checkmark once its
+ * input is `:checked`. Keyboard focus on the (visually hidden but still
+ * tabbable) input is surfaced as a ring on the card itself, since there's no
+ * longer a visible control of its own to carry the browser's native focus
+ * ring. Scoped to shipping methods only — the BNPL accordion rows (Klarna,
+ * Affirm, Afterpay via UPM's own additional-methods list) already lead with
+ * their own brand icon and never rendered a visible radio dot to begin with,
+ * so adding this slot there would just insert unwanted blank space before
+ * that icon. */
+body.woocommerce-checkout .wc-block-components-radio-control__option::before,
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option::before {
+	content: "";
 	flex: none;
 	width: 20px;
 	height: 20px;
-	margin: 0;
+	border-radius: 999px;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked)::before,
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked)::before {
+	content: "\2713";
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--dtb-accent);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:focus-visible),
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:focus-visible),
+body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:focus-visible) {
+	outline: 2px solid var(--dtb-accent);
+	outline-offset: 2px;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__label-group {
 	display: flex;
 	align-items: center;
+	flex-wrap: wrap;
 	justify-content: space-between;
+	row-gap: 2px;
 	flex: 1 1 auto;
 	min-width: 0;
-	gap: 10px;
+	gap: 4px 10px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label,
+body.woocommerce-checkout .wc-block-components-radio-control__label {
+	min-width: 0;
+	flex: 1 1 auto;
+	overflow-wrap: anywhere;
+}
+
 body.woocommerce-checkout .wc-block-components-radio-control__secondary-label {
 	min-width: 0;
+	flex: 0 0 auto;
+	white-space: nowrap;
+	font-weight: 600;
 }
 
 body.woocommerce-checkout .wc-block-components-radio-control__description {
 	flex-basis: 100%;
 	margin-top: 4px;
+	overflow-wrap: anywhere;
 }
 
+/* Selected-card highlight. Both core's own state classes (only applied for
+ * some providers/variants) and a `:has(:checked)` catch-all are kept so the
+ * highlight never silently depends on which class name a given provider
+ * happens to add. */
 body.woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option--selected {
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option--selected,
+body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked),
+body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked),
+body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:checked) {
 	border-color: var(--dtb-accent);
 	background: var(--dtb-accent-soft);
-}
-
-body.woocommerce-checkout .wc-block-components-radio-control__input:checked {
-	accent-color: var(--dtb-accent);
 }
 
 /* ---------------------------------------------------------------------------
