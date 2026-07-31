@@ -494,7 +494,7 @@ export default function Repairs() {
       }}>
         <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
           <div style={{ maxWidth: '1120px' }}>
-            <p style={{
+            <p className="dtb-title-eyebrow" style={{
               margin: '0 0 14px',
               color: 'rgba(219,234,254,0.86)',
               textTransform: 'uppercase',
@@ -1512,7 +1512,7 @@ export function RepairStartExperience() {
 
           {/* Section heading */}
           <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 4vw, 3rem)' }}>
-            <div style={{
+            <div className="dtb-title-eyebrow" style={{
               display: 'inline-block',
               background: 'rgba(37,99,235,0.08)',
               border: '1px solid rgba(37,99,235,0.2)',

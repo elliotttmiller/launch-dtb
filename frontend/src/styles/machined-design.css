@@ -11,9 +11,11 @@
     --tension-highlight: var(--color-primary-400, #60a5fa);
     --machined-border: rgba(15, 23, 42, 0.08);
     --surface-glass: rgba(255, 255, 255, 0.7);
-    --font-main: 'Geist', system-ui, -apple-system, sans-serif;
-    --font-sans: 'Geist', system-ui, -apple-system, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-main: 'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-sans: 'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-display: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-heading: var(--font-display);
+    --font-mono: 'Nunito', ui-sans-serif, system-ui, sans-serif;
     --ease-tension: cubic-bezier(0.16, 1, 0.3, 1);
 
     /* ── Global shape tokens ──────────────────────────────────────────── */

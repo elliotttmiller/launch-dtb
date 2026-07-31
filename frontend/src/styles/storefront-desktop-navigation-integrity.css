@@ -40,37 +40,6 @@
     transition: color 0.4s ease;
   }
 
-  /*
-   * Canonical desktop tab interaction.
-   * The legacy glowing ::after indicator is disabled here. The replacement
-   * follows a simple left-to-right width reveal, matching the requested
-   * reference while preserving keyboard focus and open-menu states.
-   */
-  .site-header .dtb-desktop-nav-tab::after {
-    content: none !important;
-  }
-
-  .site-header .dtb-desktop-nav-tab::before {
-    content: "";
-    position: absolute;
-    width: 0;
-    height: 4px;
-    bottom: 0;
-    left: 0;
-    border-radius: 2px 2px 0 0;
-    background-color: #a6a6a6;
-    opacity: 1;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    pointer-events: none;
-  }
-
-  .site-header .dtb-desktop-nav-tab:hover::before,
-  .site-header .dtb-desktop-nav-tab:focus-visible::before,
-  .site-header .dtb-desktop-nav-tab.is-active::before,
-  .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
-    width: 100%;
-  }
-
   .site-header .dtb-desktop-nav {
     gap: clamp(0px, 0.25vw, 5px);
   }
@@ -95,7 +64,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .site-header .dtb-desktop-nav-tab,
-    .site-header .dtb-desktop-nav-tab::before {
+    .site-header .dtb-desktop-nav-tab::after {
       transition: none;
     }
   }

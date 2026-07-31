@@ -37,6 +37,7 @@ export default {
       },
       fontFamily: {
         sans: ['Nunito', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        display: ['Geist', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         mono: ['Nunito', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       animation: {

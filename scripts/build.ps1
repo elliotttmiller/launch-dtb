@@ -1,2 +1,2 @@
 Set-Location frontend 
-npm run buildb
+npm run build

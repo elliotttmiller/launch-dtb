@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
@@ -50,54 +50,105 @@ function AnimatedPrice({ price }) {
   );
 }
 
-function CategoryTabs({ groups, activeGroupId, onChange }) {
-  const tabRefs = useRef({});
+function CategoryTabs({ groups, activeGroupId, focusGroupId, onChange }) {
+  const tabsRef = useRef(null);
+  const tabRefs = useRef(new Map());
   const [activeMetrics, setActiveMetrics] = useState({ left: 0, width: 0 });
 
-  useEffect(() => {
-    const updateActiveMetrics = () => {
-      const activeTab = tabRefs.current[activeGroupId];
-      if (!activeTab) return;
+  const updateActiveMetrics = useCallback(() => {
+    const activeTab = tabRefs.current.get(activeGroupId);
+    if (!activeTab) return;
 
-      setActiveMetrics({
-        left: activeTab.offsetLeft,
-        width: activeTab.offsetWidth,
-      });
+    const nextMetrics = {
+      left: activeTab.offsetLeft,
+      width: activeTab.offsetWidth,
     };
 
+    setActiveMetrics((currentMetrics) => (
+      currentMetrics.left === nextMetrics.left && currentMetrics.width === nextMetrics.width
+        ? currentMetrics
+        : nextMetrics
+    ));
+  }, [activeGroupId]);
+
+  useLayoutEffect(() => {
     updateActiveMetrics();
+
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(updateActiveMetrics);
+
+    if (tabsRef.current) resizeObserver?.observe(tabsRef.current);
+    tabRefs.current.forEach((tab) => resizeObserver?.observe(tab));
     window.addEventListener('resize', updateActiveMetrics);
-    return () => window.removeEventListener('resize', updateActiveMetrics);
-  }, [activeGroupId, groups]);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', updateActiveMetrics);
+    };
+  }, [groups, updateActiveMetrics]);
+
+  useEffect(() => {
+    const activeTab = tabRefs.current.get(activeGroupId);
+    activeTab?.scrollIntoView({
+      behavior: 'auto',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+
+    if (focusGroupId !== activeGroupId) return undefined;
+
+    const frameId = window.requestAnimationFrame(() => activeTab?.focus());
+    return () => window.cancelAnimationFrame(frameId);
+  }, [activeGroupId, focusGroupId]);
+
+  const moveSelection = useCallback((event, currentIndex) => {
+    let nextIndex = currentIndex;
+
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % groups.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + groups.length) % groups.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = groups.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextGroup = groups[nextIndex];
+    onChange(nextGroup.id, { preserveKeyboardFocus: true });
+  }, [groups, onChange]);
 
   return (
     <div className="repair-package-tabs-wrap" aria-label="Repair package tool categories">
-      <div className="repair-package-tabs" role="tablist">
-        {activeMetrics.width > 0 && (
-          <Motion.div
-            className="repair-package-tabs__active"
-            initial={false}
-            animate={activeMetrics}
-            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-          />
-        )}
-        {groups.map((group) => {
+      <div ref={tabsRef} className="repair-package-tabs" role="tablist" aria-orientation="horizontal">
+        <div
+          className={`repair-package-tabs__active${activeMetrics.width > 0 ? ' is-ready' : ''}`}
+          style={{
+            width: `${activeMetrics.width}px`,
+            transform: `translate3d(${activeMetrics.left}px, 0, 0)`,
+          }}
+          aria-hidden="true"
+        />
+        {groups.map((group, index) => {
           const active = group.id === activeGroupId;
+          const tabId = `repair-package-tab-${group.id}`;
 
           return (
             <button
               key={group.id}
               ref={(node) => {
-                if (node) tabRefs.current[group.id] = node;
+                if (node) tabRefs.current.set(group.id, node);
+                else tabRefs.current.delete(group.id);
               }}
+              id={tabId}
               type="button"
               role="tab"
               aria-selected={active}
               aria-controls={`repair-packages-panel-${group.id}`}
+              tabIndex={active ? 0 : -1}
               className={`repair-package-tab${active ? ' is-active' : ''}`}
               onClick={() => onChange(group.id)}
+              onKeyDown={(event) => moveSelection(event, index)}
             >
-              <span>{group.label}</span>
+              <span className="repair-package-tab__label">{group.label}</span>
             </button>
           );
         })}
@@ -187,11 +238,19 @@ export default function RepairPackages() {
   const activeGroup = groups.find((group) => group.id === activeGroupId) || groups[0];
   const resumeState = location.state?.repairFormResume || null;
 
-  const handleGroupChange = useCallback((groupId) => {
+  const focusGroupId = location.state?.repairPackageTabFocus || null;
+
+  const handleGroupChange = useCallback((groupId, { preserveKeyboardFocus = false } = {}) => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('tool', groupId);
-    setSearchParams(nextParams, { replace: true });
-  }, [searchParams, setSearchParams]);
+    setSearchParams(nextParams, {
+      replace: true,
+      state: {
+        ...(location.state || {}),
+        repairPackageTabFocus: preserveKeyboardFocus ? groupId : null,
+      },
+    });
+  }, [location.state, searchParams, setSearchParams]);
 
   return (
     <div className="page-wrapper repair-packages-page">
@@ -213,7 +272,12 @@ export default function RepairPackages() {
 
       <section className="repair-packages-tabs-section">
         <div className="repair-packages-shell">
-          <CategoryTabs groups={groups} activeGroupId={activeGroup.id} onChange={handleGroupChange} />
+          <CategoryTabs
+            groups={groups}
+            activeGroupId={activeGroup.id}
+            focusGroupId={focusGroupId}
+            onChange={handleGroupChange}
+          />
         </div>
       </section>
 
@@ -239,7 +303,7 @@ export default function RepairPackages() {
               key={activeGroup.id}
               id={`repair-packages-panel-${activeGroup.id}`}
               role="tabpanel"
-              aria-label={`${activeGroup.label} repair packages`}
+              aria-labelledby={`repair-package-tab-${activeGroup.id}`}
               className="repair-packages-grid"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}

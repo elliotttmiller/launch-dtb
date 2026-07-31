@@ -123,7 +123,7 @@ export default function ShippingPolicy() {
         }} />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{
+          <div className="dtb-title-eyebrow" style={{
             display:       'inline-block',
             background:    'rgba(255,255,255,0.1)',
             border:        '1px solid rgba(255,255,255,0.2)',

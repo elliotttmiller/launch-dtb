@@ -49,6 +49,7 @@ export default function PageHeroBanner({
       >
         {eyebrow && (
           <div
+            className="dtb-title-eyebrow"
             style={{
               display: 'inline-flex',
               alignItems: 'center',

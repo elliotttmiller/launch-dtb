@@ -73,13 +73,13 @@
     <!-- Early connection to the production API / WP backend -->
     <link rel="preconnect" href="<%= htmlWebpackPlugin.options.siteUrl %>" crossorigin>
     <!--
-      Nunito is the single customer-facing UI typeface. The non-render-blocking
-      preload/onload pattern preserves fast first paint while font-display=swap
-      prevents invisible text on slow mobile connections. The noscript fallback
-      keeps typography available when JavaScript is disabled.
+      Geist is the display/title face and Nunito is the supporting UI/body face.
+      The non-render-blocking preload/onload pattern preserves fast first paint
+      while font-display=swap prevents invisible text on slow connections. The
+      noscript fallback keeps both typography roles available without JavaScript.
     -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@300..900&display=swap"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Nunito:wght@300..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Nunito:wght@300..900&display=swap"></noscript>
 
     <!-- Static Organization JSON-LD (supplements per-page dynamic schemas) -->
     <script type="application/ld+json">

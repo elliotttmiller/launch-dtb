@@ -101,6 +101,12 @@ body {
   text-transform: uppercase;
 }
 
+.error-card__eyebrow,
+.error-card__code,
+.error-card h1 {
+  font-family: "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
 .error-card__code {
   margin: 10px 0 0;
   color: #cbd5e1;

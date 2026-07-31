@@ -140,7 +140,6 @@
   }
 
   .dtb-desktop-nav-tab {
-    --dtb-nav-underline-inset: clamp(7px, 0.7vw, 13px);
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -152,7 +151,7 @@
     border-radius: 0;
     background: transparent;
     color: rgba(241, 245, 249, 0.92);
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
     font-size: clamp(0.85rem, 0.76vw, 0.95rem);
     font-weight: 600;
     line-height: 1;
@@ -166,27 +165,21 @@
   }
 
   /*
-   * Sleek center-expanding nav indicator. The underline is always full-width
-   * geometrically and animates through transform only, avoiding layout work.
+   * AnimatedUnderlineLinks "slide in" interaction: a full-width underline
+   * scales from the left edge without changing the tab's layout geometry.
    */
   .dtb-desktop-nav-tab::after {
+    content: "";
     position: absolute;
     bottom: 0;
-    left: 50%;
-    width: calc(100% - var(--dtb-nav-underline-inset) - var(--dtb-nav-underline-inset));
+    left: 0;
+    width: 100%;
     height: 2px;
-    border-radius: 999px 999px 0 0;
-    background: linear-gradient(90deg, rgba(96, 165, 250, 0.18), #60a5fa 18%, #dbeafe 50%, #60a5fa 82%, rgba(96, 165, 250, 0.18));
-    box-shadow: 0 0 0 rgba(96, 165, 250, 0);
-    content: '';
-    opacity: 0;
-    transform: translateX(-50%) scaleX(0);
-    transform-origin: center;
-    transition:
-      transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
-      opacity 180ms ease,
-      box-shadow 360ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform;
+    background: #818cf8;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    pointer-events: none;
   }
 
   .dtb-desktop-nav-tab:hover,
@@ -202,9 +195,7 @@
   .dtb-desktop-nav-tab:focus-visible::after,
   .dtb-desktop-nav-tab.is-active::after,
   .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::after {
-    opacity: 1;
-    transform: translateX(-50%) scaleX(1);
-    box-shadow: 0 -2px 14px rgba(96, 165, 250, 0.34);
+    transform: scaleX(1);
   }
 
   .dtb-desktop-nav-tab svg {
@@ -381,7 +372,6 @@
   }
 
   .site-header .dtb-desktop-nav-tab {
-    --dtb-nav-underline-inset: 5px;
     gap: 3px;
     padding: 0 clamp(4px, 0.45vw, 7px);
     font-size: clamp(0.72rem, 0.74vw, 0.82rem);
