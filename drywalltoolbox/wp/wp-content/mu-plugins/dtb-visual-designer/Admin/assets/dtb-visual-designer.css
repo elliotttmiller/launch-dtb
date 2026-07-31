@@ -4,9 +4,9 @@
  * Built entirely on the shared .dtb-admin design-token system
  * (dtb-platform/Admin/assets/dtb-admin.css) — no parallel palette, radius,
  * or shadow scale is introduced. Structure:
- *   1. Shell layout (topbar + 3-pane workspace)
- *   2. Surface navigator
- *   3. Component tree
+ *   1. Shell layout (topbar + workspace; surface picker lives in the topbar)
+ *   2. Component tree (collapsible-width left panel for the selected surface)
+ *   3. (reserved)
  *   4. Preview stage + device toolbar
  *   5. Inspector panel + control primitives
  *   6. History / revisions panel
@@ -17,7 +17,7 @@
 /* ── 1. Shell layout ─────────────────────────────────────────────────── */
 
 .dtb-vd {
-  --dtb-vd-panel-w: 280px;
+  --dtb-vd-panel-w: 220px;
   --dtb-vd-inspector-w: 340px;
   --dtb-vd-topbar-h: 56px;
   height: calc(100vh - 68px);
@@ -51,8 +51,18 @@
 }
 
 .dtb-vd__surface-select {
-  min-width: 220px;
+  min-width: 200px;
+  max-width: 260px;
+  height: 32px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 10px;
+  border-radius: var(--dtb-radius-sm);
+  border: 1px solid var(--dtb-border);
+  background: var(--dtb-surface);
+  color: var(--dtb-text);
 }
+.dtb-vd__surface-select:focus-visible { outline: 2px solid var(--dtb-primary); outline-offset: 1px; }
 
 .dtb-vd__topbar-spacer { flex: 1 1 auto; }
 
@@ -83,6 +93,12 @@
   background: var(--dtb-surface);
   color: var(--dtb-primary);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+.dtb-vd__device-btn .dashicons { font-size: 18px; width: 18px; height: 18px; }
+
+.dtb-vd__btn--ghost[aria-pressed="true"] {
+  background: var(--dtb-primary-soft);
+  color: var(--dtb-primary);
 }
 
 .dtb-vd__status {
@@ -150,7 +166,7 @@
   min-height: 0;
 }
 
-/* ── 2. Surface navigator ────────────────────────────────────────────── */
+/* ── 2. Component tree ───────────────────────────────────────────────── */
 
 .dtb-vd__nav {
   width: var(--dtb-vd-panel-w);
@@ -171,46 +187,10 @@
   color: var(--dtb-soft);
 }
 
-.dtb-vd__nav-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  text-align: left;
-  border: none;
-  background: transparent;
-  padding: 8px 14px;
-  font-size: 13px;
-  color: var(--dtb-text);
-  cursor: pointer;
-  border-left: 2px solid transparent;
-}
-
-.dtb-vd__nav-item:hover { background: var(--dtb-bg-muted); }
-.dtb-vd__nav-item[aria-current="true"] {
-  background: var(--dtb-primary-soft);
-  border-left-color: var(--dtb-primary);
-  color: var(--dtb-primary);
-  font-weight: 600;
-}
-.dtb-vd__nav-item:focus-visible { outline: 2px solid var(--dtb-primary); outline-offset: -2px; }
-
-.dtb-vd__nav-badge {
-  margin-left: auto;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: var(--dtb-radius-pill, 999px);
-  background: var(--dtb-bg-muted);
-  color: var(--dtb-text-muted);
-}
-
-.dtb-vd__nav-badge--commerce { background: var(--dtb-danger-soft); color: var(--dtb-danger); }
-
-/* Component tree, nested under the navigator for the selected surface */
+/* Surface selection lives in the topbar dropdown (.dtb-vd__surface-select);
+   this panel is the component tree for whichever surface is selected. */
 
 .dtb-vd__tree {
-  border-top: 1px solid var(--dtb-border-soft);
   padding: 8px 0 16px;
 }
 
@@ -241,7 +221,7 @@
 .dtb-vd__tree-kind-dot--structural { background: var(--dtb-info); }
 .dtb-vd__tree-kind-dot--content { background: var(--dtb-success); }
 
-/* ── 3. Preview stage ─────────────────────────────────────────────────── */
+/* ── 4. Preview stage ─────────────────────────────────────────────────── */
 
 .dtb-vd__stage {
   flex: 1 1 auto;
