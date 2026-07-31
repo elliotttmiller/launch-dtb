@@ -1,7 +1,7 @@
 /**
  * DTB Visual UI Designer — admin editor application.
  *
- * Plain, dependency-free JS (matches the rest of mu-plugins/*/Admin/assets —
+ * Plain, dependency-free JS (matches the other MU-plugin Admin/assets files —
  * no build step). Talks exclusively to the dtb/v1 REST API localized via
  * window.dtbAdminConfig (restUrl/nonce, shared with every DTB admin page)
  * and window.dtbVisualDesignerConfig (storefrontOrigin/surfaces/breakpoints,
