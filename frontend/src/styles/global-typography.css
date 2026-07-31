@@ -8,7 +8,7 @@
  */
 
 :root {
-  --dtb-font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --dtb-font-body: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --dtb-font-display: var(--dtb-font-body);
   --dtb-font-ui: var(--dtb-font-body);
   --dtb-font-sans: var(--dtb-font-body);

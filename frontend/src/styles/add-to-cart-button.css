@@ -267,3 +267,10 @@
     stroke-dashoffset: 0;
   }
 }
+
+@media (max-width: 768px) {
+  .dtb-product-card .dtb-product-card__action,
+  .dtb-product-card .dtb-product-card__action--hidden-mobile {
+    display: none !important;
+  }
+}

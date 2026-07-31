@@ -931,72 +931,80 @@ export default function ProductDetail({
             </div>
 
             <div className="dtb-pdp__info-column flex flex-col">
-              <ProductDetailHeader
-                product={product}
-                productUrl={detailProductUrl}
-                effectiveName={(effectiveProduct.name || product.name)}
-                effectiveSku={effectiveSku}
-                isOutOfStock={isOutOfStock}
-                brandLabel={brandLabel}
-                brandLogoSrc={brandLabel ? getBrandLogo(brandLabel) : null}
-                brandLogoClassName="product-detail-brand-logo"
-                displayPrice={displayPrice}
-                pricePrefix={pricePrefix}
-                compareAt={compareAt}
-                rawPrice={rawPrice}
-                onReviewsClick={() => setActiveTab('reviews')}
-                money={money}
-                reviewsClassName="dtb-pdp-mobile-relocate"
-              />
-
-              {needsVariation ? (
-                <ProductVariationRail
-                  variationAttributes={variationAttributes}
-                  variantOptionMeta={variantOptionMeta}
-                  selectedAttrs={selectedAttrs}
-                  setSelectedAttrs={(next) => {
-                    clearAddToCartError();
-                    setSelectedAttrs(next);
-                  }}
-                  variationsLoading={variationsLoading}
-                  selectedVariation={selectedVariation}
-                  hasCompleteSelection={hasCompleteSelection}
+              <div className="dtb-pdp__summary-region">
+                <ProductDetailHeader
+                  product={product}
+                  productUrl={detailProductUrl}
+                  effectiveName={(effectiveProduct.name || product.name)}
+                  effectiveSku={effectiveSku}
+                  isOutOfStock={isOutOfStock}
+                  brandLabel={brandLabel}
+                  brandLogoSrc={brandLabel ? getBrandLogo(brandLabel) : null}
+                  brandLogoClassName="product-detail-brand-logo"
+                  displayPrice={displayPrice}
+                  pricePrefix={pricePrefix}
+                  compareAt={compareAt}
+                  rawPrice={rawPrice}
+                  onReviewsClick={() => setActiveTab('reviews')}
+                  money={money}
+                  reviewsClassName="dtb-pdp-mobile-relocate"
                 />
-              ) : null}
 
-              <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock ? 'is-out' : ''}`}>
-                <p className="dtb-pdp-stock-meter__label"><Check aria-hidden="true" />{stockHint}</p>
-                {!isOutOfStock ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
+                {needsVariation ? (
+                  <ProductVariationRail
+                    variationAttributes={variationAttributes}
+                    variantOptionMeta={variantOptionMeta}
+                    selectedAttrs={selectedAttrs}
+                    setSelectedAttrs={(next) => {
+                      clearAddToCartError();
+                      setSelectedAttrs(next);
+                    }}
+                    variationsLoading={variationsLoading}
+                    selectedVariation={selectedVariation}
+                    hasCompleteSelection={hasCompleteSelection}
+                  />
+                ) : null}
               </div>
 
-              <ProductPurchasePanel
-                quantity={quantity}
-                onDecrease={() => {
-                  clearAddToCartError();
-                  setQuantity((prev) => Math.max(1, prev - 1));
-                }}
-                onIncrease={() => {
-                  clearAddToCartError();
-                  setQuantity((prev) => prev + 1);
-                }}
-                onQuantityChange={(val) => {
-                  clearAddToCartError();
-                  setQuantity(val);
-                }}
-                onAddToCart={handleAddToCart}
-                addToCartState={addToCartState}
-                onBuyNow={handleBuyNow}
-                isBuyNowPending={isBuyNowPending}
-                canBuyNow={canAddToCart}
-                canAddToCart={canAddToCart}
-                isOutOfStock={isOutOfStock}
-                needsVariation={needsVariation}
-                hasCompleteSelection={hasCompleteSelection}
-                isWishlisted={isWishlisted}
-                onToggleWishlist={() => setIsWishlisted((prev) => !prev)}
-                partsUrl={partsUrl}
-                reviewNode={<EmptyReviewsButton onClick={() => setActiveTab('reviews')} className="dtb-pdp-header__reviews--mobile-inline" />}
-              />
+              <div className="dtb-pdp__purchase-region">
+                <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock ? 'is-out' : ''}`}>
+                  <p className="dtb-pdp-stock-meter__label"><Check aria-hidden="true" />{stockHint}</p>
+                  {!isOutOfStock ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
+                </div>
+
+                <ProductPurchasePanel
+                  quantity={quantity}
+                  onDecrease={() => {
+                    clearAddToCartError();
+                    setQuantity((prev) => Math.max(1, prev - 1));
+                  }}
+                  onIncrease={() => {
+                    clearAddToCartError();
+                    setQuantity((prev) => prev + 1);
+                  }}
+                  onQuantityChange={(val) => {
+                    clearAddToCartError();
+                    setQuantity(val);
+                  }}
+                  onAddToCart={handleAddToCart}
+                  addToCartState={addToCartState}
+                  onBuyNow={handleBuyNow}
+                  isBuyNowPending={isBuyNowPending}
+                  canBuyNow={canAddToCart}
+                  canAddToCart={canAddToCart}
+                  isOutOfStock={isOutOfStock}
+                  needsVariation={needsVariation}
+                  hasCompleteSelection={hasCompleteSelection}
+                  isWishlisted={isWishlisted}
+                  onToggleWishlist={() => setIsWishlisted((prev) => !prev)}
+                  partsUrl={partsUrl}
+                  reviewNode={<EmptyReviewsButton onClick={() => setActiveTab('reviews')} className="dtb-pdp-header__reviews--mobile-inline" />}
+                />
+
+                {addToCartError ? (
+                  <p className="text-sm text-red-600 mt-2" role="alert" aria-live="assertive">{addToCartError}</p>
+                ) : null}
+              </div>
 
               <div className="dtb-pdp-mobile-post-purchase">
                 {partsUrl ? (
@@ -1005,10 +1013,6 @@ export default function ProductDetail({
                   </Link>
                 ) : null}
               </div>
-              {addToCartError ? (
-                <p className="text-sm text-red-600 mt-2" role="alert" aria-live="assertive">{addToCartError}</p>
-              ) : null}
-
             </div>
           </div>
 

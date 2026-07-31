@@ -546,6 +546,33 @@
 
 /* Mobile list/search result cards — aligned with schematic hotspot detail cards. */
 @media (max-width: 767px) {
+  .dtb-product-card__footer,
+  .dtb-product-card--grid .dtb-product-card__footer {
+    display: block;
+    min-height: 0;
+  }
+
+  .dtb-product-card__price-col,
+  .dtb-product-card__price-group {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dtb-product-card__price-group {
+    display: grid;
+    grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+    gap: 3px 6px;
+    align-items: baseline;
+    overflow: visible;
+  }
+
+  .dtb-product-card__compare-price {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   .dtb-product-card:hover {
     transform: none;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);

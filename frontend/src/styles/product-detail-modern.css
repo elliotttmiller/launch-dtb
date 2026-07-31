@@ -1603,6 +1603,13 @@
 
 /* Accepted desktop product-detail composition. This final layer intentionally
    leaves modal and mobile product views on their existing responsive rules. */
+@media (max-width: 1024px) {
+  .dtb-pdp__summary-region,
+  .dtb-pdp__purchase-region {
+    display: contents;
+  }
+}
+
 @media (min-width: 1025px) {
   .dtb-product-page-shell {
     width: min(100%, 1460px) !important;
@@ -1635,6 +1642,7 @@
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
     display: grid;
     grid-template-columns: minmax(0, 1.16fr) minmax(470px, 0.84fr);
+    grid-auto-rows: minmax(620px, auto);
     align-items: stretch;
     gap: 42px !important;
     margin-bottom: 14px !important;
@@ -1644,7 +1652,7 @@
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
     box-sizing: border-box;
     min-height: 620px;
-    height: auto;
+    height: 100%;
     border: 1px solid #dfe5ed;
     border-radius: 16px;
     background: #fff;
@@ -1711,15 +1719,30 @@
     display: flex !important;
     flex-direction: column;
     gap: 0 !important;
-    padding: 28px 36px 26px;
+    padding: clamp(26px, 2.15vw, 34px) clamp(30px, 2.55vw, 40px) clamp(24px, 2vw, 32px);
   }
 
-  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column > * {
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__summary-region,
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__purchase-region {
+    display: grid;
+    min-width: 0;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__summary-region {
+    align-content: start;
+    gap: clamp(20px, 1.75vw, 28px);
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__purchase-region {
     flex: 0 0 auto;
+    gap: clamp(12px, 1vw, 16px);
+    margin-top: auto;
+    padding-top: clamp(22px, 2vw, 32px);
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-header {
-    gap: 0;
+    display: grid;
+    gap: clamp(10px, 0.85vw, 14px);
     margin-bottom: 0;
   }
 
@@ -1733,17 +1756,17 @@
   }
 
   .dtb-pdp-header__desktop-reviews {
-    margin-top: 14px;
+    margin-top: 0;
     line-height: 1;
   }
 
   .dtb-pdp-header__meta {
-    margin-top: 18px;
+    margin-top: 0;
     line-height: 1;
   }
 
   .dtb-pdp-header__price-block {
-    margin-top: 16px;
+    margin-top: 0;
   }
 
   .dtb-pdp-header__price {
@@ -1757,7 +1780,7 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    margin: 10px 0 0;
+    margin: 0;
     font-size: 0.875rem;
     font-weight: 450;
     letter-spacing: -0.005em;
@@ -1766,7 +1789,7 @@
 
   .product-variation-panel {
     gap: 8px;
-    margin: 28px 0 0;
+    margin: 0;
   }
 
   .product-variation-group__label {
@@ -1786,7 +1809,7 @@
     align-items: center;
     justify-content: space-between;
     min-height: 42px;
-    margin: 18px 0 14px;
+    margin: 0;
     padding: 0 14px;
     border: 1px solid #ccebd5;
     border-radius: 7px;
@@ -1831,7 +1854,7 @@
   }
 
   .dtb-pdp-purchase-panel {
-    gap: 13px;
+    gap: clamp(12px, 1vw, 15px);
   }
 
   .dtb-pdp-purchase-row {
@@ -1852,8 +1875,8 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-top: 7px;
-    padding-top: 15px;
+    margin-top: 0;
+    padding-top: clamp(14px, 1.1vw, 18px);
     border-top: 1px solid #e4e9ef;
   }
 

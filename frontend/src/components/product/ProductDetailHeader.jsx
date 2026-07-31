@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Truck } from 'lucide-react';
 
 function getProductUrl(product) {
   const slug = product?.slug || product?.post_name || '';
@@ -125,7 +124,6 @@ export default function ProductDetailHeader({
       </div>
 
       <p className="dtb-pdp-shipping-note">
-        <Truck size={16} strokeWidth={2} aria-hidden="true" />
         <Link to="/shipping-policy" className="dtb-pdp-shipping-note__link">
           Shipping
         </Link>{' '}

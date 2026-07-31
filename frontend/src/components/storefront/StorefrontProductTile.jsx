@@ -333,11 +333,11 @@ export default function StorefrontProductTile({
             </div>
           </div>
 
-          {!isVariable && (
+          {!isMobile && !isVariable && (
             <AddToCartButton
               onClick={handleAddButtonClick}
               disabled={outOfStock}
-              className={`dtb-product-card__action${isMobile ? ' dtb-product-card__action--hidden-mobile' : ''}`}
+              className="dtb-product-card__action"
               size="card"
               label="Add"
               productId={displayProduct.id}

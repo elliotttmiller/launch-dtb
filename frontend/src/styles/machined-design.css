@@ -44,10 +44,6 @@
     --header-height: calc(clamp(56px, 8vw, 100px) + 7px + env(safe-area-inset-top, 0px));
 }
 
-:root:has(.storefront-header-stack--with-banner) {
-    --header-height: calc(30px + clamp(56px, 8vw, 100px) + 7px + env(safe-area-inset-top, 0px));
-}
-
 * {
     -webkit-font-smoothing: antialiased;
     box-sizing: border-box;
@@ -3401,10 +3397,6 @@ a.header-contact-icon {
    ─────────────────────────────────────────────────────── */
 @media (min-width: 1025px) {
     :root { --header-height: calc(120px + env(safe-area-inset-top, 0px)); } /* taller nav bar */
-    :root:has(.storefront-header-stack--with-banner) {
-        --header-height: calc(150px + env(safe-area-inset-top, 0px));
-    }
-
     .site-header {
         position: fixed;
         top: 0;

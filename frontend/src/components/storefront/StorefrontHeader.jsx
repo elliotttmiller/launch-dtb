@@ -82,7 +82,7 @@ function toSearchProduct(product) {
   };
 }
 
-export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = false }) {
+export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { getCartCount } = useCart();
@@ -374,7 +374,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
       window.removeEventListener('resize', updateHeaderHeight);
       window.removeEventListener('orientationchange', updateHeaderHeight);
     };
-  }, [hasTopTicker, mobileMenuOpen, isTablet]);
+  }, [mobileMenuOpen, isTablet]);
 
   useEffect(() => {
     const query = mobileSearchQuery.trim();
@@ -519,7 +519,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen, hasTopTicker = 
 
   return (
     <>
-      <header className={`site-header${hasTopTicker ? ' site-header--with-top-ticker' : ' site-header--no-ticker'}`} role="banner">
+      <header className="site-header site-header--no-ticker" role="banner">
         <div className="site-header-inner">
           <div className="header-mobile-layout" style={{ display: isTablet ? 'flex' : undefined }}>
             <div className="header-mobile-slot header-mobile-slot--left">
