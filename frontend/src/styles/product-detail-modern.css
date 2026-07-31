@@ -699,7 +699,7 @@
   min-height: 52px;
   border: 0;
   border-radius: 7px;
-  background: linear-gradient(135deg, #09204d 0%, #153fbc 48%, #2255ee 100%);
+  background: #2255ee;
   color: #fff;
   font-size: 0.95rem;
   font-weight: 800;
@@ -724,7 +724,7 @@
 
 .dtb-pdp-add-to-cart:hover:not(:disabled) {
   opacity: 1;
-  background: linear-gradient(135deg, #0b2a66 0%, #1848d8 48%, #3267ff 100%);
+  background: #2255ee;
   box-shadow:
     0 5px 14px rgba(34, 85, 238, 0.28),
     0 16px 32px rgba(34, 85, 238, 0.2),
@@ -1670,22 +1670,6 @@
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main img {
     padding: 26px 48px 18px !important;
-  }
-
-  .product-image-gallery__zoom {
-    position: absolute;
-    top: 2px;
-    right: 0;
-    z-index: 12;
-    display: grid;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    border: 1px solid #dbe2ea;
-    border-radius: 50%;
-    color: #0f172a;
-    background: rgba(255, 255, 255, 0.96);
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main > button {

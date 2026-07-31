@@ -1,861 +1,831 @@
-## Mobile Product Detail Page Design Specification
+Your current right column is structurally close, but the content is compressed into the upper half while the lower portion of the card is largely unused. The mockup works because the card is treated as a **full-height layout system**, not as a normal content container with arbitrary margins.
 
-This mockup uses a **premium, restrained ecommerce UI system** built around dark navy, bright electric blue, white surfaces, subtle gray borders, and compact typography. The layout is optimized for a narrow mobile viewport while retaining clear hierarchy, large touch targets, and a focused purchase flow.
+The correct approach is:
 
-An exact pixel-identical implementation requires the original source design file and assets. The following specification is the closest reproducible design system based on the rendered mockup.
+1. Stretch the right card to the same height as the gallery.
+2. Divide its contents into logical regions.
+3. Use controlled fluid gaps rather than scattered margins.
+4. Keep the transaction controls grouped together.
+5. Anchor the payment and trust region toward the bottom.
+6. Allow titles, variants, and stock messages to grow without breaking alignment.
 
-# 1. Overall page structure
+## 1. Use an equal-height two-column product shell
 
-The mobile page is a single-column layout with this order:
+The gallery and product card must participate in the same CSS Grid row.
 
-1. Mobile site header
-2. Search field
-3. Breadcrumbs
-4. Product gallery card
-5. Product information and purchase card
-6. Product-content tabs
-
-The page background is nearly white with a faint cool-gray tone.
+**Repository path: existing frontend product-detail layout stylesheet; confirm the exact file before editing.**
 
 ```css
-:root {
-  --dtb-navy-950: #03122f;
-  --dtb-navy-900: #061a3d;
-  --dtb-blue-600: #1258ff;
-  --dtb-blue-500: #1764ff;
-  --dtb-blue-100: #eaf1ff;
+.product-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(420px, 0.88fr);
+  gap: clamp(24px, 2.2vw, 36px);
+  align-items: stretch;
+}
 
-  --dtb-green-700: #14833b;
-  --dtb-green-100: #eaf8ed;
+.product-gallery-card,
+.product-purchase-card {
+  height: 100%;
+  min-width: 0;
+}
 
-  --dtb-text-primary: #07152f;
-  --dtb-text-secondary: #647089;
-  --dtb-text-muted: #929bae;
-
-  --dtb-surface: #ffffff;
-  --dtb-page: #f8f9fb;
-  --dtb-border: #e2e6ec;
-  --dtb-border-soft: #edf0f4;
-
-  --dtb-radius-sm: 10px;
-  --dtb-radius-md: 16px;
-  --dtb-radius-lg: 22px;
-
-  --dtb-shadow-card:
-    0 2px 6px rgba(9, 24, 50, 0.04),
-    0 10px 28px rgba(9, 24, 50, 0.07);
+@media (max-width: 1024px) {
+  .product-detail-layout {
+    grid-template-columns: 1fr;
+  }
 }
 ```
 
-The mobile content width should be fluid:
+Do not set independent fixed heights on the two cards. Let the tallest column establish the row height and allow the other card to stretch.
+
+Your current implementation appears to size the right card only around its content. That produces the empty lower area within the overall two-column section instead of distributing the card content across the available vertical space.
+
+---
+
+# 2. Build the purchase card as defined layout regions
+
+Do not place every element directly inside one container with individual margins.
+
+Use five explicit regions:
+
+```text
+Product identity
+Pricing and product configuration
+Availability and purchase controls
+Payment methods
+Trust footer
+```
+
+Recommended component structure:
+
+**Repository path: existing frontend product-detail component; confirm the exact file before editing.**
+
+```jsx
+<aside className="product-purchase-card">
+  <div className="product-purchase-card__inner">
+    <section className="product-identity">
+      {/* title, reviews, stock, brand, SKU */}
+    </section>
+
+    <section className="product-commerce">
+      {/* price, shipping, variations/options */}
+    </section>
+
+    <section className="product-actions">
+      {/* availability strip, quantity, add to cart, checkout */}
+    </section>
+
+    <section className="product-payments">
+      {/* payment heading and logos */}
+    </section>
+
+    <footer className="product-trust">
+      {/* secure checkout, shipping, returns */}
+    </footer>
+  </div>
+</aside>
+```
+
+This gives each area ownership of its internal spacing and prevents one product’s title, variant count, or stock message from disrupting the rest of the card.
+
+---
+
+# 3. Make the inner card fill the available height
+
+The inner card should use a vertical flex layout. The trust area is anchored at the bottom, while the primary content remains naturally sized.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
 
 ```css
-.product-page {
+.product-purchase-card {
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow:
+    0 2px 5px rgba(7, 21, 47, 0.025),
+    0 14px 34px rgba(7, 21, 47, 0.065);
+}
+
+.product-purchase-card__inner {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  min-height: 100vh;
-  background: var(--dtb-page);
-}
-
-.product-page__content {
-  width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 0 18px 24px;
+  min-height: 100%;
+  padding:
+    clamp(26px, 2.2vw, 38px)
+    clamp(26px, 2.4vw, 40px)
+    clamp(22px, 2vw, 32px);
 }
 ```
 
-At narrow widths, use approximately `16px` side padding. At tablet widths, increase it to `24px`.
-
-# 2. Typography
-
-Use **Inter Variable** throughout.
+The key declaration is:
 
 ```css
-font-family:
-  "Inter",
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  sans-serif;
+min-height: 100%;
 ```
 
-Recommended typography hierarchy:
+The parent card must already be stretched by the outer product grid.
+
+---
+
+# 4. Use a controlled vertical rhythm
+
+Avoid manually assigning unrelated values such as `margin-bottom: 7px`, `18px`, `26px`, and `31px` across individual elements.
+
+Create a small spacing system:
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-purchase-card {
+  --purchase-gap-xs: 6px;
+  --purchase-gap-sm: 10px;
+  --purchase-gap-md: clamp(14px, 1.15vw, 18px);
+  --purchase-gap-lg: clamp(20px, 1.6vw, 26px);
+  --purchase-control-height: 54px;
+  --purchase-radius: 10px;
+}
+```
+
+Apply spacing at the section level:
+
+```css
+.product-identity,
+.product-commerce,
+.product-actions,
+.product-payments {
+  min-width: 0;
+}
+
+.product-commerce {
+  margin-top: var(--purchase-gap-md);
+}
+
+.product-actions {
+  margin-top: var(--purchase-gap-lg);
+}
+
+.product-payments {
+  margin-top: var(--purchase-gap-md);
+}
+
+.product-trust {
+  margin-top: auto;
+  padding-top: clamp(18px, 1.5vw, 24px);
+}
+```
+
+`margin-top: auto` on the trust footer is what makes the card consume its available height cleanly.
+
+It places any flexible remaining space between the payment region and trust footer rather than leaving arbitrary blank space below all content.
+
+---
+
+# 5. Refine the title region
+
+Your title is visually strong, but it needs a predictable width, line height, and maximum wrapping behavior.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
 
 ```css
 .product-title {
-  font-size: clamp(1.75rem, 7vw, 2.1rem);
-  font-weight: 750;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  color: var(--dtb-text-primary);
+  max-width: 18ch;
+  margin: 0;
+  color: #07152f;
+  font-family: "Inter", sans-serif;
+  font-size: clamp(30px, 2.25vw, 40px);
+  font-weight: 760;
+  line-height: 1.04;
+  letter-spacing: -0.042em;
+  text-wrap: balance;
 }
 
-.product-price {
-  font-size: 2.2rem;
-  font-weight: 750;
-  line-height: 1;
-  letter-spacing: -0.035em;
-}
-
-.section-label,
-.option-label {
-  font-size: 0.94rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-}
-
-.body-text {
-  font-size: 0.9rem;
-  font-weight: 450;
-  line-height: 1.45;
-}
-
-.meta-text {
-  font-size: 0.88rem;
-  font-weight: 450;
-  color: var(--dtb-text-secondary);
-}
-
-.button-label {
-  font-size: 1.05rem;
-  font-weight: 650;
-  letter-spacing: -0.015em;
-}
-```
-
-The visual match depends heavily on:
-
-* strong but not overly heavy headings
-* tight negative tracking
-* restrained line heights
-* muted gray metadata
-* consistent `600–750` weights for controls and headings
-
-# 3. Mobile header
-
-The header is a tall dark navy container with rounded upper page corners in the mockup presentation. On a real site, it can span full width without device-frame rounding.
-
-## Header layout
-
-Top row:
-
-* hamburger menu on left
-* centered DryWall Toolbox logo
-* account and cart controls on right
-* cart badge overlapping the cart icon
-
-Second row:
-
-* full-width search input
-
-```css
-.mobile-header {
-  background:
-    radial-gradient(circle at 70% 0%, rgba(29, 91, 218, 0.16), transparent 35%),
-    linear-gradient(135deg, #031129 0%, #061b3e 100%);
-  padding: 22px 24px 20px;
-  color: #fff;
-}
-
-.mobile-header__top {
-  position: relative;
-  min-height: 82px;
-  display: grid;
-  grid-template-columns: 72px 1fr 92px;
-  align-items: center;
-}
-
-.mobile-header__logo {
-  justify-self: center;
-  width: clamp(210px, 45vw, 270px);
-  height: auto;
-}
-
-.mobile-header__actions {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 20px;
-}
-```
-
-Important details:
-
-* logo is visually centered independent of left and right controls
-* header is slightly taller than a conventional ecommerce header
-* logo has strong horizontal presence
-* icons are white, thin-stroke, approximately `25–28px`
-* cart badge uses bright blue and white text
-
-```css
-.cart-badge {
-  position: absolute;
-  top: -9px;
-  right: -10px;
-  min-width: 26px;
-  height: 26px;
-  padding: 0 7px;
-  border-radius: 999px;
-  background: var(--dtb-blue-600);
-  color: #fff;
-  font-size: 0.78rem;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
-```
-
-# 4. Search field
-
-The search input sits inside the navy header.
-
-```css
-.mobile-search {
-  min-height: 54px;
+.product-review-summary {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.mobile-search input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: #fff;
-  font-size: 1rem;
-}
-
-.mobile-search input::placeholder {
-  color: rgba(255, 255, 255, 0.68);
-}
-```
-
-The field should not resemble a bright white input. It remains integrated into the dark header.
-
-# 5. Breadcrumbs
-
-Breadcrumbs appear immediately below the header on a white/light page background.
-
-```css
-.breadcrumbs {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 18px 0 14px;
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: 0.82rem;
-  color: #77839a;
-}
-
-.breadcrumbs__current {
-  color: var(--dtb-text-primary);
-  font-weight: 550;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-```
-
-On very narrow devices, truncate the current product name rather than allowing wrapping.
-
-# 6. Card system
-
-The product gallery and product information use separate white cards.
-
-```css
-.product-card {
-  background: var(--dtb-surface);
-  border: 1px solid var(--dtb-border-soft);
-  border-radius: var(--dtb-radius-lg);
-  box-shadow: var(--dtb-shadow-card);
-}
-```
-
-The border is intentionally subtle. The visual definition comes primarily from the soft shadow and white-on-gray contrast.
-
-Recommended spacing between cards:
-
-```css
-.product-card + .product-card {
-  margin-top: 16px;
-}
-```
-
-# 7. Product gallery
-
-The gallery is a large white card with:
-
-* main image centered
-* circular previous/next controls
-* zoom control in top-right
-* thumbnails along the bottom
-* generous whitespace around the product
-
-```css
-.product-gallery {
-  position: relative;
-  padding: 22px 18px 26px;
-}
-
-.product-gallery__stage {
-  position: relative;
-  min-height: clamp(390px, 62vh, 520px);
-  display: grid;
-  place-items: center;
-}
-
-.product-gallery__image {
-  width: min(76%, 450px);
-  max-height: 440px;
-  object-fit: contain;
-}
-```
-
-The image should not touch the card boundaries. Preserve a large white studio area.
-
-## Gallery controls
-
-```css
-.gallery-control {
-  width: 48px;
-  height: 48px;
-  border: 1px solid var(--dtb-border);
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 5px 14px rgba(10, 27, 54, 0.08);
-  display: grid;
-  place-items: center;
-}
-
-.gallery-control--previous {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.gallery-control--next {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.gallery-control--zoom {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-```
-
-Touch targets should remain at least `44 × 44px`.
-
-# 8. Thumbnail strip
-
-The thumbnails are centered in a single horizontal row.
-
-```css
-.gallery-thumbnails {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-  overflow-x: auto;
-  padding: 8px 4px 0;
-  scrollbar-width: none;
-}
-
-.gallery-thumbnail {
-  flex: 0 0 74px;
-  width: 74px;
-  height: 74px;
-  border: 1px solid var(--dtb-border);
-  border-radius: 12px;
-  background: #fff;
-  display: grid;
-  place-items: center;
-}
-
-.gallery-thumbnail[aria-current="true"] {
-  border: 2px solid var(--dtb-blue-600);
-  box-shadow: 0 0 0 1px rgba(18, 88, 255, 0.08);
-}
-```
-
-The selected thumbnail uses a crisp blue border. Avoid colored backgrounds.
-
-# 9. Product information card
-
-The purchase card uses approximately `28–34px` internal padding.
-
-```css
-.product-summary {
-  padding: 30px 28px 26px;
-}
-```
-
-On screens below `420px`, reduce horizontal padding to `20px`.
-
-The internal order is:
-
-1. title
-2. rating
-3. availability, brand and SKU
-4. price
-5. shipping note
-6. option selector
-7. readiness strip
-8. quantity and add-to-cart row
-9. checkout button
-10. payment logos
-11. trust benefits
-
-# 10. Rating and metadata
-
-The rating is intentionally muted because there are no reviews.
-
-```css
-.product-rating {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 10px;
-  color: #cbd1dc;
-  font-size: 0.84rem;
+  color: #7c879a;
+  font-size: 13px;
+  line-height: 1.35;
 }
+```
 
+`text-wrap: balance` improves two-line titles such as:
+
+```text
+LEVEL5 The Ultimate
+Taping & Finishing Set
+```
+
+without requiring manual line breaks.
+
+Do not give the title region a fixed height. Products with shorter titles should simply allow more flexible space lower in the card.
+
+---
+
+# 6. Keep metadata compact and aligned
+
+Stock, brand, and SKU should read as one restrained metadata row.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
 .product-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-  color: var(--dtb-text-secondary);
-}
-
-.product-meta > * + * {
-  padding-left: 10px;
-  border-left: 1px solid var(--dtb-border);
-}
-```
-
-The in-stock status uses a small green dot rather than a large badge.
-
-# 11. Price styling
-
-```css
-.price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: 18px;
-}
-
-.price-current {
-  font-size: 2.25rem;
-  font-weight: 760;
-  letter-spacing: -0.04em;
-  color: var(--dtb-text-primary);
-}
-
-.price-previous {
-  color: #8993a6;
-  font-size: 1rem;
-  text-decoration: line-through;
-}
-```
-
-The shipping note sits directly beneath the price and uses blue emphasis on the leading word.
-
-# 12. Product option selector
-
-The style selector uses compact outlined pills.
-
-```css
-.option-group {
-  margin-top: 28px;
-}
-
-.option-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.option-button {
-  min-height: 48px;
-  padding: 0 22px;
-  border: 1px solid #ccd4e0;
-  border-radius: 10px;
-  background: #fff;
-  color: var(--dtb-text-primary);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.option-button[aria-pressed="true"] {
-  border: 2px solid var(--dtb-blue-600);
-  color: var(--dtb-blue-600);
-  background: #f8faff;
-}
-```
-
-Avoid filled blue option pills. The mockup uses a clean white selected state with blue outline and text.
-
-# 13. Availability strip
-
-The stock strip is pale green, full width, and horizontally balanced.
-
-```css
-.availability-strip {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  min-height: 50px;
-  margin-top: 22px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #e9f8ec 0%, #f1faf3 100%);
-  color: #133e24;
-  font-size: 0.84rem;
-  font-weight: 520;
-}
-```
-
-On screens below `420px`, stack or wrap the two messages.
-
-# 14. Quantity and Add to Cart row
-
-Desktop-like horizontal composition is retained on mobile:
-
-* quantity stepper occupies approximately 23–25%
-* Add to Cart occupies remaining width
-
-```css
-.purchase-row {
-  display: grid;
-  grid-template-columns: minmax(130px, 0.28fr) 1fr;
-  gap: 14px;
-  margin-top: 22px;
-}
-
-.quantity-stepper {
-  min-height: 62px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  border: 1px solid #d8dee8;
-  border-radius: 11px;
-  background: #fff;
-}
-
-.quantity-stepper button {
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  font-size: 1.3rem;
-}
-
-.quantity-stepper output {
-  font-size: 1.1rem;
-  font-weight: 650;
-}
-```
-
-## Add to Cart button
-
-```css
-.add-to-cart {
-  min-height: 62px;
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #1456f5 0%, #095eff 100%);
-  color: #fff;
-  box-shadow:
-    0 7px 16px rgba(19, 89, 255, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  font-size: 1.08rem;
-  font-weight: 650;
-}
-```
-
-The blue is vivid but not neon. The shadow should be controlled.
-
-Below approximately `360px`, stack quantity and Add to Cart vertically.
-
-# 15. Checkout Now button
-
-The checkout button is full width and dark navy.
-
-```css
-.checkout-now {
-  width: 100%;
-  min-height: 62px;
-  margin-top: 14px;
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #04142f 0%, #071c40 100%);
-  color: #fff;
-  font-size: 1.08rem;
-  font-weight: 650;
-  box-shadow: 0 7px 16px rgba(5, 20, 47, 0.13);
-}
-```
-
-The visual hierarchy is:
-
-1. blue Add to Cart
-2. navy Checkout Now
-3. payment logos
-
-Both primary actions have the same height and border radius.
-
-# 16. Payment method logos
-
-The payment logos are standalone. They do **not** use individual card containers, borders, tiles, or backgrounds.
-
-```css
-.payment-methods {
-  margin-top: 18px;
-  text-align: center;
-}
-
-.payment-methods__label {
-  margin-bottom: 14px;
-  color: #8390a5;
-  font-size: 0.86rem;
+  gap: 0;
+  margin-top: 16px;
+  color: #718097;
+  font-size: 13px;
   font-weight: 450;
 }
 
-.payment-methods__logos {
-  display: flex;
-  justify-content: space-between;
+.product-meta__item {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  overflow-x: auto;
-  padding: 0 8px;
-  scrollbar-width: none;
+  min-height: 20px;
 }
 
-.payment-methods__logos img {
-  flex: 0 0 auto;
+.product-meta__item + .product-meta__item {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid #dfe4eb;
+}
+
+.product-stock {
+  color: #13843b;
+  font-weight: 600;
+}
+
+.product-stock::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+```
+
+This is cleaner than allowing each metadata element to define its own margin.
+
+---
+
+# 7. Treat price and shipping as one block
+
+The price should not be visually detached from the shipping note.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-price-block {
+  margin-top: 14px;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.product-price-current {
+  color: #07152f;
+  font-size: clamp(34px, 2.6vw, 42px);
+  font-weight: 760;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.product-price-regular {
+  color: #98a2b2;
+  font-size: 16px;
+  line-height: 1;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+.product-shipping-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  color: #657189;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.product-shipping-note a {
+  color: #075cff;
+  font-weight: 550;
+  text-underline-offset: 2px;
+}
+```
+
+In your current card, the price region could use slightly more breathing room before the stock bar.
+
+---
+
+# 8. Create a dedicated variant area
+
+Products without variations should omit this region entirely. Products with options should insert it between shipping and availability.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-options {
+  margin-top: clamp(18px, 1.4vw, 24px);
+}
+
+.product-options__label {
+  display: block;
+  margin-bottom: 10px;
+  color: #07152f;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.product-options__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.product-option {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #ccd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #07152f;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.product-option[aria-pressed="true"] {
+  border: 2px solid #1260ff;
+  background: #f8faff;
+  color: #075cff;
+}
+```
+
+The purchase card should not reserve empty space when a simple product has no options.
+
+---
+
+# 9. Make the availability strip fluid
+
+Your stock strip is close to the mockup. It should use two aligned content groups and wrap safely when necessary.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-availability {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid #bde8c9;
+  border-radius: 9px;
+  background: linear-gradient(90deg, #eaf8ee 0%, #f4fbf6 100%);
+  color: #17472a;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.product-availability__primary {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.product-availability__secondary {
+  color: #193525;
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .product-availability {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .product-availability__secondary {
+    text-align: left;
+    white-space: normal;
+  }
+}
+```
+
+Avoid hard-coding the text to “98 in stock” unless exact inventory exposure is intentional. The visual component should support either a generic readiness statement or a quantity.
+
+---
+
+# 10. Build the quantity and Add to Cart row as a stable grid
+
+The quantity control should have a fixed usable range; the button should consume all remaining space.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-add-row {
+  display: grid;
+  grid-template-columns: clamp(104px, 23%, 128px) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.quantity-stepper,
+.add-to-cart-button {
+  min-height: var(--purchase-control-height);
+}
+
+.quantity-stepper {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #d5dde8;
+  border-radius: var(--purchase-radius);
+  background: #ffffff;
+}
+
+.quantity-stepper button {
+  width: 100%;
+  height: 100%;
+  min-width: 40px;
+  border: 0;
+  background: transparent;
+  color: #0a1831;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.quantity-stepper output {
+  min-width: 24px;
+  color: #07152f;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.add-to-cart-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  border: 0;
+  border-radius: var(--purchase-radius);
+  background: linear-gradient(135deg, #123d8c 0%, #1761ff 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 650;
+  box-shadow:
+    0 8px 18px rgba(18, 82, 218, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+```
+
+Your current Add to Cart row is proportionally correct. It needs consistent control height and a slightly wider quantity stepper.
+
+---
+
+# 11. Give Checkout Now equal visual discipline
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.checkout-now-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--purchase-control-height);
+  margin-top: 12px;
+  border: 0;
+  border-radius: var(--purchase-radius);
+  background: linear-gradient(135deg, #020f27 0%, #09245a 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 650;
+  box-shadow: 0 8px 20px rgba(4, 21, 51, 0.14);
+}
+```
+
+The Add to Cart and Checkout Now buttons should have:
+
+* identical height
+* identical corner radius
+* aligned horizontal edges
+* consistent font sizing
+* only color differentiating their role
+
+---
+
+# 12. Improve the payment-logo area
+
+Your current payment row is too narrow and visually undersized relative to the card. The mockup gives this area more horizontal presence.
+
+Use standalone logos without card containers.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
+
+```css
+.product-payments {
+  text-align: center;
+}
+
+.product-payments__label {
+  margin-bottom: 12px;
+  color: #7b879c;
+  font-size: 12px;
+  font-weight: 450;
+}
+
+.product-payments__logos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  column-gap: clamp(14px, 1.3vw, 22px);
+  row-gap: 10px;
+}
+
+.product-payments__logos img,
+.product-payments__logos svg {
+  display: block;
+  width: auto;
   max-width: 54px;
-  max-height: 25px;
+  height: clamp(18px, 1.35vw, 24px);
+  max-height: 24px;
   object-fit: contain;
 }
 ```
 
-Required logos shown in the mockup:
+Do not normalize every logo to the same width. Normalize by maximum height so the brand marks retain their intended proportions.
 
-* Visa
-* Mastercard
-* American Express
-* Apple Pay
-* Google Pay
-* Affirm
-* Klarna
-* Shop Pay
+---
 
-Use official approved brand assets. Do not recreate payment logos in text or CSS.
+# 13. Anchor and distribute the trust footer
 
-The row may horizontally scroll on small devices, but it should initially show as many logos as practical.
+This is the most important difference between your current screenshot and the mockup.
 
-# 17. Trust benefit row
+The trust region should:
 
-The bottom trust row contains three evenly distributed items:
+* sit at the bottom of the card
+* have a top divider
+* span the full card width
+* distribute three benefits evenly
+* use consistent icon and text alignment
 
-* Secure Checkout
-* Fast Shipping
-* Easy Returns
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
 
 ```css
-.purchase-benefits {
+.product-trust {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--dtb-border-soft);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.5vw, 24px);
+  border-top: 1px solid #e5e9ef;
 }
 
-.purchase-benefit {
+.product-trust__item {
   display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 10px;
+  grid-template-columns: 28px minmax(0, 1fr);
   align-items: start;
+  gap: 10px;
+  min-width: 0;
 }
 
-.purchase-benefit__title {
-  color: var(--dtb-text-primary);
-  font-size: 0.82rem;
+.product-trust__icon {
+  width: 25px;
+  height: 25px;
+  color: #62738f;
+}
+
+.product-trust__title {
+  margin: 0;
+  color: #07152f;
+  font-size: 12px;
   font-weight: 650;
+  line-height: 1.25;
 }
 
-.purchase-benefit__description {
-  margin-top: 2px;
-  color: var(--dtb-text-secondary);
-  font-size: 0.72rem;
+.product-trust__description {
+  margin: 2px 0 0;
+  color: #738097;
+  font-size: 10px;
   line-height: 1.3;
 }
 ```
 
-Icons are thin outline icons in a muted blue-gray. Keep them visually secondary.
+Because `.product-trust` has `margin-top: auto`, it settles at the card bottom even when:
 
-On screens below approximately `390px`, this row should become one or two columns rather than shrinking text excessively.
+* the product title is short
+* the product has no options
+* the gallery is taller than the purchase content
+* the desktop viewport changes height
 
-# 18. Product tabs
+---
 
-The tabs sit below the purchase card and span the full mobile content width.
+# 14. Prevent the card from becoming excessively tall
+
+Equal-height columns are appropriate, but the gallery itself should have a controlled height range.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
 
 ```css
-.product-tabs {
+.product-gallery-card,
+.product-purchase-card {
+  min-height: clamp(560px, 62vw, 690px);
+  max-height: min(720px, calc(100vh - 250px));
+}
+
+.product-gallery-card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+```
+
+Be cautious with `max-height`. Long titles or numerous variations must never be clipped.
+
+A safer production rule is:
+
+```css
+.product-purchase-card {
+  min-height: 620px;
+}
+
+.product-gallery-card {
+  min-height: 620px;
+}
+```
+
+Then allow either card to grow naturally.
+
+---
+
+# 15. Recommended desktop proportions
+
+For a viewport near the screenshots:
+
+```css
+.product-detail-container {
+  width: min(100% - 40px, 1280px);
+  margin-inline: auto;
+}
+
+.product-detail-layout {
+  grid-template-columns: minmax(0, 58%) minmax(420px, 42%);
+}
+```
+
+Suggested dimensions:
+
+| Element               |      Target |
+| --------------------- | ----------: |
+| Overall content width | 1220–1320px |
+| Column gap            |     28–36px |
+| Gallery card          |      56–59% |
+| Purchase card         |      41–44% |
+| Card radius           |     20–22px |
+| Purchase padding      |     28–40px |
+| Control height        |     52–56px |
+| Trust footer height   |     60–76px |
+| Payment logo height   |     18–24px |
+
+Your current right column appears slightly too narrow and internally padded too conservatively. Increasing the right card to approximately `42%` of the grid and using `32–38px` horizontal padding will make the content feel less compressed.
+
+---
+
+# 16. Do not use `justify-content: space-between` for every child
+
+A tempting implementation is:
+
+```css
+.product-purchase-card__inner {
+  justify-content: space-between;
+}
+```
+
+Do not do that.
+
+It causes inconsistent vertical gaps whenever:
+
+* titles wrap differently
+* variation selectors appear or disappear
+* stock messages change length
+* sale pricing is present
+* payment methods vary by location
+
+Instead:
+
+```css
+.product-purchase-card__inner {
   display: flex;
-  align-items: stretch;
-  overflow-x: auto;
-  margin-top: 22px;
-  border-bottom: 1px solid var(--dtb-border);
-  scrollbar-width: none;
+  flex-direction: column;
 }
 
-.product-tab {
-  position: relative;
-  flex: 1 0 auto;
-  min-height: 58px;
-  padding: 0 18px;
-  border: 0;
-  background: transparent;
-  color: #657189;
-  font-size: 0.88rem;
-  font-weight: 550;
-}
-
-.product-tab[aria-selected="true"] {
-  color: var(--dtb-blue-600);
-  font-weight: 650;
-}
-
-.product-tab[aria-selected="true"]::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  height: 3px;
-  border-radius: 999px 999px 0 0;
-  background: var(--dtb-blue-600);
+.product-trust {
+  margin-top: auto;
 }
 ```
 
-Tabs shown:
+This gives you one intentional flexible region rather than distributing unpredictable space between every section.
 
-* Description
-* Specifications
-* Compatibility
-* Reviews
+---
 
-# 19. Spacing system
+# 17. Final structural CSS
 
-Use a consistent spacing scale:
+This is the core implementation pattern.
+
+**Repository path: existing frontend product-detail stylesheet; confirm the exact file before editing.**
 
 ```css
-:root {
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-  --space-6: 24px;
-  --space-7: 28px;
-  --space-8: 32px;
+.product-detail-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(420px, 0.88fr);
+  gap: clamp(24px, 2.2vw, 36px);
+  align-items: stretch;
+}
+
+.product-purchase-card {
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #e3e8ef;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow:
+    0 2px 5px rgba(7, 21, 47, 0.025),
+    0 14px 34px rgba(7, 21, 47, 0.065);
+}
+
+.product-purchase-card__inner {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding:
+    clamp(26px, 2.2vw, 38px)
+    clamp(26px, 2.4vw, 40px)
+    clamp(22px, 2vw, 32px);
+}
+
+.product-commerce {
+  margin-top: clamp(14px, 1.15vw, 18px);
+}
+
+.product-actions {
+  margin-top: clamp(20px, 1.6vw, 26px);
+}
+
+.product-payments {
+  margin-top: clamp(14px, 1.15vw, 18px);
+}
+
+.product-trust {
+  margin-top: auto;
+  padding-top: clamp(18px, 1.5vw, 24px);
+}
+
+@media (max-width: 1024px) {
+  .product-detail-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .product-purchase-card {
+    height: auto;
+  }
+
+  .product-purchase-card__inner {
+    min-height: 0;
+  }
+
+  .product-trust {
+    margin-top: 24px;
+  }
 }
 ```
 
-Key spacing relationships:
+## Primary corrections for your current card
 
-* card-to-card gap: `16px`
-* card internal padding: `20–30px`
-* label-to-control gap: `8–10px`
-* major section gap: `22–28px`
-* button gap: `12–14px`
-* price-to-shipping gap: `6–8px`
+Based on the comparison, revise these areas first:
 
-# 20. Responsive behavior
+1. **Stretch the purchase card to the gallery height.**
+2. **Increase right-card horizontal padding slightly.**
+3. **Separate identity, commerce, actions, payments, and trust into explicit regions.**
+4. **Anchor the trust section to the card bottom with `margin-top: auto`.**
+5. **Increase payment logo size and horizontal spacing.**
+6. **Give the availability, quantity, and buttons identical widths and aligned edges.**
+7. **Use fluid `clamp()` spacing rather than viewport-specific fixed margins.**
+8. **Keep variable options conditional so simple products do not reserve unused space.**
 
-## Up to 359px
-
-* use `14–16px` page padding
-* stack quantity and Add to Cart
-* allow payment logos to scroll
-* stack trust benefits
-* reduce title to approximately `28px`
-
-## 360px–479px
-
-* preserve the illustrated single-column layout
-* quantity and Add to Cart may remain side by side
-* use `20px` card padding
-* allow thumbnails and payment logos to scroll
-
-## 480px–767px
-
-* increase page padding to `22–24px`
-* increase gallery height
-* use `28px` purchase-card padding
-* retain a maximum content width around `720–760px`
-
-# 21. Interaction and accessibility requirements
-
-To reproduce the UI responsibly:
-
-* all icon-only buttons require accessible labels
-* all touch controls must be at least `44 × 44px`
-* selected variants must use `aria-pressed`
-* tabs must use proper tab semantics
-* gallery controls must support keyboard interaction
-* payment logos require meaningful `alt` text
-* stock state must not rely on green alone
-* price changes must be announced to assistive technology
-* disabled purchase controls must remain visually distinguishable
-* Add to Cart must prevent duplicate submissions while pending
-* variant selection must remain synchronized with WooCommerce Store API cart state
-
-# 22. Visual characteristics to avoid
-
-Do not introduce:
-
-* heavy gradients outside the header and main buttons
-* large drop shadows
-* excessive pill-shaped controls
-* outlined containers around payment logos
-* thick gray borders
-* oversized trust badges
-* dense metadata
-* multiple competing blue tones
-* decorative illustrations in the purchase block
-* tiny controls to force everything onto one row
-
-# 23. Final visual identity
-
-The page should read as:
-
-* **Header:** technical, dark, premium
-* **Gallery:** spacious, product-focused, neutral
-* **Product card:** structured and conversion-oriented
-* **Controls:** sharp and touch-friendly
-* **Primary accent:** one consistent electric blue
-* **Typography:** compact, bold, modern
-* **Trust content:** present but subordinate
-* **Payment methods:** recognizable, standalone, uncluttered
-* **Mobile behavior:** fluid rather than merely scaled down
-
-The most important fidelity points are the centered oversized logo, separate rounded white gallery and purchase cards, tight Inter typography, restrained shadows, blue outlined option state, green availability strip, paired quantity/Add to Cart row, full-width navy Checkout Now button, unboxed payment logos, and evenly distributed trust benefits.
+This will make the right card use its available height intentionally while remaining stable across simple products, variable products, sale prices, long titles, different inventory messaging, and changing payment-method availability.

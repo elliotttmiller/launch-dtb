@@ -40,9 +40,7 @@
   inset: -1px;
   z-index: -2;
   border-radius: inherit;
-  background:
-    radial-gradient(circle at 82% 0%, rgba(89, 139, 255, 0.34), transparent 37%),
-    linear-gradient(112deg, #071a3c 0%, #113f8c 48%, #2255ee 100%);
+  background: #2255ee;
   transform: scale(1);
   transition:
     filter 320ms ease,
