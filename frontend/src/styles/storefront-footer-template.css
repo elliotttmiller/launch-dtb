@@ -2,8 +2,8 @@
   width: 100%;
   border-top: 1px solid rgba(147, 197, 253, 0.14);
   background:
-    radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.13), transparent 26rem),
-    radial-gradient(circle at 90% 85%, rgba(59, 130, 246, 0.1), transparent 24rem),
+    radial-gradient(circle at 10% 20%, rgba(34, 85, 238, 0.13), transparent 26rem),
+    radial-gradient(circle at 90% 85%, rgba(34, 85, 238, 0.1), transparent 24rem),
     linear-gradient(160deg, #0b1120 0%, #0f2150 52%, #1a3a8a 100%);
   color: #fff;
   display: block !important;
@@ -112,7 +112,7 @@
 .dtb-footer-template__social:hover,
 .dtb-footer-template__social:focus-visible {
   outline: 0;
-  background: #2563eb;
+  background: #2255ee;
   transform: translateY(-2px);
 }
 

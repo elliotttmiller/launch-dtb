@@ -83,7 +83,7 @@ const WORKFLOW_TYPES = [
     label:       'Finishing Kit',
     tagline:     'Flat Boxes + Angle Heads + Corners',
     description: 'For crews that already tape manually or want a dedicated finishing setup. Flat boxes, angle heads, and corner tools.',
-    color:       '#1d4ed8',
+    color:       '#2255ee',
     highlight:   '#eff6ff',
   },
   {

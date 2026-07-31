@@ -123,7 +123,7 @@
   }
 
   body .storefront-search-overlay__results--product-cards .dtb-product-card--list .dtb-product-card__brand {
-    color: #2563eb;
+    color: #2255ee;
     font-size: clamp(0.58rem, 2.3vw, 0.66rem);
     line-height: 1.05;
     letter-spacing: 0.105em;

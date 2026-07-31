@@ -56,7 +56,7 @@ export default function ProductPrice({ product, selectedVariation }) {
           fontSize: '1.75rem',
           fontWeight: 800,
           fontFamily: 'var(--font-mono)',
-          color: isOnSale ? '#dc2626' : 'var(--primary-700, #1d4ed8)',
+          color: isOnSale ? '#dc2626' : 'var(--primary-700, #2255ee)',
           letterSpacing: '-0.02em',
         }}
         aria-label={`${prefix}$${displayPrice.toFixed(2)}`}

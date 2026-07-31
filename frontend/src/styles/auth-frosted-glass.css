@@ -7,9 +7,9 @@
 
 .dtb-auth {
   --dtb-auth-bg: #ffffff;
-  --dtb-auth-orb-blue: #2563eb;
+  --dtb-auth-orb-blue: #2255ee;
   --dtb-auth-orb-cyan: #0891b2;
-  --dtb-auth-orb-deep-blue: #1d4ed8;
+  --dtb-auth-orb-deep-blue: #2255ee;
   --dtb-auth-glass: rgba(255, 255, 255, 0.78);
   --dtb-auth-glass-border: rgba(255, 255, 255, 0.58);
   position: relative;
@@ -85,15 +85,15 @@
 }
 
 .dtb-auth__card .machined-input:focus {
-  border-color: #2563eb;
+  border-color: #2255ee;
   background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.16);
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.16);
 }
 
 .dtb-auth__submit {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 24px rgba(34, 85, 238, 0.3);
 }
 
 .dtb-auth__submit::before {

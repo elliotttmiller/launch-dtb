@@ -147,7 +147,7 @@ export default function ResetPassword() {
             justifyContent:  'center',
             marginBottom:    '16px',
           } }>
-            <KeyRound size={ 20 } style={ { color: '#2563eb' } } />
+            <KeyRound size={ 20 } style={ { color: '#2255ee' } } />
           </div>
           <h2 style={ {
             fontSize:      '1.4rem',
@@ -176,7 +176,7 @@ export default function ResetPassword() {
             </p>
             <Link
               to="/forgot-password"
-              style={ { fontSize: '0.875rem', fontWeight: 600, color: '#2563eb', textDecoration: 'none' } }
+              style={ { fontSize: '0.875rem', fontWeight: 600, color: '#2255ee', textDecoration: 'none' } }
             >
               Request a new reset link →
             </Link>

@@ -108,7 +108,7 @@ export default function ShippingPolicy() {
 
       {/* ── Hero strip ─────────────────────────────────────────────────────── */}
       <section style={{
-        background:  'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%)',
+        background:  'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2255ee 100%)',
         padding:     'clamp(48px, 8vw, 80px) clamp(1.5rem, 5vw, 3rem) clamp(3rem, 6vw, 4rem)',
         position:    'relative',
         overflow:    'hidden',
@@ -455,7 +455,7 @@ export default function ShippingPolicy() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--primary-600)';
-              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(37,99,235,0.1)';
+              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(34,85,238,0.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--machined-border)';
@@ -489,7 +489,7 @@ export default function ShippingPolicy() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--primary-600)';
-              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(37,99,235,0.1)';
+              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(34,85,238,0.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--machined-border)';
@@ -523,7 +523,7 @@ export default function ShippingPolicy() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--primary-600)';
-              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(37,99,235,0.1)';
+              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(34,85,238,0.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--machined-border)';
@@ -556,7 +556,7 @@ export default function ShippingPolicy() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.borderColor = 'var(--primary-600)';
-              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(37,99,235,0.1)';
+              e.currentTarget.style.boxShadow   = '0 2px 12px rgba(34,85,238,0.1)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.borderColor = 'var(--machined-border)';

@@ -15,7 +15,7 @@
   --ts-soft: #f8fafc;
   --ts-line: #e2e8f0;
   --ts-line-strong: #cbd5e1;
-  --ts-blue: #2563eb;
+  --ts-blue: #2255ee;
   display: grid;
   gap: 0;
   margin: 0.25rem 0 0.5rem;
@@ -166,7 +166,7 @@
 }
 
 .ts-value__link:hover {
-  color: #1d4ed8;
+  color: #2255ee;
 }
 
 .ts-includes-list {
@@ -250,7 +250,7 @@
 .ts-skeleton--row { width: min(18rem, 100%); height: 1rem; }
 
 @media (hover: hover) and (pointer: fine) {
-  .ts-row:hover { background: rgba(37, 99, 235, 0.035); }
+  .ts-row:hover { background: rgba(34, 85, 238, 0.035); }
   .ts-includes-list__link { transition: color 160ms ease; }
 }
 

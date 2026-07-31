@@ -50,7 +50,7 @@ export default function AccountLayout( {
   if ( isLoading || ! user ) {
     return (
       <div style={ { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' } }>
-        <Loader className="animate-spin" size={ 32 } style={ { color: '#2563eb' } } />
+        <Loader className="animate-spin" size={ 32 } style={ { color: '#2255ee' } } />
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function AccountLayout( {
 
       {/* ── Hero strip ── */}
       <div style={ {
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2255ee 100%)',
         padding:    'clamp(2rem, 5vw, 3.5rem) clamp(1.25rem, 5vw, 3rem)',
         position:   'relative',
         overflow:   'hidden',

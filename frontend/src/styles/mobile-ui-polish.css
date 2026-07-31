@@ -15,8 +15,8 @@
     gap: 14px;
     border-bottom: 0;
     background:
-      radial-gradient(circle at 86% 0%, rgba(59, 130, 246, 0.34), transparent 36%),
-      linear-gradient(140deg, #071329 0%, #0f2150 54%, #1d4ed8 100%);
+      radial-gradient(circle at 86% 0%, rgba(34, 85, 238, 0.34), transparent 36%),
+      linear-gradient(140deg, #071329 0%, #0f2150 54%, #2255ee 100%);
     box-shadow: 0 14px 32px rgba(15, 33, 80, 0.18);
   }
 
@@ -102,13 +102,13 @@
     border-color: #dbeafe;
     border-radius: 11px;
     background: #eff6ff;
-    color: #2563eb;
+    color: #2255ee;
     backdrop-filter: none;
   }
 
   .account-hub__panel:not(.account-hub__panel--home) .account-hub__hero-copy p {
     margin-bottom: 3px;
-    color: #2563eb;
+    color: #2255ee;
   }
 
   .account-hub__panel:not(.account-hub__panel--home) .account-hub__hero-copy h2 {

@@ -27,7 +27,7 @@ import { useAuthContext } from '../../auth/AuthContext.js';
 // ─── Notification type config ─────────────────────────────────────────────────
 
 const TYPE_CFG = {
-  order:  { Icon: Package, color: '#2563eb', bg: '#eff6ff' },
+  order:  { Icon: Package, color: '#2255ee', bg: '#eff6ff' },
   reward: { Icon: Star,    color: '#d97706', bg: '#fffbeb' },
   promo:  { Icon: Tag,     color: '#7c3aed', bg: '#faf5ff' },
   system: { Icon: Shield,  color: '#16a34a', bg: '#f0fdf4' },
@@ -227,7 +227,7 @@ export default function NotificationsBell() {
             <Bell size={ 15 } style={ { color: '#0f172a' } } />
             <span style={ { fontWeight: 750, fontSize: '0.88rem', color: '#0f172a' } }>Notifications</span>
             { unreadCount > 0 && (
-              <span style={ { background: '#eff6ff', color: '#2563eb', borderRadius: '999px', padding: '1px 7px', fontSize: '0.65rem', fontWeight: 800 } }>
+              <span style={ { background: '#eff6ff', color: '#2255ee', borderRadius: '999px', padding: '1px 7px', fontSize: '0.65rem', fontWeight: 800 } }>
                 { unreadCount } new
               </span>
             ) }
@@ -236,7 +236,7 @@ export default function NotificationsBell() {
             <button
               type="button"
               onClick={ markAllRead }
-              style={ { display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 650, color: '#2563eb', padding: '2px 6px', borderRadius: '5px', transition: 'background 0.12s' } }
+              style={ { display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.72rem', fontWeight: 650, color: '#2255ee', padding: '2px 6px', borderRadius: '5px', transition: 'background 0.12s' } }
               onMouseEnter={ ( e ) => { e.currentTarget.style.background = '#eff6ff'; } }
               onMouseLeave={ ( e ) => { e.currentTarget.style.background = 'none'; } }
             >
@@ -267,7 +267,7 @@ export default function NotificationsBell() {
                     gap:             '11px',
                     width:           '100%',
                     padding:         '12px 14px',
-                    background:      notif.read ? 'transparent' : 'rgba(37,99,235,0.03)',
+                    background:      notif.read ? 'transparent' : 'rgba(34,85,238,0.03)',
                     borderBottom:    i < notifications.length - 1 ? '1px solid rgba(15,23,42,0.055)' : 'none',
                     border:          'none',
                     cursor:          notif.link ? 'pointer' : 'default',
@@ -275,7 +275,7 @@ export default function NotificationsBell() {
                     transition:      'background 0.12s',
                   } }
                   onMouseEnter={ ( e ) => { e.currentTarget.style.background = '#f8fafc'; } }
-                  onMouseLeave={ ( e ) => { e.currentTarget.style.background = notif.read ? 'transparent' : 'rgba(37,99,235,0.03)'; } }
+                  onMouseLeave={ ( e ) => { e.currentTarget.style.background = notif.read ? 'transparent' : 'rgba(34,85,238,0.03)'; } }
                 >
                   <div style={ { width: '32px', height: '32px', borderRadius: '8px', background: cfg.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' } }>
                     <cfg.Icon size={ 14 } style={ { color: cfg.color } } />
@@ -294,7 +294,7 @@ export default function NotificationsBell() {
                     </p>
                   </div>
                   { ! notif.read && (
-                    <span style={ { width: '7px', height: '7px', borderRadius: '50%', background: '#2563eb', flexShrink: 0, marginTop: '6px' } } />
+                    <span style={ { width: '7px', height: '7px', borderRadius: '50%', background: '#2255ee', flexShrink: 0, marginTop: '6px' } } />
                   ) }
                   { notif.link && (
                     <ChevronRight size={ 13 } style={ { color: 'rgba(15,23,42,0.25)', flexShrink: 0, marginTop: '6px' } } />
@@ -311,7 +311,7 @@ export default function NotificationsBell() {
             type="button"
             onClick={ () => { setOpen( false ); navigate( '/dashboard?tab=settings' ); } }
             style={ { background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.74rem', fontWeight: 650, color: 'rgba(15,23,42,0.45)', display: 'inline-flex', alignItems: 'center', gap: '4px', transition: 'color 0.12s' } }
-            onMouseEnter={ ( e ) => { e.currentTarget.style.color = '#2563eb'; } }
+            onMouseEnter={ ( e ) => { e.currentTarget.style.color = '#2255ee'; } }
             onMouseLeave={ ( e ) => { e.currentTarget.style.color = 'rgba(15,23,42,0.45)'; } }
           >
             Manage notification preferences <ChevronRight size={ 11 } />

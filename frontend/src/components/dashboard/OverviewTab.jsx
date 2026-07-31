@@ -107,13 +107,13 @@ export default function OverviewTab( { user, orders, repairs = [], returns = [],
 
       {/* Stats row */}
       <div className="account-overview-stats">
-        <StatCard icon={ Package } label="Orders" value={ ordersLoading ? '…' : String( activeOrders.length ) } color="#2563eb" bg="#eff6ff" delay={ 0 } onClick={ () => onTabChange( 1 ) } />
+        <StatCard icon={ Package } label="Orders" value={ ordersLoading ? '…' : String( activeOrders.length ) } color="#2255ee" bg="#eff6ff" delay={ 0 } onClick={ () => onTabChange( 1 ) } />
         <StatCard icon={ Wrench } label="Repairs" value={ ordersLoading ? '…' : String( activeRepairs.length ) } color="#0284c7" bg="#ecfeff" delay={ 0.05 } onClick={ () => onTabChange( 2 ) } />
         <StatCard icon={ RotateCcw } label="Returns" value={ ordersLoading ? '…' : String( activeReturns.length ) } color="#7c3aed" bg="#f5f3ff" delay={ 0.1 } onClick={ () => onTabChange( 3 ) } />
         <StatCard icon={ Headphones } label="Support Tickets" value={ ordersLoading ? '…' : String( activeSupportTickets.length ) } color="#d97706" bg="#fffbeb" delay={ 0.15 } onClick={ () => onTabChange( 4 ) } />
       </div>
 
-      <ActivitySection title="Recent Orders" icon={Package} color="#2563eb" bg="#eff6ff" items={orderActivity} emptyText="No product orders yet." onViewAll={() => onTabChange(1)} loading={ordersLoading} delay={0.24} />
+      <ActivitySection title="Recent Orders" icon={Package} color="#2255ee" bg="#eff6ff" items={orderActivity} emptyText="No product orders yet." onViewAll={() => onTabChange(1)} loading={ordersLoading} delay={0.24} />
 
       <div className="account-overview-service-grid">
         <ActivitySection title="Recent Repairs" icon={Wrench} color="#0284c7" bg="#ecfeff" items={repairActivity} emptyText="No repair activity yet." onViewAll={() => onTabChange(2)} loading={ordersLoading} delay={0.28} />
@@ -152,7 +152,7 @@ export default function OverviewTab( { user, orders, repairs = [], returns = [],
         style={ { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' } }
       >
         { [
-          { icon: ShoppingCart, label: 'Browse Products', to: '/products',  color: '#2563eb', bg: '#eff6ff' },
+          { icon: ShoppingCart, label: 'Browse Products', to: '/products',  color: '#2255ee', bg: '#eff6ff' },
           { icon: ShoppingCart, label: 'View Cart',        to: '/cart',      color: '#ea580c', bg: '#fff7ed' },
           { icon: Wrench,       label: 'Book a Repair',    to: '/repairs',   color: '#16a34a', bg: '#f0fdf4' },
         ].map( ( action ) => (

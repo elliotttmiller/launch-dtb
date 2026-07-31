@@ -170,7 +170,7 @@
   padding: 0.55rem 1.25rem;
   border: none;
   border-radius: var(--dtb-radius-sm, 6px);
-  background: linear-gradient(135deg, #17365d, #2563eb);
+  background: linear-gradient(135deg, #17365d, #2255ee);
   color: #fff;
   font-size: 0.84rem;
   font-weight: 700;
@@ -178,7 +178,7 @@
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: opacity 140ms ease, transform 80ms ease;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 4px 12px rgba(34, 85, 238, 0.22);
 }
 
 .dtb-reviews__submit:hover {

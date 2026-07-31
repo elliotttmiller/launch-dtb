@@ -65,7 +65,7 @@
 
 .schematic-hotspot-card--resolving .schematic-hotspot-card__image {
   background:
-    radial-gradient(circle at 50% 42%, rgba(37, 99, 235, 0.09), transparent 44%),
+    radial-gradient(circle at 50% 42%, rgba(34, 85, 238, 0.09), transparent 44%),
     linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 

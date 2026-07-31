@@ -167,7 +167,7 @@ export default function NavbarTabs({ tabs = [], activeIndex = 0, onChange, class
             height: '100%',
             background: 'linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%)',
             borderRadius: '10px',
-            boxShadow: '0 2px 10px rgba(37,99,235,0.35)',
+            boxShadow: '0 2px 10px rgba(34,85,238,0.35)',
             zIndex: 0,
             pointerEvents: 'none',
           }}

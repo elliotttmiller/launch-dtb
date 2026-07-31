@@ -395,7 +395,7 @@
 }
 
 .storefront-mobile-drawer__account-cta--primary {
-  background: #2563eb;
+  background: #2255ee;
   color: #fff;
 }
 
@@ -512,7 +512,7 @@
   justify-content: center;
   padding: 10px 14px;
   border-color: rgba(96, 165, 250, 0.22);
-  background: rgba(37, 99, 235, 0.12);
+  background: rgba(34, 85, 238, 0.12);
   color: #dbeafe;
   font-size: 0.8rem;
   font-weight: 800;

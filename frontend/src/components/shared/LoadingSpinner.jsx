@@ -35,7 +35,7 @@ export default function LoadingSpinner({ size = 'md', label = 'Loading', fullPag
         cx={dim / 2}
         cy={dim / 2}
         r={r}
-        stroke="rgba(37,99,235,0.12)"
+        stroke="rgba(34,85,238,0.12)"
         strokeWidth={stroke}
       />
       {/* Arc */}
@@ -43,7 +43,7 @@ export default function LoadingSpinner({ size = 'md', label = 'Loading', fullPag
         cx={dim / 2}
         cy={dim / 2}
         r={r}
-        stroke="var(--primary-600, #2563eb)"
+        stroke="var(--primary-600, #2255ee)"
         strokeWidth={stroke}
         strokeLinecap="round"
         strokeDasharray={`${circ * 0.25} ${circ * 0.75}`}

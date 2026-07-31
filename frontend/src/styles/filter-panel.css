@@ -70,16 +70,16 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #2255ee, #2255ee);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 6px rgba(34, 85, 238, 0.4);
   transition: all 0.2s ease;
 }
 
 .slider-thumb::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 4px 10px rgba(34, 85, 238, 0.6);
 }
 
 .slider-thumb::-webkit-slider-thumb:active {
@@ -90,16 +90,16 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #2255ee, #2255ee);
   cursor: pointer;
   border: 2px solid white;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+  box-shadow: 0 2px 6px rgba(34, 85, 238, 0.4);
   transition: all 0.2s ease;
 }
 
 .slider-thumb::-moz-range-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.6);
+  box-shadow: 0 4px 10px rgba(34, 85, 238, 0.6);
 }
 
 .slider-thumb::-moz-range-thumb:active {
@@ -113,7 +113,7 @@
 }
 
 .slider-thumb::-moz-range-progress {
-  background: #2563eb;
+  background: #2255ee;
 }
 
 /* Focus states */
@@ -122,7 +122,7 @@
 }
 
 .slider-thumb:focus-visible {
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.15);
 }
 
 /* Selection state styling */
@@ -145,9 +145,9 @@
   width: 20px;
   height: 20px;
   background-color: #dbeafe;
-  border: 2px solid #2563eb;
+  border: 2px solid #2255ee;
   border-radius: 50%;
-  color: #2563eb;
+  color: #2255ee;
   font-size: 12px;
   font-weight: bold;
   animation: scaleIn 0.2s ease-out;
@@ -167,7 +167,7 @@
 /* Price range highlight */
 .price-range-active {
   background: linear-gradient(135deg, #eff6ff, #dbeafe);
-  border: 1.5px solid #2563eb;
+  border: 1.5px solid #2255ee;
 }
 
 /* Smooth transitions for filter sections */
@@ -203,7 +203,7 @@
 
 /* Checkbox styling enhancement */
 input[type="checkbox"]:accent-primary-600 {
-  accent-color: #2563eb;
+  accent-color: #2255ee;
 }
 
 input[type="checkbox"] {

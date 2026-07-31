@@ -211,7 +211,7 @@ export default function AccountHub() {
           { [ 0, 1, 2 ].map( ( i ) => (
             <Motion.span
               key={ i }
-              style={ { display: 'block', width: '9px', height: '9px', borderRadius: '50%', background: '#3b82f6' } }
+              style={ { display: 'block', width: '9px', height: '9px', borderRadius: '50%', background: '#2255ee' } }
               animate={ { scale: [ 1, 1.5, 1 ], opacity: [ 0.3, 1, 0.3 ] } }
               transition={ { duration: 1.1, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' } }
             />
@@ -316,7 +316,7 @@ export default function AccountHub() {
               } }
             >
               {/* Thin accent rule */}
-              <div style={ { height: '3px', width: '32px', borderRadius: '999px', background: '#1d4ed8', marginBottom: '18px', opacity: 0.7 } } />
+              <div style={ { height: '3px', width: '32px', borderRadius: '999px', background: '#2255ee', marginBottom: '18px', opacity: 0.7 } } />
 
               { TABS[ activeTab ]?.id === 'overview' && (
                 <OverviewTab
@@ -388,7 +388,7 @@ export default function AccountHub() {
           width:           68px;
           height:          68px;
           border-radius:   50%;
-          background:      linear-gradient(135deg, #3b82f6, #1d4ed8);
+          background:      linear-gradient(135deg, #2255ee, #2255ee);
           display:         flex;
           align-items:     center;
           justify-content: center;

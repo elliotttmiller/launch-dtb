@@ -26,10 +26,10 @@ function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {
       onMouseLeave={() => setHovered(false)}
       style={{
         borderBottom: '1px solid var(--machined-border)',
-        borderLeft: `2px solid ${isOpen ? 'var(--primary-600, #2563eb)' : 'transparent'}`,
+        borderLeft: `2px solid ${isOpen ? 'var(--primary-600, #2255ee)' : 'transparent'}`,
         paddingLeft: isOpen ? '14px' : '0',
         transition: 'border-left-color 0.22s ease, padding-left 0.22s ease',
-        background: hovered && !isOpen ? 'rgba(37,99,235,0.025)' : 'transparent',
+        background: hovered && !isOpen ? 'rgba(34,85,238,0.025)' : 'transparent',
       }}
     >
       <button
@@ -52,7 +52,7 @@ function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {
         <span style={{
           fontSize: 'clamp(0.9rem, 2vw, 0.985rem)',
           fontWeight: 700,
-          color: isOpen ? 'var(--primary-700, #1d4ed8)' : '#0f172a',
+          color: isOpen ? 'var(--primary-700, #2255ee)' : '#0f172a',
           lineHeight: 1.45,
           transition: 'color 0.18s',
         }}>
@@ -67,8 +67,8 @@ function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {
             width: '26px',
             height: '26px',
             borderRadius: '7px',
-            border: `1px solid ${isOpen ? 'rgba(37,99,235,0.35)' : 'var(--machined-border)'}`,
-            background: isOpen ? 'rgba(37,99,235,0.10)' : 'rgba(15,23,42,0.04)',
+            border: `1px solid ${isOpen ? 'rgba(34,85,238,0.35)' : 'var(--machined-border)'}`,
+            background: isOpen ? 'rgba(34,85,238,0.10)' : 'rgba(15,23,42,0.04)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -86,7 +86,7 @@ function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {
             {/* Horizontal bar (always visible) */}
             <line
               x1="2" y1="6" x2="10" y2="6"
-              stroke={isOpen ? '#2563eb' : '#64748b'}
+              stroke={isOpen ? '#2255ee' : '#64748b'}
               strokeWidth="1.6"
               strokeLinecap="round"
               style={{ transition: 'stroke 0.18s' }}
@@ -94,7 +94,7 @@ function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {
             {/* Vertical bar (visible when closed, hidden when open) */}
             <line
               x1="6" y1="2" x2="6" y2="10"
-              stroke={isOpen ? '#2563eb' : '#64748b'}
+              stroke={isOpen ? '#2255ee' : '#64748b'}
               strokeWidth="1.6"
               strokeLinecap="round"
               style={{

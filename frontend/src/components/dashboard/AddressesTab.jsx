@@ -24,7 +24,7 @@ const CARD = {
 };
 
 const TYPE_CFG = {
-  billing:  { Icon: Home,  color: '#2563eb', bg: '#eff6ff', label: 'Billing Address'  },
+  billing:  { Icon: Home,  color: '#2255ee', bg: '#eff6ff', label: 'Billing Address'  },
   shipping: { Icon: Truck, color: '#16a34a', bg: '#f0fdf4', label: 'Shipping Address' },
 };
 

@@ -82,7 +82,7 @@ export default function FeatureSection({ features = [], title, subtitle, classNa
             <Motion.div
               key={feature.title || i}
               variants={cardVariants}
-              whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(37,99,235,0.10)' }}
+              whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(34,85,238,0.10)' }}
               transition={{ duration: 0.2 }}
               style={{
                 background: 'white',
@@ -100,8 +100,8 @@ export default function FeatureSection({ features = [], title, subtitle, classNa
               <div style={{
                 width: '44px', height: '44px',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(96,165,250,0.08) 100%)',
-                border: '1px solid rgba(37,99,235,0.12)',
+                background: 'linear-gradient(135deg, rgba(34,85,238,0.10) 0%, rgba(96,165,250,0.08) 100%)',
+                border: '1px solid rgba(34,85,238,0.12)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
               }}>

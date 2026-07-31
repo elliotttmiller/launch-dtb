@@ -38,8 +38,8 @@
 
 .calc-dropdown-button:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-color: #2255ee;
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .calc-dropdown-button:active {
@@ -138,7 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563eb;
+  color: #2255ee;
   animation: calcCheckScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -155,14 +155,14 @@
 
 /* Focus management — matches SortDropdown accessibility */
 .calc-dropdown-item:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #2255ee;
   outline-offset: -2px;
 }
 .calc-dropdown-item:focus:not(:focus-visible) {
   outline: none;
 }
 .calc-dropdown-item:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #2255ee;
   outline-offset: -2px;
 }
 
@@ -209,8 +209,8 @@
 
 .sort-dropdown-button:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-color: #2255ee;
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.1), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .sort-dropdown-button:active {
@@ -344,7 +344,7 @@
   width: 24px;
   height: 24px;
   margin-left: 8px;
-  color: #2563eb;
+  color: #2255ee;
   animation: checkmarkScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -419,7 +419,7 @@
 
 /* Focus Management for Accessibility */
 .sort-dropdown-item:focus {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #2255ee;
   outline-offset: -2px;
 }
 
@@ -428,6 +428,6 @@
 }
 
 .sort-dropdown-item:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #2255ee;
   outline-offset: -2px;
 }

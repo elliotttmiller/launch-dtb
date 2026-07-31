@@ -166,13 +166,13 @@ function chipStyle(isSelected, isOos, isUnavail) {
     padding: '7px 14px',
     borderRadius: '8px',
     border: isSelected
-      ? '2px solid var(--primary-600, #2563eb)'
+      ? '2px solid var(--primary-600, #2255ee)'
       : '2px solid #e2e8f0',
     background: isSelected
-      ? 'rgba(37,99,235,0.08)'
+      ? 'rgba(34,85,238,0.08)'
       : isOos || isUnavail ? '#f8fafc' : '#fff',
     color: isSelected
-      ? 'var(--primary-700, #1d4ed8)'
+      ? 'var(--primary-700, #2255ee)'
       : isOos || isUnavail ? '#94a3b8' : '#0f172a',
     fontSize: '0.82rem',
     fontWeight: isSelected ? 700 : 500,

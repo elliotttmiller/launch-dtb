@@ -87,7 +87,7 @@
 }
 
 .dtb-order-refresh-button:hover:not(:disabled) {
-  color: #2563eb;
+  color: #2255ee;
   border-color: rgba(147, 197, 253, 0.9);
   background: #fff;
   transform: translateY(-1px);
@@ -108,11 +108,11 @@
   border: 1px solid rgba(147, 197, 253, 0.78);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.88);
-  color: #1d4ed8;
+  color: #2255ee;
   font-size: 0.78rem;
   font-weight: 760;
   text-decoration: none;
-  box-shadow: 0 7px 18px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 7px 18px rgba(34, 85, 238, 0.08);
   transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 
@@ -172,7 +172,7 @@
 
 .dtb-order-status-panel__summary h2 {
   margin: 0.12rem 0 0;
-  color: #2563eb;
+  color: #2255ee;
   font-size: clamp(1.55rem, 3vw, 2.35rem);
   font-weight: 850;
   line-height: 1.05;
@@ -198,7 +198,7 @@
   margin-top: 0.28rem;
   border-radius: 999px;
   background: #2f6df6;
-  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 6px rgba(34, 85, 238, 0.08);
 }
 
 .dtb-order-status-dot--success {
@@ -288,7 +288,7 @@
 .dtb-order-progress-step.is-active > span {
   border-color: #2f6df6;
   background: #fff;
-  box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 8px rgba(34, 85, 238, 0.08);
 }
 
 .dtb-order-status-panel--success .dtb-order-progress-step.is-complete > span,
@@ -319,7 +319,7 @@
 
 .dtb-order-progress-step.is-complete,
 .dtb-order-progress-step.is-active {
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .dtb-order-status-panel__metrics {
@@ -393,7 +393,7 @@
   margin-top: 0.38rem;
   border-radius: 999px;
   background: #2f6df6;
-  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 0 6px rgba(34, 85, 238, 0.08);
 }
 
 .dtb-order-progress-updates p {
@@ -507,7 +507,7 @@
 
 .dtb-order-card__chip.is-active {
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #2255ee;
 }
 
 .dtb-order-items--friendly {
@@ -554,7 +554,7 @@
 }
 
 .dtb-order-item__thumb-initials {
-  color: #2563eb;
+  color: #2255ee;
   font-size: 0.82rem;
   font-weight: 850;
   letter-spacing: 0.06em;
@@ -606,7 +606,7 @@
 }
 
 .dtb-order-button--ghost:hover {
-  color: #2563eb;
+  color: #2255ee;
   background: #eff6ff;
 }
 

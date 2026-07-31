@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const CATEGORY_CONFIG = {
   'Automatic Taping Tools': {
     bg: '#0f2a6b',
-    accent: '#3b82f6',
+    accent: '#2255ee',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
@@ -13,7 +13,7 @@ const CATEGORY_CONFIG = {
     ),
   },
   'Finishing Boxes': {
-    bg: '#1d4ed8',
+    bg: '#2255ee',
     accent: '#93c5fd',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -68,7 +68,7 @@ const CATEGORY_CONFIG = {
 };
 
 export default function StorefrontCategoryTile({ title, to }) {
-  const config = CATEGORY_CONFIG[title] || { bg: 'var(--dtb-shell)', accent: '#3b82f6' };
+  const config = CATEGORY_CONFIG[title] || { bg: 'var(--dtb-shell)', accent: '#2255ee' };
   return (
     <Link
       to={to}

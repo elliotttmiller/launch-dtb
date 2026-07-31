@@ -74,7 +74,7 @@ export default function PricingTable({
               borderRadius: '16px',
               padding: '28px 24px',
               boxShadow: tier.highlight
-                ? '0 8px 36px rgba(37,99,235,0.13)'
+                ? '0 8px 36px rgba(34,85,238,0.13)'
                 : '0 2px 10px rgba(15,23,42,0.04)',
               position: 'relative',
               display: 'flex',
@@ -93,7 +93,7 @@ export default function PricingTable({
                 fontSize: '0.66rem', fontWeight: 700,
                 letterSpacing: '0.09em', textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(37,99,235,0.30)',
+                boxShadow: '0 4px 12px rgba(34,85,238,0.30)',
                 display: 'flex', alignItems: 'center', gap: '5px',
               }}>
                 <Zap size={10} fill="currentColor" />
@@ -196,7 +196,7 @@ export default function PricingTable({
                   cursor: enrolling ? 'not-allowed' : 'pointer',
                   opacity: enrolling && enrolling !== tierId ? 0.5 : 1,
                   transition: 'opacity 0.15s, transform 0.15s',
-                  boxShadow: tier.highlight ? '0 4px 14px rgba(37,99,235,0.30)' : 'none',
+                  boxShadow: tier.highlight ? '0 4px 14px rgba(34,85,238,0.30)' : 'none',
                 }}
                 onMouseEnter={(e) => { if (!enrolling) e.currentTarget.style.transform = 'translateY(-1px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}

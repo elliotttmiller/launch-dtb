@@ -144,7 +144,7 @@
 }
 
 .category-card:focus-visible {
-  outline: 3px solid var(--tension-accent, #2563eb);
+  outline: 3px solid var(--tension-accent, #2255ee);
   outline-offset: 3px;
 }
 
@@ -300,13 +300,13 @@
 }
 
 .tool-card:hover {
-  border-color: var(--tension-accent, #2563eb);
+  border-color: var(--tension-accent, #2255ee);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
   transform: translateY(-6px);
 }
 
 .tool-card:focus-visible {
-  outline: 3px solid var(--tension-accent, #2563eb);
+  outline: 3px solid var(--tension-accent, #2255ee);
   outline-offset: 3px;
 }
 
@@ -314,7 +314,7 @@
 .tool-card-background {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, var(--primary-600, #2563eb) 0%, var(--tension-accent, #2563eb) 100%);
+  background: linear-gradient(135deg, var(--primary-600, #2255ee) 0%, var(--tension-accent, #2255ee) 100%);
   opacity: 0;
   transition: opacity 0.4s ease-out;
   z-index: 0;
@@ -360,7 +360,7 @@
 }
 
 .tool-card:hover .tool-card-image-bg .placeholder-icon {
-  color: var(--tension-accent, #2563eb);
+  color: var(--tension-accent, #2255ee);
 }
 
 /* Overlay scrim — bottom-heavy gradient, title at base */

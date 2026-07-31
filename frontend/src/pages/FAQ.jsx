@@ -87,7 +87,7 @@ export default function FAQ() {
         canonical="/faq"
       />
 
-      <section style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%)', padding: 'clamp(3.5rem, 8vw, 6rem) clamp(1.5rem, 5vw, 3rem) clamp(3rem, 6vw, 5rem)', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #2255ee 100%)', padding: 'clamp(3.5rem, 8vw, 6rem) clamp(1.5rem, 5vw, 3rem) clamp(3rem, 6vw, 5rem)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)', backgroundSize: '40px 40px', pointerEvents: 'none' }} />
         <div style={{ maxWidth: '720px', margin: '0 auto', textAlign: 'center', position: 'relative' }}>
           <div className="dtb-title-eyebrow" style={{ display: 'inline-block', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '99px', padding: '5px 16px', fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', marginBottom: '18px' }}>
@@ -124,7 +124,7 @@ export default function FAQ() {
                 <p style={{ fontSize: '0.62rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(15,23,42,0.4)', margin: '0 0 10px 0' }}>Categories</p>
                 {FAQ_CATEGORIES.map((cat) => {
                   const active = cat.id === activeCategory;
-                  return <button key={cat.id} type="button" onClick={() => setActiveCategory(cat.id)} style={{ background: active ? 'rgba(37,99,235,0.08)' : 'none', border: 'none', borderLeft: active ? '3px solid var(--primary-600)' : '3px solid transparent', borderRadius: '0 6px 6px 0', padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 700 : 500, color: active ? 'var(--primary-700)' : 'rgba(15,23,42,0.6)', transition: 'all 0.15s', lineHeight: 1.4 }}>{cat.label}</button>;
+                  return <button key={cat.id} type="button" onClick={() => setActiveCategory(cat.id)} style={{ background: active ? 'rgba(34,85,238,0.08)' : 'none', border: 'none', borderLeft: active ? '3px solid var(--primary-600)' : '3px solid transparent', borderRadius: '0 6px 6px 0', padding: '9px 12px', textAlign: 'left', cursor: 'pointer', fontSize: '0.875rem', fontWeight: active ? 700 : 500, color: active ? 'var(--primary-700)' : 'rgba(15,23,42,0.6)', transition: 'all 0.15s', lineHeight: 1.4 }}>{cat.label}</button>;
                 })}
               </nav>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -145,7 +145,7 @@ export default function FAQ() {
           <p style={{ color: 'rgba(15,23,42,0.55)', fontSize: 'clamp(0.875rem, 2vw, 1rem)', margin: '0 0 32px 0', lineHeight: 1.6 }}>Our team is ready to help. Reach out directly or submit a repair request and we will be in touch within one business day.</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/contact" style={{ display: 'inline-block', background: 'var(--primary-600)', color: 'white', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em', textTransform: 'uppercase', padding: '12px 28px', borderRadius: '6px', textDecoration: 'none' }}>Contact Us</Link>
-            <Link to="/repairs" style={{ display: 'inline-block', background: 'white', color: 'var(--primary-700)', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em', textTransform: 'uppercase', padding: '12px 28px', borderRadius: '6px', border: '1.5px solid rgba(37,99,235,0.3)', textDecoration: 'none' }}>Repair Services</Link>
+            <Link to="/repairs" style={{ display: 'inline-block', background: 'white', color: 'var(--primary-700)', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em', textTransform: 'uppercase', padding: '12px 28px', borderRadius: '6px', border: '1.5px solid rgba(34,85,238,0.3)', textDecoration: 'none' }}>Repair Services</Link>
           </div>
         </div>
       </section>

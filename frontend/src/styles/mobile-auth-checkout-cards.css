@@ -52,7 +52,7 @@
       position: absolute;
       inset: 0 0 auto;
       height: 4px;
-      background: linear-gradient(90deg, #60a5fa, var(--dtb-primary, #2563eb), #1d4ed8);
+      background: linear-gradient(90deg, #60a5fa, var(--dtb-primary, #2255ee), #2255ee);
       pointer-events: none;
     }
 
@@ -80,7 +80,7 @@
       margin-bottom: 15px !important;
       border: 1px solid rgba(96, 165, 250, 0.24);
       border-radius: 14px !important;
-      background: linear-gradient(145deg, rgba(59, 130, 246, 0.2), rgba(96, 165, 250, 0.08)) !important;
+      background: linear-gradient(145deg, rgba(34, 85, 238, 0.2), rgba(96, 165, 250, 0.08)) !important;
     }
 
     .page-wrapper:has(#login-email) div:has(> form #login-email) > div:first-child svg {
@@ -88,7 +88,7 @@
     }
 
     .page-wrapper:has(#reg-email) div:has(> form #reg-email) > div:first-child svg {
-      color: var(--dtb-primary, #2563eb) !important;
+      color: var(--dtb-primary, #2255ee) !important;
     }
 
     .page-wrapper:has(#login-email) div:has(> form #login-email) > div:first-child h2 {
@@ -114,7 +114,7 @@
     }
 
     .page-wrapper:has(#reg-email) div:has(> form #reg-email) > div:first-child a {
-      color: var(--dtb-primary, #2563eb) !important;
+      color: var(--dtb-primary, #2255ee) !important;
     }
 
     .page-wrapper:has(#login-email) form,
@@ -177,14 +177,14 @@
     .page-wrapper:has(#login-email) .machined-input:focus {
       border-color: rgba(96, 165, 250, 0.9) !important;
       background-color: rgba(255, 255, 255, 0.1) !important;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+      box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.18) !important;
     }
 
     .page-wrapper:has(#reg-email) .machined-input {
       border: 1px solid rgba(148, 163, 184, 0.34) !important;
       background-color: #f8fafc !important;
       color: var(--dtb-text, #0f172a) !important;
-      caret-color: var(--dtb-primary, #2563eb);
+      caret-color: var(--dtb-primary, #2255ee);
     }
 
     .page-wrapper:has(#reg-email) .machined-input::placeholder {
@@ -192,9 +192,9 @@
     }
 
     .page-wrapper:has(#reg-email) .machined-input:focus {
-      border-color: var(--dtb-primary, #2563eb) !important;
+      border-color: var(--dtb-primary, #2255ee) !important;
       background-color: #fff !important;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+      box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.12) !important;
     }
 
     .page-wrapper:has(#login-email) #login-email,
@@ -250,8 +250,8 @@
     .page-wrapper:has(#reg-email) .alloy-button {
       min-height: 52px;
       border-radius: 13px !important;
-      background: linear-gradient(135deg, #17365d, var(--dtb-primary, #2563eb)) !important;
-      box-shadow: 0 12px 26px rgba(37, 99, 235, 0.25);
+      background: linear-gradient(135deg, #17365d, var(--dtb-primary, #2255ee)) !important;
+      box-shadow: 0 12px 26px rgba(34, 85, 238, 0.25);
       font-size: 0.86rem !important;
       letter-spacing: 0.08em !important;
     }
@@ -334,7 +334,7 @@
   .storefront-cart-sheet .scs-header-icon {
     border: 1px solid #dbeafe;
     background: #eff6ff !important;
-    color: #2563eb !important;
+    color: #2255ee !important;
   }
 
   .storefront-cart-sheet .scs-title,
@@ -347,8 +347,8 @@
   }
 
   .storefront-cart-sheet .scs-count {
-    background: var(--dtb-primary, #2563eb) !important;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    background: var(--dtb-primary, #2255ee) !important;
+    box-shadow: 0 0 0 4px rgba(34, 85, 238, 0.12);
   }
 
   .storefront-cart-sheet .scs-close {
@@ -398,7 +398,7 @@
   .storefront-cart-sheet .scs-item-name-button:hover,
   .storefront-cart-sheet .scs-item-name-button:focus-visible,
   .storefront-cart-sheet .scs-item--syncing .scs-item-line-total {
-    color: #1d4ed8 !important;
+    color: #2255ee !important;
   }
 
   .storefront-cart-sheet .scs-item-remove {
@@ -421,7 +421,7 @@
 
   .storefront-cart-sheet .scs-qty-btn:hover:not(:disabled) {
     background: #dbeafe !important;
-    color: #1d4ed8 !important;
+    color: #2255ee !important;
   }
 
   .storefront-cart-sheet .scs-footer {
@@ -468,8 +468,8 @@
     min-height: 50px;
     padding: 0 14px !important;
     border-radius: 13px !important;
-    background: linear-gradient(135deg, #1d4ed8, #3b82f6) !important;
-    box-shadow: 0 12px 26px rgba(37, 99, 235, 0.3) !important;
+    background: linear-gradient(135deg, #2255ee, #2255ee) !important;
+    box-shadow: 0 12px 26px rgba(34, 85, 238, 0.3) !important;
   }
 
   .storefront-cart-sheet .scs-view-cart-btn {
@@ -485,7 +485,7 @@
   .storefront-cart-sheet .scs-view-cart-btn:hover {
     border-color: #93c5fd !important;
     background: #eff6ff !important;
-    color: #1d4ed8 !important;
+    color: #2255ee !important;
   }
 
   .storefront-cart-sheet .scs-empty {
@@ -495,11 +495,11 @@
 
   .storefront-cart-sheet .scs-empty-icon {
     background: #dbeafe !important;
-    color: #2563eb !important;
+    color: #2255ee !important;
   }
 
   .storefront-cart-sheet .scs-browse-btn {
-    background: linear-gradient(135deg, #17365d, #2563eb) !important;
+    background: linear-gradient(135deg, #17365d, #2255ee) !important;
     color: #fff !important;
   }
 }

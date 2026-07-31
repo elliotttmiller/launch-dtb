@@ -112,7 +112,7 @@ function DetailRow({ icon: Icon, label, children }) {
     <div className="dtb-order-detail-row">
       <dt className="dtb-order-detail-label">{label}</dt>
       <dd className="dtb-order-detail-value">
-        {Icon ? <Icon size={15} style={{ display: 'inline', marginRight: 8, verticalAlign: '-2px', color: '#2563eb' }} /> : null}
+        {Icon ? <Icon size={15} style={{ display: 'inline', marginRight: 8, verticalAlign: '-2px', color: '#2255ee' }} /> : null}
         {children}
       </dd>
     </div>

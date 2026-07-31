@@ -3,8 +3,8 @@
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  background: #2563eb;
-  box-shadow: 0 0 0 7px rgba(37, 99, 235, 0.08);
+  background: #2255ee;
+  box-shadow: 0 0 0 7px rgba(34, 85, 238, 0.08);
 }
 
 .account-activity-card__marker.is-repair {

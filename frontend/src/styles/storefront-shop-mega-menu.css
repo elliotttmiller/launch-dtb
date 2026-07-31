@@ -39,7 +39,7 @@
 
 .storefront-shop-mega__topline {
     height: 3px;
-    background: linear-gradient(90deg, var(--primary-700, #1d4ed8) 0%, var(--primary-500, #3b82f6) 48%, #7dd3fc 100%);
+    background: linear-gradient(90deg, var(--primary-700, #2255ee) 0%, var(--primary-500, #2255ee) 48%, #7dd3fc 100%);
 }
 
 .storefront-shop-mega__shell {
@@ -57,7 +57,7 @@
     border-radius: 18px;
     border: 1px solid rgba(15, 23, 42, 0.06);
     background:
-        radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.13), transparent 42%),
+        radial-gradient(circle at 20% 0%, rgba(34, 85, 238, 0.13), transparent 42%),
         linear-gradient(180deg, #f8fbff 0%, #eef4ff 100%);
 }
 
@@ -77,7 +77,7 @@
 
 .storefront-shop-mega__rail-link:hover,
 .storefront-shop-mega__rail-link:focus-visible {
-    border-color: rgba(37, 99, 235, 0.18);
+    border-color: rgba(34, 85, 238, 0.18);
     background: rgba(255, 255, 255, 0.88);
     box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
     transform: translateY(-1px);
@@ -90,7 +90,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    color: var(--primary-700, #1d4ed8);
+    color: var(--primary-700, #2255ee);
     background: linear-gradient(180deg, rgba(219, 234, 254, 0.9), rgba(239, 246, 255, 0.92));
 }
 
@@ -121,7 +121,7 @@
 
 .storefront-shop-mega__rail-link:hover .storefront-shop-mega__rail-chevron,
 .storefront-shop-mega__rail-link:focus-visible .storefront-shop-mega__rail-chevron {
-    color: var(--primary-700, #1d4ed8);
+    color: var(--primary-700, #2255ee);
     transform: translateX(2px);
 }
 
@@ -175,15 +175,15 @@
 .storefront-shop-mega__text-link:focus-visible {
     padding-left: 9px;
     padding-right: 8px;
-    color: var(--primary-700, #1d4ed8);
-    background: rgba(37, 99, 235, 0.06);
+    color: var(--primary-700, #2255ee);
+    background: rgba(34, 85, 238, 0.06);
     outline: none;
 }
 
 .storefront-shop-mega__badge {
     flex: 0 0 auto;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--primary-700, #1d4ed8), var(--primary-600, #2563eb));
+    background: linear-gradient(135deg, var(--primary-700, #2255ee), var(--primary-600, #2255ee));
     color: #ffffff;
     padding: 3px 7px;
     font-size: 0.58rem;
@@ -215,7 +215,7 @@
 
 .storefront-shop-mega__footer-note svg {
     flex-shrink: 0;
-    color: var(--primary-700, #1d4ed8);
+    color: var(--primary-700, #2255ee);
 }
 
 .storefront-shop-mega__footer-actions {
@@ -247,8 +247,8 @@
 
 .storefront-shop-mega__cta--primary {
     color: #ffffff;
-    background: linear-gradient(135deg, var(--primary-700, #1d4ed8), var(--primary-600, #2563eb));
-    box-shadow: 0 12px 28px rgba(37, 99, 235, 0.26);
+    background: linear-gradient(135deg, var(--primary-700, #2255ee), var(--primary-600, #2255ee));
+    box-shadow: 0 12px 28px rgba(34, 85, 238, 0.26);
 }
 
 .storefront-shop-mega__cta--secondary {
@@ -259,16 +259,16 @@
 
 .storefront-shop-mega__cta--secondary:hover,
 .storefront-shop-mega__cta--secondary:focus-visible {
-    border-color: rgba(37, 99, 235, 0.28);
-    background: rgba(37, 99, 235, 0.05);
-    color: var(--primary-700, #1d4ed8);
+    border-color: rgba(34, 85, 238, 0.28);
+    background: rgba(34, 85, 238, 0.05);
+    color: var(--primary-700, #2255ee);
 }
 
 .storefront-shop-mega__trigger:focus-visible,
 .storefront-shop-mega__rail-link:focus-visible,
 .storefront-shop-mega__text-link:focus-visible,
 .storefront-shop-mega__cta:focus-visible {
-    outline: 2px solid var(--primary-500, #3b82f6);
+    outline: 2px solid var(--primary-500, #2255ee);
     outline-offset: 2px;
 }
 

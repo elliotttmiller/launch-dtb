@@ -161,7 +161,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
         boxShadow: isCartToast
           ? '0 18px 46px rgba(15,23,42,0.18), 0 3px 12px rgba(15,23,42,0.08)'
           : '0 8px 30px rgba(15,23,42,0.14), 0 2px 8px rgba(15,23,42,0.06)',
-        border: isCartToast ? '1px solid rgba(37,99,235,0.16)' : '1px solid rgba(15,23,42,0.07)',
+        border: isCartToast ? '1px solid rgba(34,85,238,0.16)' : '1px solid rgba(15,23,42,0.07)',
         overflow: 'visible',
         pointerEvents: 'auto',
         backdropFilter: isCartToast ? 'blur(16px)' : undefined,
@@ -178,8 +178,8 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
             height: '12px',
             transform: 'rotate(45deg)',
             background: cfg.bg,
-            borderLeft: '1px solid rgba(37,99,235,0.16)',
-            borderTop: '1px solid rgba(37,99,235,0.16)',
+            borderLeft: '1px solid rgba(34,85,238,0.16)',
+            borderTop: '1px solid rgba(34,85,238,0.16)',
           }}
         />
       ) : null}
@@ -209,7 +209,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
           width: isCartToast ? '32px' : 'auto',
           height: isCartToast ? '32px' : 'auto',
           borderRadius: isCartToast ? '12px' : 0,
-          background: isCartToast ? 'rgba(37,99,235,0.10)' : 'transparent',
+          background: isCartToast ? 'rgba(34,85,238,0.10)' : 'transparent',
           marginTop: isCartToast ? 0 : '1px',
         }}>
           <IconComponent size={isCartToast ? 17 : 18} />

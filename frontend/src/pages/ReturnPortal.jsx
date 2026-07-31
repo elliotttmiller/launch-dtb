@@ -179,7 +179,7 @@ export default function ReturnPortal() {
 
       {/* ── Hero strip ─────────────────────────────────────────────────────── */}
       <section style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2255ee 100%)',
         padding:    'clamp(48px, 8vw, 80px) clamp(1.5rem, 5vw, 3rem) clamp(3rem, 6vw, 4rem)',
         position:   'relative',
         overflow:   'hidden',
@@ -694,7 +694,7 @@ export default function ReturnPortal() {
                     textDecoration: 'none',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(37,99,235,0.35)';
+                    e.currentTarget.style.borderColor = 'rgba(34,85,238,0.35)';
                     e.currentTarget.style.background = '#eff6ff';
                   }}
                   onMouseLeave={(e) => {
@@ -711,7 +711,7 @@ export default function ReturnPortal() {
                     display:        'flex',
                     alignItems:     'center',
                     justifyContent: 'center',
-                    border:         '1px solid rgba(37,99,235,0.12)',
+                    border:         '1px solid rgba(34,85,238,0.12)',
                   }}>
                     <Icon size={17} />
                   </span>

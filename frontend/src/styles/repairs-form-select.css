@@ -24,8 +24,8 @@
 }
 
 .repair-modern-select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-color: #2255ee;
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.12), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .repair-modern-select:disabled {

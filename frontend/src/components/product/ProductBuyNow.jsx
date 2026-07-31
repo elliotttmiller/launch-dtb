@@ -6,57 +6,44 @@ import '../../styles/product-buy-now.css';
 
 const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
 
-const CARD_METHODS = Object.freeze([
-  { id: 'visa', label: 'Visa', src: `${PUBLIC_ASSET_BASE}/payment_logos/visa.svg` },
-  { id: 'mastercard', label: 'Mastercard', src: `${PUBLIC_ASSET_BASE}/payment_logos/mastercard.svg` },
+const EXPRESS_CHECKOUT_METHODS = Object.freeze([
   {
-    id: 'american-express',
-    label: 'American Express',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/american-express.svg`,
-  },
-]);
-
-const WALLET_METHODS = Object.freeze({
-  applePay: {
-    id: 'apple-pay',
-    label: 'Apple Pay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/apple-pay.svg`,
-  },
-  googlePay: {
-    id: 'google-pay',
-    label: 'Google Pay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
-  },
-});
-
-const CONDITIONAL_METHODS = Object.freeze([
-  {
-    readinessKey: 'affirm',
-    id: 'affirm',
-    label: 'Affirm',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/affirm.svg`,
-    wide: true,
+    readinessKey: 'paypal',
+    id: 'paypal',
+    label: 'PayPal',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/paypal-blue.svg`,
   },
   {
     readinessKey: 'klarna',
     id: 'klarna',
     label: 'Klarna',
     src: `${PUBLIC_ASSET_BASE}/payment_logos/klarna.svg`,
-    wide: true,
+    framed: true,
+  },
+  {
+    readinessKey: 'googlePay',
+    id: 'google-pay',
+    label: 'Google Pay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
+  },
+  {
+    readinessKey: 'applePay',
+    id: 'apple-pay',
+    label: 'Apple Pay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/apple-pay.svg`,
+    framed: true,
   },
   {
     readinessKey: 'afterpay',
-    id: 'afterpay',
-    label: 'Afterpay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay.svg`,
-    wide: true,
+    id: 'afterpay-clearpay',
+    label: 'Afterpay Clearpay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay-clearpay.svg`,
   },
   {
-    readinessKey: 'paypal',
-    id: 'paypal',
-    label: 'PayPal',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/paypal.svg`,
-    wide: true,
+    readinessKey: 'affirm',
+    id: 'affirm',
+    label: 'Affirm',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/affirm.svg`,
   },
 ]);
 
@@ -119,19 +106,9 @@ export default function ProductBuyNow({
 
   const busy = pending || isMutating;
   const blocked = disabled || busy;
-  const paymentMethods = [...CARD_METHODS];
-
-  if (readiness.paymentMethods?.applePay === true) {
-    paymentMethods.push(WALLET_METHODS.applePay);
-  }
-  if (readiness.paymentMethods?.googlePay === true) {
-    paymentMethods.push(WALLET_METHODS.googlePay);
-  }
-  CONDITIONAL_METHODS.forEach((method) => {
-    if (readiness.paymentMethods?.[method.readinessKey] === true) {
-      paymentMethods.push(method);
-    }
-  });
+  const paymentMethods = EXPRESS_CHECKOUT_METHODS.filter(
+    (method) => readiness.paymentMethods?.[method.readinessKey] === true,
+  );
 
   const statusMessage = interactionError
     || (disabled && disabledReason)
@@ -198,7 +175,7 @@ export default function ProductBuyNow({
         {paymentMethods.map((method) => (
           <li
             key={method.id}
-            className={method.wide ? 'is-wide' : undefined}
+            className={method.framed ? 'is-framed' : undefined}
             aria-label={method.label}
             title={method.label}
           >

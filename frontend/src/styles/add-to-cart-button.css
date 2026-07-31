@@ -19,7 +19,7 @@
   background: transparent;
   box-shadow:
     0 8px 18px rgba(8, 31, 74, 0.18),
-    0 2px 5px rgba(37, 99, 235, 0.18),
+    0 2px 5px rgba(34, 85, 238, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
   font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
   font-size: var(--dtb-atc-font-size);
@@ -42,7 +42,7 @@
   border-radius: inherit;
   background:
     radial-gradient(circle at 82% 0%, rgba(89, 139, 255, 0.34), transparent 37%),
-    linear-gradient(112deg, #071a3c 0%, #113f8c 48%, #2563eb 100%);
+    linear-gradient(112deg, #071a3c 0%, #113f8c 48%, #2255ee 100%);
   transform: scale(1);
   transition:
     filter 320ms ease,
@@ -130,7 +130,7 @@
   border-color: rgba(151, 180, 255, 0.78);
   box-shadow:
     0 12px 26px rgba(8, 31, 74, 0.24),
-    0 4px 9px rgba(37, 99, 235, 0.22),
+    0 4px 9px rgba(34, 85, 238, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
@@ -157,7 +157,7 @@
 }
 
 .dtb-add-to-cart:focus-visible {
-  outline: 3px solid rgba(59, 130, 246, 0.32);
+  outline: 3px solid rgba(34, 85, 238, 0.32);
   outline-offset: 3px;
 }
 

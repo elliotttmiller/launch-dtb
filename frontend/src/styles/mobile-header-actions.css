@@ -74,7 +74,7 @@
 
   .header-mobile-account-toggle:active,
   .header-mobile-cart-toggle:active {
-    background: rgba(37, 99, 235, 0.12);
+    background: rgba(34, 85, 238, 0.12);
   }
 
   .header-mobile-cart-toggle .cart-badge {

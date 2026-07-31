@@ -448,7 +448,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
               />
               {ordersLoading ? (
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '48px 0' }}>
-                  <Loader size={20} style={{ color: '#2563eb' }} className="animate-spin" />
+                  <Loader size={20} style={{ color: '#2255ee' }} className="animate-spin" />
                   <span style={{ fontSize: '0.85rem', color: 'rgba(15,23,42,0.5)' }}>Loading account history…</span>
                 </div>
               ) : allHistoryFailed ? (
@@ -506,7 +506,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
                   <button
                     type="button"
                     onClick={() => { closeSheet(); navigate('/dashboard?tab=orders'); }}
-                    style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', padding: '9px', borderRadius: '8px', border: '1px solid rgba(15,23,42,0.1)', background: 'transparent', fontSize: '0.8rem', fontWeight: 650, color: '#2563eb', cursor: 'pointer', transition: 'background 0.12s' }}
+                    style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', width: '100%', padding: '9px', borderRadius: '8px', border: '1px solid rgba(15,23,42,0.1)', background: 'transparent', fontSize: '0.8rem', fontWeight: 650, color: '#2255ee', cursor: 'pointer', transition: 'background 0.12s' }}
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#eff6ff'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                   >

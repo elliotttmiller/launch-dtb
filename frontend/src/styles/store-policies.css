@@ -1,7 +1,7 @@
 .store-policy-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 18% 0%, rgba(37, 99, 235, 0.12), transparent 34rem),
+    radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.12), transparent 34rem),
     linear-gradient(180deg, #f8fafc 0%, #eef4fb 44%, #ffffff 100%);
   color: #0f172a;
 }
@@ -36,10 +36,10 @@
   align-items: center;
   min-height: 26px;
   padding: 0 10px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(34, 85, 238, 0.18);
   border-radius: 999px;
   background: rgba(239, 246, 255, 0.9);
-  color: #1d4ed8;
+  color: #2255ee;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -89,10 +89,10 @@
 }
 
 .store-policy-button--primary {
-  border: 1px solid #1d4ed8;
-  background: #1d4ed8;
+  border: 1px solid #2255ee;
+  background: #2255ee;
   color: #fff;
-  box-shadow: 0 10px 22px rgba(29, 78, 216, 0.22);
+  box-shadow: 0 10px 22px rgba(34, 85, 238, 0.22);
 }
 
 .store-policy-button--secondary {
@@ -127,7 +127,7 @@
 }
 
 .store-policies-summary svg {
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .store-policies-summary strong {
@@ -161,7 +161,7 @@
   justify-content: center;
   border-radius: 10px;
   background: #eff6ff;
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .store-policy-fact strong {
@@ -263,7 +263,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: #1d4ed8;
+  background: #2255ee;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 850;
@@ -312,7 +312,7 @@
 }
 
 .store-policy-card > svg {
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .store-policy-card h2 {
@@ -403,7 +403,7 @@
 
 .store-policies-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(37, 99, 235, 0.28);
+  border-color: rgba(34, 85, 238, 0.28);
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.09);
 }
 
@@ -415,7 +415,7 @@
   justify-content: center;
   border-radius: 12px;
   background: #eff6ff;
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .store-policies-card__copy {
@@ -440,7 +440,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #1d4ed8;
+  color: #2255ee;
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -453,7 +453,7 @@
 }
 
 .store-policy-related-card svg {
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .store-policy-related-card h2 {
@@ -471,7 +471,7 @@
   gap: 18px;
   align-items: center;
   padding: clamp(22px, 4vw, 30px);
-  background: linear-gradient(135deg, #071329 0%, #0f2150 54%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #071329 0%, #0f2150 54%, #2255ee 100%);
   color: #fff;
 }
 

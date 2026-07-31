@@ -10,7 +10,7 @@ export default function PageHeroBanner({
   return (
     <section
       style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #2255ee 100%)',
         padding: 'clamp(3.25rem, 8vw, 5.75rem) clamp(1.5rem, 5vw, 3rem) clamp(2.75rem, 6vw, 4.5rem)',
         position: 'relative',
         overflow: 'hidden',

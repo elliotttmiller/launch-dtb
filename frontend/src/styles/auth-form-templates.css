@@ -5,10 +5,10 @@
   --auth-muted: #71717a;
   --auth-border: #e4e4e7;
   --auth-border-strong: #d4d4d8;
-  --auth-accent: #2563eb;
-  --auth-accent-hover: #1d4ed8;
+  --auth-accent: #2255ee;
+  --auth-accent-hover: #2255ee;
   --auth-danger: #b91c1c;
-  --auth-focus: rgba(37, 99, 235, 0.18);
+  --auth-focus: rgba(34, 85, 238, 0.18);
   display: flex;
   min-height: calc(100dvh - var(--header-height, 0px));
   align-items: center;
@@ -294,19 +294,19 @@
   font-weight: 650;
   line-height: 1;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 10px 22px rgba(34, 85, 238, 0.22);
   transition: transform 180ms var(--dtb-ease, ease), background-color 180ms var(--dtb-ease, ease), box-shadow 180ms var(--dtb-ease, ease);
 }
 
 .dtb-auth-template__submit:hover:not(:disabled) {
   background: var(--auth-accent-hover);
-  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 12px 26px rgba(34, 85, 238, 0.3);
   transform: translateY(-1px);
 }
 
 .dtb-auth-template__submit:focus-visible {
   outline: 0;
-  box-shadow: 0 0 0 3px var(--auth-focus), 0 10px 22px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 0 0 3px var(--auth-focus), 0 10px 22px rgba(34, 85, 238, 0.22);
 }
 
 .dtb-auth-template__submit:disabled {
@@ -352,7 +352,7 @@
 
 .dtb-auth-template__link:hover,
 .dtb-auth-template__link:focus-visible {
-  color: #1d4ed8;
+  color: #2255ee;
   outline: 0;
 }
 

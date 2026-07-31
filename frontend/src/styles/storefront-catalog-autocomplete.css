@@ -128,7 +128,7 @@
 .dtb-catalog-autocomplete__result-card:has(.dtb-catalog-autocomplete__item[data-highlighted]) {
   border-color: #dbe6f5;
   background: #f3f7fc;
-  box-shadow: inset 3px 0 0 #2563eb;
+  box-shadow: inset 3px 0 0 #2255ee;
 }
 
 .dtb-catalog-autocomplete__item {
@@ -184,7 +184,7 @@
 }
 
 .dtb-catalog-autocomplete__copy mark {
-  color: #1d4ed8;
+  color: #2255ee;
   background: transparent;
   font-weight: 850;
 }
@@ -237,7 +237,7 @@
   padding: 0 16px;
   border: 0;
   border-top: 1px solid #e2e8f0;
-  color: #1d4ed8;
+  color: #2255ee;
   background: #f8fafc;
   font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
   font-size: 0.76rem;
@@ -248,7 +248,7 @@
 .dtb-catalog-autocomplete__view-all:hover,
 .dtb-catalog-autocomplete__view-all:focus-visible {
   color: #fff;
-  background: #2563eb;
+  background: #2255ee;
   outline: none;
 }
 

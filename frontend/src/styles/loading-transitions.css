@@ -319,7 +319,7 @@ html.dtb-checkout-route-booting #dtb-checkout-route-loader {
   border: 1px solid #dbe3ee;
   border-radius: 999px;
   background: #ffffff;
-  color: #1d4ed8;
+  color: #2255ee;
   box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
   place-items: center;
 }
@@ -333,7 +333,7 @@ html.dtb-checkout-route-booting #dtb-checkout-route-loader {
 
 .dtb-checkout-route-loader__spinner::before {
   border: 2px solid #bfdbfe;
-  border-top-color: #1d4ed8;
+  border-top-color: #2255ee;
   border-radius: 999px;
   content: "";
 }

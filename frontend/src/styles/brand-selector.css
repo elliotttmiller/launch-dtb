@@ -99,7 +99,7 @@
 }
 
 .brand-card-products:focus-visible {
-  outline: 3px solid var(--tension-accent, #2563eb);
+  outline: 3px solid var(--tension-accent, #2255ee);
   outline-offset: 3px;
 }
 
@@ -132,13 +132,13 @@
 }
 
 .brand-card:hover {
-  border-color: var(--tension-accent, #2563eb);
+  border-color: var(--tension-accent, #2255ee);
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.10);
   transform: translateY(-4px);
 }
 
 .brand-card:focus-visible {
-  outline: 3px solid var(--tension-accent, #2563eb);
+  outline: 3px solid var(--tension-accent, #2255ee);
   outline-offset: 3px;
 }
 

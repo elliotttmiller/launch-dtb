@@ -489,7 +489,7 @@ export default function Repairs() {
 
       <section style={{
         padding: 'clamp(70px, 10vw, 110px) clamp(1.5rem, 5vw, 3rem) clamp(44px, 7vw, 72px)',
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #1d4ed8 100%)',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 55%, #2255ee 100%)',
         color: 'white',
       }}>
         <div style={{ maxWidth: '1180px', margin: '0 auto' }}>
@@ -529,7 +529,7 @@ export default function Repairs() {
               <Link to="/repairs/start" className="alloy-button" style={{
                 textDecoration: 'none',
                 background: '#fff',
-                color: '#1d4ed8',
+                color: '#2255ee',
               }}>
                 Start a repair
               </Link>
@@ -655,7 +655,7 @@ function SelectedPackageSummary({ pkg, formData, step }) {
       alignItems: 'center',
       margin: '0 0 24px',
       padding: '14px 16px',
-      border: '1.5px solid rgba(37,99,235,0.24)',
+      border: '1.5px solid rgba(34,85,238,0.24)',
       borderRadius: '12px',
       background: 'linear-gradient(135deg, rgba(239,246,255,0.95), rgba(255,255,255,0.98))',
     }}>
@@ -854,7 +854,7 @@ function PhotoUploader({ photos, onChange }) {
             width: '30px', height: '30px',
             borderRadius: '6px',
             border: photos.length > 0 ? '1.5px solid var(--primary-600)' : '1.5px solid rgba(15,23,42,0.2)',
-            background: photos.length > 0 ? 'rgba(37,99,235,0.08)' : 'rgba(255,255,255,0.85)',
+            background: photos.length > 0 ? 'rgba(34,85,238,0.08)' : 'rgba(255,255,255,0.85)',
             color: photos.length > 0 ? 'var(--primary-600)' : 'rgba(15,23,42,0.45)',
             cursor: 'pointer',
             transition: 'border-color 0.15s, background 0.15s, color 0.15s',
@@ -864,12 +864,12 @@ function PhotoUploader({ photos, onChange }) {
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = 'var(--primary-600)';
             e.currentTarget.style.color = 'var(--primary-600)';
-            e.currentTarget.style.background = 'rgba(37,99,235,0.08)';
+            e.currentTarget.style.background = 'rgba(34,85,238,0.08)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.borderColor = photos.length > 0 ? 'var(--primary-600)' : 'rgba(15,23,42,0.2)';
             e.currentTarget.style.color = photos.length > 0 ? 'var(--primary-600)' : 'rgba(15,23,42,0.45)';
-            e.currentTarget.style.background = photos.length > 0 ? 'rgba(37,99,235,0.08)' : 'rgba(255,255,255,0.85)';
+            e.currentTarget.style.background = photos.length > 0 ? 'rgba(34,85,238,0.08)' : 'rgba(255,255,255,0.85)';
           }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -947,8 +947,8 @@ function PricingTabs() {
           alignItems: 'center',
           gap: '8px',
           padding: '10px 16px',
-          background: 'rgba(37,99,235,0.05)',
-          border: '1px solid rgba(37,99,235,0.15)',
+          background: 'rgba(34,85,238,0.05)',
+          border: '1px solid rgba(34,85,238,0.15)',
           borderRadius: '12px',
           marginBottom: '20px',
         }}>
@@ -989,7 +989,7 @@ function PricingTabs() {
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = isBestValue
-                      ? '0 8px 32px rgba(37,99,235,0.2)'
+                      ? '0 8px 32px rgba(34,85,238,0.2)'
                       : '0 6px 24px rgba(15,23,42,0.08)';
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
@@ -1514,8 +1514,8 @@ export function RepairStartExperience() {
           <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 4vw, 3rem)' }}>
             <div className="dtb-title-eyebrow" style={{
               display: 'inline-block',
-              background: 'rgba(37,99,235,0.08)',
-              border: '1px solid rgba(37,99,235,0.2)',
+              background: 'rgba(34,85,238,0.08)',
+              border: '1px solid rgba(34,85,238,0.2)',
               borderRadius: '99px', padding: '5px 16px',
               fontSize: '0.68rem', fontWeight: 700,
               letterSpacing: '0.12em', textTransform: 'uppercase',
@@ -1587,7 +1587,7 @@ export function RepairStartExperience() {
                     Track this request anytime at{' '}
                     <Link
                       to={`/repairs/status/${orderResult.repair_id}?token=${encodeURIComponent(orderResult.public_token)}`}
-                      style={{ color: '#2563eb', fontWeight: 700 }}
+                      style={{ color: '#2255ee', fontWeight: 700 }}
                     >
                       your repair status page
                     </Link>
@@ -2088,7 +2088,7 @@ export function RepairStartExperience() {
                                 border: active ? '2px solid var(--primary-600)' : '1.5px solid rgba(15,23,42,0.12)',
                                 borderRadius: '12px',
                                 padding: '12px 14px',
-                                background: active ? 'rgba(37,99,235,0.05)' : 'white',
+                                background: active ? 'rgba(34,85,238,0.05)' : 'white',
                                 cursor: 'pointer',
                               }}
                             >
@@ -2354,8 +2354,8 @@ export function RepairStartExperience() {
 
                     {/* Packaging Tips */}
                     <div style={{
-                      background: 'rgba(37,99,235,0.04)',
-                      border: '1px solid rgba(37,99,235,0.2)',
+                      background: 'rgba(34,85,238,0.04)',
+                      border: '1px solid rgba(34,85,238,0.2)',
                       borderRadius: '12px',
                       padding: 'clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 20px)',
                       marginBottom: '24px',
@@ -2513,7 +2513,7 @@ export function RepairStartExperience() {
                                   padding: '12px 16px',
                                   borderRadius: '12px',
                                   border: active ? '2px solid var(--primary-600)' : '1.5px solid rgba(15,23,42,0.14)',
-                                  background: active ? 'rgba(37,99,235,0.04)' : 'white',
+                                  background: active ? 'rgba(34,85,238,0.04)' : 'white',
                                   cursor: 'pointer',
                                   transition: 'border-color 0.15s, background 0.15s',
                                 }}
@@ -2888,8 +2888,8 @@ export function RepairStartExperience() {
                     flexDirection: 'column',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(37,99,235,0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)';
+                    e.currentTarget.style.boxShadow = '0 8px 32px rgba(34,85,238,0.1)';
+                    e.currentTarget.style.borderColor = 'rgba(34,85,238,0.3)';
                     e.currentTarget.style.transform = 'translateY(-2px)';
                   }}
                   onMouseLeave={(e) => {

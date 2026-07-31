@@ -442,7 +442,7 @@ export const SCOPE_LABELS = {
 // ── Scope badge colors ────────────────────────────────────────────────────────
 export const SCOPE_COLORS = {
   full:      { bg: '#1e3a8a', text: '#fff' },
-  finishing: { bg: '#1d4ed8', text: '#fff' },
+  finishing: { bg: '#2255ee', text: '#fff' },
   taping:    { bg: '#0369a1', text: '#fff' },
   flatbox:   { bg: '#0891b2', text: '#fff' },
 };

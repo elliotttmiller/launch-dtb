@@ -192,8 +192,8 @@ export default function HeroSection({
         }
         .dtb-hero-cta { padding: 13px 30px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease; letter-spacing: 0.01em; }
         .dtb-hero-cta:active { transform: scale(0.96) !important; }
-        .dtb-hero-cta--primary { border: none; background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 60%, #3b82f6 100%); color: #ffffff; box-shadow: 0 0 22px rgba(37,99,235,0.42); }
-        .dtb-hero-cta--primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(37,99,235,0.60); }
+        .dtb-hero-cta--primary { border: none; background: linear-gradient(135deg, #2255ee 0%, #2255ee 60%, #2255ee 100%); color: #ffffff; box-shadow: 0 0 22px rgba(34,85,238,0.42); }
+        .dtb-hero-cta--primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(34,85,238,0.60); }
         .dtb-hero-cta--ghost { border: 1px solid rgba(148,163,184,0.22); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.82); backdrop-filter: blur(8px); }
         .dtb-hero-cta--ghost:hover { background: rgba(255,255,255,0.09); border-color: rgba(148,163,184,0.38); }
         @media (min-width: 768px) {

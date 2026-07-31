@@ -34,7 +34,7 @@
 .dtb-product-card:hover {
   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
   transform: translateY(-2px);
-  border-color: rgba(37, 99, 235, 0.22);
+  border-color: rgba(34, 85, 238, 0.22);
 }
 
 .dtb-product-card__image {
@@ -129,7 +129,7 @@
 
 .dtb-product-card__name:focus-visible,
 .dtb-product-card__action:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.35);
+  outline: 2px solid rgba(34, 85, 238, 0.35);
   outline-offset: 2px;
 }
 
@@ -317,7 +317,7 @@
 
   .dtb-product-card--grid .dtb-product-card__brand {
     min-height: 0;
-    color: #2563eb;
+    color: #2255ee;
     font-size: 0.66rem;
     letter-spacing: 0.1em;
   }
@@ -455,9 +455,9 @@
     width: 48px;
     height: 48px;
     border-radius: 0 0 0 48px;
-    background: #2563eb;
+    background: #2255ee;
     overflow: hidden;
-    box-shadow: -4px 6px 16px rgba(37, 99, 235, 0.3);
+    box-shadow: -4px 6px 16px rgba(34, 85, 238, 0.3);
     transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1), height 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-radius 0.4s cubic-bezier(0.22, 1, 0.36, 1), background 0.32s ease, box-shadow 0.32s ease;
   }
 
@@ -596,7 +596,7 @@
   }
 
   .dtb-product-card--list .dtb-product-card__brand {
-    color: #2563eb;
+    color: #2255ee;
     font-size: clamp(0.72rem, 2.8vw, 0.82rem);
     font-weight: 850;
     line-height: 1.05;
@@ -720,7 +720,7 @@
 }
 
 .dtb-product-card__qv-icon-btn:hover {
-  background: linear-gradient(135deg, #17365d, #2563eb);
+  background: linear-gradient(135deg, #17365d, #2255ee);
   color: #fff;
 }
 

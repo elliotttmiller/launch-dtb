@@ -620,7 +620,7 @@ export default function StorefrontCartSheet({
           height: 18px;
           padding: 0 4px;
           border-radius: 999px;
-          background: #2563eb;
+          background: #2255ee;
           color: #fff;
           font-size: 0.62rem;
           font-weight: 800;
@@ -741,7 +741,7 @@ export default function StorefrontCartSheet({
 
         .scs-item--syncing,
         .scs-item--preview-loading {
-          background: linear-gradient(90deg, rgba(37,99,235,0.045), transparent 72%);
+          background: linear-gradient(90deg, rgba(34,85,238,0.045), transparent 72%);
         }
 
         .scs-item--removing {
@@ -787,8 +787,8 @@ export default function StorefrontCartSheet({
 
         .scs-item-open-target:hover,
         .scs-item-open-target:focus-visible {
-          border-color: rgba(37, 99, 235, 0.38);
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+          border-color: rgba(34, 85, 238, 0.38);
+          box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.1);
         }
 
         .scs-item-open-target:active {
@@ -836,7 +836,7 @@ export default function StorefrontCartSheet({
 
         .scs-item-name-button:hover,
         .scs-item-name-button:focus-visible {
-          color: #2563eb;
+          color: #2255ee;
           outline: none;
         }
 
@@ -896,9 +896,9 @@ export default function StorefrontCartSheet({
         }
 
         .scs-item--syncing .scs-item-qty-row {
-          border-color: rgba(37, 99, 235, 0.28);
+          border-color: rgba(34, 85, 238, 0.28);
           background: #eef4ff;
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+          box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.08);
         }
 
         .scs-qty-btn {
@@ -934,7 +934,7 @@ export default function StorefrontCartSheet({
         }
 
         .scs-item--syncing .scs-qty-display {
-          color: #2563eb;
+          color: #2255ee;
           transform: scale(1.04);
         }
 
@@ -952,15 +952,15 @@ export default function StorefrontCartSheet({
 
         .scs-item--syncing .scs-item-line-total,
         .scs-item--preview-loading .scs-item-line-total {
-          color: #2563eb;
+          color: #2255ee;
         }
 
         .scs-sync-dot {
           width: 6px;
           height: 6px;
           border-radius: 999px;
-          background: #2563eb;
-          box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+          background: #2255ee;
+          box-shadow: 0 0 0 4px rgba(34, 85, 238, 0.12);
         }
 
         .scs-footer {
@@ -1014,7 +1014,7 @@ export default function StorefrontCartSheet({
           gap: 6px;
           padding: 14px 20px;
           border-radius: 14px;
-          background: linear-gradient(135deg, #17365d 0%, #2563eb 100%);
+          background: linear-gradient(135deg, #17365d 0%, #2255ee 100%);
           color: #fff;
           font-size: 0.92rem;
           font-weight: 700;
@@ -1022,10 +1022,10 @@ export default function StorefrontCartSheet({
           text-decoration: none;
           transition: opacity 150ms ease, transform 120ms ease, box-shadow 150ms ease;
           text-align: center;
-          box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+          box-shadow: 0 8px 20px rgba(34, 85, 238, 0.28);
         }
 
-        .scs-checkout-btn:hover { opacity: 0.93; box-shadow: 0 12px 28px rgba(37, 99, 235, 0.36); }
+        .scs-checkout-btn:hover { opacity: 0.93; box-shadow: 0 12px 28px rgba(34, 85, 238, 0.36); }
         .scs-checkout-btn:active { transform: scale(0.98); }
 
         .scs-view-cart-btn {

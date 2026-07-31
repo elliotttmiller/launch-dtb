@@ -76,7 +76,7 @@
   border: 1px solid #dbe7fb;
   border-radius: 12px;
   background: #eff6ff;
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .account-hub__drawer-copy {
@@ -215,7 +215,7 @@
 
 .account-hub__eyebrow {
   margin: 0 0 5px;
-  color: #2563eb;
+  color: #2255ee;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.1em;
@@ -252,7 +252,7 @@
   border: 1px solid #dbeafe;
   border-radius: 14px;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #2255ee;
   cursor: pointer;
   text-align: left;
 }
@@ -320,7 +320,7 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  color: #2563eb;
+  color: #2255ee;
   font-size: 0.75rem;
   font-weight: 700;
 }
@@ -356,7 +356,7 @@
 }
 
 .account-activity-card:hover {
-  border-color: rgba(37, 99, 235, 0.25);
+  border-color: rgba(34, 85, 238, 0.25);
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
   transform: translateY(-1px);
 }
@@ -369,7 +369,7 @@
   height: 40px;
   border-radius: 11px;
   background: #eff6ff;
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .account-activity-card__icon.is-repair {
@@ -436,7 +436,7 @@
   padding: 3px 8px;
   border-radius: 999px;
   background: #eff6ff;
-  color: #1d4ed8;
+  color: #2255ee;
   font-size: 0.64rem;
   font-weight: 750;
   text-transform: capitalize;
@@ -678,7 +678,7 @@
 }
 
 .account-hub-nav__item--active small {
-  color: #1d4ed8;
+  color: #2255ee;
 }
 
 .account-hub-nav__item--active .account-hub-nav__pill {
@@ -702,8 +702,8 @@
   overflow: hidden;
   border-radius: 0;
   background:
-    radial-gradient(circle at 88% 0%, rgba(59, 130, 246, 0.38), transparent 34%),
-    linear-gradient(140deg, #071329 0%, #0f2150 52%, #1d4ed8 100%);
+    radial-gradient(circle at 88% 0%, rgba(34, 85, 238, 0.38), transparent 34%),
+    linear-gradient(140deg, #071329 0%, #0f2150 52%, #2255ee 100%);
   color: #fff;
   box-shadow: 0 12px 28px rgba(15, 33, 80, 0.16);
 }
@@ -805,7 +805,7 @@
 
 .account-hub__dashboard-link svg,
 .account-hub__accordion-title svg {
-  color: #2563eb;
+  color: #2255ee;
 }
 
 .account-hub__accordion {
@@ -1008,7 +1008,7 @@
 
 .account-overview-stat:hover,
 .account-overview-stat:focus-visible {
-  border-color: rgba(37, 99, 235, 0.28) !important;
+  border-color: rgba(34, 85, 238, 0.28) !important;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09) !important;
   outline: none;
 }
@@ -1061,7 +1061,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #2563eb;
+  color: #2255ee;
   font-size: 0.72rem;
   font-weight: 750;
   text-decoration: none;
@@ -1136,8 +1136,8 @@
 }
 
 .account-history__filter.is-active {
-  border-color: #2563eb;
-  background: #1d4ed8;
+  border-color: #2255ee;
+  background: #2255ee;
   color: #fff;
 }
 
@@ -1167,7 +1167,7 @@
   padding: 8px 14px;
   border: 0;
   border-radius: 8px;
-  background: #2563eb;
+  background: #2255ee;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 700;
@@ -1239,7 +1239,7 @@
   border-radius: 10px;
 }
 
-.account-settings__card-header > span.is-blue { background: #eff6ff; color: #2563eb; }
+.account-settings__card-header > span.is-blue { background: #eff6ff; color: #2255ee; }
 .account-settings__card-header > span.is-cyan { background: #ecfeff; color: #0891b2; }
 .account-settings__card-header > span.is-amber { background: #fffbeb; color: #d97706; }
 
@@ -1287,8 +1287,8 @@
 }
 
 .account-settings__fields input:focus {
-  border-color: #2563eb;
-  outline: 3px solid rgba(37, 99, 235, 0.12);
+  border-color: #2255ee;
+  outline: 3px solid rgba(34, 85, 238, 0.12);
 }
 
 .account-settings__toggles {
@@ -1355,7 +1355,7 @@
 }
 
 .account-settings__toggle-row input:checked + .account-settings__toggle {
-  background: #2563eb;
+  background: #2255ee;
 }
 
 .account-settings__toggle-row input:checked + .account-settings__toggle::after {
@@ -1363,7 +1363,7 @@
 }
 
 .account-settings__toggle-row input:focus-visible + .account-settings__toggle {
-  outline: 3px solid rgba(37, 99, 235, 0.18);
+  outline: 3px solid rgba(34, 85, 238, 0.18);
   outline-offset: 2px;
 }
 
@@ -1377,7 +1377,7 @@
   padding: 0 15px;
   border: 0;
   border-radius: 9px;
-  background: #2563eb;
+  background: #2255ee;
   color: #fff;
   font-size: 0.78rem;
   font-weight: 750;
@@ -1490,9 +1490,9 @@
 
 .account-hub__notifications-heading > div { gap: 8px; min-width: 0; }
 .account-hub__notifications-heading h3 { margin: 0; color: #0f172a; font-size: 0.92rem; font-weight: 820; }
-.account-hub__notifications-icon { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: 9px; background: #eff6ff; color: #2563eb; }
-.account-hub__notifications-count { min-width: 20px; padding: 2px 6px; border-radius: 999px; background: #2563eb; color: #fff; font-size: 0.66rem; font-weight: 800; text-align: center; }
-.account-hub__mark-read { gap: 5px; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; color: #2563eb; font-size: 0.69rem; font-weight: 750; cursor: pointer; }
+.account-hub__notifications-icon { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: 9px; background: #eff6ff; color: #2255ee; }
+.account-hub__notifications-count { min-width: 20px; padding: 2px 6px; border-radius: 999px; background: #2255ee; color: #fff; font-size: 0.66rem; font-weight: 800; text-align: center; }
+.account-hub__mark-read { gap: 5px; padding: 6px 8px; border: 0; border-radius: 8px; background: transparent; color: #2255ee; font-size: 0.69rem; font-weight: 750; cursor: pointer; }
 .account-hub__mark-read:hover { background: #eff6ff; }
 .account-hub__notification-list { display: grid; }
 .account-hub__notification { position: relative; min-width: 0; gap: 10px; min-height: 58px; padding: 10px 13px; color: #0f172a; text-decoration: none; }
@@ -1500,7 +1500,7 @@
 .account-hub__notification:hover { background: #f8fafc; }
 .account-hub__notification.is-unread { background: #f5f9ff; }
 .account-hub__notification-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #cbd5e1; }
-.account-hub__notification.is-unread .account-hub__notification-dot { background: #2563eb; box-shadow: 0 0 0 4px #dbeafe; }
+.account-hub__notification.is-unread .account-hub__notification-dot { background: #2255ee; box-shadow: 0 0 0 4px #dbeafe; }
 .account-hub__notification-copy { display: grid; min-width: 0; flex: 1; gap: 2px; }
 .account-hub__notification-copy strong { overflow: hidden; font-size: 0.78rem; font-weight: 780; text-overflow: ellipsis; white-space: nowrap; }
 .account-hub__notification-copy span { overflow: hidden; color: #64748b; font-size: 0.68rem; text-transform: capitalize; text-overflow: ellipsis; white-space: nowrap; }

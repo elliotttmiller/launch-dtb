@@ -19,10 +19,10 @@
   padding: 1px;
   border-radius: 20px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(37, 99, 235, 0.95) 38%, rgba(29, 78, 216, 0.98) 68%, rgba(15, 23, 42, 1) 100%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(34, 85, 238, 0.95) 38%, rgba(34, 85, 238, 0.98) 68%, rgba(15, 23, 42, 1) 100%);
   box-shadow:
     0 24px 64px rgba(15, 23, 42, 0.24),
-    0 0 0 1px rgba(37, 99, 235, 0.10);
+    0 0 0 1px rgba(34, 85, 238, 0.10);
 }
 
 .account-hub-cta__glow {
@@ -31,8 +31,8 @@
   z-index: -1;
   background:
     radial-gradient(circle at 22% 10%, rgba(255, 255, 255, 0.42), transparent 34%),
-    radial-gradient(circle at 78% 14%, rgba(37, 99, 235, 0.58), transparent 38%),
-    radial-gradient(circle at 50% 100%, rgba(29, 78, 216, 0.46), transparent 42%);
+    radial-gradient(circle at 78% 14%, rgba(34, 85, 238, 0.58), transparent 38%),
+    radial-gradient(circle at 50% 100%, rgba(34, 85, 238, 0.46), transparent 42%);
   filter: blur(22px);
   opacity: 0.82;
 }
@@ -44,7 +44,7 @@
   padding: 34px 22px 28px;
   text-align: center;
   background:
-    radial-gradient(circle at 18% 0%, rgba(37, 99, 235, 0.32), transparent 34%),
+    radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.32), transparent 34%),
     radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.14), transparent 30%),
     linear-gradient(145deg, #071329 0%, #0b1b3d 45%, #0f172a 100%);
   color: #ffffff;
@@ -191,7 +191,7 @@
 }
 
 .account-hub-cta__button-content svg {
-  color: #1d4ed8;
+  color: #2255ee;
   transition: transform 150ms ease;
 }
 

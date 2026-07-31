@@ -186,7 +186,7 @@ export default function Dropdown({
           border: `1.5px solid ${isOpen ? 'var(--primary-600)' : 'rgba(15,23,42,0.12)'}`,
           borderRadius: '10px',
           boxShadow: isOpen
-            ? '0 0 0 3px rgba(37,99,235,0.12)'
+            ? '0 0 0 3px rgba(34,85,238,0.12)'
             : '0 1px 4px rgba(15,23,42,0.06)',
           fontSize: '0.875rem',
           fontWeight: 600,
@@ -256,7 +256,7 @@ export default function Dropdown({
                     padding: '9px 12px',
                     borderRadius: '8px',
                     border: 'none',
-                    background: isSelected ? 'rgba(37,99,235,0.07)' : 'transparent',
+                    background: isSelected ? 'rgba(34,85,238,0.07)' : 'transparent',
                     cursor: 'pointer',
                     textAlign: 'left',
                     transition: 'background 0.12s',

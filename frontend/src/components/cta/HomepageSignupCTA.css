@@ -69,10 +69,10 @@
   padding: 1px;
   border-radius: 30px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(37, 99, 235, 0.96) 38%, rgba(29, 78, 216, 0.98) 68%, rgba(15, 23, 42, 1) 100%);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(34, 85, 238, 0.96) 38%, rgba(34, 85, 238, 0.98) 68%, rgba(15, 23, 42, 1) 100%);
   box-shadow:
     0 32px 80px rgba(2, 6, 23, 0.38),
-    0 0 0 1px rgba(37, 99, 235, 0.12);
+    0 0 0 1px rgba(34, 85, 238, 0.12);
 }
 
 .homepage-signup-cta__glow {
@@ -81,8 +81,8 @@
   z-index: -1;
   background:
     radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.42), transparent 34%),
-    radial-gradient(circle at 80% 10%, rgba(37, 99, 235, 0.58), transparent 40%),
-    radial-gradient(circle at 50% 100%, rgba(29, 78, 216, 0.46), transparent 44%);
+    radial-gradient(circle at 80% 10%, rgba(34, 85, 238, 0.58), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(34, 85, 238, 0.46), transparent 44%);
   filter: blur(24px);
   opacity: 0.88;
 }
@@ -94,7 +94,7 @@
   padding: clamp(34px, 7vw, 72px) clamp(24px, 7vw, 68px) clamp(30px, 6vw, 60px);
   text-align: center;
   background:
-    radial-gradient(circle at 18% 0%, rgba(37, 99, 235, 0.34), transparent 36%),
+    radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.34), transparent 36%),
     radial-gradient(circle at 92% 8%, rgba(255, 255, 255, 0.14), transparent 32%),
     linear-gradient(145deg, #071329 0%, #0b1b3d 45%, #0f172a 100%);
   color: #ffffff;
@@ -239,7 +239,7 @@
 }
 
 .homepage-signup-cta__button-content svg {
-  color: #1d4ed8;
+  color: #2255ee;
   transition: transform 150ms ease;
 }
 

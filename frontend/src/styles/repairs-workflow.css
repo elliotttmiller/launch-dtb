@@ -4,7 +4,7 @@
   padding: clamp(3.2rem, 7vw, 5.5rem) clamp(1.25rem, 5vw, 3rem);
   border-top: 1px solid rgba(15, 23, 42, 0.08);
   background:
-    radial-gradient(52% 58% at 50% 0%, rgba(37, 99, 235, 0.14), transparent 66%),
+    radial-gradient(52% 58% at 50% 0%, rgba(34, 85, 238, 0.14), transparent 66%),
     linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
 }
 
@@ -36,7 +36,7 @@
 
 .repairs-workflow-kicker {
   margin: 0 0 0.65rem;
-  color: var(--primary-600, #2563eb);
+  color: var(--primary-600, #2255ee);
   font-size: 0.72rem;
   font-weight: 950;
   letter-spacing: 0.12em;
@@ -71,8 +71,8 @@
   padding: 0.72rem 1.05rem;
   border-radius: 8px;
   color: #fff;
-  background: var(--primary-600, #2563eb);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+  background: var(--primary-600, #2255ee);
+  box-shadow: 0 14px 30px rgba(34, 85, 238, 0.22);
   font-size: 0.84rem;
   font-weight: 900;
   text-decoration: none;
@@ -81,7 +81,7 @@
 
 .repairs-workflow-cta:hover {
   transform: translateY(-1px);
-  background: var(--primary-700, #1d4ed8);
+  background: var(--primary-700, #2255ee);
 }
 
 .repairs-workflow-track {
@@ -94,7 +94,7 @@
   border-radius: 16px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94)),
-    radial-gradient(70% 80% at 50% 0%, rgba(37, 99, 235, 0.12), transparent 62%);
+    radial-gradient(70% 80% at 50% 0%, rgba(34, 85, 238, 0.12), transparent 62%);
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.1);
 }
 
@@ -103,7 +103,7 @@
   position: absolute;
   inset: calc(clamp(1.25rem, 3vw, 2rem) + 2.25rem) clamp(2.5rem, 5vw, 4rem) auto;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.22), rgba(37, 99, 235, 0.38), rgba(37, 99, 235, 0.22), transparent);
+  background: linear-gradient(90deg, transparent, rgba(34, 85, 238, 0.22), rgba(34, 85, 238, 0.38), rgba(34, 85, 238, 0.22), transparent);
   pointer-events: none;
 }
 
@@ -132,7 +132,7 @@
   top: 2.18rem;
   right: -0.35rem;
   z-index: 2;
-  color: rgba(37, 99, 235, 0.54);
+  color: rgba(34, 85, 238, 0.54);
   font-size: 1.12rem;
   font-weight: 900;
 }
@@ -166,7 +166,7 @@
 .repairs-workflow-card__number {
   position: absolute;
   top: 2.35rem;
-  color: rgba(37, 99, 235, 0.1);
+  color: rgba(34, 85, 238, 0.1);
   font-size: clamp(2.35rem, 4.4vw, 3.45rem);
   font-weight: 950;
   line-height: 1;
@@ -176,11 +176,11 @@
 .repairs-workflow-card__icon {
   width: 58px;
   height: 58px;
-  border: 1px solid rgba(37, 99, 235, 0.22);
+  border: 1px solid rgba(34, 85, 238, 0.22);
   border-radius: 50%;
-  color: var(--primary-600, #2563eb);
+  color: var(--primary-600, #2255ee);
   background: #fff;
-  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 12px 28px rgba(34, 85, 238, 0.15);
 }
 
 .repairs-workflow-card h3 {
@@ -258,7 +258,7 @@
     inset: 2rem auto 2rem 2.05rem;
     width: 1px;
     height: auto;
-    background: linear-gradient(180deg, transparent, rgba(37, 99, 235, 0.28), transparent);
+    background: linear-gradient(180deg, transparent, rgba(34, 85, 238, 0.28), transparent);
   }
 
   .repairs-workflow-card {
@@ -281,7 +281,7 @@
     left: 1.42rem;
     width: 1px;
     height: 0.9rem;
-    background: rgba(37, 99, 235, 0.24);
+    background: rgba(34, 85, 238, 0.24);
   }
 
   .repairs-workflow-card:nth-child(3)::after {

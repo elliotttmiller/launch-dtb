@@ -133,7 +133,7 @@
 }
 
 .product-category-card:focus-visible {
-  outline: 3px solid var(--tension-accent, #2563eb);
+  outline: 3px solid var(--tension-accent, #2255ee);
   outline-offset: 3px;
 }
 

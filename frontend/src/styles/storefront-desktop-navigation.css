@@ -368,7 +368,7 @@
 
   .dtb-desktop-nav-dropdown__link:hover,
   .dtb-desktop-nav-dropdown__link:focus-visible {
-    background: rgba(59, 130, 246, 0.14);
+    background: rgba(34, 85, 238, 0.14);
     color: #fff;
     outline: none;
     transform: translateX(2px);
@@ -379,7 +379,7 @@
     min-height: 45px;
     padding: 11px 18px;
     border-top: 1px solid rgba(96, 165, 250, 0.15);
-    background: rgba(37, 99, 235, 0.1);
+    background: rgba(34, 85, 238, 0.1);
     color: #bfdbfe;
     font-size: 0.76rem;
     font-weight: 800;
@@ -388,7 +388,7 @@
 
   .dtb-desktop-nav-dropdown__footer:hover,
   .dtb-desktop-nav-dropdown__footer:focus-visible {
-    background: rgba(37, 99, 235, 0.2);
+    background: rgba(34, 85, 238, 0.2);
     color: #fff;
     outline: none;
   }
