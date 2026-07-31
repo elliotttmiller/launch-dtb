@@ -422,7 +422,15 @@ function dtb_commerce_zone_matches_us( WC_Shipping_Zone $zone ): bool {
  * operator sees it directly instead of it requiring an investigation.
  */
 add_action( 'init', 'dtb_bootstrap_shipping_zones', 20 );
-add_action( 'admin_notices', 'dtb_commerce_render_shipping_method_disabled_notice' );
+// Priority 1: dtb_commerce_render_shipping_method_disabled_notice() below
+// calls DTB_AdminNoticeService::add_error(), which itself registers another
+// default-priority (10) admin_notices callback. If this function ran at the
+// default priority too, that registration would happen *while* WordPress is
+// already iterating the priority-10 bucket on this same admin_notices firing,
+// and the newly-added callback can be skipped for this page load — the
+// notice would silently not render. Running this at priority 1 guarantees
+// its add_error() call registers before priority 10 is ever reached.
+add_action( 'admin_notices', 'dtb_commerce_render_shipping_method_disabled_notice', 1 );
 
 function dtb_bootstrap_shipping_zones(): void {
 	if ( ! class_exists( 'WC_Shipping_Zones' ) || ! class_exists( 'WC_Shipping_Zone' ) ) {
@@ -434,7 +442,20 @@ function dtb_bootstrap_shipping_zones(): void {
 	if ( $version_match && false !== get_transient( 'dtb_shipping_zone_bootstrap_checked' ) ) {
 		return;
 	}
-	set_transient( 'dtb_shipping_zone_bootstrap_checked', 1, HOUR_IN_SECONDS );
+
+	// get_transient()/set_transient() alone are not atomic: two requests
+	// arriving after the transient expires (or on first-ever load) could
+	// both pass the check above and both run the repair below concurrently.
+	// WooCommerce's own WC_Shipping_Zone::add_shipping_method() has no
+	// built-in duplicate guard — it always inserts a new zone-method row —
+	// so an unguarded race here could leave a zone with two DTB method
+	// instances. add_option() is atomic (a single INSERT relying on the
+	// unique key on option_name, unlike update_option()/set_transient()),
+	// which makes it WordPress's standard lightweight mutex idiom; used here
+	// instead of a bespoke locking mechanism.
+	if ( ! dtb_commerce_acquire_shipping_bootstrap_lock() ) {
+		return;
+	}
 
 	$repaired            = false;
 	$disabled_on_us_zone = false;
@@ -483,6 +504,45 @@ function dtb_bootstrap_shipping_zones(): void {
 		dtb_commerce_invalidate_shipping_package_cache();
 		update_option( 'dtb_shipping_zones_bootstrapped', DTB_SHIPPING_ZONE_BOOTSTRAP_VERSION );
 	}
+
+	// The transient is set only after a full pass completes, and only marks
+	// "recently checked" as a cheap fast-path skip for the common case —
+	// the add_option() lock above (not this) is what actually prevents a
+	// concurrent duplicate repair.
+	set_transient( 'dtb_shipping_zone_bootstrap_checked', 1, HOUR_IN_SECONDS );
+	dtb_commerce_release_shipping_bootstrap_lock();
+}
+
+/**
+ * Acquire a short-lived, atomic lock so two concurrent requests can never
+ * both run the shipping-zone repair pass at once. `add_option()` fails
+ * (returns false) if the option row already exists — an atomic DB-level
+ * check, unlike `update_option()`/transients — making it WordPress's
+ * standard idiom for a lightweight mutex. Reclaims a lock older than 60
+ * seconds (far longer than this repair pass should ever take) so a request
+ * that crashed mid-repair can't wedge every future bootstrap attempt.
+ */
+function dtb_commerce_acquire_shipping_bootstrap_lock(): bool {
+	$lock_option = 'dtb_shipping_zone_bootstrap_lock';
+
+	if ( add_option( $lock_option, time(), '', 'no' ) ) {
+		return true;
+	}
+
+	$acquired_at = (int) get_option( $lock_option );
+	if ( $acquired_at > 0 && ( time() - $acquired_at ) > 60 ) {
+		delete_option( $lock_option );
+		return add_option( $lock_option, time(), '', 'no' );
+	}
+
+	return false;
+}
+
+/**
+ * Release the lock acquired by `dtb_commerce_acquire_shipping_bootstrap_lock()`.
+ */
+function dtb_commerce_release_shipping_bootstrap_lock(): void {
+	delete_option( 'dtb_shipping_zone_bootstrap_lock' );
 }
 
 /**
