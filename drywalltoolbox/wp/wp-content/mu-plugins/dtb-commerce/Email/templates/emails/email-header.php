@@ -4,9 +4,14 @@
  *
  * Traced against WooCommerce core emails/email-header.php v10.7.0
  * (wp-content/plugins/woocommerce/templates/emails/email-header.php).
- * DTB customization: dark navy header with the DTB logo replaces WooCommerce's
- * configurable header image/color; document structure and the
- * woocommerce_email_header_image_url filter are preserved unchanged.
+ * DTB customization: dark navy header carrying only the DTB logo (centered,
+ * no heading text) replaces WooCommerce's configurable header image/color +
+ * inline heading; document structure and the woocommerce_email_header_image_url
+ * filter are preserved unchanged. $email_heading is still received (WooCommerce
+ * core always passes it to this template) but is intentionally not rendered
+ * here — dtb_email_hero() renders it inside the white body instead, as the
+ * first thing each template outputs after this header, so the top band reads
+ * as brand chrome only. See docs/dtb-email-design-system.md.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -58,11 +63,6 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 												<?php else : ?>
 													<p class="email-logo-text" style="margin:0;"><?php echo esc_html( $store_name ); ?></p>
 												<?php endif; ?>
-											</td>
-										</tr>
-										<tr>
-											<td id="header_wrapper">
-												<h1><?php echo esc_html( $email_heading ); ?></h1>
 											</td>
 										</tr>
 									</table>

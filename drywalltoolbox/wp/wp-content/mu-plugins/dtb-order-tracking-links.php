@@ -79,6 +79,65 @@ add_action(
 	100
 );
 
+if ( ! function_exists( 'dtb_order_tracking_cta_for_email' ) ) {
+	/**
+	 * Resolve the lifecycle-appropriate primary CTA (label + URL) for the
+	 * shared order-tracking button below, and whether a secondary "View
+	 * order details" text link should also render alongside it.
+	 *
+	 * Deliberately skips `customer_invoice` and `customer_failed_order`:
+	 * both already render their own dedicated, more specific CTA
+	 * (`dtb_email_button()` -> get_checkout_payment_url()) earlier in those
+	 * templates' own intro section — a second, generic button here would
+	 * compete with it rather than add anything.
+	 *
+	 * @param WC_Order $order Order object.
+	 * @param WC_Email $email Email object (its `id` identifies which
+	 *                        lifecycle email is currently sending).
+	 * @return array{label:string,url:string,secondary:bool}|null Null means
+	 *         render no button at all for this email.
+	 */
+	function dtb_order_tracking_cta_for_email( WC_Order $order, $email ): ?array {
+		$email_id     = is_object( $email ) && isset( $email->id ) ? (string) $email->id : '';
+		$tracking_url = dtb_order_tracking_url( $order );
+
+		if ( '' === $tracking_url ) {
+			return null;
+		}
+
+		switch ( $email_id ) {
+			case 'customer_invoice':
+			case 'customer_failed_order':
+				return null;
+
+			case 'customer_processing_order':
+				// The only meaningful "order details" view for this store is
+				// the same tracking page this button already links to, so a
+				// second link with a different label but an identical
+				// destination would be a redundant, not a secondary, action.
+				return [ 'label' => __( 'Track your order', 'drywall-toolbox' ), 'url' => $tracking_url, 'secondary' => false ];
+
+			case 'customer_on_hold_order':
+				if ( $order->needs_payment() ) {
+					// Here a secondary link is genuinely useful: "Pay
+					// securely" and "View order details" go to two
+					// different places (checkout vs. the tracking page).
+					return [ 'label' => __( 'Pay securely', 'drywall-toolbox' ), 'url' => $order->get_checkout_payment_url(), 'secondary' => true ];
+				}
+				return [ 'label' => __( 'View order details', 'drywall-toolbox' ), 'url' => $tracking_url, 'secondary' => false ];
+
+			case 'customer_completed_order':
+			case 'customer_cancelled_order':
+			case 'customer_refunded_order':
+			case 'customer_note':
+				return [ 'label' => __( 'View order details', 'drywall-toolbox' ), 'url' => $tracking_url, 'secondary' => false ];
+
+			default:
+				return [ 'label' => __( 'View order details', 'drywall-toolbox' ), 'url' => $tracking_url, 'secondary' => false ];
+		}
+	}
+}
+
 add_action(
 	'woocommerce_email_after_order_table',
 	static function ( $order, $sent_to_admin, $plain_text, $email ): void {
@@ -86,20 +145,32 @@ add_action(
 			return;
 		}
 
-		$url = dtb_order_tracking_url( $order );
-		if ( '' === $url ) {
+		$cta = dtb_order_tracking_cta_for_email( $order, $email );
+		if ( null === $cta ) {
 			return;
 		}
+
+		$tracking_url = dtb_order_tracking_url( $order );
 
 		if ( $plain_text ) {
-			echo "\nTrack Order: " . esc_url_raw( $url ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo "\n" . esc_html( $cta['label'] ) . ': ' . esc_url_raw( $cta['url'] ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			if ( ! empty( $cta['secondary'] ) && $cta['url'] !== $tracking_url ) {
+				echo esc_html__( 'View order details', 'drywall-toolbox' ) . ': ' . esc_url_raw( $tracking_url ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			}
 			return;
 		}
 
-		echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:26px 0 22px;border-collapse:separate;">';
+		echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:26px 0 4px;border-collapse:separate;">';
 		echo '<tr><td align="center" style="padding:0;">';
-		echo '<a href="' . esc_url( $url ) . '" style="display:block;width:100%;box-sizing:border-box;padding:16px 22px;border-radius:16px;background:#2563eb;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:16px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;box-shadow:0 14px 28px rgba(37,99,235,0.24);">Track Order</a>';
+		echo '<a href="' . esc_url( $cta['url'] ) . '" style="display:block;width:100%;box-sizing:border-box;padding:16px 22px;border-radius:16px;background:#2563eb;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:16px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;box-shadow:0 14px 28px rgba(37,99,235,0.24);">' . esc_html( $cta['label'] ) . '</a>';
 		echo '</td></tr></table>';
+
+		if ( ! empty( $cta['secondary'] ) && $cta['url'] !== $tracking_url ) {
+			echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 18px;">';
+			echo '<tr><td align="center" style="padding:0;">';
+			echo '<a href="' . esc_url( $tracking_url ) . '" style="color:#2563eb;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:underline;">' . esc_html__( 'View order details', 'drywall-toolbox' ) . '</a>';
+			echo '</td></tr></table>';
+		}
 	},
 	20,
 	4

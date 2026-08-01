@@ -4,9 +4,20 @@
  *
  * Traced against WooCommerce core emails/email-footer.php v10.4.0
  * (wp-content/plugins/woocommerce/templates/emails/email-footer.php).
- * DTB customization: footer copy/link styling only; the
- * woocommerce_email_footer_text filter and $email context are preserved
- * unchanged, closing the document structure opened in email-header.php.
+ * DTB customization: dark footer band (bookending the dark header) with
+ * confirmed-real social links (dtb_email_social_icons() — see that
+ * function's own comment on why fabricated profile URLs are refused) above
+ * the support link; the woocommerce_email_footer_text filter and $email
+ * context are preserved unchanged, closing the document structure opened in
+ * email-header.php.
+ *
+ * Deliberately no "Terms" / "Privacy" links: this store has no dedicated
+ * Terms of Service or Privacy Policy page (only a combined /policies page
+ * covering returns/shipping/warranty/payments — confirmed by reading
+ * frontend/src/pages/StorePolicies.jsx and frontend/src/App.jsx's route
+ * table), so linking either label would point to a page that doesn't say
+ * what the link claims, or a route that doesn't exist. Add real links here
+ * once those pages exist.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -40,8 +51,9 @@ $support_url = function_exists( 'dtb_email_support_url' ) ? dtb_email_support_ur
 												<table border="0" cellpadding="10" cellspacing="0" width="100%" role="presentation">
 													<tr>
 														<td colspan="2" valign="middle" id="credit">
+															<?php echo function_exists( 'dtb_email_social_icons' ) ? dtb_email_social_icons() : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 															<p style="margin:0 0 10px;">
-																<a href="<?php echo esc_url( $support_url ); ?>"><?php esc_html_e( 'Contact support', 'drywall-toolbox' ); ?></a>
+																<a href="<?php echo esc_url( $support_url ); ?>"><?php esc_html_e( 'Contact Us', 'drywall-toolbox' ); ?></a>
 															</p>
 															<?php
 															$email_footer_text = get_option( 'woocommerce_email_footer_text' );

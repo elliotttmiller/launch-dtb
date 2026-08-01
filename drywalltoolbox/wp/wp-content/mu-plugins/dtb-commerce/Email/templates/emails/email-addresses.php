@@ -4,7 +4,8 @@
  *
  * Traced against WooCommerce core emails/email-addresses.php v10.6.0
  * (wp-content/plugins/woocommerce/templates/emails/email-addresses.php).
- * DTB customization: presentation only; the
+ * DTB customization: presentation only (now wrapped in the shared card
+ * chrome instead of a plain <hr>-separated block); the
  * woocommerce_email_customer_address_section hook is preserved unchanged.
  *
  * @package DrywalltoolboxCommerce
@@ -16,8 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $address  = $order->get_formatted_billing_address();
 $shipping = $order->get_formatted_shipping_address();
+$has_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && $shipping;
+
+$card_title = $has_shipping ? __( 'Shipping addresses', 'drywall-toolbox' ) : __( 'Billing address', 'drywall-toolbox' );
+
+echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title ) : '<div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
-<hr class="hr" style="margin:18px 0;">
 <table id="addresses" cellspacing="0" cellpadding="0" style="width:100%;vertical-align:top;" border="0" role="presentation">
 	<tr>
 		<td class="font-family text-align-left" style="border:0;padding:0;" valign="top" width="50%">
@@ -43,7 +48,7 @@ $shipping = $order->get_formatted_shipping_address();
 				?>
 			</address>
 		</td>
-		<?php if ( ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && $shipping ) : ?>
+		<?php if ( $has_shipping ) : ?>
 			<td class="font-family text-align-left" style="padding:0 0 0 12px;" valign="top" width="50%">
 				<b class="address-title"><?php esc_html_e( 'Shipping address', 'drywall-toolbox' ); ?></b>
 				<address class="address">
@@ -57,3 +62,5 @@ $shipping = $order->get_formatted_shipping_address();
 		<?php endif; ?>
 	</tr>
 </table>
+<?php
+echo function_exists( 'dtb_email_card_close' ) ? dtb_email_card_close() : '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

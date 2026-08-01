@@ -4,8 +4,10 @@
  *
  * Traced against WooCommerce core emails/email-fulfillment-details.php
  * v10.7.0 (wp-content/plugins/woocommerce/templates/emails/email-fulfillment-details.php).
- * DTB customization: presentation only. woocommerce_email_before_fulfillment_table
- * / woocommerce_email_after_fulfillment_table preserved unchanged.
+ * DTB customization: presentation only (now wrapped in the shared card
+ * chrome, `show_sku` now unconditional instead of `$sent_to_admin`-gated).
+ * woocommerce_email_before_fulfillment_table /
+ * woocommerce_email_after_fulfillment_table preserved unchanged.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -29,15 +31,24 @@ if ( null === $fulfillment->get_date_deleted() ) {
 		}
 		echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light( $tracking_rows ) : '';
 		if ( $tracking_url ) {
-			echo function_exists( 'dtb_email_button' ) ? dtb_email_button( $tracking_url, __( 'Track this shipment', 'drywall-toolbox' ) ) : '<p><a class="link" href="' . esc_url( $tracking_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Track this shipment', 'drywall-toolbox' ) . '</a></p>';
+			echo function_exists( 'dtb_email_button' ) ? dtb_email_button( $tracking_url, __( 'Track shipment', 'drywall-toolbox' ) ) : '<p><a class="link" href="' . esc_url( $tracking_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Track shipment', 'drywall-toolbox' ) . '</a></p>';
 		}
 	}
 
+	// dtb_order_tracking_url() (dtb-order-tracking-links.php) is this store's
+	// actual canonical customer order view — the React order-tracking page —
+	// used consistently everywhere else in this redesign; this line
+	// previously pointed at WooCommerce's native My Account > Orders page
+	// instead, a second, inconsistent destination for the same "view your
+	// order" action. Falls back to the native page only if that function
+	// isn't available for some reason.
+	$order_view_url = function_exists( 'dtb_order_tracking_url' ) ? dtb_order_tracking_url( $order ) : site_url( 'my-account/orders/' );
+
 	echo '<p>' . wp_kses_post(
 		sprintf(
-			/* translators: %s: Link to My Account > Orders page. */
-			__( 'Full order and shipment details are always available from <a href="%s" target="_blank">My Account &gt; Orders</a>.', 'drywall-toolbox' ),
-			esc_url( site_url( 'my-account/orders/' ) )
+			/* translators: %s: Link to the order tracking page. */
+			__( 'Full order and shipment details are always available from <a href="%s" target="_blank">your order tracking page</a>.', 'drywall-toolbox' ),
+			esc_url( $order_view_url )
 		)
 	) . '</p>';
 }
@@ -52,38 +63,32 @@ if ( null === $fulfillment->get_date_deleted() ) {
  * @param WC_Email     $email         Email object.
  */
 do_action( 'woocommerce_email_before_fulfillment_table', $order, $fulfillment, $sent_to_admin, $plain_text, $email );
+
+/* translators: %s: order number. */
+$fulfillment_order_meta = sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() );
+
+echo function_exists( 'dtb_email_card_open' )
+	? dtb_email_card_open( __( 'Shipment summary', 'drywall-toolbox' ), $fulfillment_order_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	: '<div style="margin-bottom:20px;">';
 ?>
 
-<h2>
-	<?php
-	echo esc_html__( 'Shipment summary', 'drywall-toolbox' );
-	$before = $sent_to_admin ? '<a class="link" href="' . esc_url( $order->get_edit_order_url() ) . '">' : '';
-	$after  = $sent_to_admin ? '</a>' : '';
-	/* translators: %s: Order ID. */
-	$order_number_string = __( 'Order #%s', 'drywall-toolbox' );
-	echo '<br><span style="font-size:13px;font-weight:500;">' . wp_kses_post( $before . sprintf( $order_number_string . $after . ' (<time datetime="%s">%s</time>)', $order->get_order_number(), $order->get_date_created()->format( 'c' ), wc_format_datetime( $order->get_date_created() ) ) ) . '</span>';
-	?>
-</h2>
-
-<div style="margin-bottom:20px;">
-	<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="1" role="presentation">
-		<tbody>
-			<?php
-			echo wc_get_email_fulfillment_items( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-				$order,
-				$fulfillment,
-				[
-					'show_sku'      => $sent_to_admin,
-					'show_image'    => true,
-					'image_size'    => [ 48, 48 ],
-					'plain_text'    => $plain_text,
-					'sent_to_admin' => $sent_to_admin,
-				]
-			);
-			?>
-		</tbody>
-	</table>
-</div>
+<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="1" role="presentation">
+	<tbody>
+		<?php
+		echo wc_get_email_fulfillment_items( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			$order,
+			$fulfillment,
+			[
+				'show_sku'      => true,
+				'show_image'    => true,
+				'image_size'    => [ 48, 48 ],
+				'plain_text'    => $plain_text,
+				'sent_to_admin' => $sent_to_admin,
+			]
+		);
+		?>
+	</tbody>
+</table>
 
 <?php
 /**
@@ -96,4 +101,6 @@ do_action( 'woocommerce_email_before_fulfillment_table', $order, $fulfillment, $
  * @param WC_Email     $email         Email object.
  */
 do_action( 'woocommerce_email_after_fulfillment_table', $order, $fulfillment, $sent_to_admin, $plain_text, $email );
+
+echo function_exists( 'dtb_email_card_close' ) ? dtb_email_card_close() : '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
