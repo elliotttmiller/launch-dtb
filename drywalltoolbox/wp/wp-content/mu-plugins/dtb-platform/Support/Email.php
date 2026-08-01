@@ -704,7 +704,7 @@ if ( ! function_exists( 'dtb_email_social_icons' ) ) {
 			if ( '' === $url || '' === $label ) {
 				continue;
 			}
-			$initial = esc_html( mb_substr( $label, 0, 1 ) );
+			$initial = esc_html( function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 1 ) : substr( $label, 0, 1 ) );
 			$cells  .= '<td style="padding:0 5px;"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr( $label ) . '" style="display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background:#1c2942;background-color:#1c2942;color:#c7d2e5;font-family:' . $font . ';font-size:13px;font-weight:800;text-align:center;text-decoration:none;">' . $initial . '</a></td>';
 		}
 

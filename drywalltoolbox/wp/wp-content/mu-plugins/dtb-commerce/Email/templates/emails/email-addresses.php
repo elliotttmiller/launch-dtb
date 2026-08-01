@@ -19,7 +19,7 @@ $address  = $order->get_formatted_billing_address();
 $shipping = $order->get_formatted_shipping_address();
 $has_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && $shipping;
 
-$card_title = $has_shipping ? __( 'Shipping addresses', 'drywall-toolbox' ) : __( 'Billing address', 'drywall-toolbox' );
+$card_title = $has_shipping ? __( 'Billing & shipping addresses', 'drywall-toolbox' ) : __( 'Billing address', 'drywall-toolbox' );
 
 echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title ) : '<div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>

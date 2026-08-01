@@ -11,7 +11,10 @@
  * dtb_email_note_box() — the latter is hardcoded to dark-theme colors (built
  * for the separate dtb_render_branded_email() dark shell) and previously
  * rendered as a stray dark box inside this light-themed email. Hook
- * sequence preserved.
+ * signatures — including the $fulfillment argument on
+ * woocommerce_email_fulfillment_meta — preserved unchanged from
+ * WooCommerce core, matching the sibling customer-fulfillment-created.php
+ * template.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -40,7 +43,7 @@ if ( '' !== $customer_note_text ) :
 endif;
 
 do_action( 'woocommerce_email_fulfillment_details', $order, $fulfillment, $sent_to_admin, $plain_text, $email );
-do_action( 'woocommerce_email_fulfillment_meta', $order, $sent_to_admin, $plain_text, $email );
+do_action( 'woocommerce_email_fulfillment_meta', $order, $fulfillment, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email );
 
 echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
