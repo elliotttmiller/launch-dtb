@@ -81,6 +81,13 @@
 	var MOBILE_QUERY = '(max-width: 767px)';
 	var HIDDEN_ATTR = 'data-dtb-step-hidden';
 
+	// Single source of truth for the Contact step's name inputs, selected by
+	// their `autocomplete` value (stable regardless of the internal id
+	// WooCommerce Blocks assigns) rather than duplicated per call site.
+	var CONTACT_GIVEN_NAME_SELECTOR = 'input[autocomplete="given-name"]';
+	var CONTACT_FAMILY_NAME_SELECTOR = 'input[autocomplete="family-name"]';
+	var CONTACT_IDENTITY_SELECTOR = CONTACT_GIVEN_NAME_SELECTOR + ', ' + CONTACT_FAMILY_NAME_SELECTOR;
+
 	var STEPS = [
 		{ id: 'contact', label: 'Contact' },
 		{ id: 'shipping', label: 'Shipping' },
@@ -234,13 +241,24 @@
 	}
 
 	/* -------------------------------------------------------------------
-	 * Documented WooCommerce Blocks data-store access (read-only).
+	 * Documented WooCommerce Blocks data-store access — read selectors, plus
+	 * one sanctioned write (see syncContactIdentityToAddresses() below).
 	 * ------------------------------------------------------------------- */
 
 	function selectStore( key ) {
 		try {
 			return window.wp && window.wp.data && typeof window.wp.data.select === 'function'
 				? window.wp.data.select( key )
+				: null;
+		} catch ( e ) {
+			return null;
+		}
+	}
+
+	function dispatchStore( key ) {
+		try {
+			return window.wp && window.wp.data && typeof window.wp.data.dispatch === 'function'
+				? window.wp.data.dispatch( key )
 				: null;
 		} catch ( e ) {
 			return null;
@@ -284,6 +302,116 @@
 	}
 
 	/* -------------------------------------------------------------------
+	 * Contact-step identity -> WooCommerce address sync.
+	 *
+	 * The Contact step collects first/last name through WooCommerce's
+	 * Additional Checkout Fields API (`dtb/first_name`, `dtb/last_name` —
+	 * see mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php), a
+	 * *different* field group than WooCommerce's own canonical billing/
+	 * shipping `first_name`/`last_name` — which that same policy file hides
+	 * from the shipping/billing address forms, since the Contact step
+	 * already collects the name once. CheckoutFieldPolicy.php syncs a
+	 * non-empty Contact value onto the canonical billing/shipping name, but
+	 * only on the *server*, inside the Store API's checkout-processing
+	 * request. Nothing populated WooCommerce Blocks' own *client-side*
+	 * billing/shipping address state (`wc/store/cart`'s billingAddress/
+	 * shippingAddress) before that point, because nothing ever wrote a
+	 * value into it — the native inputs that would normally do that are the
+	 * very ones this store hides.
+	 *
+	 * Two live symptoms traced back to that one gap: Payment Plugins for
+	 * Stripe's Payment Element reads `billing_details.name` from that same
+	 * client-side billing address state when confirming payment (it has no
+	 * knowledge of Woo's Additional Checkout Fields), so an empty name
+	 * there surfaced Stripe's own "Missing required param:
+	 * payment_method_data[billing_details][name]" error at Payment; and
+	 * Stripe's Address Element on the Shipping step reads the same shipping
+	 * address state for its own client-side verification, surfacing
+	 * "Either Name or Company is required" there too.
+	 *
+	 * The fix uses `wc/store/cart`'s own documented, public dispatch
+	 * actions (`setBillingAddress`/`setShippingAddress` — WooCommerce
+	 * Blocks' sanctioned mechanism for a third-party field to feed the
+	 * canonical address, the same public data-store surface this file
+	 * already reads from elsewhere) to mirror a non-empty Contact name into
+	 * both addresses as the customer types, instead of waiting for the
+	 * order-processing request. A pure wallet flow (Apple Pay/Google Pay/
+	 * Link) never touches the Contact step's name inputs at all — see
+	 * firstEmptyContactIdentityField()'s own comment — so this sync simply
+	 * never fires for that flow and never touches a wallet-supplied name.
+	 * ------------------------------------------------------------------- */
+
+	var IDENTITY_SYNC_DEBOUNCE_MS = 400;
+	var identitySyncTimer = null;
+
+	function contactIdentityValues() {
+		var root = checkoutRoot();
+		var given = root ? root.querySelector( CONTACT_GIVEN_NAME_SELECTOR ) : null;
+		var family = root ? root.querySelector( CONTACT_FAMILY_NAME_SELECTOR ) : null;
+		return {
+			firstName: given ? String( given.value || '' ).trim() : '',
+			lastName: family ? String( family.value || '' ).trim() : '',
+		};
+	}
+
+	function syncContactIdentityToAddresses() {
+		var values = contactIdentityValues();
+		if ( ! values.firstName && ! values.lastName ) {
+			return;
+		}
+
+		var cart = selectStore( 'wc/store/cart' );
+		var cartDispatch = dispatchStore( 'wc/store/cart' );
+		if ( ! cart || ! cartDispatch || typeof cart.getCustomerData !== 'function' ) {
+			return;
+		}
+
+		var customerData = cart.getCustomerData() || {};
+		[
+			{ key: 'billingAddress', setter: 'setBillingAddress' },
+			{ key: 'shippingAddress', setter: 'setShippingAddress' },
+		].forEach( function ( pair ) {
+			if ( typeof cartDispatch[ pair.setter ] !== 'function' ) {
+				return;
+			}
+			var current = customerData[ pair.key ] || {};
+			var next = Object.assign( {}, current );
+			var changed = false;
+			if ( values.firstName && current.first_name !== values.firstName ) {
+				next.first_name = values.firstName;
+				changed = true;
+			}
+			if ( values.lastName && current.last_name !== values.lastName ) {
+				next.last_name = values.lastName;
+				changed = true;
+			}
+			if ( changed ) {
+				try {
+					cartDispatch[ pair.setter ]( next );
+				} catch ( e ) {
+					// No-op: a store/version mismatch here should never break checkout.
+				}
+			}
+		} );
+	}
+
+	function scheduleIdentitySync() {
+		window.clearTimeout( identitySyncTimer );
+		identitySyncTimer = window.setTimeout( syncContactIdentityToAddresses, IDENTITY_SYNC_DEBOUNCE_MS );
+	}
+
+	function isContactIdentityField( target ) {
+		var root = checkoutRoot();
+		return Boolean(
+			target &&
+			target.matches &&
+			target.matches( CONTACT_IDENTITY_SELECTOR ) &&
+			root &&
+			root.contains( target )
+		);
+	}
+
+	/* -------------------------------------------------------------------
 	 * Native constraint validation, scoped to the fields visible in the
 	 * step being left — never touches fields belonging to other steps.
 	 * ------------------------------------------------------------------- */
@@ -320,7 +448,7 @@
 		}
 		var controls = [];
 		groups.forEach( function ( group ) {
-			group.querySelectorAll( 'input[autocomplete="given-name"], input[autocomplete="family-name"]' ).forEach( function ( control ) {
+			group.querySelectorAll( CONTACT_IDENTITY_SELECTOR ).forEach( function ( control ) {
 				if ( controls.indexOf( control ) === -1 ) {
 					controls.push( control );
 				}
@@ -604,6 +732,16 @@
 			if ( wizard ) {
 				updateChrome();
 			}
+			// A server-driven cart refresh (e.g. after shipping/tax
+			// recalculation) replaces the store's customer data with
+			// whatever WooCommerce returns, which can race ahead of this
+			// file's own setBillingAddress()/setShippingAddress() calls and
+			// silently drop the synced name again. Re-asserting it on every
+			// store change is safe and cheap: syncContactIdentityToAddresses()
+			// only dispatches when a value actually differs, so once the
+			// name is already correct this is a no-op comparison, not a
+			// resync loop (including against its own dispatches above).
+			syncContactIdentityToAddresses();
 		} );
 	}
 
@@ -639,10 +777,31 @@
 
 		// Woo Blocks hydrates asynchronously after wp-footer scripts run;
 		// a few follow-up passes catch groups that were not yet in the DOM
-		// on first mount without needing a fixed, blind delay.
+		// on first mount without needing a fixed, blind delay. The same
+		// follow-up passes also cover a name pre-filled by browser autofill
+		// or restored on back-navigation without the user ever triggering
+		// an `input`/`blur` event on the field.
 		window.setTimeout( scheduleReconcile, 300 );
 		window.setTimeout( scheduleReconcile, 900 );
+		window.setTimeout( syncContactIdentityToAddresses, 300 );
+		window.setTimeout( syncContactIdentityToAddresses, 900 );
 	}
+
+	// Delegated (not bound to specific elements, since the Contact step's
+	// fields render asynchronously): mirrors a typed Contact name into
+	// WooCommerce's client-side billing/shipping address state — see
+	// syncContactIdentityToAddresses()'s own comment above for why. `blur`
+	// does not bubble, so it's bound on the capture phase instead.
+	document.addEventListener( 'input', function ( event ) {
+		if ( isContactIdentityField( event.target ) ) {
+			scheduleIdentitySync();
+		}
+	} );
+	document.addEventListener( 'blur', function ( event ) {
+		if ( isContactIdentityField( event.target ) ) {
+			syncContactIdentityToAddresses();
+		}
+	}, true );
 
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', function () {
