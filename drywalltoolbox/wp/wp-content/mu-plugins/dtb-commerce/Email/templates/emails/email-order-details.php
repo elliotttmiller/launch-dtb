@@ -68,9 +68,10 @@ echo function_exists( 'dtb_email_card_open' )
 	<?php
 	$item_totals = $order->get_order_item_totals();
 	foreach ( $item_totals as $total ) {
-		$is_grand_total = 'payment_method' !== ( $total['type'] ?? '' ) && false !== stripos( (string) $total['label'], 'total' ) && ! str_contains( (string) $total['label'], 'Subtotal' );
+		$total_type     = $total['type'] ?? 'unknown';
+		$is_grand_total = 'total' === $total_type;
 		?>
-		<tr class="order-totals order-totals-<?php echo esc_attr( $total['type'] ?? 'unknown' ); ?><?php echo $is_grand_total ? ' order-totals-total' : ''; ?>">
+		<tr class="order-totals order-totals-<?php echo esc_attr( $total_type ); ?><?php echo $is_grand_total ? ' order-totals-total' : ''; ?>">
 			<th class="td text-align-left" scope="row" colspan="2"><?php echo wp_kses_post( $total['label'] ); ?></th>
 			<td class="td text-align-right"><?php echo wp_kses_post( $total['value'] ); ?></td>
 		</tr>

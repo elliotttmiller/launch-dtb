@@ -601,13 +601,15 @@ if ( ! function_exists( 'dtb_email_next_steps_grid' ) ) {
 
 		$per_row   = 3;
 		$rows_html = '';
+		$step_no   = 0;
 
 		foreach ( array_chunk( $items, $per_row ) as $chunk ) {
 			$width = (int) floor( 100 / max( count( $chunk ), 1 ) );
 			$row   = '';
-			foreach ( $chunk as $i => $text ) {
+			foreach ( $chunk as $text ) {
+				++$step_no;
 				$row .= '<td width="' . $width . '%" valign="top" align="center" style="padding:0 8px;">'
-					. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 8px;"><tr><td width="28" height="28" align="center" valign="middle" style="width:28px;height:28px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:12px;font-weight:800;">' . ( $i + 1 ) . '</td></tr></table>'
+					. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 8px;"><tr><td width="28" height="28" align="center" valign="middle" style="width:28px;height:28px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:12px;font-weight:800;">' . $step_no . '</td></tr></table>'
 					. '<span style="display:block;color:#475569;font-family:' . $font . ';font-size:13px;line-height:145%;text-align:center;">' . esc_html( $text ) . '</span>'
 					. '</td>';
 			}
