@@ -732,6 +732,16 @@
 			if ( wizard ) {
 				updateChrome();
 			}
+			// A server-driven cart refresh (e.g. after shipping/tax
+			// recalculation) replaces the store's customer data with
+			// whatever WooCommerce returns, which can race ahead of this
+			// file's own setBillingAddress()/setShippingAddress() calls and
+			// silently drop the synced name again. Re-asserting it on every
+			// store change is safe and cheap: syncContactIdentityToAddresses()
+			// only dispatches when a value actually differs, so once the
+			// name is already correct this is a no-op comparison, not a
+			// resync loop (including against its own dispatches above).
+			syncContactIdentityToAddresses();
 		} );
 	}
 
