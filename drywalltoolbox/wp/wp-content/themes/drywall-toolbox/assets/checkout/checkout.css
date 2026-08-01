@@ -434,6 +434,123 @@ body.woocommerce-checkout .wc-block-components-checkout-step__content {
 }
 
 /* ---------------------------------------------------------------------------
+ * 5b. Returning-customer login prompt
+ *
+ * Live mobile screenshot showed this overlapping "Contact information"'s
+ * heading text as plain, unstyled text — this file's other overlap bugs
+ * were all cases of core CSS assuming a base stylesheet this headless theme
+ * never ships (see the `.screen-reader-text` note in section 2), and this
+ * reads as the same class of gap. Its exact source markup could not be
+ * confirmed live: automated verification against the live site is blocked
+ * by SiteGround's bot protection (`sg-captcha: challenge`), the same
+ * limitation already documented for the shipping-rate known issue below.
+ * WooCommerce can render this prompt one of two ways depending on what
+ * actually fires on this checkout, and this covers both so whichever one
+ * this store renders gets fixed:
+ *  - the classic `woocommerce_checkout_login_form()` template, hooked to
+ *    `woocommerce_before_checkout_form` by WooCommerce core by default and
+ *    never explicitly removed anywhere in this codebase — plain, unstyled
+ *    markup (`.woocommerce-form-login-toggle` wrapping a `.woocommerce-info`
+ *    notice and an `a.showlogin` link) with no Blocks-specific class, which
+ *    matches "generic text" more closely than a componentized Blocks
+ *    element would;
+ *  - WooCommerce Blocks' own Contact-step login prompt
+ *    (`.wc-block-checkout__login-prompt`), following the same
+ *    `wc-block-checkout__*` naming this file already targets for every
+ *    other Contact/Shipping/Payment section.
+ *
+ * `:has()` scopes the position change to only the specific step card that
+ * actually contains the prompt, so no other step's card is affected even
+ * though `.wc-block-components-checkout-step` is otherwise a fully generic,
+ * shared wrapper used by every step.
+ *
+ * THIS MUST BE CONFIRMED AGAINST A LIVE RENDER before being considered
+ * fully resolved — re-screenshot the Contact step after this deploys.
+ * ------------------------------------------------------------------------- */
+
+body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle),
+body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) {
+	position: relative;
+}
+
+body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle) .wc-block-components-checkout-step__title,
+body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) .wc-block-components-checkout-step__title {
+	/* Generous enough for the classic template's own link text ("Click here
+	 * to login"), not just a short "Log in" — the exact copy can't be
+	 * confirmed without a live render (see note above), so this errs wide
+	 * rather than risking the pill clipping into the heading text. */
+	padding-right: 150px;
+}
+
+body.woocommerce-checkout .woocommerce-form-login-toggle,
+body.woocommerce-checkout .wc-block-checkout__login-prompt {
+	position: absolute !important;
+	top: 18px;
+	right: var(--dtb-gutter);
+	left: auto;
+	width: auto;
+	margin: 0;
+}
+
+/* The classic template's own lead-in text ("Returning customer?") is kept
+ * visible rather than hidden — an earlier version of this rule collapsed it
+ * with `font-size: 0`, which is a visual-only trick (screen readers still
+ * announce zero-size text, since that's not one of the techniques that
+ * actually removes content from the accessibility tree) that just left
+ * sighted users with no context for what the pill below it does. Styled
+ * small and muted, stacked above the pill instead of beside it so the pair
+ * still reads as one compact, modern component in the corner rather than a
+ * wide inline sentence. */
+body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--dtb-text-muted);
+	white-space: nowrap;
+}
+
+body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin,
+body.woocommerce-checkout .wc-block-checkout__login-prompt a,
+body.woocommerce-checkout .wc-block-checkout__login-prompt button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 32px;
+	padding: 6px 14px;
+	border: 1px solid var(--dtb-accent);
+	border-radius: 999px;
+	background: var(--dtb-accent-soft);
+	color: var(--dtb-accent);
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-decoration: none;
+	white-space: nowrap;
+	cursor: pointer;
+}
+
+body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin:hover,
+body.woocommerce-checkout .wc-block-checkout__login-prompt a:hover,
+body.woocommerce-checkout .wc-block-checkout__login-prompt button:hover {
+	background: var(--dtb-accent);
+	color: #fff;
+}
+
+@media (min-width: 768px) {
+	body.woocommerce-checkout .woocommerce-form-login-toggle,
+	body.woocommerce-checkout .wc-block-checkout__login-prompt {
+		top: 24px;
+	}
+}
+
+/* ---------------------------------------------------------------------------
  * 5b. Desktop two-column layout (>=1024px only).
  *
  * Below this breakpoint the checkout is unchanged: the mobile step wizard
