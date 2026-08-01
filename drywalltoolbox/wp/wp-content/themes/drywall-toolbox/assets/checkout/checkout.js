@@ -81,6 +81,13 @@
 	var MOBILE_QUERY = '(max-width: 767px)';
 	var HIDDEN_ATTR = 'data-dtb-step-hidden';
 
+	// Single source of truth for the Contact step's name inputs, selected by
+	// their `autocomplete` value (stable regardless of the internal id
+	// WooCommerce Blocks assigns) rather than duplicated per call site.
+	var CONTACT_GIVEN_NAME_SELECTOR = 'input[autocomplete="given-name"]';
+	var CONTACT_FAMILY_NAME_SELECTOR = 'input[autocomplete="family-name"]';
+	var CONTACT_IDENTITY_SELECTOR = CONTACT_GIVEN_NAME_SELECTOR + ', ' + CONTACT_FAMILY_NAME_SELECTOR;
+
 	var STEPS = [
 		{ id: 'contact', label: 'Contact' },
 		{ id: 'shipping', label: 'Shipping' },
@@ -338,8 +345,9 @@
 	var identitySyncTimer = null;
 
 	function contactIdentityValues() {
-		var given = document.querySelector( 'input[autocomplete="given-name"]' );
-		var family = document.querySelector( 'input[autocomplete="family-name"]' );
+		var root = checkoutRoot();
+		var given = root ? root.querySelector( CONTACT_GIVEN_NAME_SELECTOR ) : null;
+		var family = root ? root.querySelector( CONTACT_FAMILY_NAME_SELECTOR ) : null;
 		return {
 			firstName: given ? String( given.value || '' ).trim() : '',
 			lastName: family ? String( family.value || '' ).trim() : '',
@@ -393,10 +401,13 @@
 	}
 
 	function isContactIdentityField( target ) {
+		var root = checkoutRoot();
 		return Boolean(
 			target &&
 			target.matches &&
-			target.matches( 'input[autocomplete="given-name"], input[autocomplete="family-name"]' )
+			target.matches( CONTACT_IDENTITY_SELECTOR ) &&
+			root &&
+			root.contains( target )
 		);
 	}
 
@@ -437,7 +448,7 @@
 		}
 		var controls = [];
 		groups.forEach( function ( group ) {
-			group.querySelectorAll( 'input[autocomplete="given-name"], input[autocomplete="family-name"]' ).forEach( function ( control ) {
+			group.querySelectorAll( CONTACT_IDENTITY_SELECTOR ).forEach( function ( control ) {
 				if ( controls.indexOf( control ) === -1 ) {
 					controls.push( control );
 				}
