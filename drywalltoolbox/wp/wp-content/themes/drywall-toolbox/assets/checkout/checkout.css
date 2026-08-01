@@ -492,18 +492,28 @@ body.woocommerce-checkout .wc-block-checkout__login-prompt {
 	margin: 0;
 }
 
-/* The classic template's own lead-in text ("Returning customer?") has no
- * element of its own to hide independently — collapsing the parent to
- * font-size: 0 and re-declaring an explicit size on the link/button below
- * hides only the plain text run, leaving just the modernized pill visible,
- * which is what "a modern component, not generic text" calls for. */
+/* The classic template's own lead-in text ("Returning customer?") is kept
+ * visible rather than hidden — an earlier version of this rule collapsed it
+ * with `font-size: 0`, which is a visual-only trick (screen readers still
+ * announce zero-size text, since that's not one of the techniques that
+ * actually removes content from the accessibility tree) that just left
+ * sighted users with no context for what the pill below it does. Styled
+ * small and muted, stacked above the pill instead of beside it so the pair
+ * still reads as one compact, modern component in the corner rather than a
+ * wide inline sentence. */
 body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
 	margin: 0;
 	padding: 0;
 	border: 0;
 	background: none;
-	font-size: 0;
-	line-height: 0;
+	font-size: 11px;
+	line-height: 1.3;
+	color: var(--dtb-text-muted);
+	white-space: nowrap;
 }
 
 body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin,
