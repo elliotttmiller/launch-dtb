@@ -4,19 +4,37 @@
  *
  * Traced against WooCommerce core emails/customer-processing-order.php
  * v10.4.0 (wp-content/plugins/woocommerce/templates/emails/customer-processing-order.php).
- * DTB customization: full copy/visual redesign — status badge, "what
- * happens next" checklist, and order-summary presentation. Hook sequence
- * (order_details/order_meta/customer_details/footer) preserved unchanged.
+ * DTB customization: full copy/visual redesign — hero (order-number eyebrow
+ * + heading + subheading, in the white body, not the dark header band),
+ * 3-stage progress tracker, card-wrapped order summary and addresses (see
+ * email-order-details.php / email-addresses.php), and a support card. Hook
+ * sequence (order_details/order_meta/customer_details/footer) preserved
+ * unchanged.
  *
  * @package DrywalltoolboxCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
+do_action( 'woocommerce_email_header', $email_heading, $email );
+
+echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	$email_heading,
+	__( 'Your payment has been confirmed and we\'re getting your tools ready for shipment. We\'ll notify you as soon as they\'re on the way.', 'drywall-toolbox' ),
+	/* translators: %s: order number. */
+	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
+) : '';
+
+echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	[
+		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done' ],
+		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'active' ],
+		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming' ],
+	]
+) : '';
+?>
 
 <div class="email-introduction">
-	<?php echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge( __( 'Payment received', 'drywall-toolbox' ), 'success' ) : ''; ?>
 	<p>
 	<?php
 	if ( $order->get_billing_first_name() ) {
@@ -27,7 +45,6 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 	}
 	?>
 	</p>
-	<p><?php esc_html_e( 'We\'ve confirmed your payment and your tools are being picked and packed for shipment. You\'ll get a separate email with tracking as soon as your order ships.', 'drywall-toolbox' ); ?></p>
 	<?php
 	echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light(
 		[
@@ -37,21 +54,26 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 		]
 	) : '';
 	?>
-	<?php
-	echo function_exists( 'dtb_email_next_steps_list' ) ? dtb_email_next_steps_list(
-		[
-			__( 'We prepare and pack your order', 'drywall-toolbox' ),
-			__( 'You\'ll receive a shipping confirmation with tracking once it leaves our warehouse', 'drywall-toolbox' ),
-			__( 'Questions about your order? Reply to this email or contact support', 'drywall-toolbox' ),
-		]
-	) : '';
-	?>
 </div>
 
 <?php
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email );
+
+echo function_exists( 'dtb_email_next_steps_grid' ) ? dtb_email_next_steps_grid( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	[
+		__( 'We prepare and pack your order', 'drywall-toolbox' ),
+		__( 'You\'ll get a shipping confirmation with tracking once it leaves our warehouse', 'drywall-toolbox' ),
+		__( 'Questions? Reply to this email or contact support', 'drywall-toolbox' ),
+	]
+) : '';
+
+echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	__( 'Our team is here to help with any questions about your order.', 'drywall-toolbox' ),
+	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
+	__( 'Contact support', 'drywall-toolbox' )
+) : '';
 
 if ( $additional_content ) {
 	echo '<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation"><tr><td class="email-additional-content">';

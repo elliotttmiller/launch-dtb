@@ -198,10 +198,16 @@ if ( ! function_exists( 'dtb_email_palette' ) ) {
 			'details_value'  => '#111827',
 			'button_bg'      => '#2563eb',
 			'button_text'    => '#ffffff',
-			'footer_bg'      => '#f8fbff',
-			'footer_text'    => '#718096',
-			'footer_link'    => '#2563eb',
-			'footer_sep'     => '#cbd5e1',
+			// A dark, near-black band (matching header_bg) rather than the
+			// white/light footer this token previously described but that
+			// email-styles.php never actually applied a background-color
+			// for — the footer inherited the white card background by
+			// omission. Now explicitly set and used, bookending the light
+			// body between a dark header and dark footer.
+			'footer_bg'      => '#071126',
+			'footer_text'    => '#94a3b8',
+			'footer_link'    => '#8bb7ff',
+			'footer_sep'     => '#1d2a44',
 			'copyright'      => '#94a3b8',
 		];
 	}
@@ -379,6 +385,336 @@ if ( ! function_exists( 'dtb_email_details_table_light' ) ) {
 				'value'  => $palette['details_value'] ?? '#111827',
 			]
 		);
+	}
+}
+
+if ( ! function_exists( 'dtb_email_note_box_light' ) ) {
+	/**
+	 * dtb_email_note_box() pre-styled for a white-card context (WooCommerce
+	 * classic email templates), instead of the dark-card defaults used by
+	 * the standalone dtb_render_branded_email() shell. The original
+	 * function's hardcoded dark styling was previously reused unchanged in
+	 * a light-themed WooCommerce email (customer-fulfillment-updated.php's
+	 * merchant note), rendering as a stray dark box against the surrounding
+	 * white body.
+	 *
+	 * @param string $content Plain text or safe HTML.
+	 * @param bool   $preserve_lines Whether to preserve line breaks.
+	 * @return string
+	 */
+	function dtb_email_note_box_light( string $content, bool $preserve_lines = true ): string {
+		$content = $preserve_lines
+			? nl2br( esc_html( dtb_email_clean_multiline_text( $content ) ) )
+			: dtb_email_clean_html( $content );
+
+		if ( '' === trim( wp_strip_all_tags( $content ) ) ) {
+			return '';
+		}
+
+		return '<table class="dtb-rich-box dtb-quote-note-light" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" bgcolor="#f8fbff" style="border-collapse:separate;margin:0 0 18px;border:1px solid #dce6f3;border-radius:14px;background:#f8fbff;background-color:#f8fbff;color:#334155;"><tr><td style="padding:16px 18px;color:#334155;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Helvetica,Arial,sans-serif;font-size:14px;line-height:22px;">' . $content . '</td></tr></table>';
+	}
+}
+
+// =============================================================================
+// LIFECYCLE HERO, PROGRESS, CARD, AND FOOTER COMPONENTS
+//
+// Added for the customer-facing email visual redesign. These render into the
+// white body area of the WooCommerce classic email shell (email-header.php /
+// email-styles.php), consumed directly by dtb-commerce's template overrides.
+// Every function is 100%-inline-styled table markup, matching the rest of
+// this file's existing components (dtb_email_button(), dtb_email_status_badge(),
+// etc.) — no CSS class this system doesn't already inline is relied upon, so
+// these render identically whether or not a client applies <style> at all.
+//
+// Icon glyphs deliberately use plain numerals/checkmarks/initials instead of
+// pictograms or emoji: desktop Outlook's Word rendering engine has
+// inconsistent glyph/emoji support, and this codebase has no image-asset
+// pipeline to generate small brand icon files during this change. Numerals
+// and initials render identically everywhere and need no image request.
+// =============================================================================
+
+if ( ! function_exists( 'dtb_email_hero' ) ) {
+	/**
+	 * Render the white-body hero block: optional small accent eyebrow (e.g.
+	 * an order number), the email's heading, and an optional supporting
+	 * subheading — all centered.
+	 *
+	 * The heading text itself always comes from the caller (WooCommerce's
+	 * own $email_heading, admin-configurable via Settings -> Emails) — this
+	 * function only lays it out; it never invents or overrides heading copy,
+	 * preserving WooCommerce's settings precedence for subject/heading.
+	 *
+	 * @param string $heading    Required. The email's heading (usually $email_heading).
+	 * @param string $subheading Optional supporting line under the heading.
+	 * @param string $eyebrow    Optional small label above the heading (e.g. "Order #1234").
+	 * @return string
+	 */
+	function dtb_email_hero( string $heading, string $subheading = '', string $eyebrow = '' ): string {
+		$heading = dtb_email_clean_text( $heading );
+		if ( '' === $heading ) {
+			return '';
+		}
+
+		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+
+		$eyebrow_html = '';
+		$eyebrow      = dtb_email_clean_text( $eyebrow );
+		if ( '' !== $eyebrow ) {
+			$eyebrow_html = '<p style="margin:0 0 8px;color:#2563eb;font-family:' . $font . ';font-size:12px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;text-align:center;">' . esc_html( $eyebrow ) . '</p>';
+		}
+
+		$subheading_html = '';
+		$subheading      = dtb_email_clean_text( $subheading );
+		if ( '' !== $subheading ) {
+			$subheading_html = '<p style="margin:8px 0 0;color:#64748b;font-family:' . $font . ';font-size:15px;line-height:150%;text-align:center;">' . esc_html( $subheading ) . '</p>';
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:4px 0 24px;"><tr><td align="center" style="padding:0;">'
+			. $eyebrow_html
+			. '<h1 style="margin:0;color:#0f172a;font-family:' . $font . ';font-size:26px;font-weight:800;line-height:130%;text-align:center;">' . esc_html( $heading ) . '</h1>'
+			. $subheading_html
+			. '</td></tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
+	/**
+	 * Render a lifecycle progress tracker: numbered/checked circles
+	 * connected by a line, with a label under each. Table-based (no
+	 * flexbox/grid), MSO-safe.
+	 *
+	 * Deliberately caller-driven, not auto-computed from order status: only
+	 * a call site with authoritative knowledge of the order/shipment's real
+	 * state should decide each step's tone — this function never guesses or
+	 * implies a delivery stage the caller didn't explicitly assert.
+	 *
+	 * @param array<int,array{label:string,state?:string}> $steps Ordered
+	 *        steps. `state` is one of done|active|warning|danger|upcoming
+	 *        (default upcoming).
+	 * @return string
+	 */
+	function dtb_email_progress_steps( array $steps ): string {
+		$steps = array_values( array_filter( $steps, static fn( $step ): bool => '' !== dtb_email_clean_text( $step['label'] ?? '' ) ) );
+		$count = count( $steps );
+		if ( $count < 2 ) {
+			return '';
+		}
+
+		$font   = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$colors = [
+			'done'     => [ 'bg' => '#2563eb', 'text' => '#ffffff', 'border' => '#2563eb', 'label' => '#0f172a' ],
+			'active'   => [ 'bg' => '#e8f1ff', 'text' => '#1e4fd8', 'border' => '#2563eb', 'label' => '#1e4fd8' ],
+			'warning'  => [ 'bg' => '#fef3e2', 'text' => '#a15c00', 'border' => '#f2b25c', 'label' => '#a15c00' ],
+			'danger'   => [ 'bg' => '#fde8e8', 'text' => '#b91c1c', 'border' => '#f2a3a3', 'label' => '#b91c1c' ],
+			'upcoming' => [ 'bg' => '#f1f5f9', 'text' => '#94a3b8', 'border' => '#e2e8f0', 'label' => '#94a3b8' ],
+		];
+
+		$circle_row = '';
+		$label_row  = '';
+
+		foreach ( $steps as $i => $step ) {
+			$label = dtb_email_clean_text( $step['label'] );
+			$state = $step['state'] ?? 'upcoming';
+			$state = isset( $colors[ $state ] ) ? $state : 'upcoming';
+			$c     = $colors[ $state ];
+			$glyph = 'done' === $state ? '&#10003;' : (string) ( $i + 1 );
+
+			$circle_row .= '<td width="1%" align="center" valign="top" style="padding:0;">'
+				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="32" height="32" align="center" valign="middle" style="width:32px;height:32px;border-radius:50%;background:' . esc_attr( $c['bg'] ) . ';background-color:' . esc_attr( $c['bg'] ) . ';border:2px solid ' . esc_attr( $c['border'] ) . ';color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:13px;font-weight:800;">' . $glyph . '</td></tr></table>'
+				. '</td>';
+
+			$label_row .= '<td width="1%" align="center" valign="top" style="padding:8px 2px 0;"><span style="display:block;width:82px;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:11px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
+
+			if ( $i < $count - 1 ) {
+				$line_color  = 'done' === $state ? '#2563eb' : '#e2e8f0';
+				$circle_row .= '<td valign="middle" style="padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="2" style="height:2px;line-height:2px;font-size:2px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
+				$label_row  .= '<td style="padding:0;">&nbsp;</td>';
+			}
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 26px;"><tr>' . $circle_row . '</tr><tr>' . $label_row . '</tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_card_open' ) ) {
+	/**
+	 * Open a white, rounded, bordered card region with an optional title
+	 * row (title left, small muted meta right — e.g. an order date). Must
+	 * be paired with dtb_email_card_close(); native `do_action()` output
+	 * (order-details tables, address blocks, etc.) can be echoed directly
+	 * between the two, so this never needs to receive pre-rendered content
+	 * as a string argument.
+	 *
+	 * @param string $title Optional card heading.
+	 * @param string $meta  Optional right-aligned meta text next to the title.
+	 * @return string
+	 */
+	function dtb_email_card_open( string $title = '', string $meta = '' ): string {
+		$font   = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$header = '';
+
+		$title = dtb_email_clean_text( $title );
+		$meta  = dtb_email_clean_text( $meta );
+
+		if ( '' !== $title ) {
+			$meta_cell = '' !== $meta
+				? '<td valign="middle" align="' . ( is_rtl() ? 'left' : 'right' ) . '" style="color:#94a3b8;font-family:' . $font . ';font-size:12px;font-weight:600;white-space:nowrap;">' . esc_html( $meta ) . '</td>'
+				: '';
+			$header    = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 14px;"><tr>'
+				. '<td valign="middle" style="color:#0f172a;font-family:' . $font . ';font-size:16px;font-weight:800;">' . esc_html( $title ) . '</td>'
+				. $meta_cell
+				. '</tr></table>';
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 18px;border-collapse:separate;"><tr><td style="padding:20px;background:#ffffff;background-color:#ffffff;border:1px solid #dce6f3;border-radius:16px;">' . $header;
+	}
+}
+
+if ( ! function_exists( 'dtb_email_card_close' ) ) {
+	/**
+	 * Close a card region opened by dtb_email_card_open().
+	 *
+	 * @return string
+	 */
+	function dtb_email_card_close(): string {
+		return '</td></tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_next_steps_grid' ) ) {
+	/**
+	 * Render a compact "what happens next" card as a row of numbered
+	 * mini-columns (3 per row) instead of a stacked checklist — self-
+	 * contained in its own card (do not also wrap this in
+	 * dtb_email_card_open()/close()).
+	 *
+	 * @param array<int,string> $items Plain-text step descriptions, in order.
+	 * @return string
+	 */
+	function dtb_email_next_steps_grid( array $items ): string {
+		$font  = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$items = array_values( array_filter( array_map( 'dtb_email_clean_text', $items ), static fn( string $t ): bool => '' !== $t ) );
+
+		if ( empty( $items ) ) {
+			return '';
+		}
+
+		$per_row   = 3;
+		$rows_html = '';
+		$step_no   = 0;
+
+		foreach ( array_chunk( $items, $per_row ) as $chunk ) {
+			$width = (int) floor( 100 / max( count( $chunk ), 1 ) );
+			$row   = '';
+			foreach ( $chunk as $text ) {
+				++$step_no;
+				$row .= '<td width="' . $width . '%" valign="top" align="center" style="padding:0 8px;">'
+					. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 8px;"><tr><td width="28" height="28" align="center" valign="middle" style="width:28px;height:28px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:12px;font-weight:800;">' . $step_no . '</td></tr></table>'
+					. '<span style="display:block;color:#475569;font-family:' . $font . ';font-size:13px;line-height:145%;text-align:center;">' . esc_html( $text ) . '</span>'
+					. '</td>';
+			}
+			$rows_html .= '<tr>' . $row . '</tr>';
+		}
+
+		return dtb_email_card_open( __( "What's next?", 'drywall-toolbox' ) )
+			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">' . $rows_html . '</table>'
+			. dtb_email_card_close();
+	}
+}
+
+if ( ! function_exists( 'dtb_email_support_card' ) ) {
+	/**
+	 * Render a compact "need help?" card: message text with an optional
+	 * outlined CTA button.
+	 *
+	 * @param string $text      Message text.
+	 * @param string $cta_url   Optional CTA URL.
+	 * @param string $cta_label Optional CTA label.
+	 * @return string
+	 */
+	function dtb_email_support_card( string $text, string $cta_url = '', string $cta_label = '' ): string {
+		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$text = dtb_email_clean_text( $text );
+
+		if ( '' === $text ) {
+			return '';
+		}
+
+		$cta_url   = esc_url_raw( $cta_url );
+		$cta_label = dtb_email_clean_text( $cta_label );
+		$button    = '';
+
+		if ( '' !== $cta_url && '' !== $cta_label ) {
+			$button = '<td valign="middle" align="' . ( is_rtl() ? 'left' : 'right' ) . '" width="1%" style="padding:' . ( is_rtl() ? '0 12px 0 0' : '0 0 0 12px' ) . ';">'
+				. '<a href="' . esc_url( $cta_url ) . '" style="display:inline-block;padding:10px 18px;border:1px solid #2563eb;border-radius:10px;color:#2563eb;font-family:' . $font . ';font-size:13px;font-weight:750;text-decoration:none;white-space:nowrap;">' . esc_html( $cta_label ) . '</a>'
+				. '</td>';
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 18px;border-collapse:separate;"><tr><td style="padding:18px 20px;background:#f8fbff;background-color:#f8fbff;border:1px solid #dce6f3;border-radius:16px;">'
+			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
+			. '<td valign="middle" style="color:#334155;font-family:' . $font . ';font-size:14px;font-weight:600;line-height:145%;">' . esc_html( $text ) . '</td>'
+			. $button
+			. '</tr></table>'
+			. '</td></tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_social_links' ) ) {
+	/**
+	 * Return the store's confirmed social profile links for the email
+	 * footer. Only accounts already established elsewhere in this codebase
+	 * (frontend/src/utils/schema.js's structured-data `sameAs`, the closest
+	 * thing to a canonical/approved social link list this repo has) are
+	 * included — never fabricate a profile URL that isn't confirmed real.
+	 * Add real, confirmed links via the filter, not by editing this default.
+	 *
+	 * @return array<int,array{label:string,url:string}>
+	 */
+	function dtb_email_social_links(): array {
+		return (array) apply_filters(
+			'dtb_email_social_links',
+			[
+				[ 'label' => 'Facebook', 'url' => 'https://www.facebook.com/drywalltoolbox' ],
+				[ 'label' => 'Instagram', 'url' => 'https://www.instagram.com/drywalltoolbox' ],
+			]
+		);
+	}
+}
+
+if ( ! function_exists( 'dtb_email_social_icons' ) ) {
+	/**
+	 * Render small circular social icon links for the dark email footer
+	 * band. Uses the profile's first initial rather than a brand pictogram —
+	 * this codebase has no image-asset pipeline for small icon files, and a
+	 * plain-text initial in a colored circle renders identically across
+	 * every email client without an image request.
+	 *
+	 * @return string
+	 */
+	function dtb_email_social_icons(): string {
+		$links = dtb_email_social_links();
+		if ( empty( $links ) ) {
+			return '';
+		}
+
+		$font  = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$cells = '';
+
+		foreach ( $links as $link ) {
+			$url   = esc_url_raw( (string) ( $link['url'] ?? '' ) );
+			$label = dtb_email_clean_text( $link['label'] ?? '' );
+			if ( '' === $url || '' === $label ) {
+				continue;
+			}
+			$initial = esc_html( function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 1 ) : substr( $label, 0, 1 ) );
+			$cells  .= '<td style="padding:0 5px;"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr( $label ) . '" style="display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background:#1c2942;background-color:#1c2942;color:#c7d2e5;font-family:' . $font . ';font-size:13px;font-weight:800;text-align:center;text-decoration:none;">' . $initial . '</a></td>';
+		}
+
+		if ( '' === $cells ) {
+			return '';
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 16px;"><tr>' . $cells . '</tr></table>';
 	}
 }
 

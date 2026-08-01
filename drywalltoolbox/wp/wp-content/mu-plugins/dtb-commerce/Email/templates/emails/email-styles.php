@@ -49,21 +49,23 @@ body {
 }
 
 #template_header_image {
-	padding: 28px 32px 16px;
+	padding: 28px 32px;
 }
 
-#header_wrapper {
-	padding: 0 32px 28px;
-}
-
+/* h1 no longer renders inside the dark #template_header band (that band is
+ * logo-only now — see email-header.php) — it only ever appears inside
+ * dtb_email_hero()'s white-body markup, which already sets its own explicit
+ * inline color/alignment. This rule is the non-inline fallback for that same
+ * context (dark-on-white, centered), not the old header-band styling
+ * (light-on-dark, left-aligned) it used to describe. */
 h1 {
-	color: <?php echo esc_attr( $palette['title'] ?? '#f8fafc' ); ?>;
+	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 26px;
-	font-weight: 760;
+	font-weight: 800;
 	line-height: 130%;
 	margin: 0;
-	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
+	text-align: center;
 }
 
 h2 {
@@ -167,31 +169,31 @@ a,
 	margin: 16px 0;
 }
 
+#template_footer {
+	background: <?php echo esc_attr( $palette['footer_bg'] ?? '#071126' ); ?>;
+	background-color: <?php echo esc_attr( $palette['footer_bg'] ?? '#071126' ); ?>;
+}
+
 #template_footer td {
 	padding: 0;
 }
 
 #template_footer #credit {
-	color: <?php echo esc_attr( $palette['footer_text'] ?? '#718096' ); ?>;
+	color: <?php echo esc_attr( $palette['footer_text'] ?? '#94a3b8' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 12px;
 	line-height: 150%;
 	text-align: center;
-	padding: 24px 32px 28px;
-	border-top: 1px solid <?php echo esc_attr( $palette['footer_sep'] ?? '#cbd5e1' ); ?>;
+	padding: 28px 32px 32px;
 }
 
 #template_footer #credit a {
-	color: <?php echo esc_attr( $palette['footer_link'] ?? '#2563eb' ); ?>;
+	color: <?php echo esc_attr( $palette['footer_link'] ?? '#8bb7ff' ); ?>;
 }
 
 @media screen and (max-width: 600px) {
 	#template_header_image {
-		padding: 20px 18px 10px !important;
-	}
-
-	#header_wrapper {
-		padding: 0 18px 20px !important;
+		padding: 20px 18px !important;
 	}
 
 	h1 {

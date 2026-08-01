@@ -6,7 +6,9 @@
  * v10.9.0 (WooCommerce's native My Account "lost password" email — distinct
  * from the SPA's own /auth/reset-password flow in
  * dtb-platform/Auth/AuthRoutes.php, which is untouched). DTB customization:
- * copy/visual redesign. Hook sequence preserved.
+ * hero (no progress tracker or support card — an account/security email
+ * stays brief and single-CTA per docs/dtb-email-design-system.md's
+ * copywriting voice guidance). Hook sequence preserved.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -15,7 +17,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
+do_action( 'woocommerce_email_header', $email_heading, $email );
+
+echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( $email_heading ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+?>
 
 <div class="email-introduction">
 	<p><?php printf( esc_html__( 'Hi %s,', 'drywall-toolbox' ), esc_html( $user_display_name ) ); ?></p>
