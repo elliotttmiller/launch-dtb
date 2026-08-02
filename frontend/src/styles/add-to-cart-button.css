@@ -91,6 +91,24 @@
   text-overflow: ellipsis;
 }
 
+.dtb-add-to-cart__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border: 2.5px solid rgba(255, 255, 255, 0.32);
+  border-top-color: #fff;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  animation: dtb-atc-spin 650ms linear infinite;
+  animation-play-state: paused;
+  transition: opacity 180ms ease;
+}
+
 .dtb-add-to-cart__success {
   position: absolute;
   top: 50%;
@@ -102,10 +120,10 @@
   place-items: center;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -42%) scale(0.82);
+  transform: translate(-50%, -50%) scale(0.6);
   transition:
-    opacity 260ms ease,
-    transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 200ms ease,
+    transform 200ms ease;
 }
 
 .dtb-add-to-cart__success svg {
@@ -117,6 +135,13 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2.6;
+}
+
+.dtb-add-to-cart__success-ring {
+  stroke: currentColor;
+  stroke-opacity: 0.55;
+  stroke-dasharray: 63;
+  stroke-dashoffset: 63;
 }
 
 .dtb-add-to-cart__success-check {
@@ -198,16 +223,14 @@
   width: 100%;
 }
 
-.dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__content {
-  opacity: 0.84;
-}
-
 .dtb-add-to-cart[data-state="adding"]::after,
 .dtb-add-to-cart[aria-busy="true"]::after {
   opacity: 0.62;
   animation: dtb-atc-pending-sheen 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Phase 1 — adding: content fades out, a spinner takes its place. No
+   checkmark yet; it only ever appears once success is confirmed, below. */
 .dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__content,
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__content,
 .dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__content,
@@ -216,12 +239,10 @@
   transform: translate3d(0, -2px, 0) scale(0.98);
 }
 
-.dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__success,
-.dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success,
-.dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__success,
-.dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success {
+.dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__spinner,
+.dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__spinner {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  animation-play-state: running;
 }
 
 .dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__surface,
@@ -232,16 +253,45 @@
   transform: scale(1.02);
 }
 
-.dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__success-check,
+/* Phase 2 — added: spinner yields to a ring-then-check draw, with a small
+   pop on the button itself for a confident, modern "confirmed" feel. */
+.dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success,
+.dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success,
+.dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: dtb-atc-success-pop 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-ring,
+.dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-ring,
+.dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-ring {
+  animation: dtb-atc-ring 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-check,
-.dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__success-check,
+.dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-check,
 .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-check {
-  animation: dtb-atc-check 460ms cubic-bezier(0.65, 0, 0.35, 1) 35ms forwards;
+  animation: dtb-atc-check 320ms cubic-bezier(0.65, 0, 0.35, 1) 220ms forwards;
 }
 
 @keyframes dtb-atc-pending-sheen {
   0% { transform: translateX(-78%); }
   100% { transform: translateX(78%); }
+}
+
+@keyframes dtb-atc-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes dtb-atc-success-pop {
+  0% { transform: translate(-50%, -50%) scale(0.6); }
+  60% { transform: translate(-50%, -50%) scale(1.12); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes dtb-atc-ring {
+  to { stroke-dashoffset: 0; }
 }
 
 @keyframes dtb-atc-check {
@@ -254,15 +304,19 @@
   .dtb-add-to-cart__surface,
   .dtb-add-to-cart__content,
   .dtb-add-to-cart__cart,
+  .dtb-add-to-cart__spinner,
   .dtb-add-to-cart__success,
+  .dtb-add-to-cart__success-ring,
   .dtb-add-to-cart__success-check {
     animation: none !important;
     transition-duration: 1ms !important;
   }
 
-  .dtb-add-to-cart[data-state="adding"] .dtb-add-to-cart__success-check,
+  .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-ring,
+  .dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-ring,
+  .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-ring,
   .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-check,
-  .dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__success-check,
+  .dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-check,
   .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-check {
     stroke-dashoffset: 0;
   }

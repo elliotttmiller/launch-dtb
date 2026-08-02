@@ -46,8 +46,10 @@ export default function AddToCartButton({
         <ShoppingCart className="dtb-add-to-cart__cart" aria-hidden="true" />
         <span className="dtb-add-to-cart__label">{children || visibleLabel}</span>
       </span>
+      <span className="dtb-add-to-cart__spinner" aria-hidden="true" />
       <span className="dtb-add-to-cart__success" aria-hidden="true">
         <svg viewBox="0 0 24 24">
+          <circle className="dtb-add-to-cart__success-ring" cx="12" cy="12" r="10" fill="none" />
           <path className="dtb-add-to-cart__success-check" fill="none" d="m5.5 12.5 4.2 4.2 8.8-9.4" />
         </svg>
       </span>
