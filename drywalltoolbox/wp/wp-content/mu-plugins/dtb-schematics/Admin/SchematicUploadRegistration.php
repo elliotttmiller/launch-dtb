@@ -35,7 +35,7 @@ function dtb_schematics_render_image_sync_registration_panel(): void {
 	<div class="notice notice-info" style="padding:16px 20px;margin:18px 20px 18px 0;">
 		<h2 style="margin-top:0;">DTB Schematic Media Registration</h2>
 		<p>Register existing schematic files from <code>wp-content/uploads/2026/schematics/</code> without moving, copying, renaming, or linking them as WooCommerce product images.</p>
-		<p><strong>Required filename contract:</strong> <code>{schematic-id}--page-{n}.webp</code> or <code>{schematic-id}--preview.webp</code>.</p>
+		<p><strong>Accepted filename formats:</strong> <code>{schematic-id}--page-{n}.webp</code> / <code>{schematic-id}--preview.webp</code>, or the SKU export format <code>{sku}_SCH-page-{n}.webp</code> / <code>{sku}_SCH-preview.webp</code> (SKU resolved via <code>DTB_SKU_SCHEMATIC_MAP</code>).</p>
 		<form method="post">
 			<?php wp_nonce_field( 'dtb_schematic_register_uploads', 'dtb_schematic_register_nonce' ); ?>
 			<input type="hidden" name="dtb_schematic_register_action" value="register" />

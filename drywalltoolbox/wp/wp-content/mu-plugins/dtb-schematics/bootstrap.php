@@ -7,6 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Data.
+dtb_module_require( 'dtb-schematics/Data/SkuSchematicMap.php' );
+
 // Domain.
 dtb_module_require( 'dtb-schematics/Domain/Schematic.php' );
 dtb_module_require( 'dtb-schematics/Domain/SchematicAsset.php' );

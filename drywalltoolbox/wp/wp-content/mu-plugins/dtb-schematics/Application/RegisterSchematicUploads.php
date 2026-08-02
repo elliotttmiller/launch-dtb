@@ -2,9 +2,11 @@
 /**
  * Register filesystem schematic images as WordPress media attachments.
  *
- * Expected filename contract:
+ * Expected filename contract (either form accepted):
  *   {schematic-id}--page-{n}.{ext}
  *   {schematic-id}--preview.{ext}
+ *   {sku}_SCH-page-{n}.{ext}       (SKU resolved via DTB_SKU_SCHEMATIC_MAP)
+ *   {sku}_SCH-preview.{ext}
  *
  * Files remain in place under wp-content/uploads; no copy or rename occurs.
  *
@@ -113,7 +115,39 @@ function dtb_schematics_parse_upload_filename( string $filename ) {
 	if ( preg_match( '/^([a-z0-9][a-z0-9-]*)--page-([1-9][0-9]*)$/', strtolower( $name ), $matches ) ) {
 		return [ 'schematic_id' => sanitize_key( $matches[1] ), 'type' => 'diagram', 'page' => (string) absint( $matches[2] ) ];
 	}
-	return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename must match {schematic-id}--page-{n} or {schematic-id}--preview.' );
+
+	$sku_match = dtb_schematics_parse_sku_upload_filename( $name );
+	if ( ! is_wp_error( $sku_match ) ) {
+		return $sku_match;
+	}
+
+	return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename must match {schematic-id}--page-{n}, {schematic-id}--preview, or {sku}_SCH-page-{n}.' );
+}
+
+/**
+ * Accept the SiteGround export naming convention: {sku}_SCH-page-{n} / {sku}_SCH-preview,
+ * resolving the SKU to a schematic id (and, where the catalog map pins a specific page for
+ * that SKU, that page) via DTB_SKU_SCHEMATIC_MAP.
+ */
+function dtb_schematics_parse_sku_upload_filename( string $name ) {
+	if ( ! preg_match( '/^([a-z0-9][a-z0-9.\-]*)_sch-(preview|page-([0-9]+))$/i', $name, $matches ) ) {
+		return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename does not match {sku}_SCH-page-{n} or {sku}_SCH-preview.' );
+	}
+
+	$sku = strtoupper( $matches[1] );
+	if ( ! isset( DTB_SKU_SCHEMATIC_MAP[ $sku ] ) ) {
+		return new WP_Error( 'dtb_unknown_schematic_sku', sprintf( 'SKU "%s" is not present in the schematic catalog map.', $sku ) );
+	}
+
+	$mapped = DTB_SKU_SCHEMATIC_MAP[ $sku ];
+	$is_preview = 'preview' === $matches[2];
+
+	if ( $is_preview ) {
+		return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'preview', 'page' => '1' ];
+	}
+
+	$page = null !== $mapped['page'] ? (int) $mapped['page'] : absint( $matches[3] );
+	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) $page ];
 }
 
 function dtb_schematics_find_attachment_by_relative_file( string $relative_file ): int {
