@@ -207,6 +207,22 @@ function dtb_schematics_render_page() {
 			</div>
 
 			<div class="dtb-card dtb-card--md">
+				<h3 class="dtb-title-reset">Register Uploads by Filename (SKU convention)</h3>
+				<p class="dtb-note-muted">Registers <code>{sku}_SCH-page-{n}.webp</code> / <code>{sku}_SCH-preview.webp</code> and <code>{schematic-id}--page-{n}.webp</code> files directly from a staged uploads folder, resolving the SKU to a schematic id via the catalog map — no CSV needed.</p>
+				<div class="dtb-row-inline-wrap">
+					<label for="dtb-filename-register-folder" class="dtb-label-compact">Uploads Folder</label>
+					<input type="text" id="dtb-filename-register-folder" class="dtb-input dtb-input--staged" value="2026/schematics" />
+					<label class="dtb-label-compact"><input type="checkbox" id="dtb-filename-register-dry-run" checked> Dry run</label>
+					<button id="dtb-filename-register-btn" class="dtb-btn dtb-btn-primary">
+						<span class="dashicons dashicons-yes-alt dtb-icon-sm"></span> Register by Filename
+					</button>
+					<span id="dtb-filename-register-spinner" class="dtb-inline-hidden"><span class="spinner is-active"></span></span>
+				</div>
+				<div id="dtb-filename-register-msg" class="dtb-note-inline"></div>
+				<pre id="dtb-filename-register-output" class="dtb-pre-block"></pre>
+			</div>
+
+			<div class="dtb-card dtb-card--md">
 				<h3 class="dtb-title-reset">Bulk Import (CSV)</h3>
 				<p class="dtb-note-muted">Required columns: <code>schematic_id</code>, <code>brand</code>, <code>model_number</code>. Optional: <code>attachment_id</code>, <code>model_name</code>, <code>part_count</code>, <code>notes</code>, <code>product_ids</code>. If <code>attachment_id</code> is missing/blank, use staged uploads folder matching (recommended) or upload a ZIP.</p>
 				<input type="file" id="dtb-import-file" accept=".csv,text/csv">
@@ -763,6 +779,73 @@ function dtb_schematics_render_page() {
 
 			tick(0);
 		}
+
+		function registerByFilename(folderRel, dryRun, offset) {
+			offset = offset || 0;
+			$('#dtb-filename-register-spinner').show();
+			$('#dtb-filename-register-btn').prop('disabled', true);
+			$('#dtb-filename-register-msg').text('Registering…').css('color', '#1d6fa4');
+
+			var totals = { processed: 0, registered: 0, updated: 0, skipped: 0, errors: [] };
+
+			function tick() {
+				$.post(ajaxurl, {
+					action: 'dtb_schematics_register_by_filename',
+					nonce: nonce,
+					upload_path: folderRel,
+					dry_run: dryRun ? '1' : '',
+					limit: 100,
+					offset: offset
+				}, function(res){
+					if (!res || !res.success) {
+						$('#dtb-filename-register-spinner').hide();
+						$('#dtb-filename-register-btn').prop('disabled', false);
+						var msg = (res && res.data && res.data.message) ? res.data.message : 'Register by filename failed.';
+						$('#dtb-filename-register-msg').text('✗ ' + msg).css('color', '#d63638');
+						return;
+					}
+
+					var d = res.data || {};
+					totals.processed += d.processed || 0;
+					totals.registered += d.registered || 0;
+					totals.updated += d.updated || 0;
+					totals.skipped += d.skipped || 0;
+					if (Array.isArray(d.errors)) totals.errors = totals.errors.concat(d.errors);
+
+					$('#dtb-filename-register-output').text(JSON.stringify({
+						dry_run: !!dryRun,
+						total: d.total,
+						processed: totals.processed,
+						registered: totals.registered,
+						updated: totals.updated,
+						errors: totals.errors
+					}, null, 2));
+
+					if (d.next_offset !== null && typeof d.next_offset !== 'undefined') {
+						offset = d.next_offset;
+						$('#dtb-filename-register-msg').text('Processing… ' + totals.processed + '/' + d.total).css('color', '#1d6fa4');
+						tick();
+						return;
+					}
+
+					$('#dtb-filename-register-spinner').hide();
+					$('#dtb-filename-register-btn').prop('disabled', false);
+					$('#dtb-filename-register-msg').text('✓ Done. ' + totals.processed + ' processed, ' + totals.errors.length + ' errors.').css('color', '#1a7f37');
+				}).fail(function(){
+					$('#dtb-filename-register-spinner').hide();
+					$('#dtb-filename-register-btn').prop('disabled', false);
+					$('#dtb-filename-register-msg').text('✗ Request failed.').css('color', '#d63638');
+				});
+			}
+
+			tick();
+		}
+
+		$('#dtb-filename-register-btn').on('click', function(){
+			var folderRel = ($('#dtb-filename-register-folder').val() || '2026/schematics').trim();
+			var dryRun = $('#dtb-filename-register-dry-run').is(':checked');
+			registerByFilename(folderRel, dryRun, 0);
+		});
 
 		$('#dtb-register-staged-images').on('click', function(){
 			var folderRel = ($('#dtb-import-staged-folder').val() || '2026/schematics').trim();

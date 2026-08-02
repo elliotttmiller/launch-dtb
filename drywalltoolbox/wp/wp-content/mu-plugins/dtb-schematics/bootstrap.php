@@ -46,4 +46,3 @@ dtb_module_require( 'dtb-schematics/Admin/SchematicAdminMenu.php' );
 dtb_module_require( 'dtb-schematics/Admin/SchematicSyncPage.php' );
 dtb_module_require( 'dtb-schematics/Admin/SchematicEditorPage.php' );
 dtb_module_require( 'dtb-schematics/Admin/SchematicMediaPage.php' );
-dtb_module_require( 'dtb-schematics/Admin/SchematicUploadRegistration.php' );

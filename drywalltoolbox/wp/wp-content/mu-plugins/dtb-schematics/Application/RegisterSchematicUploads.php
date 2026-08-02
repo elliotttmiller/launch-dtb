@@ -163,3 +163,29 @@ function dtb_schematics_find_attachment_by_relative_file( string $relative_file 
 	);
 	return empty( $ids ) ? 0 : (int) $ids[0];
 }
+
+/**
+ * AJAX entry point wired into the Schematics admin page (Import & Audit tab).
+ * Reuses that page's existing 'dtb_schematics_nonce' and capability check.
+ */
+add_action( 'wp_ajax_dtb_schematics_register_by_filename', 'dtb_schematics_ajax_register_by_filename' );
+
+function dtb_schematics_ajax_register_by_filename(): void {
+	check_ajax_referer( 'dtb_schematics_nonce', 'nonce' );
+	if ( ! dtb_schematics_can_manage() ) {
+		wp_send_json_error( [ 'message' => 'Insufficient permissions.' ], 403 );
+	}
+
+	$upload_path = isset( $_POST['upload_path'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['upload_path'] ) ) : '2026/schematics';
+	$dry_run = ! empty( $_POST['dry_run'] );
+	$limit = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 100;
+	$offset = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 0;
+
+	$result = dtb_schematics_register_uploads( $upload_path, $dry_run, $limit, $offset );
+
+	if ( isset( $result['error'] ) ) {
+		wp_send_json_error( [ 'message' => $result['error'] ] );
+	}
+
+	wp_send_json_success( $result );
+}
