@@ -121,17 +121,43 @@ function dtb_schematics_parse_upload_filename( string $filename ) {
 		return $sku_match;
 	}
 
-	return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename must match {schematic-id}--page-{n}, {schematic-id}--preview, or {sku}_SCH-page-{n}.' );
+	$dura_stilts_match = dtb_schematics_parse_dura_stilts_upload_filename( $name );
+	if ( ! is_wp_error( $dura_stilts_match ) ) {
+		return $dura_stilts_match;
+	}
+
+	$verbose_match = dtb_schematics_parse_verbose_upload_filename( $name );
+	if ( ! is_wp_error( $verbose_match ) ) {
+		return $verbose_match;
+	}
+
+	return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename must match {schematic-id}--page-{n}, {schematic-id}--preview, {sku}_SCH-page-{n}, {verbose-id}-schematic-page-{n}, or model-4-{range}.' );
 }
 
 /**
- * Accept the SiteGround export naming convention: {sku}_SCH-page-{n} / {sku}_SCH-preview,
- * resolving the SKU to a schematic id (and, where the catalog map pins a specific page for
- * that SKU, that page) via DTB_SKU_SCHEMATIC_MAP.
+ * Accept the SiteGround export naming convention, which varies in separator and infix
+ * across export batches: {sku}_SCH-page-{n}, {sku}_SCH_page_{n}, {sku}_SCH-{n},
+ * {sku}_SCH_v{n}_page_{n}, {sku}-page_{n}, {sku}_SCH-preview, etc. Resolves the SKU to a
+ * schematic id (and, where the catalog map pins a specific page for that SKU, that page)
+ * via DTB_SKU_SCHEMATIC_MAP.
  */
 function dtb_schematics_parse_sku_upload_filename( string $name ) {
-	if ( ! preg_match( '/^([a-z0-9][a-z0-9.\-]*)_sch-(preview|page-([0-9]+))$/i', $name, $matches ) ) {
-		return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename does not match {sku}_SCH-page-{n} or {sku}_SCH-preview.' );
+	if ( preg_match( '/^(.+?)[-_]+sch[-_]+preview$/i', $name, $matches ) ) {
+		$sku = strtoupper( $matches[1] );
+		if ( ! isset( DTB_SKU_SCHEMATIC_MAP[ $sku ] ) ) {
+			return new WP_Error( 'dtb_unknown_schematic_sku', sprintf( 'SKU "%s" is not present in the schematic catalog map.', $sku ) );
+		}
+		return [ 'schematic_id' => sanitize_key( DTB_SKU_SCHEMATIC_MAP[ $sku ]['schematic_id'] ), 'type' => 'preview', 'page' => '1' ];
+	}
+
+	// {sku}_SCH[_v{n}][_page]_{n} — "sch" required, "page" word and version infix optional.
+	$matched = preg_match( '/^(.+?)[-_]+sch(?:[-_]+v[0-9]+)?[-_]+(?:page[-_]*)?([0-9]+)$/i', $name, $matches );
+	if ( ! $matched ) {
+		// {sku}-page_{n} — no "sch" token at all.
+		$matched = preg_match( '/^(.+?)[-_]+page[-_]*([0-9]+)$/i', $name, $matches );
+	}
+	if ( ! $matched ) {
+		return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename does not match a known {sku}...page-{n} or {sku}...preview convention.' );
 	}
 
 	$sku = strtoupper( $matches[1] );
@@ -140,13 +166,49 @@ function dtb_schematics_parse_sku_upload_filename( string $name ) {
 	}
 
 	$mapped = DTB_SKU_SCHEMATIC_MAP[ $sku ];
-	$is_preview = 'preview' === $matches[2];
+	$page = null !== $mapped['page'] ? (int) $mapped['page'] : absint( $matches[2] );
+	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) $page ];
+}
 
-	if ( $is_preview ) {
-		return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'preview', 'page' => '1' ];
+/**
+ * Accept the Columbia/TapeTech/Platinum export convention:
+ *   {verbose-schematic-id}-schematic-page-{n}.{ext}   (Columbia/TapeTech)
+ *   {name}-page-{n}.{ext}                             (Platinum, underscore-separated)
+ * The captured id is normalized (lowercase, non-alphanumeric stripped) and looked up in
+ * DTB_VERBOSE_SCHEMATIC_ID_MAP, which always overrides the filename's own page number —
+ * each verbose id represents exactly one page of the combined frontend tool.
+ */
+function dtb_schematics_parse_verbose_upload_filename( string $name ) {
+	if ( ! preg_match( '/^(.+?)(?:-schematic)?-page-([0-9]+)$/i', $name, $matches ) ) {
+		return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename does not match {verbose-id}-schematic-page-{n} or {name}-page-{n}.' );
 	}
 
-	$page = null !== $mapped['page'] ? (int) $mapped['page'] : absint( $matches[3] );
+	$key = strtolower( preg_replace( '/[^a-z0-9]+/i', '', $matches[1] ) );
+	if ( ! isset( DTB_VERBOSE_SCHEMATIC_ID_MAP[ $key ] ) ) {
+		return new WP_Error( 'dtb_unknown_verbose_schematic_id', sprintf( 'Verbose schematic id "%s" is not present in the schematic catalog map.', $matches[1] ) );
+	}
+
+	$mapped = DTB_VERBOSE_SCHEMATIC_ID_MAP[ $key ];
+	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) (int) $mapped['page'] ];
+}
+
+/**
+ * Accept the Dura-Stilts export convention: model-4-{range}.{ext}, e.g. model-4-14-22.webp.
+ * Reconstructs the catalog SKU (D{range}) and resolves via DTB_SKU_SCHEMATIC_MAP, which
+ * pins each Dura-Stilts size to its correct page of the combined "Dura III" schematic.
+ */
+function dtb_schematics_parse_dura_stilts_upload_filename( string $name ) {
+	if ( ! preg_match( '/^model-4-([0-9]+-[0-9]+)$/i', $name, $matches ) ) {
+		return new WP_Error( 'dtb_invalid_schematic_filename', 'Filename does not match model-4-{range}.' );
+	}
+
+	$sku = 'D' . $matches[1];
+	if ( ! isset( DTB_SKU_SCHEMATIC_MAP[ $sku ] ) ) {
+		return new WP_Error( 'dtb_unknown_schematic_sku', sprintf( 'SKU "%s" is not present in the schematic catalog map.', $sku ) );
+	}
+
+	$mapped = DTB_SKU_SCHEMATIC_MAP[ $sku ];
+	$page = null !== $mapped['page'] ? (int) $mapped['page'] : 1;
 	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) $page ];
 }
 

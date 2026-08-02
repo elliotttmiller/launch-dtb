@@ -1,16 +1,19 @@
 <?php
 /**
- * SKU -> schematic id/page lookup, generated from:
+ * Schematic filename -> schematic id/page lookups, generated from:
  *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)
+ *   - frontend/src/pages/Schematics.jsx (tool id / page ordering)
  *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv
- *     (Level5 spare-part codes and Asgard '-AD' diagram codes, not in the catalog)
- * Regenerate with scripts/gen_sku_schematic_map.py whenever either source changes.
+ *     (Level5 spare-part codes, Asgard '-AD' diagram codes, and verbose
+ *     Columbia/TapeTech/Platinum export ids, none of which are catalog SKUs)
+ * Regenerate with scripts/gen_sku_schematic_map.py whenever any source changes.
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
+// {sku}_SCH-page-{n}.webp / {sku}_SCH-preview.webp uploads.
 const DTB_SKU_SCHEMATIC_MAP = [
 	'07TT' => [ 'schematic_id' => 'tapetech-07tt', 'page' => null ],
 	'10FBBA' => [ 'schematic_id' => 'columbia-fat-boy-box', 'page' => null ],
@@ -216,5 +219,76 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'TT-QUICKBOX-QSX-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-quickbox-qsx', 'page' => null ],
 	'XH-AD' => [ 'schematic_id' => 'asgard-xh-ad', 'page' => null ],
 	'XHTT' => [ 'schematic_id' => 'tapetech-xhtt', 'page' => null ],
+];
+
+// {verbose-id}-schematic-page-{n}.webp / {name}-page-{n}.webp uploads.
+// Keys are normalized (lowercase, non-alphanumeric stripped) so hyphen- and
+// underscore-separated export variants (e.g. Platinum) resolve identically.
+// 'page' here always overrides the filename's own page number: each verbose
+// id represents exactly one page of the combined frontend tool.
+const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
+	'1776147101640' => [ 'schematic_id' => 'tapetech-17tt', 'page' => 1 ],
+	'1777933053473' => [ 'schematic_id' => 'tapetech-90t', 'page' => 1 ],
+	'1777935057955' => [ 'schematic_id' => 'tapetech-81xxtt', 'page' => 1 ],
+	'1777935057956' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 2 ],
+	'1777935057957' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 3 ],
+	'1777935057958' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 3 ],
+	'1777936233843' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 1 ],
+	'1777936233844' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 2 ],
+	'1777936233845' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 3 ],
+	'1777936233846' => [ 'schematic_id' => 'tapetech-quickbox-qsx', 'page' => 1 ],
+	'1777983360469' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 1 ],
+	'1778225870563' => [ 'schematic_id' => 'tapetech-80xxtt', 'page' => 1 ],
+	'1779790731417' => [ 'schematic_id' => 'tapetech-76tt', 'page' => 1 ],
+	'1779792061029' => [ 'schematic_id' => 'tapetech-85t', 'page' => 1 ],
+	'1779792594040' => [ 'schematic_id' => 'tapetech-xhtt', 'page' => 1 ],
+	'1779793141529' => [ 'schematic_id' => 'tapetech-quickbox-qsx', 'page' => 2 ],
+	'columbia180gripflatboxhandlesch' => [ 'schematic_id' => 'columbia-flat-box-handle', 'page' => 1 ],
+	'columbiaangleheadsch' => [ 'schematic_id' => 'columbia-angle-head', 'page' => 1 ],
+	'columbiaautomaticflatfinishingboxsch' => [ 'schematic_id' => 'columbia-automatic-flat-box', 'page' => 1 ],
+	'columbiaautomatictaperpredatorcarbonfiber53ptaperpredatortaperbodysch' => [ 'schematic_id' => 'columbia-predator-taper', 'page' => 1 ],
+	'columbiaautomatictaperpredatorcarbonfiber53ptaperpredatortaperheadsch' => [ 'schematic_id' => 'columbia-predator-taper', 'page' => 2 ],
+	'columbiabilletmudapplicatorexternal90cext90sch' => [ 'schematic_id' => 'columbia-external-corner-applicator', 'page' => 1 ],
+	'columbiabilletmudapplicatorinsidecorner2wheels1ica21sch' => [ 'schematic_id' => 'columbia-inside-corner-applicator', 'page' => 1 ],
+	'columbiabilletmudapplicatorinsidecorner4wheels1ica41sch' => [ 'schematic_id' => 'columbia-inside-corner-applicator', 'page' => 2 ],
+	'columbiabilletmudapplicatortwowayinternalcorner4wheelsicatwsch' => [ 'schematic_id' => 'columbia-2-way-internal-corner', 'page' => 1 ],
+	'columbiaboxfillersch' => [ 'schematic_id' => 'columbia-box-filler', 'page' => 1 ],
+	'columbiacamlocktubesch' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => 1 ],
+	'columbiaclosetmonsterhandlesch' => [ 'schematic_id' => 'columbia-closet-monster-flat-box-handle', 'page' => 1 ],
+	'columbiacomboflusher33csfsch' => [ 'schematic_id' => 'columbia-sander-head', 'page' => 1 ],
+	'columbiacomboflushersch' => [ 'schematic_id' => 'columbia-combo-flusher', 'page' => 1 ],
+	'columbiacompoundtubesch' => [ 'schematic_id' => 'columbia-compound-tube', 'page' => 1 ],
+	'columbiacornercobrasch' => [ 'schematic_id' => 'columbia-corner-cobra', 'page' => 1 ],
+	'columbiacornerrollersch' => [ 'schematic_id' => 'columbia-inside-corner-roller', 'page' => 1 ],
+	'columbiadirectflushersch' => [ 'schematic_id' => 'columbia-direct-corner-flusher', 'page' => 1 ],
+	'columbiafatboyfinishingboxsch' => [ 'schematic_id' => 'columbia-fat-boy-box', 'page' => 1 ],
+	'columbiaflatfinishingboxsch' => [ 'schematic_id' => 'columbia-flat-box', 'page' => 1 ],
+	'columbiagoosenecksch' => [ 'schematic_id' => 'columbia-gooseneck-adapter', 'page' => 1 ],
+	'columbiamatrixboxhandlematrixboxhandleboxhandlesch' => [ 'schematic_id' => 'columbia-matrix', 'page' => 1 ],
+	'columbiamatrixboxhandlematrixboxhandleextensionhousingsch' => [ 'schematic_id' => 'columbia-matrix', 'page' => 5 ],
+	'columbiamatrixboxhandlematrixboxhandleheadsch' => [ 'schematic_id' => 'columbia-matrix', 'page' => 2 ],
+	'columbiamatrixboxhandlematrixboxhandleleversch' => [ 'schematic_id' => 'columbia-matrix', 'page' => 3 ],
+	'columbiamatrixboxhandlematrixboxhandlepinchboxsch' => [ 'schematic_id' => 'columbia-matrix', 'page' => 4 ],
+	'columbiamudpumpsch' => [ 'schematic_id' => 'columbia-mud-pump', 'page' => 1 ],
+	'columbiamudpumpsch2' => [ 'schematic_id' => 'columbia-tall-boy-mud-pump', 'page' => 1 ],
+	'columbianailspottersch' => [ 'schematic_id' => 'columbia-nailspotter', 'page' => 1 ],
+	'columbiaonehandle48longextendiblechxlsch' => [ 'schematic_id' => 'columbia-long-extendable-handle', 'page' => 1 ],
+	'columbiaonehandlesch' => [ 'schematic_id' => 'columbia-one', 'page' => 1 ],
+	'columbiaoutsidecornerrollersch' => [ 'schematic_id' => 'columbia-standard-outside-corner-roller', 'page' => 1 ],
+	'columbiasemiautomatictapersatsch' => [ 'schematic_id' => 'columbia-semi-automatic-taper', 'page' => 1 ],
+	'columbiastandardflushersch' => [ 'schematic_id' => 'columbia-standard-corner-flusher', 'page' => 1 ],
+	'columbiathrottleboxsch' => [ 'schematic_id' => 'columbia-throttle-box', 'page' => 1 ],
+	'columbiatomahawksmoothingbladesch' => [ 'schematic_id' => 'columbia-tomahawk-smoothing-blades', 'page' => 1 ],
+	'platinumcompoundpump' => [ 'schematic_id' => 'platinum-compound-pump', 'page' => 1 ],
+	'platinumcornerapplicatorhandle' => [ 'schematic_id' => 'platinum-corner-applicator-handle', 'page' => 1 ],
+	'platinumcornerfinisher' => [ 'schematic_id' => 'platinum-corner-finisher', 'page' => 1 ],
+	'platinumcornerfinisherhandle' => [ 'schematic_id' => 'platinum-corner-finisher-handle', 'page' => 1 ],
+	'platinumcornerrollerhandle' => [ 'schematic_id' => 'platinum-corner-roller-handle', 'page' => 1 ],
+	'platinumflatbox' => [ 'schematic_id' => 'platinum-flat-box', 'page' => 1 ],
+	'platinumflatboxhandle' => [ 'schematic_id' => 'platinum-flat-box-handle', 'page' => 1 ],
+	'platinumoutsidecornerroller' => [ 'schematic_id' => 'platinum-outside-corner-roller', 'page' => 1 ],
+	'tapetech90insidecorneredgertapetech42ttsch' => [ 'schematic_id' => 'tapetech-42tt', 'page' => 1 ],
+	'tapetech90insidecorneredgertapetech48ttsch' => [ 'schematic_id' => 'tapetech-48tt', 'page' => 1 ],
+	'tapetechtapetechlockblockfor07tt050212fsch' => [ 'schematic_id' => 'tapetech-07tt', 'page' => 1 ],
 ];
 
