@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 final class Renderer {
 	/**
 	 * Email IDs that can be prepared from a WC_Order alone without fabricating
-	 * refund, fulfillment, account, or password-reset lifecycle objects.
+	 * refund, fulfillment, customer-note, account, or reset-password context.
 	 *
 	 * @var array<string,string>
 	 */
@@ -35,7 +35,6 @@ final class Renderer {
 		'customer_failed_order'     => 'Failed order',
 		'customer_cancelled_order'  => 'Cancelled order',
 		'customer_invoice'          => 'Customer invoice / order details',
-		'customer_note'             => 'Customer note',
 		'new_order'                 => 'Admin new order',
 		'cancelled_order'           => 'Admin cancelled order',
 		'failed_order'              => 'Admin failed order',
@@ -123,13 +122,11 @@ final class Renderer {
 	 * @param WC_Order $order Order instance.
 	 */
 	private static function prepare_order_email( WC_Email $email, WC_Order $order ): void {
-		if ( method_exists( $email, 'set_object' ) ) {
-			$email->set_object( $order );
-		} else {
-			$email->object = $order;
-		}
+		$email->set_object( $order );
 
-		$email->recipient = $order->get_billing_email();
+		if ( method_exists( $email, 'is_customer_email' ) && $email->is_customer_email() ) {
+			$email->recipient = $order->get_billing_email();
+		}
 
 		if ( is_array( $email->placeholders ) ) {
 			$email->placeholders['{order_date}']   = $order->get_date_created()
