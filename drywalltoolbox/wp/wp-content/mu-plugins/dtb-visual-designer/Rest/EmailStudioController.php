@@ -8,9 +8,9 @@
  * @package drywall-toolbox
  */
 
-defined( 'ABSPATH' ) || exit;
-
 use DTB\Commerce\Email\Preview\EmailPreviewService;
+
+defined( 'ABSPATH' ) || exit;
 
 add_action( 'rest_api_init', static function (): void {
 	register_rest_route( DTB_VD_REST_NAMESPACE, '/design/email-studio', [
