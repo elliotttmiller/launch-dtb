@@ -18,6 +18,7 @@ export default function AddToCartButton({
   className = '',
   children,
   disabled,
+  suspended = false,
   type = 'button',
   ...buttonProps
 }) {
@@ -36,6 +37,7 @@ export default function AddToCartButton({
       disabled={disabled}
       className={classes}
       data-state={normalizedState}
+      data-suspended={suspended ? 'true' : undefined}
       data-dtb-cart-action={cartAction ? 'add' : undefined}
       data-dtb-cart-product-id={productId != null ? String(productId) : undefined}
       data-dtb-cart-feedback-mode={feedbackMode}

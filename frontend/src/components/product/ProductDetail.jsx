@@ -546,8 +546,9 @@ export default function ProductDetail({
   const [activeTab, setActiveTab] = useState('description');
   const [addToCartError, setAddToCartError] = useState('');
   const [addToCartState, setAddToCartState] = useState('idle');
-  const [isBuyNowPending, setIsBuyNowPending] = useState(false);
+  const [buyNowState, setBuyNowState] = useState('idle');
   const addToCartFeedbackTimerRef = useRef(null);
+  const buyNowRedirectTimerRef = useRef(null);
   const seededVariations = buildSeedVariations(initialVariations, initialResolvedVariation);
   const initialVariationSelection = buildInitialVariationSelection({
     autoSelectDefaultVariation,
@@ -563,6 +564,9 @@ export default function ProductDetail({
   useEffect(() => () => {
     if (addToCartFeedbackTimerRef.current) {
       window.clearTimeout(addToCartFeedbackTimerRef.current);
+    }
+    if (buyNowRedirectTimerRef.current) {
+      window.clearTimeout(buyNowRedirectTimerRef.current);
     }
   }, []);
 
@@ -849,16 +853,22 @@ export default function ProductDetail({
   };
 
   const handleBuyNow = async () => {
-    if (!canAddToCart || isBuyNowPending) return;
+    if (!canAddToCart || buyNowState !== 'idle') return;
     const productToAdd = selectedVariation ? effectiveProduct : product;
 
     try {
       setAddToCartError('');
-      setIsBuyNowPending(true);
+      setBuyNowState('pending');
       await addToCart(productToAdd, quantity);
-      navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
+      setBuyNowState('confirmed');
+      // Matches the checkmark draw + pop animation in product-buy-now.css
+      // (draw finishes at 440ms, pop finishes at 700ms) so the redirect
+      // never clips it.
+      buyNowRedirectTimerRef.current = window.setTimeout(() => {
+        navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
+      }, 720);
     } catch (err) {
-      setIsBuyNowPending(false);
+      setBuyNowState('idle');
       setAddToCartError(
         err?.message ||
         'Unable to prepare checkout. Please check your selection and try again.'
@@ -998,7 +1008,7 @@ export default function ProductDetail({
                   onAddToCart={handleAddToCart}
                   addToCartState={addToCartState}
                   onBuyNow={handleBuyNow}
-                  isBuyNowPending={isBuyNowPending}
+                  buyNowState={buyNowState}
                   canBuyNow={canAddToCart}
                   canAddToCart={canAddToCart}
                   isOutOfStock={isOutOfStock}

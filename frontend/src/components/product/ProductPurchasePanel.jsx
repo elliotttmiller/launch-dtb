@@ -9,7 +9,7 @@ export default function ProductPurchasePanel({
   onQuantityChange,
   onAddToCart,
   onBuyNow,
-  isBuyNowPending,
+  buyNowState = 'idle',
   canBuyNow,
   canAddToCart,
   isOutOfStock,
@@ -25,6 +25,7 @@ export default function ProductPurchasePanel({
   };
 
   const addToCartPending = addToCartState === 'adding' || addToCartState === 'added';
+  const isBuyNowPending = buyNowState === 'pending' || buyNowState === 'confirmed';
   const purchaseBusy = addToCartPending || isBuyNowPending;
   const addToCartLabel = isOutOfStock
     ? 'Out of Stock'
@@ -77,6 +78,7 @@ export default function ProductPurchasePanel({
         <AddToCartButton
           onClick={onAddToCart}
           disabled={!canAddToCart || purchaseBusy}
+          suspended={canAddToCart && isBuyNowPending}
           className="dtb-pdp-add-to-cart"
           size="wide"
           label={addToCartLabel}
@@ -87,8 +89,9 @@ export default function ProductPurchasePanel({
 
       <ProductBuyNow
         onBuyNow={onBuyNow}
-        pending={isBuyNowPending}
+        status={buyNowState}
         disabled={!canBuyNow || addToCartPending}
+        suspended={canBuyNow && addToCartPending}
         disabledReason={buyNowDisabledReason}
       />
 

@@ -43,7 +43,7 @@
   background: #2255ee;
   transform: scale(1);
   transition:
-    filter 320ms ease,
+    filter 320ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -58,7 +58,7 @@
   pointer-events: none;
   transform: translateX(-72%);
   transition:
-    opacity 220ms ease,
+    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -73,7 +73,7 @@
   opacity: 1;
   transform: translate3d(0, 0, 0);
   transition:
-    opacity 220ms ease,
+    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
     transform 440ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -106,7 +106,7 @@
   pointer-events: none;
   animation: dtb-atc-spin 650ms linear infinite;
   animation-play-state: paused;
-  transition: opacity 180ms ease;
+  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dtb-add-to-cart__success {
@@ -122,8 +122,8 @@
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.6);
   transition:
-    opacity 200ms ease,
-    transform 200ms ease;
+    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dtb-add-to-cart__success svg {
@@ -147,6 +147,8 @@
 .dtb-add-to-cart__success-check {
   stroke-dasharray: 24;
   stroke-dashoffset: 24;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 .dtb-add-to-cart:hover:not(:disabled) {
@@ -192,8 +194,40 @@
 }
 
 .dtb-add-to-cart:disabled .dtb-add-to-cart__surface {
-  background: linear-gradient(112deg, #334155, #64748b);
-  filter: saturate(0.55);
+  background: #64748b;
+}
+
+/* Busy (adding/added) always wins over the inert-disabled grey wash above,
+   since the button is disabled purely to prevent double-submits, not because
+   it's unavailable. */
+.dtb-add-to-cart:disabled[data-state="adding"],
+.dtb-add-to-cart:disabled[data-state="added"] {
+  color: #fff;
+  box-shadow:
+    0 8px 18px rgba(8, 31, 74, 0.18),
+    0 2px 5px rgba(34, 85, 238, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dtb-add-to-cart:disabled[data-state="adding"] .dtb-add-to-cart__surface,
+.dtb-add-to-cart:disabled[data-state="added"] .dtb-add-to-cart__surface {
+  background: #2255ee;
+}
+
+/* Suspended: disabled only because the sibling purchase action (Buy Now) is
+   in flight, not because this button is actually unavailable. It should
+   look fully normal — no grey wash — since the user didn't press it. */
+.dtb-add-to-cart:disabled[data-suspended="true"] {
+  border-color: rgba(96, 141, 255, 0.56);
+  color: #fff;
+  box-shadow:
+    0 8px 18px rgba(8, 31, 74, 0.18),
+    0 2px 5px rgba(34, 85, 238, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.dtb-add-to-cart:disabled[data-suspended="true"] .dtb-add-to-cart__surface {
+  background: #2255ee;
 }
 
 .dtb-add-to-cart--compact {
@@ -225,8 +259,7 @@
 
 .dtb-add-to-cart[data-state="adding"]::after,
 .dtb-add-to-cart[aria-busy="true"]::after {
-  opacity: 0.62;
-  animation: dtb-atc-pending-sheen 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: dtb-atc-pending-sheen 900ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }
 
 /* Phase 1 — adding: content fades out, a spinner takes its place. No
@@ -249,7 +282,6 @@
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__surface,
 .dtb-add-to-cart[data-dtb-cart-feedback="pending"] .dtb-add-to-cart__surface,
 .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__surface {
-  filter: brightness(1.09) saturate(1.08);
   transform: scale(1.02);
 }
 
@@ -266,18 +298,21 @@
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-ring,
 .dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-ring,
 .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-ring {
-  animation: dtb-atc-ring 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dtb-atc-ring 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-check,
 .dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-check,
 .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-check {
-  animation: dtb-atc-check 320ms cubic-bezier(0.65, 0, 0.35, 1) 220ms forwards;
+  animation:
+    dtb-atc-check 260ms cubic-bezier(0.65, 0, 0.35, 1) 180ms forwards,
+    dtb-atc-check-pop 260ms ease-in-out 440ms both;
 }
 
 @keyframes dtb-atc-pending-sheen {
-  0% { transform: translateX(-78%); }
-  100% { transform: translateX(78%); }
+  0% { transform: translateX(-78%); opacity: 0; }
+  35% { opacity: 0.62; }
+  100% { transform: translateX(78%); opacity: 0; }
 }
 
 @keyframes dtb-atc-spin {
@@ -296,6 +331,14 @@
 
 @keyframes dtb-atc-check {
   to { stroke-dashoffset: 0; }
+}
+
+/* Playful overshoot on the check stroke right as it finishes drawing,
+   inspired by a classic "poin" bounce (rotate+scale pop on the mark). */
+@keyframes dtb-atc-check-pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.22); }
+  100% { transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

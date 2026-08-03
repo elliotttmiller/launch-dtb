@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { getProductBuyNowReadiness } from '../../api/checkoutCapabilities.js';
-import { useCart } from '../../context/CartContext.jsx';
 import { scheduleCheckoutPrewarm } from '../../utils/checkoutPrewarm.js';
 import '../../styles/product-buy-now.css';
 
@@ -65,8 +64,9 @@ function readinessMessage(readiness) {
 
 export default function ProductBuyNow({
   onBuyNow,
-  pending = false,
+  status = 'idle',
   disabled = false,
+  suspended = false,
   disabledReason = '',
 }) {
   const statusId = useId();
@@ -74,7 +74,6 @@ export default function ProductBuyNow({
   const observedPendingRef = useRef(false);
   const [readiness, setReadiness] = useState(DEFAULT_READINESS);
   const [interactionError, setInteractionError] = useState('');
-  const { isMutating = false } = useCart();
 
   useEffect(() => {
     let active = true;
@@ -89,8 +88,11 @@ export default function ProductBuyNow({
     };
   }, []);
 
+  const pending = status === 'pending';
+  const confirmed = status === 'confirmed';
+
   useEffect(() => {
-    if (pending) {
+    if (pending || confirmed) {
       observedPendingRef.current = true;
       return;
     }
@@ -98,14 +100,17 @@ export default function ProductBuyNow({
       clickLockedRef.current = false;
       observedPendingRef.current = false;
     }
-  }, [pending]);
+  }, [pending, confirmed]);
 
   useEffect(() => {
     if (!disabled) return;
     clickLockedRef.current = false;
   }, [disabled]);
 
-  const busy = pending || isMutating;
+  // Only this button's own action drives its busy/success animation — a
+  // separate, unrelated cart mutation (e.g. the Add to Cart button) must
+  // never make this button spin too.
+  const busy = pending || confirmed;
   const blocked = disabled || busy;
   const paymentMethods = EXPRESS_CHECKOUT_METHODS.filter(
     (method) => readiness.paymentMethods?.[method.readinessKey] === true,
@@ -115,8 +120,8 @@ export default function ProductBuyNow({
     || (disabled && disabledReason)
     || (pending
       ? 'Preparing secure checkout…'
-      : isMutating
-        ? 'Updating cart…'
+      : confirmed
+        ? 'Redirecting to checkout…'
         : readinessMessage(readiness));
   const statusVisible = Boolean(
     interactionError
@@ -125,8 +130,8 @@ export default function ProductBuyNow({
   );
   const buttonLabel = pending
     ? 'Preparing Checkout…'
-    : isMutating
-      ? 'Updating Cart…'
+    : confirmed
+      ? 'Checkout Ready'
       : 'Checkout Now';
 
   const handleBuyNow = () => {
@@ -158,6 +163,8 @@ export default function ProductBuyNow({
       <button
         type="button"
         className="dtb-product-buy-now__button"
+        data-state={pending ? 'pending' : confirmed ? 'confirmed' : 'idle'}
+        data-suspended={suspended ? 'true' : undefined}
         onClick={handleBuyNow}
         onFocus={scheduleCheckoutPrewarm}
         onPointerEnter={scheduleCheckoutPrewarm}
@@ -165,7 +172,14 @@ export default function ProductBuyNow({
         aria-busy={busy}
         aria-describedby={statusId}
       >
-        <span aria-live="polite">{buttonLabel}</span>
+        <span className="dtb-product-buy-now__content" aria-live="polite">{buttonLabel}</span>
+        <span className="dtb-product-buy-now__spinner" aria-hidden="true" />
+        <span className="dtb-product-buy-now__success" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <circle className="dtb-product-buy-now__success-ring" cx="12" cy="12" r="10" fill="none" />
+            <path className="dtb-product-buy-now__success-check" fill="none" d="m5.5 12.5 4.2 4.2 8.8-9.4" />
+          </svg>
+        </span>
       </button>
 
       <p className="dtb-product-buy-now__eyebrow">Express checkout with</p>

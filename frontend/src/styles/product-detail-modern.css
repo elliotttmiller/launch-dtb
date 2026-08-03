@@ -689,56 +689,13 @@
   margin: 0;
 }
 
-/* Add to Cart button */
+/* Add to Cart button — layout only. All paint (background, shadows,
+   hover/active/disabled states, loading animation) is owned by
+   AddToCartButton.jsx via add-to-cart-button.css; duplicating it here
+   fought that component's own state styling (e.g. its :disabled opacity
+   rule flattened the busy/success animation into a grey wash). */
 .dtb-pdp-add-to-cart {
   flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 52px;
-  border: 0;
-  border-radius: 7px;
-  background: #2255ee;
-  color: #fff;
-  font-size: 0.95rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  box-shadow:
-    0 3px 8px rgba(34, 85, 238, 0.22),
-    0 12px 24px rgba(34, 85, 238, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: opacity 150ms ease, transform 120ms ease, box-shadow 150ms ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.dtb-pdp-add-to-cart::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.dtb-pdp-add-to-cart:hover:not(:disabled) {
-  opacity: 1;
-  background: #2255ee;
-  box-shadow:
-    0 5px 14px rgba(34, 85, 238, 0.28),
-    0 16px 32px rgba(34, 85, 238, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.dtb-pdp-add-to-cart:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.dtb-pdp-add-to-cart:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
 }
 
 .dtb-pdp-express-checkout {
