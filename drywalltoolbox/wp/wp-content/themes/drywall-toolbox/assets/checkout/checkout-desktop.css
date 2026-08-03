@@ -12,20 +12,17 @@
 
 @media (min-width: 1024px) {
 	body.woocommerce-checkout {
-		--dtb-checkout-column-gap: clamp(28px, 3vw, 48px);
-		--dtb-checkout-sidebar-width: clamp(380px, 31vw, 460px);
+		--dtb-checkout-column-gap: clamp(32px, 3vw, 48px);
+		--dtb-checkout-sidebar-width: clamp(390px, 31vw, 460px);
 		--dtb-checkout-content-width: 1360px;
 	}
 
-	/* Remove the mobile container ceiling and establish a centered, fluid
-	 * desktop canvas. Padding remains inside the declared width even though
-	 * this headless theme intentionally ships no global box-sizing reset. */
 	body.woocommerce-checkout #primary {
 		box-sizing: border-box;
 		width: 100%;
 		max-width: var(--dtb-checkout-content-width);
 		margin-inline: auto;
-		padding: clamp(32px, 4vw, 56px) clamp(24px, 4vw, 56px) 72px;
+		padding: clamp(30px, 3vw, 48px) clamp(24px, 4vw, 56px) 72px;
 	}
 
 	body.woocommerce-checkout #primary > .woocommerce,
@@ -37,14 +34,22 @@
 		max-width: none;
 	}
 
-	/* checkout.css historically applied the grid to
-	 * .wc-block-checkout__form. Current WooCommerce Blocks renders the main
-	 * and sidebar regions inside .wc-block-components-sidebar-layout instead.
-	 * Reset the form wrapper first, then grid only a wrapper that demonstrably
-	 * owns both regions as direct children. This prevents nested grids while
-	 * retaining compatibility with the older direct-child form shape. */
-	body.woocommerce-checkout .wc-block-checkout__form {
+	/* Live QA after the first desktop pass showed that correcting only the
+	 * outer main/sidebar wrapper was insufficient. WooCommerce's main region
+	 * retained a second internal desktop flex/grid layout, distributing Contact,
+	 * Shipping address, Shipping options, Payment and actions across separate
+	 * tracks. Reset every non-authoritative inner layout wrapper; this file owns
+	 * exactly one desktop grid: checkout content + order summary. */
+	body.woocommerce-checkout .wc-block-checkout__form,
+	body.woocommerce-checkout .wc-block-checkout__main,
+	body.woocommerce-checkout .wc-block-components-main,
+	body.woocommerce-checkout .wc-block-checkout__main > form,
+	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-main {
 		display: block;
+		grid-template-columns: none;
+		grid-auto-columns: auto;
+		grid-auto-flow: row;
+		column-count: auto;
 	}
 
 	body.woocommerce-checkout :is(
@@ -71,6 +76,28 @@
 		flex: none;
 	}
 
+	/* Force all native checkout sections into one vertical document flow.
+	 * Provider and WooCommerce variants may assign 50% widths, flex-basis,
+	 * grid-column placement or inline sizing; these rules neutralize only that
+	 * presentation and preserve DOM order, mounted state and behavior. */
+	body.woocommerce-checkout .wc-block-checkout__main > *,
+	body.woocommerce-checkout .wc-block-components-main > *,
+	body.woocommerce-checkout .wc-block-components-checkout-step,
+	body.woocommerce-checkout .wc-block-checkout__add-note,
+	body.woocommerce-checkout .wc-block-checkout__terms,
+	body.woocommerce-checkout .wc-block-checkout__actions {
+		box-sizing: border-box;
+		float: none;
+		clear: both;
+		width: 100%;
+		max-width: none;
+		min-width: 0;
+		flex: 0 0 100%;
+		grid-column: 1 / -1;
+		grid-row: auto;
+		margin-inline: 0;
+	}
+
 	body.woocommerce-checkout .wc-block-checkout__sidebar {
 		grid-column: 2;
 		grid-row: 1;
@@ -90,8 +117,6 @@
 		scrollbar-gutter: stable;
 	}
 
-	/* Undo percentage and flex-basis constraints from WooCommerce's stock
-	 * responsive layout so both columns consume the grid tracks assigned above. */
 	body.woocommerce-checkout .wc-block-components-sidebar-layout__main,
 	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar {
 		box-sizing: border-box;
@@ -103,9 +128,6 @@
 	}
 
 	body.woocommerce-checkout .wc-block-components-checkout-step {
-		box-sizing: border-box;
-		width: 100%;
-		max-width: none;
 		padding: 24px 28px;
 		margin: 0 0 20px;
 		box-shadow: var(--dtb-shadow-md);
