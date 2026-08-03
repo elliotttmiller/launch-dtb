@@ -2,6 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Kill-switch for any service worker registered by a previous deploy.
+      The app does not register a service worker; nothing here needs one.
+      An orphaned service worker from an older build can persist on a
+      returning visitor's device indefinitely and silently serve a frozen,
+      possibly-broken cached shell on every future visit (network entirely
+      bypassed) — the classic "works on desktop, blank on my phone" report
+      from a phone that visited before. This runs unconditionally, on every
+      load, before anything else, to guarantee that class of bug can never
+      persist past a single page view.
+    -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          regs.forEach(function (reg) { reg.unregister(); });
+        }).catch(function () {});
+      }
+      if (window.caches && caches.keys) {
+        caches.keys().then(function (keys) {
+          keys.forEach(function (key) {
+            if (/^(workbox|dtb-)/.test(key)) caches.delete(key);
+          });
+        }).catch(function () {});
+      }
+    </script>
     <link rel="icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="<%= htmlWebpackPlugin.options.publicPath %>favicon-16x16.png" />
@@ -23,6 +48,7 @@
     <meta name="keywords" content="drywall tools, taping tools, finishing tools, construction equipment, TapeTech, Level5">
     <meta name="theme-color" content="#0f172a">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Drywall Toolbox">
 
@@ -89,5 +115,79 @@
       </div>
     </div>
     <div id="root"></div>
+
+    <!--
+      Boot watchdog. React's ErrorBoundary (main.jsx) only catches errors
+      that happen AFTER the app bundle has loaded and started rendering.
+      It cannot help if the entry script itself never loads or throws before
+      mounting (blocked/failed request, a stale asset path, a mobile
+      carrier/proxy interfering with the response) — that failure mode is a
+      permanently blank white page with no error UI. This is a
+      framework-independent fallback: it does not depend on the app bundle,
+      any stylesheet, or any external asset, so it still renders even when
+      everything else has failed.
+    -->
+    <script>
+      (function () {
+        var RETRY_KEY = 'dtb:boot-retry';
+        var TIMEOUT_MS = 8000;
+
+        function appHasMounted() {
+          var root = document.getElementById('root');
+          return !!(root && root.children.length > 0);
+        }
+
+        function showFallback() {
+          if (appHasMounted()) return;
+          var root = document.getElementById('root');
+          if (!root) return;
+          root.innerHTML =
+            '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;' +
+            'background:#f8fafc;color:#0f172a;font:16px/1.5 system-ui,-apple-system,sans-serif;' +
+            'text-align:center;padding:24px;">' +
+            '<div style="max-width:360px;">' +
+            '<p style="margin:0 0 16px;font-weight:700;">Drywall Toolbox is taking longer than expected to load.</p>' +
+            '<button onclick="location.reload()" style="appearance:none;border:0;border-radius:8px;' +
+            'background:#0f172a;color:#fff;font:inherit;font-weight:600;padding:12px 20px;cursor:pointer;">' +
+            'Reload</button></div></div>';
+        }
+
+        function attemptRecovery() {
+          if (appHasMounted()) return;
+
+          var alreadyRetried = false;
+          try {
+            alreadyRetried = window.sessionStorage.getItem(RETRY_KEY) === '1';
+          } catch (e) {}
+
+          if (!alreadyRetried) {
+            try { window.sessionStorage.setItem(RETRY_KEY, '1'); } catch (e) {}
+            var url = new URL(window.location.href);
+            url.searchParams.set('_boot', Date.now().toString(36));
+            window.location.replace(url.toString());
+            return;
+          }
+
+          showFallback();
+        }
+
+        // Entry-bundle load failures fire a synchronous window "error" event
+        // for the offending <script> tag; catch it immediately instead of
+        // waiting out the full timeout.
+        window.addEventListener('error', function (event) {
+          if (event && event.target && event.target.tagName === 'SCRIPT') {
+            window.setTimeout(attemptRecovery, 50);
+          }
+        }, true);
+
+        window.setTimeout(attemptRecovery, TIMEOUT_MS);
+
+        window.addEventListener('load', function () {
+          if (appHasMounted()) {
+            try { window.sessionStorage.removeItem(RETRY_KEY); } catch (e) {}
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
