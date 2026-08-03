@@ -2,34 +2,18 @@
 /**
  * Drywall Toolbox native WooCommerce Checkout Block document.
  *
- * WooCommerce owns the rendered checkout baseline and Payment Plugins for
- * Stripe WooCommerce owns its payment surfaces; nothing below reparents,
- * clones, or duplicates a native field, wallet, or order-submission control.
- * The only DTB-owned markup here is the branded top bar. The in-page step
- * wizard (progress rail + Back/Continue bar) is built entirely by
- * checkout.js as progressive enhancement over the native Woo Checkout
- * Block groups — no separate step markup lives in this template, so there
- * is exactly one source of truth for step definitions. Base checkout assets
- * are registered in functions.php (dtb_enqueue_native_checkout_assets());
- * the desktop-only layout layer is enqueued here before wp_head() with an
- * explicit dependency on the base stylesheet. See
- * docs/checkout-ui-architecture.md for the full redesign contract.
+ * This template owns only the document shell and branded checkout header.
+ * The Checkout page content owns the WooCommerce Checkout Block. WooCommerce
+ * owns fields, validation, Store API state, shipping, tax, totals and order
+ * creation. Payment Plugins for Stripe owns Express Checkout, payment methods,
+ * provider elements, authentication and payment execution.
+ *
+ * No checkout node is cloned, moved, hidden, reordered or replaced here.
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
-
-$storefront_home_url = home_url( '/' );
-$desktop_style_path  = get_template_directory() . '/assets/checkout/checkout-desktop.css';
-$desktop_style_ver   = file_exists( $desktop_style_path ) ? (string) filemtime( $desktop_style_path ) : DTB_VERSION;
-
-wp_enqueue_style(
-	'dtb-checkout-desktop',
-	get_template_directory_uri() . '/assets/checkout/checkout-desktop.css',
-	[ 'dtb-checkout' ],
-	$desktop_style_ver
-);
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -38,20 +22,10 @@ wp_enqueue_style(
 	<meta name="robots" content="noindex,nofollow,noarchive">
 	<?php wp_head(); ?>
 </head>
-<body <?php body_class(); ?>>
+<body <?php body_class( 'dtb-native-checkout' ); ?>>
 <?php wp_body_open(); ?>
-	<header class="dtb-checkout__topbar">
-		<a class="dtb-checkout__brand" href="<?php echo esc_url( $storefront_home_url ); ?>">
-			<img src="<?php echo esc_url( home_url( '/logo-white.svg' ) ); ?>" alt="<?php esc_attr_e( 'Drywall Toolbox', 'drywall-toolbox' ); ?>" width="3000" height="917">
-		</a>
-		<span class="dtb-checkout__stripe-badge">
-			<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-				<path fill="currentColor" d="M8 0a3 3 0 0 0-3 3v2H4a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-1V3a3 3 0 0 0-3-3Zm0 1.5A1.5 1.5 0 0 1 9.5 3v2h-3V3A1.5 1.5 0 0 1 8 1.5Z"/>
-			</svg>
-			<img src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="<?php esc_attr_e( 'Powered by Stripe', 'drywall-toolbox' ); ?>">
-		</span>
-	</header>
-	<main id="primary" role="main">
+	<?php get_template_part( 'template-parts/checkout/header' ); ?>
+	<main id="primary" class="dtb-checkout-shell" role="main">
 		<?php
 		if ( have_posts() ) {
 			while ( have_posts() ) {
