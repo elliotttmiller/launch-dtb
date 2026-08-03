@@ -179,11 +179,11 @@ if ( ! function_exists( 'dtb_email_palette' ) ) {
 		}
 
 		return [
-			'shell_bg'       => '#eef3f9',
-			'preheader'      => '#eef3f9',
-			'header_bg'      => '#071126',
+			'shell_bg'       => '#f2f3f5',
+			'preheader'      => '#f2f3f5',
+			'header_bg'      => '#000000',
 			'card_bg'        => '#ffffff',
-			'card_border'    => '#d9e3f1',
+			'card_border'    => '#e2e5ea',
 			'accent'         => '#2563eb',
 			'accent_soft_bg' => '#e8f1ff',
 			'accent_soft_tx' => '#1e4fd8',
@@ -198,17 +198,14 @@ if ( ! function_exists( 'dtb_email_palette' ) ) {
 			'details_value'  => '#111827',
 			'button_bg'      => '#2563eb',
 			'button_text'    => '#ffffff',
-			// A dark, near-black band (matching header_bg) rather than the
-			// white/light footer this token previously described but that
-			// email-styles.php never actually applied a background-color
-			// for — the footer inherited the white card background by
-			// omission. Now explicitly set and used, bookending the light
-			// body between a dark header and dark footer.
-			'footer_bg'      => '#071126',
+			// A near-black band matching header_bg (mockup uses a true black
+			// header/footer, not the earlier navy), bookending the light body
+			// between a dark header and dark footer.
+			'footer_bg'      => '#000000',
 			'footer_text'    => '#94a3b8',
 			'footer_link'    => '#8bb7ff',
-			'footer_sep'     => '#1d2a44',
-			'copyright'      => '#94a3b8',
+			'footer_sep'     => '#26262b',
+			'copyright'      => '#8a8f98',
 		];
 	}
 }
@@ -502,11 +499,11 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 		$font   = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 		$colors = [
-			'done'     => [ 'bg' => '#2563eb', 'text' => '#ffffff', 'border' => '#2563eb', 'label' => '#0f172a' ],
-			'active'   => [ 'bg' => '#e8f1ff', 'text' => '#1e4fd8', 'border' => '#2563eb', 'label' => '#1e4fd8' ],
-			'warning'  => [ 'bg' => '#fef3e2', 'text' => '#a15c00', 'border' => '#f2b25c', 'label' => '#a15c00' ],
-			'danger'   => [ 'bg' => '#fde8e8', 'text' => '#b91c1c', 'border' => '#f2a3a3', 'label' => '#b91c1c' ],
-			'upcoming' => [ 'bg' => '#f1f5f9', 'text' => '#94a3b8', 'border' => '#e2e8f0', 'label' => '#94a3b8' ],
+			'done'     => [ 'bg' => '#ffffff', 'text' => '#2563eb', 'border' => '#2563eb', 'label' => '#0f172a' ],
+			'active'   => [ 'bg' => '#2563eb', 'text' => '#ffffff', 'border' => '#2563eb', 'label' => '#1e4fd8' ],
+			'warning'  => [ 'bg' => '#ffffff', 'text' => '#a15c00', 'border' => '#f2b25c', 'label' => '#a15c00' ],
+			'danger'   => [ 'bg' => '#ffffff', 'text' => '#b91c1c', 'border' => '#f2a3a3', 'label' => '#b91c1c' ],
+			'upcoming' => [ 'bg' => '#ffffff', 'text' => '#94a3b8', 'border' => '#e2e8f0', 'label' => '#94a3b8' ],
 		];
 
 		$circle_row = '';
@@ -517,16 +514,17 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			$state = $step['state'] ?? 'upcoming';
 			$state = isset( $colors[ $state ] ) ? $state : 'upcoming';
 			$c     = $colors[ $state ];
-			$glyph = 'done' === $state ? '&#10003;' : (string) ( $i + 1 );
+			$icon  = dtb_email_clean_text( $step['icon'] ?? '' );
+			$glyph = '' !== $icon ? $icon : ( 'done' === $state ? '&#10003;' : (string) ( $i + 1 ) );
 
 			$circle_row .= '<td width="1%" align="center" valign="top" style="padding:0;">'
-				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="32" height="32" align="center" valign="middle" style="width:32px;height:32px;border-radius:50%;background:' . esc_attr( $c['bg'] ) . ';background-color:' . esc_attr( $c['bg'] ) . ';border:2px solid ' . esc_attr( $c['border'] ) . ';color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:13px;font-weight:800;">' . $glyph . '</td></tr></table>'
+				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="36" height="36" align="center" valign="middle" style="width:36px;height:36px;border-radius:50%;background:' . esc_attr( $c['bg'] ) . ';background-color:' . esc_attr( $c['bg'] ) . ';border:2px solid ' . esc_attr( $c['border'] ) . ';color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:15px;font-weight:800;">' . $glyph . '</td></tr></table>'
 				. '</td>';
 
 			$label_row .= '<td width="1%" align="center" valign="top" style="padding:8px 2px 0;"><span style="display:block;width:82px;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:11px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
 
 			if ( $i < $count - 1 ) {
-				$line_color  = 'done' === $state ? '#2563eb' : '#e2e8f0';
+				$line_color  = in_array( $state, [ 'done', 'active' ], true ) ? '#2563eb' : '#e2e8f0';
 				$circle_row .= '<td valign="middle" style="padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="2" style="height:2px;line-height:2px;font-size:2px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
 				$label_row  .= '<td style="padding:0;">&nbsp;</td>';
 			}
@@ -547,20 +545,26 @@ if ( ! function_exists( 'dtb_email_card_open' ) ) {
 	 *
 	 * @param string $title Optional card heading.
 	 * @param string $meta  Optional right-aligned meta text next to the title.
+	 * @param string $icon  Optional small glyph rendered in a circle before the title.
 	 * @return string
 	 */
-	function dtb_email_card_open( string $title = '', string $meta = '' ): string {
+	function dtb_email_card_open( string $title = '', string $meta = '', string $icon = '' ): string {
 		$font   = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 		$header = '';
 
 		$title = dtb_email_clean_text( $title );
 		$meta  = dtb_email_clean_text( $meta );
+		$icon  = dtb_email_clean_text( $icon );
 
 		if ( '' !== $title ) {
+			$icon_cell = '' !== $icon
+				? '<td width="1%" valign="middle" style="padding:0 10px 0 0;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td width="30" height="30" align="center" valign="middle" style="width:30px;height:30px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:14px;">' . $icon . '</td></tr></table></td>'
+				: '';
 			$meta_cell = '' !== $meta
 				? '<td valign="middle" align="' . ( is_rtl() ? 'left' : 'right' ) . '" style="color:#94a3b8;font-family:' . $font . ';font-size:12px;font-weight:600;white-space:nowrap;">' . esc_html( $meta ) . '</td>'
 				: '';
-			$header    = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 14px;"><tr>'
+			$header    = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 16px;"><tr>'
+				. $icon_cell
 				. '<td valign="middle" style="color:#0f172a;font-family:' . $font . ';font-size:16px;font-weight:800;">' . esc_html( $title ) . '</td>'
 				. $meta_cell
 				. '</tr></table>';
@@ -588,12 +592,30 @@ if ( ! function_exists( 'dtb_email_next_steps_grid' ) ) {
 	 * contained in its own card (do not also wrap this in
 	 * dtb_email_card_open()/close()).
 	 *
-	 * @param array<int,string> $items Plain-text step descriptions, in order.
+	 * @param array<int,string|array{text:string,icon?:string}> $items Plain-text
+	 *        step descriptions, or arrays with an optional `icon` glyph, in order.
 	 * @return string
 	 */
 	function dtb_email_next_steps_grid( array $items ): string {
-		$font  = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
-		$items = array_values( array_filter( array_map( 'dtb_email_clean_text', $items ), static fn( string $t ): bool => '' !== $t ) );
+		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+
+		$items = array_values(
+			array_filter(
+				array_map(
+					static function ( $item ): array {
+						if ( is_array( $item ) ) {
+							return [
+								'text' => dtb_email_clean_text( $item['text'] ?? '' ),
+								'icon' => dtb_email_clean_text( $item['icon'] ?? '' ),
+							];
+						}
+						return [ 'text' => dtb_email_clean_text( (string) $item ), 'icon' => '' ];
+					},
+					$items
+				),
+				static fn( array $item ): bool => '' !== $item['text']
+			)
+		);
 
 		if ( empty( $items ) ) {
 			return '';
@@ -606,17 +628,18 @@ if ( ! function_exists( 'dtb_email_next_steps_grid' ) ) {
 		foreach ( array_chunk( $items, $per_row ) as $chunk ) {
 			$width = (int) floor( 100 / max( count( $chunk ), 1 ) );
 			$row   = '';
-			foreach ( $chunk as $text ) {
+			foreach ( $chunk as $item ) {
 				++$step_no;
-				$row .= '<td width="' . $width . '%" valign="top" align="center" style="padding:0 8px;">'
-					. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 8px;"><tr><td width="28" height="28" align="center" valign="middle" style="width:28px;height:28px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:12px;font-weight:800;">' . $step_no . '</td></tr></table>'
-					. '<span style="display:block;color:#475569;font-family:' . $font . ';font-size:13px;line-height:145%;text-align:center;">' . esc_html( $text ) . '</span>'
+				$glyph = '' !== $item['icon'] ? $item['icon'] : (string) $step_no;
+				$row  .= '<td width="' . $width . '%" valign="top" align="center" style="padding:0 8px;">'
+					. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto 8px;"><tr><td width="30" height="30" align="center" valign="middle" style="width:30px;height:30px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:13px;font-weight:800;">' . $glyph . '</td></tr></table>'
+					. '<span style="display:block;color:#475569;font-family:' . $font . ';font-size:13px;line-height:145%;text-align:center;">' . esc_html( $item['text'] ) . '</span>'
 					. '</td>';
 			}
 			$rows_html .= '<tr>' . $row . '</tr>';
 		}
 
-		return dtb_email_card_open( __( "What's next?", 'drywall-toolbox' ) )
+		return dtb_email_card_open( __( "What's next?", 'drywall-toolbox' ), '', '&#10067;' )
 			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">' . $rows_html . '</table>'
 			. dtb_email_card_close();
 	}
@@ -630,11 +653,14 @@ if ( ! function_exists( 'dtb_email_support_card' ) ) {
 	 * @param string $text      Message text.
 	 * @param string $cta_url   Optional CTA URL.
 	 * @param string $cta_label Optional CTA label.
+	 * @param string $icon      Optional small glyph rendered in a circle before the title.
+	 * @param string $title     Optional bold title above the message text.
 	 * @return string
 	 */
-	function dtb_email_support_card( string $text, string $cta_url = '', string $cta_label = '' ): string {
-		$font = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
-		$text = dtb_email_clean_text( $text );
+	function dtb_email_support_card( string $text, string $cta_url = '', string $cta_label = '', string $icon = '', string $title = '' ): string {
+		$font  = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+		$text  = dtb_email_clean_text( $text );
+		$title = dtb_email_clean_text( $title );
 
 		if ( '' === $text ) {
 			return '';
@@ -650,9 +676,18 @@ if ( ! function_exists( 'dtb_email_support_card' ) ) {
 				. '</td>';
 		}
 
+		$icon_html = '' !== $icon
+			? '<td width="1%" valign="middle" style="padding:0 12px 0 0;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td width="34" height="34" align="center" valign="middle" style="width:34px;height:34px;border-radius:50%;background:#e8f1ff;background-color:#e8f1ff;color:#1e4fd8;font-family:' . $font . ';font-size:15px;">' . $icon . '</td></tr></table></td>'
+			: '';
+
+		$text_html = '' !== $title
+			? '<span style="display:block;color:#0f172a;font-family:' . $font . ';font-size:15px;font-weight:800;margin:0 0 2px;">' . esc_html( $title ) . '</span><span style="display:block;color:#334155;font-family:' . $font . ';font-size:13px;font-weight:500;line-height:145%;">' . esc_html( $text ) . '</span>'
+			: '<span style="display:block;color:#334155;font-family:' . $font . ';font-size:14px;font-weight:600;line-height:145%;">' . esc_html( $text ) . '</span>';
+
 		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 18px;border-collapse:separate;"><tr><td style="padding:18px 20px;background:#f8fbff;background-color:#f8fbff;border:1px solid #dce6f3;border-radius:16px;">'
 			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
-			. '<td valign="middle" style="color:#334155;font-family:' . $font . ';font-size:14px;font-weight:600;line-height:145%;">' . esc_html( $text ) . '</td>'
+			. $icon_html
+			. '<td valign="middle" style="padding:0;">' . $text_html . '</td>'
 			. $button
 			. '</tr></table>'
 			. '</td></tr></table>';
@@ -707,7 +742,7 @@ if ( ! function_exists( 'dtb_email_social_icons' ) ) {
 				continue;
 			}
 			$initial = esc_html( function_exists( 'mb_substr' ) ? mb_substr( $label, 0, 1 ) : substr( $label, 0, 1 ) );
-			$cells  .= '<td style="padding:0 5px;"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr( $label ) . '" style="display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background:#1c2942;background-color:#1c2942;color:#c7d2e5;font-family:' . $font . ';font-size:13px;font-weight:800;text-align:center;text-decoration:none;">' . $initial . '</a></td>';
+			$cells  .= '<td style="padding:0 5px;"><a href="' . esc_url( $url ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . esc_attr( $label ) . '" style="display:inline-block;width:32px;height:32px;line-height:30px;border-radius:50%;border:1px solid #3a3a3f;background:transparent;color:#e5e7eb;font-family:' . $font . ';font-size:13px;font-weight:800;text-align:center;text-decoration:none;">' . $initial . '</a></td>';
 		}
 
 		if ( '' === $cells ) {

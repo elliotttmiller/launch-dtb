@@ -29,23 +29,19 @@ defined( 'ABSPATH' ) || exit;
  */
 do_action( 'woocommerce_email_before_order_table', $order, $sent_to_admin, $plain_text, $email );
 
-$order_number_meta = $order->get_date_created()
-	/* translators: %1$s: order number, %2$s: formatted order date. */
-	? sprintf( __( 'Order #%1$s - %2$s', 'drywall-toolbox' ), $order->get_order_number(), wc_format_datetime( $order->get_date_created() ) )
-	/* translators: %s: order number. */
-	: sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() );
+$order_number_meta = $order->get_date_created() ? $order->get_date_created()->date_i18n( 'F j, Y' ) : '';
 
 echo function_exists( 'dtb_email_card_open' )
-	? dtb_email_card_open( __( 'Order summary', 'drywall-toolbox' ), $order_number_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	? dtb_email_card_open( __( 'Order summary', 'drywall-toolbox' ), $order_number_meta, '&#128203;' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	: '<div style="margin-bottom:20px;">';
 ?>
 
-<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="1" role="presentation">
+<table class="td font-family email-order-details" cellspacing="0" cellpadding="0" style="width:100%;" border="0" role="presentation">
 	<thead>
-		<tr>
-			<th class="td text-align-left" scope="col"><?php esc_html_e( 'Product', 'drywall-toolbox' ); ?></th>
-			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Quantity', 'drywall-toolbox' ); ?></th>
-			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Price', 'drywall-toolbox' ); ?></th>
+		<tr class="screen-reader-text">
+			<th class="td text-align-left" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Product', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Quantity', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Price', 'drywall-toolbox' ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -55,7 +51,7 @@ echo function_exists( 'dtb_email_card_open' )
 			[
 				'show_sku'      => true,
 				'show_image'    => true,
-				'image_size'    => [ 48, 48 ],
+				'image_size'    => [ 72, 72 ],
 				'plain_text'    => $plain_text,
 				'sent_to_admin' => $sent_to_admin,
 			]
@@ -63,8 +59,8 @@ echo function_exists( 'dtb_email_card_open' )
 		?>
 	</tbody>
 </table>
-<hr class="hr" style="margin:18px 0;">
-<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="1" role="presentation">
+<hr class="hr" style="margin:6px 0 12px;">
+<table class="td font-family email-order-details email-order-totals" cellspacing="0" cellpadding="0" style="width:100%;" border="0" role="presentation">
 	<?php
 	$item_totals = $order->get_order_item_totals();
 	foreach ( $item_totals as $total ) {

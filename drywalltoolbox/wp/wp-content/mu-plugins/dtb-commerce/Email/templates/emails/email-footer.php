@@ -52,6 +52,12 @@ $support_url = function_exists( 'dtb_email_support_url' ) ? dtb_email_support_ur
 													<tr>
 														<td colspan="2" valign="middle" id="credit">
 															<?php echo function_exists( 'dtb_email_social_icons' ) ? dtb_email_social_icons() : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+															<p style="margin:0 0 6px;">
+																<?php
+																/* translators: %s: current year. */
+																printf( esc_html__( '© %s Drywall Toolbox. All rights reserved.', 'drywall-toolbox' ), esc_html( gmdate( 'Y' ) ) );
+																?>
+															</p>
 															<p style="margin:0 0 10px;">
 																<a href="<?php echo esc_url( $support_url ); ?>"><?php esc_html_e( 'Contact Us', 'drywall-toolbox' ); ?></a>
 															</p>

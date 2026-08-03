@@ -162,7 +162,7 @@ add_action(
 
 		echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:26px 0 4px;border-collapse:separate;">';
 		echo '<tr><td align="center" style="padding:0;">';
-		echo '<a href="' . esc_url( $cta['url'] ) . '" style="display:block;width:100%;box-sizing:border-box;padding:16px 22px;border-radius:16px;background:#2563eb;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:16px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;box-shadow:0 14px 28px rgba(37,99,235,0.24);">' . esc_html( $cta['label'] ) . '</a>';
+		echo '<a href="' . esc_url( $cta['url'] ) . '" style="display:block;width:100%;box-sizing:border-box;padding:16px 22px;border-radius:16px;background:#2563eb;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:16px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;box-shadow:0 14px 28px rgba(37,99,235,0.24);">&#128230;&nbsp; ' . esc_html( $cta['label'] ) . '</a>';
 		echo '</td></tr></table>';
 
 		if ( ! empty( $cta['secondary'] ) && $cta['url'] !== $tracking_url ) {

@@ -23,9 +23,9 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 
 echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'label' => __( 'Payment pending', 'drywall-toolbox' ), 'state' => 'warning' ],
-		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'upcoming' ],
-		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming' ],
+		[ 'label' => __( 'Payment pending', 'drywall-toolbox' ), 'state' => 'warning', 'icon' => '&#128179;' ],
+		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => '&#128230;' ],
+		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => '&#128666;' ],
 	]
 ) : '';
 ?>
@@ -59,7 +59,9 @@ do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_
 echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	__( 'Questions about your payment or order? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
-	__( 'Contact support', 'drywall-toolbox' )
+	__( 'Contact support', 'drywall-toolbox' ),
+	'&#127911;',
+	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 
 if ( $additional_content ) {

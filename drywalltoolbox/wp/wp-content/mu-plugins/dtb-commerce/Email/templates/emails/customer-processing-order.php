@@ -27,9 +27,9 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 
 echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done' ],
-		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'active' ],
-		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming' ],
+		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done', 'icon' => '&#128179;' ],
+		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'active', 'icon' => '&#128230;' ],
+		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => '&#128666;' ],
 	]
 ) : '';
 ?>
@@ -63,16 +63,18 @@ do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_
 
 echo function_exists( 'dtb_email_next_steps_grid' ) ? dtb_email_next_steps_grid( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		__( 'We prepare and pack your order', 'drywall-toolbox' ),
-		__( 'You\'ll get a shipping confirmation with tracking once it leaves our warehouse', 'drywall-toolbox' ),
-		__( 'Questions? Reply to this email or contact support', 'drywall-toolbox' ),
+		[ 'text' => __( 'We prepare and pack your order', 'drywall-toolbox' ), 'icon' => '&#9993;' ],
+		[ 'text' => __( 'You\'ll get a shipping confirmation with tracking once it leaves our warehouse', 'drywall-toolbox' ), 'icon' => '&#128230;' ],
+		[ 'text' => __( 'Questions? Reply to this email or contact support', 'drywall-toolbox' ), 'icon' => '&#128666;' ],
 	]
 ) : '';
 
 echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	__( 'Our team is here to help with any questions about your order.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
-	__( 'Contact support', 'drywall-toolbox' )
+	__( 'Contact support', 'drywall-toolbox' ),
+	'&#127911;',
+	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 
 if ( $additional_content ) {

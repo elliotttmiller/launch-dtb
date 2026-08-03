@@ -21,13 +21,13 @@ $palette = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' )
 $font    = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 ?>
 body {
-	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#eef3f9' ); ?>;
+	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;
 	padding: 0;
 	text-align: center;
 }
 
 #outer_wrapper {
-	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#eef3f9' ); ?>;
+	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;
 }
 
 #wrapper {
@@ -45,7 +45,7 @@ body {
 }
 
 #template_header {
-	background-color: <?php echo esc_attr( $palette['header_bg'] ?? '#071126' ); ?>;
+	background-color: <?php echo esc_attr( $palette['header_bg'] ?? '#000000' ); ?>;
 }
 
 #template_header_image {
@@ -103,29 +103,36 @@ a,
 
 .td {
 	color: <?php echo esc_attr( $palette['text'] ?? '#64748b' ); ?>;
-	border: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+	border: 0;
 	vertical-align: middle;
 }
 
 .email-order-details td,
 .email-order-details th {
-	padding: 10px 12px;
+	padding: 12px 4px;
 }
 
 .email-order-details thead th {
-	background: <?php echo esc_attr( $palette['accent_soft_bg'] ?? '#e8f1ff' ); ?>;
-	color: <?php echo esc_attr( $palette['accent_soft_tx'] ?? '#1e4fd8' ); ?>;
-	font-size: 12px;
-	font-weight: 760;
-	letter-spacing: 0.06em;
-	text-transform: uppercase;
 	border: 0;
+}
+
+.email-order-details tbody tr.order_item td {
+	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+}
+
+.email-order-totals tr.order-totals td,
+.email-order-totals tr.order-totals th {
+	padding: 6px 4px;
+	font-size: 14px;
 }
 
 .order-totals-total td,
 .order-totals-total th {
-	font-weight: 760;
-	font-size: 17px;
+	font-weight: 800;
+	font-size: 18px;
+	color: <?php echo esc_attr( $palette['accent'] ?? '#2563eb' ); ?>;
+	border-top: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+	padding-top: 14px !important;
 }
 
 .address {
@@ -170,8 +177,8 @@ a,
 }
 
 #template_footer {
-	background: <?php echo esc_attr( $palette['footer_bg'] ?? '#071126' ); ?>;
-	background-color: <?php echo esc_attr( $palette['footer_bg'] ?? '#071126' ); ?>;
+	background: <?php echo esc_attr( $palette['footer_bg'] ?? '#000000' ); ?>;
+	background-color: <?php echo esc_attr( $palette['footer_bg'] ?? '#000000' ); ?>;
 }
 
 #template_footer td {

@@ -53,7 +53,9 @@ do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_
 echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	__( 'Trouble completing payment? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
-	__( 'Contact support', 'drywall-toolbox' )
+	__( 'Contact support', 'drywall-toolbox' ),
+	'&#127911;',
+	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 
 if ( $additional_content ) {
