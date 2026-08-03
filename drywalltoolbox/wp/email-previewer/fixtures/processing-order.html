@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Processing Order Email Fixture</title>
+  <style>
+    body{margin:0;background:#eef1f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#111827}
+    table{border-collapse:collapse}
+    .shell{width:100%;background:#eef1f5;padding:24px 12px}
+    .email{width:100%;max-width:680px;margin:0 auto;background:#fff}
+    .header{background:#05070b;padding:30px 24px;text-align:center}
+    .logo{font-size:25px;font-weight:800;letter-spacing:-.4px;color:#fff}.logo span{color:#2255ee}
+    .body{padding:38px 42px}
+    .eyebrow{text-align:center;color:#2255ee;font-size:13px;font-weight:800;letter-spacing:.12em;margin:0 0 10px}
+    h1{text-align:center;font-size:30px;line-height:1.2;margin:0 0 12px}
+    .lede{text-align:center;color:#5f6877;font-size:16px;line-height:1.6;margin:0 auto 30px;max-width:520px}
+    .progress{width:100%;margin:0 0 28px}.step{text-align:center;width:33.333%;font-size:13px;color:#667085}.dot{width:28px;height:28px;line-height:28px;border-radius:50%;display:inline-block;background:#e6ebf2;color:#667085;font-weight:800}.done .dot,.active .dot{background:#2255ee;color:#fff}.active{font-weight:700;color:#111827}
+    .card{border:1px solid #dfe4ea;border-radius:14px;margin:0 0 20px;overflow:hidden}.card-head{padding:18px 20px;border-bottom:1px solid #e7ebf0;font-weight:800}.card-body{padding:20px}
+    .item{width:100%}.thumb{width:72px}.thumb-box{width:58px;height:58px;border-radius:10px;background:#f1f4f8;text-align:center;line-height:58px;color:#8a94a3;font-size:12px}.product{font-weight:700;line-height:1.35}.sku{font-size:13px;color:#7b8492;margin-top:5px}.qty{text-align:center;width:50px}.price{text-align:right;width:95px;font-weight:700}
+    .totals{width:100%;margin-top:18px;border-top:1px solid #e7ebf0;padding-top:12px}.totals td{padding:6px 0}.totals .label{color:#667085}.totals .value{text-align:right}.totals .grand td{padding-top:13px;font-size:20px;font-weight:800}.totals .grand .value{color:#2255ee}
+    .button-wrap{text-align:center;padding-top:20px}.button{display:inline-block;background:#111827;color:#fff;text-decoration:none;font-weight:800;padding:14px 24px;border-radius:8px}
+    .addresses{width:100%}.addresses td{width:50%;vertical-align:top;padding-right:18px}.addresses td+td{padding-left:18px;padding-right:0;border-left:1px solid #e7ebf0}.section-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#2255ee;margin-bottom:10px}.copy{font-size:14px;line-height:1.6;color:#4f5968}
+    .next{width:100%}.next td{width:33.333%;vertical-align:top;padding:0 10px}.next td:first-child{padding-left:0}.next td:last-child{padding-right:0}.num{color:#2255ee;font-weight:800;margin-bottom:7px}.next-title{font-weight:800;font-size:14px;margin-bottom:4px}.next-copy{font-size:13px;line-height:1.5;color:#667085}
+    .support{text-align:center;background:#f4f7ff}.support h2{font-size:20px;margin:0 0 8px}.support p{margin:0 0 18px;color:#5f6877;font-size:14px}
+    .footer{background:#05070b;color:#9ca3af;text-align:center;padding:26px 20px;font-size:12px;line-height:1.7}.footer a{color:#fff;text-decoration:none;margin:0 7px}
+    @media(max-width:600px){.shell{padding:0}.body{padding:28px 18px}h1{font-size:25px}.progress td{display:block;width:100%;padding:8px 0}.item .thumb,.item .qty,.item .price{display:block;width:auto;text-align:left}.item .qty,.item .price{padding-top:8px}.addresses td,.next td{display:block;width:100%;padding:0 0 18px;border:0!important}.addresses td+td{padding-left:0}.button{display:block}.card-body{padding:17px}}
+  </style>
+</head>
+<body>
+<table role="presentation" class="shell"><tr><td>
+  <table role="presentation" class="email">
+    <tr><td class="header"><div class="logo">DryWall <span>TOOLBOX</span></div></td></tr>
+    <tr><td class="body">
+      <p class="eyebrow">ORDER #5854</p>
+      <h1>Thank you for your order!</h1>
+      <p class="lede">We’ve confirmed your payment and your tools are being prepared for shipment.</p>
+
+      <table role="presentation" class="progress"><tr>
+        <td class="step done"><span class="dot">1</span><br>Payment received</td>
+        <td class="step active"><span class="dot">2</span><br>Being prepared</td>
+        <td class="step"><span class="dot">3</span><br>On the way soon</td>
+      </tr></table>
+
+      <div class="card">
+        <div class="card-head">Order summary</div>
+        <div class="card-body">
+          <table role="presentation" class="item"><tr>
+            <td class="thumb"><div class="thumb-box">IMAGE</div></td>
+            <td><div class="product">Columbia Automatic Taper Replacement Cable</div><div class="sku">SKU: COL-AT-CABLE</div></td>
+            <td class="qty">× 1</td>
+            <td class="price">$89.00</td>
+          </tr></table>
+          <table role="presentation" class="totals">
+            <tr><td class="label">Subtotal</td><td class="value">$89.00</td></tr>
+            <tr><td class="label">Shipping</td><td class="value">$12.95</td></tr>
+            <tr><td class="label">Tax</td><td class="value">$7.48</td></tr>
+            <tr class="grand"><td>Total</td><td class="value">$109.43</td></tr>
+          </table>
+          <div class="button-wrap"><a class="button" href="#">View order details</a></div>
+        </div>
+      </div>
+
+      <div class="card"><div class="card-head">Delivery details</div><div class="card-body">
+        <table role="presentation" class="addresses"><tr>
+          <td><div class="section-label">Billing address</div><div class="copy">Elliott Miller<br>123 Sample Street<br>Plymouth, MN 55441</div></td>
+          <td><div class="section-label">Shipping address</div><div class="copy">Elliott Miller<br>123 Sample Street<br>Plymouth, MN 55441</div></td>
+        </tr></table>
+      </div></div>
+
+      <div class="card"><div class="card-head">What’s next?</div><div class="card-body">
+        <table role="presentation" class="next"><tr>
+          <td><div class="num">01</div><div class="next-title">We prepare your order</div><div class="next-copy">Your tools are inspected and packed.</div></td>
+          <td><div class="num">02</div><div class="next-title">Shipping confirmation</div><div class="next-copy">Tracking is sent when the shipment leaves.</div></td>
+          <td><div class="num">03</div><div class="next-title">Need help?</div><div class="next-copy">Our support team can assist with your order.</div></td>
+        </tr></table>
+      </div></div>
+
+      <div class="card support"><div class="card-body"><h2>Need help?</h2><p>Contact the Drywall Toolbox support team.</p><a class="button" href="#">Contact support</a></div></div>
+    </td></tr>
+    <tr><td class="footer">© 2026 Drywall Toolbox<br><a href="#">Contact Us</a><a href="#">Privacy</a><a href="#">Terms</a></td></tr>
+  </table>
+</td></tr></table>
+</body>
+</html>
