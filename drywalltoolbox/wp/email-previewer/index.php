@@ -11,6 +11,14 @@
 
 declare(strict_types=1);
 
+if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+	define( 'DONOTCACHEPAGE', true );
+}
+
+if ( ! defined( 'DONOTCACHEDB' ) ) {
+	define( 'DONOTCACHEDB', true );
+}
+
 $wordpress_loader = dirname( __DIR__ ) . '/wp-load.php';
 
 if ( ! is_readable( $wordpress_loader ) ) {
@@ -19,12 +27,6 @@ if ( ! is_readable( $wordpress_loader ) ) {
 }
 
 require_once $wordpress_loader;
-
-use DrywallToolbox\EmailPreviewer\Renderer;
-
-if ( ! defined( 'DONOTCACHEPAGE' ) ) {
-	define( 'DONOTCACHEPAGE', true );
-}
 
 nocache_headers();
 
@@ -69,7 +71,7 @@ if ( isset( $_GET['render'] ) && '1' === sanitize_text_field( wp_unslash( $_GET[
 		exit;
 	}
 
-	$rendered = Renderer::render( $order_id, $email_id );
+	$rendered = \DrywallToolbox\EmailPreviewer\Renderer::render( $order_id, $email_id );
 	if ( is_wp_error( $rendered ) ) {
 		http_response_code( 422 );
 		echo '<!doctype html><html><body style="font-family:Arial,sans-serif;padding:32px">';
@@ -83,7 +85,7 @@ if ( isset( $_GET['render'] ) && '1' === sanitize_text_field( wp_unslash( $_GET[
 	exit;
 }
 
-$supported_emails = Renderer::supported_emails();
+$supported_emails = \DrywallToolbox\EmailPreviewer\Renderer::supported_emails();
 $query_args       = array(
 	'render' => '1',
 	'email'  => $email_id,
