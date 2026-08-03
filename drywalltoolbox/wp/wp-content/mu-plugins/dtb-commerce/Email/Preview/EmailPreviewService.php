@@ -136,6 +136,8 @@ final class EmailPreviewService {
 			if ( $email instanceof WC_Email && $email_id === (string) $email->id ) {
 				return $email;
 			}
+		}
+
 		return null;
 	}
 }
