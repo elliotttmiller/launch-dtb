@@ -9,8 +9,10 @@
  * wizard (progress rail + Back/Continue bar) is built entirely by
  * checkout.js as progressive enhancement over the native Woo Checkout
  * Block groups — no separate step markup lives in this template, so there
- * is exactly one source of truth for step definitions. Both are
- * registered in functions.php (dtb_enqueue_native_checkout_assets()). See
+ * is exactly one source of truth for step definitions. Base checkout assets
+ * are registered in functions.php (dtb_enqueue_native_checkout_assets());
+ * the desktop-only layout layer is enqueued here before wp_head() with an
+ * explicit dependency on the base stylesheet. See
  * docs/checkout-ui-architecture.md for the full redesign contract.
  *
  * @package drywall-toolbox
@@ -19,6 +21,15 @@
 defined( 'ABSPATH' ) || exit;
 
 $storefront_home_url = home_url( '/' );
+$desktop_style_path  = get_template_directory() . '/assets/checkout/checkout-desktop.css';
+$desktop_style_ver   = file_exists( $desktop_style_path ) ? (string) filemtime( $desktop_style_path ) : DTB_VERSION;
+
+wp_enqueue_style(
+	'dtb-checkout-desktop',
+	get_template_directory_uri() . '/assets/checkout/checkout-desktop.css',
+	[ 'dtb-checkout' ],
+	$desktop_style_ver
+);
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
