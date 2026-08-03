@@ -118,13 +118,6 @@
 		width: 100%;
 		max-width: none;
 	}
-
-	/* The order summary is always visible on desktop; the disclosure button is
-	 * a compact/mobile affordance and must not reserve an extra row here. */
-	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary__title-text,
-	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary__title-icon {
-		pointer-events: none;
-	}
 }
 
 @media (min-width: 1440px) {
