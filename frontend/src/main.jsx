@@ -1,5 +1,5 @@
 import './bootstrapRuntimeAssetBase.js'
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import '@fontsource-variable/inter/wght.css'
@@ -74,12 +74,29 @@ if (typeof window !== 'undefined') {
   }
 }
 
+function markAppMounted() {
+  if (typeof document !== 'undefined') {
+    document.documentElement.setAttribute('data-dtb-app-mounted', 'true');
+  }
+}
+
+function AppBootMarker() {
+  useEffect(() => {
+    markAppMounted();
+  }, []);
+
+  return null;
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <>
+        <AppBootMarker />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </>
     </HelmetProvider>
   </StrictMode>,
 )

@@ -26,6 +26,13 @@
           });
         }).catch(function () {});
       }
+      if (window.location.search && /(?:^|[?&])source=pwa(?:&|$)/.test(window.location.search)) {
+        try {
+          var pwaUrl = new URL(window.location.href);
+          pwaUrl.searchParams.delete('source');
+          window.history.replaceState(window.history.state, document.title, pwaUrl.pathname + pwaUrl.search + pwaUrl.hash);
+        } catch (e) {}
+      }
     </script>
     <link rel="icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
@@ -133,8 +140,7 @@
         var TIMEOUT_MS = 8000;
 
         function appHasMounted() {
-          var root = document.getElementById('root');
-          return !!(root && root.children.length > 0);
+          return document.documentElement.getAttribute('data-dtb-app-mounted') === 'true';
         }
 
         function showFallback() {
