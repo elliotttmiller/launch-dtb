@@ -34,15 +34,6 @@ function dtb_vd_property_types(): array {
 }
 
 /**
- * Allowed configuration scopes for a property value.
- *
- * @return string[]
- */
-function dtb_vd_property_scopes(): array {
-	return [ 'global', 'surface', 'component', 'responsive' ];
-}
-
-/**
  * Allowed responsive breakpoint keys. Mirrors the frontend's own breakpoint
  * system (see frontend/src/styles) rather than inventing new ones.
  *

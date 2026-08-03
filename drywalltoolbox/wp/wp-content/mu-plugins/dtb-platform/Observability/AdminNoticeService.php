@@ -10,10 +10,6 @@ final class DTB_AdminNoticeService {
 		self::queue( 'error', $message );
 	}
 
-	public static function add_success( string $message ): void {
-		self::queue( 'success', $message );
-	}
-
 	private static function queue( string $type, string $message ): void {
 		add_action(
 			'admin_notices',

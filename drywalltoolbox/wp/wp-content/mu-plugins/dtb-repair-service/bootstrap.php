@@ -87,7 +87,4 @@ require_once __DIR__ . '/Admin/RepairDetailPage.php';
 require_once __DIR__ . '/Admin/RepairDashboardPanel.php';
 require_once __DIR__ . '/Admin/RepairQueuePanel.php';
 require_once __DIR__ . '/Admin/RepairSlaPanel.php';
-require_once __DIR__ . '/Admin/RepairOrderDashboardPanel.php';
-require_once __DIR__ . '/Admin/RepairOrderBulkActions.php';
-require_once __DIR__ . '/Admin/RepairOrderTimelineDrawer.php';
 }

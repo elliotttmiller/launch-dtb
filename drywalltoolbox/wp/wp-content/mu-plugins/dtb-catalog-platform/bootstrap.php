@@ -28,7 +28,6 @@ $_dtb_cp = __DIR__;
 require_once $_dtb_cp . '/Domain/ProductMeta.php';
 require_once $_dtb_cp . '/Domain/Brand.php';
 require_once $_dtb_cp . '/Domain/ToolFamilies.php';
-require_once $_dtb_cp . '/Domain/ToolFamily.php';
 require_once $_dtb_cp . '/Domain/CatalogProduct.php';
 require_once $_dtb_cp . '/Domain/ProductVariation.php';
 require_once $_dtb_cp . '/Domain/ToolsetData.php';
@@ -103,7 +102,6 @@ require_once $_dtb_cp . '/Rest/ProductPlaceholderImageFilter.php';
 
 // Admin / CLI tools.
 if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
-	require_once $_dtb_cp . '/Admin/CatalogAdminMenu.php';
 	require_once $_dtb_cp . '/Admin/ProductListTable.php';
 	require_once $_dtb_cp . '/Admin/CatalogToolsPage.php';
 	require_once $_dtb_cp . '/Admin/MetaBackfillTool.php';

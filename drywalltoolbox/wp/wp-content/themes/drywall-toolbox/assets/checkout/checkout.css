@@ -553,58 +553,14 @@ body.woocommerce-checkout .wc-block-checkout__login-prompt button:hover {
 /* ---------------------------------------------------------------------------
  * 5b. Desktop two-column layout (>=1024px only).
  *
- * Below this breakpoint the checkout is unchanged: the mobile step wizard
- * (checkout.js) still owns <768px, and 768–1023px still renders every step
- * in a single flowing column exactly as it does today. None of the rules
- * above this block, and none of the rules in section 4c's own 768px query,
- * are touched here — this is a new, additive rule set gated behind a wider
- * breakpoint than anything else in the file.
- *
- * `.wc-block-checkout__form` is the shared parent WooCommerce Blocks renders
- * `.wc-block-checkout__main` (Contact/Shipping/Payment steps) and
- * `.wc-block-checkout__sidebar` (Order summary) into — turning it into a
- * grid lays them side by side without touching either region's own markup.
+ * Superseded by checkout-desktop.css (handle `dtb-checkout-desktop`), which
+ * targets WooCommerce's actual published `.wc-block-components-sidebar-layout`
+ * region instead of ad-hoc-grid-ing `.wc-block-checkout__form` here. This
+ * block used to duplicate that grid on a different element at the same
+ * breakpoint — the two fought each other and produced a broken single-column
+ * desktop layout with no working two-column split. Removed; see
+ * checkout-desktop.css for the current desktop layout authority.
  * ------------------------------------------------------------------------- */
-
-@media (min-width: 1024px) {
-	/* This theme ships no global box-sizing reset (see the screen-reader-text
-	 * comment in section 2), so padding-inline here must be explicitly kept
-	 * inside max-width rather than added on top of it under the browser
-	 * default content-box model. */
-	body.woocommerce-checkout #primary {
-		box-sizing: border-box;
-		max-width: 1180px;
-		padding-inline: var(--dtb-gutter);
-	}
-
-	body.woocommerce-checkout .wc-block-checkout__form {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 400px;
-		align-items: start;
-		gap: 32px;
-	}
-
-	body.woocommerce-checkout .wc-block-checkout__main,
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
-		padding: 0;
-	}
-
-	/* Sidebar sticks under the sticky branded top bar while the main column
-	 * scrolls past it — `top` clears the top bar's height (logo + padding)
-	 * with room to spare; capped height + its own scroll keeps a long order
-	 * summary from running off the bottom of the viewport. */
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
-		position: sticky;
-		top: 104px;
-		max-height: calc(100vh - 128px);
-		overflow-y: auto;
-	}
-
-	body.woocommerce-checkout .wc-block-components-checkout-step {
-		padding: 24px 28px;
-		margin-bottom: 20px;
-	}
-}
 
 /* ---------------------------------------------------------------------------
  * 6. Express payment row (Apple Pay / Google Pay / Link)

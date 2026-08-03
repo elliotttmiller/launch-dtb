@@ -13,8 +13,4 @@ final class DTB_ApiHealthController {
 			'timestamp'    => gmdate( 'c' ),
 		];
 	}
-
-	public static function as_rest_response(): WP_REST_Response {
-		return rest_ensure_response( self::summary() );
-	}
 }

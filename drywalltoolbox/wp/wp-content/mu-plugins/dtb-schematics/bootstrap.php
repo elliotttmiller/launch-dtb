@@ -39,10 +39,8 @@ dtb_module_require( 'dtb-schematics/Application/ResolveSchematicParts.php' );
 // REST.
 dtb_module_require( 'dtb-schematics/Rest/SchematicMediaController.php' );
 dtb_module_require( 'dtb-schematics/Rest/SchematicManifestController.php' );
-dtb_module_require( 'dtb-schematics/Rest/SchematicPartsController.php' );
 
 // Admin.
 dtb_module_require( 'dtb-schematics/Admin/SchematicAdminMenu.php' );
 dtb_module_require( 'dtb-schematics/Admin/SchematicSyncPage.php' );
 dtb_module_require( 'dtb-schematics/Admin/SchematicEditorPage.php' );
-dtb_module_require( 'dtb-schematics/Admin/SchematicMediaPage.php' );

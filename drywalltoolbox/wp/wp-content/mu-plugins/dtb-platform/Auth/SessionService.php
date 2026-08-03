@@ -6,14 +6,6 @@ if ( class_exists( 'DTB_SessionService' ) ) {
 }
 
 final class DTB_SessionService {
-	public static function set_auth_cookie( string $jwt, int $ttl_sec = 604800 ): void {
-		dtb_set_auth_cookie( $jwt, $ttl_sec );
-	}
-
-	public static function clear_auth_cookie(): void {
-		dtb_clear_auth_cookie();
-	}
-
 	/**
 	 * Rotate the current Woo session to an anonymous cart-only session.
 	 *
@@ -89,49 +81,6 @@ final class DTB_SessionService {
 		}
 	}
 
-	/**
-	 * Discard a Woo session when two authenticated customer identities conflict.
-	 *
-	 * This intentionally does not preserve cart/customer/session data. Carrying a
-	 * cart from one authenticated customer into another identity would be a data-
-	 * isolation violation. The next request may create/migrate a fresh session for
-	 * the verified storefront customer through WooCommerce's native lifecycle.
-	 *
-	 * This method can run from `determine_current_user`; therefore it must never call
-	 * get_current_user_id(), which would recursively invoke current-user resolution.
-	 */
-	public static function discard_woocommerce_session_for_identity_conflict(): void {
-		$previous_user_id = isset( $GLOBALS['current_user'] ) && $GLOBALS['current_user'] instanceof WP_User
-			? (int) $GLOBALS['current_user']->ID
-			: 0;
-
-		try {
-			if ( function_exists( 'wp_set_current_user' ) ) {
-				wp_set_current_user( 0 );
-			}
-
-			if ( function_exists( 'WC' ) && WC() && is_object( WC()->session ) && is_callable( [ WC()->session, 'destroy_session' ] ) ) {
-				WC()->session->destroy_session();
-			}
-		} catch ( Throwable $error ) {
-			if ( function_exists( 'wc_get_logger' ) ) {
-				wc_get_logger()->warning(
-					'WooCommerce session cleanup encountered an error while containing an auth identity conflict.',
-					[
-						'source'      => 'dtb-auth',
-						'error_class' => get_class( $error ),
-					]
-				);
-			}
-		} finally {
-			self::expire_woocommerce_session_cookie();
-			self::expire_cart_marker_cookies();
-			if ( $previous_user_id > 0 && function_exists( 'wp_set_current_user' ) ) {
-				wp_set_current_user( $previous_user_id );
-			}
-		}
-	}
-
 	/** Expire the current Woo session cookie without exposing its contents. */
 	private static function expire_woocommerce_session_cookie(): void {
 		if ( ! defined( 'COOKIEHASH' ) ) {
@@ -169,9 +118,5 @@ final class DTB_SessionService {
 			}
 			unset( $_COOKIE[ $cookie_name ] );
 		}
-	}
-
-	public static function is_cross_origin_request(): bool {
-		return dtb_is_cross_origin_request();
 	}
 }

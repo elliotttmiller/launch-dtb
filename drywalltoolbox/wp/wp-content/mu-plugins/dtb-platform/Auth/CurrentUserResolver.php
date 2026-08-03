@@ -19,13 +19,4 @@ final class DTB_CurrentUserResolver {
 		$user = get_user_by( 'id', $user_id );
 		return ( $user instanceof WP_User ) ? $user : null;
 	}
-
-	public static function resolve_from_request( WP_REST_Request $request ): ?WP_User {
-		$permission = dtb_jwt_permission( $request );
-		if ( is_wp_error( $permission ) ) {
-			return null;
-		}
-
-		return self::resolve_user();
-	}
 }

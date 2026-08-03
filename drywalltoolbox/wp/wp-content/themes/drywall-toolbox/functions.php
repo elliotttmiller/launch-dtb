@@ -462,6 +462,9 @@ function dtb_enqueue_native_checkout_assets(): void {
 		DTB_VERSION
 	);
 
+	// dtb-checkout-desktop (the >=1024px two-column layout authority) is
+	// enqueued from native-checkout.php itself, per docs/checkout-desktop-layout.md.
+
 	wp_enqueue_script(
 		'dtb-checkout',
 		get_template_directory_uri() . '/assets/checkout/checkout.js',

@@ -79,18 +79,3 @@ function dtb_vd_get_token( string $token_id ): ?array {
 	}
 	return null;
 }
-
-/**
- * Repository-default values for every registered token, keyed by token id.
- *
- * @return array<string, mixed>
- */
-function dtb_vd_get_token_defaults(): array {
-	$defaults = [];
-	foreach ( dtb_vd_get_token_groups() as $group ) {
-		foreach ( (array) $group['tokens'] as $token_id => $token ) {
-			$defaults[ $token_id ] = $token['default'] ?? null;
-		}
-	}
-	return $defaults;
-}

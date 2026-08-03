@@ -25,12 +25,9 @@ This folder now has a stricter split:
 
 Use these first before adding a new standalone component:
 
-- `ui/Button.jsx`
 - `ui/Dropdown.jsx`
-- `ui/FeatureSection.jsx`
 - `ui/HeroSection.jsx`
 - `ui/NavbarTabs.jsx`
-- `ui/PricingTable.jsx`
 - `ui/ProductShoppingCard.jsx`
 - `ui/Toast.jsx`
 - `ui/TrustedBrands.jsx`
@@ -39,11 +36,11 @@ Use these first before adding a new standalone component:
 
 These are feature-specific or data-aware and should remain outside `ui/`:
 
-- Shell: `shell/Header.jsx`, `shell/Footer.jsx`, `shell/CartSidebar.jsx`, `shell/MobileSearch.jsx`, `shell/NotificationsBell.jsx`, `shell/ShippingTicker.jsx`
+- Shell: `shell/Header.jsx`, `shell/Footer.jsx`, `shell/CartSidebar.jsx`
 - Product detail flow: `product/ProductDetail.jsx`, `product/ProductModal.jsx`, `product/ProductImageGallery.jsx`, `product/ProductCardImage.jsx`, `product/Reviews.jsx`, `product/TechnicalSpecifications.jsx`
 - Catalog helpers: `catalog/FilterPanel.jsx`, `catalog/SearchBar.jsx`, `catalog/Pagination.jsx`, `catalog/ProductShoppingCardSkeleton.jsx`, `catalog/TrendingProducts.jsx`
 - Schematics flow: `schematics/BrandSelector.jsx`, `schematics/ToolSelector.jsx`
-- Account and routing helpers: `account/AccountLayout.jsx`, `routing/PageTransition.jsx`, `routing/ProtectedRoute.jsx`
+- Routing helpers: `routing/PageTransition.jsx`, `routing/ProtectedRoute.jsx`
 - Shared utilities: `shared/BackButton.jsx`, `shared/LoadingSpinner.jsx`, `shared/SEOHead.jsx`
 - Error handling: `errors/ErrorBoundary.jsx`
 
@@ -61,6 +58,13 @@ These unused legacy components were also removed because they had no active impo
 - `SchematicDiagrams.jsx`
 - `SchematicFilterBar.jsx`
 - `VariantChips.jsx`
+- `ui/Button.jsx`, `ui/FeatureSection.jsx`, `ui/PricingTable.jsx`
+- `shell/MobileSearch.jsx`, `shell/NotificationsBell.jsx`, `shell/ShippingTicker.jsx`
+- `account/AccountLayout.jsx`
+- `product/ProductAvailabilityNotice.jsx`, `product/ProductDescriptionAccordion.jsx`, `product/ProductMediaGallery.jsx`, `product/ProductPrice.jsx`, `product/ProductQuantityStepper.jsx`, `product/ProductSkuBlock.jsx`, `product/ProductVariantSelector.jsx`
+- `repairs/RepairCommentBox.jsx`, `repairs/RepairRequestForm.jsx`, `repairs/RepairTimeline.jsx`
+- `storefront/StorefrontAnnouncementBar.jsx`, `storefront/StorefrontCTA.jsx`, `storefront/StorefrontCategoryTile.jsx`, `storefront/StorefrontHero.jsx`, `storefront/StorefrontShopMegaMenu.jsx`
+- `shared/GlobalLoadingOverlay.jsx` (and its unused `context/GlobalLoadingContext.jsx`/`GlobalLoadingProvider`, which was never mounted)
 
 ## Safe refactor rules
 

@@ -18,41 +18,6 @@ final class DTB_JwtService {
 	private const ALGORITHM = 'HS256';
 	private const CLOCK_SKEW_SECONDS = 300;
 
-	public static function generate_for_user( WP_User $user ): string {
-		$secret = self::secret();
-		if ( is_wp_error( $secret ) ) {
-			return '';
-		}
-
-		$dtb_caps = [];
-		foreach ( [ 'DTB_CAP_OPS_ADMIN', 'DTB_CAP_ACCOUNTING', 'DTB_CAP_SUPPORT', 'DTB_CAP_CATALOG' ] as $constant ) {
-			if ( defined( $constant ) ) {
-				$capability = constant( $constant );
-				if ( is_string( $capability ) && $user->has_cap( $capability ) ) {
-					$dtb_caps[] = $capability;
-				}
-			}
-		}
-
-		$issued_at = time();
-		$header    = self::base64url_encode( (string) wp_json_encode( [ 'alg' => self::ALGORITHM, 'typ' => 'JWT' ] ) );
-		$payload   = self::base64url_encode(
-			(string) wp_json_encode(
-				[
-					'sub'      => (int) $user->ID,
-					'email'    => (string) $user->user_email,
-					'roles'    => array_values( (array) $user->roles ),
-					'dtb_caps' => array_values( array_unique( $dtb_caps ) ),
-					'iat'      => $issued_at,
-					'exp'      => $issued_at + ( 7 * DAY_IN_SECONDS ),
-				]
-			)
-		);
-		$signature = self::base64url_encode( hash_hmac( 'sha256', $header . '.' . $payload, $secret, true ) );
-
-		return $header . '.' . $payload . '.' . $signature;
-	}
-
 	/** @return object|WP_Error */
 	public static function verify( string $token ) {
 		$secret = self::secret();
@@ -106,13 +71,6 @@ final class DTB_JwtService {
 	public static function user_id( string $token ): int {
 		$payload = self::verify( $token );
 		return is_wp_error( $payload ) ? 0 : absint( $payload->sub ?? 0 );
-	}
-
-	public static function permission_check( WP_REST_Request $request ) {
-		if ( function_exists( 'dtb_jwt_permission' ) ) {
-			return dtb_jwt_permission( $request );
-		}
-		return self::error( 'auth_runtime_unavailable', 'Authentication runtime is unavailable.', 503 );
 	}
 
 	private static function secret() {
