@@ -1,1129 +1,295 @@
-/**
- * Drywall Toolbox — Native WooCommerce Checkout Block, mobile presentation layer.
+/*
+ * Drywall Toolbox — canonical WooCommerce Checkout Block presentation.
  *
- * Scope: this file styles the surrounding WooCommerce Checkout Block markup and
- * the Payment Plugins for Stripe (woo-stripe-payment) container chrome only. It
- * never reaches into a Stripe Elements/Payment Element iframe — those are a
- * separate origin and are styled exclusively through the Stripe Appearance API
- * via the `wc_stripe_get_element_options` filter (see
- * mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php).
- *
- * Selectors target the stable, published class names shipped by:
- *  - WooCommerce core Checkout block   (assets/client/blocks/checkout.css)
- *  - Payment Plugins for Stripe WooCommerce blocks package (wc-stripe-*)
- *
- * Mobile-first: base rules target small viewports; the single container
- * max-width keeps the same layout intentional up to tablet/desktop without a
- * separate desktop redesign pass.
- *
- * Handle: dtb-checkout  (see functions.php dtb_enqueue_native_checkout_assets()).
+ * This stylesheet is intentionally presentation-only. It does not define the
+ * Checkout Block's internal grid, reorder nodes, hide steps, classify provider
+ * markup, or override WooCommerce/Stripe state. WooCommerce retains layout and
+ * checkout authority; DTB supplies tokens, document chrome and component-level
+ * appearance through stable public classes.
  */
 
-/* ---------------------------------------------------------------------------
- * 1. Design tokens
- * ------------------------------------------------------------------------- */
-
 :root {
-	--dtb-ink: #0b0f19;
-	--dtb-ink-soft: #1b2233;
-	--dtb-accent: #2f6feb;
-	--dtb-accent-dark: #1d4fd1;
-	--dtb-accent-soft: #eaf1ff;
-	--dtb-success: #16a34a;
-	--dtb-danger: #d92d20;
-	--dtb-surface: #ffffff;
-	--dtb-surface-muted: #f7f8fa;
-	--dtb-border: #e3e6eb;
-	--dtb-border-strong: #c9ced8;
-	--dtb-text: #101423;
-	--dtb-text-muted: #5b6273;
-	--dtb-radius-lg: 18px;
-	--dtb-radius-md: 12px;
-	--dtb-radius-sm: 8px;
-	--dtb-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-	--dtb-shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
-	--dtb-touch: 48px;
-	--dtb-gutter: clamp(16px, 4vw, 24px);
-	--dtb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	--dtb-checkout-ink: var(--wp--preset--color--dtb-ink, #0b0f19);
+	--dtb-checkout-text: var(--wp--preset--color--dtb-text, #101423);
+	--dtb-checkout-muted: var(--wp--preset--color--dtb-muted, #5b6273);
+	--dtb-checkout-accent: var(--wp--preset--color--dtb-accent, #2f6feb);
+	--dtb-checkout-accent-dark: var(--wp--preset--color--dtb-accent-dark, #1d4fd1);
+	--dtb-checkout-surface: var(--wp--preset--color--dtb-surface, #fff);
+	--dtb-checkout-canvas: var(--wp--preset--color--dtb-canvas, #f6f7f9);
+	--dtb-checkout-border: var(--wp--preset--color--dtb-border, #e1e5eb);
+	--dtb-checkout-danger: var(--wp--preset--color--dtb-danger, #b42318);
+	--dtb-checkout-radius: 16px;
+	--dtb-checkout-radius-control: 10px;
+	--dtb-checkout-shadow: 0 1px 2px rgba(16, 24, 40, 0.05), 0 10px 28px rgba(16, 24, 40, 0.05);
+	--dtb-checkout-font: var(--wp--preset--font-family--dtb-system, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
-/* ---------------------------------------------------------------------------
- * 2. Document shell
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout {
-	background: var(--dtb-surface-muted);
-	color: var(--dtb-text);
-	font-family: var(--dtb-font);
-	-webkit-font-smoothing: antialiased;
-	text-size-adjust: 100%;
-}
-
-body.woocommerce-checkout #primary {
-	max-width: 640px;
-	margin-inline: auto;
-	padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-/* Fluid type scale, mobile-first. */
-body.woocommerce-checkout {
-	font-size: clamp(15px, 3.6vw, 16px);
+body.dtb-native-checkout {
+	margin: 0;
+	background: var(--dtb-checkout-canvas);
+	color: var(--dtb-checkout-text);
+	font-family: var(--dtb-checkout-font);
+	font-size: 16px;
 	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
 }
 
-body.woocommerce-checkout h2,
-body.woocommerce-checkout .wc-block-components-checkout-step__title {
-	font-size: clamp(17px, 4.4vw, 19px);
-	font-weight: 600;
-	letter-spacing: -0.01em;
+body.dtb-native-checkout *,
+body.dtb-native-checkout *::before,
+body.dtb-native-checkout *::after {
+	box-sizing: border-box;
 }
 
-/* This theme ships no base stylesheet (it's headless/React-first), so it
- * never defined the standard WordPress `.screen-reader-text` visually-hidden
- * treatment that WooCommerce Blocks' own markup depends on (it uses this
- * exact class — e.g. an accessible step heading prefix rendered alongside
- * the visible "Contact information" title). Without it, that text renders
- * on-screen, overlapping the visible heading. This is the standard WordPress
- * core implementation.
- *
- * `.components-visually-hidden` is the same treatment under Gutenberg's own
- * `@wordpress/components` package name (its `<VisuallyHidden>` component,
- * which WooCommerce Blocks also uses in places, e.g. for a step's accessible
- * heading prefix) — a *different* class name than WordPress core's
- * `.screen-reader-text` above, and just as undefined by this theme's empty
- * base stylesheet. Depending on which of the two a given WooCommerce Blocks
- * version/component happens to render, either one being unhandled reproduces
- * the exact same on-screen text collision (observed live as "Contact
- * information" with stray overlapping text baked into the heading). Both are
- * covered here with the same rule so a future WooCommerce Blocks update that
- * switches which one it emits for a given element doesn't regress this
- * again. */
-body.woocommerce-checkout .screen-reader-text,
-body.woocommerce-checkout .components-visually-hidden {
+.screen-reader-text,
+.components-visually-hidden {
 	position: absolute !important;
 	width: 1px;
 	height: 1px;
 	margin: -1px;
 	padding: 0;
 	overflow: hidden;
-	clip: rect(1px, 1px, 1px, 1px);
+	clip: rect(0 0 0 0);
 	clip-path: inset(50%);
 	white-space: nowrap;
 	border: 0;
 }
 
-/* ---------------------------------------------------------------------------
- * 3. Branded top bar (dtb-checkout__topbar markup lives in native-checkout.php)
- * ------------------------------------------------------------------------- */
+/* Checkout document shell. The Checkout Block retains its own native layout. */
+.dtb-checkout-shell {
+	width: min(100%, 1320px);
+	margin-inline: auto;
+	padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 48px) 72px;
+}
 
-.dtb-checkout__topbar {
+.dtb-checkout-header {
 	position: sticky;
 	top: 0;
 	z-index: 40;
+	background: var(--dtb-checkout-ink);
+	color: #fff;
+}
+
+.dtb-checkout-header__inner {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	gap: 12px;
-	padding: 20px var(--dtb-gutter);
-	background: var(--dtb-ink);
-	color: #fff;
-	padding-top: max(20px, env(safe-area-inset-top, 0px));
+	gap: 16px;
+	width: min(100%, 1440px);
+	min-height: 92px;
+	margin-inline: auto;
+	padding: max(18px, env(safe-area-inset-top, 0px)) clamp(20px, 4vw, 48px) 18px;
 }
 
-.dtb-checkout__brand {
-	display: flex;
+.dtb-checkout-header__brand {
+	display: inline-flex;
 	align-items: center;
-	flex: none;
 	line-height: 0;
 }
 
-/* Logo height scales with viewport so it reads clearly as the store's brand
- * mark on mobile and grows further on tablet/desktop, rather than staying
- * pinned to one small mobile-era size at every width. */
-.dtb-checkout__brand img {
-	height: clamp(30px, 7vw, 40px);
-	width: auto;
+.dtb-checkout-header__brand img {
 	display: block;
+	width: auto;
+	height: clamp(36px, 4vw, 48px);
 }
 
-/* Lock icon + the official Stripe wordmark image, no pill/border — a plain
- * inline lockup so the top bar reads as [logo] ... [lock  Stripe wordmark]
- * and nothing else. */
-.dtb-checkout__stripe-badge {
+.dtb-checkout-header__security {
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
-	flex: none;
+	gap: 7px;
+	white-space: nowrap;
 }
 
-.dtb-checkout__stripe-badge svg {
+.dtb-checkout-header__security svg {
 	width: 14px;
 	height: 14px;
-	flex: none;
-	color: rgba(255, 255, 255, 0.75);
+	color: rgba(255, 255, 255, 0.74);
 }
 
-.dtb-checkout__stripe-badge img {
-	height: 18px;
-	width: auto;
+.dtb-checkout-header__security img {
 	display: block;
+	width: auto;
+	height: 20px;
 }
 
-@media (min-width: 768px) {
-	.dtb-checkout__topbar {
-		padding-top: 24px;
-		padding-bottom: 24px;
-	}
-
-	.dtb-checkout__brand img {
-		height: 44px;
-	}
-
-	.dtb-checkout__stripe-badge img {
-		height: 20px;
-	}
+/* Public WooCommerce component surfaces. No layout ownership is assumed. */
+.wc-block-components-checkout-step,
+.wc-block-components-order-summary,
+.wc-block-components-totals-wrapper,
+.wc-block-components-express-payment {
+	border-color: var(--dtb-checkout-border);
+	border-radius: var(--dtb-checkout-radius);
 }
 
-/* ---------------------------------------------------------------------------
- * 4. Step rail — built at runtime by checkout.js over the native
- * Contact/Shipping/Payment block groups (see that file's header comment for
- * the exact selectors). Each `.dtb-checkout__step` is a real <button>; a
- * step becomes clickable once its screen has been visited. Nothing here
- * hides, gates, or reorders a native field on its own — this is chrome
- * only. If checkout.js does not run, this markup is never inserted and the
- * page renders as the plain single-scroll Woo Blocks checkout.
- *
- * Deliberately not part of the dark top bar: its own light surface, its own
- * (non-sticky) place in the document flow, and a bottom border — so it reads
- * as page content under a compact header, not as more header.
- * ------------------------------------------------------------------------- */
-
-.dtb-checkout__steps {
-	display: flex;
-	justify-content: space-between;
-	gap: 4px;
-	padding: 10px var(--dtb-gutter);
-	background: var(--dtb-surface);
-	border: 0;
-	border-bottom: 1px solid var(--dtb-border);
+.wc-block-components-checkout-step {
+	background: var(--dtb-checkout-surface);
+	border: 1px solid var(--dtb-checkout-border);
+	box-shadow: var(--dtb-checkout-shadow);
+	padding: clamp(20px, 3cqi, 28px);
 }
 
-.dtb-checkout__step {
-	appearance: none;
-	-webkit-appearance: none;
-	background: transparent;
-	border: 0;
+.wc-block-components-checkout-step__title,
+.wc-block-components-title {
+	color: var(--dtb-checkout-text);
+	font-family: var(--dtb-checkout-font);
+	font-size: clamp(1.125rem, 1rem + 0.35vw, 1.35rem);
+	font-weight: 650;
+	letter-spacing: -0.015em;
+	line-height: 1.25;
+}
+
+.wc-block-components-checkout-step__description,
+.wc-block-components-product-metadata,
+.wc-block-components-totals-item__description {
+	color: var(--dtb-checkout-muted);
+}
+
+.wc-block-components-text-input input,
+.wc-block-components-combobox-control input,
+.wc-block-components-address-form select,
+.wc-blocks-components-select__select,
+.wc-block-components-textarea {
+	min-height: 50px;
+	border: 1px solid #c8ced8;
+	border-radius: var(--dtb-checkout-radius-control);
+	background: var(--dtb-checkout-surface);
+	color: var(--dtb-checkout-text);
 	font: inherit;
-	cursor: pointer;
-	flex: 1 1 0;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 5px;
-	padding: 2px;
-	color: var(--dtb-text-muted);
+	transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
-.dtb-checkout__step:disabled {
-	cursor: default;
-}
-
-.dtb-checkout__step-dot {
-	width: 20px;
-	height: 20px;
-	border-radius: 999px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 11px;
-	font-weight: 700;
-	background: var(--dtb-surface-muted);
-	color: var(--dtb-text-muted);
-}
-
-/* Number shows for upcoming/active steps; a checkmark replaces it once a
- * step is done, matching the reference mockup's green check circles. */
-.dtb-checkout__step-dot-check {
-	display: none;
-}
-
-.dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot-number {
-	display: none;
-}
-
-.dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot-check {
-	display: block;
-}
-
-.dtb-checkout__step-label {
-	font-size: 10px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-	color: var(--dtb-text-muted);
-}
-
-.dtb-checkout__step[data-state="active"] .dtb-checkout__step-label {
-	color: var(--dtb-accent);
-}
-
-.dtb-checkout__step[data-state="active"] .dtb-checkout__step-dot {
-	background: var(--dtb-accent);
-	color: #fff;
-}
-
-.dtb-checkout__step[data-state="done"] .dtb-checkout__step-label {
-	color: var(--dtb-text);
-}
-
-.dtb-checkout__step[data-state="done"] .dtb-checkout__step-dot {
-	background: var(--dtb-success);
-	color: #fff;
-}
-
-/* ---------------------------------------------------------------------------
- * 4b. Active-step visibility. checkout.js sets this attribute on the native
- * top-level block group(s) that don't belong to the step currently shown; it
- * pairs the attribute with `inert` so hidden fields cannot receive focus.
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout [data-dtb-step-hidden] {
-	display: none;
-}
-
-/* ---------------------------------------------------------------------------
- * 4c. Sticky Back/Continue action bar. checkout.js appends this to <body>
- * only on mobile; the final (payment) step hides Continue so the native
- * "Place order" button inside the payment group is the only submit control.
- * ------------------------------------------------------------------------- */
-
-.dtb-checkout__actions {
-	position: sticky;
-	bottom: 0;
-	z-index: 30;
-	background: var(--dtb-surface);
-	border-top: 1px solid var(--dtb-border);
-	padding: 10px var(--dtb-gutter);
-	padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
-	box-shadow: 0 -4px 16px rgba(16, 24, 40, 0.06);
-}
-
-.dtb-checkout__actions-status {
-	margin: 0 0 8px;
-	font-size: 13px;
-	color: var(--dtb-text-muted);
-}
-
-.dtb-checkout__actions-status[data-kind="error"] {
-	color: var(--dtb-danger);
-}
-
-.dtb-checkout__actions-row {
-	display: flex;
-	gap: 10px;
-}
-
-.dtb-checkout__actions-back,
-.dtb-checkout__actions-continue {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-md);
-	font-weight: 600;
-	font-size: 15px;
-}
-
-.dtb-checkout__actions-back {
-	flex: 0 0 auto;
-	padding: 0 18px;
-	background: var(--dtb-surface);
-	border: 1px solid var(--dtb-border-strong);
-	color: var(--dtb-text);
-}
-
-.dtb-checkout__actions-back:disabled {
-	opacity: 0.4;
-}
-
-.dtb-checkout__actions-continue {
-	flex: 1 1 auto;
-	border: 1px solid var(--dtb-accent);
-	background: var(--dtb-accent);
-	color: #fff;
-}
-
-.dtb-checkout__actions-continue:disabled {
-	opacity: 0.7;
-}
-
-/* Room for the sticky action bar so it never overlaps the last field. */
-body.woocommerce-checkout:has(.dtb-checkout__actions) #primary {
-	padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
-}
-
-/* Failsafe: checkout.js unmounts this chrome outside its own mobile media
- * query, but a width change mid-session (device rotation, browser resize)
- * is covered here too so the bar never persists into a desktop layout. */
-@media (min-width: 768px) {
-	.dtb-checkout__steps,
-	.dtb-checkout__actions {
-		display: none;
-	}
-
-	body.woocommerce-checkout #primary {
-		padding-bottom: 0;
-	}
-}
-
-/* ---------------------------------------------------------------------------
- * 5. Layout — WooCommerce Checkout Block regions
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-checkout__main,
-body.woocommerce-checkout .wc-block-checkout__sidebar {
-	padding: var(--dtb-gutter);
-}
-
-body.woocommerce-checkout .wc-block-checkout__form {
-	max-width: 100%;
-}
-
-/* Each native Woo Blocks section (Contact information, Shipping address,
- * Shipping options, Payment methods, …) becomes an elevated card. These are
- * sub-sections *within* one of the three wizard screens above — e.g. both
- * "Shipping address" and "Shipping options" render inside the single
- * "Shipping" wizard step — so they are not separately numbered here; the
- * step rail above already carries the 1/2/3 sequence for the wizard itself. */
-body.woocommerce-checkout .wc-block-components-checkout-step {
-	background: var(--dtb-surface);
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-lg);
-	box-shadow: var(--dtb-shadow-sm);
-	padding: 18px var(--dtb-gutter);
-	margin-bottom: 14px;
-}
-
-/* A step Woo has already marked complete (collapsed to an address-card /
- * summary + "Change" link) gets a small green check next to its heading. */
-body.woocommerce-checkout .wc-block-components-checkout-step--disabled .wc-block-components-checkout-step__heading-content::after {
-	content: "\2713";
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 20px;
-	height: 20px;
-	margin-left: 8px;
-	border-radius: 999px;
-	background: var(--dtb-success);
-	color: #fff;
-	font-size: 12px;
-	font-weight: 700;
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-step__heading-content {
-	display: flex;
-	align-items: center;
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-step__description {
-	color: var(--dtb-text-muted);
-	font-size: 13px;
-	margin: 2px 0 0;
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-step__content {
-	margin-top: 14px;
-}
-
-/* ---------------------------------------------------------------------------
- * 5b. Returning-customer login prompt
- *
- * Live mobile screenshot showed this overlapping "Contact information"'s
- * heading text as plain, unstyled text — this file's other overlap bugs
- * were all cases of core CSS assuming a base stylesheet this headless theme
- * never ships (see the `.screen-reader-text` note in section 2), and this
- * reads as the same class of gap. Its exact source markup could not be
- * confirmed live: automated verification against the live site is blocked
- * by SiteGround's bot protection (`sg-captcha: challenge`), the same
- * limitation already documented for the shipping-rate known issue below.
- * WooCommerce can render this prompt one of two ways depending on what
- * actually fires on this checkout, and this covers both so whichever one
- * this store renders gets fixed:
- *  - the classic `woocommerce_checkout_login_form()` template, hooked to
- *    `woocommerce_before_checkout_form` by WooCommerce core by default and
- *    never explicitly removed anywhere in this codebase — plain, unstyled
- *    markup (`.woocommerce-form-login-toggle` wrapping a `.woocommerce-info`
- *    notice and an `a.showlogin` link) with no Blocks-specific class, which
- *    matches "generic text" more closely than a componentized Blocks
- *    element would;
- *  - WooCommerce Blocks' own Contact-step login prompt
- *    (`.wc-block-checkout__login-prompt`), following the same
- *    `wc-block-checkout__*` naming this file already targets for every
- *    other Contact/Shipping/Payment section.
- *
- * `:has()` scopes the position change to only the specific step card that
- * actually contains the prompt, so no other step's card is affected even
- * though `.wc-block-components-checkout-step` is otherwise a fully generic,
- * shared wrapper used by every step.
- *
- * THIS MUST BE CONFIRMED AGAINST A LIVE RENDER before being considered
- * fully resolved — re-screenshot the Contact step after this deploys.
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle),
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) {
-	position: relative;
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle) .wc-block-components-checkout-step__title,
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) .wc-block-components-checkout-step__title {
-	/* Generous enough for the classic template's own link text ("Click here
-	 * to login"), not just a short "Log in" — the exact copy can't be
-	 * confirmed without a live render (see note above), so this errs wide
-	 * rather than risking the pill clipping into the heading text. */
-	padding-right: 150px;
-}
-
-body.woocommerce-checkout .woocommerce-form-login-toggle,
-body.woocommerce-checkout .wc-block-checkout__login-prompt {
-	position: absolute !important;
-	top: 18px;
-	right: var(--dtb-gutter);
-	left: auto;
-	width: auto;
-	margin: 0;
-}
-
-/* The classic template's own lead-in text ("Returning customer?") is kept
- * visible rather than hidden — an earlier version of this rule collapsed it
- * with `font-size: 0`, which is a visual-only trick (screen readers still
- * announce zero-size text, since that's not one of the techniques that
- * actually removes content from the accessibility tree) that just left
- * sighted users with no context for what the pill below it does. Styled
- * small and muted, stacked above the pill instead of beside it so the pair
- * still reads as one compact, modern component in the corner rather than a
- * wide inline sentence. */
-body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-end;
-	gap: 4px;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	background: none;
-	font-size: 11px;
-	line-height: 1.3;
-	color: var(--dtb-text-muted);
-	white-space: nowrap;
-}
-
-body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin,
-body.woocommerce-checkout .wc-block-checkout__login-prompt a,
-body.woocommerce-checkout .wc-block-checkout__login-prompt button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 32px;
-	padding: 6px 14px;
-	border: 1px solid var(--dtb-accent);
-	border-radius: 999px;
-	background: var(--dtb-accent-soft);
-	color: var(--dtb-accent);
-	font-size: 13px;
-	font-weight: 600;
-	line-height: 1.2;
-	text-decoration: none;
-	white-space: nowrap;
-	cursor: pointer;
-}
-
-body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin:hover,
-body.woocommerce-checkout .wc-block-checkout__login-prompt a:hover,
-body.woocommerce-checkout .wc-block-checkout__login-prompt button:hover {
-	background: var(--dtb-accent);
-	color: #fff;
-}
-
-@media (min-width: 768px) {
-	body.woocommerce-checkout .woocommerce-form-login-toggle,
-	body.woocommerce-checkout .wc-block-checkout__login-prompt {
-		top: 24px;
-	}
-}
-
-/* ---------------------------------------------------------------------------
- * 5b. Desktop two-column layout (>=1024px only).
- *
- * Below this breakpoint the checkout is unchanged: the mobile step wizard
- * (checkout.js) still owns <768px, and 768–1023px still renders every step
- * in a single flowing column exactly as it does today. None of the rules
- * above this block, and none of the rules in section 4c's own 768px query,
- * are touched here — this is a new, additive rule set gated behind a wider
- * breakpoint than anything else in the file.
- *
- * `.wc-block-checkout__form` is the shared parent WooCommerce Blocks renders
- * `.wc-block-checkout__main` (Contact/Shipping/Payment steps) and
- * `.wc-block-checkout__sidebar` (Order summary) into — turning it into a
- * grid lays them side by side without touching either region's own markup.
- * ------------------------------------------------------------------------- */
-
-@media (min-width: 1024px) {
-	/* This theme ships no global box-sizing reset (see the screen-reader-text
-	 * comment in section 2), so padding-inline here must be explicitly kept
-	 * inside max-width rather than added on top of it under the browser
-	 * default content-box model. */
-	body.woocommerce-checkout #primary {
-		box-sizing: border-box;
-		max-width: 1180px;
-		padding-inline: var(--dtb-gutter);
-	}
-
-	body.woocommerce-checkout .wc-block-checkout__form {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 400px;
-		align-items: start;
-		gap: 32px;
-	}
-
-	body.woocommerce-checkout .wc-block-checkout__main,
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
-		padding: 0;
-	}
-
-	/* Sidebar sticks under the sticky branded top bar while the main column
-	 * scrolls past it — `top` clears the top bar's height (logo + padding)
-	 * with room to spare; capped height + its own scroll keeps a long order
-	 * summary from running off the bottom of the viewport. */
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
-		position: sticky;
-		top: 104px;
-		max-height: calc(100vh - 128px);
-		overflow-y: auto;
-	}
-
-	body.woocommerce-checkout .wc-block-components-checkout-step {
-		padding: 24px 28px;
-		margin-bottom: 20px;
-	}
-}
-
-/* ---------------------------------------------------------------------------
- * 6. Express payment row (Apple Pay / Google Pay / Link)
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-express-payment {
-	margin-bottom: 4px;
-}
-
-body.woocommerce-checkout .wc-block-components-express-payment__title-container {
-	font-size: 12px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.03em;
-	color: var(--dtb-text-muted);
-}
-
-body.woocommerce-checkout .wc-block-components-express-payment__event-buttons > div,
-body.woocommerce-checkout .wc-block-components-express-payment__event-buttons > li {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-md);
-	overflow: hidden;
-}
-
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule {
-	color: var(--dtb-text-muted);
-}
-
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule::before,
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule::after {
-	border-top: 1px solid var(--dtb-border);
-}
-
-/* ---------------------------------------------------------------------------
- * 7. Form fields
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-text-input input,
-body.woocommerce-checkout .wc-block-components-address-form select,
-body.woocommerce-checkout .wc-blocks-components-select__select {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-sm);
-	border: 1px solid var(--dtb-border-strong);
-	font-size: 16px; /* 16px prevents iOS Safari auto-zoom on focus. */
-	background: var(--dtb-surface);
-}
-
-body.woocommerce-checkout .wc-block-components-text-input input:focus,
-body.woocommerce-checkout .wc-blocks-components-select__select:focus-visible {
-	border-color: var(--dtb-accent);
-	box-shadow: 0 0 0 3px var(--dtb-accent-soft);
+.wc-block-components-text-input input:focus,
+.wc-block-components-combobox-control input:focus,
+.wc-block-components-address-form select:focus,
+.wc-blocks-components-select__select:focus,
+.wc-block-components-textarea:focus {
+	border-color: var(--dtb-checkout-accent);
+	box-shadow: 0 0 0 3px rgba(47, 111, 235, 0.16);
 	outline: none;
 }
 
-body.woocommerce-checkout .wc-block-components-text-input label {
-	color: var(--dtb-text-muted);
+.wc-block-components-button,
+.wc-block-components-checkout-place-order-button {
+	min-height: 52px;
+	border-radius: var(--dtb-checkout-radius-control);
+	font-family: var(--dtb-checkout-font);
+	font-size: 1rem;
+	font-weight: 650;
 }
 
-body.woocommerce-checkout .wc-block-components-validation-error {
-	color: var(--dtb-danger);
-	font-size: 13px;
-}
-
-/* ---------------------------------------------------------------------------
- * 8. Radio groups — shipping methods, payment method list, saved cards
- *
- * Redesign v11 fixed a live overlap (radio dot punched through "Free
- * shipping"'s label text) by rebuilding the row as a flex container and
- * force-positioning the actual `<input type="radio">` with `!important`
- * (WooCommerce's Shipping Rates Control nests it deeper than the plain
- * payment-method radios, so core's own more-specific selector kept winning).
- * Redesign v12 goes further per brand direction: no visible radio circle at
- * all — the whole card is the toggle. Each of these elements is already a
- * native `<label>` wrapping its `<input>`, so tapping anywhere on the card
- * already checks it; nothing about the click target changes. The input
- * itself is visually hidden with the same clip-path technique as
- * `.screen-reader-text` above (not `display: none`, which would drop it from
- * some accessibility trees and break the `:has(:checked)` /
- * `:has(:focus-visible)` selectors this file now uses to style the card). A
- * `::before` pseudo-element takes over the dot's old 20px footprint so
- * nothing shifts on selection, rendering an accent checkmark once `:checked`
- * and nothing otherwise; `:focus-visible` on the input rings the whole card
- * instead of the now-invisible control. Depending on live carrier rates
- * (Redesign v10) also means a label + price pair can be long enough to wrap
- * ("USPS — Priority Mail Express" + "$24.13"); `flex-wrap` on the label
- * group plus `overflow-wrap` on the label keep that wrap contained inside
- * the row instead of overflowing it horizontally.
- *
- * Redesign v14 fixed a live regression the flex row above introduced:
- * WooCommerce's Payment Methods selector is *also* one `.wc-block-components-
- * radio-control__option` — a single-choice RadioControl whose entire "Card /
- * Cash App Pay / Affirm / Afterpay / Klarna" content renders as this one
- * option's `.wc-block-components-radio-control__description` (the exact
- * element `flex-basis: 100%` below is meant to push onto its own line), not
- * as a short shipping-style secondary label. Without `flex-wrap: wrap` on
- * the option itself, `flex-basis: 100%` on a flex *child* does nothing to
- * start a new line — the browser still tries to fit every child in one
- * nowrap row, so the label got crushed into a vertical sliver next to the
- * entire payment-method list rather than the description dropping to a row
- * beneath it. This never surfaced on shipping methods (which have no real
- * description content) or the plain BNPL accordion rows (no description at
- * all) — only on the one option whose "description" is a large nested
- * sub-tree. `flex-wrap: wrap` on the option container is the actual fix;
- * everything else in this section already assumed it would wrap.
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-radio-control__option,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option,
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
-	position: relative;
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 12px;
-	min-height: var(--dtb-touch);
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-md);
-	margin-bottom: 8px;
-	padding: 12px 14px;
-	overflow: hidden;
-	cursor: pointer;
-}
-
-/* No radio circle: the entire card is the toggle (this element is a native
- * <label> wrapping the input, so a click/tap anywhere on it already checks
- * the input — nothing about the click target changes here). The input stays
- * in the DOM, in its natural tab position, and fully operable for keyboard
- * and assistive tech — only its visual circle is removed, using the same
- * clip-path technique as `.screen-reader-text` above (not `display: none`,
- * which drops an element from some accessibility trees and would also break
- * the very `:checked`/`:focus-visible` state selectors this file uses below
- * to style the card itself). */
-body.woocommerce-checkout .wc-block-components-radio-control__option input[type="radio"],
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option input[type="radio"],
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option input[type="radio"] {
-	position: absolute !important;
-	width: 1px !important;
-	height: 1px !important;
-	margin: -1px !important;
-	padding: 0 !important;
-	overflow: hidden !important;
-	clip-path: inset(50%) !important;
-	white-space: nowrap !important;
-	border: 0 !important;
-}
-
-/* Stand-in for the removed radio dot: an empty circular slot at the card's
- * leading edge (same 20px footprint the dot used to occupy, so nothing
- * shifts when a card becomes selected) that fills with a checkmark once its
- * input is `:checked`. Keyboard focus on the (visually hidden but still
- * tabbable) input is surfaced as a ring on the card itself, since there's no
- * longer a visible control of its own to carry the browser's native focus
- * ring. Scoped to shipping methods only — the BNPL accordion rows (Klarna,
- * Affirm, Afterpay via UPM's own additional-methods list) already lead with
- * their own brand icon and never rendered a visible radio dot to begin with,
- * so adding this slot there would just insert unwanted blank space before
- * that icon. */
-body.woocommerce-checkout .wc-block-components-radio-control__option::before,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option::before {
-	content: "";
-	flex: none;
-	width: 20px;
-	height: 20px;
-	border-radius: 999px;
-}
-
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked)::before,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked)::before {
-	content: "\2713";
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: var(--dtb-accent);
+.wc-block-components-checkout-place-order-button {
+	background: var(--dtb-checkout-accent);
 	color: #fff;
-	font-size: 12px;
-	font-weight: 700;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:focus-visible),
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:focus-visible),
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:focus-visible) {
-	outline: 2px solid var(--dtb-accent);
+.wc-block-components-checkout-place-order-button:hover:not(:disabled) {
+	background: var(--dtb-checkout-accent-dark);
+}
+
+.wc-block-components-checkout-place-order-button:focus-visible,
+.wc-block-components-button:focus-visible,
+.wc-block-components-radio-control__option:focus-within,
+.wc-block-components-checkbox:focus-within {
+	outline: 3px solid rgba(47, 111, 235, 0.26);
 	outline-offset: 2px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label-group {
-	display: flex;
-	align-items: center;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	row-gap: 2px;
-	flex: 1 1 auto;
-	min-width: 0;
-	gap: 4px 10px;
+.wc-block-components-radio-control__option,
+.wc-block-components-radio-control-accordion-option {
+	border-color: var(--dtb-checkout-border);
+	border-radius: var(--dtb-checkout-radius-control);
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label {
-	min-width: 0;
-	flex: 1 1 auto;
-	overflow-wrap: anywhere;
+.wc-block-components-radio-control__option:has(input:checked),
+.wc-block-components-radio-control-accordion-option:has(input:checked) {
+	border-color: var(--dtb-checkout-accent);
+	background: rgba(47, 111, 235, 0.07);
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__secondary-label {
-	min-width: 0;
-	flex: 0 0 auto;
-	white-space: nowrap;
-	font-weight: 600;
+.wc-block-components-checkbox__input:checked {
+	border-color: var(--dtb-checkout-accent);
+	background: var(--dtb-checkout-accent);
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__description {
-	flex-basis: 100%;
-	margin-top: 4px;
-	overflow-wrap: anywhere;
+.wc-block-components-validation-error,
+.wc-block-components-notice-banner.is-error,
+.woocommerce-error {
+	color: var(--dtb-checkout-danger);
 }
 
-/* Selected-card highlight. Both core's own state classes (only applied for
- * some providers/variants) and a `:has(:checked)` catch-all are kept so the
- * highlight never silently depends on which class name a given provider
- * happens to add. */
-body.woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option--selected,
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked),
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked),
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:checked) {
-	border-color: var(--dtb-accent);
-	background: var(--dtb-accent-soft);
+.wc-block-components-order-summary,
+.wc-block-components-totals-wrapper {
+	background: var(--dtb-checkout-surface);
 }
 
-/* ---------------------------------------------------------------------------
- * 9. Payment methods — Payment Plugins for Stripe (Universal Payment Method)
- *
- * `.wc-stripe-upm` wraps the mounted Stripe Payment Element; its internal
- * tabs/inputs live in a cross-origin iframe and are intentionally left to the
- * Stripe Appearance API (see StripeElementAppearance.php), not this file.
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-checkout__payment-method {
-	border-radius: var(--dtb-radius-md);
+.wc-block-components-order-summary-item__image img {
+	border-radius: 10px;
+	background: #fff;
 }
 
-body.woocommerce-checkout .wc-stripe-upm {
-	padding-top: 6px;
+.wc-block-components-totals-item__label,
+.wc-block-components-totals-item__value,
+.wc-block-components-product-name {
+	color: var(--dtb-checkout-text);
 }
 
-body.woocommerce-checkout .wc-stripe-label-container {
-	font-weight: 500;
+/* Provider-owned express checkout stays in its native Checkout Block position. */
+.wc-block-components-express-payment {
+	background: var(--dtb-checkout-surface);
+	border: 1px solid var(--dtb-checkout-border);
+	box-shadow: var(--dtb-checkout-shadow);
+	padding: clamp(18px, 3cqi, 24px);
 }
 
-body.woocommerce-checkout .wc-block-components-payment-method-icons {
-	opacity: 0.9;
+.wc-block-components-express-payment__title-container {
+	color: var(--dtb-checkout-muted);
+	font-size: 0.75rem;
+	font-weight: 650;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
 }
 
-/* Buy-now-pay-later / alternate method rows (Klarna, Affirm, ShopPay via UPM
- * additional methods) presented by the plugin as accordion options. */
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
-	min-height: var(--dtb-touch);
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-md) !important;
-	margin-bottom: 8px !important;
+@container (max-width: 520px) {
+	.wc-block-components-checkout-step,
+	.wc-block-components-express-payment {
+		padding: 18px;
+		border-radius: 14px;
+	}
 }
 
-/* One documented !important escalation: Woo Blocks ships its own zero-radius
- * rule on adjacent accordion options (first/last-child radius merging for a
- * flush list). We intentionally want each method as a separated rounded row
- * instead, which the stacked selector specificity above cannot win without it. */
+@media (max-width: 767px) {
+	.dtb-checkout-header__inner {
+		min-height: 80px;
+	}
 
-/* ---------------------------------------------------------------------------
- * 10. Order summary — collapsible on mobile (native Woo Blocks behavior)
- * ------------------------------------------------------------------------- */
+	.dtb-checkout-header__brand img {
+		height: 36px;
+	}
 
-body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
-	background: var(--dtb-surface);
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-md);
-	padding: 12px 14px;
-	cursor: pointer;
+	.dtb-checkout-header__security img {
+		height: 18px;
+	}
+
+	.dtb-checkout-shell {
+		padding: 20px 14px 48px;
+	}
 }
-
-/* Native item row is a flex row of (image, description, price); grid gives
- * each column a predictable width so the (larger) image, name/SKU, and price
- * line up cleanly regardless of name length. WooCommerce's own quantity
- * badge keeps its native absolute position over the image's top-right
- * corner — only the image's own box gets bigger here. */
-body.woocommerce-checkout .wc-block-components-order-summary-item {
-	display: grid;
-	grid-template-columns: 64px minmax(0, 1fr) auto;
-	align-items: start;
-	gap: 12px;
-	padding: 14px 0;
-}
-
-body.woocommerce-checkout .wc-block-components-order-summary-item__image {
-	width: 64px;
-	border-radius: var(--dtb-radius-sm);
-	overflow: hidden;
-}
-
-body.woocommerce-checkout .wc-block-components-order-summary-item__image img {
-	width: 64px;
-	height: 64px;
-	max-width: none;
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-sm);
-	object-fit: contain;
-	background: var(--dtb-surface);
-}
-
-body.woocommerce-checkout .wc-block-components-order-summary-item__description,
-body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
-	min-width: 0;
-	margin: 0;
-}
-
-body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
-	white-space: nowrap;
-	font-weight: 600;
-}
-
-body.woocommerce-checkout .wc-block-components-product-name {
-	font-size: 14px;
-	font-weight: 600;
-	line-height: 1.4;
-}
-
-/* Woo Blocks' short/full product description in the summary line item — the
- * order summary should show only name, quantity, and price, not marketing
- * copy. Variation attributes (size/color) are a different element and stay
- * visible. */
-body.woocommerce-checkout .wc-block-components-product-metadata__description {
-	display: none;
-}
-
-body.woocommerce-checkout .wc-block-components-totals-item__value {
-	font-weight: 600;
-}
-
-/* ---------------------------------------------------------------------------
- * 11. Primary actions
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button {
-	width: 100%;
-	min-height: 52px;
-	border-radius: var(--dtb-radius-md);
-	background: var(--dtb-accent);
-	border-color: var(--dtb-accent);
-	font-weight: 600;
-	font-size: 16px;
-	box-shadow: var(--dtb-shadow-md);
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button:hover,
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button:focus-visible {
-	background: var(--dtb-accent-dark);
-	border-color: var(--dtb-accent-dark);
-}
-
-body.woocommerce-checkout .wc-block-components-checkout-return-to-cart-button {
-	color: var(--dtb-text-muted);
-}
-
-/* ---------------------------------------------------------------------------
- * 12. Checkboxes — terms, save payment method, "ship to different address"
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-checkbox__input {
-	width: 20px;
-	height: 20px;
-	border: 1px solid var(--dtb-border-strong);
-	border-radius: 5px;
-	accent-color: var(--dtb-accent);
-	flex: none;
-	transition: background-color 160ms ease, border-color 160ms ease;
-}
-
-/* WooCommerce Blocks' own checked-state fill for this control (its
- * `.wc-block-components-checkbox__input:checked` background) is keyed to
- * `var(--wp-admin-theme-color)` — a WordPress admin/block-editor custom
- * property, never a storefront one, and this theme ships no base stylesheet
- * to define it either (the same class of gap as the `.screen-reader-text` /
- * `.components-visually-hidden` fix above). With that variable unset, the
- * box's background never actually changes on check, so the white checkmark
- * (`__mark`, below) renders invisible against the still-white/bordered box:
- * "Use same address for billing" toggles the billing form correctly (the
- * underlying input's checked state is real and functional) but *looks* like
- * nothing happened, because the only thing communicating checked/unchecked
- * silently depended on an external variable this page never defines.
- * Defining the checked-state fill explicitly with the brand accent — rather
- * than depending on that variable being set by something else — fixes this
- * regardless of whether/how core ever defines it here, and the transition
- * above turns it into a visible, animated toggle instead of a silent flip. */
-body.woocommerce-checkout .wc-block-components-checkbox__input:checked {
-	background-color: var(--dtb-accent);
-	border-color: var(--dtb-accent);
-}
-
-body.woocommerce-checkout .wc-block-components-checkbox__mark {
-	fill: #fff;
-}
-
-body.woocommerce-checkout label:has(.wc-block-components-checkbox__input) {
-	min-height: var(--dtb-touch);
-	display: flex;
-	align-items: center;
-	gap: 10px;
-}
-
-/* ---------------------------------------------------------------------------
- * 13. Notices — validation summaries, store notices, empty/error states
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-notice-banner {
-	border-radius: var(--dtb-radius-md);
-	border: 1px solid var(--dtb-border);
-	border-left-width: 4px;
-	padding: 12px 14px;
-	background: var(--dtb-surface);
-	margin-bottom: 14px;
-}
-
-body.woocommerce-checkout .wc-block-components-notice-banner.is-error {
-	border-left-color: var(--dtb-danger);
-}
-
-body.woocommerce-checkout .wc-block-components-notice-banner.is-success {
-	border-left-color: var(--dtb-success);
-}
-
-body.woocommerce-checkout .wc-block-components-notice-banner .wc-block-components-notice-banner__content {
-	font-size: 13px;
-	color: var(--dtb-text);
-}
-
-/* ---------------------------------------------------------------------------
- * 14. Coupon form and country/state selects
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-totals-coupon-link {
-	color: var(--dtb-accent);
-	font-weight: 600;
-}
-
-body.woocommerce-checkout .wc-block-components-totals-coupon__input input {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-sm);
-	border: 1px solid var(--dtb-border-strong);
-}
-
-body.woocommerce-checkout .wc-block-components-totals-coupon__button {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-sm);
-	font-weight: 600;
-}
-
-body.woocommerce-checkout .wc-blocks-components-select {
-	margin-top: 12px;
-}
-
-body.woocommerce-checkout .wc-blocks-components-select__container {
-	min-height: var(--dtb-touch);
-	border-radius: var(--dtb-radius-sm);
-	border: 1px solid var(--dtb-border-strong);
-	background: var(--dtb-surface);
-}
-
-/* ---------------------------------------------------------------------------
- * 15. Address autocomplete suggestions
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-address-autocomplete-suggestions {
-	border: 1px solid var(--dtb-border);
-	border-radius: var(--dtb-radius-sm);
-	box-shadow: var(--dtb-shadow-md);
-	background: var(--dtb-surface);
-	overflow: hidden;
-}
-
-/* ---------------------------------------------------------------------------
- * 16. Subtle motion — interactive elements only, disabled entirely under
- * prefers-reduced-motion by the rule in section 17.
- * ------------------------------------------------------------------------- */
-
-body.woocommerce-checkout .wc-block-components-text-input input,
-body.woocommerce-checkout .wc-blocks-components-select__select,
-body.woocommerce-checkout .wc-block-components-radio-control__option,
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button,
-body.woocommerce-checkout .wc-block-components-checkout-step,
-.dtb-checkout__actions-back,
-.dtb-checkout__actions-continue,
-.dtb-checkout__step-dot {
-	transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
-}
-
-/* ---------------------------------------------------------------------------
- * 17. Accessibility & platform affordances
- * ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-	body.woocommerce-checkout * {
-		animation-duration: 0.001ms !important;
-		transition-duration: 0.001ms !important;
+	.wc-block-components-text-input input,
+	.wc-block-components-combobox-control input,
+	.wc-block-components-address-form select,
+	.wc-blocks-components-select__select,
+	.wc-block-components-textarea {
+		transition: none;
 	}
 }
 
 @media (forced-colors: active) {
-	body.woocommerce-checkout .wc-block-components-checkout-step,
-	body.woocommerce-checkout .wc-block-components-radio-control__option,
-	body.woocommerce-checkout .wc-block-components-text-input input {
+	.wc-block-components-checkout-step,
+	.wc-block-components-express-payment,
+	.wc-block-components-radio-control__option,
+	.wc-block-components-radio-control-accordion-option {
 		border: 1px solid CanvasText;
 	}
-}
-
-body.woocommerce-checkout :focus-visible {
-	outline: 2px solid var(--dtb-accent);
-	outline-offset: 2px;
-}
-
-/* No horizontal scroll from long provider iframes/content. */
-body.woocommerce-checkout,
-body.woocommerce-checkout #primary {
-	overflow-x: hidden;
 }
