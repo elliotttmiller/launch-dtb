@@ -1,7 +1,6 @@
 import tapeTechLogo from '/brands/TapeTech/tapetech_logo.svg';
 import columbiaLogo from '/brands/Columbia/columbia_taping_tools_logo.svg';
 import surproLogo from '/brands/SurPro/surpro_logo.svg';
-import asgardLogo from '/brands/Asgard/asgard_logo.svg';
 import gracoLogo from '/brands/Graco/graco_logo.svg';
 import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
@@ -12,7 +11,6 @@ const brandLogos = {
   'TapeTech': tapeTechLogo,
   'Columbia Taping Tools': columbiaLogo,
   'SurPro': surproLogo,
-  'Asgard': asgardLogo,
   'Graco': gracoLogo,
   'Platinum Drywall Tools': platinumLogo,
   'Dura-Stilts': duraStiltsLogo,

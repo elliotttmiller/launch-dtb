@@ -1,7 +1,6 @@
 export const SCHEMATIC_BRANDS = [
   { name: 'TapeTech', slug: 'tapetech' },
   { name: 'Columbia Taping Tools', slug: 'columbia-taping-tools' },
-  { name: 'Asgard', slug: 'asgard' },
   { name: 'SurPro', slug: 'surpro' },
   { name: 'Platinum Drywall Tools', slug: 'platinum' },
   { name: 'Dura-Stilts', slug: 'dura-stilts' },

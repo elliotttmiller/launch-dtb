@@ -53,7 +53,7 @@ if ( ! function_exists( 'dtb_schematics_get_brand_options' ) ) {
 	 * @return string[]
 	 */
 	function dtb_schematics_get_brand_options() {
-		$fallback = [ 'Asgard', 'Columbia Tools', 'Level5', 'Platinum Drywall Tools', 'TapeTech' ];
+		$fallback = [ 'Columbia Tools', 'Level5', 'Platinum Drywall Tools', 'TapeTech' ];
 
 		if ( ! taxonomy_exists( 'product_brand' ) ) {
 			return $fallback;

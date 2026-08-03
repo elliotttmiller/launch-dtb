@@ -4,8 +4,8 @@
  *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)
  *   - frontend/src/pages/Schematics.jsx (tool id / page ordering)
  *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv
- *     (Level5 spare-part codes, Asgard '-AD' diagram codes, and verbose
- *     Columbia/TapeTech/Platinum export ids, none of which are catalog SKUs)
+ *     (Level5 spare-part codes and verbose Columbia/TapeTech/Platinum export
+ *     ids, none of which are catalog SKUs)
  * Regenerate with scripts/gen_sku_schematic_map.py whenever any source changes.
  *
  * @package drywall-toolbox
@@ -85,20 +85,12 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'8FFBA' => [ 'schematic_id' => 'columbia-automatic-flat-box', 'page' => null ],
 	'90T' => [ 'schematic_id' => 'tapetech-90t', 'page' => null ],
 	'9333' => [ 'schematic_id' => 'level5-9333-cutter-chain-assembly', 'page' => null ],
-	'AH25-AD' => [ 'schematic_id' => 'asgard-ah25-ad', 'page' => null ],
-	'AH30-AD' => [ 'schematic_id' => 'asgard-ah30-ad', 'page' => null ],
-	'AH35-AD' => [ 'schematic_id' => 'asgard-ah35-ad', 'page' => null ],
-	'AT01-AD' => [ 'schematic_id' => 'asgard-at01-ad', 'page' => null ],
-	'BBH-AD' => [ 'schematic_id' => 'asgard-bbh-ad', 'page' => null ],
-	'BBHE-AD' => [ 'schematic_id' => 'asgard-bbhe-ad', 'page' => null ],
 	'BF' => [ 'schematic_id' => 'columbia-box-filler', 'page' => null ],
 	'C1H' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
 	'C1HEXT' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
 	'C1HS' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
-	'CA08-AD' => [ 'schematic_id' => 'asgard-ca08-ad', 'page' => null ],
 	'CC' => [ 'schematic_id' => 'columbia-corner-cobra', 'page' => null ],
 	'CEXT90' => [ 'schematic_id' => 'columbia-external-corner-applicator', 'page' => null ],
-	'CFA-AD' => [ 'schematic_id' => 'asgard-cfa-ad', 'page' => null ],
 	'CHXL' => [ 'schematic_id' => 'columbia-long-extendable-handle', 'page' => null ],
 	'CLT24' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => null ],
 	'CLT32' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => null ],
@@ -126,38 +118,22 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'COL-STANDARD-FLUSHER' => [ 'schematic_id' => 'columbia-standard-corner-flusher', 'page' => null ],
 	'COL-THROTTLE-CORNER-FLUSHER-BOX' => [ 'schematic_id' => 'columbia-throttle-box', 'page' => null ],
 	'CR' => [ 'schematic_id' => 'columbia-inside-corner-roller', 'page' => null ],
-	'CR01-AD' => [ 'schematic_id' => 'asgard-cr01-ad', 'page' => null ],
 	'D14-22' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 1 ],
 	'D18-30' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 2 ],
 	'D24-40' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 3 ],
 	'D38-64' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => null ],
 	'DS-DURA-III' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => null ],
 	'EHC07' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 1 ],
-	'EHC07-AD' => [ 'schematic_id' => 'asgard-ehc07-ad', 'page' => null ],
 	'EHC10' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 2 ],
-	'EHC10-AD' => [ 'schematic_id' => 'asgard-ehc10-ad', 'page' => null ],
 	'EHC12' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 3 ],
-	'EHC12-AD' => [ 'schematic_id' => 'asgard-ehc12-ad', 'page' => null ],
-	'EZ07-AD' => [ 'schematic_id' => 'asgard-ez07-ad', 'page' => null ],
 	'EZ07TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 1 ],
-	'EZ10-AD' => [ 'schematic_id' => 'asgard-ez10-ad', 'page' => null ],
 	'EZ10TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 2 ],
-	'EZ12-AD' => [ 'schematic_id' => 'asgard-ez12-ad', 'page' => null ],
 	'EZ12TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 3 ],
 	'EZ15TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 4 ],
-	'FA01-AD' => [ 'schematic_id' => 'asgard-fa01-ad', 'page' => null ],
-	'FBHE-AD' => [ 'schematic_id' => 'asgard-fbhe-ad', 'page' => null ],
-	'FH-AD' => [ 'schematic_id' => 'asgard-fh-ad', 'page' => null ],
 	'GN' => [ 'schematic_id' => 'columbia-gooseneck-adapter', 'page' => null ],
-	'GN01-AD' => [ 'schematic_id' => 'asgard-gn01-ad', 'page' => null ],
 	'HMP' => [ 'schematic_id' => 'columbia-mud-pump', 'page' => null ],
 	'ICA2-1' => [ 'schematic_id' => 'columbia-inside-corner-applicator', 'page' => null ],
 	'ICATW' => [ 'schematic_id' => 'columbia-2-way-internal-corner', 'page' => null ],
-	'LP01-AD' => [ 'schematic_id' => 'asgard-lp01-ad', 'page' => null ],
-	'NS03-AD' => [ 'schematic_id' => 'asgard-ns03-ad', 'page' => null ],
-	'PA07-AD' => [ 'schematic_id' => 'asgard-pa07-ad', 'page' => null ],
-	'PA10-AD' => [ 'schematic_id' => 'asgard-pa10-ad', 'page' => null ],
-	'PA12-AD' => [ 'schematic_id' => 'asgard-pa12-ad', 'page' => null ],
 	'PAHC07' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 1 ],
 	'PAHC10' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 2 ],
 	'PAHC12' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 3 ],
@@ -217,7 +193,6 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'TT-MAXXBOX-HIGH-CAPACITY-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => null ],
 	'TT-POWER-ASSIST-MAXXBOX-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => null ],
 	'TT-QUICKBOX-QSX-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-quickbox-qsx', 'page' => null ],
-	'XH-AD' => [ 'schematic_id' => 'asgard-xh-ad', 'page' => null ],
 	'XHTT' => [ 'schematic_id' => 'tapetech-xhtt', 'page' => null ],
 ];
 

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ChevronRight } from 'lucide-react';
 import '../../styles/tool-selector.css';
 import BackButton from '../shared/BackButton';
+import { loadCatalog } from '../../services/catalog';
+import { getRepresentativeSkuForSchematic } from '../../utils/schematicProductLookup';
 
 function uniqueImageCandidates(candidates) {
   return candidates.filter(Boolean).filter((value, index, arr) => arr.indexOf(value) === index);
@@ -15,9 +17,51 @@ function getFirstImagePage(tool) {
 
 function getToolImageCandidates(tool) {
   return uniqueImageCandidates([
+    tool?.catalogImage,
     tool?.previewImage,
     getFirstImagePage(tool),
   ]);
+}
+
+/**
+ * Enrich schematic tools with their real WooCommerce product photo and name,
+ * looked up by the representative SKU for each schematic id. Falls back to the
+ * schematic's own title/preview when no catalog match exists (e.g. Level5
+ * spare-part kits that aren't sold as standalone SKUs).
+ */
+function useCatalogEnrichedTools(tools) {
+  const [skuIndex, setSkuIndex] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadCatalog()
+      .then((products) => {
+        if (cancelled) return;
+        const index = {};
+        (products || []).forEach((p) => {
+          if (p?.sku) index[String(p.sku).toUpperCase()] = p;
+        });
+        setSkuIndex(index);
+      })
+      .catch(() => {
+        if (!cancelled) setSkuIndex({});
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  return useMemo(() => {
+    if (!skuIndex) return tools;
+    return tools.map((tool) => {
+      const sku = getRepresentativeSkuForSchematic(tool.id);
+      const product = sku ? skuIndex[sku.toUpperCase()] : null;
+      if (!product) return tool;
+      return {
+        ...tool,
+        catalogImage: product.image || null,
+        catalogTitle: product.name || null,
+      };
+    });
+  }, [tools, skuIndex]);
 }
 
 /**
@@ -31,7 +75,7 @@ function getCategoryRepresentativeTool(tools, categoryName) {
 
   if (/handles?/i.test(categoryName)) {
     const flatBox = tools.find((t) =>
-      /flat[\s-]?box/i.test(t.title || t.name || ''),
+      /flat[\s-]?box/i.test(t.catalogTitle || t.title || t.name || ''),
     );
     if (flatBox) return flatBox;
   }
@@ -75,9 +119,10 @@ function PlaceholderIcon() {
 }
 
 export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, onBack, selectedCategory, onSelectCategory }) {
+  const enrichedTools = useCatalogEnrichedTools(tools);
 
   // Group tools by category if they have categories defined
-  const groupedTools = tools.reduce((acc, tool) => {
+  const groupedTools = enrichedTools.reduce((acc, tool) => {
     const category = tool.category || 'Other';
     if (!acc[category]) {
       acc[category] = [];
@@ -88,7 +133,7 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
 
   // Determine if we should show categories - show if any tool has a category defined
   const categories = Object.keys(groupedTools).sort();
-  const hasAnyCategory = tools.some(tool => tool.category);
+  const hasAnyCategory = enrichedTools.some(tool => tool.category);
   const shouldShowCategoryView = hasAnyCategory || categories.length > 1;
 
   // If showing category view and no category is selected, show category cards
@@ -166,13 +211,13 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
               <div className="tool-card-image-bg">
                 <SchematicPreviewImage
                   tool={tool}
-                  alt={tool.title}
+                  alt={tool.catalogTitle || tool.title}
                   fallback={<PlaceholderIcon />}
                 />
               </div>
               {/* Title Overlay */}
               <div className="tool-card-overlay">
-                <h3 className="tool-name">{tool.title}</h3>
+                <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
               </div>
               {/* Hover accent layer */}
               <div className="tool-card-background" />
@@ -182,7 +227,7 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
       ) : (
         // Fallback: show all tools without categories
         <div className="tools-grid">
-          {tools.map((tool, index) => (
+          {enrichedTools.map((tool, index) => (
             <button
               key={tool.id}
               className="tool-card"
@@ -193,13 +238,13 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
               <div className="tool-card-image-bg">
                 <SchematicPreviewImage
                   tool={tool}
-                  alt={tool.title}
+                  alt={tool.catalogTitle || tool.title}
                   fallback={<PlaceholderIcon />}
                 />
               </div>
               {/* Title Overlay */}
               <div className="tool-card-overlay">
-                <h3 className="tool-name">{tool.title}</h3>
+                <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
               </div>
               {/* Hover accent layer */}
               <div className="tool-card-background" />
@@ -208,7 +253,7 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
         </div>
       )}
 
-      {tools.length === 0 && (
+      {enrichedTools.length === 0 && (
         <div className="empty-state">
           <p>No tools available for this brand yet.</p>
         </div>

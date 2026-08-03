@@ -12,7 +12,6 @@ function dtb_schematic_supported_brands(): array {
 	}
 
 	return [
-		'Asgard',
 		'Columbia Tools',
 		'Platinum Drywall Tools',
 		'SurPro',

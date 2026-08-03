@@ -305,7 +305,7 @@ function dtb_schematics_smart_significant_token_count( string $value ): int {
 	$tokens = dtb_schematics_smart_tokens( $value );
 	$tokens = array_filter(
 		$tokens,
-		static fn( $token ) => ! in_array( $token, [ 'columbia', 'tapetech', 'platinum', 'asgard', 'level5', 'level', 'surpro', 'dura', 'stilts' ], true )
+		static fn( $token ) => ! in_array( $token, [ 'columbia', 'tapetech', 'platinum', 'level5', 'level', 'surpro', 'dura', 'stilts' ], true )
 	);
 	return count( $tokens );
 }

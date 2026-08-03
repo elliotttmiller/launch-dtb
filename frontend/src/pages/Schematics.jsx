@@ -24,7 +24,6 @@ import { PLACEHOLDER_IMAGE } from '../constants/images.js';
 import tapeTechLogo from '/brands/TapeTech/tapetech_logo.svg';
 import columbiaLogo from '/brands/Columbia/columbia_taping_tools_logo.svg';
 import surproLogo from '/brands/SurPro/surpro_logo.svg';
-import asgardLogo from '/brands/Asgard/asgard_logo.svg';
 import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
 import level5Logo from '/brands/Level5/Level5.svg';
@@ -33,7 +32,6 @@ const brandLogos = {
   'TapeTech': tapeTechLogo,
   'Columbia Taping Tools': columbiaLogo,
   'SurPro': surproLogo,
-  'Asgard': asgardLogo,
   'Platinum Drywall Tools': platinumLogo,
   'Dura-Stilts': duraStiltsLogo,
   'Level5': level5Logo,
@@ -141,35 +139,6 @@ import columbiaMatrixBoxHandlePinchboxData from '/brands/Columbia/Schematics/Han
 import columbiaMatrixBoxHandleExtensionHousingData from '/brands/Columbia/Schematics/Handles/MatrixBoxHandle/ExtensionHousing/schematic_data.json';
 import columbiaFlatBoxHandleData from '/brands/Columbia/Schematics/Handles/FlatBoxHandle/schematic_data.json';
 import columbiaLongExtendableHandleData from '/brands/Columbia/Schematics/Handles/LongExtendableHandle/schematic_data.json';
-
-// ---------------------------------------------------------------------------
-// Asgard schematic JSON data imports
-// ---------------------------------------------------------------------------
-import asgardFA01ADData    from '/brands/Asgard/Schematics/Adapters/FA01-AD/schematic_data.json';
-import asgardAH25ADData    from '/brands/Asgard/Schematics/AngleHeads/AH25-AD/schematic_data.json';
-import asgardAH30ADData    from '/brands/Asgard/Schematics/AngleHeads/AH30-AD/schematic_data.json';
-import asgardAH35ADData    from '/brands/Asgard/Schematics/AngleHeads/AH35-AD/schematic_data.json';
-import asgardCA08ADData    from '/brands/Asgard/Schematics/AngleHeads/CA08-AD/schematic_data.json';
-import asgardCFAADData     from '/brands/Asgard/Schematics/AngleHeads/CFA-AD/schematic_data.json';
-import asgardEHC07ADData   from '/brands/Asgard/Schematics/FinishingBoxes/EHC07-AD/schematic_data.json';
-import asgardEHC10ADData   from '/brands/Asgard/Schematics/FinishingBoxes/EHC10-AD/schematic_data.json';
-import asgardEHC12ADData   from '/brands/Asgard/Schematics/FinishingBoxes/EHC12-AD/schematic_data.json';
-import asgardEZ07ADData    from '/brands/Asgard/Schematics/FinishingBoxes/EZ07-AD/schematic_data.json';
-import asgardEZ10ADData    from '/brands/Asgard/Schematics/FinishingBoxes/EZ10-AD/schematic_data.json';
-import asgardEZ12ADData    from '/brands/Asgard/Schematics/FinishingBoxes/EZ12-AD/schematic_data.json';
-import asgardPA07ADData    from '/brands/Asgard/Schematics/FinishingBoxes/PA07-AD/schematic_data.json';
-import asgardPA10ADData    from '/brands/Asgard/Schematics/FinishingBoxes/PA10-AD/schematic_data.json';
-import asgardPA12ADData    from '/brands/Asgard/Schematics/FinishingBoxes/PA12-AD/schematic_data.json';
-import asgardBBHADData     from '/brands/Asgard/Schematics/Handles/BBH-AD/schematic_data.json';
-import asgardBBHEADData    from '/brands/Asgard/Schematics/Handles/BBHE-AD/schematic_data.json';
-import asgardFBHEADData    from '/brands/Asgard/Schematics/Handles/FBHE-AD/schematic_data.json';
-import asgardFHADData      from '/brands/Asgard/Schematics/Handles/FH-AD/schematic_data.json';
-import asgardXHADData      from '/brands/Asgard/Schematics/Handles/XH-AD/schematic_data.json';
-import asgardGN01ADData    from '/brands/Asgard/Schematics/Other/GN01-AD/schematic_data.json';
-import asgardLP01ADData    from '/brands/Asgard/Schematics/Pumps/LP01-AD/schematic_data.json';
-import asgardCR01ADData    from '/brands/Asgard/Schematics/Rollers/CR01-AD/schematic_data.json';
-import asgardNS03ADData    from '/brands/Asgard/Schematics/Spotters/NS03-AD/schematic_data.json';
-import asgardAT01ADData    from '/brands/Asgard/Schematics/Tapers/AT01-AD/schematic_data.json';
 
 // ---------------------------------------------------------------------------
 // Platinum schematic JSON data imports
@@ -1082,33 +1051,6 @@ export default function Parts() {
   const flatBoxHandleParts = buildPartsFromData(columbiaFlatBoxHandleData);
   const longExtendableHandleParts = buildPartsFromData(columbiaLongExtendableHandleData);
 
-  // Asgard parts arrays
-  const asgardFA01ADParts    = buildPartsFromData(asgardFA01ADData);
-  const asgardAH25ADParts    = buildPartsFromData(asgardAH25ADData);
-  const asgardAH30ADParts    = buildPartsFromData(asgardAH30ADData);
-  const asgardAH35ADParts    = buildPartsFromData(asgardAH35ADData);
-  const asgardCA08ADParts    = buildPartsFromData(asgardCA08ADData);
-  const asgardCFAADParts     = buildPartsFromData(asgardCFAADData);
-  const asgardEHC07ADParts   = buildPartsFromData(asgardEHC07ADData);
-  const asgardEHC10ADParts   = buildPartsFromData(asgardEHC10ADData);
-  const asgardEHC12ADParts   = buildPartsFromData(asgardEHC12ADData);
-  const asgardEZ07ADParts    = buildPartsFromData(asgardEZ07ADData);
-  const asgardEZ10ADParts    = buildPartsFromData(asgardEZ10ADData);
-  const asgardEZ12ADParts    = buildPartsFromData(asgardEZ12ADData);
-  const asgardPA07ADParts    = buildPartsFromData(asgardPA07ADData);
-  const asgardPA10ADParts    = buildPartsFromData(asgardPA10ADData);
-  const asgardPA12ADParts    = buildPartsFromData(asgardPA12ADData);
-  const asgardBBHADParts     = buildPartsFromData(asgardBBHADData);
-  const asgardBBHEADParts    = buildPartsFromData(asgardBBHEADData);
-  const asgardFBHEADParts    = buildPartsFromData(asgardFBHEADData);
-  const asgardFHADParts      = buildPartsFromData(asgardFHADData);
-  const asgardXHADParts      = buildPartsFromData(asgardXHADData);
-  const asgardGN01ADParts    = buildPartsFromData(asgardGN01ADData);
-  const asgardLP01ADParts    = buildPartsFromData(asgardLP01ADData);
-  const asgardCR01ADParts    = buildPartsFromData(asgardCR01ADData);
-  const asgardNS03ADParts    = buildPartsFromData(asgardNS03ADData);
-  const asgardAT01ADParts    = buildPartsFromData(asgardAT01ADData);
-
   // Platinum parts arrays
   const platinumCompoundPumpParts       = buildPartsFromData(platinumCompoundPumpData);
   const platinumFlatBoxParts            = buildPartsFromData(platinumFlatBoxData);
@@ -1563,328 +1505,6 @@ export default function Parts() {
       previewImage: schPrev('columbia-corner-cobra'),
       parts: cornerCobraParts
     },
-
-    // ── Asgard ────────────────────────────────────────────────────────────────
-    {
-      id: 'asgard-at01-ad',
-      title: 'HAMMER Automatic Taper',
-      description: 'Asgard HAMMER Automatic Taper schematic diagrams',
-      brand: 'Asgard',
-      category: 'Tapers',
-      diagramPages: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
-      pageLabels: {
-        1: 'Assembly 1',
-        2: 'Assembly 2',
-        3: 'Assembly 3',
-        4: 'Assembly 4',
-        5: 'Assembly 5',
-        6: 'Assembly 6',
-        7: 'Assembly 7',
-        8: 'Assembly 8',
-        9: 'Assembly 9',
-        10: 'Assembly 10',
-        11: 'Assembly 11',
-        12: 'Assembly 12',
-      },
-      imagePages: {
-        1:  schImg('asgard-at01-ad', 1),
-        2:  schImg('asgard-at01-ad', 2),
-        3:  schImg('asgard-at01-ad', 3),
-        4:  schImg('asgard-at01-ad', 4),
-        5:  schImg('asgard-at01-ad', 5),
-        6:  schImg('asgard-at01-ad', 6),
-        7:  schImg('asgard-at01-ad', 7),
-        8:  schImg('asgard-at01-ad', 8),
-        9:  schImg('asgard-at01-ad', 9),
-        10: schImg('asgard-at01-ad', 10),
-        11: schImg('asgard-at01-ad', 11),
-        12: schImg('asgard-at01-ad', 12),
-      },
-      previewImage: schPrev('asgard-at01-ad'),
-      parts: asgardAT01ADParts
-    },
-    {
-      id: 'asgard-ah25-ad',
-      title: '2.5″ Angle Head Corner Finisher',
-      description: 'Asgard 2.5″ Angle Head Corner Finisher schematic diagram',
-      brand: 'Asgard',
-      category: 'Angle Heads',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ah25-ad', 1) },
-      previewImage: schPrev('asgard-ah25-ad'),
-      parts: asgardAH25ADParts
-    },
-    {
-      id: 'asgard-ah30-ad',
-      title: '3″ Angle Head Corner Finisher',
-      description: 'Asgard 3″ Angle Head Corner Finisher schematic diagram',
-      brand: 'Asgard',
-      category: 'Angle Heads',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ah30-ad', 1) },
-      previewImage: schPrev('asgard-ah30-ad'),
-      parts: asgardAH30ADParts
-    },
-    {
-      id: 'asgard-ah35-ad',
-      title: '3.5″ Angle Head Corner Finisher',
-      description: 'Asgard 3.5″ Angle Head Corner Finisher schematic diagram',
-      brand: 'Asgard',
-      category: 'Angle Heads',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ah35-ad', 1) },
-      previewImage: schPrev('asgard-ah35-ad'),
-      parts: asgardAH35ADParts
-    },
-    {
-      id: 'asgard-ca08-ad',
-      title: '8″ Angle Box Corner Applicator',
-      description: 'Asgard 8″ Angle Box Corner Applicator schematic diagram',
-      brand: 'Asgard',
-      category: 'Angle Heads',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ca08-ad', 1) },
-      previewImage: schPrev('asgard-ca08-ad'),
-      parts: asgardCA08ADParts
-    },
-    {
-      id: 'asgard-cfa-ad',
-      title: 'Angle Head Adapter',
-      description: 'Asgard Angle Head Adapter schematic diagram',
-      brand: 'Asgard',
-      category: 'Angle Heads',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-cfa-ad', 1) },
-      previewImage: schPrev('asgard-cfa-ad'),
-      parts: asgardCFAADParts
-    },
-    {
-      id: 'asgard-fa01-ad',
-      title: 'Filler Adapter',
-      description: 'Asgard Filler Adapter schematic diagram',
-      brand: 'Asgard',
-      category: 'Adapters',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-fa01-ad', 1) },
-      previewImage: schPrev('asgard-fa01-ad'),
-      parts: asgardFA01ADParts
-    },
-    {
-      id: 'asgard-ehc07-ad',
-      title: '7″ MaxxBox Finishing Box',
-      description: 'Asgard 7″ MaxxBox Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ehc07-ad', 1) },
-      previewImage: schPrev('asgard-ehc07-ad'),
-      parts: asgardEHC07ADParts
-    },
-    {
-      id: 'asgard-ehc10-ad',
-      title: '10″ MaxxBox Finishing Box',
-      description: 'Asgard 10″ MaxxBox Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ehc10-ad', 1) },
-      previewImage: schPrev('asgard-ehc10-ad'),
-      parts: asgardEHC10ADParts
-    },
-    {
-      id: 'asgard-ehc12-ad',
-      title: '12″ MaxxBox Finishing Box',
-      description: 'Asgard 12″ MaxxBox Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ehc12-ad', 1) },
-      previewImage: schPrev('asgard-ehc12-ad'),
-      parts: asgardEHC12ADParts
-    },
-    {
-      id: 'asgard-ez07-ad',
-      title: '7″ Flat Finishing Box',
-      description: 'Asgard 7″ Flat Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ez07-ad', 1) },
-      previewImage: schPrev('asgard-ez07-ad'),
-      parts: asgardEZ07ADParts
-    },
-    {
-      id: 'asgard-ez10-ad',
-      title: '10″ Flat Finishing Box',
-      description: 'Asgard 10″ Flat Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ez10-ad', 1) },
-      previewImage: schPrev('asgard-ez10-ad'),
-      parts: asgardEZ10ADParts
-    },
-    {
-      id: 'asgard-ez12-ad',
-      title: '12″ Flat Finishing Box',
-      description: 'Asgard 12″ Flat Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-ez12-ad', 1) },
-      previewImage: schPrev('asgard-ez12-ad'),
-      parts: asgardEZ12ADParts
-    },
-    {
-      id: 'asgard-pa07-ad',
-      title: '7″ Power Assist Finishing Box',
-      description: 'Asgard 7″ Power Assist Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-pa07-ad', 1) },
-      previewImage: schPrev('asgard-pa07-ad'),
-      parts: asgardPA07ADParts
-    },
-    {
-      id: 'asgard-pa10-ad',
-      title: '10″ Power Assist Finishing Box',
-      description: 'Asgard 10″ Power Assist Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-pa10-ad', 1) },
-      previewImage: schPrev('asgard-pa10-ad'),
-      parts: asgardPA10ADParts
-    },
-    {
-      id: 'asgard-pa12-ad',
-      title: '12″ Power Assist Finishing Box',
-      description: 'Asgard 12″ Power Assist Finishing Box schematic diagram',
-      brand: 'Asgard',
-      category: 'Finishing Boxes',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-pa12-ad', 1) },
-      previewImage: schPrev('asgard-pa12-ad'),
-      parts: asgardPA12ADParts
-    },
-    {
-      id: 'asgard-bbh-ad',
-      title: 'Brakeless Box Handle',
-      description: 'Asgard Brakeless Box Handle schematic diagram',
-      brand: 'Asgard',
-      category: 'Handles',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-bbh-ad', 1) },
-      previewImage: schPrev('asgard-bbh-ad'),
-      parts: asgardBBHADParts
-    },
-    {
-      id: 'asgard-bbhe-ad',
-      title: 'Brakeless Box Handle – Extendable',
-      description: 'Asgard Brakeless Box Handle – Extendable schematic diagrams',
-      brand: 'Asgard',
-      category: 'Handles',
-      diagramPages: [1, 2],
-      pageLabels: {
-        1: 'Handle',
-        2: 'Extension'
-      },
-      imagePages: {
-        1: schImg('asgard-bbhe-ad', 1),
-        2: schImg('asgard-bbhe-ad', 2),
-      },
-      previewImage: schPrev('asgard-bbhe-ad'),
-      parts: asgardBBHEADParts
-    },
-    {
-      id: 'asgard-fbhe-ad',
-      title: 'Extendable Flat Box Handle with Brake',
-      description: 'Asgard Extendable Flat Box Handle with Brake schematic diagrams',
-      brand: 'Asgard',
-      category: 'Handles',
-      diagramPages: [1, 2],
-      pageLabels: {
-        1: 'Handle',
-        2: 'Extension'
-      },
-      imagePages: {
-        1: schImg('asgard-fbhe-ad', 1),
-        2: schImg('asgard-fbhe-ad', 2),
-      },
-      previewImage: schPrev('asgard-fbhe-ad'),
-      parts: asgardFBHEADParts
-    },
-    {
-      id: 'asgard-fh-ad',
-      title: 'Fiberglass Handle',
-      description: 'Asgard Fiberglass Handle schematic diagram',
-      brand: 'Asgard',
-      category: 'Handles',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-fh-ad', 1) },
-      previewImage: schPrev('asgard-fh-ad'),
-      parts: asgardFHADParts
-    },
-    {
-      id: 'asgard-xh-ad',
-      title: 'Extendable Support Handle',
-      description: 'Asgard Extendable Support Handle schematic diagram',
-      brand: 'Asgard',
-      category: 'Handles',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-xh-ad', 1) },
-      previewImage: schPrev('asgard-xh-ad'),
-      parts: asgardXHADParts
-    },
-    {
-      id: 'asgard-gn01-ad',
-      title: 'Gooseneck',
-      description: 'Asgard Gooseneck schematic diagram',
-      brand: 'Asgard',
-      category: 'Other',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-gn01-ad', 1) },
-      previewImage: schPrev('asgard-gn01-ad'),
-      parts: asgardGN01ADParts
-    },
-    {
-      id: 'asgard-lp01-ad',
-      title: 'Compound Loading Pump',
-      description: 'Asgard Compound Loading Pump schematic diagram',
-      brand: 'Asgard',
-      category: 'Pumps',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-lp01-ad', 1) },
-      previewImage: schPrev('asgard-lp01-ad'),
-      parts: asgardLP01ADParts
-    },
-    {
-      id: 'asgard-cr01-ad',
-      title: 'Inside Corner Roller',
-      description: 'Asgard Inside Corner Roller schematic diagram',
-      brand: 'Asgard',
-      category: 'Rollers',
-      diagramPages: [1],
-      imagePages: { 1: schImg('asgard-cr01-ad', 1) },
-      previewImage: schPrev('asgard-cr01-ad'),
-      parts: asgardCR01ADParts
-    },
-    {
-      id: 'asgard-ns03-ad',
-      title: '3″ Nail Spotter',
-      description: 'Asgard 3″ Nail Spotter schematic diagrams',
-      brand: 'Asgard',
-      category: 'Spotters',
-      diagramPages: [1, 2],
-      imagePages: {
-        1: schImg('asgard-ns03-ad', 1),
-        2: schImg('asgard-ns03-ad', 2),
-      },
-      previewImage: schPrev('asgard-ns03-ad'),
-      parts: asgardNS03ADParts
-    },
-
 
     // ── Platinum ────────────────────────────────────────────────────────────
     {
@@ -3098,7 +2718,7 @@ export default function Parts() {
     >
       <SEOHead
         title="Tool Schematics & Diagrams"
-        description="Interactive exploded-view schematics and part diagrams for professional drywall finishing tools. Find replacement parts for TapeTech, Columbia, Asgard, and more."
+        description="Interactive exploded-view schematics and part diagrams for professional drywall finishing tools. Find replacement parts for TapeTech, Columbia, and more."
         canonical="/schematics"
         schema={buildBreadcrumbSchema([
           { label: 'Home',       path: '/'            },
@@ -3212,7 +2832,7 @@ export default function Parts() {
                   className="viewer-brand-logo"
                 />
               )}
-              <AutoFitViewerTitle>{currentSchematic?.title}</AutoFitViewerTitle>
+              <AutoFitViewerTitle>{currentSchematic?.catalogTitle || currentSchematic?.title}</AutoFitViewerTitle>
             </div>
 
             {/* Inline pager removed — multi-page nav rendered via SchematicPageSelector bar below */}
@@ -3359,7 +2979,7 @@ export default function Parts() {
                     )}
                     <img
                       src={schematicImageSrc}
-                      alt={currentSchematic.title}
+                      alt={currentSchematic.catalogTitle || currentSchematic.title}
                       style={{
                         // Let CSS own all size rules for the img.
                         // On mobile: .schematic-container img sets width:100% height:auto

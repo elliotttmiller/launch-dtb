@@ -50,33 +50,6 @@ export const SCHEMATIC_DEFINITIONS = {
     { id: 'tapetech-ca07tt',  title: '7" Corner Applicator (CA07TT)',                mpn: 'CA07TT',  category: 'Corner Tools' },
     { id: 'tapetech-ca08tt',  title: '8" Corner Applicator (CA08TT)',                mpn: 'CA08TT',  category: 'Corner Tools' },
   ],
-  'Asgard': [
-    { id: 'asgard-at01-ad',  title: 'HAMMER Automatic Taper',                mpn: 'AT01-AD',  category: 'Tapers'          },
-    { id: 'asgard-ah25-ad',  title: '2.5″ Angle Head Corner Finisher',       mpn: 'AH25-AD',  category: 'Angle Heads'     },
-    { id: 'asgard-ah30-ad',  title: '3″ Angle Head Corner Finisher',         mpn: 'AH30-AD',  category: 'Angle Heads'     },
-    { id: 'asgard-ah35-ad',  title: '3.5″ Angle Head Corner Finisher',       mpn: 'AH35-AD',  category: 'Angle Heads'     },
-    { id: 'asgard-ca08-ad',  title: '8″ Angle Box Corner Applicator',        mpn: 'CA08-AD',  category: 'Angle Heads'     },
-    { id: 'asgard-cfa-ad',   title: 'Angle Head Adapter',                    mpn: 'CFA-AD',   category: 'Angle Heads'     },
-    { id: 'asgard-fa01-ad',  title: 'Filler Adapter',                        mpn: 'FA01-AD',  category: 'Adapters'        },
-    { id: 'asgard-ehc07-ad', title: '7″ MaxxBox Finishing Box',              mpn: 'EHC07-AD', category: 'Finishing Boxes' },
-    { id: 'asgard-ehc10-ad', title: '10″ MaxxBox Finishing Box',             mpn: 'EHC10-AD', category: 'Finishing Boxes' },
-    { id: 'asgard-ehc12-ad', title: '12″ MaxxBox Finishing Box',             mpn: 'EHC12-AD', category: 'Finishing Boxes' },
-    { id: 'asgard-ez07-ad',  title: '7″ Flat Finishing Box',                 mpn: 'EZ07-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-ez10-ad',  title: '10″ Flat Finishing Box',                mpn: 'EZ10-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-ez12-ad',  title: '12″ Flat Finishing Box',                mpn: 'EZ12-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-pa07-ad',  title: '7″ Power Assist Finishing Box',         mpn: 'PA07-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-pa10-ad',  title: '10″ Power Assist Finishing Box',        mpn: 'PA10-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-pa12-ad',  title: '12″ Power Assist Finishing Box',        mpn: 'PA12-AD',  category: 'Finishing Boxes' },
-    { id: 'asgard-bbh-ad',   title: 'Brakeless Box Handle',                  mpn: 'BBH-AD',   category: 'Handles'         },
-    { id: 'asgard-bbhe-ad',  title: 'Brakeless Box Handle – Extendable',     mpn: 'BBHE-AD',  category: 'Handles'         },
-    { id: 'asgard-fbhe-ad',  title: 'Extendable Flat Box Handle with Brake', mpn: 'FBHE-AD',  category: 'Handles'         },
-    { id: 'asgard-fh-ad',    title: 'Fiberglass Handle',                     mpn: 'FH-AD',    category: 'Handles'         },
-    { id: 'asgard-xh-ad',    title: 'Extendable Support Handle',             mpn: 'XH-AD',    category: 'Handles'         },
-    { id: 'asgard-gn01-ad',  title: 'Gooseneck',                             mpn: 'GN01-AD',  category: 'Other'           },
-    { id: 'asgard-lp01-ad',  title: 'Compound Loading Pump',                 mpn: 'LP01-AD',  category: 'Pumps'           },
-    { id: 'asgard-cr01-ad',  title: 'Inside Corner Roller',                  mpn: 'CR01-AD',  category: 'Rollers'         },
-    { id: 'asgard-ns03-ad',  title: '3″ Nail Spotter',                       mpn: 'NS03-AD',  category: 'Spotters'        },
-  ],
   'Platinum Drywall Tools': [
     { id: 'platinum-compound-pump',          title: 'Compound Pump',         mpn: 'PDT-CP',  category: 'Pumps'             },
     { id: 'platinum-flat-box',               title: 'Flat Box',              mpn: 'PDT-FB',  category: 'Finishing Boxes'   },
@@ -233,7 +206,7 @@ export function getSchematicToProductMap(allProducts) {
 /**
  * Returns the schematic ID that best matches the given product, or null if
  * no schematic exists for it.  Covers Columbia Taping Tools, TapeTech,
- * Asgard, and more.
+ * and more.
  *
  * Matching priority: SKU-exact match first (most reliable), then
  * more-specific keyword checks before catch-all checks for the same family.
@@ -279,72 +252,6 @@ export function getSchematicIdForProduct(product) {
     if (name.includes('17tt')) return 'tapetech-17tt';
     if (name.includes('42tt'))   return 'tapetech-42tt';
     if (name.includes('48tt'))   return 'tapetech-48tt';
-    return null;
-  }
-
-  // ── Asgard ────────────────────────────────────────────────────────────────
-  if (brand === 'Asgard') {
-    // SKU-exact match is the most reliable path for Asgard products
-    const asgardSkuMap = {
-      'AT01-AD':  'asgard-at01-ad',
-      'AH25-AD':  'asgard-ah25-ad',
-      'AH30-AD':  'asgard-ah30-ad',
-      'AH35-AD':  'asgard-ah35-ad',
-      'CA08-AD':  'asgard-ca08-ad',
-      'CFA-AD':   'asgard-cfa-ad',
-      'FA01-AD':  'asgard-fa01-ad',
-      'EHC07-AD': 'asgard-ehc07-ad',
-      'EHC10-AD': 'asgard-ehc10-ad',
-      'EHC12-AD': 'asgard-ehc12-ad',
-      'EZ07-AD':  'asgard-ez07-ad',
-      'EZ10-AD':  'asgard-ez10-ad',
-      'EZ12-AD':  'asgard-ez12-ad',
-      'PA07-AD':  'asgard-pa07-ad',
-      'PA10-AD':  'asgard-pa10-ad',
-      'PA12-AD':  'asgard-pa12-ad',
-      'BBH-AD':   'asgard-bbh-ad',
-      'BBHE-AD':  'asgard-bbhe-ad',
-      'FBHE-AD':  'asgard-fbhe-ad',
-      'FH-AD':    'asgard-fh-ad',
-      'XH-AD':    'asgard-xh-ad',
-      'GN01-AD':  'asgard-gn01-ad',
-      'LP01-AD':  'asgard-lp01-ad',
-      'CR01-AD':  'asgard-cr01-ad',
-      'NS03-AD':  'asgard-ns03-ad',
-    };
-    if (asgardSkuMap[sku]) return asgardSkuMap[sku];
-
-    // Name-keyword fallback for Asgard
-    if (name.includes('hammer') && (name.includes('taper') || name.includes('automatic'))) return 'asgard-at01-ad';
-    if (name.includes('automatic taper')) return 'asgard-at01-ad';
-    if (name.includes('2.5') && name.includes('angle head')) return 'asgard-ah25-ad';
-    if (name.includes('3.5') && name.includes('angle head')) return 'asgard-ah35-ad';
-    if (name.includes('3') && name.includes('angle head') && !name.includes('3.5')) return 'asgard-ah30-ad';
-    if (name.includes('8') && name.includes('corner applicator')) return 'asgard-ca08-ad';
-    if (name.includes('angle head adapter')) return 'asgard-cfa-ad';
-    if (name.includes('filler adapter')) return 'asgard-fa01-ad';
-    if (name.includes('maxxbox') && name.includes('7')) return 'asgard-ehc07-ad';
-    if (name.includes('maxxbox') && name.includes('10')) return 'asgard-ehc10-ad';
-    if (name.includes('maxxbox') && name.includes('12')) return 'asgard-ehc12-ad';
-    if (name.includes('maxxbox')) {
-      // generic maxxbox without size — can't determine, skip
-      return null;
-    }
-    if (name.includes('power assist') && name.includes('7')) return 'asgard-pa07-ad';
-    if (name.includes('power assist') && name.includes('10')) return 'asgard-pa10-ad';
-    if (name.includes('power assist') && name.includes('12')) return 'asgard-pa12-ad';
-    if (name.includes('flat finishing box') && name.includes('7')) return 'asgard-ez07-ad';
-    if (name.includes('flat finishing box') && name.includes('10')) return 'asgard-ez10-ad';
-    if (name.includes('flat finishing box') && name.includes('12')) return 'asgard-ez12-ad';
-    if (name.includes('brakeless') && name.includes('extendable')) return 'asgard-bbhe-ad';
-    if (name.includes('brakeless box handle')) return 'asgard-bbh-ad';
-    if (name.includes('extendable flat box handle')) return 'asgard-fbhe-ad';
-    if (name.includes('fiberglass handle')) return 'asgard-fh-ad';
-    if (name.includes('extendable support handle')) return 'asgard-xh-ad';
-    if (name.includes('gooseneck')) return 'asgard-gn01-ad';
-    if (name.includes('compound loading pump') || (name.includes('loading pump'))) return 'asgard-lp01-ad';
-    if (name.includes('inside corner roller')) return 'asgard-cr01-ad';
-    if (name.includes('nail spotter') || name.includes('nailspotter')) return 'asgard-ns03-ad';
     return null;
   }
 
@@ -539,7 +446,6 @@ const BRAND_TO_SLUG = {
   'Columbia Tools': 'columbia-taping-tools',
   'Columbia Taping Tools': 'columbia-taping-tools',
   'TapeTech': 'tapetech',
-  'Asgard': 'asgard',
   'Dura-Stilts': 'dura-stilts',
   'Level5': 'level5',
 };
@@ -556,8 +462,8 @@ const SCHEMATIC_ID_TO_BRAND = (() => {
 /**
  * Builds the URL path for the Schematics viewer pre-selected to a given schematic.
  *
- * @param {string} schematicId  - e.g. 'asgard-at01-ad'
- * @returns {string} URL path   - e.g. '/schematics?brand=asgard&schematic=asgard-at01-ad'
+ * @param {string} schematicId  - e.g. 'tapetech-07tt'
+ * @returns {string} URL path   - e.g. '/schematics?brand=tapetech&schematic=tapetech-07tt'
  */
 export function buildSchematicsUrl(schematicId, { category = '', page = null, variant = null } = {}) {
   if (!schematicId) return '/schematics';

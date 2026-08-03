@@ -14,7 +14,7 @@ def normalize_key(s):
 # =====================================================================
 # Part 1: DTB_SKU_SCHEMATIC_MAP (SKU -> schematic id/page)
 #   - frontend catalog map (purchasable SKUs)
-#   - master parts CSV, Asgard "-AD" diagram codes + Level5 spare-part codes
+#   - master parts CSV, Level5 spare-part codes
 # =====================================================================
 
 js_path = f"{REPO}/frontend/src/data/productSchematicLinks.generated.js"
@@ -41,7 +41,8 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         sid = (row.get("schematic_id") or "").strip()
         brand = (row.get("brand") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
-        if not sid:
+        if not sid or brand == "Asgard":
+            # Asgard is not a supported schematics brand in the frontend.
             continue
         if sid not in csv_by_schematic_id:
             csv_by_schematic_id[sid] = {"brand": brand, "source_file_from_brands": src_rel}
@@ -55,12 +56,7 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
 
 added = 0
 for key, row in csv_sku_rows.items():
-    # Frontend uses a short 'asgard-{sku_lower}' id for all Asgard "-AD" tools,
-    # not the verbose auto-generated schematic_id in the master CSV.
-    if row["brand"] == "Asgard" or key.endswith("-AD"):
-        resolved_id = "asgard-" + key.lower()
-    else:
-        resolved_id = row["schematic_id"]
+    resolved_id = row["schematic_id"]
 
     if key in sku_map:
         if sku_map[key]["schematic_id"] != resolved_id:
@@ -152,8 +148,8 @@ lines.append(" * Schematic filename -> schematic id/page lookups, generated from
 lines.append(" *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)")
 lines.append(" *   - frontend/src/pages/Schematics.jsx (tool id / page ordering)")
 lines.append(" *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv")
-lines.append(" *     (Level5 spare-part codes, Asgard '-AD' diagram codes, and verbose")
-lines.append(" *     Columbia/TapeTech/Platinum export ids, none of which are catalog SKUs)")
+lines.append(" *     (Level5 spare-part codes and verbose Columbia/TapeTech/Platinum export")
+lines.append(" *     ids, none of which are catalog SKUs)")
 lines.append(" * Regenerate with scripts/gen_sku_schematic_map.py whenever any source changes.")
 lines.append(" *")
 lines.append(" * @package drywall-toolbox")
