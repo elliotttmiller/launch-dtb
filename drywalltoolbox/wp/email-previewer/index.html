@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>DTB Email Previewer</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <header class="dtb-preview-header">
+    <div>
+      <p class="dtb-preview-kicker">LOCAL DESIGN TOOL</p>
+      <h1>DTB Email Previewer</h1>
+    </div>
+    <p class="dtb-preview-status">Static fixture preview · No WordPress, database, SMTP, or sending</p>
+  </header>
+
+  <main class="dtb-preview-shell">
+    <div class="dtb-preview-toolbar">
+      <label>
+        <span>Template fixture</span>
+        <select id="fixture-select">
+          <option value="fixtures/processing-order.html">Processing order</option>
+        </select>
+      </label>
+
+      <fieldset>
+        <legend>Viewport</legend>
+        <label class="dtb-preview-radio"><input type="radio" name="device" value="desktop" checked> Desktop</label>
+        <label class="dtb-preview-radio"><input type="radio" name="device" value="mobile"> Mobile</label>
+      </fieldset>
+
+      <button id="reload-preview" type="button">Reload preview</button>
+    </div>
+
+    <section class="dtb-preview-stage" aria-label="Rendered email preview">
+      <div id="device-frame" class="dtb-preview-device dtb-preview-device--desktop">
+        <iframe id="email-frame" title="Email fixture preview" src="fixtures/processing-order.html"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const frame = document.getElementById('email-frame');
+    const deviceFrame = document.getElementById('device-frame');
+    const fixtureSelect = document.getElementById('fixture-select');
+
+    fixtureSelect.addEventListener('change', () => {
+      frame.src = fixtureSelect.value;
+    });
+
+    document.querySelectorAll('input[name="device"]').forEach((input) => {
+      input.addEventListener('change', () => {
+        deviceFrame.className = `dtb-preview-device dtb-preview-device--${input.value}`;
+      });
+    });
+
+    document.getElementById('reload-preview').addEventListener('click', () => {
+      frame.contentWindow.location.reload();
+    });
+  </script>
+</body>
+</html>
