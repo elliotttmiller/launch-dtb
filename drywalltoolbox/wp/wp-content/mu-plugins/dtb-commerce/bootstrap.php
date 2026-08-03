@@ -29,6 +29,7 @@ require_once __DIR__ . '/Payment/CheckoutPerformance.php';
 require_once __DIR__ . '/Payment/CheckoutRuntimeIntegrity.php';
 require_once __DIR__ . '/Shipping/DTBShippingMethod.php';
 require_once __DIR__ . '/Email/TemplateOverride.php';
+require_once __DIR__ . '/Email/Preview/EmailPreviewService.php';
 
 if ( is_admin() ) {
 	require_once __DIR__ . '/Admin/OrdersPage.php';
