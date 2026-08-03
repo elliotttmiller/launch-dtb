@@ -4,12 +4,14 @@ const previewRoot = __dirname;
 const wpRoot = path.resolve(previewRoot, '..');
 const repositoryRoot = path.resolve(wpRoot, '..', '..');
 const proxy = process.env.DTB_EMAIL_PREVIEW_ORIGIN || 'http://localhost';
+const previewPath = process.env.DTB_EMAIL_PREVIEW_PATH || '/wp/email-previewer/';
 const orderId = process.env.DTB_EMAIL_PREVIEW_ORDER || '';
 const emailId = process.env.DTB_EMAIL_PREVIEW_EMAIL || 'customer_processing_order';
+const separator = previewPath.includes('?') ? '&' : '?';
 
 module.exports = {
   proxy,
-  startPath: `/wp/email-previewer/?email=${encodeURIComponent(emailId)}&order=${encodeURIComponent(orderId)}&device=desktop`,
+  startPath: `${previewPath}${separator}email=${encodeURIComponent(emailId)}&order=${encodeURIComponent(orderId)}&device=desktop`,
   open: true,
   notify: false,
   ui: false,
@@ -35,6 +37,7 @@ module.exports = {
       const urls = browserSync.options.get('urls').toJS();
       console.log(`\nDTB Email Previewer: ${urls.local}`);
       console.log(`Proxying WordPress: ${proxy}`);
+      console.log(`Preview path: ${previewPath}`);
       console.log(`Watching repository: ${repositoryRoot}\n`);
     },
   },
