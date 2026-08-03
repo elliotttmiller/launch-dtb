@@ -260,7 +260,7 @@ function OrderProgressUpdates({ updates = [], streaming }) {
         {updates.length ? (
           <ol className="dtb-order-progress-updates-list">
             {updates.map((event, index) => (
-              <li key={`${event.label}-${event.at || index}`}>
+              <li key={`${event.label}-${event.at || index}`} aria-current={index === 0 ? 'true' : undefined}>
                 <span className={`dtb-order-update-dot ${index === 0 ? 'is-current' : ''}`} aria-hidden="true" />
                 <div>
                   <p>{event.label}</p>
@@ -369,7 +369,7 @@ function OrderStatusTracker({ order, loading, onRefresh }) {
       <div className="dtb-order-status-panel__topline">
         <div className="dtb-order-status-panel__heading">
           <p className="dtb-order-eyebrow">Order tracking</p>
-          <h1 id="tracking-order-title" className="dtb-order-tracking-title">Order #{order?.number || order?.id}</h1>
+          <h2 id="tracking-order-title" className="dtb-order-tracking-title">Order #{order?.number || order?.id}</h2>
         </div>
 
         <div className="dtb-order-status-panel__topline-actions">
@@ -412,7 +412,11 @@ function OrderStatusTracker({ order, loading, onRefresh }) {
           const future = !complete && !active;
           const StepIcon = step.Icon;
           return (
-            <li key={step.id} className={`dtb-order-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`}>
+            <li
+              key={step.id}
+              className={`dtb-order-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`}
+              aria-current={active ? 'step' : undefined}
+            >
               <span className="dtb-order-step__connector" aria-hidden="true" />
               <span className="dtb-order-step__icon" aria-hidden="true">
                 {complete ? <Check size={16} strokeWidth={3} /> : active ? <span className="dtb-order-step__dot" /> : <StepIcon size={16} strokeWidth={1.8} />}
