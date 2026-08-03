@@ -1,0 +1,122 @@
+(function () {
+	'use strict';
+
+	var root = document.getElementById('dtb-email-studio');
+	if (!root) return;
+
+	var cfg = window.dtbAdminConfig || {};
+	var state = { manifest: null, emailId: '', orderId: 0, device: 'desktop', rendering: false, result: null, error: '' };
+
+	function restUrl(path) {
+		return (cfg.restUrl || '/wp-json/').replace(/\/$/, '') + path;
+	}
+
+	function api(method, path, body) {
+		return fetch(restUrl(path), {
+			method: method,
+			credentials: 'same-origin',
+			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': cfg.nonce || '' },
+			body: body ? JSON.stringify(body) : undefined,
+		}).then(function (res) {
+			return res.json().then(function (json) {
+				if (!res.ok) throw new Error(json.message || 'Request failed');
+				return json;
+			});
+		});
+	}
+
+	function el(tag, attrs, children) {
+		var node = document.createElement(tag);
+		Object.keys(attrs || {}).forEach(function (key) {
+			if (key === 'class') node.className = attrs[key];
+			else if (key.indexOf('on') === 0) node.addEventListener(key.slice(2), attrs[key]);
+			else if (attrs[key] !== null && attrs[key] !== undefined) node.setAttribute(key, attrs[key]);
+		});
+		(children || []).forEach(function (child) {
+			node.appendChild(typeof child === 'string' ? document.createTextNode(child) : child);
+		});
+		return node;
+	}
+
+	function loadManifest() {
+		api('GET', '/dtb/v1/design/email-studio').then(function (manifest) {
+			state.manifest = manifest;
+			state.emailId = Object.keys(manifest.emails || {})[0] || '';
+			state.orderId = manifest.orders && manifest.orders[0] ? manifest.orders[0].id : 0;
+			render();
+			if (state.emailId && state.orderId) renderEmail();
+		}).catch(function (error) {
+			state.error = error.message;
+			render();
+		});
+	}
+
+	function renderEmail() {
+		if (!state.emailId || !state.orderId || state.rendering) return;
+		state.rendering = true;
+		state.error = '';
+		render();
+		api('POST', '/dtb/v1/design/email-studio/render', { emailId: state.emailId, orderId: state.orderId })
+			.then(function (result) {
+				state.result = result;
+				state.rendering = false;
+				render();
+			})
+			.catch(function (error) {
+				state.error = error.message;
+				state.rendering = false;
+				render();
+			});
+	}
+
+	function selectOptions(map, selected) {
+		return Object.keys(map || {}).map(function (value) {
+			return el('option', { value: value, selected: value === String(selected) ? 'selected' : null }, [map[value]]);
+		});
+	}
+
+	function render() {
+		root.innerHTML = '';
+		if (!state.manifest && !state.error) {
+			root.appendChild(el('div', { class: 'dtb-vd__loading' }, [el('div', { class: 'dtb-vd__spinner' }, []), el('p', {}, ['Loading Email Studio…'])]));
+			return;
+		}
+
+		var emailOptions = selectOptions(state.manifest ? state.manifest.emails : {}, state.emailId);
+		var orderMap = {};
+		(state.manifest && state.manifest.orders || []).forEach(function (order) {
+			orderMap[String(order.id)] = '#' + order.number + ' · ' + order.status + ' · ' + order.customer + ' · ' + order.total;
+		});
+
+		var toolbar = el('div', { class: 'dtb-es__toolbar' }, [
+			el('div', { class: 'dtb-es__brand' }, [el('span', { class: 'dtb-es__eyebrow' }, ['TRANSACTIONAL EMAILS']), el('h1', {}, ['Email Studio']), el('p', {}, ['Actual WooCommerce HTML renderer. Nothing is sent and no order is changed.'])]),
+			el('label', {}, [el('span', {}, ['Email']), el('select', { onchange: function (event) { state.emailId = event.target.value; renderEmail(); } }, emailOptions)]),
+			el('label', {}, [el('span', {}, ['Order data']), el('select', { onchange: function (event) { state.orderId = parseInt(event.target.value, 10) || 0; renderEmail(); } }, selectOptions(orderMap, state.orderId))]),
+			el('div', { class: 'dtb-es__devices', role: 'group', 'aria-label': 'Preview viewport' }, [
+				el('button', { type: 'button', class: state.device === 'desktop' ? 'is-active' : '', onclick: function () { state.device = 'desktop'; render(); } }, ['Desktop']),
+				el('button', { type: 'button', class: state.device === 'mobile' ? 'is-active' : '', onclick: function () { state.device = 'mobile'; render(); } }, ['Mobile']),
+			]),
+			el('button', { type: 'button', class: 'dtb-es__refresh', onclick: renderEmail, disabled: state.rendering ? 'disabled' : null }, [state.rendering ? 'Rendering…' : 'Refresh preview']),
+		]);
+
+		var meta = state.result ? el('div', { class: 'dtb-es__meta' }, [
+			el('span', {}, ['Subject: ' + state.result.subject]),
+			el('span', {}, ['Heading: ' + state.result.heading]),
+		]) : el('div', { class: 'dtb-es__meta' }, [state.manifest ? state.manifest.notice : '']);
+
+		var frameContent;
+		if (state.error) {
+			frameContent = el('div', { class: 'dtb-es__empty dtb-es__empty--error' }, [el('strong', {}, ['Preview unavailable']), el('p', {}, [state.error])]);
+		} else if (!state.result) {
+			frameContent = el('div', { class: 'dtb-es__empty' }, [el('strong', {}, ['Choose an email and order']), el('p', {}, ['The studio needs an existing WooCommerce order to render truthful dynamic content.'])]);
+		} else {
+			frameContent = el('iframe', { title: 'Rendered WooCommerce email', sandbox: 'allow-popups allow-popups-to-escape-sandbox', srcdoc: state.result.html }, []);
+		}
+
+		root.appendChild(toolbar);
+		root.appendChild(meta);
+		root.appendChild(el('section', { class: 'dtb-es__stage' }, [el('div', { class: 'dtb-es__canvas dtb-es__canvas--' + state.device }, [frameContent])]));
+	}
+
+	loadManifest();
+}());
