@@ -266,12 +266,6 @@
   height: 8px;
 }
 
-html.dtb-document-transition-active #root {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--dtb-document-fade-duration) var(--dtb-loading-ease);
-}
-
 .dtb-checkout-handoff-screen,
 #dtb-checkout-route-loader {
   position: fixed;
@@ -422,8 +416,7 @@ html.dtb-checkout-route-booting #dtb-checkout-route-loader {
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-card-loading-transition__skeleton,
-  .dtb-card-loading-transition__content,
-  html.dtb-document-transition-active #root {
+  .dtb-card-loading-transition__content {
     transition-duration: 1ms;
   }
 

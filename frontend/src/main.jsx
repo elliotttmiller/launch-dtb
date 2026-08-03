@@ -46,7 +46,7 @@ import './styles/mobile-product-detail-mockup.css'
 // Final product purchase-card typography authority.
 import './styles/product-detail-typography.css'
 import App from './App.jsx'
-import ErrorBoundary from './components/errors/ErrorBoundary.jsx'
+import ErrorBoundary from './components/system/AppErrorBoundary.jsx'
 import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js'
 import { installMobileSchematicNavRuntime } from './utils/mobileSchematicNavRuntime.js'
 import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js'
@@ -76,6 +76,8 @@ if (typeof window !== 'undefined') {
 
 function markAppMounted() {
   if (typeof document !== 'undefined') {
+    document.documentElement.classList.remove('dtb-document-transition-active');
+    document.documentElement.classList.remove('dtb-checkout-handoff-active');
     document.documentElement.setAttribute('data-dtb-app-mounted', 'true');
   }
 }

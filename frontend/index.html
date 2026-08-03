@@ -33,6 +33,19 @@
           window.history.replaceState(window.history.state, document.title, pwaUrl.pathname + pwaUrl.search + pwaUrl.hash);
         } catch (e) {}
       }
+      document.documentElement.classList.remove('dtb-document-transition-active');
+      document.documentElement.classList.remove('dtb-checkout-handoff-active');
+      (function () {
+        var standaloneQuery = window.matchMedia ? window.matchMedia('(display-mode: standalone)') : null;
+        function syncAppDisplayMode() {
+          var standalone = (standaloneQuery && standaloneQuery.matches) || window.navigator.standalone === true;
+          document.documentElement.setAttribute('data-dtb-display-mode', standalone ? 'standalone' : 'browser');
+        }
+        syncAppDisplayMode();
+        if (standaloneQuery && standaloneQuery.addEventListener) {
+          standaloneQuery.addEventListener('change', syncAppDisplayMode);
+        }
+      })();
     </script>
     <link rel="icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
@@ -43,12 +56,10 @@
     <link rel="manifest" href="<%= htmlWebpackPlugin.options.publicPath %>site.webmanifest" />
     <!--
       viewport-fit=cover: supports iPhone safe-area layout.
-      interactive-widget=resizes-content: lets mobile browsers resize visual
-      viewport height when the keyboard opens instead of overlaying fixed UI.
       Pinch zoom remains available for accessibility; CSS prevents input-focus
       zoom, body-level horizontal overflow, and broken mobile viewport geometry.
     -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
     <!-- ── Runtime SEO authority: SEOHead / react-helmet-async ── -->
     <title>Drywall Toolbox</title>
@@ -138,6 +149,114 @@
       (function () {
         var RETRY_KEY = 'dtb:boot-retry';
         var TIMEOUT_MS = 8000;
+        var DEBUG_REQUESTED = /(?:^|[?&])dtb_frontend_debug=(?:1|true|yes|on)(?:&|$)/i.test(window.location.search || '');
+        var DEBUG_ENABLED = false;
+        try {
+          DEBUG_ENABLED = DEBUG_REQUESTED && (
+            window.sessionStorage.getItem('dtb:frontend-debug-authorized') === '1' ||
+            /(?:^|;\s*)dtb_frontend_debug_authorized=1(?:;|$)/.test(document.cookie || '')
+          );
+        } catch (e) {}
+        var bootErrors = [];
+
+        function safeErrorMessage(value) {
+          if (!value) return 'Unknown error';
+          return String(value.message || value.reason || value).slice(0, 1200);
+        }
+
+        function recordBootError(type, detail) {
+          if (!DEBUG_ENABLED || bootErrors.length >= 12) return;
+          bootErrors.push({
+            type: type,
+            detail: safeErrorMessage(detail),
+            elapsedMs: Math.round(performance.now())
+          });
+        }
+
+        function installDebugStatusPanel() {
+          if (!DEBUG_ENABLED || document.getElementById('dtb-boot-debug-panel')) return;
+
+          var panel = document.createElement('pre');
+          panel.id = 'dtb-boot-debug-panel';
+          panel.setAttribute('role', 'status');
+          panel.style.cssText = 'position:fixed;z-index:2147483647;left:8px;right:8px;bottom:8px;' +
+            'max-height:42vh;overflow:auto;margin:0;padding:10px;border:2px solid #ef4444;border-radius:6px;' +
+            'background:#111827;color:#f9fafb;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;' +
+            'font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;';
+          document.body.appendChild(panel);
+
+          function updatePanel() {
+            var root = document.getElementById('root');
+            var rootStyle = root ? window.getComputedStyle(root) : null;
+            var rootRect = root ? root.getBoundingClientRect() : null;
+            var topLevelChildren = root ? Array.prototype.map.call(root.children, function (child) {
+              var style = window.getComputedStyle(child);
+              var rect = child.getBoundingClientRect();
+              return {
+                tag: child.tagName,
+                id: child.id || '',
+                className: String(child.className || '').slice(0, 240),
+                display: style.display,
+                visibility: style.visibility,
+                opacity: style.opacity,
+                contentVisibility: style.contentVisibility || '',
+                position: style.position,
+                zIndex: style.zIndex,
+                transform: style.transform,
+                rect: {
+                  top: Math.round(rect.top),
+                  left: Math.round(rect.left),
+                  width: Math.round(rect.width),
+                  height: Math.round(rect.height)
+                },
+                textLength: (child.textContent || '').trim().length
+              };
+            }) : [];
+            var failedResources = bootErrors.filter(function (item) {
+              return item.type === 'script-load' || item.type === 'resource-load';
+            });
+            panel.textContent = JSON.stringify({
+              debugAuthorized: true,
+              elapsedMs: Math.round(performance.now()),
+              readyState: document.readyState,
+              appMounted: appHasMounted(),
+              rootChildren: root ? root.children.length : null,
+              rootTextLength: root ? (root.textContent || '').trim().length : null,
+              rootStyle: rootStyle ? {
+                display: rootStyle.display,
+                visibility: rootStyle.visibility,
+                opacity: rootStyle.opacity,
+                position: rootStyle.position,
+                zIndex: rootStyle.zIndex,
+                transform: rootStyle.transform
+              } : null,
+              rootRect: rootRect ? {
+                top: Math.round(rootRect.top),
+                left: Math.round(rootRect.left),
+                width: Math.round(rootRect.width),
+                height: Math.round(rootRect.height)
+              } : null,
+              viewport: { width: window.innerWidth, height: window.innerHeight },
+              documentSize: {
+                bodyHeight: document.body.scrollHeight,
+                documentHeight: document.documentElement.scrollHeight
+              },
+              topLevelChildren: topLevelChildren,
+              htmlClasses: document.documentElement.className,
+              errors: bootErrors,
+              failedResources: failedResources
+            }, null, 2);
+          }
+
+          updatePanel();
+          window.setInterval(updatePanel, 1000);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', installDebugStatusPanel, { once: true });
+        } else {
+          installDebugStatusPanel();
+        }
 
         function appHasMounted() {
           return document.documentElement.getAttribute('data-dtb-app-mounted') === 'true';
@@ -147,6 +266,17 @@
           if (appHasMounted()) return;
           var root = document.getElementById('root');
           if (!root) return;
+          var diagnosticMarkup = '';
+          if (DEBUG_ENABLED) {
+            var diagnosticText = bootErrors.length
+              ? JSON.stringify(bootErrors, null, 2)
+              : 'No browser error event was captured. Check /mobile-debug.php for asset and MIME diagnostics.';
+            diagnosticMarkup = '<pre style="margin:18px 0 0;padding:12px;background:#111827;color:#e5e7eb;' +
+              'border-radius:6px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 monospace;">' +
+              diagnosticText.replace(/[&<>]/g, function (character) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[character];
+              }) + '</pre>';
+          }
           root.innerHTML =
             '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;' +
             'background:#f8fafc;color:#0f172a;font:16px/1.5 system-ui,-apple-system,sans-serif;' +
@@ -155,11 +285,16 @@
             '<p style="margin:0 0 16px;font-weight:700;">Drywall Toolbox is taking longer than expected to load.</p>' +
             '<button onclick="location.reload()" style="appearance:none;border:0;border-radius:8px;' +
             'background:#0f172a;color:#fff;font:inherit;font-weight:600;padding:12px 20px;cursor:pointer;">' +
-            'Reload</button></div></div>';
+            'Reload</button>' + diagnosticMarkup + '</div></div>';
         }
 
         function attemptRecovery() {
           if (appHasMounted()) return;
+
+          if (DEBUG_ENABLED) {
+            showFallback();
+            return;
+          }
 
           var alreadyRetried = false;
           try {
@@ -182,9 +317,20 @@
         // waiting out the full timeout.
         window.addEventListener('error', function (event) {
           if (event && event.target && event.target.tagName === 'SCRIPT') {
+            recordBootError('script-load', event.target.src || 'Script failed to load');
             window.setTimeout(attemptRecovery, 50);
+            return;
           }
+          if (event && event.target && event.target !== window) {
+            recordBootError('resource-load', event.target.src || event.target.href || event.target.tagName);
+            return;
+          }
+          recordBootError('javascript', event && (event.error || event.message));
         }, true);
+
+        window.addEventListener('unhandledrejection', function (event) {
+          recordBootError('unhandled-promise', event && event.reason);
+        });
 
         window.setTimeout(attemptRecovery, TIMEOUT_MS);
 

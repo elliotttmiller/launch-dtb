@@ -1,12 +1,4 @@
-const DOCUMENT_FADE_MS = 180;
-
 let navigationPending = false;
-
-function prefersReducedMotion() {
-  return typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 function resetDocumentTransition() {
   navigationPending = false;
@@ -30,7 +22,7 @@ if (typeof window !== 'undefined') {
  * document visible and let the browser replace it only after the checkout response is
  * ready to commit.
  */
-export function navigateDocument(url, { replace = false, transition = 'fade' } = {}) {
+export function navigateDocument(url, { replace = false } = {}) {
   if (typeof window === 'undefined' || navigationPending) return;
 
   navigationPending = true;
@@ -43,11 +35,5 @@ export function navigateDocument(url, { replace = false, transition = 'fade' } =
     }
   };
 
-  if (transition === 'checkout' || prefersReducedMotion()) {
-    commitNavigation();
-    return;
-  }
-
-  document.documentElement.classList.add('dtb-document-transition-active');
-  window.setTimeout(commitNavigation, DOCUMENT_FADE_MS);
+  commitNavigation();
 }

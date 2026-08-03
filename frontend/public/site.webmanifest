@@ -9,9 +9,7 @@
   "scope": "/",
   "display": "standalone",
   "display_override": [
-    "standalone",
-    "minimal-ui",
-    "browser"
+    "standalone"
   ],
   "orientation": "any",
   "background_color": "#0f172a",
@@ -59,25 +57,25 @@
       "name": "Shop Products",
       "short_name": "Shop",
       "description": "Browse the full catalog of drywall tools, equipment, accessories, and replacement parts.",
-      "url": "./products"
+      "url": "/products"
     },
     {
       "name": "Parts",
       "short_name": "Parts",
       "description": "Jump directly to replacement parts and service components.",
-      "url": "./parts"
+      "url": "/parts"
     },
     {
       "name": "Repairs",
       "short_name": "Repairs",
       "description": "Access repair services and support information.",
-      "url": "./repairs"
+      "url": "/repairs"
     },
     {
       "name": "Calculators",
       "short_name": "Calc",
       "description": "Open drywall material and project calculators.",
-      "url": "./calculators"
+      "url": "/calculators"
     }
   ],
   "prefer_related_applications": false

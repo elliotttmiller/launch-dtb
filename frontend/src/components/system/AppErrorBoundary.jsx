@@ -5,7 +5,15 @@ function isFrontendDebugEnabled() {
   if (typeof window === 'undefined') return false;
   const params = new URLSearchParams(window.location.search || '');
   const flag = String(params.get('dtb_frontend_debug') || '').toLowerCase();
-  return flag === '1' || flag === 'true' || flag === 'yes' || flag === 'on';
+  const requested = flag === '1' || flag === 'true' || flag === 'yes' || flag === 'on';
+  if (!requested) return false;
+
+  try {
+    return window.sessionStorage.getItem('dtb:frontend-debug-authorized') === '1'
+      || /(?:^|;\s*)dtb_frontend_debug_authorized=1(?:;|$)/.test(document.cookie || '');
+  } catch {
+    return false;
+  }
 }
 
 /**

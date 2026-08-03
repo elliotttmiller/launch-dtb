@@ -352,27 +352,46 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
     const header = document.querySelector('.site-header');
     if (!root || !header) return undefined;
 
+    let scheduledFrame = 0;
+    let lastHeight = -1;
+
     const updateHeaderHeight = () => {
-      const { bottom } = header.getBoundingClientRect();
-      root.style.setProperty('--header-height', `${Math.ceil(bottom)}px`);
+      const { height } = header.getBoundingClientRect();
+      if (!Number.isFinite(height) || height <= 0) return;
+
+      // Use intrinsic height, never the viewport-relative bottom coordinate.
+      // Feeding `bottom` into body padding creates an unbounded layout loop:
+      // padding moves the header, its next bottom grows, then padding grows again.
+      const nextHeight = Math.min(320, Math.ceil(height));
+      if (nextHeight === lastHeight) return;
+      lastHeight = nextHeight;
+      root.style.setProperty('--header-height', `${nextHeight}px`);
+    };
+
+    const scheduleHeaderHeightUpdate = () => {
+      if (scheduledFrame) return;
+      scheduledFrame = window.requestAnimationFrame(() => {
+        scheduledFrame = 0;
+        updateHeaderHeight();
+      });
     };
 
     updateHeaderHeight();
 
-    const rafId = window.requestAnimationFrame(updateHeaderHeight);
+    scheduleHeaderHeightUpdate();
     const resizeObserver = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(() => updateHeaderHeight())
+      ? new ResizeObserver(scheduleHeaderHeightUpdate)
       : null;
 
     resizeObserver?.observe(header);
-    window.addEventListener('resize', updateHeaderHeight);
-    window.addEventListener('orientationchange', updateHeaderHeight);
+    window.addEventListener('resize', scheduleHeaderHeightUpdate);
+    window.addEventListener('orientationchange', scheduleHeaderHeightUpdate);
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      if (scheduledFrame) window.cancelAnimationFrame(scheduledFrame);
       resizeObserver?.disconnect();
-      window.removeEventListener('resize', updateHeaderHeight);
-      window.removeEventListener('orientationchange', updateHeaderHeight);
+      window.removeEventListener('resize', scheduleHeaderHeightUpdate);
+      window.removeEventListener('orientationchange', scheduleHeaderHeightUpdate);
     };
   }, [mobileMenuOpen, isTablet]);
 

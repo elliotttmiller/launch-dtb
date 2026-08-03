@@ -49,13 +49,22 @@ export default function StorefrontRail({ label, className = '', children }) {
 
     updateScrollState();
 
-    const onScroll = () => updateScrollState();
+    let scheduledFrame = 0;
+    const scheduleScrollStateUpdate = () => {
+      if (scheduledFrame) return;
+      scheduledFrame = window.requestAnimationFrame(() => {
+        scheduledFrame = 0;
+        updateScrollState();
+      });
+    };
+
+    const onScroll = scheduleScrollStateUpdate;
     rail.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', updateScrollState, { passive: true });
+    window.addEventListener('resize', scheduleScrollStateUpdate, { passive: true });
 
     let resizeObserver;
     if ('ResizeObserver' in window) {
-      resizeObserver = new ResizeObserver(updateScrollState);
+      resizeObserver = new ResizeObserver(scheduleScrollStateUpdate);
       resizeObserver.observe(rail);
     }
 
@@ -64,8 +73,9 @@ export default function StorefrontRail({ label, className = '', children }) {
 
     return () => {
       rail.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', updateScrollState);
+      window.removeEventListener('resize', scheduleScrollStateUpdate);
       if (resizeObserver) resizeObserver.disconnect();
+      if (scheduledFrame) window.cancelAnimationFrame(scheduledFrame);
       window.cancelAnimationFrame(raf);
       window.clearTimeout(timeout);
     };
