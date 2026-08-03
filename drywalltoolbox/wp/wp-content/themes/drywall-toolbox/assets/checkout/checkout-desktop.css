@@ -1,28 +1,36 @@
 /**
- * Drywall Toolbox — native WooCommerce Checkout Block desktop layout.
+ * Drywall Toolbox — native WooCommerce Checkout Block desktop presentation.
  *
- * Presentation-only layer loaded after checkout.css. WooCommerce retains
- * ownership of checkout fields, validation, cart/session state, shipping,
- * tax, totals and order creation. Payment Plugins for Stripe retains
- * ownership of provider UI and payment execution. No checkout node is
- * cloned, moved, hidden or replaced by this stylesheet.
+ * Desktop-only enhancement. The existing mobile/tablet checkout stylesheet and
+ * mobile wizard remain authoritative below 1024px and are intentionally
+ * untouched.
+ *
+ * This stylesheet uses WooCommerce's published Checkout Block region classes as
+ * the presentation contract. It does not discover DOM ownership with :has(),
+ * reorder provider surfaces, reparent nodes, clone controls, or reset arbitrary
+ * descendants. WooCommerce remains authoritative for checkout state, fields,
+ * validation, shipping, tax, totals, and order creation. Payment Plugins for
+ * Stripe remains authoritative for Express Checkout and payment execution.
  *
  * Handle: dtb-checkout-desktop.
  */
 
 @media (min-width: 1024px) {
 	body.woocommerce-checkout {
-		--dtb-checkout-column-gap: clamp(32px, 3vw, 48px);
-		--dtb-checkout-sidebar-width: clamp(390px, 31vw, 460px);
-		--dtb-checkout-content-width: 1360px;
+		--dtb-desktop-checkout-width: 1360px;
+		--dtb-desktop-sidebar-width: clamp(390px, 30vw, 460px);
+		--dtb-desktop-column-gap: clamp(32px, 3vw, 48px);
+		--dtb-desktop-section-gap: 20px;
 	}
 
+	/* Desktop page canvas. This is the only override of the mobile 640px
+	 * content ceiling. Mobile and tablet retain the existing layout unchanged. */
 	body.woocommerce-checkout #primary {
 		box-sizing: border-box;
 		width: 100%;
-		max-width: var(--dtb-checkout-content-width);
+		max-width: var(--dtb-desktop-checkout-width);
 		margin-inline: auto;
-		padding: clamp(30px, 3vw, 48px) clamp(24px, 4vw, 56px) 72px;
+		padding: clamp(32px, 4vw, 56px) clamp(24px, 4vw, 56px) 72px;
 	}
 
 	body.woocommerce-checkout #primary > .woocommerce,
@@ -34,139 +42,76 @@
 		max-width: none;
 	}
 
-	/* Live QA after the first desktop pass showed that correcting only the
-	 * outer main/sidebar wrapper was insufficient. WooCommerce's main region
-	 * retained a second internal desktop flex/grid layout, distributing Contact,
-	 * Shipping address, Shipping options, Payment and actions across separate
-	 * tracks. Reset every non-authoritative inner layout wrapper; this file owns
-	 * exactly one desktop grid: checkout content + order summary. */
-	body.woocommerce-checkout .wc-block-checkout__form,
-	body.woocommerce-checkout .wc-block-checkout__main > form {
-		display: block;
-		grid-template-columns: none;
-		grid-auto-columns: auto;
-		grid-auto-flow: row;
-		column-count: auto;
-	}
-
-	/* The left track is one explicit vertical flex flow. This keeps every
-	 * native section mounted and in its existing DOM container while allowing
-	 * the provider-owned Express Checkout surface to receive a deterministic
-	 * visual position at the top of the column without DOM reparenting. */
-	body.woocommerce-checkout .wc-block-checkout__main,
-	body.woocommerce-checkout .wc-block-components-main,
-	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-main {
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		grid-template-columns: none;
-		grid-auto-columns: auto;
-		grid-auto-flow: row;
-		column-count: auto;
-	}
-
-	body.woocommerce-checkout :is(
-		.wc-block-components-sidebar-layout,
-		.wc-block-checkout__form,
-		.wc-block-checkout
-	):has(> .wc-block-checkout__main):has(> .wc-block-checkout__sidebar) {
+	/* WooCommerce's published sidebar-layout component is the sole desktop
+	 * two-column authority. Do not place a second grid on the form or main
+	 * region; that was the source of the prior staggered card mosaic. */
+	body.woocommerce-checkout .wc-block-components-sidebar-layout {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) var(--dtb-checkout-sidebar-width);
-		gap: var(--dtb-checkout-column-gap);
+		grid-template-columns: minmax(0, 1fr) var(--dtb-desktop-sidebar-width);
+		column-gap: var(--dtb-desktop-column-gap);
 		align-items: start;
 		width: 100%;
 		max-width: none;
 	}
 
+	body.woocommerce-checkout .wc-block-components-sidebar-layout__main,
 	body.woocommerce-checkout .wc-block-checkout__main {
-		grid-column: 1;
+		box-sizing: border-box;
 		min-width: 0;
 		width: 100%;
 		max-width: none;
-		padding: 0;
 		margin: 0;
-		box-sizing: border-box;
+		padding: 0;
 		flex: none;
 	}
 
-	/* Force all native checkout sections into one vertical document flow.
-	 * Provider and WooCommerce variants may assign 50% widths, flex-basis,
-	 * grid-column placement or inline sizing; these rules neutralize only that
-	 * presentation and preserve mounted state and behavior. In a column flex
-	 * context the basis must remain auto; 100% would become full viewport-height
-	 * cards rather than full-width cards. */
-	body.woocommerce-checkout .wc-block-checkout__main > *,
-	body.woocommerce-checkout .wc-block-components-main > *,
+	/* One vertical document flow in the left track. Native DOM order is
+	 * preserved, including the provider-selected Express Checkout position. */
+	body.woocommerce-checkout .wc-block-checkout__main,
+	body.woocommerce-checkout .wc-block-components-main {
+		display: block;
+	}
+
 	body.woocommerce-checkout .wc-block-components-checkout-step,
+	body.woocommerce-checkout .wc-block-components-express-payment,
 	body.woocommerce-checkout .wc-block-checkout__add-note,
 	body.woocommerce-checkout .wc-block-checkout__terms,
 	body.woocommerce-checkout .wc-block-checkout__actions {
 		box-sizing: border-box;
-		float: none;
-		clear: both;
 		width: 100%;
 		max-width: none;
 		min-width: 0;
-		flex: 0 0 auto;
-		grid-column: 1 / -1;
-		grid-row: auto;
+		float: none;
+		clear: both;
 		margin-inline: 0;
 	}
 
-	/* Express Checkout is the first desktop component in the left column.
-	 * Cover both the current direct-node shape and a provider/WooCommerce
-	 * wrapper shape. CSS order changes presentation only: it does not move the
-	 * Stripe element in the DOM, remount it, duplicate it, or alter its state. */
-	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-express-payment,
-	body.woocommerce-checkout .wc-block-components-main > .wc-block-components-express-payment,
-	body.woocommerce-checkout .wc-block-checkout__main > :has(> .wc-block-components-express-payment),
-	body.woocommerce-checkout .wc-block-components-main > :has(> .wc-block-components-express-payment) {
-		order: -200;
-		width: 100%;
-		max-width: none;
-		margin: 0 0 20px;
+	body.woocommerce-checkout .wc-block-components-checkout-step,
+	body.woocommerce-checkout .wc-block-components-express-payment {
+		margin-bottom: var(--dtb-desktop-section-gap);
 	}
 
-	/* Keep Contact immediately after Express Checkout when WooCommerce exposes
-	 * Contact as a sibling card. Remaining sections retain their native order. */
-	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-checkout-step:has(.wc-block-checkout__contact-fields),
-	body.woocommerce-checkout .wc-block-components-main > .wc-block-components-checkout-step:has(.wc-block-checkout__contact-fields) {
-		order: -100;
+	body.woocommerce-checkout .wc-block-components-checkout-step {
+		padding: 24px 28px;
+		box-shadow: var(--dtb-shadow-md);
 	}
 
+	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar,
 	body.woocommerce-checkout .wc-block-checkout__sidebar {
-		grid-column: 2;
-		grid-row: 1;
-		align-self: start;
+		box-sizing: border-box;
 		min-width: 0;
 		width: 100%;
 		max-width: none;
-		padding: 0;
 		margin: 0;
-		box-sizing: border-box;
+		padding: 0;
 		flex: none;
+		align-self: start;
 		position: sticky;
 		top: 112px;
 		max-height: calc(100vh - 136px);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		scrollbar-gutter: stable;
-	}
-
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__main,
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar {
-		box-sizing: border-box;
-		min-width: 0;
-		width: 100%;
-		max-width: none;
-		flex-basis: auto;
-		margin: 0;
-	}
-
-	body.woocommerce-checkout .wc-block-components-checkout-step {
-		padding: 24px 28px;
-		margin: 0 0 20px;
-		box-shadow: var(--dtb-shadow-md);
 	}
 
 	body.woocommerce-checkout .wc-block-checkout__sidebar > *,
@@ -180,13 +125,13 @@
 
 @media (min-width: 1440px) {
 	body.woocommerce-checkout {
-		--dtb-checkout-sidebar-width: 460px;
+		--dtb-desktop-sidebar-width: 460px;
 	}
 }
 
 @media (min-width: 1800px) {
 	body.woocommerce-checkout {
-		--dtb-checkout-content-width: 1480px;
-		--dtb-checkout-sidebar-width: 480px;
+		--dtb-desktop-checkout-width: 1480px;
+		--dtb-desktop-sidebar-width: 480px;
 	}
 }
