@@ -27,7 +27,6 @@ const MiniCssExtractPlugin  = require('mini-css-extract-plugin');
 const CssMinimizerPlugin    = require('css-minimizer-webpack-plugin');
 const TerserPlugin          = require('terser-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const { GenerateSW }            = require('workbox-webpack-plugin');
 // ─── Load environment-specific .env files ──────────────────────────────────
 // This MUST happen inside module.exports so we can read argv/env flags passed
 // by webpack CLI (for example: --env appEnv=test).
@@ -434,80 +433,6 @@ module.exports = (envFlags, argv) => {
           ignoreOrder: true,
         }),
 
-        // ── Service Worker (Workbox GenerateSW) ─────────────────────────────
-        // Generates a production service worker in dist/service-worker.js.
-        // Precaches all hashed JS/CSS chunks emitted by webpack (safe since
-        // they are content-addressed and never change once deployed).
-        // Runtime caching is limited to immutable public assets. Customer,
-        // authentication, DTB domain, and Woo Store API responses remain
-        // network-owned and are never persisted in the service-worker cache.
-        new GenerateSW({
-          clientsClaim: true,
-          skipWaiting:  true,
-          swDest:       'service-worker.js',
-
-          // Precache all webpack-emitted JS/CSS/HTML. Filenames are stable
-          // (not content-hashed — see output.filename above), but Workbox's
-          // precache manifest stores a content-derived `revision` per entry
-          // independently of the URL, so updated files are still detected and
-          // re-fetched correctly; this only benefits clients with an installed
-          // service worker; see .htaccess Cache-Control for the HTTP-level
-          // fallback that covers everyone else.
-          // Images, fonts, and large brand/schematic trees are intentionally
-          // excluded from precache (they'd blow the storage quota at 191 MB).
-          // They are instead served by the runtime caching strategies below.
-          exclude: [
-            /\.map$/,
-            /asset-manifest\.json$/,
-            /^\.htaccess$/,
-            /\.(?:png|jpe?g|gif|webp|avif|svg|ico)$/i,   // all images → runtime cache
-            /\.(?:woff2?|ttf|eot|otf)$/i,                  // fonts → runtime cache
-            /^brands\//,                                    // brand image trees
-            /^schematics\//,                               // schematic image/PDF trees
-          ],
-
-          // Offline fallback: serve cached index.html for any navigation that
-          // fails while the user is offline so the SPA shell remains usable.
-          navigateFallback: publicPath + 'index.html',
-          navigateFallbackDenylist: [
-            // Never intercept native WordPress/WooCommerce navigation. The
-            // service worker must not turn checkout, payment returns, auth,
-            // callbacks, or server verification paths back into the SPA.
-            /\/wp-json\//,
-            /\/wp-admin\//,
-            /\/wp\//,
-            /\/checkout(?:\/|$)/,
-            /\/order-pay(?:\/|$)/,
-            /\/wp-login\.php(?:\?|$)/,
-            /\/(?:dtb|wc-api)(?:\/|$)/,
-            /\/(?:wp-cron\.php|xmlrpc\.php)(?:\?|$)/,
-            /\/\.well-known\//,
-            /[?&](?:rest_route|wc-api)=/,
-          ],
-
-          // Runtime caching strategies
-          runtimeCaching: [
-            // Public application/catalog images only. Do not cache arbitrary
-            // image URLs because repair/support media can be customer-owned.
-            {
-              urlPattern:  /\/(?:assets|brands|logos|products|schematics)\/.*\.(?:png|jpe?g|gif|webp|avif|svg|ico)$/i,
-              handler:     'CacheFirst',
-              options: {
-                cacheName:  'dtb-images-v1',
-                expiration: { maxEntries: 300, maxAgeSeconds: 365 * 24 * 60 * 60 },
-              },
-            },
-            // Web fonts — CacheFirst; fonts don't change between builds
-            {
-              urlPattern:  /^https:\/\/fonts\.(googleapis|gstatic)\.com\//,
-              handler:     'CacheFirst',
-              options: {
-                cacheName:  'dtb-fonts-v1',
-                expiration: { maxEntries: 20, maxAgeSeconds: 365 * 24 * 60 * 60 },
-              },
-            },
-          ],
-        }),
       ] : []),
 
       EmitAssetManifestPlugin,
