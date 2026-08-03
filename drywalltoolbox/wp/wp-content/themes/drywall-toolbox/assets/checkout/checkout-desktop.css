@@ -41,11 +41,24 @@
 	 * tracks. Reset every non-authoritative inner layout wrapper; this file owns
 	 * exactly one desktop grid: checkout content + order summary. */
 	body.woocommerce-checkout .wc-block-checkout__form,
+	body.woocommerce-checkout .wc-block-checkout__main > form {
+		display: block;
+		grid-template-columns: none;
+		grid-auto-columns: auto;
+		grid-auto-flow: row;
+		column-count: auto;
+	}
+
+	/* The left track is one explicit vertical flex flow. This keeps every
+	 * native section mounted and in its existing DOM container while allowing
+	 * the provider-owned Express Checkout surface to receive a deterministic
+	 * visual position at the top of the column without DOM reparenting. */
 	body.woocommerce-checkout .wc-block-checkout__main,
 	body.woocommerce-checkout .wc-block-components-main,
-	body.woocommerce-checkout .wc-block-checkout__main > form,
 	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-main {
-		display: block;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
 		grid-template-columns: none;
 		grid-auto-columns: auto;
 		grid-auto-flow: row;
@@ -79,7 +92,9 @@
 	/* Force all native checkout sections into one vertical document flow.
 	 * Provider and WooCommerce variants may assign 50% widths, flex-basis,
 	 * grid-column placement or inline sizing; these rules neutralize only that
-	 * presentation and preserve DOM order, mounted state and behavior. */
+	 * presentation and preserve mounted state and behavior. In a column flex
+	 * context the basis must remain auto; 100% would become full viewport-height
+	 * cards rather than full-width cards. */
 	body.woocommerce-checkout .wc-block-checkout__main > *,
 	body.woocommerce-checkout .wc-block-components-main > *,
 	body.woocommerce-checkout .wc-block-components-checkout-step,
@@ -92,10 +107,31 @@
 		width: 100%;
 		max-width: none;
 		min-width: 0;
-		flex: 0 0 100%;
+		flex: 0 0 auto;
 		grid-column: 1 / -1;
 		grid-row: auto;
 		margin-inline: 0;
+	}
+
+	/* Express Checkout is the first desktop component in the left column.
+	 * Cover both the current direct-node shape and a provider/WooCommerce
+	 * wrapper shape. CSS order changes presentation only: it does not move the
+	 * Stripe element in the DOM, remount it, duplicate it, or alter its state. */
+	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-express-payment,
+	body.woocommerce-checkout .wc-block-components-main > .wc-block-components-express-payment,
+	body.woocommerce-checkout .wc-block-checkout__main > :has(> .wc-block-components-express-payment),
+	body.woocommerce-checkout .wc-block-components-main > :has(> .wc-block-components-express-payment) {
+		order: -200;
+		width: 100%;
+		max-width: none;
+		margin: 0 0 20px;
+	}
+
+	/* Keep Contact immediately after Express Checkout when WooCommerce exposes
+	 * Contact as a sibling card. Remaining sections retain their native order. */
+	body.woocommerce-checkout .wc-block-checkout__main > .wc-block-components-checkout-step:has(.wc-block-checkout__contact-fields),
+	body.woocommerce-checkout .wc-block-components-main > .wc-block-components-checkout-step:has(.wc-block-checkout__contact-fields) {
+		order: -100;
 	}
 
 	body.woocommerce-checkout .wc-block-checkout__sidebar {
