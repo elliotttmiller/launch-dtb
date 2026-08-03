@@ -14,12 +14,19 @@ import { motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowLeft,
+  Check,
   ExternalLink,
+  Headphones,
   Loader,
+  Package,
   RefreshCw,
+  Settings,
+  ShieldCheck,
+  Truck,
+  Zap,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
-import AnimatedOrderSuccess from '../components/order/AnimatedOrderSuccess.jsx';
+import OrderConfirmedHero from '../components/order/OrderConfirmedHero.jsx';
 import { useOrderStatus } from '../hooks/useOrderStatus.js';
 import { useOrderEventStream } from '../hooks/useOrderEventStream.js';
 import { useOrderItemImageFallbacks } from '../hooks/useOrderItemImageFallbacks.js';
@@ -30,11 +37,11 @@ import '../styles/order-pages.css';
 import '../styles/order-tracking.css';
 
 const TRACKING_STEPS = [
-  { id: 'received', label: 'Received', description: 'Order captured' },
-  { id: 'payment', label: 'Payment', description: 'Payment confirmed' },
-  { id: 'processing', label: 'Processing', description: 'Preparing items' },
-  { id: 'shipped', label: 'Shipped', description: 'In transit' },
-  { id: 'complete', label: 'Complete', description: 'Delivered' },
+  { id: 'received', label: 'Received', description: 'Order captured', Icon: Check },
+  { id: 'payment', label: 'Payment', description: 'Payment confirmed', Icon: Check },
+  { id: 'processing', label: 'Processing', description: 'Preparing items', Icon: Settings },
+  { id: 'shipped', label: 'Shipped', description: 'In transit', Icon: Truck },
+  { id: 'complete', label: 'Delivered', description: 'Complete', Icon: Package },
 ];
 
 const CHECKOUT_COMPLETE_QUERY_KEYS = ['checkout_complete', 'payment_complete', 'dtb_checkout_complete'];
@@ -216,6 +223,14 @@ function buildProgressUpdates(order, activeIndex) {
     .slice(0, 4);
 }
 
+function renderStatusIcon(status) {
+  const props = { size: 22, strokeWidth: 1.8 };
+  if (status === 'completed') return <Package {...props} />;
+  if (status === 'shipped') return <Truck {...props} />;
+  if (['failed', 'cancelled', 'refunded'].includes(status)) return <AlertCircle {...props} />;
+  return <Settings {...props} />;
+}
+
 function TrackingSkeleton() {
   return (
     <div className="dtb-order-page page-wrapper">
@@ -234,77 +249,154 @@ function TrackingSkeleton() {
   );
 }
 
-function OrderTrackingHelpFooter() {
+function OrderProgressUpdates({ updates = [], streaming }) {
   return (
-    <div className="dtb-order-tracking-help-footer">
-      <Link to="/contact" className="dtb-order-help-link dtb-order-help-link--footer">
-        Need help?
-      </Link>
-    </div>
+    <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="progress-updates-title">
+      <header className="dtb-order-sheet-section__header">
+        <h2 id="progress-updates-title" className="dtb-order-card__title">Progress updates</h2>
+        {streaming ? <span className="dtb-order-live-badge"><span /> Live updates</span> : <span className="dtb-order-card__chip">Latest update</span>}
+      </header>
+      <div className="dtb-order-sheet-section__body">
+        {updates.length ? (
+          <ol className="dtb-order-progress-updates-list">
+            {updates.map((event, index) => (
+              <li key={`${event.label}-${event.at || index}`} aria-current={index === 0 ? 'true' : undefined}>
+                <span className={`dtb-order-update-dot ${index === 0 ? 'is-current' : ''}`} aria-hidden="true" />
+                <div>
+                  <p>{event.label}</p>
+                  <time>{formatDateTime(event.at)}</time>
+                </div>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <div className="dtb-order-empty-state">
+            <h3>No updates yet</h3>
+            <p>Progress updates will appear here as your order moves through fulfillment.</p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
-function OrderProgressUpdates({ updates = [] }) {
-  if (!updates.length) return null;
-
+function OrderSummaryCard({ order }) {
+  if (!order) return null;
+  const currency = order?.currency;
+  const shippingTotal = parseMoney(order?.shipping_total);
+  const hasShipping = hasMoneyField(order?.shipping_total);
   return (
-    <div className="dtb-order-progress-updates">
-      <div className="dtb-order-progress-updates__header">
-        <h3>Progress updates</h3>
-        <span>Latest first</span>
+    <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="order-summary-title">
+      <header className="dtb-order-sheet-section__header">
+        <h2 id="order-summary-title" className="dtb-order-card__title">Order summary</h2>
+      </header>
+      <div className="dtb-order-sheet-section__body">
+        <div className="dtb-order-totals dtb-order-totals--summary">
+          <div className="dtb-order-total-row">
+            <span>Subtotal</span>
+            <strong>{formatMoney(order?.subtotal, currency)}</strong>
+          </div>
+          <div className="dtb-order-total-row">
+            <span>Shipping</span>
+            <strong>
+              {hasShipping
+                ? (shippingTotal === 0 ? <span className="dtb-order-free">FREE</span> : formatMoney(shippingTotal, currency))
+                : 'Calculated at next step'}
+            </strong>
+          </div>
+          <div className="dtb-order-total-row dtb-order-total-row--grand">
+            <span>Total</span>
+            <strong>{formatMoney(order?.total, currency)} {currency || 'USD'}</strong>
+          </div>
+        </div>
       </div>
-      <ol>
-        {updates.map((event, index) => (
-          <li key={`${event.label}-${event.at || index}`}>
-            <span className="dtb-order-update-dot" aria-hidden="true" />
+    </section>
+  );
+}
+
+function hasMoneyField(value) {
+  return value !== null && value !== undefined && value !== '';
+}
+
+const HELP_FEATURES = [
+  { Icon: ShieldCheck, title: 'Secure Checkout', description: 'Your payment information is safe and secure.' },
+  { Icon: Zap, title: 'Fast Processing', description: 'Orders are processed quickly and efficiently.' },
+  { Icon: Truck, title: 'Reliable Shipping', description: 'We ship with trusted carriers worldwide.' },
+];
+
+function OrderTrackingHelpFooter() {
+  return (
+    <section className="dtb-order-help-card" aria-labelledby="need-help-title">
+      <div className="dtb-order-help-card__contact">
+        <span className="dtb-order-help-card__icon" aria-hidden="true">
+          <Headphones size={22} strokeWidth={1.8} />
+        </span>
+        <div>
+          <p id="need-help-title" className="dtb-order-help-card__title">Need help?</p>
+          <p className="dtb-order-help-card__copy">If you have any questions about your order, our support team is here to help.</p>
+          <Link to="/contact" className="dtb-order-button dtb-order-button--secondary dtb-order-help-card__cta">
+            Contact Support
+          </Link>
+        </div>
+      </div>
+      <ul className="dtb-order-help-card__features">
+        {HELP_FEATURES.map(({ Icon, title, description }) => (
+          <li key={title}>
+            <span aria-hidden="true"><Icon size={18} strokeWidth={1.8} /></span>
             <div>
-              <p>{event.label}</p>
-              <time>{formatDateTime(event.at)}</time>
+              <p>{title}</p>
+              <p>{description}</p>
             </div>
           </li>
         ))}
-      </ol>
-    </div>
+      </ul>
+    </section>
   );
 }
 
-function OrderStatusTracker({ order, streaming, loading, onRefresh }) {
+function OrderStatusTracker({ order, loading, onRefresh }) {
   const status = String(order?.status || 'pending').toLowerCase();
   const activeIndex = getStepIndex(order);
   const label = resolveStatusLabel(order);
   const tone = getStatusTone(status);
   const isNegative = tone === 'danger';
-  const progressWidth = `${Math.max(8, (activeIndex / (TRACKING_STEPS.length - 1)) * 100)}%`;
-  const progressUpdates = buildProgressUpdates(order, activeIndex);
+  const statusDescription = order?.payment_required
+    ? 'Your order is reserved. Complete secure payment to begin fulfillment.'
+    : 'We are preparing your order for shipment.';
 
   return (
     <section className={`dtb-order-status-panel dtb-order-status-panel--${tone}`} aria-labelledby="tracking-order-title">
       <div className="dtb-order-status-panel__topline">
-        <Link to="/dashboard?tab=orders" className="dtb-order-back-link dtb-order-back-link--tracking-header">
-          <ArrowLeft size={16} /> Back to orders
-        </Link>
+        <div className="dtb-order-status-panel__heading">
+          <p className="dtb-order-eyebrow">Order tracking</p>
+          <h2 id="tracking-order-title" className="dtb-order-tracking-title">Order #{order?.number || order?.id}</h2>
+        </div>
 
-        <button onClick={onRefresh} disabled={loading} className="dtb-order-refresh-button dtb-order-refresh-button--tracking-header" type="button" aria-label="Refresh order tracking">
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-        </button>
+        <div className="dtb-order-status-panel__topline-actions">
+          <button
+            onClick={onRefresh}
+            disabled={loading}
+            className={`dtb-order-refresh-button dtb-order-refresh-button--tracking-header ${loading ? 'is-loading' : ''}`}
+            type="button"
+            aria-label="Refresh order tracking"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          </button>
+          <Link to="/dashboard?tab=orders" className="dtb-order-back-link dtb-order-back-link--tracking-header">
+            <ArrowLeft size={16} /> Back to Orders
+          </Link>
+        </div>
       </div>
 
-      <div className="dtb-order-status-panel__heading">
-        <p className="dtb-order-eyebrow">Order tracking</p>
-        <h1 id="tracking-order-title" className="dtb-order-tracking-title">Order #{order?.number || order?.id}</h1>
-      </div>
-
-      <div className="dtb-order-status-panel__summary">
-        <div className="dtb-order-status-panel__summary-copy">
+      <div className="dtb-order-current-status">
+        <span className={`dtb-order-current-status__icon dtb-order-current-status__icon--${tone}`} aria-hidden="true">
+          {renderStatusIcon(status)}
+        </span>
+        <div>
           <p className="dtb-order-status-panel__label">Current status</p>
           <h2>{label}</h2>
-          <p>
-            {order?.payment_required
-              ? 'Your order is reserved. Complete secure payment to begin fulfillment.'
-              : 'We will update this page as your order moves through fulfillment and shipping.'}
-          </p>
+          <p>{statusDescription}</p>
         </div>
-        <span className={`dtb-order-status-dot dtb-order-status-dot--${tone}`} aria-hidden="true" />
       </div>
 
       {isNegative ? (
@@ -313,23 +405,28 @@ function OrderStatusTracker({ order, streaming, loading, onRefresh }) {
         </div>
       ) : null}
 
-      <div className="dtb-order-progress" aria-label="Order progress">
-        <div className="dtb-order-progress__bar"><span style={{ width: progressWidth }} /></div>
-        <div className="dtb-order-progress__steps">
-          {TRACKING_STEPS.map((step, index) => {
-            const complete = index < activeIndex;
-            const active = index === activeIndex;
-            const future = !complete && !active;
-            return (
-              <div key={step.id} className={`dtb-order-progress-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`}>
-                <span aria-hidden="true" />
-                <strong>{step.label}</strong>
-                <small>{step.description}</small>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <ol className="dtb-order-steps" aria-label="Order progress">
+        {TRACKING_STEPS.map((step, index) => {
+          const complete = index < activeIndex;
+          const active = index === activeIndex;
+          const future = !complete && !active;
+          const StepIcon = step.Icon;
+          return (
+            <li
+              key={step.id}
+              className={`dtb-order-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`}
+              aria-current={active ? 'step' : undefined}
+            >
+              <span className="dtb-order-step__connector" aria-hidden="true" />
+              <span className="dtb-order-step__icon" aria-hidden="true">
+                {complete ? <Check size={16} strokeWidth={3} /> : active ? <span className="dtb-order-step__dot" /> : <StepIcon size={16} strokeWidth={1.8} />}
+              </span>
+              <strong>{step.label}</strong>
+              <small>{active ? statusDescription : step.description}</small>
+            </li>
+          );
+        })}
+      </ol>
 
       <div className="dtb-order-status-panel__metrics">
         <div>
@@ -341,10 +438,6 @@ function OrderStatusTracker({ order, streaming, loading, onRefresh }) {
           <strong>{formatDateTime(getLastUpdatedAt(order))}</strong>
         </div>
       </div>
-
-      <OrderProgressUpdates updates={progressUpdates} />
-
-      {streaming ? <span className="dtb-order-live-badge"><span /> Live updates</span> : null}
     </section>
   );
 }
@@ -508,6 +601,7 @@ export default function OrderTracking() {
   const { order, items, tracking } = viewModel;
   const showCheckoutSuccess = checkoutComplete && order && shouldClearCartForCompletedCheckout(order);
   const trackingHref = `/order-tracking/${encodeURIComponent(order?.id || id)}${orderKey ? `?order_key=${encodeURIComponent(orderKey)}` : ''}`;
+  const progressUpdates = order ? buildProgressUpdates(order, getStepIndex(order)) : [];
 
   return (
     <div className="dtb-order-page page-wrapper">
@@ -519,29 +613,25 @@ export default function OrderTracking() {
         className="dtb-order-tracking-shell"
       >
         {showCheckoutSuccess ? (
-          <section className="dtb-order-hero" aria-labelledby="checkout-success-title">
-            <AnimatedOrderSuccess
-              orderId={order?.id || id}
-              title="Order confirmed"
-              titleId="checkout-success-title"
-              trackingHref={trackingHref}
-              message={`Your order #${order?.number || id} is confirmed. A receipt is on its way to your inbox.`}
-            />
-          </section>
+          <OrderConfirmedHero
+            orderId={order?.number || order?.id || id}
+            titleId="checkout-success-title"
+            trackingHref={trackingHref}
+          />
         ) : null}
         <section className="dtb-order-sheet dtb-order-sheet--tracking">
           <div className="dtb-order-sheet__content">
-            {order ? <OrderStatusTracker order={order} streaming={streaming} loading={loading} onRefresh={refresh} /> : null}
+            {order ? <OrderStatusTracker order={order} loading={loading} onRefresh={refresh} /> : null}
             {order ? <PaymentActionCard order={order} /> : null}
 
             <div className="dtb-order-tracking-grid">
-              <main className="dtb-order-stack">
-                <ItemsCard items={items} currency={order?.currency} imageFallbacks={itemImageFallbacks} />
-              </main>
+              <OrderProgressUpdates updates={progressUpdates} streaming={streaming} />
+              <ShipmentCard tracking={tracking} order={order} />
+            </div>
 
-              <aside className="dtb-order-stack">
-                <ShipmentCard tracking={tracking} order={order} />
-              </aside>
+            <div className="dtb-order-tracking-grid">
+              <ItemsCard items={items} currency={order?.currency} imageFallbacks={itemImageFallbacks} />
+              <OrderSummaryCard order={order} />
             </div>
 
             {error && data ? (
