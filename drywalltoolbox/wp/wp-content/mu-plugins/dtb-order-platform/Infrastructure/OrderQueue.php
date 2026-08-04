@@ -336,15 +336,32 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 		error_log( "[DTB Orders] Skipping duplicate notification '{$template}' for order {$order_id}." );
 		return;
 	}
-	$delivery_attempted = false;
+	$delivery_attempted        = false;
+	$transport_confirmed_failed = false;
 	try {
 		$sent         = false;
-		$wc_email_map = [ 'order-confirmation' => 'WC_Email_Customer_Processing_Order', 'order-shipped' => 'WC_Email_Customer_Completed_Order', 'order-cancelled' => 'WC_Email_Customer_Note' ];
+		$wc_email_map = [
+			'order-confirmation' => [
+				'WC_Email_Customer_Processing_Order' => 'customer_processing_order',
+				'WC_Email_New_Order'                  => 'new_order',
+			],
+			'order-shipped'      => [ 'WC_Email_Customer_Completed_Order' => 'customer_completed_order' ],
+			'order-cancelled'    => [ 'WC_Email_Customer_Note' => 'customer_note' ],
+		];
 		if ( isset( $wc_email_map[ $template ] ) ) {
-			$mailer      = WC()->mailer();
-			$email_class = $wc_email_map[ $template ];
-			foreach ( $mailer->get_emails() as $email ) {
-				if ( is_a( $email, $email_class ) ) {
+			$mailer          = WC()->mailer();
+			$emails          = $mailer->get_emails();
+			$required_emails = $wc_email_map[ $template ];
+			$completed       = 0;
+			foreach ( $required_emails as $email_class => $email_id ) {
+				foreach ( $emails as $email ) {
+					if ( ! is_a( $email, $email_class ) ) {
+						continue;
+					}
+					if ( function_exists( 'dtb_order_email_was_successfully_sent' ) && dtb_order_email_was_successfully_sent( $order, $email_id ) ) {
+						$completed++;
+						break;
+					}
 					/*
 					 * Once trigger() begins, delivery is uncertain if a later
 					 * callback throws. Retrying an uncertain email is less safe
@@ -353,9 +370,16 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 					 */
 					$delivery_attempted = true;
 					$email->trigger( $order_id, $order );
-					$sent = true;
+					if ( function_exists( 'dtb_order_email_was_successfully_sent' ) && dtb_order_email_was_successfully_sent( $order, $email_id ) ) {
+						$completed++;
+					}
 					break;
 				}
+			}
+			$sent = count( $required_emails ) === $completed;
+			if ( ! $sent ) {
+				$transport_confirmed_failed = true;
+				throw new RuntimeException( "WooCommerce did not report successful transport for every '{$template}' recipient." );
 			}
 		}
 		$notification_type = 'notification.' . str_replace( '-', '_', $template ) . '.sent';
@@ -363,7 +387,7 @@ function dtb_order_job_send_notification( int $order_id, array $args = [] ): voi
 		dtb_order_update_integration_state( $order_id, 'notifications', [ 'template' => $template, 'sent' => $sent ] );
 	} catch ( Throwable $e ) {
 		error_log( "[DTB Orders] Notification '{$template}' failed for order {$order_id}: " . $e->getMessage() );
-		if ( ! $delivery_attempted ) {
+		if ( ! $delivery_attempted || $transport_confirmed_failed ) {
 			dtb_order_release_notification_send( $order_id, $template );
 			dtb_order_retry_job( 'dtb_order_send_notification', $order_id, $args );
 		} else {

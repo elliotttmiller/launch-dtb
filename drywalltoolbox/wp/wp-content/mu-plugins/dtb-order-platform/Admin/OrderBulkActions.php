@@ -66,6 +66,7 @@ function dtb_order_admin_ajax_operator_action(): void {
 			break;
 
 		case 'resend_confirm':
+			dtb_order_release_notification_send( $order_id, 'order-confirmation' );
 			dtb_order_enqueue_job( 'dtb_order_send_notification', $order_id, [ 'template' => 'order-confirmation' ] );
 			wp_send_json_success( [ 'message' => __( 'Order confirmation re-queued.', 'drywall-toolbox' ) ] );
 			break;

@@ -142,6 +142,15 @@ dtb_test_assert( dtb_order_email_processing_is_enabled( true, $order ), 'Failed 
 dtb_order_email_record_successful_processing_send( true, 'customer_processing_order', $email );
 dtb_test_assert( ! dtb_order_email_processing_is_enabled( true, $order ), 'Successful processing email must suppress a duplicate.' );
 
+$admin_order         = new WC_Order( 5833 );
+$admin_email         = new stdClass();
+$admin_email->object = $admin_order;
+dtb_test_assert( dtb_order_email_admin_new_order_is_enabled( true, $admin_order ), 'First admin new-order email should be enabled.' );
+dtb_order_email_record_successful_processing_send( false, 'new_order', $admin_email );
+dtb_test_assert( dtb_order_email_admin_new_order_is_enabled( true, $admin_order ), 'Failed admin transport must not mark the email sent.' );
+dtb_order_email_record_successful_processing_send( true, 'new_order', $admin_email );
+dtb_test_assert( ! dtb_order_email_admin_new_order_is_enabled( true, $admin_order ), 'Successful admin new-order email must suppress a duplicate.' );
+
 set_transient( 'dtb_veeqo_webhook_updating_order_5830', '1', 60 );
 dtb_test_assert( ! dtb_veeqo_suppress_processing_email_during_fulfillment_sync( true, $order ), 'Veeqo fulfillment sync must not emit a processing email.' );
 delete_transient( 'dtb_veeqo_webhook_updating_order_5830' );

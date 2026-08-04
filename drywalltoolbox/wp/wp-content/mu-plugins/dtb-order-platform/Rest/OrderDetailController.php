@@ -429,6 +429,7 @@ function dtb_order_rest_admin_action( WP_REST_Request $request ): WP_REST_Respon
 			break;
 
 		case 'resend_confirm':
+			dtb_order_release_notification_send( $order_id, 'order-confirmation' );
 			dtb_order_enqueue_job( 'dtb_order_send_notification', $order_id, [ 'template' => 'order-confirmation' ] );
 			if ( function_exists( 'dtb_order_append_event' ) ) {
 				dtb_order_append_event( $order_id, 'notification.order_confirmation_queued', [

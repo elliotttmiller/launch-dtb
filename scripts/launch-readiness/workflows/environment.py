@@ -119,4 +119,18 @@ def run(config: "Config") -> StageResult:
 
     tui.run_step(stage, "Checkout simulation safety gate", check_checkout_simulation_safety)
 
+    def check_test_email_delivery():
+        if not config.enable_checkout_simulation:
+            return Status.SKIP, "Checkout simulation is disabled."
+        domain = config.test_customer_email_domain.strip().lower().rstrip(".")
+        if domain.endswith(".test") or domain == "test":
+            return Status.WARN, (
+                f"Generated customer addresses use the non-deliverable .test domain ({domain}); "
+                "email dispatch can be exercised, but inbox delivery cannot be verified. Set "
+                "LAUNCH_TEST_EMAIL_DOMAIN to a controlled catch-all mailbox domain for delivery tests."
+            )
+        return Status.PASS, f"Generated customer email domain is routable: {domain}"
+
+    tui.run_step(stage, "Test customer email delivery domain", check_test_email_delivery)
+
     return stage
