@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Package, User, X, ShoppingBag, ChevronRight, AlertCircle, Loader, Wrench, RotateCcw, ChevronDown, LayoutDashboard, Calculator, LifeBuoy, BookOpen, Bell, CheckCheck } from 'lucide-react';
+import { Home, Package, User, X, ShoppingBag, ChevronRight, AlertCircle, Loader, Wrench, RotateCcw, ChevronDown, LayoutDashboard, Calculator, LifeBuoy, BookOpen, Bell, CheckCheck, Eye, EyeOff, LockKeyhole, Mail, UserRound } from 'lucide-react';
 import { getCustomerOrders } from '../../api/orders.js';
 import { getCustomerRepairs } from '../../api/repairs.js';
 import { getCustomerReturns } from '../../api/returns.js';
@@ -86,18 +86,78 @@ function RecentlyViewedTile({ product, onClose }) {
   );
 }
 
-function AccountHubSignInCTA({ onSignIn }) {
+function GuestAuthForm({ mode, onModeChange, onLogin, onRegister, authLoading }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const busy = submitting || authLoading;
+
+  const changeMode = (nextMode) => {
+    setSubmitError('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    onModeChange(nextMode);
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitError('');
+    if (mode === 'register' && password !== confirmPassword) {
+      setSubmitError('Passwords do not match.');
+      return;
+    }
+    if (mode === 'register' && password.length < 8) {
+      setSubmitError('Choose a password with at least eight characters.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (mode === 'login') {
+        await onLogin(email.trim(), password);
+      } else {
+        await onRegister({ firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim(), password });
+      }
+    } catch (error) {
+      setSubmitError(error?.message || (mode === 'login' ? 'Sign in failed. Please try again.' : 'Account creation failed. Please try again.'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <section className="account-hub-cta" aria-labelledby="account-hub-cta-title">
-      <div className="account-hub-cta__glow" aria-hidden="true" />
-      <div className="account-hub-cta__inner">
-        <h2 id="account-hub-cta-title" className="account-hub-cta__headline">Track orders and manage your account</h2>
-        <p className="account-hub-cta__body">Sign in for order tracking, repair requests, addresses, and contractor account tools.</p>
-        <button type="button" className="account-hub-cta__button" onClick={onSignIn}>
-          <span className="account-hub-cta__button-glow" aria-hidden="true" />
-          <span className="account-hub-cta__button-content">Sign in<ChevronRight size={18} strokeWidth={2.4} /></span>
-        </button>
+    <section className="account-hub-auth" aria-labelledby="account-hub-auth-title">
+      <div className="account-hub-auth__switcher" role="tablist" aria-label="Account access">
+        <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'is-active' : ''} onClick={() => changeMode('login')} disabled={busy}>Sign In</button>
+        <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'is-active' : ''} onClick={() => changeMode('register')} disabled={busy}>Create Account</button>
       </div>
+      <header className="account-hub-auth__header">
+        <span aria-hidden="true"><UserRound size={20} /></span>
+        <div>
+          <h3 id="account-hub-auth-title">{mode === 'login' ? 'Welcome back' : 'Join Drywall Toolbox'}</h3>
+          <p>{mode === 'login' ? 'Sign in to access your orders and services.' : 'Create one account for orders, repairs, and support.'}</p>
+        </div>
+      </header>
+      {submitError ? <div className="account-hub-auth__error" role="alert"><AlertCircle size={17} /><span>{submitError}</span></div> : null}
+      <form className="account-hub-auth__form" onSubmit={handleSubmit}>
+        {mode === 'register' ? (
+          <div className="account-hub-auth__name-grid">
+            <label><span>First name</span><div><UserRound size={17} /><input value={firstName} onChange={(event) => setFirstName(event.target.value)} autoComplete="given-name" disabled={busy} required /></div></label>
+            <label><span>Last name</span><div><UserRound size={17} /><input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name" disabled={busy} required /></div></label>
+          </div>
+        ) : null}
+        <label><span>Email</span><div><Mail size={17} /><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" inputMode="email" placeholder="name@example.com" disabled={busy} required /></div></label>
+        <label><span>Password</span><div><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} placeholder={mode === 'login' ? 'Enter your password' : 'At least 8 characters'} minLength={mode === 'register' ? 8 : undefined} disabled={busy} required /><button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} disabled={busy}>{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></label>
+        {mode === 'register' ? <label><span>Confirm password</span><div><LockKeyhole size={17} /><input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} autoComplete="new-password" disabled={busy} required /></div></label> : null}
+        <button className="account-hub-auth__submit" type="submit" disabled={busy}>{busy ? <><Loader size={17} className="animate-spin" /> {mode === 'login' ? 'Signing in…' : 'Creating account…'}</> : mode === 'login' ? 'Sign In' : 'Create Account'}</button>
+      </form>
+      {mode === 'login' ? <Link className="account-hub-auth__forgot" to="/forgot-password">Forgot your password?</Link> : <p className="account-hub-auth__legal">By creating an account you agree to our terms of service and privacy policy.</p>}
     </section>
   );
 }
@@ -147,7 +207,7 @@ function historyFilterEmptyCopy(filter) {
   return 'Product orders, repair requests, returns, and support tickets will appear here.';
 }
 
-export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnreadCountChange }) {
+export default function AccountHubSheet({ isOpen, onClose, user, onLogin, onRegister, authLoading, onLogout, onUnreadCountChange }) {
   const navigate = useNavigate();
   const sheetRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -166,6 +226,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
   const [notificationReadUserId, setNotificationReadUserId] = useState('');
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
+  const [guestAuthMode, setGuestAuthMode] = useState('login');
 
   const showOrdersTab = useCallback((filter = 'product') => {
     setHistoryFilter(filter);
@@ -349,7 +410,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
     >
       <button type="button" className="account-hub__backdrop" onClick={closeSheet} aria-label="Close account hub" tabIndex={-1} />
 
-      <section ref={sheetRef} className="account-hub__sheet">
+      <section ref={sheetRef} className={`account-hub__sheet${user ? '' : ' account-hub__sheet--guest'}`}>
         <header className="account-hub__drawer-header">
           <span className="account-hub__drawer-icon" aria-hidden="true"><User size={18} strokeWidth={2.2} /></span>
           <div className="account-hub__drawer-copy">
@@ -362,13 +423,11 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
         </header>
 
         <div className="account-hub__content">
-          {!user && (
-            <div className="account-hub__panel account-hub__panel--guest">
-              <AccountHubSignInCTA onSignIn={() => { closeSheet(); navigate('/login'); }} />
-              <div className="account-hub__divider" />
-              <RecentlyViewedSection recentlyViewed={recentlyViewed} closeSheet={closeSheet} navigate={navigate} />
-            </div>
-          )}
+          {!user && activeTab === 'home' ? <div className="account-hub__panel account-hub__panel--guest"><section className="account-hub-guest-intro"><h2>Track orders and keep every job organized</h2><p>One secure account keeps purchases, repairs, returns, and support together.</p><button type="button" onClick={() => setActiveTab('account')}>Sign in or create an account <ChevronRight size={18} /></button></section><RecentlyViewedSection recentlyViewed={recentlyViewed} closeSheet={closeSheet} navigate={navigate} /></div> : null}
+
+          {!user && activeTab === 'orders' ? <div className="account-hub__panel account-hub__panel--guest-state"><section className="account-hub-guest-intro"><h2>Sign in to view your orders and services</h2><p>Access purchases, repair requests, returns, and support tickets securely.</p><button type="button" onClick={() => setActiveTab('account')}>Sign in <ChevronRight size={18} /></button></section><div className="account-hub-guest-state__icon" aria-hidden="true"><Package size={34} strokeWidth={1.35} /></div></div> : null}
+
+          {!user && activeTab === 'account' ? <div className="account-hub__panel account-hub__panel--auth"><GuestAuthForm mode={guestAuthMode} onModeChange={setGuestAuthMode} onLogin={onLogin} onRegister={onRegister} authLoading={authLoading} /></div> : null}
 
           {user && activeTab === 'home' && (
             <div className="account-hub__panel account-hub__panel--home">
@@ -565,16 +624,14 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogout, onUnr
           )}
         </div>
 
-        {user && (
-          <nav className="account-hub-nav" aria-label="Account hub navigation">
+        <nav className="account-hub-nav" aria-label="Account hub navigation">
             {TABS.map(({ id, label, Icon }) => (
               <button key={id} type="button" className={`account-hub-nav__item${activeTab === id ? ' account-hub-nav__item--active' : ''}`} onClick={() => setActiveTab(id)} aria-selected={activeTab === id} aria-label={label} tabIndex={isOpen ? 0 : -1}>
                 <span className="account-hub-nav__pill"><Icon size={22} strokeWidth={activeTab === id ? 2.2 : 1.6} /></span>
                 <small>{label}</small>
               </button>
             ))}
-          </nav>
-        )}
+        </nav>
       </section>
     </div>
   );

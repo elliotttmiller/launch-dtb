@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { startTransition, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
-import { ShoppingCart, X, ChevronRight, User, LogIn, UserPlus, LogOut } from 'lucide-react';
+import { ShoppingCart, X, ChevronRight, User, LogOut } from 'lucide-react';
 import LogoWhite from '/logo-white.svg';
 import StorefrontSearchOverlay from './StorefrontSearchOverlay';
 import StorefrontMobileDrawer from './StorefrontMobileDrawer';
@@ -86,14 +86,14 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { getCartCount } = useCart();
-  const { user, isAuthenticated, isLoading, logout } = useAuthContext();
+  const { user, isAuthenticated, isLoading, login, register, logout } = useAuthContext();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(false);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [partsExpanded, setPartsExpanded] = useState(false);
   const [schematicsExpanded, setSchematicsExpanded] = useState(false);
   const [desktopNavOpen, setDesktopNavOpen] = useState(null);
-  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
+  const [, setAccountDropdownOpen] = useState(false);
   const [accountHubOpen, setAccountHubOpen] = useState(false);
   const [accountUnreadCount, setAccountUnreadCount] = useState(0);
   const [desktopSearchOpen, setDesktopSearchOpen] = useState(false);
@@ -446,10 +446,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
 
   const handleMobileAccountClick = () => {
     setMobileMenuOpen(false);
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
     setAccountHubOpen(true);
   };
 
@@ -615,11 +611,11 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
                   type="button"
                   onClick={() => {
                     if (isLoading) return;
-                    if (isAuthenticated) setAccountHubOpen(true);
-                    else setAccountDropdownOpen((open) => !open);
+                    setAccountDropdownOpen(false);
+                    setAccountHubOpen(true);
                   }}
-                  aria-label={isLoading ? 'Loading account' : isAuthenticated ? `Open account hub${accountUnreadCount ? `, ${accountUnreadCount} unread notifications` : ''}` : 'Account menu'}
-                  aria-expanded={!isLoading && !isAuthenticated && accountDropdownOpen}
+                  aria-label={isLoading ? 'Loading account' : `Open account hub${accountUnreadCount ? `, ${accountUnreadCount} unread notifications` : ''}`}
+                  aria-expanded={accountHubOpen}
                   aria-busy={isLoading}
                   disabled={isLoading}
                   className={`header-account-toggle header-icon${isLoading ? ' is-loading' : ''}`}
@@ -627,7 +623,6 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
                   <span className="header-account-toggle__icon" aria-hidden="true"><User size={24} strokeWidth={1.9} /></span>
                   {isAuthenticated && accountUnreadCount > 0 ? <span className="account-alert-badge">{accountUnreadCount > 99 ? '99+' : accountUnreadCount}</span> : null}
                 </button>
-                {!isLoading && !isAuthenticated ? <div className={`header-account-panel${accountDropdownOpen ? ' is-open' : ''}`}><div className="header-account-guest-header"><p className="header-account-guest-title">My Account</p></div><Link to="/login" onClick={() => setAccountDropdownOpen(false)} className="header-account-link header-account-link--strong"><LogIn size={14} />Sign In</Link><div className="header-account-divider header-account-divider--inset" /><div className="header-account-guest-body"><Link to="/register" onClick={() => setAccountDropdownOpen(false)} className="header-account-cta"><UserPlus size={13} />Create Account</Link><p className="header-account-note">No account needed to browse or checkout.</p></div></div> : null}
               </div>
               <div className="cart-area"><button onClick={handleCartToggle} className="cart-toggle header-icon" aria-label="Toggle cart"><ShoppingCart size={24} strokeWidth={1.9} />{getCartCount() > 0 && <span className="cart-badge">{getCartCount()}</span>}</button></div>
             </div>
@@ -749,6 +744,9 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
         isOpen={accountHubOpen}
         onClose={() => setAccountHubOpen(false)}
         user={user}
+        onLogin={login}
+        onRegister={register}
+        authLoading={isLoading}
         onLogout={logout}
         onUnreadCountChange={setAccountUnreadCount}
       />

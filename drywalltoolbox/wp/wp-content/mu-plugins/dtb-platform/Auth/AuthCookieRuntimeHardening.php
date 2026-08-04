@@ -221,7 +221,7 @@ function dtb_auth_reconcile_native_customer_session_from_response( $response, st
 }
 
 function dtb_auth_fail_closed_on_privileged_native_conflict( $response, array $state, string $route ): void {
-	if ( 'blocked_native_privileged_conflict' !== ( $state['status'] ?? '' ) || '/dtb/v1/auth/validate' !== $route ) {
+	if ( 'blocked_native_privileged_conflict' !== ( $state['status'] ?? '' ) ) {
 		return;
 	}
 	if ( function_exists( 'dtb_clear_auth_cookie' ) ) {
@@ -234,11 +234,12 @@ function dtb_auth_fail_closed_on_privileged_native_conflict( $response, array $s
 	if ( ! is_array( $data ) ) {
 		return;
 	}
-	$data['success']       = true;
+	$data['success']       = false;
 	$data['authenticated'] = false;
 	$data['user']          = null;
-	$data['message']       = 'A conflicting WordPress administrator session is active in this browser. Customer storefront authentication was cleared for safety.';
+	$data['message']       = 'A WordPress administrator session is active in this browser. Open the storefront in a private window or sign out of WordPress before signing in as a customer.';
 	$response->set_data( $data );
+	$response->set_status( 409 );
 	dtb_auth_signal_session_mutation();
 }
 

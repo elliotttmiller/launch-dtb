@@ -11,6 +11,7 @@ import { PUBLIC_SITE_URL } from '../utils/siteUrl.js';
 const AUTH_BASE_PATH = '/wp-json/dtb/v1/auth';
 const SESSION_SYNC_ERROR = 'Sign-in succeeded, but the server session could not be confirmed. Please try again; if it continues, contact support so we can inspect the auth session handoff.';
 const SESSION_COOKIE_ERROR = 'Sign-in succeeded, but the server could not establish the secure browser session. Please try again.';
+const PRIVILEGED_SESSION_CONFLICT_ERROR = 'A WordPress administrator session is active in this browser. Open the storefront in a private window or sign out of WordPress before signing in as a customer.';
 const CHECKOUT_SESSION_SYNC_ERROR = 'Your signed-in session is not ready for checkout yet. Please try again.';
 const CHECKOUT_SESSION_CHANGED_ERROR = 'Your secure checkout identity changed while we reconciled your session. We refreshed your cart for safety. Review it, then select checkout again.';
 const SESSION_VALIDATE_DELAYS_MS = [0, 150, 400, 800, 1500, 2500];
@@ -147,12 +148,14 @@ export function useAuth() {
   const validateSession = useCallback(async ({ retries = 0, publish = false, epoch = null } = {}) => {
     const activeEpoch = epoch ?? epochRef.current;
     const attempts = Math.max(1, retries + 1);
+    let lastData = null;
 
     for (let attempt = 0; attempt < attempts; attempt += 1) {
       const delay = SESSION_VALIDATE_DELAYS_MS[Math.min(attempt, SESSION_VALIDATE_DELAYS_MS.length - 1)];
       if (delay > 0) await wait(delay);
 
       const data = await authJson('/validate', { method: 'POST' });
+      lastData = data;
       const nextUser = data?.authenticated === false ? null : data?.user || null;
       nativeCheckoutStateRef.current = normalizeNativeCheckoutState(data);
       if (nextUser) {
@@ -162,6 +165,8 @@ export function useAuth() {
         }
         return { user: nextUser, nativeCheckout: nativeCheckoutStateRef.current, session: data?.session || {} };
       }
+
+      if (nativeCheckoutStateRef.current.status === 'blocked_native_privileged_conflict') break;
     }
 
     nativeCheckoutStateRef.current = normalizeNativeCheckoutState(null);
@@ -169,7 +174,12 @@ export function useAuth() {
       setUser(null);
       if (publish) emitAuthChanged('logout');
     }
-    return { user: null, nativeCheckout: nativeCheckoutStateRef.current, session: {} };
+    return {
+      user: null,
+      nativeCheckout: nativeCheckoutStateRef.current,
+      session: lastData?.session || {},
+      message: lastData?.message || '',
+    };
   }, []);
 
   useEffect(() => {
@@ -243,7 +253,10 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Login failed.');
       if (data?.session?.cookie_queued !== true) throw sessionHandoffError(SESSION_COOKIE_ERROR, data?.session);
       const confirmed = await validateSession({ retries: 5, publish: true, epoch });
-      if (!confirmed.user) throw sessionHandoffError(SESSION_SYNC_ERROR, data?.session);
+      if (!confirmed.user) {
+        const conflict = confirmed.nativeCheckout.status === 'blocked_native_privileged_conflict';
+        throw sessionHandoffError(conflict ? PRIVILEGED_SESSION_CONFLICT_ERROR : SESSION_SYNC_ERROR, confirmed.session || data?.session);
+      }
       return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {
@@ -268,7 +281,10 @@ export function useAuth() {
       if (!data?.success || !data?.user) throw new Error(data?.message || 'Registration failed.');
       if (data?.session?.cookie_queued !== true) throw sessionHandoffError(SESSION_COOKIE_ERROR, data?.session);
       const confirmed = await validateSession({ retries: 5, publish: true, epoch });
-      if (!confirmed.user) throw sessionHandoffError(SESSION_SYNC_ERROR, data?.session);
+      if (!confirmed.user) {
+        const conflict = confirmed.nativeCheckout.status === 'blocked_native_privileged_conflict';
+        throw sessionHandoffError(conflict ? PRIVILEGED_SESSION_CONFLICT_ERROR : SESSION_SYNC_ERROR, confirmed.session || data?.session);
+      }
       return { ...data, user: confirmed.user, nativeCheckoutReady: confirmed.nativeCheckout.ready };
     } catch (err) {
       if (epochRef.current === epoch) {
