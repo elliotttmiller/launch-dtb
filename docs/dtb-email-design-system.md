@@ -47,7 +47,7 @@ email:
 
 | Component | Function | Used for |
 |---|---|---|
-| Hero | `dtb_email_hero( $heading, $subheading, $eyebrow )` | the white-body heading block every email leads with — heading is always the caller's `$email_heading` (admin-configurable), never invented copy |
+| Hero | `dtb_email_hero( $heading, $subheading, $eyebrow )` | the patterned black/blue lifecycle heading block every email leads with — heading is always the caller's `$email_heading` (admin-configurable), never invented copy |
 | Progress tracker | `dtb_email_progress_steps( $steps )` | lifecycle-stage circles + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows |
 | Card | `dtb_email_card_open( $title, $meta )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close |
 | Next-steps grid | `dtb_email_next_steps_grid( $items )` | self-contained "what's next?" card, up to 3 numbered mini-columns per row |
@@ -124,16 +124,16 @@ DTB has authoritative data for; no step ever claims "delivered."
 
 | Email | Progress tracker / status badge | Core message | Primary CTA |
 |---|---|---|---|
-| `new_order` (admin) | — | New order + customer name, review/fulfill | Edit order (admin) |
-| `cancelled_order` (admin) | — | Cancelled, release inventory | Edit order (admin) |
-| `failed_order` (admin) | — | Payment failed, no action needed unless retried | Edit order (admin) |
+| `new_order` (admin) | Status badge: New order (info) | New order + customer name, review/fulfill | Edit order (admin) |
+| `cancelled_order` (admin) | Status badge: Order cancelled (danger) | Cancelled, release inventory | Edit order (admin) |
+| `failed_order` (admin) | Status badge: Payment failed (danger) | Payment failed, no action needed unless retried | Edit order (admin) |
 | `customer_processing_order` | Progress: Payment received (done) → Being prepared (active) → On the way soon (upcoming) | Payment confirmed, preparing shipment, tracking to follow | Track your order |
 | `customer_completed_order` | Progress: Payment received (done) → Prepared (done) → Order complete (done) | Order fully closed out (deliberately not equated with "shipped" or "delivered") | View order details |
 | `customer_on_hold_order` | Progress: Payment pending (warning) → Being prepared (upcoming) → On the way soon (upcoming) | On hold pending payment confirmation, no action needed unless payment is due | Pay securely (if `needs_payment()`) / View order details |
 | `customer_failed_order` | Status badge: Payment failed (danger) | Declined, nothing charged, retry available | Retry payment |
 | `customer_cancelled_order` | Status badge: Order cancelled (neutral) | Cancelled, refund note if applicable | View order details |
 | `customer_refunded_order` | Status badge: Refund / partial refund issued (info) | Full vs. partial distinguished via core's `$partial_refund`; timeline/method | View order details |
-| `customer_invoice` | — (hero only, no stepper) | Pay now (failed/needs-payment) or reference copy of order | Pay for this order |
+| `customer_invoice` | Status badge: Payment due (warning) / Order details (info) | Pay now (failed/needs-payment) or reference copy of order | Pay for this order |
 | `customer_note` | — (hero only, no stepper) | Store note quoted, order details for reference | View order details |
 | `customer_new_account` | — (hero only, no stepper/support card) | Account ready, set/confirm password | Set your password / Go to my account |
 | `customer_reset_password` | — (hero only, no stepper/support card) | Reset request, single reset link | Reset your password |
@@ -193,9 +193,9 @@ second rendering authority.
   `customer-reset-password.php` get the hero only, per the existing
   copywriting-voice guidance for account/security email. The three admin
   templates (`admin-new-order.php`, `admin-cancelled-order.php`,
-  `admin-failed-order.php`) were deliberately left untouched — they inherit
-  the shared header/footer/card changes automatically, and the brief's
-  "denser, operator-focused" framing already fit them.
+  `admin-failed-order.php`) use the same global hero, status, order-summary,
+  address, and footer system while keeping concise operator-specific copy and
+  omitting customer support content.
 
 **Deliberate judgment calls.**
 - Footer omits Terms and Privacy links: this store has no dedicated

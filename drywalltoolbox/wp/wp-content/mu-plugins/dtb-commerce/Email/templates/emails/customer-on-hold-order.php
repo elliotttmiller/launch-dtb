@@ -23,9 +23,9 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 
 echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'label' => __( 'Payment pending', 'drywall-toolbox' ), 'state' => 'warning' ],
-		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'upcoming' ],
-		[ 'label' => __( 'Shipping update', 'drywall-toolbox' ), 'state' => 'upcoming' ],
+		[ 'label' => __( 'Payment pending', 'drywall-toolbox' ), 'state' => 'warning', 'icon' => 'payment' ],
+		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => 'package' ],
+		[ 'label' => __( 'Shipping update', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => 'truck' ],
 	]
 ) : '';
 ?>

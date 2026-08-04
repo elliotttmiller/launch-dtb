@@ -29,6 +29,12 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 ?>
 
 <div class="email-introduction">
+	<?php
+	echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge(
+		$order->needs_payment() ? __( 'Payment due', 'drywall-toolbox' ) : __( 'Order details', 'drywall-toolbox' ),
+		$order->needs_payment() ? 'warning' : 'info'
+	) : '';
+	?>
 	<p>
 	<?php
 	if ( $order->get_billing_first_name() ) {

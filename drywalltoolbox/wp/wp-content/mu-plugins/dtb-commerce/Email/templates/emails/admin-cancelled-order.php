@@ -4,16 +4,26 @@
  *
  * Traced against WooCommerce core emails/admin-cancelled-order.php v9.8.0
  * (wp-content/plugins/woocommerce/templates/emails/admin-cancelled-order.php).
- * DTB customization: operational copy; hook sequence preserved unchanged.
+ * DTB customization: shared branded hero and lifecycle status with concise
+ * operator copy; hook sequence preserved unchanged.
  *
  * @package DrywalltoolboxCommerce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
+do_action( 'woocommerce_email_header', $email_heading, $email );
+
+echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	$email_heading,
+	__( 'A storefront order was cancelled and must not continue through fulfillment.', 'drywall-toolbox' ),
+	/* translators: %s: order number. */
+	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
+) : '';
+?>
 
 <div class="email-introduction">
+	<?php echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge( __( 'Order cancelled', 'drywall-toolbox' ), 'danger' ) : ''; ?>
 	<p><?php printf( esc_html__( 'Order #%1$s from %2$s was cancelled. Release any reserved inventory and stop fulfillment if it has not already shipped.', 'drywall-toolbox' ), esc_html( $order->get_order_number() ), esc_html( $order->get_formatted_billing_full_name() ) ); ?></p>
 </div>
 
