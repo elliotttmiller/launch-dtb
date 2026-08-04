@@ -56,7 +56,7 @@ export const SCHEMATIC_DEFINITIONS = {
     { id: 'platinum-outside-corner-roller',  title: 'Outside Corner Roller', mpn: 'PDT-OCR', category: 'Corner Rollers'    },
   ],
   'Dura-Stilts': [
-    { id: 'dura-stilts-model-iv', title: 'Model IV Drywall Stilts', mpn: 'DS-M4', category: 'Stilts' },
+    { id: 'dura-stilts-dura-iii', title: 'DURA III Adjustable Drywall Stilts', mpn: 'DS-DURA-III', category: 'Stilts' },
   ],
   'SurPro': [
     { id: 'surpro-s1',  title: 'SurPro S1 Stilts',  mpn: 'S1',  category: 'Stilts' },
