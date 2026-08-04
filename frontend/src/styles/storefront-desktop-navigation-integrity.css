@@ -67,7 +67,7 @@
   @media (prefers-reduced-motion: reduce) {
     .site-header .dtb-desktop-nav-tab,
     .site-header .dtb-desktop-nav-tab::before,
-    .site-header .dtb-desktop-nav-tab__label::after {
+    .site-header .dtb-desktop-nav-tab::after {
       transition: none;
     }
   }
