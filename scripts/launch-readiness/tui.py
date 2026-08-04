@@ -30,19 +30,8 @@ _STATUS_STYLE = {
     Status.SKIP: "dim",
 }
 
-BANNER = r"""
-[bold cyan] ____                        _ _   _____           _ _
-|  _ \ _ __ _   ___      ____ _| | | |_   _|__   ___ | | |__   _____  __
-| | | | '__| | | \ \ /\ / / _` | | |   | |/ _ \ / _ \| | '_ \ / _ \ \/ /
-| |_| | |  | |_| |\ V  V / (_| | | |   | | (_) | (_) | | |_) | (_) >  <
-|____/|_|   \__, | \_/\_/ \__,_|_|_|   |_|\___/ \___/|_|_.__/ \___/_/\_\
-            |___/
-[/bold cyan][bold white]  Launch Readiness Validation Suite — Drywall Toolbox[/bold white]
-"""
-
-
 def print_banner(site_url: str, simulation_enabled: bool) -> None:
-    console.print(BANNER)
+    console.print("[bold white]Launch Readiness Validation Suite — Drywall Toolbox[/bold white]")
     mode = "[bold yellow]ENABLED[/bold yellow]" if simulation_enabled else "[dim]disabled (read-only run)[/dim]"
     console.print(
         Panel.fit(

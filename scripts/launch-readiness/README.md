@@ -83,7 +83,7 @@ Both are gitignored — they're run artifacts, not source.
 ```text
 main.py            single-command entry point / orchestrator
 config.py           environment-driven configuration + essential page list
-tui.py               rich-based terminal UI (banner, live steps, summary)
+tui.py               rich-based terminal UI (run configuration, live steps, summary)
 browser/             Playwright wrapper (navigation, console-error capture)
 workflows/           the seven stages, plus shared checkout actions in common.py
 integrations/        WooCommerce/Veeqo/QuickBooks verification clients
