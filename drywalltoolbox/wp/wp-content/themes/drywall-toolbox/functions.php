@@ -480,6 +480,7 @@ function dtb_enqueue_native_checkout_assets(): void {
 		. '.dtb-checkout__brand{display:flex;align-items:center;flex:none;line-height:0;max-width:60vw}'
 		. '.dtb-checkout__brand img{height:clamp(30px,7vw,40px);width:auto;max-width:100%;display:block}'
 		. '.dtb-checkout__stripe-badge{display:inline-flex;align-items:center;gap:6px;flex:none}'
+		. '.dtb-checkout__stripe-badge svg{width:14px;height:14px;flex:none;color:rgba(255,255,255,0.75)}'
 		. '.dtb-checkout__stripe-badge img{height:18px;width:auto;display:block}'
 		. '@media (min-width:768px){.dtb-checkout__brand img{height:44px}.dtb-checkout__stripe-badge img{height:20px}}'
 	);

@@ -35,11 +35,11 @@ import '../styles/order-pages.css';
 import '../styles/order-tracking.css';
 
 const TRACKING_STEPS = [
-  { id: 'received', label: 'Received', description: 'Order captured', Icon: Check },
-  { id: 'payment', label: 'Payment', description: 'Payment confirmed', Icon: Check },
-  { id: 'processing', label: 'Processing', description: 'Preparing items', Icon: Settings },
-  { id: 'shipped', label: 'Shipped', description: 'In transit', Icon: Truck },
-  { id: 'complete', label: 'Delivered', description: 'Complete', Icon: Package },
+  { id: 'received', label: 'Received', description: 'Order captured', Icon: Check, eventTypes: ['order.created'] },
+  { id: 'payment', label: 'Payment', description: 'Payment confirmed', Icon: Check, eventTypes: ['order.payment_confirmed'] },
+  { id: 'processing', label: 'Processing', description: 'Preparing items', Icon: Settings, eventTypes: ['order.picked', 'order.packed', 'order.inventory_reserved'] },
+  { id: 'shipped', label: 'Shipped', description: 'In transit', Icon: Truck, eventTypes: ['order.shipped'] },
+  { id: 'complete', label: 'Delivered', description: 'Complete', Icon: Package, eventTypes: ['order.delivered', 'order.completed'] },
 ];
 
 const CHECKOUT_COMPLETE_QUERY_KEYS = ['checkout_complete', 'payment_complete', 'dtb_checkout_complete'];
@@ -202,17 +202,26 @@ function getStatusTone(status) {
   return 'info';
 }
 
+function findTimelineEventAt(order, eventTypes) {
+  const timeline = Array.isArray(order?.timeline) ? order.timeline : [];
+  const match = timeline.find((event) => eventTypes.includes(event?.type));
+  return match?.occurred_at || null;
+}
+
 /*
  * Timestamp for a given step in the tracker, so each reached step reads
  * "what happened, when" in one place instead of a separate progress-updates
- * list duplicating the same events. Received/Payment share the order's
- * placed_at (the projection doesn't track a distinct payment-captured time);
- * the current step uses the order's last_updated_at.
+ * list duplicating the same events. Prefers the order's real event timeline
+ * (order.created / order.payment_confirmed / etc, see TRACKING_STEPS'
+ * eventTypes) for the actual status-transition time; falls back to the
+ * order's placed_at (or last_updated_at for the current step) when no
+ * matching timeline event was recorded.
  */
-function getStepTimestamp(order, stepIndex, activeIndex) {
+function getStepTimestamp(order, step, stepIndex, activeIndex) {
   if (stepIndex > activeIndex) return null;
-  if (stepIndex === activeIndex) return getLastUpdatedAt(order);
-  return getPlacedAt(order);
+  const eventTimestamp = findTimelineEventAt(order, step.eventTypes);
+  if (eventTimestamp) return eventTimestamp;
+  return stepIndex === activeIndex ? getLastUpdatedAt(order) : getPlacedAt(order);
 }
 
 function renderStatusIcon(status) {
@@ -245,7 +254,7 @@ function OrderSummaryCard({ order }) {
   if (!order) return null;
   const currency = order?.currency;
   const shippingTotal = parseMoney(order?.shipping_total);
-  const hasShipping = hasMoneyField(order?.shipping_total);
+  const hasShipping = Boolean(order?.has_shipping) && hasMoneyField(order?.shipping_total);
   const subtotal = formatMoney(order?.subtotal, currency);
   const total = formatMoney(order?.total, currency);
   return (
@@ -358,7 +367,7 @@ function OrderStatusTracker({ order, loading, onRefresh, streaming }) {
           const active = index === activeIndex;
           const future = !complete && !active;
           const StepIcon = step.Icon;
-          const timestamp = getStepTimestamp(order, index, activeIndex);
+          const timestamp = getStepTimestamp(order, step, index, activeIndex);
           return (
             <li
               key={step.id}

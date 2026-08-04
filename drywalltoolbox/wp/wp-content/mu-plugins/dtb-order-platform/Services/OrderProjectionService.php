@@ -120,6 +120,7 @@ function dtb_order_build_tracking_projection( int $order_id ): ?array {
 		'currency'           => $order->get_currency(),
 		'subtotal'           => $order->get_subtotal(),
 		'shipping_total'     => $order->get_shipping_total(),
+		'has_shipping'       => ! empty( $order->get_shipping_methods() ),
 		'total'              => $order->get_total(),
 	];
 }
