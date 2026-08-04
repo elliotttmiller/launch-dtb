@@ -210,15 +210,17 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
                 onClick={() => onSelectTool(tool)}
               >
                 {hasToolImage ? (
-                  <SchematicPreviewImage
-                    tool={tool}
-                    alt={tool.catalogTitle || tool.title}
-                    className="tool-card-img"
-                  />
+                  <>
+                    <SchematicPreviewImage
+                      tool={tool}
+                      alt={tool.catalogTitle || tool.title}
+                      className="tool-card-img"
+                    />
+                    <div className="tool-card-scrim" />
+                  </>
                 ) : (
                   <PlaceholderIcon />
                 )}
-                <div className="tool-card-scrim" />
                 <div className="tool-card-content">
                   <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
                 </div>
@@ -239,15 +241,17 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
                 onClick={() => onSelectTool(tool)}
               >
                 {hasToolImage ? (
-                  <SchematicPreviewImage
-                    tool={tool}
-                    alt={tool.catalogTitle || tool.title}
-                    className="tool-card-img"
-                  />
+                  <>
+                    <SchematicPreviewImage
+                      tool={tool}
+                      alt={tool.catalogTitle || tool.title}
+                      className="tool-card-img"
+                    />
+                    <div className="tool-card-scrim" />
+                  </>
                 ) : (
                   <PlaceholderIcon />
                 )}
-                <div className="tool-card-scrim" />
                 <div className="tool-card-content">
                   <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
                 </div>
