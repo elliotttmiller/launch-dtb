@@ -249,60 +249,51 @@
 }
 
 /* ═══════════════════════════════════════════════════════════
-   TOOL CARDS — square image cards
+   TOOL CARDS — landscape image cards (mirrors .categories-grid / .category-card)
 ═══════════════════════════════════════════════════════════ */
 
 .tools-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(12px, 3vw, 20px);
+  gap: clamp(10px, 2vw, 14px);
   margin-bottom: clamp(32px, 5vw, 40px);
-  place-items: stretch;
-}
-
-@media (min-width: 640px) {
-  .tools-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: clamp(16px, 3vw, 24px);
-  }
 }
 
 @media (min-width: 768px) {
   .tools-grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: clamp(20px, 3vw, 28px);
+    gap: clamp(14px, 2.5vw, 18px);
   }
 }
 
 @media (min-width: 1024px) {
   .tools-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: clamp(24px, 3vw, 32px);
+    gap: clamp(16px, 2.5vw, 20px);
   }
 }
 
 .tool-card {
   position: relative;
-  background: var(--surface-base, #ffffff);
-  border: 1px solid var(--alloy-edge, rgba(15, 23, 42, 0.1));
+  display: block;
+  width: 100%;
   border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  text-align: center;
-  animation: slideUp 0.6s ease-out;
-  height: 100%;
-  aspect-ratio: 1;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
+  aspect-ratio: 3 / 2;
+  border: none;
+  padding: 0;
+  background: #ffffff;
+  text-align: left;
+  animation: slideUp 0.5s ease-out;
+  transition:
+    transform 0.35s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.35s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .tool-card:hover {
-  border-color: var(--tension-accent, #2255ee);
-  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
-  transform: translateY(-6px);
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.18);
 }
 
 .tool-card:focus-visible {
@@ -310,90 +301,75 @@
   outline-offset: 3px;
 }
 
-/* Subtle accent wash on hover (z-index 0, behind image) */
-.tool-card-background {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--primary-600, #2255ee) 0%, var(--tension-accent, #2255ee) 100%);
-  opacity: 0;
-  transition: opacity 0.4s ease-out;
-  z-index: 0;
-}
-
-.tool-card:hover .tool-card-background {
-  opacity: 0.06;
-}
-
-/* Tool card image container — white background for schematic clarity, padded so full diagram is visible */
-.tool-card-image-bg {
+/* Background image — covers the frame, centered, zooms to fill */
+.tool-card-img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #ffffff;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.tool-card-image-bg img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
-  transition: transform 0.4s ease-out;
+  transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.tool-card:hover .tool-card-image-bg img {
-  transform: scale(1.04);
+.tool-card:hover .tool-card-img {
+  transform: scale(1.05);
 }
 
-.tool-card-image-bg .placeholder-icon {
-  width: 60px;
-  height: 60px;
-  color: var(--text-tertiary, #94a3b8);
-  transition: color 0.4s ease-out;
-}
-
-.tool-card:hover .tool-card-image-bg .placeholder-icon {
-  color: var(--tension-accent, #2255ee);
-}
-
-/* Overlay scrim — bottom-heavy gradient, title at base */
-.tool-card-overlay {
+/* Bottom-heavy dark gradient for legible text */
+.tool-card-scrim {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.72) 0%,
-    rgba(0, 0, 0, 0.28) 50%,
-    rgba(0, 0, 0, 0.0) 100%
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.42) 45%,
+    rgba(0, 0, 0, 0.08) 100%
   );
-  z-index: 2;
-  padding: clamp(12px, 3vw, 18px);
-  text-align: center;
-  transition: all 0.4s ease-out;
+  transition: background 0.3s ease;
+}
+
+.tool-card:hover .tool-card-scrim {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.88) 0%,
+    rgba(0, 0, 0, 0.50) 45%,
+    rgba(0, 0, 0, 0.12) 100%
+  );
+}
+
+/* Text pinned to card bottom */
+.tool-card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: clamp(10px, 2.5vw, 16px) clamp(12px, 2.5vw, 18px);
 }
 
 .tool-name {
-  font-size: clamp(0.88rem, 2.6vw, 1.1rem);
+  font-size: clamp(0.82rem, 2vw, 0.98rem);
   margin: 0;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: white;
-  transition: all 0.4s ease-out;
-  line-height: 1.3;
-  text-align: center;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+  color: #ffffff;
+  line-height: 1.25;
+  text-align: left;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* No-image fallback: dark gradient surface with centered placeholder icon */
+.tool-card--no-image {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-card--no-image .placeholder-icon {
+  width: 48px;
+  height: 48px;
+  color: rgba(255, 255, 255, 0.35);
 }
 
 /* Empty state */
@@ -485,35 +461,34 @@
     color: rgba(255, 255, 255, 0.65);
   }
 
-  /* Tools: single column on mobile */
+  /* Tools: keep 2-col on mobile — landscape cards fit well, matches categories */
   .tools-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    place-items: center;
-    max-width: 400px;
-    margin: 0 auto 40px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
 
   .tool-card {
-    width: 100%;
-    height: auto;
+    border-radius: 10px;
     transition: none;
-    animation: fadeIn 0.5s ease-out both;
-    border-radius: 12px;
+    animation: fadeIn 0.4s ease-out both;
   }
 
   .tool-card:hover {
-    border-color: var(--alloy-edge, rgba(15, 23, 42, 0.1));
+    transform: none;
     box-shadow: none;
+  }
+
+  .tool-card:hover .tool-card-img {
     transform: none;
   }
 
-  .tool-card:hover .tool-card-background {
-    opacity: 0;
-  }
-
-  .tool-card:hover .tool-card-image-bg img {
-    transform: none;
+  .tool-card:hover .tool-card-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.42) 45%,
+      rgba(0, 0, 0, 0.08) 100%
+    );
   }
 }
 

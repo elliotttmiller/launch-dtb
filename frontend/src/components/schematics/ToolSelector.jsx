@@ -198,58 +198,66 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
           })}
         </div>
       ) : showCategoryCards === false && selectedCategory ? (
-        // Show tools in selected category
+        // Show tools in selected category — same 2-col landscape card layout as categories
         <div className="tools-grid">
-          {groupedTools[selectedCategory].map((tool, index) => (
-            <button
-              key={tool.id}
-              className="tool-card"
-              style={{ animationDelay: `${(index + 1) * 0.07}s` }}
-              onClick={() => onSelectTool(tool)}
-            >
-              {/* Image Background */}
-              <div className="tool-card-image-bg">
-                <SchematicPreviewImage
-                  tool={tool}
-                  alt={tool.catalogTitle || tool.title}
-                  fallback={<PlaceholderIcon />}
-                />
-              </div>
-              {/* Title Overlay */}
-              <div className="tool-card-overlay">
-                <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
-              </div>
-              {/* Hover accent layer */}
-              <div className="tool-card-background" />
-            </button>
-          ))}
+          {groupedTools[selectedCategory].map((tool, index) => {
+            const hasToolImage = getToolImageCandidates(tool).length > 0;
+            return (
+              <button
+                key={tool.id}
+                className={`tool-card${hasToolImage ? '' : ' tool-card--no-image'}`}
+                style={{ animationDelay: `${(index + 1) * 0.07}s` }}
+                onClick={() => onSelectTool(tool)}
+              >
+                {hasToolImage ? (
+                  <>
+                    <SchematicPreviewImage
+                      tool={tool}
+                      alt=""
+                      className="tool-card-img"
+                    />
+                    <div className="tool-card-scrim" />
+                  </>
+                ) : (
+                  <PlaceholderIcon />
+                )}
+                <div className="tool-card-content">
+                  <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
+                </div>
+              </button>
+            );
+          })}
         </div>
       ) : (
-        // Fallback: show all tools without categories
+        // Fallback: show all tools without categories — same 2-col landscape card layout
         <div className="tools-grid">
-          {enrichedTools.map((tool, index) => (
-            <button
-              key={tool.id}
-              className="tool-card"
-              style={{ animationDelay: `${(index + 1) * 0.07}s` }}
-              onClick={() => onSelectTool(tool)}
-            >
-              {/* Image Background */}
-              <div className="tool-card-image-bg">
-                <SchematicPreviewImage
-                  tool={tool}
-                  alt={tool.catalogTitle || tool.title}
-                  fallback={<PlaceholderIcon />}
-                />
-              </div>
-              {/* Title Overlay */}
-              <div className="tool-card-overlay">
-                <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
-              </div>
-              {/* Hover accent layer */}
-              <div className="tool-card-background" />
-            </button>
-          ))}
+          {enrichedTools.map((tool, index) => {
+            const hasToolImage = getToolImageCandidates(tool).length > 0;
+            return (
+              <button
+                key={tool.id}
+                className={`tool-card${hasToolImage ? '' : ' tool-card--no-image'}`}
+                style={{ animationDelay: `${(index + 1) * 0.07}s` }}
+                onClick={() => onSelectTool(tool)}
+              >
+                {hasToolImage ? (
+                  <>
+                    <SchematicPreviewImage
+                      tool={tool}
+                      alt=""
+                      className="tool-card-img"
+                    />
+                    <div className="tool-card-scrim" />
+                  </>
+                ) : (
+                  <PlaceholderIcon />
+                )}
+                <div className="tool-card-content">
+                  <h3 className="tool-name">{tool.catalogTitle || tool.title}</h3>
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 

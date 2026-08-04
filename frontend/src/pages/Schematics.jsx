@@ -1111,10 +1111,6 @@ export default function Parts() {
   const surproS2Parts  = buildPartsFromData(surproS2Data);
   const surproS2XParts = buildPartsFromData(surproS2XData);
 
-  // Dura-Stilts parts arrays — hotspot JSON removed; new files pending.
-  const duraStiltsModelIV1830Parts = [];
-  const duraStiltsModelIV2440Parts = [];
-
   const schematicsList = [
     {
       id: 'columbia-matrix',
@@ -1997,7 +1993,8 @@ export default function Parts() {
 
     // ── Dura-Stilts ──────────────────────────────────────────────────────────
     // DURA III stilt schematic — three height-range pages in a single viewer.
-    // TODO: Hotspot JSON files pending; parts arrays will be wired up when ready.
+    // Matches the live catalog's DS-DURA-III / D14-22 / D18-30 / D24-40 / D38-64 SKUs.
+    // TODO: Hotspot JSON files pending; parts array will be wired up when ready.
     {
       id: 'dura-stilts-dura-iii',
       title: 'DURA III',
@@ -2017,34 +2014,6 @@ export default function Parts() {
       },
       previewImage: schPrev('dura-stilts-dura-iii'),
       parts: [],
-    },
-
-    // Model IV stilt schematic — three height-range pages in a single viewer.
-    // TODO: Hotspot JSON files removed; replace with new hotspot schematic data.
-    {
-      id: 'dura-stilts-model-iv',
-      title: 'MODEL IV',
-      description: 'Dura-Stilts Model IV drywall stilt schematic diagrams with parts hotspots',
-      brand: 'Dura-Stilts',
-      category: 'Stilts',
-      diagramPages: [1, 2, 3],
-      pageLabels: {
-        1: '14″–22″',
-        2: '18″–30″',
-        3: '24″–40″',
-      },
-      imagePages: {
-        1: schImg('dura-stilts-model-iv', 1),
-        2: schImg('dura-stilts-model-iv', 2),
-        3: schImg('dura-stilts-model-iv', 3),
-      },
-      previewImage: schPrev('dura-stilts-model-iv'),
-      // Remap pageNumber from the raw JSON (always 1) to the correct viewer page
-      // so hotspots render against the right schematic image.
-      parts: [
-        ...duraStiltsModelIV1830Parts.map(p => ({ ...p, pageNumber: 2 })),
-        ...duraStiltsModelIV2440Parts.map(p => ({ ...p, pageNumber: 3 })),
-      ],
     },
 
     // ── SurPro ───────────────────────────────────────────────────────────────
