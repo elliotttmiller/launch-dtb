@@ -8,7 +8,7 @@ export default function Header(props) {
   if (hidden) return null;
 
   return (
-    <div {...rootProps} style={{ background: getColorVar('background_color', undefined) }}>
+    <div {...rootProps} className="site-header-mount" style={{ background: getColorVar('background_color', undefined) }}>
       <StorefrontHeader {...props} />
     </div>
   );

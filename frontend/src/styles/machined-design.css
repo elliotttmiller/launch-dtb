@@ -3866,13 +3866,6 @@ a.header-contact-icon {
         border-top-color: rgba(15, 23, 42, 0.08) !important;
         border-bottom-color: rgba(15, 23, 42, 0.08) !important;
     }
-    /* Re-key the marquee fade edges to match the page gradient colour */
-    .dtb-home-page .dtb-ui-trusted-brands [style*="linear-gradient(to right"] {
-        background: linear-gradient(to right, #e8ecf3 0%, transparent 100%) !important;
-    }
-    .dtb-home-page .dtb-ui-trusted-brands [style*="linear-gradient(to left"] {
-        background: linear-gradient(to left, #e8ecf3 0%, transparent 100%) !important;
-    }
 }
 
 @media (min-width: 1025px) {

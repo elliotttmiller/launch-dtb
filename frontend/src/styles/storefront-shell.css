@@ -3,6 +3,21 @@
   color: var(--dtb-text);
 }
 
+/* The fixed header must not reserve space through its React mount wrapper.
+   Main content owns the single header offset below. */
+.site-header-mount {
+  height: 0;
+  min-height: 0;
+}
+
+body {
+  padding-top: 0;
+}
+
+main.main-content {
+  padding-top: var(--header-height, 70px);
+}
+
 /* Contain any child overflow (e.g. negative-margin rails) so it never
    creates a body-level horizontal scrollbar. clip ≠ hidden — it does not
    create a scroll container and does not affect scroll restoration. */

@@ -22,7 +22,12 @@ body,
 
 body {
   margin: 0;
+  padding-top: 0;
   overscroll-behavior-x: none;
+}
+
+main.main-content {
+  padding-top: var(--header-height, 70px);
 }
 
 #root {

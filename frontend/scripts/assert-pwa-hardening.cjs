@@ -9,6 +9,8 @@ const manifestPath = path.join(frontendRoot, 'public', 'site.webmanifest');
 const indexPath = path.join(frontendRoot, 'index.html');
 const mobileDebugPath = path.join(frontendRoot, 'public', 'mobile-debug.php');
 const storefrontHeaderPath = path.join(frontendRoot, 'src', 'components', 'storefront', 'StorefrontHeader.jsx');
+const storefrontShellPath = path.join(frontendRoot, 'src', 'styles', 'storefront-shell.css');
+const machinedDesignPath = path.join(frontendRoot, 'src', 'styles', 'machined-design.css');
 const htaccessPath = path.join(repositoryRoot, 'drywalltoolbox', '.htaccess');
 
 function fail(message) {
@@ -58,6 +60,16 @@ if (!mobileDebugPhp.includes("current_user_can( 'manage_options' )") || !mobileD
 const storefrontHeader = fs.readFileSync(storefrontHeaderPath, 'utf8');
 if (!storefrontHeader.includes('const { height } = header.getBoundingClientRect()') || storefrontHeader.includes('const { bottom } = header.getBoundingClientRect()')) {
   fail('Storefront header spacing must use bounded element height, never its viewport-relative bottom coordinate.');
+}
+
+const storefrontShell = fs.readFileSync(storefrontShellPath, 'utf8');
+if (!storefrontShell.includes('.site-header-mount') || !storefrontShell.includes('padding-top: var(--header-height, 70px)')) {
+  fail('Fixed-header spacing must be owned by main content with a collapsed header mount wrapper.');
+}
+
+const machinedDesign = fs.readFileSync(machinedDesignPath, 'utf8');
+if (machinedDesign.includes('[style*="linear-gradient(to right"]')) {
+  fail('Trusted-brand edge fades must not be overridden with a mismatched page color.');
 }
 
 const htaccess = fs.readFileSync(htaccessPath, 'utf8');
