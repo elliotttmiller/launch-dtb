@@ -146,21 +146,25 @@ function dtb_schematics_parse_upload_filename( string $filename ) {
 	if ( ! is_wp_error( $sku_match ) ) {
 		return $sku_match;
 	}
-	if ( 'dtb_unknown_schematic_sku' === $sku_match->get_error_code() ) {
-		return $sku_match;
-	}
 
 	$dura_stilts_match = dtb_schematics_parse_dura_stilts_upload_filename( $name );
 	if ( ! is_wp_error( $dura_stilts_match ) ) {
-		return $dura_stilts_match;
-	}
-	if ( 'dtb_unknown_schematic_sku' === $dura_stilts_match->get_error_code() ) {
 		return $dura_stilts_match;
 	}
 
 	$verbose_match = dtb_schematics_parse_verbose_upload_filename( $name );
 	if ( ! is_wp_error( $verbose_match ) ) {
 		return $verbose_match;
+	}
+
+	// Generic SKU patterns also match descriptive export basenames such as
+	// "platinum_flat_box-page-001". Only report their lookup error after the
+	// more specific Dura-Stilts and verbose-id resolvers have had a chance.
+	if ( 'dtb_unknown_schematic_sku' === $dura_stilts_match->get_error_code() ) {
+		return $dura_stilts_match;
+	}
+	if ( 'dtb_unknown_schematic_sku' === $sku_match->get_error_code() ) {
+		return $sku_match;
 	}
 	if ( 'dtb_unknown_verbose_schematic_id' === $verbose_match->get_error_code() ) {
 		return $verbose_match;
@@ -210,8 +214,8 @@ function dtb_schematics_parse_sku_upload_filename( string $name ) {
  *   {verbose-schematic-id}-schematic-page-{n}.{ext}   (Columbia/TapeTech)
  *   {name}-page-{n}.{ext}                             (Platinum, underscore-separated)
  * The captured id is normalized (lowercase, non-alphanumeric stripped) and looked up in
- * DTB_VERBOSE_SCHEMATIC_ID_MAP, which always overrides the filename's own page number —
- * each verbose id represents exactly one page of the combined frontend tool.
+ * DTB_VERBOSE_SCHEMATIC_ID_MAP. A pinned map page overrides the filename page; a null
+ * map page preserves the filename page for a single verbose id spanning multiple pages.
  */
 function dtb_schematics_parse_verbose_upload_filename( string $name ) {
 	if ( ! preg_match( '/^(.+?)(?:-schematic)?-page-([0-9]+)$/i', $name, $matches ) ) {
@@ -224,7 +228,8 @@ function dtb_schematics_parse_verbose_upload_filename( string $name ) {
 	}
 
 	$mapped = DTB_VERBOSE_SCHEMATIC_ID_MAP[ $key ];
-	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) (int) $mapped['page'] ];
+	$page = null !== $mapped['page'] ? (int) $mapped['page'] : absint( $matches[2] );
+	return [ 'schematic_id' => sanitize_key( $mapped['schematic_id'] ), 'type' => 'diagram', 'page' => (string) $page ];
 }
 
 /**

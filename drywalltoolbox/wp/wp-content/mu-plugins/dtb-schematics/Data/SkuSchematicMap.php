@@ -199,8 +199,8 @@ const DTB_SKU_SCHEMATIC_MAP = [
 // {verbose-id}-schematic-page-{n}.webp / {name}-page-{n}.webp uploads.
 // Keys are normalized (lowercase, non-alphanumeric stripped) so hyphen- and
 // underscore-separated export variants (e.g. Platinum) resolve identically.
-// 'page' here always overrides the filename's own page number: each verbose
-// id represents exactly one page of the combined frontend tool.
+// A numeric 'page' overrides the filename page for one-page component ids;
+// null preserves the filename page for ids whose source spans multiple pages.
 const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'1776147101640' => [ 'schematic_id' => 'tapetech-17tt', 'page' => 1 ],
 	'1777933053473' => [ 'schematic_id' => 'tapetech-90t', 'page' => 1 ],
@@ -264,7 +264,7 @@ const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'platinumoutsidecornerroller' => [ 'schematic_id' => 'platinum-outside-corner-roller', 'page' => 1 ],
 	'tapetech90insidecorneredgertapetech42ttsch' => [ 'schematic_id' => 'tapetech-42tt', 'page' => 1 ],
 	'tapetech90insidecorneredgertapetech48ttsch' => [ 'schematic_id' => 'tapetech-48tt', 'page' => 1 ],
-	'tapetechtapetechlockblockfor07tt050212fsch' => [ 'schematic_id' => 'tapetech-07tt', 'page' => 1 ],
+	'tapetechtapetechlockblockfor07tt050212fsch' => [ 'schematic_id' => 'tapetech-07tt', 'page' => null ],
 ];
 
 // Exact source basenames that cannot be resolved through a SKU convention.

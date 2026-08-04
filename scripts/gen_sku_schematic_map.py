@@ -45,7 +45,11 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
             # Asgard schematics are retired and must not enter runtime maps.
             continue
         if sid not in csv_by_schematic_id:
-            csv_by_schematic_id[sid] = {"brand": brand, "source_file_from_brands": src_rel}
+            csv_by_schematic_id[sid] = {
+                "brand": brand,
+                "source_file_from_brands": src_rel,
+                "diagram_pages": (row.get("diagram_pages") or "").strip(),
+            }
         if not sku:
             continue
         key = sku.upper()
@@ -135,7 +139,8 @@ for sid, meta in csv_by_schematic_id.items():
         unresolved.append((sid, meta["source_file_from_brands"]))
         continue
     key = normalize_key(sid)
-    verbose_map[key] = target
+    diagram_pages = [page for page in meta["diagram_pages"].split("|") if page]
+    verbose_map[key] = (target[0], None if len(diagram_pages) > 1 else target[1])
 
 print(f"[verbose map] resolved: {len(verbose_map)}, unresolved: {len(unresolved)}", file=sys.stderr)
 for sid, relpath in unresolved:
@@ -181,12 +186,13 @@ lines.append("")
 lines.append("// {verbose-id}-schematic-page-{n}.webp / {name}-page-{n}.webp uploads.")
 lines.append("// Keys are normalized (lowercase, non-alphanumeric stripped) so hyphen- and")
 lines.append("// underscore-separated export variants (e.g. Platinum) resolve identically.")
-lines.append("// 'page' here always overrides the filename's own page number: each verbose")
-lines.append("// id represents exactly one page of the combined frontend tool.")
+lines.append("// A numeric 'page' overrides the filename page for one-page component ids;")
+lines.append("// null preserves the filename page for ids whose source spans multiple pages.")
 lines.append("const DTB_VERBOSE_SCHEMATIC_ID_MAP = [")
 for key in sorted(verbose_map.keys()):
     schematic_id, page = verbose_map[key]
-    lines.append(f"\t'{php_str(key)}' => [ 'schematic_id' => '{php_str(schematic_id)}', 'page' => {int(page)} ],")
+    page_php = "null" if page is None else str(int(page))
+    lines.append(f"\t'{php_str(key)}' => [ 'schematic_id' => '{php_str(schematic_id)}', 'page' => {page_php} ],")
 lines.append("];")
 lines.append("")
 lines.append("// Exact source basenames that cannot be resolved through a SKU convention.")

@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string] $OfficialCatalogPath = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
-    [string] $WooExportPath = 'products\launch\official\dtb_woocommerce_official_catalog_wc_export.csv'
+    [string] $WooExportPath = 'products\launch\official\dtb_woocommerce_official_catalog_wc_export.csv',
+    [bool] $PreserveOfficialWhenExportBlank = $true
 )
 
 $ErrorActionPreference = 'Stop'
@@ -62,6 +63,7 @@ foreach ($row in $exportRows) {
 
 $changed = 0
 $matched = 0
+$protectedNonblank = 0
 foreach ($row in $officialRows) {
     if (-not $exportBySku.ContainsKey($row.SKU)) {
         continue
@@ -73,6 +75,10 @@ foreach ($row in $officialRows) {
     }
 
     $matched++
+    if ($PreserveOfficialWhenExportBlank -and -not $source.Images -and $row.Images) {
+        $protectedNonblank++
+        continue
+    }
     if ([string] $row.Images -cne [string] $source.Images) {
         $row.Images = [string] $source.Images
         $changed++
@@ -96,11 +102,15 @@ if ($reloaded.Count -ne $officialRows.Count) {
     throw "Row-count validation failed: expected $($officialRows.Count), found $($reloaded.Count)."
 }
 foreach ($row in $reloaded) {
-    if ($exportBySku.ContainsKey($row.SKU) -and [string] $row.Images -cne [string] $exportBySku[$row.SKU].Images) {
+    if (
+        $exportBySku.ContainsKey($row.SKU) -and
+        -not ($PreserveOfficialWhenExportBlank -and -not $exportBySku[$row.SKU].Images -and $row.Images) -and
+        [string] $row.Images -cne [string] $exportBySku[$row.SKU].Images
+    ) {
         throw "Image synchronization validation failed for matched SKU: $($row.SKU)"
     }
 }
 
 $officialOnly = @($officialBySku.Keys | Where-Object { -not $exportBySku.ContainsKey($_) }).Count
 $exportOnly = @($exportBySku.Keys | Where-Object { -not $officialBySku.ContainsKey($_) }).Count
-Write-Output "official_rows=$($officialRows.Count) export_rows=$($exportRows.Count) matched=$matched changed=$changed official_only=$officialOnly export_only=$exportOnly bom=$hasBom crlf=$usesCrLf"
+Write-Output "official_rows=$($officialRows.Count) export_rows=$($exportRows.Count) matched=$matched changed=$changed protected_nonblank=$protectedNonblank official_only=$officialOnly export_only=$exportOnly bom=$hasBom crlf=$usesCrLf"
