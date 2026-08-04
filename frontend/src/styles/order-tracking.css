@@ -155,7 +155,7 @@
 
 .dtb-order-current-status {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 0.9rem;
   align-items: flex-start;
   padding: clamp(1rem, 2vw, 1.35rem);
@@ -163,6 +163,10 @@
   border-radius: 20px;
   background: rgba(248, 250, 252, 0.86);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.dtb-order-current-status .dtb-order-live-badge {
+  margin-top: 0.15rem;
 }
 
 .dtb-order-current-status__icon {
@@ -330,6 +334,15 @@
   line-height: 1.12;
 }
 
+.dtb-order-step time {
+  display: block;
+  margin-top: 0.15rem;
+  color: #b0b9c6;
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
 .dtb-order-step.is-complete strong,
 .dtb-order-step.is-active strong {
   color: #2255ee;
@@ -338,86 +351,6 @@
 .dtb-order-status-panel--success .dtb-order-step.is-complete strong,
 .dtb-order-status-panel--success .dtb-order-step.is-active strong {
   color: #16a34a;
-}
-
-.dtb-order-status-panel__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-top: 1rem;
-}
-
-.dtb-order-status-panel__metrics > div {
-  display: grid;
-  gap: 0.24rem;
-  min-width: 0;
-  padding: 0.86rem 0.92rem;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.dtb-order-status-panel__metrics span {
-  color: #94a3b8;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-}
-
-.dtb-order-status-panel__metrics strong {
-  max-width: 100%;
-  color: #334155;
-  font-size: 0.88rem;
-  font-weight: 750;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.dtb-order-progress-updates-list {
-  display: grid;
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dtb-order-progress-updates-list li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.72rem;
-  align-items: start;
-}
-
-.dtb-order-update-dot {
-  width: 10px;
-  height: 10px;
-  margin-top: 0.38rem;
-  border-radius: 999px;
-  background: #cbd5e1;
-  box-shadow: 0 0 0 5px rgba(148, 163, 184, 0.12);
-}
-
-.dtb-order-update-dot.is-current {
-  background: #2255ee;
-  box-shadow: 0 0 0 5px rgba(34, 85, 238, 0.12);
-}
-
-.dtb-order-progress-updates-list p {
-  margin: 0;
-  color: #1f2937;
-  font-size: 0.94rem;
-  font-weight: 750;
-  line-height: 1.25;
-}
-
-.dtb-order-progress-updates-list time {
-  display: block;
-  margin-top: 0.18rem;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 550;
-  line-height: 1.25;
 }
 
 .dtb-order-live-badge {
@@ -500,10 +433,6 @@
 }
 
 .dtb-order-help-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: clamp(1.25rem, 3vw, 2.5rem);
-  align-items: center;
   padding: clamp(1.1rem, 2.2vw, 1.6rem);
   border: 1px solid rgba(226, 232, 240, 0.92);
   border-radius: 20px;
@@ -548,48 +477,6 @@
 
 .dtb-order-help-card__cta {
   margin-top: 0.85rem;
-}
-
-.dtb-order-help-card__features {
-  display: grid;
-  gap: 0.85rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dtb-order-help-card__features li {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.65rem;
-  align-items: flex-start;
-}
-
-.dtb-order-help-card__features span:first-child {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #2255ee;
-}
-
-.dtb-order-help-card__features p:first-child {
-  margin: 0;
-  color: #0f172a;
-  font-size: 0.86rem;
-  font-weight: 750;
-}
-
-.dtb-order-help-card__features p:last-child {
-  margin: 0.12rem 0 0;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 500;
-  line-height: 1.4;
 }
 
 .dtb-order-sheet-section--tracking {
@@ -786,8 +673,18 @@
     gap: 0.3rem;
   }
 
-  .dtb-order-step small {
+  .dtb-order-step small,
+  .dtb-order-step time {
     display: none;
+  }
+
+  .dtb-order-current-status {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .dtb-order-current-status .dtb-order-live-badge {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
   }
 
   .dtb-order-step strong {
@@ -801,15 +698,6 @@
 
   .dtb-order-step__connector {
     top: 0.9rem;
-  }
-
-  .dtb-order-status-panel__metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.55rem;
-  }
-
-  .dtb-order-status-panel__metrics > div {
-    padding: 0.78rem 0.82rem;
   }
 
   .dtb-order-alert-card {
@@ -844,9 +732,5 @@
 @media (max-width: 390px) {
   .dtb-order-tracking-shell {
     width: min(100% - 1rem, 680px);
-  }
-
-  .dtb-order-status-panel__metrics {
-    grid-template-columns: 1fr;
   }
 }
