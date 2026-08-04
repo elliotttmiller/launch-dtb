@@ -213,7 +213,7 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
                   <>
                     <SchematicPreviewImage
                       tool={tool}
-                      alt={tool.catalogTitle || tool.title}
+                      alt=""
                       className="tool-card-img"
                     />
                     <div className="tool-card-scrim" />
@@ -244,7 +244,7 @@ export default function ToolSelector({ brand, brandLogo, tools, onSelectTool, on
                   <>
                     <SchematicPreviewImage
                       tool={tool}
-                      alt={tool.catalogTitle || tool.title}
+                      alt=""
                       className="tool-card-img"
                     />
                     <div className="tool-card-scrim" />
