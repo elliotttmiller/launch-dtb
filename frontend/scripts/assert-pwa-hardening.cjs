@@ -7,7 +7,6 @@ const frontendRoot = path.resolve(__dirname, '..');
 const repositoryRoot = path.resolve(frontendRoot, '..');
 const manifestPath = path.join(frontendRoot, 'public', 'site.webmanifest');
 const indexPath = path.join(frontendRoot, 'index.html');
-const mobileDebugPath = path.join(frontendRoot, 'public', 'mobile-debug.php');
 const storefrontHeaderPath = path.join(frontendRoot, 'src', 'components', 'storefront', 'StorefrontHeader.jsx');
 const storefrontShellPath = path.join(frontendRoot, 'src', 'styles', 'storefront-shell.css');
 const machinedDesignPath = path.join(frontendRoot, 'src', 'styles', 'machined-design.css');
@@ -48,13 +47,8 @@ if (!indexHtml.includes("data-dtb-app-mounted")) {
   fail('frontend/index.html must use the explicit app-mounted marker for blank-page recovery.');
 }
 
-if (!indexHtml.includes('dtb_frontend_debug') || !indexHtml.includes('dtb_frontend_debug_authorized') || !indexHtml.includes('dtb-boot-debug-panel') || !indexHtml.includes('unhandledrejection')) {
-  fail('frontend/index.html must retain query-gated pre-React boot diagnostics.');
-}
-
-const mobileDebugPhp = fs.readFileSync(mobileDebugPath, 'utf8');
-if (!mobileDebugPhp.includes("current_user_can( 'manage_options' )") || !mobileDebugPhp.includes('inspectAsset') || !mobileDebugPhp.includes('asset-manifest.json')) {
-  fail('mobile-debug.php must remain admin-gated and perform browser-side asset checks.');
+if (indexHtml.includes('dtb_frontend_debug') || indexHtml.includes('dtb_frontend_debug_authorized') || indexHtml.includes('dtb-boot-debug-panel')) {
+  fail('frontend/index.html must not retain temporary frontend boot diagnostics.');
 }
 
 const storefrontHeader = fs.readFileSync(storefrontHeaderPath, 'utf8');
@@ -77,4 +71,4 @@ if (!/<FilesMatch "\^site\\\.webmanifest\$">[\s\S]*?Cache-Control "no-cache, no-
   fail('drywalltoolbox/.htaccess must prevent stale browser caching of site.webmanifest.');
 }
 
-process.stdout.write('PWA mobile launch hardening verified.\n');
+process.stdout.write('Frontend launch hardening verified.\n');

@@ -44,20 +44,6 @@ function setLocalStorageFlag(key) {
   }
 }
 
-function isAuthorizedFrontendDebugSession() {
-  if (typeof window === 'undefined') return false;
-
-  try {
-    const params = new URLSearchParams(window.location.search || '');
-    const requested = /^(1|true|yes|on)$/i.test(String(params.get('dtb_frontend_debug') || ''));
-    const authorized = window.sessionStorage.getItem('dtb:frontend-debug-authorized') === '1'
-      || /(?:^|;\s*)dtb_frontend_debug_authorized=1(?:;|$)/.test(document.cookie || '');
-    return requested && authorized;
-  } catch {
-    return false;
-  }
-}
-
 function lazyWithReload(importer) {
   return lazy(() => importer().catch((error) => {
     const message = String(error?.message || '');
@@ -66,7 +52,7 @@ function lazyWithReload(importer) {
       /Loading chunk [\w-]+ failed/i.test(message) ||
       /Failed to fetch dynamically imported module/i.test(message);
 
-    if (isChunkLoadFailure && typeof window !== 'undefined' && !isAuthorizedFrontendDebugSession()) {
+    if (isChunkLoadFailure && typeof window !== 'undefined') {
       const retryKey = `dtb:lazy-retry:${ window.location.pathname }`;
       const hasRetried = window.sessionStorage.getItem(retryKey) === '1';
 

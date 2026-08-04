@@ -1,21 +1,6 @@
 import React from 'react';
 import CustomerErrorPage from '../errors/CustomerErrorPage.jsx';
 
-function isFrontendDebugEnabled() {
-  if (typeof window === 'undefined') return false;
-  const params = new URLSearchParams(window.location.search || '');
-  const flag = String(params.get('dtb_frontend_debug') || '').toLowerCase();
-  const requested = flag === '1' || flag === 'true' || flag === 'yes' || flag === 'on';
-  if (!requested) return false;
-
-  try {
-    return window.sessionStorage.getItem('dtb:frontend-debug-authorized') === '1'
-      || /(?:^|;\s*)dtb_frontend_debug_authorized=1(?:;|$)/.test(document.cookie || '');
-  } catch {
-    return false;
-  }
-}
-
 /**
  * frontend/src/components/system/AppErrorBoundary.jsx
  *
@@ -72,14 +57,7 @@ export default class AppErrorBoundary extends React.Component {
 
     return <CustomerErrorPage
       code={500}
-      showDebug={isFrontendDebugEnabled()}
-      debugDetails={{
-        message: this.state.error?.message || null,
-        stack: this.state.error?.stack || null,
-        componentStack: this.state.errorInfo?.componentStack || null,
-        path: typeof window !== 'undefined' ? window.location.pathname : null,
-        href: typeof window !== 'undefined' ? window.location.href : null,
-      }}
+      showDebug={false}
     />;
   }
 }
