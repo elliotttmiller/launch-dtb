@@ -122,13 +122,25 @@ def run(config: "Config") -> StageResult:
     def check_test_email_delivery():
         if not config.enable_checkout_simulation:
             return Status.SKIP, "Checkout simulation is disabled."
-        domain = config.test_customer_email_domain.strip().lower().rstrip(".")
+        if config.test_customer_email_error:
+            return Status.FAIL, config.test_customer_email_error
+        if config.test_customer_email_address.strip():
+            domain = config.test_customer_email_address.rsplit("@", 1)[1].lower().rstrip(".")
+            source = "LAUNCH_TEST_EMAIL_ADDRESS"
+        else:
+            domain = config.test_customer_email_domain.strip().lower().rstrip(".")
+            source = "LAUNCH_TEST_EMAIL_DOMAIN"
+        if not domain:
+            return Status.FAIL, f"{source} cannot be empty."
         if domain.endswith(".test") or domain == "test":
             return Status.WARN, (
                 f"Generated customer addresses use the non-deliverable .test domain ({domain}); "
-                "email dispatch can be exercised, but inbox delivery cannot be verified. Set "
-                "LAUNCH_TEST_EMAIL_DOMAIN to a controlled catch-all mailbox domain for delivery tests."
+                "email dispatch can be exercised, but inbox delivery cannot be verified. Configure "
+                "LAUNCH_TEST_EMAIL_ADDRESS with a plus-addressing-capable test inbox or set "
+                "LAUNCH_TEST_EMAIL_DOMAIN to a controlled catch-all domain."
             )
+        if config.test_customer_email_address.strip():
+            return Status.PASS, f"Unique test aliases will route to the configured inbox at {domain}."
         return Status.PASS, f"Generated customer email domain is routable: {domain}"
 
     tui.run_step(stage, "Test customer email delivery domain", check_test_email_delivery)

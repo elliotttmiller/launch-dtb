@@ -56,6 +56,10 @@ list and defaults. Only `LAUNCH_SITE_URL` is required; everything else
 unlocks additional stages and is otherwise reported as `SKIP` or `WARN` with
 an explanation of what's missing.
 
+For inbox delivery checks, set `LAUNCH_TEST_EMAIL_ADDRESS` to a controlled
+plus-addressing-capable inbox. Guest and registered checkouts receive unique
+aliases so repeated runs do not collide with existing WooCommerce accounts.
+
 `LAUNCH_PRODUCT_URL_PATH` accepts either a root-relative product path or a
 same-origin absolute URL. Cross-origin product URLs are rejected so checkout
 automation and its test customer data cannot be redirected to another site.

@@ -19,6 +19,41 @@ from workflows.common import (  # noqa: E402
 )
 
 
+class TestCustomerEmailConfigTests(unittest.TestCase):
+    def test_base_address_generates_unique_role_alias(self) -> None:
+        config = Config(test_customer_email_address="owner@gmail.com")
+
+        self.assertEqual(
+            "owner+launch-readiness-guest-ab12cd34@gmail.com",
+            config.make_test_customer_email("guest", "ab12cd34"),
+        )
+
+    def test_base_address_takes_precedence_over_domain_fallback(self) -> None:
+        config = Config(
+            test_customer_email_address="owner@gmail.com",
+            test_customer_email_domain="ignored.example.test",
+        )
+
+        self.assertEqual(
+            "owner+launch-readiness-customer-ef56gh78@gmail.com",
+            config.make_test_customer_email("customer", "ef56gh78"),
+        )
+
+    def test_domain_fallback_remains_backward_compatible(self) -> None:
+        config = Config(test_customer_email_domain="mail.example.test")
+
+        self.assertEqual(
+            "guest+ab12cd34@mail.example.test",
+            config.make_test_customer_email("guest", "ab12cd34"),
+        )
+
+    def test_invalid_base_address_is_rejected(self) -> None:
+        config = Config(test_customer_email_address="not-an-address")
+
+        with self.assertRaisesRegex(ValueError, "LAUNCH_TEST_EMAIL_ADDRESS"):
+            config.make_test_customer_email("guest", "ab12cd34")
+
+
 class ResolveProductUrlTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = Config(site_url="https://shop.example.test")

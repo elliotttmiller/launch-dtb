@@ -88,6 +88,7 @@ class Config:
 
     # -- Checkout simulation safety gate --------------------------------------
     enable_checkout_simulation: bool = False
+    test_customer_email_address: str = ""
     test_customer_email_domain: str = "launch-readiness.drywalltoolbox.test"
     # Optional product path or same-origin absolute URL.
     product_url_path: str = ""
@@ -125,6 +126,36 @@ class Config:
             return None
         return self.stripe_publishable_key.startswith("pk_test_")
 
+    @property
+    def test_customer_email_error(self) -> str:
+        """Return a configuration error without exposing the configured address."""
+
+        address = self.test_customer_email_address.strip()
+        if not address:
+            return ""
+        if address.count("@") != 1 or any(character.isspace() for character in address):
+            return "LAUNCH_TEST_EMAIL_ADDRESS must be a single valid email address."
+        local_part, domain = address.rsplit("@", 1)
+        if not local_part or not domain or "." not in domain or domain.startswith("."):
+            return "LAUNCH_TEST_EMAIL_ADDRESS must be a single valid email address."
+        return ""
+
+    def make_test_customer_email(self, role: str, suffix: str) -> str:
+        """Create a unique checkout address, preferring base-address aliases."""
+
+        if self.test_customer_email_error:
+            raise ValueError(self.test_customer_email_error)
+
+        address = self.test_customer_email_address.strip()
+        if address:
+            local_part, domain = address.rsplit("@", 1)
+            return f"{local_part}+launch-readiness-{role}-{suffix}@{domain.lower()}"
+
+        domain = self.test_customer_email_domain.strip().lower().rstrip(".")
+        if not domain:
+            raise ValueError("LAUNCH_TEST_EMAIL_DOMAIN cannot be empty.")
+        return f"{role}+{suffix}@{domain}"
+
 
 def load_config() -> Config:
     _load_dotenv()
@@ -145,6 +176,7 @@ def load_config() -> Config:
         slow_mo_ms=_env_int("LAUNCH_SLOW_MO_MS", 0),
         browser_ignore_https_errors=_env_bool("LAUNCH_BROWSER_IGNORE_TLS_ERRORS", False),
         enable_checkout_simulation=_env_bool("LAUNCH_ENABLE_CHECKOUT_SIMULATION", False),
+        test_customer_email_address=os.environ.get("LAUNCH_TEST_EMAIL_ADDRESS", ""),
         test_customer_email_domain=os.environ.get(
             "LAUNCH_TEST_EMAIL_DOMAIN", "launch-readiness.drywalltoolbox.test"
         ),

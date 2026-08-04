@@ -49,7 +49,7 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
 
     page = browser.page
     assert page is not None
-    email = f"customer+{unique_suffix()}@{config.test_customer_email_domain}"
+    email = config.make_test_customer_email("customer", unique_suffix())
     password = f"Launch-{unique_suffix(12)}!"
     order_box: dict[str, "OrderConfirmation"] = {}
 

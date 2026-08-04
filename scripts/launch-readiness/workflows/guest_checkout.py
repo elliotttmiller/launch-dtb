@@ -46,7 +46,7 @@ def run(config: "Config", browser: "Browser") -> GuestCheckoutRun:
 
     page = browser.page
     assert page is not None
-    email = f"guest+{unique_suffix()}@{config.test_customer_email_domain}"
+    email = config.make_test_customer_email("guest", unique_suffix())
     order_box: dict[str, "OrderConfirmation"] = {}
 
     def step_browse():
