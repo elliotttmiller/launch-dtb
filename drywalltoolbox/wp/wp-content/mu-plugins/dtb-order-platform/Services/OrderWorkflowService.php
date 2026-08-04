@@ -77,6 +77,7 @@ function dtb_order_dispatch_processing_jobs( int $order_id ): void {
 		'idempotency_key' => 'order-processing-dispatch:' . $order_id,
 	] );
 
+	dtb_order_enqueue_job( 'dtb_order_send_notification',            $order_id, [ 'template' => 'order-confirmation' ] );
 	dtb_order_enqueue_job( 'dtb_order_sync_veeqo',                  $order_id );
 	dtb_order_enqueue_job( 'dtb_order_sync_quickbooks',              $order_id, [ 'action' => 'create' ] );
 	// Rewards are intentionally disabled until the account rewards program is fully implemented and audited.
