@@ -38,26 +38,14 @@ wp_enqueue_style(
 	<meta name="robots" content="noindex,nofollow,noarchive">
 	<?php
 	/*
-	 * Critical-CSS guard for the branded top bar, inlined ahead of wp_head()
-	 * so the logo/badge are never at the mercy of external stylesheet load
-	 * timing. dtb-checkout (assets/checkout/checkout.css) owns the full,
-	 * authoritative styling for this markup and matches these values exactly
-	 * — this block only needs to hold until that stylesheet arrives. Without
-	 * it, a slow/blocked/failed request for checkout.css leaves the <img>
-	 * governed solely by its width="3000" height="917" attributes, which
-	 * renders the logo at native (3000x917) size and breaks the entire page
-	 * layout — reproducible on any slow mobile connection.
+	 * The branded top bar's critical-CSS guard (logo/badge sizing) is
+	 * enqueued as an inline style on the dtb-checkout handle in
+	 * dtb_enqueue_native_checkout_assets() (functions.php) so it prints
+	 * here via wp_head(), immediately alongside checkout.css's own <link>
+	 * tag rather than waiting for that stylesheet's network request.
 	 */
+	wp_head();
 	?>
-	<style>
-		.dtb-checkout__topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;overflow:hidden}
-		.dtb-checkout__brand{display:flex;align-items:center;flex:none;line-height:0;max-width:60vw}
-		.dtb-checkout__brand img{height:clamp(30px,7vw,40px);width:auto;max-width:100%;display:block}
-		.dtb-checkout__stripe-badge{display:inline-flex;align-items:center;gap:6px;flex:none}
-		.dtb-checkout__stripe-badge img{height:18px;width:auto;display:block}
-		@media (min-width:768px){.dtb-checkout__brand img{height:44px}.dtb-checkout__stripe-badge img{height:20px}}
-	</style>
-	<?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>

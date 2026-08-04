@@ -462,6 +462,28 @@ function dtb_enqueue_native_checkout_assets(): void {
 		DTB_VERSION
 	);
 
+	/*
+	 * Critical-CSS guard for the branded top bar, tied to the dtb-checkout
+	 * handle so it always prints inline immediately alongside its <link>
+	 * tag — before the external checkout.css request can complete. Without
+	 * it, a slow/blocked checkout.css load leaves the logo <img> governed
+	 * solely by its width="3000" height="917" attributes, rendering it at
+	 * native size and breaking the page layout (reproducible on any slow
+	 * mobile connection). Values mirror checkout.css's own "3. Branded top
+	 * bar" section (assets/checkout/checkout.css, .dtb-checkout__topbar /
+	 * .dtb-checkout__brand / .dtb-checkout__stripe-badge rules) exactly —
+	 * keep the two in sync if that section changes.
+	 */
+	wp_add_inline_style(
+		'dtb-checkout',
+		'.dtb-checkout__topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;overflow:hidden}'
+		. '.dtb-checkout__brand{display:flex;align-items:center;flex:none;line-height:0;max-width:60vw}'
+		. '.dtb-checkout__brand img{height:clamp(30px,7vw,40px);width:auto;max-width:100%;display:block}'
+		. '.dtb-checkout__stripe-badge{display:inline-flex;align-items:center;gap:6px;flex:none}'
+		. '.dtb-checkout__stripe-badge img{height:18px;width:auto;display:block}'
+		. '@media (min-width:768px){.dtb-checkout__brand img{height:44px}.dtb-checkout__stripe-badge img{height:20px}}'
+	);
+
 	// dtb-checkout-desktop (the >=1024px two-column layout authority) is
 	// enqueued from native-checkout.php itself, per docs/checkout-desktop-layout.md.
 
