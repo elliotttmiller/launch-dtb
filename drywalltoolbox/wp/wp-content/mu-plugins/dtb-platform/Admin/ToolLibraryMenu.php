@@ -26,7 +26,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-add_action( 'init', 'dtb_tool_library_menu_register_pages', 10 );
+add_action( 'admin_menu', 'dtb_tool_library_menu_register_pages', 5 );
 
 function dtb_tool_library_menu_register_pages(): void {
 

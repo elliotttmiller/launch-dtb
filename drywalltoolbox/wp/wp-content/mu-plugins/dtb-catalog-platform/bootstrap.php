@@ -119,6 +119,7 @@ if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	require_once $_dtb_cp . '/Admin/PartsManagerActions.php';
 	require_once $_dtb_cp . '/Admin/InventoryIntelligencePage.php';
 	require_once $_dtb_cp . '/Admin/InventoryIntelligenceActions.php';
+	require_once $_dtb_cp . '/Admin/ImportExportPage.php';
 }
 
 unset( $_dtb_cp );

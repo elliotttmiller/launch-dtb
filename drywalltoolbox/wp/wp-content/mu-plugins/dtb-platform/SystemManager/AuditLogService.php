@@ -409,11 +409,41 @@ function dtb_audit_log_get_recent( int $limit = 50 ): array {
 	return array_slice( $events, 0, $limit );
 }
 
+/** Current legacy audit-log schema version. */
+const DTB_AUDIT_LOG_SCHEMA_VERSION = '1.0.0';
+
+/** Option containing the installed legacy audit-log schema version. */
+const DTB_AUDIT_LOG_SCHEMA_VERSION_OPTION = 'dtb_audit_log_schema_version';
+
+/** Option used as an atomic, short-lived schema migration lock. */
+const DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION = 'dtb_audit_log_schema_lock';
+
 /**
  * Ensure the legacy audit log table exists.
- * Hooked on admin_init — safe to call multiple times (uses dbDelta).
+ *
+ * Schema work is version-gated and protected by an atomic option lock so
+ * concurrent wp-admin and admin-AJAX requests cannot run dbDelta together.
  */
 function dtb_audit_log_maybe_create_table(): void {
+	if ( DTB_AUDIT_LOG_SCHEMA_VERSION === get_option( DTB_AUDIT_LOG_SCHEMA_VERSION_OPTION, '' ) ) {
+		return;
+	}
+
+	$lock_started = time();
+	$lock_acquired = add_option( DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION, $lock_started, '', false );
+	if ( ! $lock_acquired ) {
+		$existing_lock = (int) get_option( DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION, 0 );
+		if ( $existing_lock <= 0 || ( $lock_started - $existing_lock ) <= 600 ) {
+			return;
+		}
+
+		delete_option( DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION );
+		$lock_acquired = add_option( DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION, $lock_started, '', false );
+		if ( ! $lock_acquired ) {
+			return;
+		}
+	}
+
 	global $wpdb;
 	$table   = $wpdb->prefix . 'dtb_audit_log';
 	$charset = $wpdb->get_charset_collate();
@@ -429,7 +459,21 @@ function dtb_audit_log_maybe_create_table(): void {
 		KEY created_at_utc (created_at_utc)
 	) {$charset};";
 
-	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-	dbDelta( $sql );
+	try {
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		dbDelta( $sql );
+
+		// Confirm the required columns exist before recording the migration.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
+		$columns = $wpdb->get_col( "SHOW COLUMNS FROM {$table}", 0 );
+		$required_columns = [ 'id', 'created_at_utc', 'user_id', 'action', 'context_json' ];
+		if ( empty( array_diff( $required_columns, $columns ) ) ) {
+			update_option( DTB_AUDIT_LOG_SCHEMA_VERSION_OPTION, DTB_AUDIT_LOG_SCHEMA_VERSION, false );
+		} else {
+			error_log( '[DTB] Audit log schema migration did not produce the required columns.' );
+		}
+	} finally {
+		delete_option( DTB_AUDIT_LOG_SCHEMA_LOCK_OPTION );
+	}
 }
 add_action( 'admin_init', 'dtb_audit_log_maybe_create_table' );

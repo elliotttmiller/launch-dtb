@@ -22,7 +22,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-add_action( 'init', 'dtb_operations_menu_register_pages', 10 );
+add_action( 'admin_menu', 'dtb_operations_menu_register_pages', 5 );
 
 function dtb_operations_menu_register_pages(): void {
 

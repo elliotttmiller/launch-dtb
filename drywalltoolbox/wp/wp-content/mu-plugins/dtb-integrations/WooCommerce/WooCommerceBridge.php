@@ -284,8 +284,6 @@ add_action(
 			'wc-admin-notes',
 			'wc-admin-navigation',
 			'wc-customer-effort-score-tracks',
-			'wp-preferences',
-			'wp-preferences-persistence',
 		];
 
 		foreach ( $remove_handles as $handle ) {

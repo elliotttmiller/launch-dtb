@@ -1,6 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+add_action( 'wp_ajax_dtb_image_sync', 'dtb_ajax_image_sync_handler' );
+
 /**
  * Admin-AJAX handler for the DTB Image Sync admin page.
  *
