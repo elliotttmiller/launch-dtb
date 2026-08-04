@@ -681,7 +681,7 @@ if ( ! function_exists( 'dtb_email_support_card' ) ) {
 	 * @param string $title     Optional bold title above the message text.
 	 * @return string
 	 */
-	function dtb_email_support_card( string $text, string $cta_url = '', string $cta_label = '', string $icon = '', string $title = '' ): string {
+	function dtb_email_support_card( string $text, string $cta_url = '', string $cta_label = '', string $icon = 'support', string $title = '' ): string {
 		$font  = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
 		$text  = dtb_email_clean_text( $text );
 		$title = dtb_email_clean_text( $title );
@@ -743,10 +743,7 @@ if ( ! function_exists( 'dtb_email_social_links' ) ) {
 if ( ! function_exists( 'dtb_email_social_icons' ) ) {
 	/**
 	 * Render small circular social icon links for the dark email footer
-	 * band. Uses the profile's first initial rather than a brand pictogram —
-	 * this codebase has no image-asset pipeline for small icon files, and a
-	 * plain-text initial in a colored circle renders identically across
-	 * every email client without an image request.
+	 * band.
 	 *
 	 * @return string
 	 */

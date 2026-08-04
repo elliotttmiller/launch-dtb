@@ -48,10 +48,10 @@ email:
 | Component | Function | Used for |
 |---|---|---|
 | Hero | `dtb_email_hero( $heading, $subheading, $eyebrow )` | the patterned black/blue lifecycle heading block every email leads with — heading is always the caller's `$email_heading` (admin-configurable), never invented copy |
-| Progress tracker | `dtb_email_progress_steps( $steps )` | lifecycle-stage circles + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows |
-| Card | `dtb_email_card_open( $title, $meta )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close |
-| Next-steps grid | `dtb_email_next_steps_grid( $items )` | self-contained "what's next?" card, up to 3 numbered mini-columns per row |
-| Support card | `dtb_email_support_card( $text, $cta_url, $cta_label )` | "need help?" card with an outlined CTA button |
+| Progress tracker | `dtb_email_progress_steps( $steps )` | lifecycle-stage circles + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows; optional icon keys render from `/logos/email-icons/` |
+| Card | `dtb_email_card_open( $title, $meta, $icon )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close; optional icon keys render from `/logos/email-icons/` |
+| Next-steps grid | `dtb_email_next_steps_grid( $items )` | self-contained "what's next?" card, up to 3 numbered mini-columns per row; optional icon keys render from `/logos/email-icons/` |
+| Support card | `dtb_email_support_card( $text, $cta_url, $cta_label )` | "need help?" card with an outlined CTA button and the default `support` icon from `/logos/email-icons/support.png` |
 | Status badge | `dtb_email_status_badge( $label, $tone )` | payment/shipment/refund state at a glance, used where no progress tracker applies (cancelled/failed/refunded/shipment-updated) |
 | CTA button | `dtb_email_button( $url, $label )` | pay, retry payment, reset password, view account — MSO-safe with a VML fallback |
 | Detail/summary table | `dtb_email_details_table_light( $rows )` | order number/date/total, refund amount, invoice date — label/value rows on a white card |
@@ -209,11 +209,9 @@ second rendering authority.
   data (`sameAs`). No YouTube/LinkedIn/X icon was added, since none of
   those profiles exist in the codebase and inventing a URL would be a
   broken link in production.
-- Progress-step and social icons use plain numerals/checkmarks/initials,
-  not pictograms or emoji. There's no image-asset pipeline available in
-  this environment, and emoji/glyph rendering is inconsistent in Outlook
-  desktop's Word rendering engine — real numerals and letters are
-  email-client-safe everywhere.
+- Progress-step, card, support, next-step, and social icons render through
+  `dtb_email_icon()` from hosted PNG assets under `/logos/email-icons/`.
+  Templates still fall back to plain numerals when a caller omits an icon.
 - `customer_fulfillment_created` is the only progress tracker with an
   "on the way" step marked `active` rather than `upcoming`; it's backed by
   an actual Veeqo-projected `Fulfillment` object, not inference. No other

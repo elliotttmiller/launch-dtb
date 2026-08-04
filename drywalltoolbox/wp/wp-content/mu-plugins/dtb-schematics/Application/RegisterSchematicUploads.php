@@ -43,12 +43,21 @@ function dtb_schematics_register_uploads( string $upload_path, bool $dry_run = t
 		'registered' => 0,
 		'updated' => 0,
 		'skipped' => 0,
+		'skipped_files' => [],
 		'errors' => [],
 		'next_offset' => null,
 	];
 
 	foreach ( $batch as $file ) {
 		$result['processed']++;
+		if ( dtb_schematics_is_retired_upload_filename( basename( $file ) ) ) {
+			$result['skipped']++;
+			$result['skipped_files'][] = [
+				'file' => basename( $file ),
+				'reason' => 'Retired Asgard schematic upload.',
+			];
+			continue;
+		}
 		$parsed = dtb_schematics_parse_upload_filename( basename( $file ) );
 		if ( is_wp_error( $parsed ) ) {
 			$result['errors'][] = [ 'file' => basename( $file ), 'message' => $parsed->get_error_message() ];
@@ -107,8 +116,25 @@ function dtb_schematics_register_uploads( string $upload_path, bool $dry_run = t
 	return $result;
 }
 
+/**
+ * Identify residual uploads for the retired Asgard schematic catalog.
+ */
+function dtb_schematics_is_retired_upload_filename( string $filename ): bool {
+	$name = pathinfo( $filename, PATHINFO_FILENAME );
+	return 1 === preg_match( '/^[a-z0-9]+(?:-[a-z0-9]+)*-ad[-_]+sch[-_]+(?:page[-_]*[0-9]+|preview)$/i', $name );
+}
+
 function dtb_schematics_parse_upload_filename( string $filename ) {
 	$name = pathinfo( $filename, PATHINFO_FILENAME );
+	$legacy_key = strtolower( $name );
+	if ( isset( DTB_LEGACY_SCHEMATIC_FILENAME_MAP[ $legacy_key ] ) ) {
+		$legacy = DTB_LEGACY_SCHEMATIC_FILENAME_MAP[ $legacy_key ];
+		return [
+			'schematic_id' => sanitize_key( $legacy['schematic_id'] ),
+			'type' => 'diagram',
+			'page' => (string) absint( $legacy['page'] ),
+		];
+	}
 	if ( preg_match( '/^([a-z0-9][a-z0-9-]*)--preview$/', strtolower( $name ), $matches ) ) {
 		return [ 'schematic_id' => sanitize_key( $matches[1] ), 'type' => 'preview', 'page' => '1' ];
 	}
@@ -120,14 +146,23 @@ function dtb_schematics_parse_upload_filename( string $filename ) {
 	if ( ! is_wp_error( $sku_match ) ) {
 		return $sku_match;
 	}
+	if ( 'dtb_unknown_schematic_sku' === $sku_match->get_error_code() ) {
+		return $sku_match;
+	}
 
 	$dura_stilts_match = dtb_schematics_parse_dura_stilts_upload_filename( $name );
 	if ( ! is_wp_error( $dura_stilts_match ) ) {
 		return $dura_stilts_match;
 	}
+	if ( 'dtb_unknown_schematic_sku' === $dura_stilts_match->get_error_code() ) {
+		return $dura_stilts_match;
+	}
 
 	$verbose_match = dtb_schematics_parse_verbose_upload_filename( $name );
 	if ( ! is_wp_error( $verbose_match ) ) {
+		return $verbose_match;
+	}
+	if ( 'dtb_unknown_verbose_schematic_id' === $verbose_match->get_error_code() ) {
 		return $verbose_match;
 	}
 

@@ -42,7 +42,7 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         brand = (row.get("brand") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
         if not sid or brand == "Asgard":
-            # Asgard is not a supported schematics brand in the frontend.
+            # Asgard schematics are retired and must not enter runtime maps.
             continue
         if sid not in csv_by_schematic_id:
             csv_by_schematic_id[sid] = {"brand": brand, "source_file_from_brands": src_rel}
@@ -50,8 +50,9 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
             continue
         key = sku.upper()
         if key in csv_sku_rows and csv_sku_rows[key]["schematic_id"] != sid:
-            print(f"CSV CONFLICT: {key} -> {csv_sku_rows[key]['schematic_id']} vs {sid}", file=sys.stderr)
-            continue
+            raise RuntimeError(
+                f"CSV CONFLICT: {key} -> {csv_sku_rows[key]['schematic_id']} vs {sid}"
+            )
         csv_sku_rows[key] = {"schematic_id": sid, "brand": brand}
 
 added = 0
@@ -60,7 +61,10 @@ for key, row in csv_sku_rows.items():
 
     if key in sku_map:
         if sku_map[key]["schematic_id"] != resolved_id:
-            print(f"CATALOG/CSV MISMATCH for {key}: catalog={sku_map[key]['schematic_id']} csv={resolved_id} (keeping catalog)", file=sys.stderr)
+            raise RuntimeError(
+                f"CATALOG/CSV MISMATCH for {key}: "
+                f"catalog={sku_map[key]['schematic_id']} csv={resolved_id}"
+            )
         continue
 
     sku_map[key] = {"schematic_id": resolved_id, "page": None}
@@ -137,6 +141,14 @@ print(f"[verbose map] resolved: {len(verbose_map)}, unresolved: {len(unresolved)
 for sid, relpath in unresolved:
     print(f"  UNRESOLVED: {sid} | {relpath}", file=sys.stderr)
 
+# Exact legacy source basenames that do not encode a SKU or schematic id.
+# Keep this list narrow: every entry must be traceable to one unique source asset.
+legacy_filename_map = {
+    "mud-pump-sub-assemblies-2022-enhanced": ("columbia-mud-pump", 1),
+    "tall-boy-mud-pump-sub-assemblies-2022-enhanced": ("columbia-tall-boy-mud-pump", 1),
+    "schematic_page_1": ("tapetech-17tt", 1),
+}
+
 # =====================================================================
 # Emit PHP
 # =====================================================================
@@ -175,6 +187,13 @@ lines.append("const DTB_VERBOSE_SCHEMATIC_ID_MAP = [")
 for key in sorted(verbose_map.keys()):
     schematic_id, page = verbose_map[key]
     lines.append(f"\t'{php_str(key)}' => [ 'schematic_id' => '{php_str(schematic_id)}', 'page' => {int(page)} ],")
+lines.append("];")
+lines.append("")
+lines.append("// Exact source basenames that cannot be resolved through a SKU convention.")
+lines.append("const DTB_LEGACY_SCHEMATIC_FILENAME_MAP = [")
+for basename in sorted(legacy_filename_map.keys()):
+    schematic_id, page = legacy_filename_map[basename]
+    lines.append(f"\t'{php_str(basename)}' => [ 'schematic_id' => '{php_str(schematic_id)}', 'page' => {int(page)} ],")
 lines.append("];")
 lines.append("")
 

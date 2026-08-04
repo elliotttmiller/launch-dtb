@@ -27,7 +27,6 @@ const SCHEMATIC_PAGE_LABELS = {
 };
 
 const SCHEMATIC_BRAND_SLUG_ALIASES = {
-  asgard: 'asgard',
   columbia: 'columbia-taping-tools',
   'columbia-tools': 'columbia-taping-tools',
   'columbia-taping-tools': 'columbia-taping-tools',

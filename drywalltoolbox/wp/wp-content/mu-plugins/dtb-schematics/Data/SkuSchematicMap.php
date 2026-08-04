@@ -267,3 +267,10 @@ const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'tapetechtapetechlockblockfor07tt050212fsch' => [ 'schematic_id' => 'tapetech-07tt', 'page' => 1 ],
 ];
 
+// Exact source basenames that cannot be resolved through a SKU convention.
+const DTB_LEGACY_SCHEMATIC_FILENAME_MAP = [
+	'mud-pump-sub-assemblies-2022-enhanced' => [ 'schematic_id' => 'columbia-mud-pump', 'page' => 1 ],
+	'schematic_page_1' => [ 'schematic_id' => 'tapetech-17tt', 'page' => 1 ],
+	'tall-boy-mud-pump-sub-assemblies-2022-enhanced' => [ 'schematic_id' => 'columbia-tall-boy-mud-pump', 'page' => 1 ],
+];
+

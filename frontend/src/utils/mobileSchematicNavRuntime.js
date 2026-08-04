@@ -1,5 +1,4 @@
 const SCHEMATIC_BRAND_BY_LABEL = {
-  'asgard': 'asgard',
   'columbia tools': 'columbia-taping-tools',
   'columbia taping tools': 'columbia-taping-tools',
   'dura-stilts': 'dura-stilts',

@@ -220,6 +220,7 @@ function dtb_schematics_render_page() {
 				</div>
 				<div id="dtb-filename-register-msg" class="dtb-note-inline"></div>
 				<pre id="dtb-filename-register-output" class="dtb-pre-block"></pre>
+				<pre id="dtb-filename-register-errors" class="dtb-pre-block dtb-pre-block--danger"></pre>
 			</div>
 
 			<div class="dtb-card dtb-card--md">
@@ -785,8 +786,19 @@ function dtb_schematics_render_page() {
 			$('#dtb-filename-register-spinner').show();
 			$('#dtb-filename-register-btn').prop('disabled', true);
 			$('#dtb-filename-register-msg').text('Registering…').css('color', '#1d6fa4');
+			$('#dtb-filename-register-errors').hide().text('');
 
-			var totals = { processed: 0, registered: 0, updated: 0, skipped: 0, errors: [] };
+			var totals = { processed: 0, registered: 0, updated: 0, skipped: 0, skippedFiles: [], errors: [] };
+
+			function formatFilenameRegisterErrors(errors) {
+				if (!Array.isArray(errors) || !errors.length) return '';
+				return errors.map(function(error, index) {
+					if (typeof error === 'string') return (index + 1) + '. ' + error;
+					var file = error && error.file ? String(error.file) : 'Unknown file';
+					var message = error && error.message ? String(error.message) : 'Unknown error.';
+					return (index + 1) + '. ' + file + ': ' + message;
+				}).join('\n');
+			}
 
 			function tick() {
 				$.post(ajaxurl, {
@@ -810,6 +822,7 @@ function dtb_schematics_render_page() {
 					totals.registered += d.registered || 0;
 					totals.updated += d.updated || 0;
 					totals.skipped += d.skipped || 0;
+					if (Array.isArray(d.skipped_files)) totals.skippedFiles = totals.skippedFiles.concat(d.skipped_files);
 					if (Array.isArray(d.errors)) totals.errors = totals.errors.concat(d.errors);
 
 					$('#dtb-filename-register-output').text(JSON.stringify({
@@ -818,6 +831,8 @@ function dtb_schematics_render_page() {
 						processed: totals.processed,
 						registered: totals.registered,
 						updated: totals.updated,
+						skipped: totals.skipped,
+						skipped_files: totals.skippedFiles,
 						errors: totals.errors
 					}, null, 2));
 
@@ -830,7 +845,13 @@ function dtb_schematics_render_page() {
 
 					$('#dtb-filename-register-spinner').hide();
 					$('#dtb-filename-register-btn').prop('disabled', false);
-					$('#dtb-filename-register-msg').text('✓ Done. ' + totals.processed + ' processed, ' + totals.errors.length + ' errors.').css('color', '#1a7f37');
+					if (totals.errors.length) {
+						$('#dtb-filename-register-msg').text('⚠ Done with errors. ' + totals.processed + ' processed, ' + totals.skipped + ' retired files skipped, ' + totals.errors.length + ' errors.').css('color', '#b42318');
+						$('#dtb-filename-register-errors').show().text(formatFilenameRegisterErrors(totals.errors));
+					} else {
+						$('#dtb-filename-register-msg').text('✓ Done. ' + totals.processed + ' processed, ' + totals.skipped + ' retired files skipped, 0 errors.').css('color', '#1a7f37');
+						$('#dtb-filename-register-errors').hide().text('');
+					}
 				}).fail(function(){
 					$('#dtb-filename-register-spinner').hide();
 					$('#dtb-filename-register-btn').prop('disabled', false);
