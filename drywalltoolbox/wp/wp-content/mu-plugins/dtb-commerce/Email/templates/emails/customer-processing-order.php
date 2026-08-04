@@ -4,8 +4,8 @@
  *
  * Traced against WooCommerce core emails/customer-processing-order.php
  * v10.4.0 (wp-content/plugins/woocommerce/templates/emails/customer-processing-order.php).
- * DTB customization: full copy/visual redesign — hero (order-number eyebrow
- * + heading + subheading, in the white body, not the dark header band),
+ * DTB customization: full copy/visual redesign — concise patterned hero
+ * (order-number eyebrow + heading only),
  * 3-stage progress tracker, card-wrapped order summary and addresses (see
  * email-order-details.php / email-addresses.php), and a support card. Hook
  * sequence (order_details/order_meta/customer_details/footer) preserved
@@ -20,7 +20,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	$email_heading,
-	__( 'Your payment has been confirmed and we\'re getting your tools ready for shipment. We\'ll notify you as soon as they\'re on the way.', 'drywall-toolbox' ),
+	'',
 	/* translators: %s: order number. */
 	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
 ) : '';

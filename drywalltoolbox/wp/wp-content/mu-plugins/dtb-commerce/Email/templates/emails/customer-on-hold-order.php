@@ -16,7 +16,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	$email_heading,
-	__( 'We\'ve received your order and it\'s on hold while we confirm payment. As soon as it clears, we\'ll begin preparing it for shipment.', 'drywall-toolbox' ),
+	'',
 	/* translators: %s: order number. */
 	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
 ) : '';

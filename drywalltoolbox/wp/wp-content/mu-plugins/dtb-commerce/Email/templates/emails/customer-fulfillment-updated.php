@@ -25,7 +25,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	$email_heading,
-	__( 'There\'s an update on your shipment — this may be new tracking information, a carrier update, or a change to what\'s included.', 'drywall-toolbox' ),
+	'',
 	/* translators: %s: order number. */
 	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
 ) : '';

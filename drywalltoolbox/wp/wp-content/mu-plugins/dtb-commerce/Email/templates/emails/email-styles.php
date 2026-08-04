@@ -264,17 +264,12 @@ a,
 	}
 
 	.dtb-email-hero-cell {
-		padding: 34px 24px 38px !important;
+		padding: 30px 24px 32px !important;
 	}
 
 	.dtb-email-hero h1 {
 		font-size: 29px !important;
 		line-height: 118% !important;
-	}
-
-	.dtb-email-hero-copy {
-		font-size: 14px !important;
-		line-height: 150% !important;
 	}
 
 	#body_content_inner_cell {

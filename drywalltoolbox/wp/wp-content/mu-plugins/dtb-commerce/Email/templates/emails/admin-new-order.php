@@ -16,7 +16,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email );
 
 echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	$email_heading,
-	__( 'A new storefront order is ready for payment review and fulfillment.', 'drywall-toolbox' ),
+	'',
 	/* translators: %s: order number. */
 	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
 ) : '';

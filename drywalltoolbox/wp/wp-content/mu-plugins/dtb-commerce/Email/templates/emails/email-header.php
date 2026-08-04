@@ -9,7 +9,7 @@
  * inline heading; document structure and the woocommerce_email_header_image_url
  * filter are preserved unchanged. $email_heading is still received (WooCommerce
  * core always passes it to this template) but is intentionally not rendered
- * here — dtb_email_hero() renders it inside the white body instead, as the
+ * here — dtb_email_hero() renders it in the patterned body hero instead, as the
  * first thing each template outputs after this header, so the top band reads
  * as brand chrome only. See docs/dtb-email-design-system.md.
  *

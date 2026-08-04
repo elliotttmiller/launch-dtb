@@ -36,7 +36,7 @@ share one 32px desktop content rail and a 14px mobile rail. See
 `Email/templates/emails/email-header.php` / `email-footer.php` /
 `email-styles.php` in `dtb-commerce` for the concrete markup. Content within
 the body follows a consistent vertical rhythm: hero (order-number eyebrow +
-heading + subheading) → progress tracker (order-lifecycle emails only, where
+heading only) → progress tracker (order-lifecycle emails only, where
 the caller has authoritative state to show — see below) → lede paragraph(s)
 → order summary card → addresses card → support card →
 footer.
@@ -51,7 +51,7 @@ email:
 
 | Component | Function | Used for |
 |---|---|---|
-| Hero | `dtb_email_hero( $heading, $subheading, $eyebrow )` | the patterned black/blue lifecycle heading block every email leads with — heading is always the caller's `$email_heading` (admin-configurable), never invented copy |
+| Hero | `dtb_email_hero( $heading, '', $eyebrow )` | the concise patterned black/blue lifecycle heading block every email leads with; supporting context is deliberately omitted and the heading remains the caller's admin-configurable `$email_heading` |
 | Progress tracker | `dtb_email_progress_steps( $steps )` | standalone lifecycle icons + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows |
 | Card | `dtb_email_card_open( $title, $meta, $icon )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close; icons are reserved for the address panel |
 | Next-steps grid | `dtb_email_next_steps_grid( $items )` | icon-free compact text grid retained for exceptional content; omitted from processing emails because the lifecycle tracker already communicates the next state |
@@ -242,4 +242,4 @@ whoever deploys this should:
       overflowing the 600px content width on both desktop and mobile
       clients.
 - [ ] Confirm dark-mode inboxes (iOS Mail, Gmail dark mode) still show
-      correct contrast against the fixed navy header/footer and white body.
+      correct contrast against the fixed black header/footer and white body.

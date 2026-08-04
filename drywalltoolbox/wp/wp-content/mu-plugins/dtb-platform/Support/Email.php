@@ -464,9 +464,9 @@ if ( ! function_exists( 'dtb_email_note_box_light' ) ) {
 
 if ( ! function_exists( 'dtb_email_hero' ) ) {
 	/**
-	 * Render the white-body hero block: optional small accent eyebrow (e.g.
-	 * an order number), the email's heading, and an optional supporting
-	 * subheading — all centered.
+	 * Render the patterned hero block with an optional order-number eyebrow
+	 * and the email heading. Supporting copy is intentionally omitted so the
+	 * hero remains concise; lifecycle detail belongs in the body components.
 	 *
 	 * The heading text itself always comes from the caller (WooCommerce's
 	 * own $email_heading, admin-configurable via Settings -> Emails) — this
@@ -474,11 +474,12 @@ if ( ! function_exists( 'dtb_email_hero' ) ) {
 	 * preserving WooCommerce's settings precedence for subject/heading.
 	 *
 	 * @param string $heading    Required. The email's heading (usually $email_heading).
-	 * @param string $subheading Optional supporting line under the heading.
+	 * @param string $subheading Deprecated compatibility argument; not rendered.
 	 * @param string $eyebrow    Optional small label above the heading (e.g. "Order #1234").
 	 * @return string
 	 */
 	function dtb_email_hero( string $heading, string $subheading = '', string $eyebrow = '' ): string {
+		unset( $subheading );
 		$heading = dtb_email_clean_text( $heading );
 		if ( '' === $heading ) {
 			return '';
@@ -493,18 +494,11 @@ if ( ! function_exists( 'dtb_email_hero' ) ) {
 			$eyebrow_html = '<p style="margin:0 0 14px;color:#2255ee;font-family:' . $font . ';font-size:14px;font-weight:800;text-transform:uppercase;text-align:left;">' . esc_html( $eyebrow ) . '</p>';
 		}
 
-		$subheading_html = '';
-		$subheading      = dtb_email_clean_text( $subheading );
-		if ( '' !== $subheading ) {
-			$subheading_html = '<p class="dtb-email-hero-copy" style="max-width:440px;margin:18px 0 0;color:#e2e8f0;font-family:' . $font . ';font-size:16px;line-height:155%;text-align:left;">' . esc_html( $subheading ) . '</p>';
-		}
-
 		return '<table class="dtb-email-hero" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" bgcolor="#030712" background="' . $background_url . '" style="margin:0 0 28px;background:#030712 url(\'' . $background_url . '\') center center/cover no-repeat;background-color:#030712;">'
-			. '<tr><td class="dtb-email-hero-cell" valign="middle" style="padding:42px 48px 46px;">'
+			. '<tr><td class="dtb-email-hero-cell" valign="middle" style="padding:36px 48px 40px;">'
 			. '<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:960px;"><v:fill type="frame" src="' . $background_url . '" color="#030712" /><v:textbox inset="48px,34px,48px,40px"><![endif]-->'
 			. $eyebrow_html
 			. '<h1 style="max-width:500px;margin:0;color:#ffffff;font-family:' . $font . ';font-size:36px;font-weight:800;line-height:116%;text-align:left;">' . esc_html( $heading ) . '</h1>'
-			. $subheading_html
 			. '<!--[if gte mso 9]></v:textbox></v:rect><![endif]-->'
 			. '</td></tr></table>';
 	}
