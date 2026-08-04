@@ -1699,8 +1699,10 @@
   }
 }
 
-/* Accepted desktop product-detail composition. This final layer intentionally
-   leaves modal and mobile product views on their existing responsive rules. */
+/* Full-page desktop product-detail composition. The gallery and purchase card
+   size to their own content so product imagery, options, and buying controls
+   maintain a compact reading flow at every desktop width. Modal and mobile
+   product views remain on their existing responsive rules. */
 @media (max-width: 1024px) {
   .dtb-pdp__summary-region,
   .dtb-pdp__purchase-region {
@@ -1740,8 +1742,8 @@
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
     display: grid;
     grid-template-columns: minmax(0, 1.16fr) minmax(470px, 0.84fr);
-    grid-auto-rows: minmax(620px, auto);
-    align-items: stretch;
+    grid-auto-rows: auto;
+    align-items: start;
     gap: 42px !important;
     margin-bottom: 14px !important;
   }
@@ -1749,8 +1751,9 @@
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery,
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
     box-sizing: border-box;
-    min-height: 620px;
-    height: 100%;
+    min-height: 0;
+    height: auto;
+    align-self: start;
     border: 1px solid #dfe5ed;
     border-radius: 16px;
     background: #fff;
@@ -1759,16 +1762,18 @@
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
     padding: 20px 28px 24px;
+    aspect-ratio: auto !important;
     overflow: hidden;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery > div {
-    height: 100%;
+    flex: 0 0 auto;
+    height: auto;
     gap: 10px;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
-    height: 472px !important;
+    height: clamp(420px, 30vw, 472px) !important;
     aspect-ratio: auto !important;
     border: 0 !important;
     border-radius: 0 !important;
@@ -1834,8 +1839,8 @@
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__purchase-region {
     flex: 0 0 auto;
     gap: clamp(12px, 1vw, 16px);
-    margin-top: auto;
-    padding-top: clamp(22px, 2vw, 32px);
+    margin-top: 24px;
+    padding-top: 0;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-header {
