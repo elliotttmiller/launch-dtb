@@ -21,7 +21,8 @@
   .site-header,
   .site-header.site-header--no-ticker,
   .site-header.site-header--with-top-ticker {
-    position: relative;
+    position: fixed;
+    inset: 0 0 auto;
     display: block;
     height: var(--header-height);
     min-height: 0;
