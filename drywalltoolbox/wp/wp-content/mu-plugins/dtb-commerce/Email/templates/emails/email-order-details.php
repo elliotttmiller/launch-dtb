@@ -17,7 +17,18 @@
  * @package DrywalltoolboxCommerce
  */
 
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
+
 defined( 'ABSPATH' ) || exit;
+
+$email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improvements' );
+
+/** Preserve WooCommerce's section-divider extension point. */
+$display_section_divider = (bool) apply_filters( 'woocommerce_email_body_display_section_divider', true );
+
+if ( $email_improvements_enabled ) {
+	add_filter( 'woocommerce_order_shipping_to_display_shipped_via', '__return_false' );
+}
 
 /**
  * Action hook to add custom content before order details in email.
@@ -29,19 +40,32 @@ defined( 'ABSPATH' ) || exit;
  */
 do_action( 'woocommerce_email_before_order_table', $order, $sent_to_admin, $plain_text, $email );
 
+/** Preserve WooCommerce's configurable order-summary heading. */
+$order_details_heading = $email_improvements_enabled
+	? apply_filters( 'woocommerce_email_order_details_heading', __( 'Order summary', 'woocommerce' ), $order, $email )
+	: __( 'Order details', 'woocommerce' );
+
+/**
+ * Preserve WooCommerce's order-number visibility extension point. The DTB
+ * composition places the order number in the lifecycle hero, so the summary
+ * card intentionally reserves its compact meta position for the order date.
+ */
+$display_order_number = (bool) apply_filters( 'woocommerce_email_display_order_number', true, $order, $email );
+unset( $display_order_number );
+
 $order_number_meta = $order->get_date_created() ? $order->get_date_created()->date_i18n( 'F j, Y' ) : '';
 
 echo function_exists( 'dtb_email_card_open' )
-	? dtb_email_card_open( __( 'Order summary', 'drywall-toolbox' ), $order_number_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	? dtb_email_card_open( wp_strip_all_tags( (string) $order_details_heading ), $order_number_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	: '<div style="margin-bottom:20px;">';
 ?>
 
 <table class="td font-family email-order-details" cellspacing="0" cellpadding="0" style="width:100%;" border="0" role="presentation">
 	<thead>
-		<tr class="screen-reader-text">
-			<th class="td text-align-left" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Product', 'drywall-toolbox' ); ?></th>
-			<th class="td text-align-right" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Quantity', 'drywall-toolbox' ); ?></th>
-			<th class="td text-align-right" scope="col" style="border:0;padding:0;font-size:0;line-height:0;"><?php esc_html_e( 'Price', 'drywall-toolbox' ); ?></th>
+		<tr class="dtb-order-column-headings">
+			<th class="td text-align-left" scope="col"><?php esc_html_e( 'Item', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Qty', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Price', 'drywall-toolbox' ); ?></th>
 		</tr>
 	</thead>
 	<tbody>
@@ -59,16 +83,18 @@ echo function_exists( 'dtb_email_card_open' )
 		?>
 	</tbody>
 </table>
-<hr class="hr" style="margin:6px 0 12px;">
+<?php if ( $display_section_divider ) : ?>
+	<hr class="hr" style="margin:6px 0 12px;">
+<?php endif; ?>
 <table class="td font-family email-order-details email-order-totals" cellspacing="0" cellpadding="0" style="width:100%;" border="0" role="presentation">
 	<?php
 	$item_totals = $order->get_order_item_totals();
 	foreach ( $item_totals as $total ) {
-		$total_type     = $total['type'] ?? 'unknown';
+		$total_type     = sanitize_html_class( (string) ( $total['type'] ?? 'unknown' ) );
 		$is_grand_total = 'total' === $total_type;
 		?>
 		<tr class="order-totals order-totals-<?php echo esc_attr( $total_type ); ?><?php echo $is_grand_total ? ' order-totals-total' : ''; ?>">
-			<th class="td text-align-left" scope="row" colspan="2"><?php echo wp_kses_post( $total['label'] ); ?></th>
+			<th class="td text-align-left" scope="row" colspan="2"><?php echo wp_kses_post( $total['label'] ); ?> <?php echo isset( $total['meta'] ) ? wp_kses_post( $total['meta'] ) : ''; ?></th>
 			<td class="td text-align-right"><?php echo wp_kses_post( $total['value'] ); ?></td>
 		</tr>
 		<?php
@@ -88,6 +114,10 @@ echo function_exists( 'dtb_email_card_open' )
 <?php endif; ?>
 
 <?php
+if ( $email_improvements_enabled ) {
+	remove_filter( 'woocommerce_order_shipping_to_display_shipped_via', '__return_false' );
+}
+
 /**
  * Action hook to add custom content after order details in email. This is
  * where dtb-order-tracking-links.php's "Track your order" button (and

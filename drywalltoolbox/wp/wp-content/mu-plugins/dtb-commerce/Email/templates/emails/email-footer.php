@@ -7,17 +7,13 @@
  * DTB customization: dark footer band (bookending the dark header) with
  * confirmed-real social links (dtb_email_social_icons() — see that
  * function's own comment on why fabricated profile URLs are refused) above
- * the support link; the woocommerce_email_footer_text filter and $email
- * context are preserved unchanged, closing the document structure opened in
- * email-header.php.
+ * settings-backed Terms/Privacy/Contact links. The
+ * woocommerce_email_footer_text filter and $email context still execute for
+ * extension compatibility, but free-form footer text is intentionally not
+ * rendered so an address or unrelated copy cannot escape the approved footer.
  *
- * Deliberately no "Terms" / "Privacy" links: this store has no dedicated
- * Terms of Service or Privacy Policy page (only a combined /policies page
- * covering returns/shipping/warranty/payments — confirmed by reading
- * frontend/src/pages/StorePolicies.jsx and frontend/src/App.jsx's route
- * table), so linking either label would point to a page that doesn't say
- * what the link claims, or a route that doesn't exist. Add real links here
- * once those pages exist.
+ * Terms and Privacy render only when WooCommerce/WordPress has an
+ * authoritative page configured; no route is fabricated by this template.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -26,7 +22,6 @@ defined( 'ABSPATH' ) || exit;
 
 $email = $email ?? null;
 
-$support_url = function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' );
 ?>
 																		</div>
 																	</td>
@@ -58,27 +53,18 @@ $support_url = function_exists( 'dtb_email_support_url' ) ? dtb_email_support_ur
 																printf( esc_html__( '© %s Drywall Toolbox. All rights reserved.', 'drywall-toolbox' ), esc_html( gmdate( 'Y' ) ) );
 																?>
 															</p>
-															<p style="margin:0 0 10px;">
-																<a href="<?php echo esc_url( $support_url ); ?>"><?php esc_html_e( 'Contact Us', 'drywall-toolbox' ); ?></a>
-															</p>
+																	<p style="margin:0 0 10px;"><?php echo function_exists( 'dtb_email_footer_link_html' ) ? dtb_email_footer_link_html() : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 															<?php
 															$email_footer_text = get_option( 'woocommerce_email_footer_text' );
 															if ( apply_filters( 'woocommerce_is_email_preview', false ) ) {
 																$text_transient    = get_transient( 'woocommerce_email_footer_text' );
 																$email_footer_text = false !== $text_transient ? $text_transient : $email_footer_text;
 															}
-															echo wp_kses_post(
-																wpautop(
-																	wptexturize(
-																		/**
-																		 * Provides control over the email footer text used for most order emails.
-																		 *
-																		 * Preserved from WooCommerce core for extension/settings compatibility.
-																		 */
-																		apply_filters( 'woocommerce_email_footer_text', $email_footer_text, $email )
-																	)
-																)
-															);
+																	/**
+																	 * Preserve the upstream filter invocation while DTB owns the visible footer.
+																	 */
+																	$email_footer_text = apply_filters( 'woocommerce_email_footer_text', $email_footer_text, $email );
+																	unset( $email_footer_text );
 															?>
 														</td>
 													</tr>
@@ -92,7 +78,7 @@ $support_url = function_exists( 'dtb_email_support_url' ) ? dtb_email_support_ur
 						</table>
 					</div>
 				</td>
-				<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
+				<td class="dtb-email-shell-gutter"><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
 			</tr>
 		</table>
 	</body>

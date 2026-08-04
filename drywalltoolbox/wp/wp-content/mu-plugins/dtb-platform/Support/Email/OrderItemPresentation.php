@@ -67,7 +67,7 @@ if ( ! function_exists( 'dtb_email_render_item_thumbnail' ) ) {
 		$name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : 'Product image';
 		$alt  = sprintf( '%s thumbnail', wp_strip_all_tags( $name ) );
 
-		return '<img src="' . esc_url( $src ) . '" width="120" height="82" alt="' . esc_attr( $alt ) . '" style="display:block;width:120px;height:82px;max-width:120px;border:1px solid #e2e5ea;border-radius:9px;background:#ffffff;object-fit:contain;" />';
+		return '<img src="' . esc_url( $src ) . '" width="66" height="66" alt="' . esc_attr( $alt ) . '" style="display:block;width:66px;height:66px;max-width:66px;border:1px solid #e4eaf2;border-radius:8px;background:#ffffff;object-fit:contain;" />';
 	}
 }
 
@@ -81,6 +81,6 @@ if ( ! function_exists( 'dtb_email_render_item_name' ) ) {
 	 * @return string
 	 */
 	function dtb_email_render_item_name( string $item_name ): string {
-		return '<span style="display:block;color:#0f172a;font-family:' . dtb_email_font_stack() . ';font-size:15px;font-weight:700;line-height:21px;">' . wp_kses_post( $item_name ) . '</span>';
+		return '<span style="display:block;color:#101828;font-family:' . dtb_email_font_stack() . ';font-size:15px;font-weight:800;line-height:21px;overflow-wrap:anywhere;word-break:break-word;">' . wp_kses_post( $item_name ) . '</span>';
 	}
 }

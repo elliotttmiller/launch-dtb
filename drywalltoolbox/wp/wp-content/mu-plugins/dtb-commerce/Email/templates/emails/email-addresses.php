@@ -11,6 +11,8 @@
  * @package DrywalltoolboxCommerce
  */
 
+use Automattic\WooCommerce\Utilities\FeaturesUtil;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -18,6 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 $address  = $order->get_formatted_billing_address();
 $shipping = $order->get_formatted_shipping_address();
 $has_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && $shipping;
+$email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improvements' );
+unset( $email_improvements_enabled );
+
+// Preserve WooCommerce's section-divider extension point. DTB expresses the
+// section boundary through card chrome rather than a separate horizontal rule.
+$display_section_divider = (bool) apply_filters( 'woocommerce_email_body_display_section_divider', true );
+unset( $display_section_divider );
 
 $card_title = $has_shipping ? __( 'Billing & shipping addresses', 'drywall-toolbox' ) : __( 'Billing address', 'drywall-toolbox' );
 

@@ -1,5 +1,7 @@
 # DTB Visual Designer Email Studio
 
+Last reconciled with tracked source: 2026-08-04.
+
 The Email Studio is an operator-only workspace inside **wp-admin → Visual Designer → Email Studio**. It replaces the removed standalone `drywalltoolbox/wp/email-previewer/` utility.
 
 ## Ownership
@@ -23,7 +25,10 @@ Authorized Visual Designer operator
   -> sandboxed iframe srcdoc
 ```
 
-The renderer never calls `trigger()` or `send()`, never changes an order, and never enqueues integration work.
+The renderer never calls `trigger()` or `send()`, never changes an order, and
+never enqueues integration work. `WC_Email::get_content()` and
+`WC_Email::style_inline()` are the canonical HTML and CSS-inlining path used
+by the preview.
 
 ## Supported scope
 

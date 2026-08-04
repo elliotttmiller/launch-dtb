@@ -5,9 +5,9 @@
  * Replaces the previous woocommerce_email_header/footer output-buffer wrap
  * (removed) with an allowlisted `woocommerce_locate_template` resolver, the
  * mechanism WooCommerce itself expects theme/child overrides to use. Every
- * mapped template lives under Email/templates/emails/ and preserves the exact
- * do_action/apply_filters call sequence of the traced upstream WooCommerce
- * template (see docs/operations/woocommerce-html-email-architecture.md).
+ * mapped template lives under Email/templates/emails/ and preserves the
+ * runtime extension points and semantic order of the traced upstream
+ * WooCommerce template (see the architecture document).
  *
  * Only the classic HTML template set is touched. `emails/plain/*` (plain
  * text), block-email, and POS templates are never in this map and therefore
@@ -52,14 +52,14 @@ function dtb_commerce_wc_email_template_map(): array {
 		// Admin (operator) emails.
 		'emails/admin-new-order.php'       => [ 'file' => 'admin-new-order.php', 'source_version' => '10.4.0' ],
 		'emails/admin-cancelled-order.php' => [ 'file' => 'admin-cancelled-order.php', 'source_version' => '9.8.0' ],
-		'emails/admin-failed-order.php'    => [ 'file' => 'admin-failed-order.php', 'source_version' => '9.8.0' ],
+		'emails/admin-failed-order.php'    => [ 'file' => 'admin-failed-order.php', 'source_version' => '10.4.0' ],
 
 		// Customer order-lifecycle emails.
 		'emails/customer-processing-order.php' => [ 'file' => 'customer-processing-order.php', 'source_version' => '10.4.0' ],
 		'emails/customer-completed-order.php'  => [ 'file' => 'customer-completed-order.php', 'source_version' => '10.4.0' ],
 		'emails/customer-on-hold-order.php'    => [ 'file' => 'customer-on-hold-order.php', 'source_version' => '10.4.0' ],
-		'emails/customer-cancelled-order.php'  => [ 'file' => 'customer-cancelled-order.php', 'source_version' => '9.8.0' ],
-		'emails/customer-failed-order.php'     => [ 'file' => 'customer-failed-order.php', 'source_version' => '9.8.0' ],
+		'emails/customer-cancelled-order.php'  => [ 'file' => 'customer-cancelled-order.php', 'source_version' => '10.4.0' ],
+		'emails/customer-failed-order.php'     => [ 'file' => 'customer-failed-order.php', 'source_version' => '10.4.0' ],
 		'emails/customer-refunded-order.php'   => [ 'file' => 'customer-refunded-order.php', 'source_version' => '10.4.0' ],
 		'emails/customer-invoice.php'          => [ 'file' => 'customer-invoice.php', 'source_version' => '10.4.0' ],
 		'emails/customer-note.php'             => [ 'file' => 'customer-note.php', 'source_version' => '10.4.0' ],

@@ -12,8 +12,8 @@ how that content gets on the wire.
 
 - **Brand identity.** A black header carrying the DTB logo, a clean white
   content surface (`#ffffff`), brand-primary blue accents (`#2255ee`) for
-  links/buttons/badges, and restrained borders
-  (`#dce6f3`/`#cbd5e1`) instead of heavy dividers or drop shadows. This
+  links/buttons/badges, and restrained borders (`#e4eaf2`) instead of heavy
+  dividers or drop shadows. This
   matches the palette already established for DTB's other transactional
   email surfaces (`dtb_email_palette('light')`, `dtb-platform/Support/Email.php`)
   so the WooCommerce classic pipeline and DTB's support/returns/repair/
@@ -29,16 +29,15 @@ how that content gets on the wire.
 
 ## Layout architecture
 
-Fluid table layout capped at 960px on desktop and filled to the viewport on
+Fluid table layout capped at 680px on desktop and filled to the viewport on
 mobile: a dark logo-only header band, a white content body, and a dark footer
 band bookending it. Hero, header, and footer are edge-to-edge; body components
-share one 32px desktop content rail and a 14px mobile rail. See
+share one 22px desktop content rail and a 14px mobile rail. See
 `Email/templates/emails/email-header.php` / `email-footer.php` /
 `email-styles.php` in `dtb-commerce` for the concrete markup. Content within
 the body follows a consistent vertical rhythm: hero (order-number eyebrow +
-heading only) → progress tracker (order-lifecycle emails only, where
-the caller has authoritative state to show — see below) → lede paragraph(s)
-→ order summary card → addresses card → support card →
+heading only) → progress tracker (only where the caller has authoritative
+state to show) → order summary card → addresses card → support card →
 footer.
 
 ## Component library
@@ -56,22 +55,23 @@ email:
 | Card | `dtb_email_card_open( $title, $meta, $icon )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close; icons are reserved for the address panel |
 | Next-steps grid | `dtb_email_next_steps_grid( $items )` | icon-free compact text grid retained for exceptional content; omitted from processing emails because the lifecycle tracker already communicates the next state |
 | Support card | `dtb_email_support_card( $text, $cta_url, $cta_label )` | "need help?" card with an outlined CTA button and the default `support` icon from `/logos/email-icons/support.png` |
-| Status badge | `dtb_email_status_badge( $label, $tone )` | payment/shipment/refund state at a glance, used where no progress tracker applies (cancelled/failed/refunded/shipment-updated) |
+| Status badge | `dtb_email_status_badge( $label, $tone )` | exceptional state detail where the heading alone is insufficient, currently full/partial refund distinction and concise admin state |
 | CTA button | `dtb_email_button( $url, $label )` | pay, retry payment, reset password, view account — MSO-safe with a VML fallback |
-| Detail/summary table | `dtb_email_details_table_light( $rows )` | order number/date/total, refund amount, invoice date — label/value rows on a white card |
+| Detail/summary table | `dtb_email_details_table_light( $rows )` | compact carrier/tracking and other lifecycle-specific label/value data; never duplicates order summary data |
 | Note box (light) | `dtb_email_note_box_light( $content )` | order notes, shipment merchant notes, styled for this light theme (see Redesign v2 — the original `dtb_email_note_box()` is hardcoded dark, for the separate `dtb_render_branded_email()` shell) |
 | Order item row | `dtb_email_render_item_thumbnail()` / `dtb_email_render_item_name()` | product thumbnail + name (+ SKU, now shown to customers too, not just operators) in order/fulfillment item tables, via the standard `woocommerce_order_item_thumbnail`/`_name` filters |
 | Footer social icons | `dtb_email_social_icons()` / `dtb_email_social_links()` | confirmed-real social profile links only (sourced from `frontend/src/utils/schema.js`'s structured-data `sameAs`) — never a fabricated profile URL |
+| Footer navigation | `dtb_email_footer_link_html()` / `dtb_email_footer_links()` | Terms from the configured WooCommerce page, Privacy from the configured WordPress privacy page, and the DTB support URL; unconfigured legal pages are omitted rather than fabricated |
 | Shipment/tracking panel | `email-fulfillment-details.php` | carrier, tracking number, tracking-URL CTA, now inside a card |
 | Address panel | `email-addresses.php` (`.address-title` + `.address`) | billing/shipping, side-by-side on desktop, stacked on mobile, now inside a card |
 
 ## Responsive design
 
 Single `@media screen and (max-width: 600px)` block in `email-styles.php`
-tightens header/body padding and heading size for narrow viewports; the
-underlying table layout already collapses gracefully (addresses stack via
-natural table wrapping, order items remain legible at native width) without
-a second mobile-specific template.
+tightens header/body padding and heading size, stacks address and support
+cells, converts each item into a full-width product row followed by explicit
+quantity/price labels, and makes CTAs full width. No second mobile template
+or client-side behavior exists.
 
 ## Accessibility
 
@@ -84,9 +84,10 @@ a second mobile-specific template.
   doc's RTL note).
 - Text/background contrast: navy-on-white and the palette's badge
   tones were chosen to clear WCAG AA at the sizes used (12–17px).
-- Every meaningful image (logo, product thumbnails, tracking icons) carries
-  descriptive `alt` text; the layout never relies on an image loading to
-  convey status (badges and headings are always live text).
+- The logo and product thumbnails carry descriptive `alt` text. Lifecycle,
+  support, address, and social icons are decorative (`alt=""`) because their
+  adjacent live text carries the meaning; no state is communicated by color
+  or imagery alone.
 - Buttons are real `<a>` elements with visible text labels, not
   image-only or icon-only controls.
 
@@ -116,7 +117,7 @@ inconsistently for inlined table email).
   payment status, current stage, and next expected step.
 - **Customer account/security emails** — brief, reassuring, single clear CTA.
 
-## Per-email specification (all 15 lifecycle emails)
+## Per-email specification (all 16 supported lifecycle emails)
 
 CTA text and destination are resolved centrally by
 `dtb_order_tracking_cta_for_email()` in `dtb-order-tracking-links.php`,
@@ -134,15 +135,15 @@ DTB has authoritative data for; no step ever claims "delivered."
 | `customer_processing_order` | Progress: Payment received (done) → Being prepared (active) → On the way soon (upcoming) | Payment confirmed, preparing shipment, tracking to follow | Track your order |
 | `customer_completed_order` | Progress: Payment received (done) → Prepared (done) → Order complete (done) | Order fully closed out (deliberately not equated with "shipped" or "delivered") | View order details |
 | `customer_on_hold_order` | Progress: Payment pending (warning) → Being prepared (upcoming) → On the way soon (upcoming) | On hold pending payment confirmation, no action needed unless payment is due | Pay securely (if `needs_payment()`) / View order details |
-| `customer_failed_order` | Status badge: Payment failed (danger) | Declined, nothing charged, retry available | Retry payment |
-| `customer_cancelled_order` | Status badge: Order cancelled (neutral) | Cancelled, refund note if applicable | View order details |
-| `customer_refunded_order` | Status badge: Refund / partial refund issued (info) | Full vs. partial distinguished via core's `$partial_refund`; timeline/method | View order details |
-| `customer_invoice` | Status badge: Payment due (warning) / Order details (info) | Pay now (failed/needs-payment) or reference copy of order | Pay for this order |
+| `customer_failed_order` | — (hero only) | Secure retry action; order summary remains authoritative | Retry payment |
+| `customer_cancelled_order` | — (hero only) | Order summary without speculative capture/refund claims | View order details |
+| `customer_refunded_order` | Refund / partial refund issued (info) | Full vs. partial distinguished via core's `$partial_refund` | View order details |
+| `customer_invoice` | — (hero only) | Payment action only when `needs_payment()`; otherwise order reference | Pay for this order |
 | `customer_note` | — (hero only, no stepper) | Store note quoted, order details for reference | View order details |
 | `customer_new_account` | — (hero only, no stepper/support card) | Account ready, set/confirm password | Set your password / Go to my account |
 | `customer_reset_password` | — (hero only, no stepper/support card) | Reset request, single reset link | Reset your password |
 | `customer_fulfillment_created` | Progress: Payment received (done) → Prepared (done) → On the way (active) | Part/all of order shipped, tracking details — the one progress tracker whose "on the way" step is backed by real Veeqo fulfillment data, not inference | Track shipment |
-| `customer_fulfillment_updated` | Status badge: Shipment updated (info) | What changed, optional merchant note, current tracking | Track shipment |
+| `customer_fulfillment_updated` | Progress: Payment received (done) → Prepared (done) → Shipment updated (active) | Optional merchant note and authoritative current tracking | Track shipment |
 
 Each row's implementation lives in the correspondingly-named file under
 `dtb-commerce/Email/templates/emails/`. Every customer-facing lifecycle
@@ -191,9 +192,9 @@ second rendering authority.
   resolved per email ID (`dtb_order_tracking_cta_for_email()`) instead of a
   single fixed "View order details" link — see the per-email table above.
 - All 12 customer lifecycle templates (`customer-processing-order.php`
-  through `customer-note.php`) rewritten to lead with the hero, add a
-  progress tracker or keep the status badge (never both), and end with a
-  single support card. `customer-new-account.php` /
+  through `customer-note.php`) rewritten to lead with the hero, use a
+  truthful progress tracker, refund badge, or no secondary state block, and
+  end with a single support card. `customer-new-account.php` /
   `customer-reset-password.php` get the hero only, per the existing
   copywriting-voice guidance for account/security email. The three admin
   templates (`admin-new-order.php`, `admin-cancelled-order.php`,
@@ -202,12 +203,10 @@ second rendering authority.
   omitting customer support content.
 
 **Deliberate judgment calls.**
-- Footer omits Terms and Privacy links: this store has no dedicated
-  `/terms` or `/privacy` routes, only a combined `/policies` page
-  (`frontend/src/pages/StorePolicies.jsx`). Linking to two different anchors
-  on the same page under two different labels would be misleading, so the
-  footer links "Contact Us" (real `/contact` route) plus copyright only,
-  rather than fabricating routes that don't exist.
+- Footer Terms and Privacy links are settings-backed. Terms resolves from
+  WooCommerce's configured terms page and Privacy from WordPress's configured
+  privacy-policy URL; either is omitted when its page is not configured.
+  Contact always uses `dtb_email_support_url()`. No route is fabricated.
 - Footer social icons are Facebook and Instagram only — the only two
   profiles confirmed real in `frontend/src/utils/schema.js`'s structured
   data (`sameAs`). No YouTube/LinkedIn/X icon was added, since none of
@@ -223,14 +222,15 @@ second rendering authority.
   template's tracker ever implies shipment or delivery it can't
   substantiate.
 
-**Not verified live.** This environment cannot bootstrap WordPress or
-WooCommerce, so nothing in this pass has been rendered in an actual email
-client. Validation performed here was static only: `php -l` on every
-changed file, and a manual diff of every `do_action`/`apply_filters` call
-against the traced WooCommerce core template to confirm hook name, argument
-list, and argument order are unchanged. Before shipping to real inboxes,
-whoever deploys this should:
-- [ ] Trigger each of the 15 lifecycle emails against a real WooCommerce
+## Validation contract
+
+`php scripts/tests/woocommerce-email-template-contract-fixtures.php` checks
+the mapped classic-HTML registry, mapped files, upstream extension-point
+presence/order, icon allowlist-to-file integrity, 680px/Nunito/brand-token
+contracts, refunded quantity handling, and the canonical read-only preview
+path. This static fixture complements, but does not replace, rendering through
+WooCommerce and real inbox-client tests. Before shipping to real inboxes:
+- [ ] Trigger each of the 16 supported lifecycle emails against a real WooCommerce
       install (or a preview tool) and visually confirm the hero, progress
       tracker/status badge, card chrome, and footer render correctly.
 - [ ] Check Gmail (web + app), Apple Mail, and Outlook desktop specifically

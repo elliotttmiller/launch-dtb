@@ -215,19 +215,19 @@ if ( ! function_exists( 'dtb_email_palette' ) ) {
 			'preheader'      => '#f2f3f5',
 			'header_bg'      => '#000000',
 			'card_bg'        => '#ffffff',
-			'card_border'    => '#e2e5ea',
+			'card_border'    => '#e4eaf2',
 			'accent'         => '#2255ee',
 			'accent_soft_bg' => '#e8f1ff',
 			'accent_soft_tx' => '#2255ee',
-			'title'          => '#0f172a',
-			'greeting'       => '#1f2937',
-			'intro'          => '#475569',
-			'text'           => '#64748b',
+			'title'          => '#101828',
+			'greeting'       => '#101828',
+			'intro'          => '#344054',
+			'text'           => '#667085',
 			'details_bg'     => '#f8fbff',
 			'details_row'    => '#ffffff',
-			'details_border' => '#dce6f3',
-			'details_label'  => '#738196',
-			'details_value'  => '#111827',
+			'details_border' => '#e4eaf2',
+			'details_label'  => '#667085',
+			'details_value'  => '#101828',
 			'button_bg'      => '#2255ee',
 			'button_text'    => '#ffffff',
 			// A near-black band matching header_bg (mockup uses a true black
@@ -455,11 +455,9 @@ if ( ! function_exists( 'dtb_email_note_box_light' ) ) {
 // etc.) — no CSS class this system doesn't already inline is relied upon, so
 // these render identically whether or not a client applies <style> at all.
 //
-// Icon glyphs deliberately use plain numerals/checkmarks/initials instead of
-// pictograms or emoji: desktop Outlook's Word rendering engine has
-// inconsistent glyph/emoji support, and this codebase has no image-asset
-// pipeline to generate small brand icon files during this change. Numerals
-// and initials render identically everywhere and need no image request.
+// Lifecycle and support icons are hosted transparent PNG assets. Numeric
+// fallback remains for callers that omit an icon so restrictive clients still
+// receive a readable progression without icon fonts, SVG injection, or emoji.
 // =============================================================================
 
 if ( ! function_exists( 'dtb_email_hero' ) ) {
@@ -496,7 +494,7 @@ if ( ! function_exists( 'dtb_email_hero' ) ) {
 
 		return '<table class="dtb-email-hero" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" bgcolor="#030712" background="' . $background_url . '" style="margin:0 0 28px;background:#030712 url(\'' . $background_url . '\') center center/cover no-repeat;background-color:#030712;">'
 			. '<tr><td class="dtb-email-hero-cell" valign="middle" style="padding:36px 48px 40px;">'
-			. '<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:960px;"><v:fill type="frame" src="' . $background_url . '" color="#030712" /><v:textbox inset="48px,34px,48px,40px"><![endif]-->'
+			. '<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px;"><v:fill type="frame" src="' . $background_url . '" color="#030712" /><v:textbox inset="42px,34px,42px,40px"><![endif]-->'
 			. $eyebrow_html
 			. '<h1 style="max-width:500px;margin:0;color:#ffffff;font-family:' . $font . ';font-size:36px;font-weight:800;line-height:116%;text-align:left;">' . esc_html( $heading ) . '</h1>'
 			. '<!--[if gte mso 9]></v:textbox></v:rect><![endif]-->'
@@ -515,7 +513,7 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 	 * state should decide each step's tone — this function never guesses or
 	 * implies a delivery stage the caller didn't explicitly assert.
 	 *
-	 * @param array<int,array{label:string,state?:string}> $steps Ordered
+	 * @param array<int,array{label:string,state?:string,icon?:string}> $steps Ordered
 	 *        steps. `state` is one of done|active|warning|danger|upcoming
 	 *        (default upcoming).
 	 * @return string
@@ -529,8 +527,8 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 		$font   = dtb_email_font_stack();
 		$colors = [
-			'done'     => [ 'text' => '#2255ee', 'label' => '#111827', 'line' => '#2255ee' ],
-			'active'   => [ 'text' => '#2255ee', 'label' => '#111827', 'line' => '#2255ee' ],
+			'done'     => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee' ],
+			'active'   => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee' ],
 			'warning'  => [ 'text' => '#a15c00', 'label' => '#a15c00', 'line' => '#f2b25c' ],
 			'danger'   => [ 'text' => '#b91c1c', 'label' => '#b91c1c', 'line' => '#f2a3a3' ],
 			'upcoming' => [ 'text' => '#94a3b8', 'label' => '#94a3b8', 'line' => '#dce3ed' ],
@@ -545,10 +543,11 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			$state = isset( $colors[ $state ] ) ? $state : 'upcoming';
 			$c     = $colors[ $state ];
 			$icon  = dtb_email_clean_text( $step['icon'] ?? '' );
-			$glyph = '' !== $icon && function_exists( 'dtb_email_icon' ) ? dtb_email_icon( $icon, 34 ) : esc_html( (string) ( $i + 1 ) );
+			$glyph_opacity = 'upcoming' === $state ? '0.38' : '1';
+			$glyph         = '' !== $icon && function_exists( 'dtb_email_icon' ) ? dtb_email_icon( $icon, 34 ) : esc_html( (string) ( $i + 1 ) );
 
 			$marker_row .= '<td class="dtb-progress-marker" width="1%" align="center" valign="top" style="padding:0;">'
-				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:15px;font-weight:800;padding:0 3px;">' . $glyph . '</td></tr></table>'
+				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:15px;font-weight:800;padding:0 3px;opacity:' . esc_attr( $glyph_opacity ) . ';">' . $glyph . '</td></tr></table>'
 				. '</td>';
 
 			$label_row .= '<td class="dtb-progress-label" width="1%" align="center" valign="top" style="padding:8px 2px 0;"><span style="display:block;width:108px;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:12px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
@@ -560,7 +559,7 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			}
 		}
 
-		return '<table class="dtb-email-progress" role="presentation" cellspacing="0" cellpadding="0" border="0" width="896" align="center" style="width:calc(100% - 64px);max-width:896px;margin:0 auto 28px;"><tr>' . $marker_row . '</tr><tr>' . $label_row . '</tr></table>';
+		return '<table class="dtb-email-progress" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 26px;"><tr>' . $marker_row . '</tr><tr>' . $label_row . '</tr></table>';
 	}
 }
 
@@ -595,12 +594,12 @@ if ( ! function_exists( 'dtb_email_card_open' ) ) {
 				: '';
 			$header    = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 16px;"><tr>'
 				. $icon_cell
-				. '<td valign="middle" style="color:#0f172a;font-family:' . $font . ';font-size:16px;font-weight:800;">' . esc_html( $title ) . '</td>'
+				. '<td valign="middle" style="color:#101828;font-family:' . $font . ';font-size:16px;font-weight:800;">' . esc_html( $title ) . '</td>'
 				. $meta_cell
 				. '</tr></table>';
 		}
 
-		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="896" align="center" style="width:calc(100% - 64px);max-width:896px;margin:0 auto 14px;border-collapse:separate;"><tr><td style="padding:22px 24px;background:#ffffff;background-color:#ffffff;border:1px solid #e1e6ee;border-radius:10px;">' . $header;
+		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 14px;border-collapse:separate;"><tr><td style="padding:22px;background:#ffffff;background-color:#ffffff;border:1px solid #e4eaf2;border-radius:10px;">' . $header;
 	}
 }
 
@@ -709,16 +708,62 @@ if ( ! function_exists( 'dtb_email_support_card' ) ) {
 			: '';
 
 		$text_html = '' !== $title
-			? '<span style="display:block;color:#0f172a;font-family:' . $font . ';font-size:15px;font-weight:800;margin:0 0 2px;">' . esc_html( $title ) . '</span><span style="display:block;color:#334155;font-family:' . $font . ';font-size:13px;font-weight:500;line-height:145%;">' . esc_html( $text ) . '</span>'
+			? '<span style="display:block;color:#101828;font-family:' . $font . ';font-size:15px;font-weight:800;margin:0 0 2px;">' . esc_html( $title ) . '</span><span style="display:block;color:#344054;font-family:' . $font . ';font-size:13px;font-weight:500;line-height:145%;">' . esc_html( $text ) . '</span>'
 			: '<span style="display:block;color:#334155;font-family:' . $font . ';font-size:14px;font-weight:600;line-height:145%;">' . esc_html( $text ) . '</span>';
 
-		return '<table class="dtb-support-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="896" align="center" style="width:calc(100% - 64px);max-width:896px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:18px 22px;background:#ffffff;background-color:#ffffff;border:1px solid #e1e6ee;border-radius:10px;">'
+		return '<table class="dtb-support-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:18px 22px;background:#ffffff;background-color:#ffffff;border:1px solid #e4eaf2;border-radius:10px;">'
 			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
+			. '<td class="dtb-support-message" valign="middle" style="padding:0;"><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
 			. $icon_html
-			. '<td valign="middle" style="padding:0;">' . $text_html . '</td>'
+			. '<td valign="middle" style="padding:0;">' . $text_html . '</td></tr></table></td>'
 			. $button
 			. '</tr></table>'
 			. '</td></tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_footer_links' ) ) {
+	/**
+	 * Return settings-backed legal/support footer links.
+	 *
+	 * Terms and Privacy are omitted when their authoritative WooCommerce or
+	 * WordPress page is not configured; presentation must not invent a route.
+	 *
+	 * @return array<int,array{label:string,url:string}>
+	 */
+	function dtb_email_footer_links(): array {
+		$links = [];
+		if ( function_exists( 'wc_get_page_id' ) ) {
+			$terms_page_id = (int) wc_get_page_id( 'terms' );
+			$terms_url     = $terms_page_id > 0 ? get_permalink( $terms_page_id ) : '';
+			if ( $terms_url ) {
+				$links[] = [ 'label' => __( 'Terms', 'drywall-toolbox' ), 'url' => $terms_url ];
+			}
+		}
+
+		$privacy_url = function_exists( 'get_privacy_policy_url' ) ? get_privacy_policy_url() : '';
+		if ( $privacy_url ) {
+			$links[] = [ 'label' => __( 'Privacy', 'drywall-toolbox' ), 'url' => $privacy_url ];
+		}
+
+		$links[] = [ 'label' => __( 'Contact Us', 'drywall-toolbox' ), 'url' => dtb_email_support_url() ];
+		return (array) apply_filters( 'dtb_email_footer_links', $links );
+	}
+}
+
+if ( ! function_exists( 'dtb_email_footer_link_html' ) ) {
+	/** Return compact settings-backed footer navigation. */
+	function dtb_email_footer_link_html(): string {
+		$parts = [];
+		foreach ( dtb_email_footer_links() as $link ) {
+			$label = dtb_email_clean_text( $link['label'] ?? '' );
+			$url   = esc_url_raw( (string) ( $link['url'] ?? '' ) );
+			if ( '' !== $label && '' !== $url ) {
+				$parts[] = '<a href="' . esc_url( $url ) . '" style="color:#2255ee;text-decoration:underline;">' . esc_html( $label ) . '</a>';
+			}
+		}
+
+		return implode( '<span aria-hidden="true" style="padding:0 8px;color:#667085;">|</span>', $parts );
 	}
 }
 

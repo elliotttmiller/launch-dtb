@@ -19,16 +19,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $palette = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' ) : [];
 $font    = function_exists( 'dtb_email_font_stack' ) ? dtb_email_font_stack() : "'Nunito',Arial,sans-serif";
+
+// Keep WooCommerce's preview-mode filter contract even though DTB brand
+// tokens, rather than WooCommerce color transients, own this presentation.
+$is_email_preview = (bool) apply_filters( 'woocommerce_is_email_preview', false );
+unset( $is_email_preview );
 ?>
 body {
 	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
+	margin: 0;
 	padding: 0;
 	text-align: center;
 }
 
 #outer_wrapper {
 	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;
+	border-collapse: collapse;
+	margin: 0;
+	width: 100%;
 }
 
 #wrapper {
@@ -36,12 +45,12 @@ body {
 	padding: 24px 0;
 	-webkit-text-size-adjust: none !important;
 	width: 100%;
-	max-width: 960px;
+	max-width: 680px;
 }
 
 #inner_wrapper {
 	background-color: <?php echo esc_attr( $palette['card_bg'] ?? '#ffffff' ); ?>;
-	border: 1px solid #e2e5ea;
+	border: 1px solid #e4eaf2;
 	border-radius: 16px;
 	overflow: hidden;
 }
@@ -66,7 +75,7 @@ h1 {
 }
 
 h2 {
-	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
+	color: <?php echo esc_attr( $palette['title'] ?? '#101828' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 18px;
 	font-weight: 760;
@@ -80,7 +89,7 @@ h2 {
 }
 
 #body_content_inner {
-	color: <?php echo esc_attr( $palette['intro'] ?? '#475569' ); ?>;
+	color: <?php echo esc_attr( $palette['intro'] ?? '#344054' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 15px;
 	line-height: 150%;
@@ -109,7 +118,7 @@ a,
 }
 
 .td {
-	color: <?php echo esc_attr( $palette['text'] ?? '#64748b' ); ?>;
+	color: <?php echo esc_attr( $palette['text'] ?? '#667085' ); ?>;
 	border: 0;
 	vertical-align: middle;
 }
@@ -120,22 +129,38 @@ a,
 }
 
 .email-order-details thead th {
-	border: 0;
+	padding: 10px 6px;
+	border-top: 1px solid #e4eaf2;
+	border-bottom: 1px solid #e4eaf2;
+	background: #fbfcfe;
+	color: #344054;
+	font-size: 11px;
+	font-weight: 800;
+	line-height: 16px;
+	text-transform: uppercase;
+}
+
+.dtb-mobile-label {
+	display: none;
 }
 
 .email-order-details tbody tr.order_item td {
-	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#e4eaf2' ); ?>;
+}
+
+.email-order-details tbody tr.order_item:last-child td {
+	border-bottom: 0;
 }
 
 .email-order-details tbody tr.order_item > td:nth-child(2) {
 	width: 52px;
-	color: #64748b;
+	color: #667085;
 	font-size: 13px;
 }
 
 .email-order-details tbody tr.order_item > td:last-child {
 	width: 88px;
-	color: #0f172a;
+	color: #101828;
 	font-size: 16px;
 	font-weight: 800;
 }
@@ -148,13 +173,13 @@ a,
 
 .email-order-totals tr.order-totals th {
 	padding-left: 0 !important;
-	color: #111827;
+	color: #101828;
 	font-weight: 600;
 	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
 }
 
 .email-order-totals tr.order-totals td {
-	color: #111827;
+	color: #101828;
 	white-space: nowrap;
 }
 
@@ -163,19 +188,19 @@ a,
 	font-weight: 800;
 	font-size: 18px;
 	color: <?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;
-	border-top: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+	border-top: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#e4eaf2' ); ?>;
 	padding-top: 14px !important;
 }
 
 .address {
-	color: #334155;
+	color: #344054;
 	font-style: normal;
 	line-height: 150%;
 	padding: 4px 0;
 }
 
 .address-title {
-	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
+	color: <?php echo esc_attr( $palette['title'] ?? '#101828' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 12px;
 	font-weight: 800;
@@ -203,7 +228,9 @@ a,
 }
 
 .hr {
-	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
+	border: 0;
+	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#e4eaf2' ); ?>;
+	height: 0;
 	margin: 16px 0;
 }
 
@@ -242,6 +269,16 @@ a,
 	#wrapper {
 		max-width: 100% !important;
 		padding: 0 !important;
+	}
+
+	.dtb-email-shell-gutter {
+		display: none !important;
+		width: 0 !important;
+	}
+
+	.dtb-email-shell-cell {
+		display: table-cell !important;
+		width: 100% !important;
 	}
 
 	#inner_wrapper {
@@ -312,26 +349,50 @@ a,
 	}
 
 	.order-item-data td:first-child {
-		width: 58px !important;
+		width: 60px !important;
 		padding-right: 8px !important;
 	}
 
 	.order-item-data img {
 		width: 52px !important;
-		height: 46px !important;
+		height: 52px !important;
+	}
+
+	.email-order-details tbody tr.order_item {
+		display: block !important;
+		width: 100% !important;
+		border-bottom: 1px solid #e4eaf2 !important;
+	}
+
+	.email-order-details thead {
+		display: none !important;
+	}
+
+	.email-order-details tbody tr.order_item > td {
+		box-sizing: border-box !important;
+		border-bottom: 0 !important;
+	}
+
+	.email-order-details tbody tr.order_item > td:first-child {
+		display: block !important;
+		width: 100% !important;
+		padding: 14px 0 8px !important;
+	}
+
+	.email-order-details tbody tr.order_item > td:nth-child(2),
+	.email-order-details tbody tr.order_item > td:last-child {
+		display: inline-block !important;
+		width: 49% !important;
+		padding: 4px 0 12px !important;
+		font-size: 13px !important;
 	}
 
 	.email-order-details tbody tr.order_item > td:nth-child(2) {
-		width: 28px !important;
-		padding-left: 2px !important;
-		padding-right: 2px !important;
-		font-size: 11px !important;
+		text-align: left !important;
 	}
 
-	.email-order-details tbody tr.order_item > td:last-child {
-		width: 62px !important;
-		padding-left: 4px !important;
-		font-size: 13px !important;
+	.dtb-mobile-label {
+		display: inline !important;
 	}
 
 	.email-order-totals tr.order-totals th {
@@ -339,6 +400,7 @@ a,
 	}
 
 	#addresses > tbody > tr > td,
+	.dtb-support-message,
 	.dtb-support-action {
 		display: block !important;
 		width: 100% !important;

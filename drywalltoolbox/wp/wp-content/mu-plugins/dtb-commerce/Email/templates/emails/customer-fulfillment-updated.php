@@ -7,7 +7,8 @@
  * WC_Email_Customer_Fulfillment_Updated::trigger() via the
  * woocommerce_fulfillment_updated_notification action; see
  * dtb-integrations/Veeqo/VeeqoFulfillmentProjector.php). DTB customization:
- * hero; merchant note now uses dtb_email_note_box_light() instead of
+ * hero + authoritative shipment-update progress tracker; merchant note uses
+ * dtb_email_note_box_light() instead of
  * dtb_email_note_box() — the latter is hardcoded to dark-theme colors (built
  * for the separate dtb_render_branded_email() dark shell) and previously
  * rendered as a stray dark box inside this light-themed email. Hook
@@ -29,12 +30,15 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 	/* translators: %s: order number. */
 	sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() )
 ) : '';
-?>
 
-<div class="email-introduction">
-	<?php echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge( __( 'Shipment updated', 'drywall-toolbox' ), 'info' ) : ''; ?>
-	<p><?php esc_html_e( 'Here\'s the latest:', 'drywall-toolbox' ); ?></p>
-</div>
+echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	[
+		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done', 'icon' => 'payment' ],
+		[ 'label' => __( 'Prepared', 'drywall-toolbox' ), 'state' => 'done', 'icon' => 'package' ],
+		[ 'label' => __( 'Shipment updated', 'drywall-toolbox' ), 'state' => 'active', 'icon' => 'truck' ],
+	]
+) : '';
+?>
 
 <?php
 $customer_note_text = is_scalar( $customer_note ?? null ) ? trim( (string) $customer_note ) : '';
@@ -50,7 +54,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about your shipment? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

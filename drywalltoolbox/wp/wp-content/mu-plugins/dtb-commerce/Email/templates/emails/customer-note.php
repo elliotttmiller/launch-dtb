@@ -25,15 +25,6 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 ?>
 
 <div class="email-introduction">
-	<p>
-	<?php
-	if ( $order->get_billing_first_name() ) {
-		printf( esc_html__( 'Hi %s,', 'drywall-toolbox' ), esc_html( $order->get_billing_first_name() ) );
-	} else {
-		esc_html_e( 'Hi,', 'drywall-toolbox' );
-	}
-	?>
-	</p>
 	<p><?php esc_html_e( 'A note has been added to your order:', 'drywall-toolbox' ); ?></p>
 </div>
 
@@ -41,8 +32,6 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 $safe_note = wc_wptexturize_order_note( $customer_note );
 echo function_exists( 'dtb_email_note_box_light' ) ? dtb_email_note_box_light( wp_strip_all_tags( $safe_note ) ) : '<blockquote>' . wpautop( make_clickable( $safe_note ) ) . '</blockquote>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
-
-<p><?php esc_html_e( 'For reference, here are your order details:', 'drywall-toolbox' ); ?></p>
 
 <?php
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
@@ -53,7 +42,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about this note or your order? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

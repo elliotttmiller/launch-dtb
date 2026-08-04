@@ -12,8 +12,6 @@
  * @package DrywalltoolboxCommerce
  */
 
-use Automattic\WooCommerce\Enums\OrderStatus;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -29,30 +27,8 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 ?>
 
 <div class="email-introduction">
-	<?php
-	echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge(
-		$order->needs_payment() ? __( 'Payment due', 'drywall-toolbox' ) : __( 'Order details', 'drywall-toolbox' ),
-		$order->needs_payment() ? 'warning' : 'info'
-	) : '';
-	?>
-	<p>
-	<?php
-	if ( $order->get_billing_first_name() ) {
-		printf( esc_html__( 'Hi %s,', 'drywall-toolbox' ), esc_html( $order->get_billing_first_name() ) );
-	} else {
-		esc_html_e( 'Hi,', 'drywall-toolbox' );
-	}
-	?>
-	</p>
 	<?php if ( $order->needs_payment() ) : ?>
-		<?php if ( $order->has_status( OrderStatus::FAILED ) ) : ?>
-			<p><?php printf( esc_html__( 'Your last payment attempt on %s wasn\'t successful. Your order details are below — pay securely to complete your purchase.', 'drywall-toolbox' ), esc_html( get_bloginfo( 'name', 'display' ) ) ); ?></p>
-		<?php else : ?>
-			<p><?php printf( esc_html__( 'Here\'s an invoice for your order on %s. Pay securely using the link below whenever you\'re ready.', 'drywall-toolbox' ), esc_html( get_bloginfo( 'name', 'display' ) ) ); ?></p>
-		<?php endif; ?>
 		<?php echo function_exists( 'dtb_email_button' ) ? dtb_email_button( $order->get_checkout_payment_url(), __( 'Pay for this order', 'drywall-toolbox' ) ) : ''; ?>
-	<?php else : ?>
-		<p><?php printf( esc_html__( 'Here are the details of your order placed on %s:', 'drywall-toolbox' ), esc_html( wc_format_datetime( $order->get_date_created() ) ) ); ?></p>
 	<?php endif; ?>
 </div>
 
@@ -65,7 +41,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about this invoice? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

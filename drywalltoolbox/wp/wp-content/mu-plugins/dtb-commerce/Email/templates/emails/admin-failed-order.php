@@ -2,7 +2,7 @@
 /**
  * DTB branded admin failed order email.
  *
- * Traced against WooCommerce core emails/admin-failed-order.php v9.8.0
+ * Traced against WooCommerce core emails/admin-failed-order.php v10.4.0
  * (wp-content/plugins/woocommerce/templates/emails/admin-failed-order.php).
  * DTB customization: shared branded hero and lifecycle status with concise
  * operator copy; hook sequence preserved unchanged.

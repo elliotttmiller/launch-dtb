@@ -14,44 +14,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( null === $fulfillment->get_date_deleted() ) {
-	$tracking_number   = $fulfillment->get_tracking_number();
-	$tracking_url      = $fulfillment->get_tracking_url();
-	$shipment_provider = $fulfillment->get_shipment_provider();
-
-	if ( ! $tracking_number && ! $tracking_url && ! $shipment_provider ) {
-		echo '<p>' . esc_html__( 'Tracking information for this shipment isn\'t available yet.', 'drywall-toolbox' ) . '</p>';
-	} else {
-		$tracking_rows = [];
-		if ( $shipment_provider ) {
-			$tracking_rows[] = [ 'label' => __( 'Carrier', 'drywall-toolbox' ), 'value' => $shipment_provider ];
-		}
-		if ( $tracking_number ) {
-			$tracking_rows[] = [ 'label' => __( 'Tracking number', 'drywall-toolbox' ), 'value' => $tracking_number ];
-		}
-		echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light( $tracking_rows ) : '';
-		if ( $tracking_url ) {
-			echo function_exists( 'dtb_email_button' ) ? dtb_email_button( $tracking_url, __( 'Track shipment', 'drywall-toolbox' ) ) : '<p><a class="link" href="' . esc_url( $tracking_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Track shipment', 'drywall-toolbox' ) . '</a></p>';
-		}
-	}
-
-	// dtb_order_tracking_url() (dtb-order-tracking-links.php) is this store's
-	// actual canonical customer order view — the React order-tracking page —
-	// used consistently everywhere else in this redesign; this line
-	// previously pointed at WooCommerce's native My Account > Orders page
-	// instead, a second, inconsistent destination for the same "view your
-	// order" action. Falls back to the native page only if that function
-	// isn't available for some reason.
-	$order_view_url = function_exists( 'dtb_order_tracking_url' ) ? dtb_order_tracking_url( $order ) : site_url( 'my-account/orders/' );
-
-	echo '<p>' . wp_kses_post(
-		sprintf(
-			/* translators: %s: Link to the order tracking page. */
-			__( 'Full order and shipment details are always available from <a href="%s" target="_blank">your order tracking page</a>.', 'drywall-toolbox' ),
-			esc_url( $order_view_url )
-		)
-	) . '</p>';
-}
+$is_active_fulfillment = null === $fulfillment->get_date_deleted();
+$tracking_number       = $is_active_fulfillment ? $fulfillment->get_tracking_number() : '';
+$tracking_url          = $is_active_fulfillment ? $fulfillment->get_tracking_url() : '';
+$shipment_provider     = $is_active_fulfillment ? $fulfillment->get_shipment_provider() : '';
 
 /**
  * Action hook to add custom content before fulfillment details in email.
@@ -70,9 +36,36 @@ $fulfillment_order_meta = sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order-
 echo function_exists( 'dtb_email_card_open' )
 	? dtb_email_card_open( __( 'Shipment summary', 'drywall-toolbox' ), $fulfillment_order_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	: '<div style="margin-bottom:20px;">';
+
+if ( $is_active_fulfillment ) {
+	$tracking_rows = [];
+	if ( $shipment_provider ) {
+		$tracking_rows[] = [ 'label' => __( 'Carrier', 'drywall-toolbox' ), 'value' => $shipment_provider ];
+	}
+	if ( $tracking_number ) {
+		$tracking_rows[] = [ 'label' => __( 'Tracking number', 'drywall-toolbox' ), 'value' => $tracking_number ];
+	}
+
+	if ( $tracking_rows ) {
+		echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light( $tracking_rows ) : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	} else {
+		echo '<p>' . esc_html__( 'Tracking information is not available yet.', 'drywall-toolbox' ) . '</p>';
+	}
+
+	if ( $tracking_url ) {
+		echo function_exists( 'dtb_email_button' ) ? dtb_email_button( $tracking_url, __( 'Track shipment', 'drywall-toolbox' ) ) : '<p><a class="link" href="' . esc_url( $tracking_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Track shipment', 'drywall-toolbox' ) . '</a></p>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+}
 ?>
 
 <table class="td font-family email-order-details" cellspacing="0" cellpadding="0" style="width:100%;" border="0" role="presentation">
+	<thead>
+		<tr class="dtb-order-column-headings">
+			<th class="td text-align-left" scope="col"><?php esc_html_e( 'Item', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Qty', 'drywall-toolbox' ); ?></th>
+			<th class="td text-align-right" scope="col"><?php esc_html_e( 'Price', 'drywall-toolbox' ); ?></th>
+		</tr>
+	</thead>
 	<tbody>
 		<?php
 		echo wc_get_email_fulfillment_items( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

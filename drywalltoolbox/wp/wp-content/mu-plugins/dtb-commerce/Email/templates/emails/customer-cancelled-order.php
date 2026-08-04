@@ -3,8 +3,8 @@
  * DTB branded customer cancelled order email.
  *
  * Traced against WooCommerce core emails/customer-cancelled-order.php
- * v10.4.0. DTB customization: hero + status badge (no progress tracker — a
- * cancelled order isn't forward progress). Hook sequence preserved.
+ * v10.4.0. DTB customization: concise hero without a forward-progress
+ * tracker or speculative payment/refund copy. Hook sequence preserved.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -21,20 +21,6 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 ) : '';
 ?>
 
-<div class="email-introduction">
-	<?php echo function_exists( 'dtb_email_status_badge' ) ? dtb_email_status_badge( __( 'Order cancelled', 'drywall-toolbox' ), 'neutral' ) : ''; ?>
-	<p><?php printf( esc_html__( 'Your order #%1$s has been cancelled. If you were charged, no funds were captured, or a refund is already in progress — you\'ll receive a separate confirmation once it completes.', 'drywall-toolbox' ), esc_html( $order->get_order_number() ) ); ?></p>
-	<p><?php esc_html_e( 'If this wasn\'t expected, reply to this email or contact support and we\'ll help sort it out.', 'drywall-toolbox' ); ?></p>
-	<?php
-	echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light(
-		[
-			[ 'label' => __( 'Order number', 'drywall-toolbox' ), 'value' => (string) $order->get_order_number() ],
-			[ 'label' => __( 'Order total', 'drywall-toolbox' ), 'value' => wp_strip_all_tags( $order->get_formatted_order_total() ) ],
-		]
-	) : '';
-	?>
-</div>
-
 <?php
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email );
@@ -44,7 +30,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Wasn\'t expecting this? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

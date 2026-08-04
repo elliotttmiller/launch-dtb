@@ -43,7 +43,7 @@ foreach ( $items as $item_id => $item ) :
 			<table class="order-item-data" role="presentation" width="100%">
 				<tr>
 					<?php if ( $show_image ) : ?>
-						<td width="136" valign="middle" style="padding:0 16px 0 0;">
+						<td class="dtb-order-item-image" width="82" valign="middle" style="padding:0 14px 0 0;">
 							<?php
 							$thumbnail = function_exists( 'dtb_email_render_item_thumbnail' ) ? dtb_email_render_item_thumbnail( $item ) : '';
 							/**
@@ -68,7 +68,7 @@ foreach ( $items as $item_id => $item ) :
 						echo wp_kses_post( apply_filters( 'woocommerce_order_item_name', $item_name, $item, false ) );
 
 						if ( $show_sku && $sku ) {
-							echo wp_kses_post( ' <span style="color:#94a3b8;">(#' . $sku . ')</span>' );
+							echo '<span class="dtb-order-item-sku" style="display:block;margin-top:4px;color:#667085;font-size:12px;line-height:17px;overflow-wrap:anywhere;word-break:break-word;">' . esc_html__( 'SKU:', 'drywall-toolbox' ) . ' ' . esc_html( $sku ) . '</span>';
 						}
 
 						/**
@@ -92,7 +92,7 @@ foreach ( $items as $item_id => $item ) :
 								'label_after'  => ':</span> ',
 							]
 						);
-						echo '<div class="email-order-item-meta" style="color:#94a3b8;font-size:13px;line-height:140%;">';
+						echo '<div class="email-order-item-meta" style="margin-top:4px;color:#667085;font-size:12px;line-height:145%;">';
 						echo wp_kses(
 							$item_meta,
 							[
@@ -124,18 +124,22 @@ foreach ( $items as $item_id => $item ) :
 		</td>
 		<td class="td font-family text-align-right" style="vertical-align:middle;">
 			<?php
-			$qty_display = esc_html( $item->get_quantity() );
+			$qty          = $item->get_quantity();
+			$refunded_qty = $order->get_qty_refunded_for_item( $item_id );
+			$qty_display  = $refunded_qty
+				? '<del>' . esc_html( $qty ) . '</del> <ins>' . esc_html( $qty - ( $refunded_qty * -1 ) ) . '</ins>'
+				: esc_html( $qty );
 			/**
 			 * Email Order Item Quantity hook.
 			 */
 			$quantity = apply_filters( 'woocommerce_email_order_item_quantity', $qty_display, $item );
-				if ( '' !== $quantity ) {
-					echo '<span style="white-space:nowrap;">Qty: ' . wp_kses_post( $quantity ) . '</span>';
+			if ( '' !== $quantity ) {
+				echo '<span style="white-space:nowrap;"><span class="dtb-mobile-label">' . esc_html__( 'Qty:', 'drywall-toolbox' ) . ' </span>' . wp_kses_post( $quantity ) . '</span>';
 			}
 			?>
 		</td>
 		<td class="td font-family text-align-right" style="vertical-align:middle;">
-			<?php echo wp_kses_post( $order->get_formatted_line_subtotal( $item ) ); ?>
+			<span class="dtb-mobile-label"><?php esc_html_e( 'Price:', 'drywall-toolbox' ); ?> </span><?php echo wp_kses_post( $order->get_formatted_line_subtotal( $item ) ); ?>
 		</td>
 	</tr>
 	<?php if ( $show_purchase_note && $purchase_note ) : ?>

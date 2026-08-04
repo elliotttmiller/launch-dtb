@@ -30,27 +30,6 @@ echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( /
 ) : '';
 ?>
 
-<div class="email-introduction">
-	<p>
-	<?php
-	if ( $order->get_billing_first_name() ) {
-		printf( esc_html__( 'Hi %s,', 'drywall-toolbox' ), esc_html( $order->get_billing_first_name() ) );
-	} else {
-		esc_html_e( 'Hi,', 'drywall-toolbox' );
-	}
-	?>
-	</p>
-	<p><?php esc_html_e( 'No action is needed from you unless we reach out.', 'drywall-toolbox' ); ?></p>
-	<?php
-	echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light(
-		[
-			[ 'label' => __( 'Order number', 'drywall-toolbox' ), 'value' => (string) $order->get_order_number() ],
-			[ 'label' => __( 'Order total', 'drywall-toolbox' ), 'value' => wp_strip_all_tags( $order->get_formatted_order_total() ) ],
-		]
-	) : '';
-	?>
-</div>
-
 <?php
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email );
@@ -60,7 +39,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about your payment or order? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

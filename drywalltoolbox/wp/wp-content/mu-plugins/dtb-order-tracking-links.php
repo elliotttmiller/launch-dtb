@@ -162,13 +162,13 @@ add_action(
 
 		echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:26px 0 4px;border-collapse:separate;">';
 		echo '<tr><td align="center" style="padding:0;">';
-		echo '<a href="' . esc_url( $cta['url'] ) . '" style="display:block;width:100%;box-sizing:border-box;padding:15px 22px;border-radius:10px;background:#2255ee;color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:15px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;">' . esc_html( $cta['label'] ) . '</a>';
+		echo '<a href="' . esc_url( $cta['url'] ) . '" style="display:block;width:100%;box-sizing:border-box;padding:15px 22px;border-radius:8px;background:#2255ee;color:#ffffff;font-family:\'Nunito\',Arial,sans-serif;font-size:15px;font-weight:800;line-height:22px;text-align:center;text-decoration:none;">' . esc_html( $cta['label'] ) . '</a>';
 		echo '</td></tr></table>';
 
 		if ( ! empty( $cta['secondary'] ) && $cta['url'] !== $tracking_url ) {
 			echo '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 18px;">';
 			echo '<tr><td align="center" style="padding:0;">';
-			echo '<a href="' . esc_url( $tracking_url ) . '" style="color:#2563eb;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:underline;">' . esc_html__( 'View order details', 'drywall-toolbox' ) . '</a>';
+			echo '<a href="' . esc_url( $tracking_url ) . '" style="color:#2255ee;font-family:\'Nunito\',Arial,sans-serif;font-size:13px;font-weight:700;text-decoration:underline;">' . esc_html__( 'View order details', 'drywall-toolbox' ) . '</a>';
 			echo '</td></tr></table>';
 		}
 	},

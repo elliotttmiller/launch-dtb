@@ -33,6 +33,11 @@ $header_image_url = apply_filters( 'woocommerce_email_header_image_url', home_ur
 
 $palette  = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' ) : [];
 $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
+
+// Preserve WooCommerce's preview-mode extension point. DTB's deterministic
+// logo remains presentation authority, so preview transients cannot replace it.
+$is_email_preview = (bool) apply_filters( 'woocommerce_is_email_preview', false );
+unset( $is_email_preview );
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -48,10 +53,10 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 		<title><?php echo esc_html( $store_name ); ?></title>
 	</head>
 	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
-		<table width="100%" id="outer_wrapper" role="presentation">
+		<table width="100%" id="outer_wrapper" border="0" cellpadding="0" cellspacing="0" role="presentation">
 			<tr>
-				<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
-				<td width="960">
+				<td class="dtb-email-shell-gutter"><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
+				<td class="dtb-email-shell-cell" width="680">
 					<div id="wrapper" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 						<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="inner_wrapper" role="presentation">
 							<tr>

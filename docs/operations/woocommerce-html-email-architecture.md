@@ -1,6 +1,6 @@
 # WooCommerce classic HTML email architecture
 
-Last reconciled with tracked source: 2026-07-31.
+Last reconciled with tracked source: 2026-08-04.
 
 Scope: WooCommerce's classic HTML/PHP transactional email pipeline only.
 Plain-text templates, the block email editor, and POS templates are
@@ -34,9 +34,10 @@ explicitly out of scope and are never touched by any file described here.
 ## Template-routing strategy
 
 `dtb-commerce/Email/TemplateOverride.php` hooks `woocommerce_locate_template`
-at a late priority with an explicit allowlist,
-`DTB_WC_EMAIL_TEMPLATE_MAP` (`template_name => ['file' => ..., 'source_version'
-=> ...]`). It only rewrites WooCommerce's resolved template path when:
+at a late priority with the explicit
+`dtb_commerce_wc_email_template_map()` allowlist (`template_name => ['file' =>
+..., 'source_version' => ...]`). It only rewrites WooCommerce's resolved
+template path when:
 
 - WooCommerce resolved its own bundled default (no theme override already
   won — the active `drywall-toolbox` theme ships no `woocommerce/emails/`
@@ -54,9 +55,10 @@ recording the exact upstream WooCommerce template path and the `@version`
 it was traced against (10.9.4-era, individual files ranging 9.7.0–10.9.0 per
 the reference export), plus a one-line "DTB customization" note. The same
 version metadata lives in `DTB_WC_EMAIL_TEMPLATE_MAP` for code-level
-traceability. **Every override preserves the upstream file's exact
-`do_action`/`apply_filters` call sequence — same hook names, same argument
-order, same call order** — only surrounding markup/copy changes. This is
+traceability. **Every override preserves the upstream runtime
+`do_action`/`apply_filters` extension points, arguments, and semantic order**;
+branch-equivalent markup may consolidate duplicate calls that are mutually
+exclusive upstream. Only surrounding markup/copy changes. This is
 required, not stylistic: `dtb-order-tracking-links.php`'s "Track Order"
 button hooks `woocommerce_email_after_order_table` with 4 args, WooCommerce's
 own structured-data output hooks `woocommerce_email_order_details`, and the
@@ -75,7 +77,10 @@ copy only through each class's own `get_default_subject()` /
 never by replacing or bypassing the settings system. Visual design (colors,
 typography, layout) is DTB-owned via `dtb_email_palette()` and the template
 files, not the WooCommerce admin color-picker options in
-`email-styles.php`.
+`email-styles.php`. The upstream `woocommerce_email_footer_text` filter still
+executes, but its free-form value is not rendered: the approved visible footer
+is limited to confirmed social links, copyright, settings-backed Terms and
+Privacy links, and Contact, with no company street address.
 
 ## Supported email registry
 
@@ -122,7 +127,7 @@ Veeqo (authoritative shipment/tracking facts)
 ```
 
 Verified against the production WooCommerce 10.9.4 vendor source export
-(`drywalltoolbox/wp/wp-content/woo/dtb-woocommerce-fulfillments-source-20260731-123114/`):
+(`drywalltoolbox/wp/wp-content/woocommerce/dtb-woocommerce-fulfillments-source-20260731-123114/`):
 `Fulfillment.php`, `FulfillmentsDataStore.php`, `FulfillmentUtils.php`,
 `OrderFulfillmentsRestController.php`,
 `class-wc-email-customer-fulfillment-{created,updated}.php`. The projector
@@ -232,3 +237,22 @@ Structured data (`WC_Structured_Data::generate_order_data()`/
 unchanged because every override calls the same hooks in the same order as
 the traced upstream template — none of that behavior lived in DTB code
 before this change, and none of it needed to move.
+
+## Presentation and asset contract
+
+The classic HTML shell is table-based, fluid, and capped at 680px. Shared
+body components use a 636px desktop rail and stack at 600px. The primary
+color is `#2255ee`; Nunito is requested with Arial as the deterministic
+fallback. The black/navy hero uses `/logos/email-background-pattern.png`.
+Reusable transparent PNG icons are allowlisted by `dtb_email_icon()` and
+served from `/logos/email-icons/{name}.png`; templates add no icon circles,
+outlines, SVG injection, data URIs, or icon fonts.
+
+The live server therefore needs the tracked `email-icons/` directory uploaded
+under the same public `logos/` directory as the email logo and hero pattern,
+producing public HTTPS URLs such as
+`https://drywalltoolbox.com/logos/email-icons/payment.png`.
+
+`php scripts/tests/woocommerce-email-template-contract-fixtures.php` is the
+static upgrade guard for mapped files, upstream extension points, assets,
+brand tokens, responsive width, refund quantities, and preview safety.
