@@ -81,6 +81,6 @@ if ( ! function_exists( 'dtb_email_render_item_name' ) ) {
 	 * @return string
 	 */
 	function dtb_email_render_item_name( string $item_name ): string {
-		return '<span style="display:block;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Arial,sans-serif;font-size:15px;font-weight:700;line-height:21px;">' . wp_kses_post( $item_name ) . '</span>';
+		return '<span style="display:block;color:#0f172a;font-family:' . dtb_email_font_stack() . ';font-size:15px;font-weight:700;line-height:21px;">' . wp_kses_post( $item_name ) . '</span>';
 	}
 }

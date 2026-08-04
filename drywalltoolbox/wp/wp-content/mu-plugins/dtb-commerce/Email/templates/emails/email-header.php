@@ -42,13 +42,16 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 		<meta name="x-apple-disable-message-reformatting">
 		<meta name="color-scheme" content="light">
 		<meta name="supported-color-schemes" content="light">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
 		<title><?php echo esc_html( $store_name ); ?></title>
 	</head>
 	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
 		<table width="100%" id="outer_wrapper" role="presentation">
 			<tr>
 				<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
-				<td width="680">
+				<td width="960">
 					<div id="wrapper" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 						<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="inner_wrapper" role="presentation">
 							<tr>
@@ -59,9 +62,9 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 											<td id="template_header_image" align="center">
 												<?php if ( $logo_url ) : ?>
 													<?php if ( $header_image_url ) : ?>
-														<p style="margin:0;"><a href="<?php echo esc_url( $header_image_url ); ?>" style="display:inline-block;text-decoration:none;" target="_blank"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="300" style="display:block;width:300px;max-width:78%;height:auto;"></a></p>
+														<p style="margin:0;"><a href="<?php echo esc_url( $header_image_url ); ?>" style="display:inline-block;text-decoration:none;" target="_blank"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="230" style="display:block;width:230px;max-width:72%;height:auto;"></a></p>
 													<?php else : ?>
-														<p style="margin:0;"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="300" style="display:block;width:300px;max-width:78%;height:auto;"></p>
+														<p style="margin:0;"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="230" style="display:block;width:230px;max-width:72%;height:auto;"></p>
 													<?php endif; ?>
 												<?php else : ?>
 													<p class="email-logo-text" style="margin:0;"><?php echo esc_html( $store_name ); ?></p>

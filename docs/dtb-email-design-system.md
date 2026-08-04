@@ -1,6 +1,6 @@
 # DTB Email Design System
 
-Last reconciled with tracked source: 2026-07-31.
+Last reconciled with tracked source: 2026-08-04.
 
 This is the design specification for the WooCommerce classic HTML email
 redesign (see `docs/operations/woocommerce-html-email-architecture.md` for
@@ -10,14 +10,18 @@ how that content gets on the wire.
 
 ## Visual language
 
-- **Brand identity.** Dark navy header (`#071126`) carrying the DTB logo,
-  a clean white content surface (`#ffffff`), controlled blue accents
-  (`#2563eb`) for links/buttons/badges, and restrained borders
+- **Brand identity.** A black header carrying the DTB logo, a clean white
+  content surface (`#ffffff`), brand-primary blue accents (`#2255ee`) for
+  links/buttons/badges, and restrained borders
   (`#dce6f3`/`#cbd5e1`) instead of heavy dividers or drop shadows. This
   matches the palette already established for DTB's other transactional
   email surfaces (`dtb_email_palette('light')`, `dtb-platform/Support/Email.php`)
   so the WooCommerce classic pipeline and DTB's support/returns/repair/
   marketing emails read as one brand, not two.
+- **Typography.** Nunito is the only intended display and body typeface.
+  HTML emails request weights 400-800 from Google Fonts and use
+  `Nunito, Arial, sans-serif`; clients that block remote fonts receive Arial
+  without changing hierarchy or layout.
 - **Tone.** Professional, direct, and specific to drywall tools/parts/repairs
   — no generic ecommerce filler ("Thank you for your purchase!"). Every
   email states what happened, what it means for the customer, and what (if
@@ -25,16 +29,16 @@ how that content gets on the wire.
 
 ## Layout architecture
 
-Fixed-width (600px) single-column table layout, the email-client-safe
-standard used by every major transactional sender (Stripe, Shopify, GitHub,
-Linear): a dark logo-only header band, a white content body, and a dark
-footer band bookending it (same dark color as the header — see Redesign v2
-below). See `Email/templates/emails/email-header.php` / `email-footer.php` /
+Fluid table layout capped at 960px on desktop and filled to the viewport on
+mobile: a dark logo-only header band, a white content body, and a dark footer
+band bookending it. Hero, header, and footer are edge-to-edge; body components
+share one 32px desktop content rail and a 14px mobile rail. See
+`Email/templates/emails/email-header.php` / `email-footer.php` /
 `email-styles.php` in `dtb-commerce` for the concrete markup. Content within
 the body follows a consistent vertical rhythm: hero (order-number eyebrow +
 heading + subheading) → progress tracker (order-lifecycle emails only, where
 the caller has authoritative state to show — see below) → lede paragraph(s)
-→ order summary card → addresses card → next-steps grid / support card →
+→ order summary card → addresses card → support card →
 footer.
 
 ## Component library
@@ -48,9 +52,9 @@ email:
 | Component | Function | Used for |
 |---|---|---|
 | Hero | `dtb_email_hero( $heading, $subheading, $eyebrow )` | the patterned black/blue lifecycle heading block every email leads with — heading is always the caller's `$email_heading` (admin-configurable), never invented copy |
-| Progress tracker | `dtb_email_progress_steps( $steps )` | lifecycle-stage circles + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows; optional icon keys render from `/logos/email-icons/` |
-| Card | `dtb_email_card_open( $title, $meta, $icon )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close; optional icon keys render from `/logos/email-icons/` |
-| Next-steps grid | `dtb_email_next_steps_grid( $items )` | self-contained "what's next?" card, up to 3 numbered mini-columns per row; optional icon keys render from `/logos/email-icons/` |
+| Progress tracker | `dtb_email_progress_steps( $steps )` | standalone lifecycle icons + connecting line + labels; caller-driven per-step tone (`done`/`active`/`warning`/`danger`/`upcoming`) — only used where the template has authoritative state for every stage it shows |
+| Card | `dtb_email_card_open( $title, $meta, $icon )` / `dtb_email_card_close()` | white rounded bordered section (order summary, addresses, shipment summary); native `do_action()` output can be echoed directly between open/close; icons are reserved for the address panel |
+| Next-steps grid | `dtb_email_next_steps_grid( $items )` | icon-free compact text grid retained for exceptional content; omitted from processing emails because the lifecycle tracker already communicates the next state |
 | Support card | `dtb_email_support_card( $text, $cta_url, $cta_label )` | "need help?" card with an outlined CTA button and the default `support` icon from `/logos/email-icons/support.png` |
 | Status badge | `dtb_email_status_badge( $label, $tone )` | payment/shipment/refund state at a glance, used where no progress tracker applies (cancelled/failed/refunded/shipment-updated) |
 | CTA button | `dtb_email_button( $url, $label )` | pay, retry payment, reset password, view account — MSO-safe with a VML fallback |
@@ -91,11 +95,11 @@ a second mobile-specific template.
 Table-based layout (no CSS Grid/Flexbox), inline styles applied by
 WooCommerce's own Emogrifier CSS-inliner pipeline from `email-styles.php`
 (WooCommerce core mechanism, unchanged), an MSO conditional VML fallback for
-the button component (`dtb_email_button()`), and no background images or
-custom web fonts — the system font stack
-(`-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif`) renders
-consistently across Outlook, Gmail, Apple Mail, and mobile clients without a
-web-font fallback flash. Dark-mode email clients are not specifically
+the button component (`dtb_email_button()`), and a VML-backed hero background
+using `/logos/email-background-pattern.png`. Nunito is requested from Google
+Fonts and repeated in inline font declarations; Arial is the deterministic
+fallback for clients such as desktop Outlook that block web fonts. Dark-mode
+email clients are not specifically
 inverted (a deliberate reliability choice — the fixed navy header and white
 body read correctly in both light- and dark-mode inboxes without relying on
 `prefers-color-scheme` support, which several major clients still handle
@@ -172,10 +176,10 @@ second rendering authority.
   tokens (`footer_bg`/`footer_text`/`footer_link`/`footer_sep`) reworked to
   a dark bookend matching the header.
 - `email-header.php` / `email-styles.php` / `email-footer.php`: header band
-  is now logo-only (the `<h1>` heading moved into the hero, in the white
-  body); footer band is now dark to match the header, with social icons and
-  "Contact Us" wording; the global `h1` rule now describes hero context
-  (dark text, centered, bolder) instead of the old dark-header-band context.
+  is now logo-only; the `<h1>` heading moved into the full-width patterned
+  hero with white, left-aligned text. The footer band is dark to match the
+  header, with social icons and "Contact Us" wording; the global `h1` rule
+  now describes that hero context instead of the old header-band context.
 - `email-order-details.php` / `email-addresses.php` /
   `email-fulfillment-details.php`: order summary, addresses, and shipment
   summary are now wrapped in the shared card component; SKU is now shown to
@@ -209,9 +213,10 @@ second rendering authority.
   data (`sameAs`). No YouTube/LinkedIn/X icon was added, since none of
   those profiles exist in the codebase and inventing a URL would be a
   broken link in production.
-- Progress-step, card, support, next-step, and social icons render through
-  `dtb_email_icon()` from hosted PNG assets under `/logos/email-icons/`.
-  Templates still fall back to plain numerals when a caller omits an icon.
+- Progress, address, support, and social icons render directly through
+  `dtb_email_icon()` from transparent PNG assets under `/logos/email-icons/`.
+  Template markup never adds a circular background, border, or outline around
+  an icon. Order, shipment, and generic section headings remain text-only.
 - `customer_fulfillment_created` is the only progress tracker with an
   "on the way" step marked `active` rather than `upcoming`; it's backed by
   an actual Veeqo-projected `Fulfillment` object, not inference. No other

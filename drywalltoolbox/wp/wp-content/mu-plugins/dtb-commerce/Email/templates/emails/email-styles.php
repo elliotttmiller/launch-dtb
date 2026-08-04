@@ -18,10 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $palette = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' ) : [];
-$font    = "-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif";
+$font    = function_exists( 'dtb_email_font_stack' ) ? dtb_email_font_stack() : "'Nunito',Arial,sans-serif";
 ?>
 body {
 	background-color: <?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;
+	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	padding: 0;
 	text-align: center;
 }
@@ -32,41 +33,36 @@ body {
 
 #wrapper {
 	margin: 0 auto;
-	padding: 28px 0;
+	padding: 24px 0;
 	-webkit-text-size-adjust: none !important;
 	width: 100%;
-	max-width: 680px;
+	max-width: 960px;
 }
 
 #inner_wrapper {
 	background-color: <?php echo esc_attr( $palette['card_bg'] ?? '#ffffff' ); ?>;
 	border: 1px solid #e2e5ea;
-	border-radius: 20px;
+	border-radius: 16px;
 	overflow: hidden;
 }
 
 #template_header {
 	background-color: <?php echo esc_attr( $palette['header_bg'] ?? '#000000' ); ?>;
+	border-collapse: collapse;
 }
 
 #template_header_image {
-	padding: 24px 32px 22px;
+	padding: 22px 32px 20px;
 }
 
-/* h1 no longer renders inside the dark #template_header band (that band is
- * logo-only now — see email-header.php) — it only ever appears inside
- * dtb_email_hero()'s white-body markup, which already sets its own explicit
- * inline color/alignment. This rule is the non-inline fallback for that same
- * context (dark-on-white, centered), not the old header-band styling
- * (light-on-dark, left-aligned) it used to describe. */
 h1 {
-	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
+	color: #ffffff;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
-	font-size: 30px;
+	font-size: 36px;
 	font-weight: 800;
-	line-height: 130%;
+	line-height: 116%;
 	margin: 0;
-	text-align: center;
+	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
 }
 
 h2 {
@@ -87,12 +83,18 @@ h2 {
 	color: <?php echo esc_attr( $palette['intro'] ?? '#475569' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 15px;
-	line-height: 155%;
+	line-height: 150%;
 	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
 }
 
 #body_content_inner_cell {
-	padding: 20px 48px 8px;
+	padding: 0 0 8px;
+}
+
+#body_content_inner > p,
+#body_content_inner > h2 {
+	margin-left: 32px;
+	margin-right: 32px;
 }
 
 #body_content p {
@@ -101,7 +103,7 @@ h2 {
 
 a,
 .link {
-	color: <?php echo esc_attr( $palette['accent'] ?? '#2563eb' ); ?>;
+	color: <?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;
 	font-weight: 600;
 	text-decoration: underline;
 }
@@ -114,7 +116,7 @@ a,
 
 .email-order-details td,
 .email-order-details th {
-	padding: 14px 4px;
+	padding: 14px 6px;
 }
 
 .email-order-details thead th {
@@ -126,13 +128,13 @@ a,
 }
 
 .email-order-details tbody tr.order_item > td:nth-child(2) {
-	width: 64px;
+	width: 52px;
 	color: #64748b;
 	font-size: 13px;
 }
 
 .email-order-details tbody tr.order_item > td:last-child {
-	width: 96px;
+	width: 88px;
 	color: #0f172a;
 	font-size: 16px;
 	font-weight: 800;
@@ -140,27 +142,35 @@ a,
 
 .email-order-totals tr.order-totals td,
 .email-order-totals tr.order-totals th {
-	padding: 5px 4px;
+	padding: 6px 4px;
 	font-size: 14px;
 }
 
 .email-order-totals tr.order-totals th {
-	padding-left: 54% !important;
+	padding-left: 0 !important;
+	color: #111827;
+	font-weight: 600;
+	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
+}
+
+.email-order-totals tr.order-totals td {
+	color: #111827;
+	white-space: nowrap;
 }
 
 .order-totals-total td,
 .order-totals-total th {
 	font-weight: 800;
 	font-size: 18px;
-	color: <?php echo esc_attr( $palette['accent'] ?? '#2563eb' ); ?>;
+	color: <?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;
 	border-top: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
 	padding-top: 14px !important;
 }
 
 .address {
-	color: <?php echo esc_attr( $palette['text'] ?? '#64748b' ); ?>;
+	color: #334155;
 	font-style: normal;
-	line-height: 145%;
+	line-height: 150%;
 	padding: 4px 0;
 }
 
@@ -168,14 +178,13 @@ a,
 	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
 	font-size: 12px;
-	font-weight: 760;
-	letter-spacing: 0.08em;
+	font-weight: 800;
 	text-transform: uppercase;
 }
 
 .fulfillment-status {
 	background: <?php echo esc_attr( $palette['accent_soft_bg'] ?? '#e8f1ff' ); ?>;
-	color: <?php echo esc_attr( $palette['accent_soft_tx'] ?? '#1e4fd8' ); ?>;
+	color: <?php echo esc_attr( $palette['accent_soft_tx'] ?? '#2255ee' ); ?>;
 	padding: 2px 8px;
 	border-radius: 6px;
 	font-weight: 700;
@@ -213,11 +222,15 @@ a,
 	font-size: 12px;
 	line-height: 150%;
 	text-align: center;
-	padding: 28px 32px 32px;
+	padding: 26px 32px 30px;
+}
+
+.email-additional-content {
+	padding: 4px 32px 18px;
 }
 
 #template_footer #credit a {
-	color: <?php echo esc_attr( $palette['footer_link'] ?? '#8bb7ff' ); ?>;
+	color: <?php echo esc_attr( $palette['footer_link'] ?? '#2255ee' ); ?>;
 }
 
 @media screen and (max-width: 600px) {
@@ -251,7 +264,7 @@ a,
 	}
 
 	.dtb-email-hero-cell {
-		padding: 28px 22px 32px !important;
+		padding: 34px 24px 38px !important;
 	}
 
 	.dtb-email-hero h1 {
@@ -265,13 +278,32 @@ a,
 	}
 
 	#body_content_inner_cell {
-		padding: 0 14px 6px !important;
+		padding: 0 0 6px !important;
+	}
+
+	#body_content_inner > p,
+	#body_content_inner > h2 {
+		margin-left: 18px !important;
+		margin-right: 18px !important;
+	}
+
+	.dtb-email-card,
+	.dtb-support-card,
+	.dtb-email-progress {
+		width: calc(100% - 28px) !important;
+		max-width: none !important;
+		margin-left: 14px !important;
+		margin-right: 14px !important;
+	}
+
+	.dtb-email-card > tbody > tr > td {
+		padding: 18px 16px !important;
 	}
 
 	.dtb-progress-marker > table td {
-		width: 38px !important;
-		height: 38px !important;
-		padding: 0 6px !important;
+		width: 34px !important;
+		height: 36px !important;
+		padding: 0 4px !important;
 	}
 
 	.dtb-progress-marker img {
@@ -285,30 +317,30 @@ a,
 	}
 
 	.order-item-data td:first-child {
-		width: 84px !important;
-		padding-right: 10px !important;
+		width: 58px !important;
+		padding-right: 8px !important;
 	}
 
 	.order-item-data img {
-		width: 72px !important;
-		height: 56px !important;
+		width: 52px !important;
+		height: 46px !important;
 	}
 
 	.email-order-details tbody tr.order_item > td:nth-child(2) {
-		width: 42px !important;
+		width: 28px !important;
 		padding-left: 2px !important;
 		padding-right: 2px !important;
 		font-size: 11px !important;
 	}
 
 	.email-order-details tbody tr.order_item > td:last-child {
-		width: 72px !important;
+		width: 62px !important;
 		padding-left: 4px !important;
 		font-size: 13px !important;
 	}
 
 	.email-order-totals tr.order-totals th {
-		padding-left: 28% !important;
+		padding-left: 0 !important;
 	}
 
 	#addresses > tbody > tr > td,
@@ -321,6 +353,10 @@ a,
 
 	.dtb-support-action {
 		padding-top: 14px !important;
+	}
+
+	.email-additional-content {
+		padding: 4px 18px 16px !important;
 	}
 
 	.dtb-next-step {

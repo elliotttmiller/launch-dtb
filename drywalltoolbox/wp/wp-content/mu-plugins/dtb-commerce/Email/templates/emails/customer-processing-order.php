@@ -39,16 +39,8 @@ do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_tex
 do_action( 'woocommerce_email_order_meta', $order, $sent_to_admin, $plain_text, $email );
 do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_text, $email );
 
-echo function_exists( 'dtb_email_next_steps_grid' ) ? dtb_email_next_steps_grid( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	[
-		[ 'text' => __( 'We\'ll email you when your order ships.', 'drywall-toolbox' ), 'icon' => 'mail' ],
-		[ 'text' => __( 'Carefully packed and built for the job.', 'drywall-toolbox' ), 'icon' => 'package' ],
-		[ 'text' => __( 'Fast, reliable delivery straight to you.', 'drywall-toolbox' ), 'icon' => 'truck' ],
-	]
-) : '';
-
 echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	__( 'Our team is here to help with any questions about your order.', 'drywall-toolbox' ),
+	__( 'We\'re here for you.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
 	'support',
