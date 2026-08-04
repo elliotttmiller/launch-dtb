@@ -21,9 +21,7 @@ import {
   Package,
   RefreshCw,
   Settings,
-  ShieldCheck,
   Truck,
-  Zap,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import OrderConfirmedHero from '../components/order/OrderConfirmedHero.jsx';
@@ -37,11 +35,11 @@ import '../styles/order-pages.css';
 import '../styles/order-tracking.css';
 
 const TRACKING_STEPS = [
-  { id: 'received', label: 'Received', description: 'Order captured', Icon: Check },
-  { id: 'payment', label: 'Payment', description: 'Payment confirmed', Icon: Check },
-  { id: 'processing', label: 'Processing', description: 'Preparing items', Icon: Settings },
-  { id: 'shipped', label: 'Shipped', description: 'In transit', Icon: Truck },
-  { id: 'complete', label: 'Delivered', description: 'Complete', Icon: Package },
+  { id: 'received', label: 'Received', description: 'Order captured', Icon: Check, eventTypes: ['order.created'] },
+  { id: 'payment', label: 'Payment', description: 'Payment confirmed', Icon: Check, eventTypes: ['order.payment_confirmed'] },
+  { id: 'processing', label: 'Processing', description: 'Preparing items', Icon: Settings, eventTypes: ['order.picked', 'order.packed', 'order.inventory_reserved'] },
+  { id: 'shipped', label: 'Shipped', description: 'In transit', Icon: Truck, eventTypes: ['order.shipped'] },
+  { id: 'complete', label: 'Delivered', description: 'Complete', Icon: Package, eventTypes: ['order.delivered', 'order.completed'] },
 ];
 
 const CHECKOUT_COMPLETE_QUERY_KEYS = ['checkout_complete', 'payment_complete', 'dtb_checkout_complete'];
@@ -204,23 +202,26 @@ function getStatusTone(status) {
   return 'info';
 }
 
-function buildProgressUpdates(order, activeIndex) {
-  const placedAt = getPlacedAt(order);
-  const updatedAt = getLastUpdatedAt(order);
-  const currentLabel = resolveStatusLabel(order);
-  const updates = [
-    { label: currentLabel, at: updatedAt || placedAt },
-  ];
+function findTimelineEventAt(order, eventTypes) {
+  const timeline = Array.isArray(order?.timeline) ? order.timeline : [];
+  const match = timeline.find((event) => eventTypes.includes(event?.type));
+  return match?.occurred_at || null;
+}
 
-  if (activeIndex >= 2) {
-    updates.push({ label: 'Payment confirmed', at: placedAt });
-  }
-
-  updates.push({ label: 'Order received', at: placedAt });
-
-  return updates
-    .filter((event, index, all) => event.label && all.findIndex((candidate) => candidate.label === event.label) === index)
-    .slice(0, 4);
+/*
+ * Timestamp for a given step in the tracker, so each reached step reads
+ * "what happened, when" in one place instead of a separate progress-updates
+ * list duplicating the same events. Prefers the order's real event timeline
+ * (order.created / order.payment_confirmed / etc, see TRACKING_STEPS'
+ * eventTypes) for the actual status-transition time; falls back to the
+ * order's placed_at (or last_updated_at for the current step) when no
+ * matching timeline event was recorded.
+ */
+function getStepTimestamp(order, step, stepIndex, activeIndex) {
+  if (stepIndex > activeIndex) return null;
+  const eventTimestamp = findTimelineEventAt(order, step.eventTypes);
+  if (eventTimestamp) return eventTimestamp;
+  return stepIndex === activeIndex ? getLastUpdatedAt(order) : getPlacedAt(order);
 }
 
 function renderStatusIcon(status) {
@@ -249,42 +250,13 @@ function TrackingSkeleton() {
   );
 }
 
-function OrderProgressUpdates({ updates = [], streaming }) {
-  return (
-    <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="progress-updates-title">
-      <header className="dtb-order-sheet-section__header">
-        <h2 id="progress-updates-title" className="dtb-order-card__title">Progress updates</h2>
-        {streaming ? <span className="dtb-order-live-badge"><span /> Live updates</span> : <span className="dtb-order-card__chip">Latest update</span>}
-      </header>
-      <div className="dtb-order-sheet-section__body">
-        {updates.length ? (
-          <ol className="dtb-order-progress-updates-list">
-            {updates.map((event, index) => (
-              <li key={`${event.label}-${event.at || index}`} aria-current={index === 0 ? 'true' : undefined}>
-                <span className={`dtb-order-update-dot ${index === 0 ? 'is-current' : ''}`} aria-hidden="true" />
-                <div>
-                  <p>{event.label}</p>
-                  <time>{formatDateTime(event.at)}</time>
-                </div>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <div className="dtb-order-empty-state">
-            <h3>No updates yet</h3>
-            <p>Progress updates will appear here as your order moves through fulfillment.</p>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
 function OrderSummaryCard({ order }) {
   if (!order) return null;
   const currency = order?.currency;
   const shippingTotal = parseMoney(order?.shipping_total);
-  const hasShipping = hasMoneyField(order?.shipping_total);
+  const hasShipping = Boolean(order?.has_shipping) && hasMoneyField(order?.shipping_total);
+  const subtotal = formatMoney(order?.subtotal, currency);
+  const total = formatMoney(order?.total, currency);
   return (
     <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="order-summary-title">
       <header className="dtb-order-sheet-section__header">
@@ -294,19 +266,19 @@ function OrderSummaryCard({ order }) {
         <div className="dtb-order-totals dtb-order-totals--summary">
           <div className="dtb-order-total-row">
             <span>Subtotal</span>
-            <strong>{formatMoney(order?.subtotal, currency)}</strong>
+            <strong>{subtotal || '—'}</strong>
           </div>
           <div className="dtb-order-total-row">
             <span>Shipping</span>
             <strong>
               {hasShipping
                 ? (shippingTotal === 0 ? <span className="dtb-order-free">FREE</span> : formatMoney(shippingTotal, currency))
-                : 'Calculated at next step'}
+                : '—'}
             </strong>
           </div>
           <div className="dtb-order-total-row dtb-order-total-row--grand">
             <span>Total</span>
-            <strong>{formatMoney(order?.total, currency)} {currency || 'USD'}</strong>
+            <strong>{total || '—'}</strong>
           </div>
         </div>
       </div>
@@ -317,12 +289,6 @@ function OrderSummaryCard({ order }) {
 function hasMoneyField(value) {
   return value !== null && value !== undefined && value !== '';
 }
-
-const HELP_FEATURES = [
-  { Icon: ShieldCheck, title: 'Secure Checkout', description: 'Your payment information is safe and secure.' },
-  { Icon: Zap, title: 'Fast Processing', description: 'Orders are processed quickly and efficiently.' },
-  { Icon: Truck, title: 'Reliable Shipping', description: 'We ship with trusted carriers worldwide.' },
-];
 
 function OrderTrackingHelpFooter() {
   return (
@@ -339,22 +305,11 @@ function OrderTrackingHelpFooter() {
           </Link>
         </div>
       </div>
-      <ul className="dtb-order-help-card__features">
-        {HELP_FEATURES.map(({ Icon, title, description }) => (
-          <li key={title}>
-            <span aria-hidden="true"><Icon size={18} strokeWidth={1.8} /></span>
-            <div>
-              <p>{title}</p>
-              <p>{description}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
 
-function OrderStatusTracker({ order, loading, onRefresh }) {
+function OrderStatusTracker({ order, loading, onRefresh, streaming }) {
   const status = String(order?.status || 'pending').toLowerCase();
   const activeIndex = getStepIndex(order);
   const label = resolveStatusLabel(order);
@@ -397,6 +352,7 @@ function OrderStatusTracker({ order, loading, onRefresh }) {
           <h2>{label}</h2>
           <p>{statusDescription}</p>
         </div>
+        {streaming ? <span className="dtb-order-live-badge"><span /> Live updates</span> : null}
       </div>
 
       {isNegative ? (
@@ -411,6 +367,7 @@ function OrderStatusTracker({ order, loading, onRefresh }) {
           const active = index === activeIndex;
           const future = !complete && !active;
           const StepIcon = step.Icon;
+          const timestamp = getStepTimestamp(order, step, index, activeIndex);
           return (
             <li
               key={step.id}
@@ -423,21 +380,11 @@ function OrderStatusTracker({ order, loading, onRefresh }) {
               </span>
               <strong>{step.label}</strong>
               <small>{active ? statusDescription : step.description}</small>
+              {timestamp ? <time>{formatDateTime(timestamp)}</time> : null}
             </li>
           );
         })}
       </ol>
-
-      <div className="dtb-order-status-panel__metrics">
-        <div>
-          <span>Placed</span>
-          <strong>{formatDateTime(getPlacedAt(order))}</strong>
-        </div>
-        <div>
-          <span>Last updated</span>
-          <strong>{formatDateTime(getLastUpdatedAt(order))}</strong>
-        </div>
-      </div>
     </section>
   );
 }
@@ -601,7 +548,6 @@ export default function OrderTracking() {
   const { order, items, tracking } = viewModel;
   const showCheckoutSuccess = checkoutComplete && order && shouldClearCartForCompletedCheckout(order);
   const trackingHref = `/order-tracking/${encodeURIComponent(order?.id || id)}${orderKey ? `?order_key=${encodeURIComponent(orderKey)}` : ''}`;
-  const progressUpdates = order ? buildProgressUpdates(order, getStepIndex(order)) : [];
 
   return (
     <div className="dtb-order-page page-wrapper">
@@ -621,13 +567,10 @@ export default function OrderTracking() {
         ) : null}
         <section className="dtb-order-sheet dtb-order-sheet--tracking">
           <div className="dtb-order-sheet__content">
-            {order ? <OrderStatusTracker order={order} loading={loading} onRefresh={refresh} /> : null}
+            {order ? <OrderStatusTracker order={order} loading={loading} onRefresh={refresh} streaming={streaming} /> : null}
             {order ? <PaymentActionCard order={order} /> : null}
 
-            <div className="dtb-order-tracking-grid">
-              <OrderProgressUpdates updates={progressUpdates} streaming={streaming} />
-              <ShipmentCard tracking={tracking} order={order} />
-            </div>
+            <ShipmentCard tracking={tracking} order={order} />
 
             <div className="dtb-order-tracking-grid">
               <ItemsCard items={items} currency={order?.currency} imageFallbacks={itemImageFallbacks} />

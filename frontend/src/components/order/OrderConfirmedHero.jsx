@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Check, Package } from 'lucide-react';
 import '../../styles/order-confirmed-hero.css';
 
 export default function OrderConfirmedHero({
@@ -12,13 +11,6 @@ export default function OrderConfirmedHero({
   return (
     <section className="dtb-confirmed-hero" aria-labelledby={titleId}>
       <div className="dtb-confirmed-hero__content">
-        <span className="dtb-confirmed-hero__icon" aria-hidden="true">
-          <Package size={30} strokeWidth={1.7} />
-          <span className="dtb-confirmed-hero__icon-badge">
-            <Check size={13} strokeWidth={3.2} />
-          </span>
-        </span>
-
         <p className="dtb-confirmed-hero__eyebrow">Payment successful</p>
         <h1 id={titleId} className="dtb-confirmed-hero__title">Order confirmed!</h1>
 

@@ -116,6 +116,12 @@ function dtb_order_build_tracking_projection( int $order_id ): ?array {
 		'estimated_delivery' => $estimated_delivery ? sanitize_text_field( (string) $estimated_delivery ) : null,
 		'items'              => $items,
 		'timeline'           => $timeline,
+		'number'             => $order->get_order_number(),
+		'currency'           => $order->get_currency(),
+		'subtotal'           => $order->get_subtotal(),
+		'shipping_total'     => $order->get_shipping_total(),
+		'has_shipping'       => ! empty( $order->get_shipping_methods() ),
+		'total'              => $order->get_total(),
 	];
 }
 

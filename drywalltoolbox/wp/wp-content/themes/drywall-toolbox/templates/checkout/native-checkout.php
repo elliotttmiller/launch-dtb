@@ -36,7 +36,16 @@ wp_enqueue_style(
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 	<meta name="robots" content="noindex,nofollow,noarchive">
-	<?php wp_head(); ?>
+	<?php
+	/*
+	 * The branded top bar's critical-CSS guard (logo/badge sizing) is
+	 * enqueued as an inline style on the dtb-checkout handle in
+	 * dtb_enqueue_native_checkout_assets() (functions.php) so it prints
+	 * here via wp_head(), immediately alongside checkout.css's own <link>
+	 * tag rather than waiting for that stylesheet's network request.
+	 */
+	wp_head();
+	?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
