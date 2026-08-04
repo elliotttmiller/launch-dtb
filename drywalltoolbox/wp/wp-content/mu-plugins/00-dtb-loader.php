@@ -97,6 +97,29 @@ function dtb_feature_enabled( string $constant_name, bool $default = true ): boo
 /**
  * Structured, redacted security logging for denied origins/permissions.
  */
+function dtb_security_log_redact_value( string $key, $value ): string {
+	$raw = is_bool( $value ) ? ( $value ? '1' : '0' ) : (string) $value;
+
+	if ( in_array( $key, [ 'uri', 'url', 'request_uri' ], true ) ) {
+		$path = wp_parse_url( $raw, PHP_URL_PATH );
+		return is_string( $path ) ? sanitize_text_field( $path ) : '';
+	}
+
+	if ( 'ip' === $key ) {
+		if ( '' === trim( $raw ) ) {
+			return '';
+		}
+		return 'sha256:' . substr( hash_hmac( 'sha256', $raw, wp_salt( 'auth' ) ), 0, 16 );
+	}
+
+	$raw = preg_replace( '/\bpi_[A-Za-z0-9]+_secret_[A-Za-z0-9]+\b/', '[redacted-payment-client-secret]', $raw ) ?? $raw;
+	$raw = preg_replace( '/\bwc_order_[A-Za-z0-9]+\b/', '[redacted-order-key]', $raw ) ?? $raw;
+	$raw = preg_replace( '/\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]+\b/', '[redacted-provider-key]', $raw ) ?? $raw;
+	$raw = preg_replace( '/\b(?:Bearer|Basic)\s+[A-Za-z0-9._~+\/=\-]+/i', '[redacted-authorization]', $raw ) ?? $raw;
+
+	return substr( sanitize_text_field( $raw ), 0, 1000 );
+}
+
 function dtb_security_log( string $event, array $context = [] ): void {
 	if ( ! dtb_feature_enabled( 'DTB_SECURITY_LOGGING', true ) ) {
 		return;
@@ -106,18 +129,19 @@ function dtb_security_log( string $event, array $context = [] ): void {
 
 	foreach ( $context as $key => $value ) {
 		if ( is_scalar( $value ) || null === $value ) {
-			$safe_context[ sanitize_key( (string) $key ) ] = is_bool( $value )
+			$safe_key                  = sanitize_key( (string) $key );
+			$safe_context[ $safe_key ] = is_bool( $value )
 				? $value
-				: sanitize_text_field( (string) $value );
+				: dtb_security_log_redact_value( $safe_key, $value );
 		}
 	}
 
 	$safe_context += [
 		'user_id' => function_exists( 'get_current_user_id' ) ? (int) get_current_user_id() : 0,
 		'method'  => isset( $_SERVER['REQUEST_METHOD'] ) ? sanitize_text_field( (string) wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) : '',
-		'uri'     => isset( $_SERVER['REQUEST_URI'] ) ? esc_url_raw( (string) wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '',
+		'uri'     => isset( $_SERVER['REQUEST_URI'] ) ? dtb_security_log_redact_value( 'uri', wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '',
 		'origin'  => isset( $_SERVER['HTTP_ORIGIN'] ) ? esc_url_raw( (string) wp_unslash( $_SERVER['HTTP_ORIGIN'] ) ) : '',
-		'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( (string) wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
+		'ip'      => isset( $_SERVER['REMOTE_ADDR'] ) ? dtb_security_log_redact_value( 'ip', wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '',
 	];
 
 	error_log(
