@@ -502,8 +502,22 @@ def register_account(
     ):
         raise CheckoutFlowError("Registration form password-confirmation field not found.")
     submit = page.get_by_role("button", name=re.compile("register|create account|sign up", re.I)).first
-    submit.click()
-    page.wait_for_load_state("networkidle")
+    try:
+        with page.expect_response(
+            lambda response: (
+                response.request.method == "POST"
+                and "/wp-json/dtb/v1/auth/register" in response.url
+            ),
+            timeout=config.browser_timeout_ms * 2,
+        ) as registration_request:
+            submit.click()
+        registration_response = registration_request.value
+    except PlaywrightTimeoutError as exc:
+        raise CheckoutFlowError(
+            "Registration form did not return a DTB authentication response."
+        ) from exc
+
+    _require_successful_auth_response(registration_response, "Registration")
 
 
 def login(page: "Page", config: "Config", email: str, password: str) -> None:
@@ -513,14 +527,28 @@ def login(page: "Page", config: "Config", email: str, password: str) -> None:
     if not _fill_first_matching(page, ['input[name="password"]', "#password", 'input[type="password"]'], password):
         raise CheckoutFlowError("Login form password field not found.")
     submit = page.get_by_role("button", name=re.compile("log ?in|sign in", re.I)).first
-    submit.click()
-    page.wait_for_load_state("networkidle")
+    try:
+        with page.expect_response(
+            lambda response: (
+                response.request.method == "POST"
+                and "/wp-json/dtb/v1/auth/login" in response.url
+            ),
+            timeout=config.browser_timeout_ms * 2,
+        ) as login_request:
+            submit.click()
+        login_response = login_request.value
+    except PlaywrightTimeoutError as exc:
+        raise CheckoutFlowError(
+            "Login form did not return a DTB authentication response."
+        ) from exc
+
+    login_data = _require_successful_auth_response(login_response, "Login")
 
     # Clicking Submit is not proof that the HttpOnly DTB cookie converged with
     # native WordPress identity. Match the storefront's post-login validation
     # contract before reporting this step as successful.
     last_state: dict = {}
-    for attempt in range(5):
+    for attempt in range(8):
         last_state = page.evaluate(
             """async () => {
                 const response = await fetch('/wp-json/dtb/v1/auth/validate', {
@@ -547,16 +575,39 @@ def login(page: "Page", config: "Config", email: str, password: str) -> None:
             and native.get("status") in {"aligned", "bridged"}
         ):
             return
-        if attempt < 4:
+        if attempt < 7:
             page.wait_for_timeout(250 * (attempt + 1))
 
     data = last_state.get("data") or {}
     native = (data.get("session") or {}).get("native_checkout") or {}
     raise CheckoutFlowError(
         "Login submission did not establish a checkout-ready customer session "
-        f"(authenticated={data.get('authenticated')!r}, "
+        f"(login_http={login_response.status}, login_success={login_data.get('success')!r}, "
+        f"authenticated={data.get('authenticated')!r}, "
         f"status={native.get('status', 'unknown')!r}, ready={native.get('ready')!r})."
     )
+
+
+def _require_successful_auth_response(response, action: str) -> dict:
+    """Validate one DTB auth response without logging credentials or tokens."""
+
+    try:
+        data = response.json()
+    except (PlaywrightError, ValueError) as exc:
+        raise CheckoutFlowError(
+            f"{action} returned HTTP {response.status} without a valid JSON response."
+        ) from exc
+
+    if not isinstance(data, dict):
+        raise CheckoutFlowError(
+            f"{action} returned HTTP {response.status} with an invalid response body."
+        )
+
+    if response.status >= 400 or data.get("success") is not True or not data.get("user"):
+        message = str(data.get("message") or data.get("code") or "authentication request rejected")
+        raise CheckoutFlowError(f"{action} failed with HTTP {response.status}: {message}")
+
+    return data
 
 
 def logout(page: "Page", config: "Config") -> None:

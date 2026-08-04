@@ -12,6 +12,7 @@ from config import Config  # noqa: E402
 from integrations.woocommerce import CheckoutExpectation, OrderSnapshot, WooCommerceClient  # noqa: E402
 from workflows.common import (  # noqa: E402
     CheckoutFlowError,
+    _require_successful_auth_response,
     configured_product,
     find_first_purchasable_product,
     order_id_from_confirmation_url,
@@ -52,6 +53,30 @@ class TestCustomerEmailConfigTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "LAUNCH_TEST_EMAIL_ADDRESS"):
             config.make_test_customer_email("guest", "ab12cd34")
+
+
+class AuthResponseContractTests(unittest.TestCase):
+    def test_accepts_confirmed_auth_response(self) -> None:
+        response = Mock(status=200)
+        response.json.return_value = {"success": True, "user": {"id": 42}}
+
+        data = _require_successful_auth_response(response, "Login")
+
+        self.assertEqual(42, data["user"]["id"])
+
+    def test_rejects_auth_error_with_server_message(self) -> None:
+        response = Mock(status=401)
+        response.json.return_value = {"success": False, "message": "Invalid credentials."}
+
+        with self.assertRaisesRegex(CheckoutFlowError, "HTTP 401: Invalid credentials"):
+            _require_successful_auth_response(response, "Login")
+
+    def test_rejects_success_without_user_identity(self) -> None:
+        response = Mock(status=200)
+        response.json.return_value = {"success": True, "user": None}
+
+        with self.assertRaisesRegex(CheckoutFlowError, "HTTP 200"):
+            _require_successful_auth_response(response, "Registration")
 
 
 class ResolveProductUrlTests(unittest.TestCase):

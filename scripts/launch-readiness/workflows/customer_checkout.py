@@ -61,6 +61,11 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
     if stage.status is Status.FAIL:
         return CustomerCheckoutRun(stage=stage, order=None, email=email)
 
+    # Registration intentionally auto-authenticates the new customer. Start a
+    # fresh browser context so the next step proves credentials can establish a
+    # clean session instead of attempting login over registration's cookies.
+    page = browser.reset_session()
+
     def step_login():
         common.login(page, config, email, password)
         return Status.PASS, f"Logged in as {email} with checkout-ready native identity."
