@@ -27,34 +27,12 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 
 echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done', 'icon' => '&#128179;' ],
-		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'active', 'icon' => '&#128230;' ],
-		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => '&#128666;' ],
+		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done', 'icon' => 'payment' ],
+		[ 'label' => __( 'Being prepared', 'drywall-toolbox' ), 'state' => 'active', 'icon' => 'package' ],
+		[ 'label' => __( 'On the way soon', 'drywall-toolbox' ), 'state' => 'upcoming', 'icon' => 'truck' ],
 	]
 ) : '';
 ?>
-
-<div class="email-introduction">
-	<p>
-	<?php
-	if ( $order->get_billing_first_name() ) {
-		/* translators: %s: Customer first name */
-		printf( esc_html__( 'Hi %s, thanks for your order.', 'drywall-toolbox' ), esc_html( $order->get_billing_first_name() ) );
-	} else {
-		esc_html_e( 'Thanks for your order.', 'drywall-toolbox' );
-	}
-	?>
-	</p>
-	<?php
-	echo function_exists( 'dtb_email_details_table_light' ) ? dtb_email_details_table_light(
-		[
-			[ 'label' => __( 'Order number', 'drywall-toolbox' ), 'value' => (string) $order->get_order_number() ],
-			[ 'label' => __( 'Order date', 'drywall-toolbox' ), 'value' => $order->get_date_created() ? $order->get_date_created()->date_i18n( 'F j, Y' ) : '' ],
-			[ 'label' => __( 'Order total', 'drywall-toolbox' ), 'value' => wp_strip_all_tags( $order->get_formatted_order_total() ) ],
-		]
-	) : '';
-	?>
-</div>
 
 <?php
 do_action( 'woocommerce_email_order_details', $order, $sent_to_admin, $plain_text, $email );
@@ -63,9 +41,9 @@ do_action( 'woocommerce_email_customer_details', $order, $sent_to_admin, $plain_
 
 echo function_exists( 'dtb_email_next_steps_grid' ) ? dtb_email_next_steps_grid( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'text' => __( 'We prepare and pack your order', 'drywall-toolbox' ), 'icon' => '&#9993;' ],
-		[ 'text' => __( 'You\'ll get a shipping confirmation with tracking once it leaves our warehouse', 'drywall-toolbox' ), 'icon' => '&#128230;' ],
-		[ 'text' => __( 'Questions? Reply to this email or contact support', 'drywall-toolbox' ), 'icon' => '&#128666;' ],
+		[ 'text' => __( 'We\'ll email you when your order ships.', 'drywall-toolbox' ), 'icon' => 'mail' ],
+		[ 'text' => __( 'Carefully packed and built for the job.', 'drywall-toolbox' ), 'icon' => 'package' ],
+		[ 'text' => __( 'Fast, reliable delivery straight to you.', 'drywall-toolbox' ), 'icon' => 'truck' ],
 	]
 ) : '';
 
@@ -73,7 +51,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Our team is here to help with any questions about your order.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'&#127911;',
+	'support',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

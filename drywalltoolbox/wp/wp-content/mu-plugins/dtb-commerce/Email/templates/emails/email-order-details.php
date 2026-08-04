@@ -32,7 +32,7 @@ do_action( 'woocommerce_email_before_order_table', $order, $sent_to_admin, $plai
 $order_number_meta = $order->get_date_created() ? $order->get_date_created()->date_i18n( 'F j, Y' ) : '';
 
 echo function_exists( 'dtb_email_card_open' )
-	? dtb_email_card_open( __( 'Order summary', 'drywall-toolbox' ), $order_number_meta, '&#128203;' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	? dtb_email_card_open( __( 'Order summary', 'drywall-toolbox' ), $order_number_meta, 'clipboard' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	: '<div style="margin-bottom:20px;">';
 ?>
 

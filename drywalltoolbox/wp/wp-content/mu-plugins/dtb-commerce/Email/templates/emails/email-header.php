@@ -39,13 +39,16 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=<?php bloginfo( 'charset' ); ?>" />
 		<meta content="width=device-width, initial-scale=1.0" name="viewport">
+		<meta name="x-apple-disable-message-reformatting">
+		<meta name="color-scheme" content="light">
+		<meta name="supported-color-schemes" content="light">
 		<title><?php echo esc_html( $store_name ); ?></title>
 	</head>
 	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
 		<table width="100%" id="outer_wrapper" role="presentation">
 			<tr>
 				<td><!-- Deliberately empty to support consistent sizing and layout across multiple email clients. --></td>
-				<td width="600">
+				<td width="680">
 					<div id="wrapper" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>">
 						<table border="0" cellpadding="0" cellspacing="0" height="100%" width="100%" id="inner_wrapper" role="presentation">
 							<tr>
@@ -56,9 +59,9 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 											<td id="template_header_image" align="center">
 												<?php if ( $logo_url ) : ?>
 													<?php if ( $header_image_url ) : ?>
-														<p style="margin:0;"><a href="<?php echo esc_url( $header_image_url ); ?>" style="display:inline-block;text-decoration:none;" target="_blank"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="150" style="display:block;width:150px;max-width:60%;height:auto;"></a></p>
+														<p style="margin:0;"><a href="<?php echo esc_url( $header_image_url ); ?>" style="display:inline-block;text-decoration:none;" target="_blank"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="300" style="display:block;width:300px;max-width:78%;height:auto;"></a></p>
 													<?php else : ?>
-														<p style="margin:0;"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="150" style="display:block;width:150px;max-width:60%;height:auto;"></p>
+														<p style="margin:0;"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="300" style="display:block;width:300px;max-width:78%;height:auto;"></p>
 													<?php endif; ?>
 												<?php else : ?>
 													<p class="email-logo-text" style="margin:0;"><?php echo esc_html( $store_name ); ?></p>
@@ -75,7 +78,7 @@ $logo_url = function_exists( 'dtb_email_logo_url' ) ? dtb_email_logo_url() : '';
 													<tr>
 														<td valign="top" id="body_content">
 															<!-- Content -->
-															<table border="0" cellpadding="20" cellspacing="0" width="100%" role="presentation">
+													<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
 																<tr>
 																	<td valign="top" id="body_content_inner_cell">
 																		<div id="body_content_inner">

@@ -43,7 +43,7 @@ foreach ( $items as $item_id => $item ) :
 			<table class="order-item-data" role="presentation" width="100%">
 				<tr>
 					<?php if ( $show_image ) : ?>
-						<td width="58" valign="middle" style="padding:0 12px 0 0;">
+						<td width="136" valign="middle" style="padding:0 16px 0 0;">
 							<?php
 							$thumbnail = function_exists( 'dtb_email_render_item_thumbnail' ) ? dtb_email_render_item_thumbnail( $item ) : '';
 							/**
@@ -129,8 +129,8 @@ foreach ( $items as $item_id => $item ) :
 			 * Email Order Item Quantity hook.
 			 */
 			$quantity = apply_filters( 'woocommerce_email_order_item_quantity', $qty_display, $item );
-			if ( '' !== $quantity ) {
-				echo '&times;' . wp_kses_post( $quantity );
+				if ( '' !== $quantity ) {
+					echo '<span style="white-space:nowrap;">Qty: ' . wp_kses_post( $quantity ) . '</span>';
 			}
 			?>
 		</td>

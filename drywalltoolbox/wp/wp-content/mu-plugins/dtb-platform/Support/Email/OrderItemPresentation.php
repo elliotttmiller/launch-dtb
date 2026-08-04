@@ -67,7 +67,7 @@ if ( ! function_exists( 'dtb_email_render_item_thumbnail' ) ) {
 		$name = is_object( $item ) && method_exists( $item, 'get_name' ) ? (string) $item->get_name() : 'Product image';
 		$alt  = sprintf( '%s thumbnail', wp_strip_all_tags( $name ) );
 
-		return '<img src="' . esc_url( $src ) . '" width="48" height="48" alt="' . esc_attr( $alt ) . '" style="display:block;width:48px;height:48px;max-width:48px;border:1px solid #e2e8f0;border-radius:10px;background:#ffffff;object-fit:contain;" />';
+		return '<img src="' . esc_url( $src ) . '" width="120" height="82" alt="' . esc_attr( $alt ) . '" style="display:block;width:120px;height:82px;max-width:120px;border:1px solid #e2e5ea;border-radius:9px;background:#ffffff;object-fit:contain;" />';
 	}
 }
 

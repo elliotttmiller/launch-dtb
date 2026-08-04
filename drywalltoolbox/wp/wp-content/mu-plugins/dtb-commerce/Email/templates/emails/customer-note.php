@@ -53,7 +53,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about this note or your order? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'&#127911;',
+	'',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

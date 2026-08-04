@@ -32,15 +32,16 @@ body {
 
 #wrapper {
 	margin: 0 auto;
-	padding: 24px 0;
+	padding: 28px 0;
 	-webkit-text-size-adjust: none !important;
 	width: 100%;
-	max-width: 600px;
+	max-width: 680px;
 }
 
 #inner_wrapper {
 	background-color: <?php echo esc_attr( $palette['card_bg'] ?? '#ffffff' ); ?>;
-	border-radius: 16px;
+	border: 1px solid #e2e5ea;
+	border-radius: 20px;
 	overflow: hidden;
 }
 
@@ -49,7 +50,7 @@ body {
 }
 
 #template_header_image {
-	padding: 28px 32px;
+	padding: 24px 32px 22px;
 }
 
 /* h1 no longer renders inside the dark #template_header band (that band is
@@ -61,7 +62,7 @@ body {
 h1 {
 	color: <?php echo esc_attr( $palette['title'] ?? '#0f172a' ); ?>;
 	font-family: <?php echo $font; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>;
-	font-size: 26px;
+	font-size: 30px;
 	font-weight: 800;
 	line-height: 130%;
 	margin: 0;
@@ -90,6 +91,10 @@ h2 {
 	text-align: <?php echo is_rtl() ? 'right' : 'left'; ?>;
 }
 
+#body_content_inner_cell {
+	padding: 20px 48px 8px;
+}
+
 #body_content p {
 	margin: 0 0 16px;
 }
@@ -109,7 +114,7 @@ a,
 
 .email-order-details td,
 .email-order-details th {
-	padding: 12px 4px;
+	padding: 14px 4px;
 }
 
 .email-order-details thead th {
@@ -120,10 +125,27 @@ a,
 	border-bottom: 1px solid <?php echo esc_attr( $palette['card_border'] ?? '#dce6f3' ); ?>;
 }
 
+.email-order-details tbody tr.order_item > td:nth-child(2) {
+	width: 64px;
+	color: #64748b;
+	font-size: 13px;
+}
+
+.email-order-details tbody tr.order_item > td:last-child {
+	width: 96px;
+	color: #0f172a;
+	font-size: 16px;
+	font-weight: 800;
+}
+
 .email-order-totals tr.order-totals td,
 .email-order-totals tr.order-totals th {
-	padding: 6px 4px;
+	padding: 5px 4px;
 	font-size: 14px;
+}
+
+.email-order-totals tr.order-totals th {
+	padding-left: 54% !important;
 }
 
 .order-totals-total td,
@@ -199,15 +221,116 @@ a,
 }
 
 @media screen and (max-width: 600px) {
+	body,
+	#outer_wrapper {
+		background-color: #ffffff !important;
+	}
+
+	#wrapper {
+		max-width: 100% !important;
+		padding: 0 !important;
+	}
+
+	#inner_wrapper {
+		border: 0 !important;
+		border-radius: 0 !important;
+	}
+
 	#template_header_image {
-		padding: 20px 18px !important;
+		padding: 18px !important;
 	}
 
-	h1 {
-		font-size: 22px !important;
+	#template_header_image img {
+		width: 190px !important;
+		max-width: 72% !important;
 	}
 
-	#body_content table td {
-		padding: 14px 18px !important;
+	.dtb-email-hero {
+		margin-bottom: 18px !important;
+		background-position: 62% center !important;
+	}
+
+	.dtb-email-hero-cell {
+		padding: 28px 22px 32px !important;
+	}
+
+	.dtb-email-hero h1 {
+		font-size: 29px !important;
+		line-height: 118% !important;
+	}
+
+	.dtb-email-hero-copy {
+		font-size: 14px !important;
+		line-height: 150% !important;
+	}
+
+	#body_content_inner_cell {
+		padding: 0 14px 6px !important;
+	}
+
+	.dtb-progress-marker > table td {
+		width: 38px !important;
+		height: 38px !important;
+		padding: 0 6px !important;
+	}
+
+	.dtb-progress-marker img {
+		width: 22px !important;
+		height: 22px !important;
+	}
+
+	.dtb-progress-label span {
+		width: 72px !important;
+		font-size: 10px !important;
+	}
+
+	.order-item-data td:first-child {
+		width: 84px !important;
+		padding-right: 10px !important;
+	}
+
+	.order-item-data img {
+		width: 72px !important;
+		height: 56px !important;
+	}
+
+	.email-order-details tbody tr.order_item > td:nth-child(2) {
+		width: 42px !important;
+		padding-left: 2px !important;
+		padding-right: 2px !important;
+		font-size: 11px !important;
+	}
+
+	.email-order-details tbody tr.order_item > td:last-child {
+		width: 72px !important;
+		padding-left: 4px !important;
+		font-size: 13px !important;
+	}
+
+	.email-order-totals tr.order-totals th {
+		padding-left: 28% !important;
+	}
+
+	#addresses > tbody > tr > td,
+	.dtb-support-action {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		padding: 0 0 14px !important;
+	}
+
+	.dtb-support-action {
+		padding-top: 14px !important;
+	}
+
+	.dtb-next-step {
+		display: block !important;
+		width: 100% !important;
+		box-sizing: border-box !important;
+		padding: 8px 0 14px !important;
+	}
+
+	#template_footer #credit {
+		padding: 24px 18px 28px !important;
 	}
 }

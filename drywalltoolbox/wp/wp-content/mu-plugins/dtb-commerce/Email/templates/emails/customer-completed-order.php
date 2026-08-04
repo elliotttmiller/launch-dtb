@@ -28,9 +28,9 @@ echo function_exists( 'dtb_email_hero' ) ? dtb_email_hero( // phpcs:ignore WordP
 
 echo function_exists( 'dtb_email_progress_steps' ) ? dtb_email_progress_steps( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	[
-		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done', 'icon' => '&#128179;' ],
-		[ 'label' => __( 'Prepared', 'drywall-toolbox' ), 'state' => 'done', 'icon' => '&#128230;' ],
-		[ 'label' => __( 'Order complete', 'drywall-toolbox' ), 'state' => 'done', 'icon' => '&#9989;' ],
+		[ 'label' => __( 'Payment received', 'drywall-toolbox' ), 'state' => 'done' ],
+		[ 'label' => __( 'Prepared', 'drywall-toolbox' ), 'state' => 'done' ],
+		[ 'label' => __( 'Order complete', 'drywall-toolbox' ), 'state' => 'done' ],
 	]
 ) : '';
 ?>
@@ -65,7 +65,7 @@ echo function_exists( 'dtb_email_support_card' ) ? dtb_email_support_card( // ph
 	__( 'Questions about this order? Our team is here to help.', 'drywall-toolbox' ),
 	function_exists( 'dtb_email_support_url' ) ? dtb_email_support_url() : home_url( '/contact/' ),
 	__( 'Contact support', 'drywall-toolbox' ),
-	'&#127911;',
+	'',
 	__( 'Need help?', 'drywall-toolbox' )
 ) : '';
 

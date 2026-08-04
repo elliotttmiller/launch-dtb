@@ -68,7 +68,7 @@ do_action( 'woocommerce_email_before_fulfillment_table', $order, $fulfillment, $
 $fulfillment_order_meta = sprintf( __( 'Order #%s', 'drywall-toolbox' ), $order->get_order_number() );
 
 echo function_exists( 'dtb_email_card_open' )
-	? dtb_email_card_open( __( 'Shipment summary', 'drywall-toolbox' ), $fulfillment_order_meta, '&#128666;' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	? dtb_email_card_open( __( 'Shipment summary', 'drywall-toolbox' ), $fulfillment_order_meta ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	: '<div style="margin-bottom:20px;">';
 ?>
 
