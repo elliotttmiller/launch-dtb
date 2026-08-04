@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urljoin, urlsplit
 
+import requests
+from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 if TYPE_CHECKING:
@@ -48,6 +50,53 @@ class OrderConfirmationPageError(CheckoutFlowError):
     def __init__(self, message: str, confirmation: OrderConfirmation) -> None:
         super().__init__(message)
         self.confirmation = confirmation
+
+
+def configured_product(config: "Config") -> ProductInfo | None:
+    """Validate and describe an explicitly configured checkout product."""
+
+    if not config.product_url_path:
+        return None
+    if config.validated_product_name and config.validated_product_url:
+        return ProductInfo(
+            name=config.validated_product_name,
+            url=config.validated_product_url,
+        )
+
+    url = resolve_product_url(config)
+    slug = urlsplit(url).path.rstrip("/").rsplit("/", 1)[-1]
+    try:
+        response = requests.get(
+            f"{config.api_base}/wc/store/v1/products",
+            params={"slug": slug},
+            timeout=config.request_timeout_s,
+        )
+        response.raise_for_status()
+        products = response.json()
+    except (requests.RequestException, ValueError) as exc:
+        raise CheckoutFlowError(
+            f"Could not validate LAUNCH_PRODUCT_URL_PATH through the Store API: {exc}"
+        ) from exc
+
+    product = next(
+        (item for item in products if item.get("slug") == slug),
+        None,
+    )
+    if not product:
+        raise CheckoutFlowError(
+            "LAUNCH_PRODUCT_URL_PATH does not identify a live WooCommerce product "
+            f"(slug: {slug!r})."
+        )
+    if not product.get("is_purchasable") or not product.get("is_in_stock"):
+        raise CheckoutFlowError(
+            "LAUNCH_PRODUCT_URL_PATH identifies a product that is not currently "
+            f"purchasable and in stock (slug: {slug!r})."
+        )
+
+    result = ProductInfo(name=str(product.get("name") or slug), url=url)
+    config.validated_product_name = result.name
+    config.validated_product_url = result.url
+    return result
 
 
 def resolve_product_url(config: "Config") -> str:
@@ -96,10 +145,10 @@ def find_first_purchasable_product(page: "Page", config: "Config") -> ProductInf
     """Return the first product listed on the Shop page, or the configured one."""
 
     if config.product_url_path:
-        url = resolve_product_url(config)
-        page.goto(url, wait_until="domcontentloaded")
-        title = page.title()
-        return ProductInfo(name=title, url=url)
+        product = configured_product(config)
+        assert product is not None
+        page.goto(product.url, wait_until="domcontentloaded")
+        return product
 
     page.goto(f"{config.site_url}/products", wait_until="domcontentloaded")
     link = page.locator('a[href*="/products/"]').first
@@ -312,7 +361,7 @@ def pay_with_stripe_test_card(page: "Page", config: "Config") -> None:
 
     frame = page.frame_locator('iframe[title*="Secure payment input frame"]').first
     try:
-        card_method = frame.get_by_text(re.compile(r"^Card$", re.I)).first
+        card_method = frame.get_by_role("button", name=re.compile(r"^Card$", re.I)).first
         card_method.wait_for(state="visible", timeout=config.browser_timeout_ms)
         card_method.click()
 
@@ -346,16 +395,54 @@ def place_order(page: "Page", config: "Config") -> OrderConfirmation:
     place_order_button.wait_for(state="visible", timeout=config.browser_timeout_ms)
 
     try:
-        with page.expect_navigation(
-            wait_until="domcontentloaded",
+        with page.expect_response(
+            lambda response: (
+                response.request.method == "POST"
+                and "/wp-json/wc/store/v1/checkout" in response.url
+            ),
             timeout=config.browser_timeout_ms * 4,
-        ) as navigation:
+        ) as checkout_request:
             place_order_button.click()
-        response = navigation.value
+        checkout_response = checkout_request.value
     except PlaywrightTimeoutError as exc:
         raise CheckoutFlowError(
-            "Checkout did not reach an order-confirmation page after placing the order "
-            "(payment may have failed or requires manual 3-D Secure handling)."
+            "WooCommerce did not return a Store API checkout response after Place Order. "
+            "No retry should be attempted until existing orders are checked."
+        ) from exc
+
+    try:
+        checkout_payload = checkout_response.json()
+    except (PlaywrightError, ValueError):
+        checkout_payload = {}
+
+    response_order_id = int(checkout_payload.get("order_id") or 0)
+    response_order_number = str(checkout_payload.get("order_number") or response_order_id or "")
+    payment_result = checkout_payload.get("payment_result") or {}
+    redirect_url = str(payment_result.get("redirect_url") or "")
+
+    try:
+        page.wait_for_url(
+            re.compile(r"/(?:checkout/order-received|order-tracking|thank-you)/", re.I),
+            wait_until="domcontentloaded",
+            timeout=config.browser_timeout_ms * 4,
+        )
+    except PlaywrightTimeoutError as exc:
+        if response_order_id > 0:
+            confirmation = OrderConfirmation(
+                order_number=response_order_number,
+                order_id=response_order_id,
+                confirmation_url=redirect_url or page.url,
+            )
+            payment_status = str(payment_result.get("payment_status") or "unknown")
+            raise OrderConfirmationPageError(
+                f"Order #{response_order_number} was created by WooCommerce, but the browser "
+                "did not reach its confirmation page "
+                f"(payment_status={payment_status!r}, current_url={page.url}).",
+                confirmation,
+            ) from exc
+        raise CheckoutFlowError(
+            "WooCommerce returned from checkout without an order ID, and the browser did not "
+            "reach an order-confirmation page. Do not retry until existing orders are checked."
         ) from exc
 
     url = page.url
@@ -371,10 +458,10 @@ def place_order(page: "Page", config: "Config") -> OrderConfirmation:
         raise CheckoutFlowError("Order confirmation page did not expose an order number.")
 
     confirmation = OrderConfirmation(order_number=order_number, order_id=order_id, confirmation_url=url)
-    if response is not None and response.status >= 400:
+    if checkout_response.status >= 400:
         raise OrderConfirmationPageError(
-            f"Order #{order_number} was created, but its confirmation document returned "
-            f"HTTP {response.status} at {url}",
+            f"Order #{order_number} was created, but the Store API checkout request returned "
+            f"HTTP {checkout_response.status} at {url}",
             confirmation,
         )
 
@@ -428,6 +515,48 @@ def login(page: "Page", config: "Config", email: str, password: str) -> None:
     submit = page.get_by_role("button", name=re.compile("log ?in|sign in", re.I)).first
     submit.click()
     page.wait_for_load_state("networkidle")
+
+    # Clicking Submit is not proof that the HttpOnly DTB cookie converged with
+    # native WordPress identity. Match the storefront's post-login validation
+    # contract before reporting this step as successful.
+    last_state: dict = {}
+    for attempt in range(5):
+        last_state = page.evaluate(
+            """async () => {
+                const response = await fetch('/wp-json/dtb/v1/auth/validate', {
+                    method: 'POST',
+                    credentials: 'include',
+                    cache: 'no-store',
+                    headers: {
+                        Accept: 'application/json',
+                        'Cache-Control': 'no-store',
+                        Pragma: 'no-cache',
+                    },
+                });
+                const data = await response.json().catch(() => null);
+                return { ok: response.ok, status: response.status, data };
+            }"""
+        )
+        data = last_state.get("data") or {}
+        native = (data.get("session") or {}).get("native_checkout") or {}
+        if (
+            last_state.get("ok")
+            and data.get("authenticated") is True
+            and data.get("user")
+            and native.get("ready") is True
+            and native.get("status") in {"aligned", "bridged"}
+        ):
+            return
+        if attempt < 4:
+            page.wait_for_timeout(250 * (attempt + 1))
+
+    data = last_state.get("data") or {}
+    native = (data.get("session") or {}).get("native_checkout") or {}
+    raise CheckoutFlowError(
+        "Login submission did not establish a checkout-ready customer session "
+        f"(authenticated={data.get('authenticated')!r}, "
+        f"status={native.get('status', 'unknown')!r}, ready={native.get('ready')!r})."
+    )
 
 
 def logout(page: "Page", config: "Config") -> None:

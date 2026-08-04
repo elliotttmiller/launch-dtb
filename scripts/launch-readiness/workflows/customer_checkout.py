@@ -63,7 +63,7 @@ def run(config: "Config", browser: "Browser") -> CustomerCheckoutRun:
 
     def step_login():
         common.login(page, config, email, password)
-        return Status.PASS, f"Logged in as {email}."
+        return Status.PASS, f"Logged in as {email} with checkout-ready native identity."
 
     tui.run_step(stage, "Login", step_login)
     if stage.status is Status.FAIL:

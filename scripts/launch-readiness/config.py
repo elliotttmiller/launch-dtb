@@ -91,11 +91,14 @@ class Config:
     test_customer_email_domain: str = "launch-readiness.drywalltoolbox.test"
     # Optional product path or same-origin absolute URL.
     product_url_path: str = ""
+    # Populated by the Stage 1 Store API preflight and reused by browser stages.
+    validated_product_name: str = ""
+    validated_product_url: str = ""
 
     # Stripe test card (default is Stripe's standard successful test card).
     stripe_test_card_number: str = "4242424242424242"
-    stripe_test_card_exp: str = "12/34"
-    stripe_test_card_cvc: str = "123"
+    stripe_test_card_exp: str = "05/29"
+    stripe_test_card_cvc: str = "398"
     stripe_test_card_zip: str = "10001"
 
     # -- Integration verification polling ------------------------------------
@@ -147,8 +150,8 @@ def load_config() -> Config:
         ),
         product_url_path=os.environ.get("LAUNCH_PRODUCT_URL_PATH", ""),
         stripe_test_card_number=os.environ.get("LAUNCH_STRIPE_TEST_CARD_NUMBER", "4242424242424242"),
-        stripe_test_card_exp=os.environ.get("LAUNCH_STRIPE_TEST_CARD_EXP", "12/34"),
-        stripe_test_card_cvc=os.environ.get("LAUNCH_STRIPE_TEST_CARD_CVC", "123"),
+        stripe_test_card_exp=os.environ.get("LAUNCH_STRIPE_TEST_CARD_EXP", "05/29"),
+        stripe_test_card_cvc=os.environ.get("LAUNCH_STRIPE_TEST_CARD_CVC", "398"),
         stripe_test_card_zip=os.environ.get("LAUNCH_STRIPE_TEST_CARD_ZIP", "10001"),
         sync_poll_timeout_s=_env_float("LAUNCH_SYNC_POLL_TIMEOUT_S", 90.0),
         sync_poll_interval_s=_env_float("LAUNCH_SYNC_POLL_INTERVAL_S", 5.0),

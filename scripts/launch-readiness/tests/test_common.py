@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 SUITE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SUITE_ROOT))
@@ -11,6 +12,8 @@ from config import Config  # noqa: E402
 from integrations.woocommerce import CheckoutExpectation, OrderSnapshot, WooCommerceClient  # noqa: E402
 from workflows.common import (  # noqa: E402
     CheckoutFlowError,
+    configured_product,
+    find_first_purchasable_product,
     order_id_from_confirmation_url,
     resolve_product_url,
 )
@@ -38,6 +41,91 @@ class ResolveProductUrlTests(unittest.TestCase):
         self.config.product_url_path = "https://malicious.example/products/tool"
         with self.assertRaises(CheckoutFlowError):
             resolve_product_url(self.config)
+
+
+class ConfiguredProductTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.config = Config(site_url="https://shop.example.test")
+        self.page = Mock()
+
+    @staticmethod
+    def store_api_response(products: list[dict]) -> Mock:
+        response = Mock()
+        response.json.return_value = products
+        return response
+
+    @patch("workflows.common.requests.get")
+    def test_returns_exact_live_purchasable_product(self, get: Mock) -> None:
+        self.config.product_url_path = "/products/tool-kit"
+        get.return_value = self.store_api_response(
+            [
+                {
+                    "name": "Tool Kit",
+                    "slug": "tool-kit",
+                    "is_purchasable": True,
+                    "is_in_stock": True,
+                }
+            ]
+        )
+
+        product = find_first_purchasable_product(self.page, self.config)
+
+        self.assertEqual("Tool Kit", product.name)
+        self.assertEqual("https://shop.example.test/products/tool-kit", product.url)
+        self.page.goto.assert_called_once_with(product.url, wait_until="domcontentloaded")
+
+    @patch("workflows.common.requests.get")
+    def test_rejects_stale_configured_slug_before_browser_navigation(self, get: Mock) -> None:
+        self.config.product_url_path = "/products/stale-tool"
+        get.return_value = self.store_api_response([])
+
+        with self.assertRaisesRegex(CheckoutFlowError, "does not identify a live"):
+            find_first_purchasable_product(self.page, self.config)
+
+        self.page.goto.assert_not_called()
+
+    @patch("workflows.common.requests.get")
+    def test_rejects_unpurchasable_configured_product(self, get: Mock) -> None:
+        self.config.product_url_path = "/products/tool-kit"
+        get.return_value = self.store_api_response(
+            [
+                {
+                    "name": "Tool Kit",
+                    "slug": "tool-kit",
+                    "is_purchasable": False,
+                    "is_in_stock": True,
+                }
+            ]
+        )
+
+        with self.assertRaisesRegex(CheckoutFlowError, "not currently purchasable"):
+            find_first_purchasable_product(self.page, self.config)
+
+        self.page.goto.assert_not_called()
+
+    @patch("workflows.common.requests.get")
+    def test_configured_product_can_be_preflighted_without_browser(self, get: Mock) -> None:
+        self.config.product_url_path = "/products/tool-kit"
+        get.return_value = self.store_api_response(
+            [
+                {
+                    "name": "Tool Kit",
+                    "slug": "tool-kit",
+                    "is_purchasable": True,
+                    "is_in_stock": True,
+                }
+            ]
+        )
+
+        product = configured_product(self.config)
+
+        self.assertIsNotNone(product)
+        self.assertEqual("Tool Kit", product.name)
+        self.page.goto.assert_not_called()
+
+        cached = configured_product(self.config)
+        self.assertEqual(product, cached)
+        get.assert_called_once()
 
 
 class OrderConfirmationUrlTests(unittest.TestCase):

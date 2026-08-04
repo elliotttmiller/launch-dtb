@@ -16,6 +16,7 @@ import requests
 import tui
 from integrations.woocommerce import WooCommerceClient
 from reports.models import StageResult, Status
+from workflows import common
 
 if TYPE_CHECKING:
     from config import Config
@@ -61,6 +62,15 @@ def run(config: "Config") -> StageResult:
         )
 
     tui.run_step(stage, "WooCommerce Store API reachable", check_store_api)
+
+    def check_configured_product():
+        if not config.product_url_path:
+            return Status.SKIP, "No LAUNCH_PRODUCT_URL_PATH override is configured."
+        product = common.configured_product(config)
+        assert product is not None
+        return Status.PASS, f"Configured checkout product is live: {product.name} ({product.url})"
+
+    tui.run_step(stage, "Configured checkout product", check_configured_product)
 
     def check_wc_rest_credentials():
         if not config.wc_api_configured:
