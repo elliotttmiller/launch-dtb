@@ -86,7 +86,7 @@ function dtb_email_debug_scrub_string( string $value ): string {
 
 /** Recursively constrain diagnostic context to log-safe scalar metadata. */
 function dtb_email_debug_sanitize_context( $value, int $depth = 0 ) {
-	if ( $depth > 3 ) {
+	if ( $depth > 6 ) {
 		return '[depth-limited]';
 	}
 
@@ -196,6 +196,17 @@ function dtb_email_debug_recipient_domains( $recipients ): array {
 	return array_values( array_unique( array_filter( $domains ) ) );
 }
 
+/** Identify reserved .test recipients that cannot receive public Internet mail. */
+function dtb_email_debug_has_reserved_test_recipient( $recipients ): bool {
+	foreach ( dtb_email_debug_recipient_domains( $recipients ) as $domain ) {
+		if ( 'test' === $domain || str_ends_with( $domain, '.test' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /** Resolve a WooCommerce order from a hook argument when possible. */
 function dtb_email_debug_resolve_order( $value ) {
 	if ( class_exists( 'WC_Order' ) && $value instanceof WC_Order ) {
@@ -225,6 +236,7 @@ function dtb_email_debug_order_context( $value ): array {
 		'is_paid'                          => (bool) $order->is_paid(),
 		'has_paid_date'                    => null !== $order->get_date_paid(),
 		'customer_recipient_domains'       => dtb_email_debug_recipient_domains( $order->get_billing_email() ),
+		'customer_recipient_is_test_domain' => dtb_email_debug_has_reserved_test_recipient( $order->get_billing_email() ),
 		'order_type'                       => (string) $order->get_meta( '_dtb_order_type', true ),
 		'loop_suppress_emails'             => '1' === (string) $order->get_meta( '_dtb_order_loop_suppress_emails', true ),
 		'processing_email_sent_marker'     => '' !== (string) $order->get_meta( '_dtb_customer_processing_email_sent_at', true ),
@@ -492,11 +504,12 @@ function dtb_email_debug_mail_metadata( array $mail_data ): array {
 	$subject     = (string) ( $mail_data['subject'] ?? '' );
 
 	return [
-		'recipient_count'   => is_array( $to ) ? count( array_filter( $to ) ) : ( '' !== trim( (string) $to ) ? substr_count( (string) $to, ',' ) + 1 : 0 ),
-		'recipient_domains' => dtb_email_debug_recipient_domains( $to ),
-		'subject_hash'      => '' !== $subject ? substr( hash( 'sha256', $subject ), 0, 16 ) : '',
-		'has_headers'       => ! empty( $headers ),
-		'attachment_count'  => is_array( $attachments ) ? count( $attachments ) : ( '' !== (string) $attachments ? 1 : 0 ),
+		'recipient_count'          => is_array( $to ) ? count( array_filter( $to ) ) : ( '' !== trim( (string) $to ) ? substr_count( (string) $to, ',' ) + 1 : 0 ),
+		'recipient_domains'        => dtb_email_debug_recipient_domains( $to ),
+		'recipient_is_test_domain' => dtb_email_debug_has_reserved_test_recipient( $to ),
+		'subject_hash'             => '' !== $subject ? substr( hash( 'sha256', $subject ), 0, 16 ) : '',
+		'has_headers'              => ! empty( $headers ),
+		'attachment_count'         => is_array( $attachments ) ? count( $attachments ) : ( '' !== (string) $attachments ? 1 : 0 ),
 	];
 }
 
