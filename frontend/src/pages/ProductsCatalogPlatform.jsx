@@ -21,7 +21,6 @@ import { useCatalogProducts } from '../hooks/useCatalogProducts';
 import { useCart } from '../context/CartContext';
 import { useWorkflowTransition } from '../context/WorkflowTransitionContext.jsx';
 import { buildSiteLinksSearchBoxSchema } from '../utils/schema';
-import { getVariationSelectionMap } from '../utils/variationSelection';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import {
   brandToSlug,
@@ -460,9 +459,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     }
   };
 
-  const openModal = (product, cardProduct = null) => {
-    const initialResolvedVariation = cardProduct?.parent_id ? cardProduct : null;
-    setModalProduct({ product, initialResolvedVariation, initialSelectedAttrs: initialResolvedVariation ? getVariationSelectionMap(initialResolvedVariation) : {} });
+  const openModal = (product) => {
+    setModalProduct({ product });
     setIsModalOpen(true);
   };
 
@@ -503,7 +501,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       <div className={`dtb-product-grid dtb-product-grid--${displayMode}${mappedProducts.length === 1 ? ' dtb-product-grid--single' : ''}`}>
         {mappedProducts.map((product, index) => {
           const cardProduct = getCardDisplayProduct(product);
-          return <ProductShoppingCard key={product.id} product={product} cardProduct={cardProduct} variant={displayMode} hasSelectedVariation={Boolean(product.is_variable && cardProduct?.parent_id)} onOpenModal={() => openModal(product, cardProduct)} onAddToCart={() => handleAddToCart(cardProduct || product, 1)} index={index} />;
+          return <ProductShoppingCard key={product.id} product={product} cardProduct={cardProduct} variant={displayMode} hasSelectedVariation={Boolean(product.is_variable && cardProduct?.parent_id)} onOpenModal={() => openModal(product)} onAddToCart={() => handleAddToCart(cardProduct || product, 1)} index={index} />;
         })}
       </div>
 

@@ -4,7 +4,7 @@
  * URL helpers for the ?variant=<variation_id> query-string contract.
  *
  * Contract:
- *   /products/:slug                  — no variant param; resolve default
+ *   /products/:slug                  — no variation selected
  *   /products/:slug?variant=12345    — pre-select variation 12345
  *
  * These helpers are pure functions with no React import so they can be used
@@ -58,44 +58,24 @@ export function buildVariantSearch(currentSearch, variationId) {
 }
 
 /**
- * Resolve the canonical variation to select on initial load.
+ * Resolve an explicitly requested variation on initial load.
  *
  * Resolution order (matches the system contract):
  *   1. ?variant=<id> query param — if it belongs to this parent
- *   2. computed.default_variation_id from the backend
- *   3. computed.first_purchasable_variation_id from the backend
- *   4. First variation in the array (disabled/fallback)
- *   5. null
+ *   2. null — parent context remains active until the shopper chooses
  *
  * @param {number|null}  variantParam   Parsed ?variant= value.
  * @param {Array}        variations     All child variations.
  * @param {Object|null}  computed       Computed state from the detail endpoint.
  * @returns {Object|null}              The resolved variation object, or null.
  */
-export function resolveInitialVariation(variantParam, variations, computed) {
+export function resolveInitialVariation(variantParam, variations) {
   if (!Array.isArray(variations) || variations.length === 0) return null;
 
-  // 1. Honour the ?variant= param when it belongs to this product.
   if (variantParam != null) {
     const matched = variations.find((v) => v.id === variantParam);
     if (matched) return matched;
-    // Invalid param — fall through to backend hints.
   }
 
-  // 2. Backend default variation.
-  const defaultId = computed?.default_variation_id;
-  if (defaultId) {
-    const found = variations.find((v) => v.id === defaultId);
-    if (found) return found;
-  }
-
-  // 3. First purchasable variation.
-  const purchasableId = computed?.first_purchasable_variation_id;
-  if (purchasableId) {
-    const found = variations.find((v) => v.id === purchasableId);
-    if (found) return found;
-  }
-
-  // 4. Absolute fallback — first variation (may be out-of-stock).
-  return variations[0] ?? null;
+  return null;
 }

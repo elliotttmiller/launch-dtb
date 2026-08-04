@@ -5,7 +5,7 @@
  *
  * Architecture:
  *   - useProductDetail(slug)       → fetches parent + variations + computed
- *   - URL-derived initial variant  → seeds the PDP once without route churn
+ *   - URL-derived explicit variant → seeds the PDP only when requested
  *   - ProductMediaGallery          → variation-aware gallery
  *   - ProductPrice                 → price with From/sale
  *   - ProductSkuBlock              → SKU / MPN
@@ -14,7 +14,7 @@
  *   - ProductDescriptionAccordion  → description/specs/shipping
  *
  * URL contract:
- *   /products/:slug                — resolve default variation (see variationUrl.js)
+ *   /products/:slug                — parent context; no variation selected
  *   /products/:slug?variant=12345  — pre-select variation 12345
  *
  * Full-page variation changes are intentionally handled in local component state
@@ -80,8 +80,8 @@ export default function ProductDetailPage() {
   );
 
   const resolvedInitialVariation = useMemo(
-    () => resolveInitialVariation(urlVariantId, variations, computed),
-    [urlVariantId, variations, computed]
+    () => resolveInitialVariation(urlVariantId, variations),
+    [urlVariantId, variations]
   );
 
   useEffect(() => {
@@ -252,6 +252,7 @@ export default function ProductDetailPage() {
             : {}}
           initialComputedData={computed}
           disableLegacyDetailFetch
+          autoSelectDefaultVariation={false}
         />
 
         {relatedProducts.length > 0 && (

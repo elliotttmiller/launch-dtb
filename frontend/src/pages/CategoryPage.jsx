@@ -12,7 +12,7 @@ import Toast from '../components/ui/Toast';
 import SEOHead from '../components/shared/SEOHead';
 import { buildBreadcrumbSchema } from '../utils/schema';
 import { getProductVariations } from '../services/api';
-import { fetchVariationsBatched, getVariationSelectionMap } from '../utils/variationSelection';
+import { fetchVariationsBatched } from '../utils/variationSelection';
 import { PLACEHOLDER_IMAGE } from '../constants/images.js';
 
 export default function CategoryPage() {
@@ -42,14 +42,9 @@ export default function CategoryPage() {
     }
   };
 
-  const openModal = (product, cardProduct = null) => {
-    const initialResolvedVariation = cardProduct?.parent_id ? cardProduct : null;
+  const openModal = (product) => {
     setModalProduct({
       product,
-      initialResolvedVariation,
-      initialSelectedAttrs: initialResolvedVariation
-        ? getVariationSelectionMap(initialResolvedVariation)
-        : {},
     });
   };
 
@@ -175,7 +170,7 @@ export default function CategoryPage() {
                     product={product}
                     cardProduct={cardProduct}
                     hasSelectedVariation={false}
-                    onOpenModal={() => openModal(product, cardProduct)}
+                    onOpenModal={() => openModal(product)}
                     onAddToCart={() => handleAddToCart(cardProduct || product, 1)}
                     index={index}
                   />

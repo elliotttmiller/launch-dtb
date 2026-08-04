@@ -470,6 +470,39 @@ function getEffectiveVariationImages(parentProduct, selectedVariation) {
   );
 }
 
+function composeVariableParentProduct(parentProduct, variations = []) {
+  if (!parentProduct?.is_variable) return parentProduct;
+
+  const variationImages = (Array.isArray(variations) ? variations : []).flatMap((variation) => [
+    ...(Array.isArray(variation?.variationGalleryImages) ? variation.variationGalleryImages : []),
+    ...(Array.isArray(variation?.media?.variationImages) ? variation.media.variationImages : []),
+    ...(Array.isArray(variation?.media?.images) ? variation.media.images : []),
+    ...(Array.isArray(variation?.images) ? variation.images : []),
+    variation?.media?.image,
+    variation?.image,
+  ]);
+  const images = mergeProductImages(
+    Array.isArray(parentProduct?.media?.images) ? parentProduct.media.images : [],
+    Array.isArray(parentProduct?.images) ? parentProduct.images : [],
+    parentProduct?.media?.image ? [parentProduct.media.image] : [],
+    parentProduct?.image ? [parentProduct.image] : [],
+    variationImages,
+  );
+
+  if (images.length === 0) return parentProduct;
+
+  return {
+    ...parentProduct,
+    image: images[0],
+    images,
+    media: {
+      ...(parentProduct.media || {}),
+      image: images[0],
+      images,
+    },
+  };
+}
+
 function composeEffectiveVariationProduct(parentProduct, selectedVariation, selectedLabel) {
   if (!selectedVariation) return parentProduct;
 
@@ -533,7 +566,7 @@ export default function ProductDetail({
   initialResolvedVariation = null,
   disableLegacyDetailFetch = false,
   initialComputedData = null,
-  autoSelectDefaultVariation = true,
+  autoSelectDefaultVariation = false,
   variationsHydrating = false,
 }) {
   const { addToCart } = useCart();
@@ -787,9 +820,10 @@ export default function ProductDetail({
 
   const selectedVariationLabel = getSelectedVariationLabel(selectedVariation, selectedAttrs, variationAttributes);
 
+  const parentContextProduct = composeVariableParentProduct(product, variations);
   const effectiveProduct = selectedVariation
     ? composeEffectiveVariationProduct(product, selectedVariation, selectedVariationLabel)
-    : product;
+    : parentContextProduct;
   const schematicLink = getSchematicLinkForProduct(effectiveProduct, { allowLegacyFallback: false });
   const partsUrl = schematicLink?.url || null;
   const brandLabel = getBrandLabel(product, effectiveProduct);
@@ -898,7 +932,10 @@ export default function ProductDetail({
     : baseProductSpecifications;
   const stockQuantityRaw = selectedVariation?.stock_quantity ?? effectiveProduct?.stock_quantity ?? product?.stock_quantity;
   const stockQuantity = Number.isFinite(Number(stockQuantityRaw)) ? Number(stockQuantityRaw) : null;
-  const stockHint = isOutOfStock
+  const awaitingVariationSelection = needsVariation && !selectedVariation;
+  const stockHint = awaitingVariationSelection
+    ? 'Select an option to see availability'
+    : isOutOfStock
     ? 'Temporarily out of stock'
     : stockQuantity && stockQuantity > 0
       ? stockQuantity <= 6
@@ -986,9 +1023,9 @@ export default function ProductDetail({
                 className="dtb-pdp__purchase-region"
                 style={purchasePanel.getValue('sticky', true) ? { position: 'sticky', top: 'var(--dtb-header-height, 72px)' } : undefined}
               >
-                <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock ? 'is-out' : ''}`}>
-                  <p className="dtb-pdp-stock-meter__label"><Check aria-hidden="true" />{stockHint}</p>
-                  {!isOutOfStock ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
+                <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock && !awaitingVariationSelection ? 'is-out ' : ''}${awaitingVariationSelection ? 'is-awaiting-selection' : ''}`}>
+                  <p className="dtb-pdp-stock-meter__label">{!awaitingVariationSelection ? <Check aria-hidden="true" /> : null}{stockHint}</p>
+                  {!isOutOfStock && !awaitingVariationSelection ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
                 </div>
 
                 <ProductPurchasePanel

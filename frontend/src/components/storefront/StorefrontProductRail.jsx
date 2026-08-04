@@ -9,7 +9,6 @@ import LoadingCardTransition from '../shared/LoadingCardTransition.jsx';
 import StorefrontRail from './StorefrontRail';
 import StorefrontProductTile from './StorefrontProductTile';
 import StorefrontSkeletons from './StorefrontSkeletons';
-import { getVariationSelectionMap } from '../../utils/variationSelection';
 
 /**
  * A horizontal product rail that fetches products from the catalog API.
@@ -73,14 +72,9 @@ export default function StorefrontProductRail({
     }
   };
 
-  const openModal = (product, cardProduct = null) => {
-    const initialResolvedVariation = cardProduct?.parent_id ? cardProduct : null;
+  const openModal = (product) => {
     setModalProduct({
       product,
-      initialResolvedVariation,
-      initialSelectedAttrs: initialResolvedVariation
-        ? getVariationSelectionMap(initialResolvedVariation)
-        : {},
     });
     setIsModalOpen(true);
   };
@@ -104,7 +98,7 @@ export default function StorefrontProductRail({
                 product={product}
                 cardProduct={cardProduct}
                 variant="grid"
-                onOpenModal={() => openModal(product, cardProduct)}
+                onOpenModal={() => openModal(product)}
                 onAddToCart={() => handleAddToCart(cardProduct)}
                 index={index}
               />

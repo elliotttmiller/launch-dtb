@@ -4,7 +4,6 @@ import {
   toLegacyProductCardDTO,
   toLegacyVariationDTO,
 } from '../../utils/catalogDtoAdapters.js';
-import { getVariationSelectionMap } from '../../utils/variationSelection.js';
 
 export default function ProductDetailPlatform({
   product,
@@ -33,15 +32,13 @@ export default function ProductDetailPlatform({
         ? initialVariations.map((variation) => toLegacyVariationDTO(variation, product || null))
         : []);
 
-  const endpointDefaultVariation = computed?.defaultVariation || null;
-  const initialDefaultVariation = initialResolvedVariation
+  const resolvedInitialVariation = initialResolvedVariation
     ? toLegacyVariationDTO(initialResolvedVariation, product || null)
     : null;
-  const resolvedDefaultVariation = initialDefaultVariation || endpointDefaultVariation || null;
 
   const resolvedSelectedAttrs = Object.keys(initialSelectedAttrs || {}).length > 0
     ? initialSelectedAttrs
-    : (resolvedDefaultVariation ? getVariationSelectionMap(resolvedDefaultVariation) : {});
+    : {};
 
   return (
     <ProductDetail
@@ -50,12 +47,12 @@ export default function ProductDetailPlatform({
       onClose={onClose}
       onNavigateToProduct={onNavigateToProduct}
       initialVariations={resolvedVariations}
-      initialResolvedVariation={resolvedDefaultVariation}
+      initialResolvedVariation={resolvedInitialVariation}
       initialSelectedAttrs={resolvedSelectedAttrs}
       initialComputedData={computed}
       variationsHydrating={status === 'idle' || status === 'loading'}
       disableLegacyDetailFetch
-      autoSelectDefaultVariation
+      autoSelectDefaultVariation={false}
     />
   );
 }

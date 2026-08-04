@@ -9,7 +9,6 @@ import StorefrontSection from '../storefront/StorefrontSection';
 import StorefrontRail from '../storefront/StorefrontRail';
 import StorefrontSkeletons from '../storefront/StorefrontSkeletons.jsx';
 import Toast from '../ui/Toast';
-import { getVariationSelectionMap } from '../../utils/variationSelection';
 
 export default function TrendingProducts() {
   const [products, setProducts] = useState([]);
@@ -23,18 +22,9 @@ export default function TrendingProducts() {
     setToast({ message, type });
   };
 
-  const openModal = useCallback((product, cardProduct = null, e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    const initialResolvedVariation = cardProduct?.parent_id ? cardProduct : null;
+  const openModal = useCallback((product) => {
     setModalProduct({
       product,
-      initialResolvedVariation,
-      initialSelectedAttrs: initialResolvedVariation
-        ? getVariationSelectionMap(initialResolvedVariation)
-        : {},
     });
     setIsModalOpen(true);
   }, []);
@@ -129,7 +119,7 @@ export default function TrendingProducts() {
                 product={product}
                 cardProduct={cardProduct}
                 variant="grid"
-                onOpenModal={() => openModal(product, cardProduct)}
+                onOpenModal={() => openModal(product)}
                 onAddToCart={() => handleAddToCart(cardProduct)}
                 index={index}
               />
