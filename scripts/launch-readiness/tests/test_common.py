@@ -5,6 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import requests
+
 SUITE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SUITE_ROOT))
 
@@ -265,6 +267,50 @@ class WooCommerceVerificationTests(unittest.TestCase):
             if check[0] == "Order is assigned to the registered WooCommerce customer"
         )
         self.assertFalse(customer[1])
+
+
+class WooCommerceTransportRetryTests(unittest.TestCase):
+    @patch("integrations.woocommerce.time.sleep")
+    def test_retries_transient_tls_failure_for_safe_get(self, sleep: Mock) -> None:
+        config = Config(wc_consumer_key="key", wc_consumer_secret="secret")
+        client = WooCommerceClient(config)
+        success = Mock(status_code=200)
+        client._session.get = Mock(  # noqa: SLF001 - transport contract fixture
+            side_effect=[requests.exceptions.SSLError("unexpected eof"), success]
+        )
+
+        ok, detail = client.ping()
+
+        self.assertTrue(ok, detail)
+        self.assertEqual(2, client._session.get.call_count)  # noqa: SLF001
+        sleep.assert_called_once_with(0.5)
+
+    @patch("integrations.woocommerce.time.sleep")
+    def test_does_not_retry_rejected_credentials(self, sleep: Mock) -> None:
+        config = Config(wc_consumer_key="key", wc_consumer_secret="secret")
+        client = WooCommerceClient(config)
+        client._session.get = Mock(return_value=Mock(status_code=401))  # noqa: SLF001
+
+        ok, detail = client.ping()
+
+        self.assertFalse(ok)
+        self.assertIn("rejected (401)", detail)
+        self.assertEqual(1, client._session.get.call_count)  # noqa: SLF001
+        sleep.assert_not_called()
+
+    @patch("integrations.woocommerce.time.sleep")
+    def test_retries_retryable_http_status(self, sleep: Mock) -> None:
+        config = Config(wc_consumer_key="key", wc_consumer_secret="secret")
+        client = WooCommerceClient(config)
+        client._session.get = Mock(  # noqa: SLF001
+            side_effect=[Mock(status_code=503), Mock(status_code=200)]
+        )
+
+        ok, detail = client.ping()
+
+        self.assertTrue(ok, detail)
+        self.assertEqual(2, client._session.get.call_count)  # noqa: SLF001
+        sleep.assert_called_once_with(0.5)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ creates, edits, or cancels anything — using a read-scoped REST API key
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -17,6 +18,8 @@ if TYPE_CHECKING:
     from config import Config
 
 PAID_STATUSES = {"processing", "completed", "on-hold"}
+_GET_MAX_ATTEMPTS = 3
+_RETRYABLE_HTTP_STATUSES = {429, 500, 502, 503, 504}
 
 
 @dataclass(slots=True)
@@ -67,7 +70,26 @@ class WooCommerceClient:
 
     def _get(self, path: str, params: dict | None = None) -> requests.Response:
         url = f"{self._config.api_base}/wc/v3{path}"
-        return self._session.get(url, params=params, timeout=self._config.request_timeout_s)
+        last_error: requests.RequestException | None = None
+        for attempt in range(1, _GET_MAX_ATTEMPTS + 1):
+            try:
+                response = self._session.get(
+                    url,
+                    params=params,
+                    timeout=self._config.request_timeout_s,
+                )
+            except requests.RequestException as exc:
+                last_error = exc
+                if attempt == _GET_MAX_ATTEMPTS:
+                    raise
+            else:
+                if response.status_code not in _RETRYABLE_HTTP_STATUSES or attempt == _GET_MAX_ATTEMPTS:
+                    return response
+
+            time.sleep(0.5 * (2 ** (attempt - 1)))
+
+        assert last_error is not None
+        raise last_error
 
     def ping(self) -> tuple[bool, str]:
         """Confirm the API is reachable and credentials are valid."""
@@ -76,8 +98,8 @@ class WooCommerceClient:
             response = self._get("/system_status", params={"per_page": 1})
         except requests.RequestException as exc:
             return False, f"WooCommerce API unreachable: {exc}"
-        if response.status_code == 401:
-            return False, "WooCommerce REST API credentials were rejected (401)."
+        if response.status_code in {401, 403}:
+            return False, f"WooCommerce REST API credentials were rejected ({response.status_code})."
         if response.status_code >= 400:
             return False, f"WooCommerce REST API returned HTTP {response.status_code}."
         return True, "WooCommerce REST API reachable and authenticated."

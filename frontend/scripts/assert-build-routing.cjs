@@ -8,12 +8,12 @@ const repositoryRoot = path.resolve(frontendRoot, '..');
 const appEnv = String(process.env.APP_ENV || '').trim().toLowerCase();
 const publicUrl = String(process.env.PUBLIC_URL || '').trim().replace(/\/+$/, '');
 
-if (appEnv !== 'production') {
-  throw new Error('APP_ENV must be production for routing validation.');
+if (!['production', 'staging'].includes(appEnv)) {
+  throw new Error('APP_ENV must be production or staging for routing validation.');
 }
 
 if (publicUrl !== '') {
-  throw new Error('Production routing must be root-mounted with PUBLIC_URL=/ (normalized to empty).');
+  throw new Error('Deployed routing must be root-mounted with PUBLIC_URL=/ (normalized to empty).');
 }
 
 const outputRoot = path.join(repositoryRoot, 'dist');

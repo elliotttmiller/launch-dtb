@@ -66,13 +66,14 @@ module.exports = (envFlags, argv) => {
     inferredAppEnv
   ).trim().toLowerCase();
 
-  const supportedAppEnvironments = new Set(['development', 'production', 'test']);
+  const supportedAppEnvironments = new Set(['development', 'staging', 'production', 'test']);
   if (!supportedAppEnvironments.has(appEnv)) {
-    throw new Error(`Unsupported APP_ENV "${appEnv}". Expected development, production, or test.`);
+    throw new Error(`Unsupported APP_ENV "${appEnv}". Expected development, staging, production, or test.`);
   }
 
   const envFileByAppEnv = {
     development: '.env.development',
+    staging: '.env.staging',
     production: '.env.production',
     test: '.env.test',
   };

@@ -42,10 +42,14 @@ switch (target) {
     removeDirectory(repositoryRoot, path.resolve(repositoryRoot, 'dist'));
     removeWebpackCaches('production-production-');
     break;
+  case 'staging':
+    removeDirectory(repositoryRoot, path.resolve(repositoryRoot, 'dist'));
+    removeWebpackCaches('production-staging-');
+    break;
   case 'cache':
     removeDirectory(cacheRoot, path.resolve(cacheRoot, 'babel-loader'));
     removeDirectory(cacheRoot, webpackCacheRoot);
     break;
   default:
-    throw new Error('Expected cleanup target: production or cache.');
+    throw new Error('Expected cleanup target: production, staging, or cache.');
 }
