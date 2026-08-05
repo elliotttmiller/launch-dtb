@@ -30,6 +30,7 @@ import {
 } from '../data/repairPackages.js';
 import { uploadRepairMedia } from '../api/repairs.js';
 import veeqoService from '../services/veeqo';
+import TransactionSuccessSheet from '../components/confirmation/TransactionSuccessSheet.jsx';
 import '../styles/repairs-workflow.css';
 import '../styles/repair-step-nav.css';
 
@@ -1511,35 +1512,37 @@ export function RepairStartExperience() {
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
 
           {/* Section heading */}
-          <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 4vw, 3rem)' }}>
-            <div className="dtb-title-eyebrow" style={{
-              display: 'inline-block',
-              background: 'rgba(34,85,238,0.08)',
-              border: '1px solid rgba(34,85,238,0.2)',
-              borderRadius: '99px', padding: '5px 16px',
-              fontSize: '0.68rem', fontWeight: 700,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: 'var(--primary-600)', marginBottom: '14px',
-            }}>
-              Repair Service Request
+          {!submitted && (
+            <div style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 4vw, 3rem)' }}>
+              <div className="dtb-title-eyebrow" style={{
+                display: 'inline-block',
+                background: 'rgba(34,85,238,0.08)',
+                border: '1px solid rgba(34,85,238,0.2)',
+                borderRadius: '99px', padding: '5px 16px',
+                fontSize: '0.68rem', fontWeight: 700,
+                letterSpacing: '0.12em', textTransform: 'uppercase',
+                color: 'var(--primary-600)', marginBottom: '14px',
+              }}>
+                Repair Service Request
+              </div>
+              <h2 style={{
+                fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+                fontWeight: 900, color: '#0f172a',
+                margin: '0 0 12px 0', letterSpacing: '-0.025em',
+              }}>
+                Submit a Repair Inquiry
+              </h2>
+              <p style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)', color: 'rgba(15,23,42,0.55)', margin: 0, lineHeight: 1.6 }}>
+                Fill out the form below. We will send your quote and estimated turnaround
+                within 24 hours after your tool is delivered and checked in at our shop.
+              </p>
             </div>
-            <h2 style={{
-              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-              fontWeight: 900, color: '#0f172a',
-              margin: '0 0 12px 0', letterSpacing: '-0.025em',
-            }}>
-              Submit a Repair Inquiry
-            </h2>
-            <p style={{ fontSize: 'clamp(0.875rem, 2vw, 1rem)', color: 'rgba(15,23,42,0.55)', margin: 0, lineHeight: 1.6 }}>
-              Fill out the form below. We will send your quote and estimated turnaround
-              within 24 hours after your tool is delivered and checked in at our shop.
-            </p>
-          </div>
+          )}
 
           {/* Form card */}
           <div
             ref={formRef}
-            style={{
+            style={submitted ? undefined : {
               background: 'white',
               border: '1px solid var(--machined-border)',
               borderRadius: '16px',
@@ -1548,42 +1551,31 @@ export function RepairStartExperience() {
             }}
           >
             {submitted ? (
-              /* ── Success screen ── */
-              <div style={{ textAlign: 'center', padding: 'clamp(2rem, 6vw, 4rem) 0' }}>
-                <div style={{
-                  width: '72px', height: '72px',
-                  background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)',
-                  borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: '#16a34a', margin: '0 auto 24px',
-                }}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
-                  </svg>
-                </div>
-                <h3 style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 800, color: 'black', margin: '0 0 12px 0' }}>
-                  Request Submitted!
-                </h3>
-                {orderResult?.repair_id && (
-                  <p style={{ fontSize: '0.82rem', color: 'rgba(15,23,42,0.5)', margin: '0 0 8px 0' }}>
-                    Repair <strong style={{ color: 'black' }}>DTB-{orderResult.repair_id}</strong>
-                  </p>
+              /* ── Success screen — shared confirmation UI also used by
+                 order and return confirmations (see TransactionSuccessSheet). ── */
+              <TransactionSuccessSheet
+                type="repair"
+                titleId="repair-success-heading"
+                title="Request Submitted!"
+                message={(
+                  <>
+                    Thank you, <strong>{formData.fullName}</strong>. We received your repair inquiry for{' '}
+                    <strong>{getToolDisplayName(formData)}</strong>.
+                  </>
                 )}
-                {orderResult?.wc_order_number && (
-                  <p style={{ fontSize: '0.82rem', color: 'rgba(15,23,42,0.5)', margin: '0 0 8px 0' }}>
-                    Order <strong style={{ color: 'black' }}>#{orderResult.wc_order_number}</strong>
-                  </p>
-                )}
-                <p style={{ fontSize: '0.95rem', color: 'rgba(15,23,42,0.6)', margin: '0 0 8px 0', lineHeight: 1.6 }}>
-                  Thank you, <strong>{formData.fullName}</strong>. We received your repair inquiry for{' '}
-                  <strong>{getToolDisplayName(formData)}</strong>.
-                </p>
-                <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.5)', margin: '0 0 32px 0', lineHeight: 1.6 }}>
+                details={[
+                  orderResult?.repair_id ? { label: 'Repair', value: `DTB-${orderResult.repair_id}` } : null,
+                  orderResult?.wc_order_number ? { label: 'Order', value: `#${orderResult.wc_order_number}` } : null,
+                ].filter(Boolean)}
+                primaryAction={{ label: 'Submit Another Request', onClick: resetForm }}
+                secondaryAction={{ label: 'Browse Parts & Schematics', to: '/parts' }}
+              >
+                <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '0 0 8px', lineHeight: 1.6 }}>
                   Our service team will contact you at <strong>{formData.email}</strong> with your quote and
                   estimated turnaround within 24 hours after your tool is delivered and checked in at our shop.
                 </p>
                 {orderResult?.public_token && (
-                  <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.6)', margin: '0 0 24px 0', lineHeight: 1.6 }}>
+                  <p style={{ fontSize: '0.9rem', color: '#64748b', margin: '0 0 8px', lineHeight: 1.6 }}>
                     Track this request anytime at{' '}
                     <Link
                       to={`/repairs/status/${orderResult.repair_id}?token=${encodeURIComponent(orderResult.public_token)}`}
@@ -1595,26 +1587,13 @@ export function RepairStartExperience() {
                   </p>
                 )}
                 {orderResult?.media_upload_error && (
-                  <p style={{ fontSize: '0.82rem', color: '#b45309', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.82rem', color: '#b45309', margin: '0 0 8px', lineHeight: 1.5 }}>
                     {orderResult.media_upload_error} You can add photos from the repair status page after submission.
                   </p>
                 )}
-                {/* What Happens Next */}
-                <div style={{
-                  background: 'var(--alloy-base)',
-                  border: '1px solid var(--machined-border)',
-                  borderRadius: '12px',
-                  padding: 'clamp(1.25rem, 3vw, 1.75rem)',
-                  marginBottom: '28px',
-                  textAlign: 'left',
-                  maxWidth: '480px',
-                  marginLeft: 'auto',
-                  marginRight: 'auto',
-                }}>
-                  <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: 'black', margin: '0 0 14px 0', textAlign: 'center' }}>
-                    What Happens Next
-                  </h4>
-                  <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div className="dtb-success-sheet__checklist">
+                  <h4 className="dtb-success-sheet__checklist-title">What Happens Next</h4>
+                  <ol className="dtb-success-sheet__checklist-list">
                     {[
                       { step: '1', text: 'Our team reviews your request and emails you a prepaid inbound shipping label within 1 business day.' },
                       { step: '2', text: 'Pack your tool in bubble wrap inside a sturdy box. Include a printed copy of this request if possible.' },
@@ -1622,41 +1601,14 @@ export function RepairStartExperience() {
                       { step: '4', text: 'We diagnose your tool and send you a quote. No work begins until you approve pricing.' },
                       { step: '5', text: 'Repaired tool ships back to you within 1–3 weeks depending on parts availability.' },
                     ].map((item) => (
-                      <li key={item.step} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                        <span style={{
-                          flexShrink: 0,
-                          width: '22px', height: '22px',
-                          background: 'var(--primary-600)',
-                          borderRadius: '50%',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '0.65rem', fontWeight: 800, color: 'white',
-                          marginTop: '1px',
-                        }}>
-                          {item.step}
-                        </span>
-                        <span style={{ fontSize: '0.825rem', color: 'rgba(15,23,42,0.7)', lineHeight: 1.5 }}>{item.text}</span>
+                      <li key={item.step}>
+                        <span className="dtb-success-sheet__checklist-badge">{item.step}</span>
+                        <span className="dtb-success-sheet__checklist-text">{item.text}</span>
                       </li>
                     ))}
                   </ol>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    className="alloy-button"
-                    style={{ cursor: 'pointer' }}
-                    onClick={resetForm}
-                  >
-                    Submit Another Request
-                  </button>
-                  <Link to="/parts" className="alloy-button" style={{
-                    textDecoration: 'none',
-                    background: 'transparent',
-                    color: 'var(--primary-600)',
-                    border: '1px solid var(--primary-600)',
-                  }}>
-                    Browse Parts & Schematics
-                  </Link>
-                </div>
-              </div>
+              </TransactionSuccessSheet>
             ) : (
               <form onSubmit={handleSubmit} noValidate>
                 <ProgressBar step={step} total={STEPS.length} onStepSelect={goToStep} />

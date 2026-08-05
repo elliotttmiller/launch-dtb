@@ -1194,9 +1194,9 @@
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
   counter-reset: dtb-feature;
-  gap: 0.9rem;
+  gap: 0.4rem 1.25rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1207,19 +1207,22 @@
   counter-increment: dtb-feature;
   position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
+  align-items: flex-start;
+  gap: 0.7rem;
   min-width: 0;
   margin: 0;
-  padding: 1.15rem 1.2rem 1.25rem;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 16px;
-  background: linear-gradient(165deg, #ffffff 0%, rgba(248, 250, 252, 0.85) 100%);
-  color: #55617a;
-  font-size: 0.89rem;
-  line-height: 1.62;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  padding: 0.7rem 0.15rem;
+  border: 0;
+  border-top: 1px solid rgba(226, 232, 240, 0.75);
+  color: #64748b;
+  font-size: 0.87rem;
+  line-height: 1.55;
+  transition: background-color 160ms ease;
+}
+
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:nth-child(-n+2),
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:nth-child(-n+2) {
+  border-top: 0;
 }
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li::before,
@@ -1229,13 +1232,13 @@
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #17365d, #2255ee);
-  box-shadow: 0 4px 10px rgba(34, 85, 238, 0.26);
-  color: #eaf0ff;
-  font-size: 0.72rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: 0.05rem;
+  border-radius: 999px;
+  background: rgba(34, 85, 238, 0.1);
+  color: #2255ee;
+  font-size: 0.63rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
@@ -1243,17 +1246,15 @@
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:hover,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:hover {
-  border-color: rgba(34, 85, 238, 0.32);
-  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
-  transform: translateY(-2px);
+  background-color: rgba(248, 250, 252, 0.9);
 }
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li strong,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li strong {
   display: block;
-  margin-bottom: 0.15rem;
-  color: #101c37;
-  font-size: 0.94rem;
+  margin-bottom: 0.1rem;
+  color: #172033;
+  font-size: 0.89rem;
   font-weight: 750;
   letter-spacing: -0.01em;
   line-height: 1.35;
@@ -1826,8 +1827,19 @@
 
   .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li,
   .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li {
-    padding: 1rem 1.05rem 1.1rem;
-    font-size: 0.87rem;
+    padding: 0.65rem 0.1rem;
+    font-size: 0.85rem;
+  }
+
+  /* Single column on mobile — only the very first row loses its divider. */
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:nth-child(-n+2),
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:nth-child(-n+2) {
+    border-top: 1px solid rgba(226, 232, 240, 0.75);
+  }
+
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:first-child,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:first-child {
+    border-top: 0;
   }
 }
 
