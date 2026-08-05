@@ -26,7 +26,7 @@
     pointer-events: none;
     transform: translateY(-8px) scale(0.985);
     transform-origin: top left;
-    transition: opacity 160ms ease-out, visibility 160ms ease-out, transform 180ms var(--ease-tension, cubic-bezier(0.16, 1, 0.3, 1));
+    transition: opacity 160ms ease-out, visibility 160ms ease-out, transform 180ms var(--ease-tension, var(--dtb-ease-emphasized));
     z-index: 10000;
 }
 

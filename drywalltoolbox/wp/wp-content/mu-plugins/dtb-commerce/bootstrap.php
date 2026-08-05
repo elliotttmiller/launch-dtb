@@ -20,6 +20,7 @@ require_once __DIR__ . '/Validation/CheckoutFieldPolicy.php';
 require_once __DIR__ . '/Validation/CheckoutTaxReadiness.php';
 require_once __DIR__ . '/Validation/CheckoutTaxPresentation.php';
 require_once __DIR__ . '/Domain/PaymentState.php';
+require_once __DIR__ . '/Payment/StoreApiSameOriginCartSession.php';
 require_once __DIR__ . '/Payment/WooNativeCheckoutRuntime.php';
 require_once __DIR__ . '/Payment/StorefrontReturnContext.php';
 require_once __DIR__ . '/Payment/PaymentPluginsStripeNativeCheckout.php';

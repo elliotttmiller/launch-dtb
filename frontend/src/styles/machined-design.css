@@ -16,7 +16,7 @@
     --font-display: var(--dtb-font-display, 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, system-ui, sans-serif);
     --font-heading: var(--font-display);
     --font-mono: var(--dtb-font-body, 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', ui-sans-serif, system-ui, sans-serif);
-    --ease-tension: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-tension: var(--dtb-ease-emphasized);
 
     /* ── Global shape tokens ──────────────────────────────────────────── */
     --dtb-radius-sm:  6px;   /* badges, tags */
@@ -4625,9 +4625,9 @@ a.header-contact-icon {
     height: 100%;
     box-shadow: var(--dtb-shadow-card, 0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04));
     transition:
-        box-shadow 250ms var(--ease-tension, cubic-bezier(0.16,1,0.3,1)),
-        border-color 250ms var(--ease-tension, cubic-bezier(0.16,1,0.3,1)),
-        transform 250ms var(--ease-tension, cubic-bezier(0.16,1,0.3,1));
+        box-shadow 250ms var(--ease-tension, var(--dtb-ease-emphasized)),
+        border-color 250ms var(--ease-tension, var(--dtb-ease-emphasized)),
+        transform 250ms var(--ease-tension, var(--dtb-ease-emphasized));
     cursor: default;
 }
 
@@ -4654,7 +4654,7 @@ a.header-contact-icon {
 }
 .dtb-plp-card__img-btn img,
 .dtb-plp-card__img-btn > div > img {
-    transition: transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 350ms var(--dtb-ease-emphasized);
 }
 
 /* Full-area image button — no visible focus ring on click, only on keyboard nav */

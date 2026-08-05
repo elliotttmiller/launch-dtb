@@ -72,8 +72,13 @@
   --dtb-safe-right: env(safe-area-inset-right, 0px);
   --dtb-safe-bottom: env(safe-area-inset-bottom, 0px);
   --dtb-safe-left: env(safe-area-inset-left, 0px);
+  /* Canonical easing authority — mirrors frontend/src/motion/dtbMotion.js
+     exactly so CSS transitions and Framer Motion variants read as one system. */
   --dtb-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --dtb-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dtb-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --dtb-ease-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dtb-ease-exit: cubic-bezier(0.4, 0, 0.2, 1);
   --dtb-fast: 160ms;
   --dtb-normal: 280ms;
   --dtb-slow: 420ms;

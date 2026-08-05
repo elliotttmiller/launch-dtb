@@ -43,8 +43,8 @@
   background: #2255ee;
   transform: scale(1);
   transition:
-    filter 320ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    filter 320ms var(--dtb-ease-emphasized),
+    transform 420ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart::after {
@@ -58,8 +58,8 @@
   pointer-events: none;
   transform: translateX(-72%);
   transition:
-    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 220ms var(--dtb-ease-emphasized),
+    transform 560ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart__content {
@@ -73,8 +73,8 @@
   opacity: 1;
   transform: translate3d(0, 0, 0);
   transition:
-    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 440ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 220ms var(--dtb-ease-emphasized),
+    transform 440ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart__cart {
@@ -82,7 +82,7 @@
   height: var(--dtb-atc-icon-size);
   flex: 0 0 auto;
   stroke-width: 2;
-  transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 380ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart__label {
@@ -106,7 +106,7 @@
   pointer-events: none;
   animation: dtb-atc-spin 650ms linear infinite;
   animation-play-state: paused;
-  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 200ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart__success {
@@ -122,8 +122,8 @@
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.6);
   transition:
-    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 200ms var(--dtb-ease-emphasized),
+    transform 200ms var(--dtb-ease-emphasized);
 }
 
 .dtb-add-to-cart__success svg {
@@ -259,7 +259,7 @@
 
 .dtb-add-to-cart[data-state="adding"]::after,
 .dtb-add-to-cart[aria-busy="true"]::after {
-  animation: dtb-atc-pending-sheen 900ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: dtb-atc-pending-sheen 900ms var(--dtb-ease-emphasized) infinite;
 }
 
 /* Phase 1 — adding: content fades out, a spinner takes its place. No
@@ -298,7 +298,7 @@
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-ring,
 .dtb-add-to-cart[data-dtb-cart-feedback="added"] .dtb-add-to-cart__success-ring,
 .dtb-add-to-cart.dtb-cart-action--feedback .dtb-add-to-cart__success-ring {
-  animation: dtb-atc-ring 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dtb-atc-ring 260ms var(--dtb-ease-emphasized) forwards;
 }
 
 .dtb-add-to-cart[data-state="added"] .dtb-add-to-cart__success-check,

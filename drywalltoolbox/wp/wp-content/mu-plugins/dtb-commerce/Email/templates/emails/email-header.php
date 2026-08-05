@@ -62,9 +62,25 @@ unset( $is_email_preview );
 							<tr>
 								<td align="center" valign="top">
 									<!-- Header -->
-									<table border="0" cellpadding="0" cellspacing="0" width="100%" id="template_header" role="presentation">
+									<?php
+									/*
+									 * Same background treatment (color + pattern image) as
+									 * dtb_email_hero()'s table below it — the two sit directly
+									 * adjacent with no gap, so a mismatched flat black header
+									 * over a patterned navy hero read as two stacked, unrelated
+									 * blocks rather than one surface. Using the identical
+									 * background here (color, image, positioning, and the same
+									 * VML fallback for Outlook desktop) merges them into one
+									 * continuous band. See dtb_email_hero() in
+									 * mu-plugins/dtb-platform/Support/Email.php for the paired
+									 * declaration this must stay in sync with.
+									 */
+									$header_background_url = esc_url( home_url( '/logos/email-background-pattern.png' ) );
+									?>
+									<table border="0" cellpadding="0" cellspacing="0" width="100%" id="template_header" role="presentation" bgcolor="#030712" background="<?php echo $header_background_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" style="background:#030712 url('<?php echo $header_background_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>') center center/cover no-repeat;background-color:#030712;">
 										<tr>
 											<td id="template_header_image" align="center">
+												<!--[if gte mso 9]><v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:680px;"><v:fill type="frame" src="<?php echo $header_background_url; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>" color="#030712" /><v:textbox inset="0,0,0,0"><![endif]-->
 												<?php if ( $logo_url ) : ?>
 													<?php if ( $header_image_url ) : ?>
 														<p style="margin:0;"><a href="<?php echo esc_url( $header_image_url ); ?>" style="display:inline-block;text-decoration:none;" target="_blank"><img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $store_name ); ?>" width="230" style="display:block;width:230px;max-width:72%;height:auto;"></a></p>
@@ -74,6 +90,7 @@ unset( $is_email_preview );
 												<?php else : ?>
 													<p class="email-logo-text" style="margin:0;"><?php echo esc_html( $store_name ); ?></p>
 												<?php endif; ?>
+												<!--[if gte mso 9]></v:textbox></v:rect><![endif]-->
 											</td>
 										</tr>
 									</table>

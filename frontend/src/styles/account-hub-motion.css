@@ -7,7 +7,7 @@
 
 .account-hub {
   --account-hub-motion-duration: 360ms;
-  --account-hub-motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --account-hub-motion-ease: var(--dtb-ease-emphasized);
   --account-hub-backdrop-duration: 280ms;
 }
 

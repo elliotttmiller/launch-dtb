@@ -1346,7 +1346,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  transition: all 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 240ms var(--dtb-ease-exit);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   padding: 0;

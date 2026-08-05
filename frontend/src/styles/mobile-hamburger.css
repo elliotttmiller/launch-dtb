@@ -36,7 +36,7 @@
   height: 2.5em;
   width: 2.5em;
   pointer-events: none;
-  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 600ms var(--dtb-ease-exit);
 }
 
 .header-mobile-toggle.hamburger .line {
@@ -46,8 +46,8 @@
   stroke-linejoin: round;
   stroke-width: 3;
   transition:
-    stroke-dasharray 600ms cubic-bezier(0.4, 0, 0.2, 1),
-    stroke-dashoffset 600ms cubic-bezier(0.4, 0, 0.2, 1);
+    stroke-dasharray 600ms var(--dtb-ease-exit),
+    stroke-dashoffset 600ms var(--dtb-ease-exit);
 }
 
 .header-mobile-toggle.hamburger .line-top-bottom {

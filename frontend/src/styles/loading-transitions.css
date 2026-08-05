@@ -3,7 +3,7 @@
   --dtb-loading-mid: #dce4ef;
   --dtb-loading-highlight: #f8fafc;
   --dtb-loading-crossfade-duration: 460ms;
-  --dtb-loading-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dtb-loading-ease: var(--dtb-ease-exit);
   --dtb-document-fade-duration: 180ms;
 }
 

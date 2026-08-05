@@ -56,7 +56,13 @@ body {
 }
 
 #template_header {
-	background-color: <?php echo esc_attr( $palette['header_bg'] ?? '#000000' ); ?>;
+	/* Matches dtb_email_hero()'s background exactly (see email-header.php's
+	 * inline style + VML fallback, which is authoritative for email-client
+	 * rendering) so the header and hero read as one continuous band rather
+	 * than a flat block stacked on a patterned one. Intentionally not
+	 * $palette['header_bg'] (#000000) — that value still governs the footer,
+	 * which isn't adjacent to the hero and keeps its own true-black bookend. */
+	background-color: #030712;
 	border-collapse: collapse;
 }
 

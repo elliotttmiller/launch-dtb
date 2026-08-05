@@ -44,14 +44,20 @@
 	--dtb-shadow-md: 0 4px 16px rgba(16, 24, 40, 0.08);
 	--dtb-touch: 48px;
 	--dtb-gutter: clamp(16px, 4vw, 24px);
-	--dtb-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	/* Body/UI face — matches the storefront's Nunito Variable authority
+	 * (frontend/src/styles/global-typography.css). Loaded via Google Fonts
+	 * in native-checkout.php since this page has no access to the SPA's
+	 * self-hosted @fontsource build. */
+	--dtb-font: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	/* Display/heading face — matches the storefront's Geist Variable authority. */
+	--dtb-font-heading: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* ---------------------------------------------------------------------------
  * 2. Document shell
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout {
+body {
 	background: var(--dtb-surface-muted);
 	color: var(--dtb-text);
 	font-family: var(--dtb-font);
@@ -59,20 +65,29 @@ body.woocommerce-checkout {
 	text-size-adjust: 100%;
 }
 
-body.woocommerce-checkout #primary {
+ #primary {
 	max-width: 640px;
 	margin-inline: auto;
 	padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 /* Fluid type scale, mobile-first. */
-body.woocommerce-checkout {
+body {
 	font-size: clamp(15px, 3.6vw, 16px);
 	line-height: 1.5;
 }
 
-body.woocommerce-checkout h2,
-body.woocommerce-checkout .wc-block-components-checkout-step__title {
+h1,
+h2,
+h3,
+ .wc-block-components-checkout-step__title,
+ .wc-block-components-checkout-order-summary__title-text,
+ .wc-block-components-product-name {
+	font-family: var(--dtb-font-heading);
+}
+
+ h2,
+ .wc-block-components-checkout-step__title {
 	font-size: clamp(17px, 4.4vw, 19px);
 	font-weight: 600;
 	letter-spacing: -0.01em;
@@ -98,8 +113,8 @@ body.woocommerce-checkout .wc-block-components-checkout-step__title {
  * covered here with the same rule so a future WooCommerce Blocks update that
  * switches which one it emits for a given element doesn't regress this
  * again. */
-body.woocommerce-checkout .screen-reader-text,
-body.woocommerce-checkout .components-visually-hidden {
+ .screen-reader-text,
+ .components-visually-hidden {
 	position: absolute !important;
 	width: 1px;
 	height: 1px;
@@ -287,7 +302,7 @@ body.woocommerce-checkout .components-visually-hidden {
  * pairs the attribute with `inert` so hidden fields cannot receive focus.
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout [data-dtb-step-hidden] {
+ [data-dtb-step-hidden] {
 	display: none;
 }
 
@@ -355,7 +370,7 @@ body.woocommerce-checkout [data-dtb-step-hidden] {
 }
 
 /* Room for the sticky action bar so it never overlaps the last field. */
-body.woocommerce-checkout:has(.dtb-checkout__actions) #primary {
+:has(.dtb-checkout__actions) #primary {
 	padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -368,7 +383,7 @@ body.woocommerce-checkout:has(.dtb-checkout__actions) #primary {
 		display: none;
 	}
 
-	body.woocommerce-checkout #primary {
+	 #primary {
 		padding-bottom: 0;
 	}
 }
@@ -377,12 +392,12 @@ body.woocommerce-checkout:has(.dtb-checkout__actions) #primary {
  * 5. Layout — WooCommerce Checkout Block regions
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-checkout__main,
-body.woocommerce-checkout .wc-block-checkout__sidebar {
+ .wc-block-checkout__main,
+ .wc-block-checkout__sidebar {
 	padding: var(--dtb-gutter);
 }
 
-body.woocommerce-checkout .wc-block-checkout__form {
+ .wc-block-checkout__form {
 	max-width: 100%;
 }
 
@@ -392,7 +407,7 @@ body.woocommerce-checkout .wc-block-checkout__form {
  * "Shipping address" and "Shipping options" render inside the single
  * "Shipping" wizard step — so they are not separately numbered here; the
  * step rail above already carries the 1/2/3 sequence for the wizard itself. */
-body.woocommerce-checkout .wc-block-components-checkout-step {
+ .wc-block-components-checkout-step {
 	background: var(--dtb-surface);
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-lg);
@@ -403,7 +418,7 @@ body.woocommerce-checkout .wc-block-components-checkout-step {
 
 /* A step Woo has already marked complete (collapsed to an address-card /
  * summary + "Change" link) gets a small green check next to its heading. */
-body.woocommerce-checkout .wc-block-components-checkout-step--disabled .wc-block-components-checkout-step__heading-content::after {
+ .wc-block-components-checkout-step--disabled .wc-block-components-checkout-step__heading-content::after {
 	content: "\2713";
 	display: inline-flex;
 	align-items: center;
@@ -418,18 +433,18 @@ body.woocommerce-checkout .wc-block-components-checkout-step--disabled .wc-block
 	font-weight: 700;
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-step__heading-content {
+ .wc-block-components-checkout-step__heading-content {
 	display: flex;
 	align-items: center;
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-step__description {
+ .wc-block-components-checkout-step__description {
 	color: var(--dtb-text-muted);
 	font-size: 13px;
 	margin: 2px 0 0;
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-step__content {
+ .wc-block-components-checkout-step__content {
 	margin-top: 14px;
 }
 
@@ -468,13 +483,13 @@ body.woocommerce-checkout .wc-block-components-checkout-step__content {
  * fully resolved — re-screenshot the Contact step after this deploys.
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle),
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) {
+ .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle),
+ .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) {
 	position: relative;
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle) .wc-block-components-checkout-step__title,
-body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) .wc-block-components-checkout-step__title {
+ .wc-block-components-checkout-step:has(.woocommerce-form-login-toggle) .wc-block-components-checkout-step__title,
+ .wc-block-components-checkout-step:has(.wc-block-checkout__login-prompt) .wc-block-components-checkout-step__title {
 	/* Generous enough for the classic template's own link text ("Click here
 	 * to login"), not just a short "Log in" — the exact copy can't be
 	 * confirmed without a live render (see note above), so this errs wide
@@ -482,8 +497,8 @@ body.woocommerce-checkout .wc-block-components-checkout-step:has(.wc-block-check
 	padding-right: 150px;
 }
 
-body.woocommerce-checkout .woocommerce-form-login-toggle,
-body.woocommerce-checkout .wc-block-checkout__login-prompt {
+ .woocommerce-form-login-toggle,
+ .wc-block-checkout__login-prompt {
 	position: absolute !important;
 	top: 18px;
 	right: var(--dtb-gutter);
@@ -501,7 +516,7 @@ body.woocommerce-checkout .wc-block-checkout__login-prompt {
  * small and muted, stacked above the pill instead of beside it so the pair
  * still reads as one compact, modern component in the corner rather than a
  * wide inline sentence. */
-body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
+ .woocommerce-form-login-toggle .woocommerce-info {
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
@@ -516,9 +531,9 @@ body.woocommerce-checkout .woocommerce-form-login-toggle .woocommerce-info {
 	white-space: nowrap;
 }
 
-body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin,
-body.woocommerce-checkout .wc-block-checkout__login-prompt a,
-body.woocommerce-checkout .wc-block-checkout__login-prompt button {
+ .woocommerce-form-login-toggle a.showlogin,
+ .wc-block-checkout__login-prompt a,
+ .wc-block-checkout__login-prompt button {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -536,16 +551,16 @@ body.woocommerce-checkout .wc-block-checkout__login-prompt button {
 	cursor: pointer;
 }
 
-body.woocommerce-checkout .woocommerce-form-login-toggle a.showlogin:hover,
-body.woocommerce-checkout .wc-block-checkout__login-prompt a:hover,
-body.woocommerce-checkout .wc-block-checkout__login-prompt button:hover {
+ .woocommerce-form-login-toggle a.showlogin:hover,
+ .wc-block-checkout__login-prompt a:hover,
+ .wc-block-checkout__login-prompt button:hover {
 	background: var(--dtb-accent);
 	color: #fff;
 }
 
 @media (min-width: 768px) {
-	body.woocommerce-checkout .woocommerce-form-login-toggle,
-	body.woocommerce-checkout .wc-block-checkout__login-prompt {
+	 .woocommerce-form-login-toggle,
+	 .wc-block-checkout__login-prompt {
 		top: 24px;
 	}
 }
@@ -566,11 +581,11 @@ body.woocommerce-checkout .wc-block-checkout__login-prompt button:hover {
  * 6. Express payment row (Apple Pay / Google Pay / Link)
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-express-payment {
+ .wc-block-components-express-payment {
 	margin-bottom: 4px;
 }
 
-body.woocommerce-checkout .wc-block-components-express-payment__title-container {
+ .wc-block-components-express-payment__title-container {
 	font-size: 12px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -578,19 +593,19 @@ body.woocommerce-checkout .wc-block-components-express-payment__title-container 
 	color: var(--dtb-text-muted);
 }
 
-body.woocommerce-checkout .wc-block-components-express-payment__event-buttons > div,
-body.woocommerce-checkout .wc-block-components-express-payment__event-buttons > li {
+ .wc-block-components-express-payment__event-buttons > div,
+ .wc-block-components-express-payment__event-buttons > li {
 	min-height: var(--dtb-touch);
 	border-radius: var(--dtb-radius-md);
 	overflow: hidden;
 }
 
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule {
+ .wc-block-components-express-payment-continue-rule {
 	color: var(--dtb-text-muted);
 }
 
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule::before,
-body.woocommerce-checkout .wc-block-components-express-payment-continue-rule::after {
+ .wc-block-components-express-payment-continue-rule::before,
+ .wc-block-components-express-payment-continue-rule::after {
 	border-top: 1px solid var(--dtb-border);
 }
 
@@ -598,9 +613,9 @@ body.woocommerce-checkout .wc-block-components-express-payment-continue-rule::af
  * 7. Form fields
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-text-input input,
-body.woocommerce-checkout .wc-block-components-address-form select,
-body.woocommerce-checkout .wc-blocks-components-select__select {
+ .wc-block-components-text-input input,
+ .wc-block-components-address-form select,
+ .wc-blocks-components-select__select {
 	min-height: var(--dtb-touch);
 	border-radius: var(--dtb-radius-sm);
 	border: 1px solid var(--dtb-border-strong);
@@ -608,18 +623,18 @@ body.woocommerce-checkout .wc-blocks-components-select__select {
 	background: var(--dtb-surface);
 }
 
-body.woocommerce-checkout .wc-block-components-text-input input:focus,
-body.woocommerce-checkout .wc-blocks-components-select__select:focus-visible {
+ .wc-block-components-text-input input:focus,
+ .wc-blocks-components-select__select:focus-visible {
 	border-color: var(--dtb-accent);
 	box-shadow: 0 0 0 3px var(--dtb-accent-soft);
 	outline: none;
 }
 
-body.woocommerce-checkout .wc-block-components-text-input label {
+ .wc-block-components-text-input label {
 	color: var(--dtb-text-muted);
 }
 
-body.woocommerce-checkout .wc-block-components-validation-error {
+ .wc-block-components-validation-error {
 	color: var(--dtb-danger);
 	font-size: 13px;
 }
@@ -667,9 +682,9 @@ body.woocommerce-checkout .wc-block-components-validation-error {
  * everything else in this section already assumed it would wrap.
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-radio-control__option,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option,
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
+ .wc-block-components-radio-control__option,
+ .wc-block-checkout__shipping-method-option,
+ .wc-block-components-radio-control-accordion-option {
 	position: relative;
 	display: flex;
 	flex-wrap: wrap;
@@ -693,9 +708,9 @@ body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
  * which drops an element from some accessibility trees and would also break
  * the very `:checked`/`:focus-visible` state selectors this file uses below
  * to style the card itself). */
-body.woocommerce-checkout .wc-block-components-radio-control__option input[type="radio"],
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option input[type="radio"],
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option input[type="radio"] {
+ .wc-block-components-radio-control__option input[type="radio"],
+ .wc-block-checkout__shipping-method-option input[type="radio"],
+ .wc-block-components-radio-control-accordion-option input[type="radio"] {
 	position: absolute !important;
 	width: 1px !important;
 	height: 1px !important;
@@ -718,8 +733,8 @@ body.woocommerce-checkout .wc-block-components-radio-control-accordion-option in
  * their own brand icon and never rendered a visible radio dot to begin with,
  * so adding this slot there would just insert unwanted blank space before
  * that icon. */
-body.woocommerce-checkout .wc-block-components-radio-control__option::before,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option::before {
+ .wc-block-components-radio-control__option::before,
+ .wc-block-checkout__shipping-method-option::before {
 	content: "";
 	flex: none;
 	width: 20px;
@@ -727,8 +742,8 @@ body.woocommerce-checkout .wc-block-checkout__shipping-method-option::before {
 	border-radius: 999px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked)::before,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked)::before {
+ .wc-block-components-radio-control__option:has(input[type="radio"]:checked)::before,
+ .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked)::before {
 	content: "\2713";
 	display: flex;
 	align-items: center;
@@ -739,14 +754,14 @@ body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[t
 	font-weight: 700;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:focus-visible),
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:focus-visible),
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:focus-visible) {
+ .wc-block-components-radio-control__option:has(input[type="radio"]:focus-visible),
+ .wc-block-checkout__shipping-method-option:has(input[type="radio"]:focus-visible),
+ .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:focus-visible) {
 	outline: 2px solid var(--dtb-accent);
 	outline-offset: 2px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label-group {
+ .wc-block-components-radio-control__label-group {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -757,20 +772,20 @@ body.woocommerce-checkout .wc-block-components-radio-control__label-group {
 	gap: 4px 10px;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__label {
+ .wc-block-components-radio-control__label {
 	min-width: 0;
 	flex: 1 1 auto;
 	overflow-wrap: anywhere;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__secondary-label {
+ .wc-block-components-radio-control__secondary-label {
 	min-width: 0;
 	flex: 0 0 auto;
 	white-space: nowrap;
 	font-weight: 600;
 }
 
-body.woocommerce-checkout .wc-block-components-radio-control__description {
+ .wc-block-components-radio-control__description {
 	flex-basis: 100%;
 	margin-top: 4px;
 	overflow-wrap: anywhere;
@@ -780,11 +795,11 @@ body.woocommerce-checkout .wc-block-components-radio-control__description {
  * some providers/variants) and a `:has(:checked)` catch-all are kept so the
  * highlight never silently depends on which class name a given provider
  * happens to add. */
-body.woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted,
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option--selected,
-body.woocommerce-checkout .wc-block-components-radio-control__option:has(input[type="radio"]:checked),
-body.woocommerce-checkout .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked),
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:checked) {
+ .wc-block-components-radio-control__option--checked-option-highlighted,
+ .wc-block-checkout__shipping-method-option--selected,
+ .wc-block-components-radio-control__option:has(input[type="radio"]:checked),
+ .wc-block-checkout__shipping-method-option:has(input[type="radio"]:checked),
+ .wc-block-components-radio-control-accordion-option:has(input[type="radio"]:checked) {
 	border-color: var(--dtb-accent);
 	background: var(--dtb-accent-soft);
 }
@@ -797,25 +812,25 @@ body.woocommerce-checkout .wc-block-components-radio-control-accordion-option:ha
  * Stripe Appearance API (see StripeElementAppearance.php), not this file.
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-checkout__payment-method {
+ .wc-block-checkout__payment-method {
 	border-radius: var(--dtb-radius-md);
 }
 
-body.woocommerce-checkout .wc-stripe-upm {
+ .wc-stripe-upm {
 	padding-top: 6px;
 }
 
-body.woocommerce-checkout .wc-stripe-label-container {
+ .wc-stripe-label-container {
 	font-weight: 500;
 }
 
-body.woocommerce-checkout .wc-block-components-payment-method-icons {
+ .wc-block-components-payment-method-icons {
 	opacity: 0.9;
 }
 
 /* Buy-now-pay-later / alternate method rows (Klarna, Affirm, ShopPay via UPM
  * additional methods) presented by the plugin as accordion options. */
-body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
+ .wc-block-components-radio-control-accordion-option {
 	min-height: var(--dtb-touch);
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-md) !important;
@@ -831,7 +846,7 @@ body.woocommerce-checkout .wc-block-components-radio-control-accordion-option {
  * 10. Order summary — collapsible on mobile (native Woo Blocks behavior)
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
+ .wc-block-components-checkout-order-summary__title {
 	background: var(--dtb-surface);
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-md);
@@ -844,7 +859,7 @@ body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
  * line up cleanly regardless of name length. WooCommerce's own quantity
  * badge keeps its native absolute position over the image's top-right
  * corner — only the image's own box gets bigger here. */
-body.woocommerce-checkout .wc-block-components-order-summary-item {
+ .wc-block-components-order-summary-item {
 	display: grid;
 	grid-template-columns: 64px minmax(0, 1fr) auto;
 	align-items: start;
@@ -852,13 +867,13 @@ body.woocommerce-checkout .wc-block-components-order-summary-item {
 	padding: 14px 0;
 }
 
-body.woocommerce-checkout .wc-block-components-order-summary-item__image {
+ .wc-block-components-order-summary-item__image {
 	width: 64px;
 	border-radius: var(--dtb-radius-sm);
 	overflow: hidden;
 }
 
-body.woocommerce-checkout .wc-block-components-order-summary-item__image img {
+ .wc-block-components-order-summary-item__image img {
 	width: 64px;
 	height: 64px;
 	max-width: none;
@@ -868,20 +883,39 @@ body.woocommerce-checkout .wc-block-components-order-summary-item__image img {
 	background: var(--dtb-surface);
 }
 
-body.woocommerce-checkout .wc-block-components-order-summary-item__description,
-body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
+ .wc-block-components-order-summary-item__description,
+ .wc-block-components-order-summary-item__total-price {
 	min-width: 0;
 	margin: 0;
 }
 
-body.woocommerce-checkout .wc-block-components-order-summary-item__total-price {
+ .wc-block-components-order-summary-item__total-price {
 	white-space: nowrap;
 	font-weight: 600;
 }
 
-body.woocommerce-checkout .wc-block-components-product-name {
+ .wc-block-components-product-name {
 	font-size: 14px;
 	font-weight: 600;
+	line-height: 1.4;
+}
+
+/* Woo Blocks renders a second, redundant per-item price directly under the
+ * name (identical to the line's total price already shown top-right) —
+ * .wc-block-cart-item__prices > .wc-block-components-order-summary-item__individual-prices.
+ * The SKU line below takes its place instead. */
+ .wc-block-cart-item__prices {
+	display: none;
+}
+
+/* SKU line injected via the itemName filter (see checkout-order-summary.js),
+ * styled to match the muted, small-caps weight of a variation option. */
+ .dtb-order-summary-sku {
+	display: block;
+	margin-top: 2px;
+	color: var(--dtb-text-muted);
+	font-size: 12px;
+	font-weight: 500;
 	line-height: 1.4;
 }
 
@@ -889,11 +923,11 @@ body.woocommerce-checkout .wc-block-components-product-name {
  * order summary should show only name, quantity, and price, not marketing
  * copy. Variation attributes (size/color) are a different element and stay
  * visible. */
-body.woocommerce-checkout .wc-block-components-product-metadata__description {
+ .wc-block-components-product-metadata__description {
 	display: none;
 }
 
-body.woocommerce-checkout .wc-block-components-totals-item__value {
+ .wc-block-components-totals-item__value {
 	font-weight: 600;
 }
 
@@ -901,7 +935,7 @@ body.woocommerce-checkout .wc-block-components-totals-item__value {
  * 11. Primary actions
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button {
+ .wc-block-components-checkout-place-order-button {
 	width: 100%;
 	min-height: 52px;
 	border-radius: var(--dtb-radius-md);
@@ -912,13 +946,13 @@ body.woocommerce-checkout .wc-block-components-checkout-place-order-button {
 	box-shadow: var(--dtb-shadow-md);
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button:hover,
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button:focus-visible {
+ .wc-block-components-checkout-place-order-button:hover,
+ .wc-block-components-checkout-place-order-button:focus-visible {
 	background: var(--dtb-accent-dark);
 	border-color: var(--dtb-accent-dark);
 }
 
-body.woocommerce-checkout .wc-block-components-checkout-return-to-cart-button {
+ .wc-block-components-checkout-return-to-cart-button {
 	color: var(--dtb-text-muted);
 }
 
@@ -926,7 +960,7 @@ body.woocommerce-checkout .wc-block-components-checkout-return-to-cart-button {
  * 12. Checkboxes — terms, save payment method, "ship to different address"
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-checkbox__input {
+ .wc-block-components-checkbox__input {
 	width: 20px;
 	height: 20px;
 	border: 1px solid var(--dtb-border-strong);
@@ -952,16 +986,16 @@ body.woocommerce-checkout .wc-block-components-checkbox__input {
  * than depending on that variable being set by something else — fixes this
  * regardless of whether/how core ever defines it here, and the transition
  * above turns it into a visible, animated toggle instead of a silent flip. */
-body.woocommerce-checkout .wc-block-components-checkbox__input:checked {
+ .wc-block-components-checkbox__input:checked {
 	background-color: var(--dtb-accent);
 	border-color: var(--dtb-accent);
 }
 
-body.woocommerce-checkout .wc-block-components-checkbox__mark {
+ .wc-block-components-checkbox__mark {
 	fill: #fff;
 }
 
-body.woocommerce-checkout label:has(.wc-block-components-checkbox__input) {
+ label:has(.wc-block-components-checkbox__input) {
 	min-height: var(--dtb-touch);
 	display: flex;
 	align-items: center;
@@ -972,7 +1006,7 @@ body.woocommerce-checkout label:has(.wc-block-components-checkbox__input) {
  * 13. Notices — validation summaries, store notices, empty/error states
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-notice-banner {
+ .wc-block-components-notice-banner {
 	border-radius: var(--dtb-radius-md);
 	border: 1px solid var(--dtb-border);
 	border-left-width: 4px;
@@ -981,15 +1015,15 @@ body.woocommerce-checkout .wc-block-components-notice-banner {
 	margin-bottom: 14px;
 }
 
-body.woocommerce-checkout .wc-block-components-notice-banner.is-error {
+ .wc-block-components-notice-banner.is-error {
 	border-left-color: var(--dtb-danger);
 }
 
-body.woocommerce-checkout .wc-block-components-notice-banner.is-success {
+ .wc-block-components-notice-banner.is-success {
 	border-left-color: var(--dtb-success);
 }
 
-body.woocommerce-checkout .wc-block-components-notice-banner .wc-block-components-notice-banner__content {
+ .wc-block-components-notice-banner .wc-block-components-notice-banner__content {
 	font-size: 13px;
 	color: var(--dtb-text);
 }
@@ -998,28 +1032,28 @@ body.woocommerce-checkout .wc-block-components-notice-banner .wc-block-component
  * 14. Coupon form and country/state selects
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-totals-coupon-link {
+ .wc-block-components-totals-coupon-link {
 	color: var(--dtb-accent);
 	font-weight: 600;
 }
 
-body.woocommerce-checkout .wc-block-components-totals-coupon__input input {
+ .wc-block-components-totals-coupon__input input {
 	min-height: var(--dtb-touch);
 	border-radius: var(--dtb-radius-sm);
 	border: 1px solid var(--dtb-border-strong);
 }
 
-body.woocommerce-checkout .wc-block-components-totals-coupon__button {
+ .wc-block-components-totals-coupon__button {
 	min-height: var(--dtb-touch);
 	border-radius: var(--dtb-radius-sm);
 	font-weight: 600;
 }
 
-body.woocommerce-checkout .wc-blocks-components-select {
+ .wc-blocks-components-select {
 	margin-top: 12px;
 }
 
-body.woocommerce-checkout .wc-blocks-components-select__container {
+ .wc-blocks-components-select__container {
 	min-height: var(--dtb-touch);
 	border-radius: var(--dtb-radius-sm);
 	border: 1px solid var(--dtb-border-strong);
@@ -1030,7 +1064,7 @@ body.woocommerce-checkout .wc-blocks-components-select__container {
  * 15. Address autocomplete suggestions
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-address-autocomplete-suggestions {
+ .wc-block-components-address-autocomplete-suggestions {
 	border: 1px solid var(--dtb-border);
 	border-radius: var(--dtb-radius-sm);
 	box-shadow: var(--dtb-shadow-md);
@@ -1043,11 +1077,11 @@ body.woocommerce-checkout .wc-block-components-address-autocomplete-suggestions 
  * prefers-reduced-motion by the rule in section 17.
  * ------------------------------------------------------------------------- */
 
-body.woocommerce-checkout .wc-block-components-text-input input,
-body.woocommerce-checkout .wc-blocks-components-select__select,
-body.woocommerce-checkout .wc-block-components-radio-control__option,
-body.woocommerce-checkout .wc-block-components-checkout-place-order-button,
-body.woocommerce-checkout .wc-block-components-checkout-step,
+ .wc-block-components-text-input input,
+ .wc-blocks-components-select__select,
+ .wc-block-components-radio-control__option,
+ .wc-block-components-checkout-place-order-button,
+ .wc-block-components-checkout-step,
 .dtb-checkout__actions-back,
 .dtb-checkout__actions-continue,
 .dtb-checkout__step-dot {
@@ -1059,27 +1093,27 @@ body.woocommerce-checkout .wc-block-components-checkout-step,
  * ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-	body.woocommerce-checkout * {
+	 * {
 		animation-duration: 0.001ms !important;
 		transition-duration: 0.001ms !important;
 	}
 }
 
 @media (forced-colors: active) {
-	body.woocommerce-checkout .wc-block-components-checkout-step,
-	body.woocommerce-checkout .wc-block-components-radio-control__option,
-	body.woocommerce-checkout .wc-block-components-text-input input {
+	 .wc-block-components-checkout-step,
+	 .wc-block-components-radio-control__option,
+	 .wc-block-components-text-input input {
 		border: 1px solid CanvasText;
 	}
 }
 
-body.woocommerce-checkout :focus-visible {
+ :focus-visible {
 	outline: 2px solid var(--dtb-accent);
 	outline-offset: 2px;
 }
 
 /* No horizontal scroll from long provider iframes/content. */
-body.woocommerce-checkout,
-body.woocommerce-checkout #primary {
+body,
+ #primary {
 	overflow-x: hidden;
 }

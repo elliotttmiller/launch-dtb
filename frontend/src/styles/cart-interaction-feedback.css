@@ -48,7 +48,7 @@
 }
 
 .cart-toggle.dtb-cart-target--pulse {
-  animation: dtb-cart-target-pulse 560ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: dtb-cart-target-pulse 560ms var(--dtb-ease-emphasized);
 }
 
 .dtb-toast-progress {

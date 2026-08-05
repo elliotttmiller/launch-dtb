@@ -192,7 +192,7 @@
     transform: translateY(-50%) scale(0.9);
     transition:
       opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 360ms var(--dtb-ease-emphasized),
       box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
   }
@@ -214,7 +214,7 @@
     opacity: 0;
     transform: translate3d(0, -50%, 0) skewX(-14deg);
     transition:
-      left 560ms cubic-bezier(0.16, 1, 0.3, 1),
+      left 560ms var(--dtb-ease-emphasized),
       opacity 180ms ease;
     pointer-events: none;
   }
@@ -269,7 +269,7 @@
 
   .dtb-desktop-nav-dropdown {
     position: absolute;
-    top: calc(100% + 1px);
+    top: calc(100% + 10px);
     left: 0;
     z-index: 10030;
     display: flex;
@@ -277,19 +277,28 @@
     width: 360px;
     max-height: min(480px, calc(100dvh - var(--header-height, 142px) - 18px));
     overflow: hidden;
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    border-radius: 0 0 16px 16px;
-    background: linear-gradient(180deg, rgba(10, 24, 48, 0.985), rgba(5, 14, 30, 0.99));
-    box-shadow: 0 28px 70px rgba(2, 6, 23, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background:
+      linear-gradient(165deg, rgba(255, 255, 255, 0.06), transparent 40%),
+      linear-gradient(180deg, rgba(13, 26, 51, 0.78), rgba(6, 14, 30, 0.86));
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    box-shadow:
+      0 24px 60px rgba(2, 6, 23, 0.32),
+      0 4px 16px rgba(2, 6, 23, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(-8px) scale(0.99);
+    filter: blur(6px);
+    transform: translateY(-6px) scale(0.97);
     transform-origin: top left;
     transition:
-      opacity 220ms var(--dtb-ease),
-      transform var(--dtb-normal, 320ms) var(--dtb-ease),
-      visibility 0s linear var(--dtb-normal, 320ms);
+      opacity 200ms var(--dtb-ease),
+      filter 240ms var(--dtb-ease),
+      transform 280ms var(--dtb-ease),
+      visibility 0s linear 240ms;
   }
 
   .dtb-desktop-nav-dropdown--wide {
@@ -300,6 +309,7 @@
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    filter: blur(0);
     transform: translateY(0) scale(1);
     transition-delay: 0s;
   }

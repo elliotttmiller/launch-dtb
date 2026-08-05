@@ -9,14 +9,14 @@
  */
 
 @media (min-width: 1024px) {
-	body.woocommerce-checkout {
+	body {
 		--dtb-desktop-checkout-width: 1360px;
 		--dtb-desktop-sidebar-width: clamp(390px, 30vw, 460px);
 		--dtb-desktop-column-gap: clamp(32px, 3vw, 48px);
 		--dtb-desktop-section-gap: 20px;
 	}
 
-	body.woocommerce-checkout #primary {
+	 #primary {
 		box-sizing: border-box;
 		width: 100%;
 		max-width: var(--dtb-desktop-checkout-width);
@@ -24,28 +24,35 @@
 		padding: clamp(32px, 4vw, 56px) clamp(24px, 4vw, 56px) 72px;
 	}
 
-	body.woocommerce-checkout #primary > .woocommerce,
-	body.woocommerce-checkout #primary .wp-block-woocommerce-checkout,
-	body.woocommerce-checkout #primary .wc-block-checkout,
-	body.woocommerce-checkout #primary .wc-block-checkout__form,
-	body.woocommerce-checkout .wc-block-components-sidebar-layout {
+	 #primary > .woocommerce,
+	 #primary .wp-block-woocommerce-checkout,
+	 #primary .wc-block-checkout,
+	 #primary .wc-block-checkout__form,
+	 .wc-block-components-sidebar-layout {
 		box-sizing: border-box;
 		width: 100%;
 		min-width: 0;
 		max-width: none;
 	}
 
-	body.woocommerce-checkout .wc-block-components-sidebar-layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) var(--dtb-desktop-sidebar-width);
+	/* WooCommerce's own compiled checkout.css sets `display: flex` on this
+	 * element unconditionally (its two-column vs. stacked split is driven by
+	 * a CSS @container query, which never activates without a theme-provided
+	 * `container-type` ancestor — this theme intentionally ships none). That
+	 * rule has identical specificity to ours, so — regardless of the exact
+	 * stylesheet load-order outcome — `!important` is the only way to make
+	 * our two-column intent win deterministically rather than depend on it. */
+	 .wc-block-components-sidebar-layout {
+		display: grid !important;
+		grid-template-columns: minmax(0, 1fr) var(--dtb-desktop-sidebar-width) !important;
 		column-gap: var(--dtb-desktop-column-gap);
 		align-items: start;
 	}
 
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__main,
-	body.woocommerce-checkout .wc-block-checkout__main,
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar,
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
+	 .wc-block-components-sidebar-layout__main,
+	 .wc-block-checkout__main,
+	 .wc-block-components-sidebar-layout__sidebar,
+	 .wc-block-checkout__sidebar {
 		box-sizing: border-box;
 		min-width: 0;
 		width: 100%;
@@ -55,16 +62,16 @@
 		flex: none;
 	}
 
-	body.woocommerce-checkout .wc-block-checkout__main,
-	body.woocommerce-checkout .wc-block-components-main {
+	 .wc-block-checkout__main,
+	 .wc-block-components-main {
 		display: block;
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-step,
-	body.woocommerce-checkout .wc-block-components-express-payment,
-	body.woocommerce-checkout .wc-block-checkout__add-note,
-	body.woocommerce-checkout .wc-block-checkout__terms,
-	body.woocommerce-checkout .wc-block-checkout__actions {
+	 .wc-block-components-checkout-step,
+	 .wc-block-components-express-payment,
+	 .wc-block-checkout__add-note,
+	 .wc-block-checkout__terms,
+	 .wc-block-checkout__actions {
 		box-sizing: border-box;
 		width: 100%;
 		max-width: none;
@@ -74,18 +81,18 @@
 		margin-inline: 0;
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-step,
-	body.woocommerce-checkout .wc-block-components-express-payment {
+	 .wc-block-components-checkout-step,
+	 .wc-block-components-express-payment {
 		margin-bottom: var(--dtb-desktop-section-gap);
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-step {
+	 .wc-block-components-checkout-step {
 		padding: clamp(22px, 2vw, 28px);
 		box-shadow: var(--dtb-shadow-md);
 	}
 
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar,
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
+	 .wc-block-components-sidebar-layout__sidebar,
+	 .wc-block-checkout__sidebar {
 		position: sticky;
 		top: 112px;
 		align-self: start;
@@ -96,18 +103,72 @@
 		scrollbar-gutter: stable;
 	}
 
-	body.woocommerce-checkout .wc-block-checkout__sidebar > *,
-	body.woocommerce-checkout .wc-block-components-totals-wrapper,
-	body.woocommerce-checkout .wc-block-components-order-summary,
-	body.woocommerce-checkout .wc-block-components-order-summary-item,
-	body.woocommerce-checkout .wc-block-components-product-details {
+	 .wc-block-checkout__sidebar > *,
+	 .wc-block-components-totals-wrapper,
+	 .wc-block-components-order-summary,
+	 .wc-block-components-order-summary-item,
+	 .wc-block-components-product-details {
 		box-sizing: border-box;
 		width: 100%;
 		min-width: 0;
 		max-width: none;
 	}
 
-	body.woocommerce-checkout :where(
+	/* Unify title + line items + totals into the one card that the left
+	 * column's .wc-block-components-checkout-step already establishes as
+	 * this checkout's card language (background/border/radius/shadow — see
+	 * checkout.css). The order-summary block is the only stable wrapper
+	 * around all three regions; mobile's own title styling stays untouched
+	 * since it deliberately mimics an accordion toggle there. */
+	 .wp-block-woocommerce-checkout-order-summary-block {
+		background: var(--dtb-surface);
+		border: 1px solid var(--dtb-border);
+		border-radius: var(--dtb-radius-lg);
+		box-shadow: var(--dtb-shadow-sm);
+		overflow: hidden;
+	}
+
+	/* Desktop's sidebar is always visible — the mobile collapsible-toggle
+	 * treatment (its own border/radius/cursor) would nest a second card
+	 * inside the one above it, so it's flattened into a plain card header. */
+	 .wc-block-components-checkout-order-summary__title {
+		border: 0;
+		border-radius: 0;
+		border-bottom: 1px solid var(--dtb-border);
+		cursor: default;
+		padding: 20px clamp(20px, 1.6vw, 26px);
+	}
+
+	 .wc-block-components-checkout-order-summary__title-text {
+		font-size: 19px;
+		font-weight: 650;
+	}
+
+	 .wp-block-woocommerce-checkout-order-summary-cart-items-block,
+	 .wp-block-woocommerce-checkout-order-summary-totals-block,
+	 .wc-block-components-sidebar > .wc-block-components-totals-wrapper {
+		padding: 0 clamp(20px, 1.6vw, 26px);
+	}
+
+	 .wp-block-woocommerce-checkout-order-summary-totals-block {
+		padding-top: 6px;
+		padding-bottom: 18px;
+	}
+
+	/* The final Total row reads as the card's conclusion, not just another
+	 * totals line — larger figure, a clear rule above it, breathing room. */
+	 .wc-block-components-totals-footer-item {
+		padding-top: 16px;
+		border-top: 1px solid var(--dtb-border);
+	}
+
+	 .wc-block-components-totals-footer-item .wc-block-components-totals-item__label,
+	 .wc-block-components-totals-footer-item .wc-block-components-totals-item__value {
+		font-size: 18px;
+		font-weight: 700;
+	}
+
+	 :where(
 		.wc-block-components-product-name,
 		.wc-block-components-product-metadata,
 		.wc-block-components-address-form__address_2-toggle,
@@ -119,14 +180,14 @@
 		word-break: normal;
 	}
 
-	body.woocommerce-checkout :where(input, select, textarea, button) {
+	 :where(input, select, textarea, button) {
 		max-width: 100%;
 	}
 }
 
 @media (min-width: 1024px) and (max-height: 720px) {
-	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar,
-	body.woocommerce-checkout .wc-block-checkout__sidebar {
+	 .wc-block-components-sidebar-layout__sidebar,
+	 .wc-block-checkout__sidebar {
 		position: static;
 		max-height: none;
 		overflow: visible;
@@ -135,22 +196,22 @@
 }
 
 @media (min-width: 1440px) {
-	body.woocommerce-checkout {
+	body {
 		--dtb-desktop-sidebar-width: 460px;
 	}
 }
 
 @media (min-width: 1800px) {
-	body.woocommerce-checkout {
+	body {
 		--dtb-desktop-checkout-width: 1480px;
 		--dtb-desktop-sidebar-width: 480px;
 	}
 }
 
 @media (prefers-reduced-motion: reduce) {
-	body.woocommerce-checkout *,
-	body.woocommerce-checkout *::before,
-	body.woocommerce-checkout *::after {
+	 *,
+	 *::before,
+	 *::after {
 		scroll-behavior: auto !important;
 		transition-duration: 0.01ms !important;
 		animation-duration: 0.01ms !important;

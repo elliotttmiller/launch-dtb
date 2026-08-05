@@ -33,9 +33,9 @@
     0 1px 1px rgba(2, 8, 23, 0.24),
     0 16px 34px rgba(2, 8, 23, 0.22);
   transition:
-    background-color 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 260ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+    background-color 260ms var(--dtb-ease-emphasized),
+    box-shadow 260ms var(--dtb-ease-emphasized),
+    transform 180ms var(--dtb-ease-emphasized);
 }
 
 .dtb-product-buy-now__button::after {
@@ -48,7 +48,7 @@
   opacity: 0;
   pointer-events: none;
   transform: translateX(-70%);
-  transition: opacity 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 220ms var(--dtb-ease-emphasized);
 }
 
 .dtb-product-buy-now__content {
@@ -60,8 +60,8 @@
   opacity: 1;
   transform: translate3d(0, 0, 0) scale(1);
   transition:
-    opacity 220ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 220ms var(--dtb-ease-emphasized),
+    transform 320ms var(--dtb-ease-emphasized);
 }
 
 .dtb-product-buy-now__spinner {
@@ -79,7 +79,7 @@
   pointer-events: none;
   animation: dtb-buy-now-spin 650ms linear infinite;
   animation-play-state: paused;
-  transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 200ms var(--dtb-ease-emphasized);
 }
 
 .dtb-product-buy-now__eyebrow {
@@ -147,7 +147,7 @@
 
 .dtb-product-buy-now__button[aria-busy='true']::after {
   opacity: 1;
-  animation: dtb-buy-now-sheen 900ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  animation: dtb-buy-now-sheen 900ms var(--dtb-ease-emphasized) infinite;
 }
 
 .dtb-product-buy-now__success {
@@ -164,8 +164,8 @@
   pointer-events: none;
   transform: translate(-50%, -50%) scale(0.6);
   transition:
-    opacity 200ms cubic-bezier(0.16, 1, 0.3, 1),
-    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 200ms var(--dtb-ease-emphasized),
+    transform 200ms var(--dtb-ease-emphasized);
 }
 
 .dtb-product-buy-now__success svg {
@@ -200,7 +200,7 @@
 }
 
 .dtb-product-buy-now__button[data-state='confirmed'] .dtb-product-buy-now__success-ring {
-  animation: dtb-buy-now-ring 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dtb-buy-now-ring 260ms var(--dtb-ease-emphasized) forwards;
 }
 
 .dtb-product-buy-now__button[data-state='confirmed'] .dtb-product-buy-now__success-check {

@@ -91,6 +91,10 @@ final class DTB_WooNativeCheckoutRuntime {
 			return true;
 		}
 
+		return self::request_uri_targets_checkout();
+	}
+
+	private static function request_uri_targets_checkout(): bool {
 		$request_uri = isset( $_SERVER['REQUEST_URI'] )
 			? (string) wp_unslash( $_SERVER['REQUEST_URI'] )
 			: '';
@@ -98,6 +102,28 @@ final class DTB_WooNativeCheckoutRuntime {
 
 		return (bool) preg_match( '#/checkout(?:/|$)#i', $path );
 	}
+
+	/**
+	 * Host-level and third-party page caches (e.g. SiteGround SuperCacher) decide
+	 * whether to buffer/serve a cached response before WordPress finishes loading
+	 * plugins/theme — long before is_checkout() is available and often ignoring
+	 * response Cache-Control headers emitted later in the request lifecycle. The
+	 * DONOTCACHEPAGE constant is the de-facto convention those caches check for,
+	 * so it must be defined as early as this mu-plugin file executes (mu-plugins
+	 * load before the 'muplugins_loaded' action even fires). Without this, a
+	 * cached checkout document can be served to guests with a stale/empty cart
+	 * state captured at cache-generation time, independent of their real session.
+	 */
+	public static function define_donotcachepage_if_checkout(): void {
+		if ( defined( 'DONOTCACHEPAGE' ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_admin() ) {
+			return;
+		}
+
+		if ( self::request_uri_targets_checkout() ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+	}
 }
 
+DTB_WooNativeCheckoutRuntime::define_donotcachepage_if_checkout();
 DTB_WooNativeCheckoutRuntime::register();
