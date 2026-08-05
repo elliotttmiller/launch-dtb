@@ -15,13 +15,13 @@
 }
 
 .dtb-pdp__info-column .dtb-pdp-header__title {
-  max-width: 18ch;
+  max-width: 100%;
   color: #07152f;
   font-size: clamp(1.45rem, 1.05rem + 1.55vw, 2.25rem);
   font-weight: 720;
   line-height: 1.07;
   letter-spacing: -0.038em;
-  text-wrap: balance;
+  text-wrap: pretty;
 }
 
 .dtb-pdp__info-column .dtb-pdp-header__reviews {

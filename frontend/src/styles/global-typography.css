@@ -1,20 +1,20 @@
 /*
  * Global customer-facing typography authority.
  *
- * Geist owns customer-facing commerce typography: headings, labels, controls,
- * metadata, and numeric commerce detail. This file is intentionally imported
- * last so route-level and legacy component styles cannot silently reintroduce
- * older font stacks.
+ * Two-tier system: Geist is the display/heading face (hero, page and section
+ * titles, product names, nav, order numbers); Nunito is the body/UI face
+ * (paragraphs, forms, buttons, labels, checkout, specs). This file is
+ * intentionally imported last so route-level and legacy component styles
+ * cannot silently reintroduce older font stacks.
  */
 
 :root {
-  --dtb-font-body: "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --dtb-font-display: var(--dtb-font-body);
+  --dtb-font-display: "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --dtb-font-body: "Nunito Variable", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --dtb-font-ui: var(--dtb-font-body);
   --dtb-font-sans: var(--dtb-font-body);
 
-  /* Legacy aliases remain Geist aliases so older components inherit the same
-     commerce typography authority. */
+  /* Legacy aliases route to the same two-tier authority. */
   --font-main: var(--dtb-font-body);
   --font-sans: var(--dtb-font-body);
   --font-mono: var(--dtb-font-body);
@@ -23,7 +23,7 @@
   --dtb-global-font-sans: var(--dtb-font-body);
   --checkout-font: var(--dtb-font-body);
   --checkout-display-font: var(--dtb-font-display);
-  --dtb-order-font: var(--dtb-font-body);
+  --dtb-order-font: var(--dtb-font-display);
 }
 
 html,
@@ -44,8 +44,8 @@ body {
 }
 
 body {
-  font-weight: 400;
-  line-height: 1.55;
+  font-weight: 500;
+  line-height: 1.65;
   letter-spacing: -0.005em;
   font-synthesis: none;
 }
@@ -60,6 +60,8 @@ body :is(
   [role="heading"],
   .dtb-title-eyebrow,
   .dtb-desktop-nav-tab,
+  .dtb-product-card__name,
+  .dtb-pdp-header__order-number,
   [class$="__title"],
   [class*="__title "],
   [class$="-title"],
@@ -79,7 +81,8 @@ body :is(
   [class$="__kicker"],
   [class*="__kicker "],
   [class$="-kicker"],
-  [class*="-kicker "]
+  [class*="-kicker "],
+  [class*="order-number"]
 ) {
   font-family: var(--dtb-font-display) !important;
 }
@@ -120,11 +123,13 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 750;
-  line-height: 1.12;
-  letter-spacing: -0.035em;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
+
+h1 { font-weight: 700; }
 
 p,
 li,

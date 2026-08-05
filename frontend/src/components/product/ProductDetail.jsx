@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { Check, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Reviews from './Reviews';
 import { useCart } from '../../context/CartContext';
@@ -930,20 +930,6 @@ export default function ProductDetail({
         },
       ]
     : baseProductSpecifications;
-  const stockQuantityRaw = selectedVariation?.stock_quantity ?? effectiveProduct?.stock_quantity ?? product?.stock_quantity;
-  const stockQuantity = Number.isFinite(Number(stockQuantityRaw)) ? Number(stockQuantityRaw) : null;
-  const awaitingVariationSelection = needsVariation && !selectedVariation;
-  const stockHint = awaitingVariationSelection
-    ? 'Select an option to see availability'
-    : isOutOfStock
-    ? 'Temporarily out of stock'
-    : stockQuantity && stockQuantity > 0
-      ? stockQuantity <= 6
-        ? `Only ${stockQuantity} left - hurry while stock lasts`
-        : stockQuantity <= 24
-          ? `${stockQuantity} in stock - Hurry while stocks last!`
-          : `${stockQuantity} in stock`
-      : 'In stock and ready to ship';
   const hasIncludesSpec = productSpecifications.some((spec) => isIncludesLabel(spec?.label));
   const rawDescriptionBase = stripSpecsFromHtml(
     effectiveProduct.description_full || effectiveProduct.description || effectiveProduct.short_description || ''
@@ -1023,11 +1009,6 @@ export default function ProductDetail({
                 className="dtb-pdp__purchase-region"
                 style={purchasePanel.getValue('sticky', true) ? { position: 'sticky', top: 'var(--dtb-header-height, 72px)' } : undefined}
               >
-                <div className={`dtb-pdp-stock-meter dtb-pdp-stock-meter--pre-cart ${isOutOfStock && !awaitingVariationSelection ? 'is-out ' : ''}${awaitingVariationSelection ? 'is-awaiting-selection' : ''}`}>
-                  <p className="dtb-pdp-stock-meter__label">{!awaitingVariationSelection ? <Check aria-hidden="true" /> : null}{stockHint}</p>
-                  {!isOutOfStock && !awaitingVariationSelection ? <span className="dtb-pdp-stock-meter__dispatch">Ships today if ordered by 2pm ET</span> : null}
-                </div>
-
                 <ProductPurchasePanel
                   quantity={quantity}
                   onDecrease={() => {

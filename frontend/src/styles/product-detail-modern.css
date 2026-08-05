@@ -101,10 +101,10 @@
   }
 
   .dtb-pdp--modal .product-image-gallery__main {
-    aspect-ratio: auto !important;
-    height: clamp(24rem, 30vw, 30rem);
+    aspect-ratio: 1 / 1 !important;
+    height: auto;
     min-height: 0;
-    max-height: clamp(24rem, 30vw, 30rem);
+    max-height: 30rem;
   }
 
   .dtb-pdp--modal .product-image-gallery__main img {
@@ -185,7 +185,8 @@
 }
 
 .product-image-gallery__main {
-  min-height: clamp(19rem, 42vw, 34rem);
+  aspect-ratio: 1 / 1;
+  height: auto;
 }
 
 .dtb-pdp__info-column {
@@ -229,7 +230,7 @@
   font-weight: 700;
   letter-spacing: -0.025em;
   color: #0f172a;
-  text-wrap: balance;
+  text-wrap: pretty;
   overflow-wrap: break-word;
 }
 
@@ -1193,8 +1194,9 @@
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
-  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr));
+  counter-reset: dtb-feature;
+  gap: 0.9rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1202,46 +1204,59 @@
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li {
+  counter-increment: dtb-feature;
   position: relative;
   display: flex;
-  align-items: flex-start;
-  gap: 0.7rem;
+  flex-direction: column;
+  gap: 0.55rem;
   min-width: 0;
   margin: 0;
-  padding: 0.95rem 1rem;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #ffffff, rgba(248, 250, 252, 0.6));
-  color: #475569;
-  font-size: 0.91rem;
-  line-height: 1.6;
+  padding: 1.15rem 1.2rem 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 16px;
+  background: linear-gradient(165deg, #ffffff 0%, rgba(248, 250, 252, 0.85) 100%);
+  color: #55617a;
+  font-size: 0.89rem;
+  line-height: 1.62;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-
-.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:hover,
-.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:hover {
-  border-color: rgba(34, 85, 238, 0.3);
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.07);
-  transform: translateY(-1px);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li::before,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li::before {
-  content: "";
+  content: counter(dtb-feature, decimal-leading-zero);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
-  margin-top: 0.3rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: #2255ee;
-  box-shadow: 0 0 0 3px rgba(34, 85, 238, 0.14);
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #17365d, #2255ee);
+  box-shadow: 0 4px 10px rgba(34, 85, 238, 0.26);
+  color: #eaf0ff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li:hover,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li:hover {
+  border-color: rgba(34, 85, 238, 0.32);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
+  transform: translateY(-2px);
 }
 
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li strong,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li strong {
-  color: #172554;
-  font-weight: 760;
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #101c37;
+  font-size: 0.94rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
 }
 
 .dtb-pdp-description-content > :first-child {
@@ -1452,8 +1467,10 @@
 
   .dtb-pdp-gallery .product-image-gallery__main {
     border-radius: var(--dtb-radius-lg, 14px);
-    min-height: min(106vw, 32rem);
-    max-height: min(106vw, 32rem);
+    aspect-ratio: 1 / 1;
+    height: auto;
+    min-height: 0;
+    max-height: 32rem;
     overflow: hidden;
   }
 
@@ -1530,6 +1547,7 @@
   }
 
   .dtb-pdp-header__title {
+    margin-bottom: -0.35rem;
     font-size: 1.18rem;
     font-weight: 700;
     line-height: 1.1;
@@ -1808,8 +1826,8 @@
 
   .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li,
   .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li {
-    padding: 0.82rem 0.85rem 0.82rem 1.02rem;
-    font-size: 0.89rem;
+    padding: 1rem 1.05rem 1.1rem;
+    font-size: 0.87rem;
   }
 }
 
