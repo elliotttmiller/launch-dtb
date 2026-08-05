@@ -1,0 +1,639 @@
+/*
+ * Drywall Toolbox unified responsive presentation authority.
+ *
+ * This is the only global responsive override layer. Feature styles own their
+ * base appearance; this file owns viewport geometry, stacking, touch density,
+ * safe areas, overflow containment, and cross-route breakpoint behavior.
+ *
+ * Do not add route-specific “fix”, “patch”, “mockup”, or “polish” stylesheets.
+ * Extend the appropriate section below with selectors scoped to a stable
+ * component or route class.
+ */
+
+:root {
+  --dtb-responsive-gutter: clamp(1rem, 0.55rem + 1.45vw, 2rem);
+  --dtb-responsive-section: clamp(2rem, 1.15rem + 2.8vw, 4.5rem);
+  --dtb-responsive-gap: clamp(1rem, 0.72rem + 0.9vw, 1.75rem);
+  --dtb-responsive-card-radius: clamp(0.75rem, 0.62rem + 0.4vw, 1rem);
+  --dtb-mobile-row-height: 68px;
+  --dtb-mobile-search-height: 52px;
+}
+
+html {
+  min-width: 320px;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: var(--header-height, var(--dtb-header-height, 72px));
+}
+
+body,
+#root {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+body {
+  overscroll-behavior-x: none;
+}
+
+:where(main, section, article, aside, nav, form, fieldset, div) {
+  min-width: 0;
+}
+
+:where(img, svg, video, canvas, iframe) {
+  max-width: 100%;
+}
+
+:where(input, textarea, select, button) {
+  max-width: 100%;
+}
+
+:where(.page-wrapper, .storefront-shell, .dtb-page, .dtb-container) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Shared route containers */
+:where(
+  .dtb-product-page-shell,
+  .dtb-order-shell,
+  .dtb-order-tracking-shell,
+  .store-policy-hero,
+  .store-policy-content,
+  .repairs-workflow-shell,
+  .dtb-route-back-bar
+) {
+  width: min(100% - (2 * var(--dtb-responsive-gutter)), var(--dtb-content-default, 75rem));
+  margin-inline: auto;
+}
+
+/* Header and overlays */
+.site-header,
+.storefront-header-stack {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+:where(
+  .storefront-mobile-drawer,
+  .storefront-search-overlay,
+  .storefront-search-overlay__panel,
+  .cart-drawer,
+  .account-hub__sheet,
+  .filter-mobile-sheet-enter
+) {
+  max-width: 100vw;
+}
+
+/* Catalog listing and filters */
+.dtb-listing-heading,
+.dtb-listing-toolbar,
+.dtb-listing-search,
+.dtb-product-grid,
+.product-skeleton-grid {
+  min-width: 0;
+}
+
+.dtb-listing-heading__title,
+.dtb-listing-heading__meta {
+  overflow-wrap: anywhere;
+}
+
+.dtb-listing-toolbar {
+  align-items: center;
+}
+
+.dtb-listing-toolbar__count {
+  min-width: 0;
+}
+
+.filter-panel-overlay,
+.filter-mobile-overlay-enter {
+  overscroll-behavior: contain;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.slider-thumb {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.slider-thumb:focus-visible {
+  outline: 2px solid var(--dtb-focus, #2255ee);
+  outline-offset: 3px;
+}
+
+/* Product detail shell and recommendations */
+.dtb-product-breadcrumb {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  color: var(--dtb-muted, #64748b);
+  font-size: 0.8rem;
+}
+
+.dtb-product-breadcrumb a {
+  flex: 0 0 auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dtb-product-breadcrumb__current {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dtb-text, #0f172a);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-related {
+  min-width: 0;
+  margin-top: clamp(2rem, 5vw, 4rem);
+}
+
+.product-related__heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.product-related__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--dtb-responsive-gap);
+}
+
+/* Checkout boundaries: presentation only. Native Woo/payment UI remains owner. */
+:where(.dtb-checkout, .dtb-co-formpane, .dtb-co-formpane__inner, .wc-block-checkout) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+:where(.dtb-checkout, .wc-block-checkout) :where(input, textarea, select, button) {
+  min-height: var(--dtb-touch-target, 44px);
+}
+
+.dtb-cart-page__layout,
+.dtb-order-tracking-grid {
+  min-width: 0;
+}
+
+/* Account dashboard */
+.dash-hero-inner {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dash-hero-text,
+.account-activity-card__body,
+.account-activity-card__title-row {
+  min-width: 0;
+}
+
+.account-activity-card__title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.account-activity-card__title {
+  overflow-wrap: anywhere;
+}
+
+/* Repairs, returns, support, and tracking */
+.repair-step-nav__steps,
+.schematic-variant-pills {
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.repair-step-nav__content,
+.repair-step-nav__circle,
+.viewer-back-button,
+.zoom-control-btn,
+.pager-pill {
+  min-width: var(--dtb-touch-target, 44px);
+  min-height: var(--dtb-touch-target, 44px);
+}
+
+.repairs-workflow-track {
+  min-width: 0;
+}
+
+.dtb-order-tracking-grid,
+.store-policy-grid,
+.store-policies-grid,
+.store-policy-steps,
+.store-policy-related-grid {
+  min-width: 0;
+}
+
+/* Schematics */
+.section-enter,
+.viewer-active,
+.schematic-container,
+.schematic-image-wrapper,
+.schematic-image-bounds,
+.viewer-top-bar,
+.schematic-variant-bar {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.schematic-image-bounds img {
+  display: block;
+  max-width: 100%;
+}
+
+.schematic-variant-pill__label,
+.viewer-tool-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tablet and below */
+@media (max-width: 64rem) {
+  :root {
+    --dtb-responsive-gutter: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .dtb-split-layout,
+  .dtb-sidebar-layout,
+  .dtb-cart-page__layout,
+  .dtb-order-tracking-grid,
+  .store-policy-hero,
+  .store-policy-section--intro,
+  .store-policy-section--split,
+  .store-policy-grid,
+  .store-policies-grid,
+  .store-policy-footer-cta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dtb-cart-page__summary-wrap {
+    position: static;
+  }
+
+  .dtb-product-page-shell {
+    width: min(100% - (2 * var(--dtb-responsive-gutter)), 50.5rem);
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery,
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
+    border: 1px solid var(--dtb-border, #dbe3f1);
+    border-radius: var(--dtb-radius-lg, 1rem);
+    background: var(--dtb-surface, #fff);
+    box-shadow: var(--dtb-shadow-card, 0 8px 22px rgba(15, 23, 42, 0.08));
+  }
+
+  .store-policy-steps,
+  .store-policy-related-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 47.99rem) {
+  :root {
+    --dtb-responsive-gutter: max(clamp(0.875rem, 4vw, 1.25rem), env(safe-area-inset-left));
+    --header-height: calc(
+      var(--dtb-mobile-row-height) + var(--dtb-mobile-search-height) + env(safe-area-inset-top, 0px)
+    );
+  }
+
+  body {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  :where(input, textarea, select) {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  :where(button, a, [role='button']) {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :where(
+    .site-header-inner,
+    .header-mobile-layout,
+    .header-mobile-search-dock,
+    .storefront-search-dock
+  ) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .header-mobile-search-dock {
+    padding-inline: max(var(--dtb-responsive-gutter), env(safe-area-inset-left));
+  }
+
+  .dtb-listing-toolbar {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 0.8fr) minmax(8rem, 1fr) auto;
+    gap: 0.5rem;
+  }
+
+  .dtb-listing-toolbar__pill,
+  .dtb-listing-toolbar__sort,
+  .dtb-listing-toolbar__sort .dtb-ui-dropdown {
+    width: 100%;
+  }
+
+  .dtb-listing-toolbar__count {
+    grid-column: 1 / -1;
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .dtb-product-grid,
+  .product-skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(0.625rem, 2.8vw, 0.875rem);
+  }
+
+  .dtb-product-card--list {
+    grid-template-columns: clamp(6.5rem, 31vw, 8rem) minmax(0, 1fr);
+    min-height: 8.5rem;
+  }
+
+  .dtb-product-card--list .dtb-product-card__image {
+    min-height: 8.5rem;
+  }
+
+  .dtb-product-card--list .dtb-product-card__meta {
+    padding: 0.75rem;
+  }
+
+  .dtb-product-page-shell {
+    width: 100%;
+    padding: 0.875rem var(--dtb-responsive-gutter) 2.5rem;
+  }
+
+  .dtb-product-breadcrumb {
+    margin-bottom: 0.75rem;
+    font-size: 0.76rem;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) {
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__inner,
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
+    gap: 0.875rem;
+    padding: 0;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
+    padding: 0.75rem;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
+    width: 100%;
+    height: clamp(13rem, 58vw, 20rem);
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main > img {
+    width: 100%;
+    height: 100%;
+    padding: clamp(1rem, 5vw, 1.75rem);
+    object-fit: contain;
+  }
+
+  .dtb-pdp-purchase-row {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 7rem) minmax(0, 1fr);
+    gap: 0.625rem;
+  }
+
+  .dtb-pdp-qty-root,
+  .dtb-pdp-add-to-cart,
+  .dtb-product-buy-now__button {
+    min-height: 3.25rem;
+  }
+
+  .product-related__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .product-related__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  .account-hub__sheet {
+    border-radius: 1.5rem 1.5rem 0 0;
+  }
+
+  .account-hub__drawer-header {
+    min-height: 6.5rem;
+    padding: 1.25rem;
+  }
+
+  .dash-hero-inner {
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .account-activity-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .repair-step-nav__steps {
+    justify-content: space-between;
+    overflow-x: auto;
+    padding-inline: 0.75rem;
+  }
+
+  .repair-step-nav__info {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .repairs-workflow-track {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .store-policy-hero,
+  .store-policy-content,
+  .repairs-workflow-shell,
+  .dtb-order-tracking-shell,
+  .dtb-route-back-bar {
+    width: min(100% - (2 * var(--dtb-responsive-gutter)), var(--dtb-content-default, 75rem));
+  }
+
+  .store-policy-hero__actions,
+  .store-policy-button,
+  .store-policy-footer-cta .store-policy-button {
+    width: 100%;
+  }
+
+  .schematic-variant-bar[aria-label='Schematic page selector'] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    padding: 0.5rem;
+    overflow: hidden;
+  }
+
+  .schematic-variant-bar[aria-label='Schematic page selector'] .schematic-variant-bar__summary {
+    display: none;
+  }
+
+  .schematic-variant-pills {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .schematic-variant-pill {
+    flex: 0 0 auto;
+    min-width: clamp(5.75rem, 30vw, 8rem);
+    max-width: min(44vw, 10.75rem);
+    min-height: var(--dtb-touch-target, 44px);
+    scroll-snap-align: start;
+  }
+
+  .viewer-top-bar {
+    min-height: 3.75rem;
+    padding: 0.5rem 0.75rem 0.5rem 3.5rem;
+    overflow: hidden;
+  }
+
+  .viewer-back-button {
+    position: absolute;
+    top: 50%;
+    left: 0.625rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    transform: translateY(-50%);
+  }
+
+  .viewer-back-button__label {
+    display: none;
+  }
+
+  .viewer-title-group {
+    width: calc(100% - 5.5rem);
+    max-width: calc(100% - 5.5rem);
+  }
+
+  .schematic-zoom-controls {
+    position: fixed;
+    top: auto;
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    left: 50%;
+    display: flex;
+    transform: translateX(-50%);
+  }
+
+  .schematic-container {
+    min-height: clamp(18.75rem, 70dvh, 37.5rem);
+  }
+}
+
+@media (max-width: 30rem) {
+  .dtb-listing-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+
+  .dtb-listing-toolbar__view-toggle {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .dtb-listing-toolbar__view-button {
+    flex: 1 1 50%;
+  }
+
+  .dtb-pdp-purchase-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dtb-pdp-qty-root {
+    width: 100%;
+  }
+
+  .product-related__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .store-policy-hero h1 {
+    font-size: clamp(2.2rem, 13vw, 3rem);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  :where(.dtb-product-card, .store-policies-card, .store-policy-button):hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-panel-overlay,
+  .filter-mobile-overlay-enter,
+  .filter-mobile-sheet-enter,
+  .dtb-product-card,
+  .account-hub__backdrop,
+  .account-hub__sheet,
+  .repair-step-nav__circle,
+  .repair-step-nav__connector::after,
+  .repair-step-nav__progress-bar,
+  .schematic-image-wrapper,
+  .schematic-image-bounds {
+    animation: none;
+    transition: none;
+  }
+}
