@@ -21,6 +21,7 @@ import './styles/storefront-sections.css';
 import './styles/storefront-product-card.css';
 import './styles/storefront-drawer.css';
 import './styles/storefront-search-product-cards.css';
+import './styles/storefront-visibility.css';
 import './styles/account-hub.css';
 import './styles/account-hub-motion.css';
 import './styles/account-hub-cta.css';
