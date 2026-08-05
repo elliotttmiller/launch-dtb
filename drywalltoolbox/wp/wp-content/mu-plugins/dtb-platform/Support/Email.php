@@ -502,6 +502,36 @@ if ( ! function_exists( 'dtb_email_hero' ) ) {
 	}
 }
 
+if ( ! function_exists( 'dtb_email_progress_marker_badge' ) ) {
+	/**
+	 * Render one progress-tracker step marker: a tinted, ringed circular
+	 * badge. The active step additionally sits inside a wider, lighter halo
+	 * ring so it reads as the focal point — a static stand-in for the pulsing
+	 * ring animation email clients (Outlook, Gmail app) strip from `<style>`.
+	 *
+	 * Extracted from dtb_email_progress_steps() purely for readability; same
+	 * markup, one step at a time.
+	 *
+	 * @param string               $glyph  Pre-rendered icon HTML or step number.
+	 * @param array<string,string> $colors Resolved color set (text/soft_bg/halo_bg) for this step's state.
+	 * @param string               $state  Resolved step state.
+	 * @param string               $font   Email font stack.
+	 * @return string
+	 */
+	function dtb_email_progress_marker_badge( string $glyph, array $colors, string $state, string $font ): string {
+		$opacity = 'upcoming' === $state ? '0.4' : '1';
+		$border  = 'upcoming' === $state ? '#dce3ed' : $colors['text'];
+
+		$badge = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;border-radius:50%;background:' . esc_attr( $colors['soft_bg'] ) . ';background-color:' . esc_attr( $colors['soft_bg'] ) . ';border:2px solid ' . esc_attr( $border ) . ';color:' . esc_attr( $colors['text'] ) . ';font-family:' . $font . ';font-size:14px;font-weight:800;opacity:' . esc_attr( $opacity ) . ';">' . $glyph . '</td></tr></table>';
+
+		if ( 'active' !== $state ) {
+			return $badge;
+		}
+
+		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="54" height="54" align="center" valign="middle" style="width:54px;height:54px;border-radius:50%;background:' . esc_attr( $colors['halo_bg'] ) . ';background-color:' . esc_attr( $colors['halo_bg'] ) . ';">' . $badge . '</td></tr></table>';
+	}
+}
+
 if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 	/**
 	 * Render a lifecycle progress tracker with standalone icons
@@ -527,11 +557,11 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 		$font   = dtb_email_font_stack();
 		$colors = [
-			'done'     => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee' ],
-			'active'   => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee' ],
-			'warning'  => [ 'text' => '#a15c00', 'label' => '#a15c00', 'line' => '#f2b25c' ],
-			'danger'   => [ 'text' => '#b91c1c', 'label' => '#b91c1c', 'line' => '#f2a3a3' ],
-			'upcoming' => [ 'text' => '#94a3b8', 'label' => '#94a3b8', 'line' => '#dce3ed' ],
+			'done'     => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee', 'soft_bg' => '#e8f1ff', 'halo_bg' => '#f2f7ff' ],
+			'active'   => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee', 'soft_bg' => '#e8f1ff', 'halo_bg' => '#f2f7ff' ],
+			'warning'  => [ 'text' => '#a15c00', 'label' => '#a15c00', 'line' => '#f2b25c', 'soft_bg' => '#fef3e2', 'halo_bg' => '#fdf8ef' ],
+			'danger'   => [ 'text' => '#b91c1c', 'label' => '#b91c1c', 'line' => '#f2a3a3', 'soft_bg' => '#fde8e8', 'halo_bg' => '#fdf3f3' ],
+			'upcoming' => [ 'text' => '#94a3b8', 'label' => '#94a3b8', 'line' => '#dce3ed', 'soft_bg' => '#f8fafc', 'halo_bg' => '#f8fafc' ],
 		];
 
 		$marker_row = '';
@@ -543,23 +573,36 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			$state = isset( $colors[ $state ] ) ? $state : 'upcoming';
 			$c     = $colors[ $state ];
 			$icon  = dtb_email_clean_text( $step['icon'] ?? '' );
-			$glyph_opacity = 'upcoming' === $state ? '0.38' : '1';
-			$glyph         = '' !== $icon && function_exists( 'dtb_email_icon' ) ? dtb_email_icon( $icon, 34 ) : esc_html( (string) ( $i + 1 ) );
+			$glyph = '' !== $icon && function_exists( 'dtb_email_icon' ) ? dtb_email_icon( $icon, 22 ) : esc_html( (string) ( $i + 1 ) );
 
-			$marker_row .= '<td class="dtb-progress-marker" width="1%" align="center" valign="top" style="padding:0;">'
-				. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;color:' . esc_attr( $c['text'] ) . ';font-family:' . $font . ';font-size:15px;font-weight:800;padding:0 3px;opacity:' . esc_attr( $glyph_opacity ) . ';">' . $glyph . '</td></tr></table>'
+			$marker_row .= '<td class="dtb-progress-marker" width="1%" align="center" valign="middle" style="padding:0;">'
+				. dtb_email_progress_marker_badge( $glyph, $c, $state, $font )
 				. '</td>';
 
 			$label_row .= '<td class="dtb-progress-label" width="1%" align="center" valign="top" style="padding:8px 2px 0;"><span style="display:block;width:108px;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:12px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
 
 			if ( $i < $count - 1 ) {
 				$line_color  = $c['line'];
-				$marker_row .= '<td valign="middle" style="padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="2" style="height:2px;line-height:2px;font-size:2px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
+				$marker_row .= '<td valign="middle" style="padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="3" style="height:3px;line-height:3px;font-size:3px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
 				$label_row  .= '<td style="padding:0;">&nbsp;</td>';
 			}
 		}
 
 		return '<table class="dtb-email-progress" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 26px;"><tr>' . $marker_row . '</tr><tr>' . $label_row . '</tr></table>';
+	}
+}
+
+if ( ! function_exists( 'dtb_email_card_chrome_style' ) ) {
+	/**
+	 * Shared border/radius/shadow declarations for the white card surfaces
+	 * (dtb_email_card_open(), dtb_email_support_card()), so the two stay in
+	 * visual sync instead of duplicating the same inline-style fragment.
+	 * Padding is intentionally excluded — callers vary there.
+	 *
+	 * @return string
+	 */
+	function dtb_email_card_chrome_style(): string {
+		return 'background:#ffffff;background-color:#ffffff;border:1px solid #e9edf3;border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.06);';
 	}
 }
 
@@ -599,7 +642,7 @@ if ( ! function_exists( 'dtb_email_card_open' ) ) {
 				. '</tr></table>';
 		}
 
-		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 14px;border-collapse:separate;"><tr><td style="padding:22px;background:#ffffff;background-color:#ffffff;border:1px solid #e4eaf2;border-radius:10px;">' . $header;
+		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:24px;' . dtb_email_card_chrome_style() . '">' . $header;
 	}
 }
 
@@ -711,7 +754,7 @@ if ( ! function_exists( 'dtb_email_support_card' ) ) {
 			? '<span style="display:block;color:#101828;font-family:' . $font . ';font-size:15px;font-weight:800;margin:0 0 2px;">' . esc_html( $title ) . '</span><span style="display:block;color:#344054;font-family:' . $font . ';font-size:13px;font-weight:500;line-height:145%;">' . esc_html( $text ) . '</span>'
 			: '<span style="display:block;color:#334155;font-family:' . $font . ';font-size:14px;font-weight:600;line-height:145%;">' . esc_html( $text ) . '</span>';
 
-		return '<table class="dtb-support-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:18px 22px;background:#ffffff;background-color:#ffffff;border:1px solid #e4eaf2;border-radius:10px;">'
+		return '<table class="dtb-support-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:20px 22px;' . dtb_email_card_chrome_style() . '">'
 			. '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
 			. '<td class="dtb-support-message" valign="middle" style="padding:0;"><table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"><tr>'
 			. $icon_html

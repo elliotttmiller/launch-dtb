@@ -51,8 +51,9 @@ body {
 #inner_wrapper {
 	background-color: <?php echo esc_attr( $palette['card_bg'] ?? '#ffffff' ); ?>;
 	border: 1px solid #e4eaf2;
-	border-radius: 16px;
+	border-radius: 20px;
 	overflow: hidden;
+	box-shadow: 0 1px 2px rgba(2, 8, 23, .04), 0 16px 40px rgba(2, 8, 23, .10);
 }
 
 #template_header {
@@ -290,6 +291,7 @@ a,
 	#inner_wrapper {
 		border: 0 !important;
 		border-radius: 0 !important;
+		box-shadow: none !important;
 	}
 
 	#template_header_image {
@@ -338,15 +340,15 @@ a,
 		padding: 18px 16px !important;
 	}
 
-	.dtb-progress-marker > table td {
+	.dtb-progress-marker table td {
 		width: 34px !important;
-		height: 36px !important;
-		padding: 0 4px !important;
+		height: 34px !important;
+		padding: 0 !important;
 	}
 
 	.dtb-progress-marker img {
-		width: 22px !important;
-		height: 22px !important;
+		width: 18px !important;
+		height: 18px !important;
 	}
 
 	.dtb-progress-label span {
