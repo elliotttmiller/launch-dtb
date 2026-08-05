@@ -26,10 +26,23 @@ Each layer has one responsibility. The application shell owns document flow and 
 ## Canonical files
 
 - `frontend/src/styles/storefront-tokens.css`: brand, semantic, spacing, typography, content-width, motion, safe-area, and layer tokens.
-- `frontend/src/styles/responsive-foundation.css`: document normalization, intrinsic media behavior, accessibility, app sizing, and layout primitives.
+- `frontend/src/styles/responsive-foundation.css`: document normalization, intrinsic media behavior, accessibility, app sizing, and reusable layout primitives.
 - `frontend/src/styles/storefront-shell.css`: header offset, main flow, surfaces, and shared shell motion.
+- `frontend/src/styles/unified-responsive.css`: the only global cross-route responsive authority. It owns viewport geometry, responsive stacking, touch density, safe areas, overflow containment, and domain breakpoint behavior.
+- `frontend/src/styles/storefront-visibility.css`: stable storefront visibility decisions that are not responsive layout rules.
 - `frontend/src/components/layout/LayoutPrimitives.jsx`: React composition API for page frames, containers, sections, stacks, clusters, grids, split layouts, and sidebars.
-- `frontend/src/styles/mobile-fluid-viewport-authority.css`: bounded compatibility rules for existing components that have not yet migrated. It is not a document-level authority.
+
+## Cascade contract
+
+`frontend/src/main.jsx` loads styles in this order:
+
+1. utilities and document base;
+2. design tokens and responsive foundation;
+3. feature/component base styles;
+4. typography authorities;
+5. `unified-responsive.css` as the final and exclusive responsive layer.
+
+Do not add another global mobile, tablet, desktop, fix, patch, mockup, polish, cleanup, or final-authority stylesheet. Add stable base appearance to the owning feature stylesheet. Add cross-route viewport behavior to the correct section of `unified-responsive.css`.
 
 ## Layout contracts
 
@@ -61,21 +74,38 @@ Reusable components should respond to their allocated width. Apply `dtb-componen
 
 1. Flex and grid children containing dynamic content use `min-width: 0`.
 2. Media is intrinsically constrained and reserves an intentional aspect ratio where layout stability matters.
-3. Horizontal scrolling exists only inside explicit rails or data regions.
-4. The document must not hide layout defects with global `overflow-x: hidden` or `overflow-x: clip`.
+3. Horizontal scrolling exists only inside explicit rails, selectors, drawers, or data regions.
+4. Root overflow containment is defensive only; components must still constrain their own width and dynamic content.
 5. Page gutters and maximum widths come from shared tokens and containers.
-6. Forms preserve a minimum 16px mobile text size without globally applying `!important`.
+6. Forms preserve a minimum 16px mobile text size without broad descendant `!important` rules.
 7. Hover treatment is enabled only for devices that support hover and fine pointing.
 8. Reduced-motion preferences remove nonessential transitions and animation.
 9. Mobile and desktop use the same semantic component and domain state unless the interaction model is materially different.
 10. Feature styles may refine a component but must not redefine the global viewport, root, body, or application shell.
+11. Checkout rules are presentation-only and never alter WooCommerce, payment-provider, order, pricing, inventory, tax, shipping, or session ownership.
+12. Schematic responsive rules must preserve image bounds and hotspot coordinate ownership.
 
-## CSS ownership
+## Domain sections in the unified authority
 
-Global entry styles contain only Tailwind setup, base document rules, and document-level workflow UI. Feature styles remain with their owning feature or component. Avoid “final authority,” “fixes,” and viewport-wide override files; migrate those rules into the component that owns the markup.
+`unified-responsive.css` is organized by stable domain boundaries:
+
+- document and shared route containers;
+- header, drawers, overlays, and safe areas;
+- catalog listing, product grid, and filters;
+- product-detail shell and related products;
+- cart and checkout presentation boundaries;
+- account dashboard;
+- repairs, returns, support, and tracking;
+- schematics;
+- tablet, mobile, narrow-mobile, coarse-pointer, and reduced-motion adaptations.
+
+Selectors must be scoped to stable route or component classes. Avoid DOM-position selectors, wildcard class matching, and broad universal descendant overrides.
+
+## CSS rules
 
 Do not add:
 
+- files named or described as fixes, patches, mockups, polish, cleanup, overrides, or final authority;
 - wildcard class selectors such as `[class*="drawer"]`;
 - universal descendant overrides such as `.component *` for sizing;
 - `transition: all`;
@@ -84,10 +114,17 @@ Do not add:
 - negative margins for primary page layout;
 - desktop/mobile duplicate React trees for presentation-only differences;
 - page-specific rules in `index.css`;
-- additional global overflow suppression.
+- additional root overflow suppression;
+- responsive behavior in runtime JavaScript when CSS can express the same layout.
 
-## Migration direction
+## Change workflow
 
-Existing routes may continue using `.page-wrapper` while they are migrated. New or substantially edited route UI should compose `PageFrame`, `Container`, and the appropriate layout primitive. Existing mobile compatibility rules should shrink as their owning components adopt intrinsic layouts and container queries.
+When changing responsive UI:
 
-The migration order is shell and tokens, shared primitives, shared components, catalog, product detail, cart and checkout, account, repairs and returns, schematics, then remaining informational routes. This ordering follows dependency ownership rather than visual page order.
+1. Identify the owning component and its feature stylesheet.
+2. Keep base appearance in the feature stylesheet.
+3. Use shared tokens and layout primitives for new composition.
+4. Place only cross-route viewport behavior in `unified-responsive.css`.
+5. Preserve accessibility, safe-area, reduced-motion, checkout ownership, schematic coordinates, and dynamic-content overflow behavior.
+6. Remove superseded selectors instead of adding a later override.
+7. Update this document when the cascade, ownership, or domain boundaries change.
