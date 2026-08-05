@@ -1,10 +1,12 @@
+/* App-shell ownership: one header offset, one document flow, no global
+ * horizontal-overflow masking. Feature owners must contain intentional rails. */
+
 .storefront-shell {
-  background: var(--dtb-bg);
+  min-width: 0;
   color: var(--dtb-text);
+  background: var(--dtb-page-bg);
 }
 
-/* The fixed header must not reserve space through its React mount wrapper.
-   Main content owns the single header offset below. */
 .site-header-mount {
   height: 0;
   min-height: 0;
@@ -15,41 +17,49 @@ body {
 }
 
 main.main-content {
-  padding-top: var(--header-height, 70px);
+  position: relative;
+  flex: 1 0 auto;
+  width: 100%;
+  min-width: 0;
+  padding-top: var(--header-height, var(--dtb-header-height, 72px));
+  isolation: isolate;
 }
 
-/* Contain any child overflow (e.g. negative-margin rails) so it never
-   creates a body-level horizontal scrollbar. clip ≠ hidden — it does not
-   create a scroll container and does not affect scroll restoration. */
+main.main-content:empty {
+  min-height: calc(100vh - var(--header-height, 72px));
+  min-height: calc(100dvh - var(--header-height, 72px));
+}
+
 .page-wrapper {
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
-  overflow-x: clip;
-}
-
-/* Same guard on the main content wrapper rendered by AppShell */
-main.main-content {
-  max-width: 100%;
-  overflow-x: clip;
 }
 
 .storefront-surface {
-  background: var(--dtb-surface);
+  min-width: 0;
   border: 1px solid var(--dtb-border);
   border-radius: var(--dtb-radius-lg);
+  background: var(--dtb-surface);
   box-shadow: var(--dtb-shadow-card);
 }
 
 .storefront-sheet {
+  min-width: 0;
   background: var(--dtb-surface);
   box-shadow: var(--dtb-shadow-sheet);
 }
 
 .storefront-motion-card {
-  transition: transform var(--dtb-fast) var(--dtb-ease), box-shadow var(--dtb-fast) var(--dtb-ease);
+  transition:
+    transform var(--dtb-fast) var(--dtb-ease-standard),
+    box-shadow var(--dtb-fast) var(--dtb-ease-standard);
 }
 
-.storefront-motion-card:hover {
-  transform: translateY(-2px);
+@media (hover: hover) and (pointer: fine) {
+  .storefront-motion-card:hover {
+    transform: translateY(-2px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
