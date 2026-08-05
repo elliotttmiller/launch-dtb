@@ -11,7 +11,10 @@ export default function StorefrontSection({
   children,
 }) {
   return (
-    <section className={`storefront-section ${className}`.trim()}>
+    <section
+      className={`storefront-section dtb-component-region ${className}`.trim()}
+      data-layout-region="storefront-section"
+    >
       <div className="storefront-section__head">
         <div className="storefront-section__head-text">
           {eyebrow ? <p className="storefront-section__eyebrow">{eyebrow}</p> : null}
@@ -20,7 +23,7 @@ export default function StorefrontSection({
         </div>
         {viewAllHref ? (
           <Link to={viewAllHref} className="storefront-section__view-all">
-            {viewAllLabel} <ChevronRight size={14} />
+            {viewAllLabel} <ChevronRight size={14} aria-hidden="true" />
           </Link>
         ) : null}
       </div>

@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-/* ── Tailwind v4 design tokens — required for bg-primary-*, text-primary-*, etc. ── */
+/* Tailwind v4 theme bridge. Canonical storefront values remain in
+ * storefront-tokens.css; these names preserve existing utility classes. */
 @theme {
-  --color-primary-50:  #eff6ff;
+  --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
   --color-primary-200: #bfdbfe;
   --color-primary-300: #93c5fd;
@@ -13,8 +14,7 @@
   --color-primary-700: #2255ee;
   --color-primary-800: #1e40af;
   --color-primary-900: #1e3a8a;
-
-  --color-accent-50:  #eff6ff;
+  --color-accent-50: #eff6ff;
   --color-accent-100: #dbeafe;
   --color-accent-200: #bfdbfe;
   --color-accent-300: #93c5fd;
@@ -26,200 +26,107 @@
   --color-accent-900: #1e3a8a;
 }
 
-/* ── Global loading spinner keyframe ─────────────────────────────────── */
 @keyframes dtb-spin {
-  to { transform: rotate(360deg); }
-}
-
-.dtb-workflow-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10050;
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
-  background:
-    radial-gradient(circle at center, rgba(34, 85, 238, 0.12), transparent 44%),
-    rgba(15, 23, 42, 0.48);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
-}
-
-.dtb-workflow-card {
-  width: min(92vw, 360px);
-  border-radius: 24px;
-  padding: 1.5rem;
-  text-align: center;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 28px 90px rgba(15, 23, 42, 0.28);
-  color: #0f172a;
-  transform: translateZ(0);
-}
-
-.dtb-workflow-card strong {
-  display: block;
-  margin-top: 0.875rem;
-  font-size: 0.98rem;
-  font-weight: 800;
-}
-
-.dtb-workflow-card p {
-  margin: 0.35rem 0 0;
-  color: #64748b;
-  font-size: 0.875rem;
-}
-
-.dtb-workflow-spinner {
-  width: 42px;
-  height: 42px;
-  margin: 0 auto;
-  border-radius: 999px;
-  border: 3px solid rgba(34, 85, 238, 0.16);
-  border-top-color: #2255ee;
-  animation: dtb-spin 0.8s linear infinite;
-}
-
-@media (max-width: 768px) {
-  .dtb-workflow-overlay {
-    align-items: end;
-    padding: 0.875rem;
-  }
-
-  .dtb-workflow-card {
-    width: 100%;
-    border-radius: 24px 24px 18px 18px;
-    padding: 1.35rem 1.1rem calc(1.35rem + env(safe-area-inset-bottom));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dtb-workflow-overlay {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-  }
-
-  .dtb-workflow-spinner {
-    animation-duration: 1.4s;
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @layer base {
-  :root {
-    --color-primary-50: #eff6ff;
-    --color-primary-100: #dbeafe;
-    --color-primary-200: #bfdbfe;
-    --color-primary-300: #93c5fd;
-    --color-primary-400: #60a5fa;
-    --color-primary-500: #2255ee;
-    --color-primary-600: #2255ee;
-    --color-primary-700: #2255ee;
-    --color-primary-800: #1e40af;
-    --color-primary-900: #1e3a8a;
-    
-    /* Accent colors now match primary blue for consistency */
-    --color-accent-50: #eff6ff;
-    --color-accent-100: #dbeafe;
-    --color-accent-200: #bfdbfe;
-    --color-accent-300: #93c5fd;
-    --color-accent-400: #60a5fa;
-    --color-accent-500: #2255ee;
-    --color-accent-600: #2255ee;
-    --color-accent-700: #1e40af;
-    --color-accent-800: #1e3a8a;
-    --color-accent-900: #1e3a8a;
-  }
-
-  /* GLOBAL FIX: Scroll padding for anchor links */
   html {
-    scroll-padding-top: var(--header-height, 70px);
+    background: var(--dtb-page-bg, #f4f6fb);
   }
 
   body {
     @apply text-gray-900 antialiased;
     margin: 0;
     padding: 0;
-    /* Silver/white radial gradient — light theme page background */
-    background: var(--dtb-page-bg);
-    background-attachment: scroll;
+    background: var(--dtb-page-bg, #f4f6fb);
   }
 
   main {
     padding: 0;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     margin-top: 0;
   }
-}
 
-/* UTILITY: Page wrapper - primarily for styling/organization
-   Header spacing is handled globally by body { padding-top: var(--header-height) }
-   This class is kept for semantic organization of page containers */
-
-/* Mobile optimization: ensure no conflicting padding from page internals */
-@media (max-width: 639px) {
-  /* Remove top padding from first child divs that might add extra spacing */
-  .page-wrapper > div:first-child {
-    padding-top: 0 !important;
-  }
-
-  .dtb-cart-page > .dtb-cart-page__container:first-child {
-    padding-top: 1rem !important;
+  a {
+    color: inherit;
   }
 }
 
-/* Mobile responsive spacing adjustments */
-@media (max-width: 768px) {
-  .home-hero-section {
-    padding: 2rem 1.25rem 1.5rem !important;
-    min-height: auto !important;
+/* Global workflow feedback is document-level UI and intentionally remains in
+ * the entry stylesheet. Page and feature layout rules belong with their owner. */
+.dtb-workflow-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--dtb-z-dialog, 500);
+  display: grid;
+  place-items: center;
+  padding: var(--dtb-space-4, 1.25rem);
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(12px) saturate(115%);
+}
+
+.dtb-workflow-card {
+  width: min(calc(100vw - (2 * var(--dtb-viewport-gutter, 1rem))), 22.5rem);
+  padding: var(--dtb-space-5, 1.5rem);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: var(--dtb-radius-xl, 20px);
+  color: var(--dtb-text, #0f172a);
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: var(--dtb-shadow-sheet, 0 24px 60px rgba(15, 23, 42, 0.2));
+  text-align: center;
+}
+
+.dtb-workflow-card strong {
+  display: block;
+  margin-top: 0.875rem;
+  font-size: var(--dtb-text-body, 1rem);
+  font-weight: 800;
+}
+
+.dtb-workflow-card p {
+  margin: 0.35rem 0 0;
+  color: var(--dtb-muted, #64748b);
+  font-size: var(--dtb-text-sm, 0.875rem);
+}
+
+.dtb-workflow-spinner {
+  width: 2.625rem;
+  height: 2.625rem;
+  margin-inline: auto;
+  border: 3px solid rgba(34, 85, 238, 0.16);
+  border-top-color: var(--dtb-primary, #2255ee);
+  border-radius: 50%;
+  animation: dtb-spin 0.8s linear infinite;
+}
+
+@media (max-width: 47.99rem) {
+  .dtb-workflow-overlay {
+    align-items: end;
+    padding: var(--dtb-space-3, 0.875rem);
   }
-  
-  .schematic-section {
-    padding: 80px 20px 20px !important;
-  }
-  
-  .site-footer {
-    padding: 40px 20px !important;
+
+  .dtb-workflow-card {
+    width: 100%;
+    padding:
+      var(--dtb-space-4, 1.25rem)
+      var(--dtb-space-3, 1rem)
+      calc(var(--dtb-space-4, 1.25rem) + var(--dtb-safe-bottom, 0px));
+    border-radius: var(--dtb-radius-xl, 20px);
   }
 }
 
-/* ===== CRITICAL: Mobile Zoom Prevention for Input Fields ===== */
-/* 
-  iOS Safari auto-zooms on input focus if font-size < 16px.
-  Setting font-size: 16px prevents the zoom behavior.
-  This is a critical mobile UX optimization.
-*/
-
-/* All input elements */
-input[type="text"],
-input[type="search"],
-input[type="email"],
-input[type="password"],
-input[type="number"],
-input[type="tel"],
-input[type="url"],
-input[type="date"],
-input[type="time"],
-input[type="datetime-local"],
-input[type="month"],
-input[type="week"],
-textarea,
-select {
-  /* Prevent iOS Safari zoom on focus */
-  font-size: 16px !important;
-  /* Improve touch targeting */
-  padding: 12px 10px;
-  /* Smooth focus transition */
-  transition: all 0.2s ease-out;
-  /* Prevent text scaling */
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-/* Specific mobile search input - ensure no zoom */
-.mobile-search-input {
-  font-size: 16px !important;
-  -webkit-appearance: none;
+@media (prefers-reduced-motion: reduce) {
+  .dtb-workflow-overlay {
+    backdrop-filter: none;
+  }
 }

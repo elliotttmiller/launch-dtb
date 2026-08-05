@@ -1,56 +1,51 @@
-import './bootstrapRuntimeAssetBase.js'
-import { StrictMode, useEffect } from 'react'
-import { createRoot } from 'react-dom/client'
-import { HelmetProvider } from 'react-helmet-async'
-import '@fontsource-variable/inter/wght.css'
-import './index.css'
-import './styles/machined-design.css'
-import './styles/tool-selector.css'
-import './styles/technical-specifications.css'
-import './styles/product-detail-modern.css'
-import './styles/product-variation-selector-overlay.css'
-import './styles/reviews.css'
-import './styles/storefront-tokens.css'
-import './styles/storefront-shell.css'
-import './styles/storefront-sections.css'
-import './styles/product-page-search-removal.css'
-import './styles/storefront-product-card.css'
-import './styles/storefront-drawer.css'
-import './styles/storefront-search-product-cards.css'
-import './styles/account-hub.css'
-import './styles/account-hub-motion.css'
-import './styles/account-hub-cta.css'
-import './styles/mobile-responsive.css'
-import './styles/mobile-product-typography.css'
-import './styles/mobile-liquid-typography.css'
-import './styles/schematic-page-tabs-responsive.css'
-import './styles/order-item-images.css'
-import './styles/product-compatible-schematics-cleanup.css'
-import './styles/order-tracking-layout.css'
-import './styles/mobile-account-order-layout-fixes.css'
-import './styles/order-checkout-font-consistency.css'
-import './styles/global-loading.css'
-import './styles/cart-interaction-feedback.css'
-import './styles/add-to-cart-button.css'
-import './styles/loading-transitions.css'
-import './components/catalog/products-selector-overrides.css'
-import './styles/mobile-fluid-viewport-authority.css'
-import './styles/mobile-auth-checkout-cards.css'
-import './styles/cart-drawer-checkout-fixes.css'
-import './styles/mobile-ui-polish.css'
-// Final customer-facing typography authority; keep after component styles.
-import './styles/global-typography.css'
-// Final accepted mobile mockup authority; keep after every shared style layer.
-import './styles/mobile-header-mockup.css'
-import './styles/mobile-product-detail-mockup.css'
-// Final product purchase-card typography authority.
-import './styles/product-detail-typography.css'
-import App from './App.jsx'
-import ErrorBoundary from './components/system/AppErrorBoundary.jsx'
-import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js'
-import { installMobileSchematicNavRuntime } from './utils/mobileSchematicNavRuntime.js'
-import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js'
-import { installCustomerFacingCopyRuntime } from './utils/customerFacingCopyRuntime.js'
+import './bootstrapRuntimeAssetBase.js';
+import { StrictMode, useEffect } from 'react';
+import { createRoot } from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
+import '@fontsource-variable/inter/wght.css';
+
+/* Canonical global order: utilities -> tokens -> layout foundation. */
+import './index.css';
+import './styles/storefront-tokens.css';
+import './styles/responsive-foundation.css';
+
+/* Shared feature and component authorities. */
+import './styles/machined-design.css';
+import './styles/tool-selector.css';
+import './styles/technical-specifications.css';
+import './styles/product-detail-modern.css';
+import './styles/product-variation-selector-overlay.css';
+import './styles/reviews.css';
+import './styles/storefront-shell.css';
+import './styles/storefront-sections.css';
+import './styles/storefront-product-card.css';
+import './styles/storefront-drawer.css';
+import './styles/storefront-search-product-cards.css';
+import './styles/storefront-visibility.css';
+import './styles/account-hub.css';
+import './styles/account-hub-motion.css';
+import './styles/account-hub-cta.css';
+import './styles/order-item-images.css';
+import './styles/order-tracking-layout.css';
+import './styles/order-checkout-font-consistency.css';
+import './styles/global-loading.css';
+import './styles/cart-interaction-feedback.css';
+import './styles/add-to-cart-button.css';
+import './styles/loading-transitions.css';
+import './styles/cart-page.css';
+import './styles/global-typography.css';
+import './styles/product-detail-typography.css';
+import './components/catalog/products-selector-overrides.css';
+
+/* Final and exclusive cross-route responsive authority. */
+import './styles/unified-responsive.css';
+
+import App from './App.jsx';
+import ErrorBoundary from './components/system/AppErrorBoundary.jsx';
+import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js';
+import { installMobileSchematicNavRuntime } from './utils/mobileSchematicNavRuntime.js';
+import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js';
+import { installCustomerFacingCopyRuntime } from './utils/customerFacingCopyRuntime.js';
 import { prewarmCatalog } from './services/catalog.js';
 
 installSchematicPageLabelRuntime();
@@ -101,4 +96,4 @@ createRoot(document.getElementById('root')).render(
       </>
     </HelmetProvider>
   </StrictMode>,
-)
+);
