@@ -19,6 +19,7 @@ import './styles/reviews.css';
 /* Shell remains after broad legacy design layers so it owns document flow. */
 import './styles/storefront-shell.css';
 import './styles/storefront-sections.css';
+import './styles/cart-page.css';
 import './styles/product-page-search-removal.css';
 import './styles/storefront-product-card.css';
 import './styles/storefront-drawer.css';
