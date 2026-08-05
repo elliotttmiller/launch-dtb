@@ -2,7 +2,8 @@ import './bootstrapRuntimeAssetBase.js';
 import { StrictMode, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
-import '@fontsource-variable/inter/wght.css';
+import '@fontsource-variable/geist/wght.css';
+import '@fontsource-variable/geist/wght-italic.css';
 
 /* Canonical global order: utilities -> tokens -> layout foundation. */
 import './index.css';

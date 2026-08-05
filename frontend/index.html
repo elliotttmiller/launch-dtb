@@ -91,19 +91,9 @@
       }
     </script>
 
-    <!-- Establish connections to Google Fonts as early as possible. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Early connection to the production API / WP backend -->
     <link rel="preconnect" href="<%= htmlWebpackPlugin.options.siteUrl %>" crossorigin>
-    <!--
-      Geist is the display/title face and Nunito is the supporting UI/body face.
-      The non-render-blocking preload/onload pattern preserves fast first paint
-      while font-display=swap prevents invisible text on slow connections. The
-      noscript fallback keeps both typography roles available without JavaScript.
-    -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Nunito:wght@300..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Nunito:wght@300..900&display=swap"></noscript>
+    <!-- Geist is self-hosted via @fontsource-variable/geist (see main.jsx) — no external font requests. -->
 
     <!-- Static Organization JSON-LD (supplements per-page dynamic schemas) -->
     <script type="application/ld+json">

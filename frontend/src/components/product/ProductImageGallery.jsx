@@ -688,7 +688,7 @@ export default function ProductImageGallery({ product }) {
                   />
                 </AnimatePresence>
 
-                <button ref={lbCloseBtnRef} type="button" onClick={closeLightbox} className="absolute top-4 right-4 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/[0.22] text-white transition-colors focus-visible:outline-2 focus-visible:outline-white" aria-label="Close full-screen image">
+                <button ref={lbCloseBtnRef} type="button" onClick={closeLightbox} className="absolute top-4 right-4 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/22 text-white transition-colors focus-visible:outline-2 focus-visible:outline-white" aria-label="Close full-screen image">
                   <X size={22} />
                 </button>
 

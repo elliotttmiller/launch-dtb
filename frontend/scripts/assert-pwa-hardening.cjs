@@ -57,7 +57,10 @@ if (!storefrontHeader.includes('const { height } = header.getBoundingClientRect(
 }
 
 const storefrontShell = fs.readFileSync(storefrontShellPath, 'utf8');
-if (!storefrontShell.includes('.site-header-mount') || !storefrontShell.includes('padding-top: var(--header-height, 70px)')) {
+if (
+  !storefrontShell.includes('.site-header-mount') ||
+  !/main\.main-content\s*\{[^}]*padding-top:\s*var\(--header-height/.test(storefrontShell)
+) {
   fail('Fixed-header spacing must be owned by main content with a collapsed header mount wrapper.');
 }
 
