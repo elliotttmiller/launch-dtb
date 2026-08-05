@@ -4,11 +4,10 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import '@fontsource-variable/inter/wght.css';
 
-/* Canonical global order: utilities -> tokens -> responsive foundation -> shell. */
+/* Canonical global order: utilities -> tokens -> responsive foundation. */
 import './index.css';
 import './styles/storefront-tokens.css';
 import './styles/responsive-foundation.css';
-import './styles/storefront-shell.css';
 
 /* Shared visual and component authorities. */
 import './styles/machined-design.css';
@@ -17,6 +16,8 @@ import './styles/technical-specifications.css';
 import './styles/product-detail-modern.css';
 import './styles/product-variation-selector-overlay.css';
 import './styles/reviews.css';
+/* Shell remains after broad legacy design layers so it owns document flow. */
+import './styles/storefront-shell.css';
 import './styles/storefront-sections.css';
 import './styles/product-page-search-removal.css';
 import './styles/storefront-product-card.css';
