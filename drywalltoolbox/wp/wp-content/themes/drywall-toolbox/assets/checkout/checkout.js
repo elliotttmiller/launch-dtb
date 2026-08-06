@@ -37,6 +37,7 @@
 		[ '.wp-block-woocommerce-checkout-contact-information-block' ],
 		[
 			'.wp-block-woocommerce-checkout-shipping-address-block',
+			'.wp-block-woocommerce-checkout-shipping-methods-block',
 			'.wp-block-woocommerce-checkout-shipping-method-block',
 			'.wp-block-woocommerce-checkout-pickup-options-block',
 			'.wp-block-woocommerce-checkout-billing-address-block',
@@ -131,6 +132,7 @@
 				} catch ( error ) {
 					return fallback;
 				}
+			}
 		}
 		return fallback;
 	}
@@ -199,7 +201,6 @@
 		header.dataset.step = step.id;
 		header.setAttribute( 'aria-expanded', index === activeStep ? 'true' : 'false' );
 		header.innerHTML =
-			'<span class="dtb-checkout__accordion-index" aria-hidden="true">' + ( index + 1 ) + '</span>' +
 			'<span class="dtb-checkout__accordion-copy">' +
 				'<span class="dtb-checkout__accordion-title">' + step.label + '</span>' +
 				'<span class="dtb-checkout__accordion-description">' + step.description + '</span>' +

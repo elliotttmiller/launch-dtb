@@ -41,7 +41,12 @@
 	--dtb-checkout-radius-xl: 20px;
 	--dtb-checkout-shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
 	--dtb-checkout-shadow-sm: 0 4px 14px rgba(15, 23, 42, 0.07);
+	--dtb-checkout-shadow-md: 0 8px 24px rgba(15, 23, 42, 0.09);
+	--dtb-checkout-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px -12px rgba(15, 23, 42, 0.14);
+	--dtb-checkout-shadow-raised: 0 2px 6px rgba(15, 23, 42, 0.06), 0 18px 32px -14px rgba(29, 78, 216, 0.22);
 	--dtb-checkout-shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.18);
+	--dtb-checkout-gradient-accent: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+	--dtb-checkout-gradient-surface: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
 	--dtb-checkout-space-1: 4px;
 	--dtb-checkout-space-2: 8px;
 	--dtb-checkout-space-3: 12px;
@@ -98,6 +103,30 @@ h3,
 	letter-spacing: -0.015em;
 }
 
+/* WooCommerce renders several inner groups (Payment Methods, shipping rate
+ * groups) as native <fieldset>/<legend> for accessibility. Reset the
+ * browser's default fieldset/legend box model globally so these never
+ * escape their container or overlap sibling content with unstyled UA
+ * defaults (min-width:auto, border, padding, floated legend). */
+fieldset {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+
+legend {
+	display: block;
+	float: none;
+	width: 100%;
+	max-width: 100%;
+	padding: 0;
+	margin: 0 0 var(--dtb-checkout-space-2);
+	font: inherit;
+	color: inherit;
+	white-space: normal;
+}
+
 .screen-reader-text,
 .components-visually-hidden {
 	position: absolute !important;
@@ -125,7 +154,8 @@ h3,
 	justify-content: space-between;
 	gap: var(--dtb-checkout-space-3);
 	padding: max(18px, env(safe-area-inset-top, 0px)) var(--dtb-checkout-gutter) 18px;
-	background: var(--dtb-checkout-ink-950);
+	background: linear-gradient(180deg, #10182b 0%, var(--dtb-checkout-ink-950) 100%);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 24px -12px rgba(0, 0, 0, 0.45);
 	color: #fff;
 }
 
@@ -178,6 +208,40 @@ h3,
 }
 
 /* --------------------------------------------------------------------------
+ * 3b. Breadcrumb
+ * ----------------------------------------------------------------------- */
+
+.dtb-checkout__breadcrumb {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 12px var(--dtb-checkout-gutter);
+	background: var(--dtb-checkout-canvas);
+	color: var(--dtb-checkout-ink-500);
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.dtb-checkout__breadcrumb a {
+	color: var(--dtb-checkout-ink-500);
+	text-decoration: none;
+}
+
+.dtb-checkout__breadcrumb a:hover {
+	color: var(--dtb-checkout-blue-600);
+	text-decoration: underline;
+}
+
+.dtb-checkout__breadcrumb-current {
+	color: var(--dtb-checkout-blue-600);
+	font-weight: 750;
+}
+
+.dtb-checkout__breadcrumb-sep {
+	color: var(--dtb-checkout-border-strong);
+}
+
+/* --------------------------------------------------------------------------
  * 4. Checkout layout and native section cards
  * ----------------------------------------------------------------------- */
 
@@ -193,16 +257,16 @@ h3,
 .wc-block-components-checkout-step,
 .wc-block-components-checkout-order-summary,
 .wc-block-components-totals-wrapper {
-	background: var(--dtb-checkout-surface);
+	background: var(--dtb-checkout-gradient-surface);
 	border: 1px solid var(--dtb-checkout-border);
 	border-radius: var(--dtb-checkout-radius-lg);
-	box-shadow: var(--dtb-checkout-shadow-xs);
+	box-shadow: var(--dtb-checkout-shadow-card);
 }
 
 .wc-block-components-checkout-step {
 	position: relative;
-	padding: 18px var(--dtb-checkout-gutter);
-	margin-bottom: 14px;
+	padding: 20px var(--dtb-checkout-gutter);
+	margin-bottom: 16px;
 }
 
 .wc-block-components-checkout-step__heading {
@@ -226,6 +290,7 @@ h3,
 	background: var(--dtb-checkout-green-700);
 	color: #fff;
 	font-size: 12px;
+	box-shadow: 0 2px 6px rgba(21, 128, 61, 0.35);
 }
 
 /* --------------------------------------------------------------------------
@@ -251,30 +316,42 @@ h3,
 		-webkit-appearance: none;
 		position: relative;
 		display: grid;
-		grid-template-columns: 34px minmax(0, 1fr) 28px;
+		grid-template-columns: minmax(0, 1fr) 28px;
 		align-items: center;
 		gap: var(--dtb-checkout-space-3);
 		width: 100%;
 		min-height: 72px;
 		margin: 0 0 var(--dtb-checkout-space-2);
-		padding: 12px 14px;
+		padding: 12px 16px 12px 14px;
 		border: 1px solid var(--dtb-checkout-border);
 		border-radius: var(--dtb-checkout-radius-lg);
-		background: var(--dtb-checkout-surface);
-		box-shadow: var(--dtb-checkout-shadow-xs);
+		background: var(--dtb-checkout-gradient-surface);
+		box-shadow: var(--dtb-checkout-shadow-sm);
 		color: var(--dtb-checkout-ink-950);
 		font: inherit;
 		text-align: left;
 		cursor: pointer;
+		overflow: hidden;
 		transition:
 			border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard),
 			background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard),
-			box-shadow var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard),
+			box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized),
 			transform var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+	}
+
+	.dtb-checkout__accordion-header::before {
+		content: "";
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: 4px;
+		background: var(--dtb-checkout-gradient-accent);
+		opacity: 0;
+		transition: opacity var(--dtb-checkout-normal) var(--dtb-checkout-ease-standard);
 	}
 
 	.dtb-checkout__accordion-header:hover {
 		border-color: var(--dtb-checkout-border-strong);
+		box-shadow: var(--dtb-checkout-shadow-md);
 	}
 
 	.dtb-checkout__accordion-header:active {
@@ -284,34 +361,11 @@ h3,
 	.dtb-checkout__accordion-header[aria-expanded="true"] {
 		border-color: var(--dtb-checkout-blue-600);
 		background: var(--dtb-checkout-blue-50);
-		box-shadow: var(--dtb-checkout-shadow-focus);
+		box-shadow: var(--dtb-checkout-shadow-raised);
 	}
 
-	.dtb-checkout__accordion-index {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 32px;
-		height: 32px;
-		border: 1px solid var(--dtb-checkout-border-strong);
-		border-radius: 999px;
-		background: var(--dtb-checkout-surface-subtle);
-		color: var(--dtb-checkout-ink-700);
-		font-size: 13px;
-		font-weight: 750;
-		transition: color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
-	}
-
-	.dtb-checkout__accordion-header[aria-expanded="true"] .dtb-checkout__accordion-index {
-		border-color: var(--dtb-checkout-blue-600);
-		background: var(--dtb-checkout-blue-600);
-		color: #fff;
-	}
-
-	.dtb-checkout__accordion-header[data-state="complete"] .dtb-checkout__accordion-index {
-		border-color: var(--dtb-checkout-green-700);
-		background: var(--dtb-checkout-green-100);
-		color: var(--dtb-checkout-green-700);
+	.dtb-checkout__accordion-header[aria-expanded="true"]::before {
+		opacity: 1;
 	}
 
 	.dtb-checkout__accordion-copy {
@@ -421,6 +475,40 @@ h3,
 }
 
 /* --------------------------------------------------------------------------
+ * 5b. Express checkout row
+ * ----------------------------------------------------------------------- */
+
+.wc-block-components-express-payment {
+	margin-bottom: var(--dtb-checkout-space-4);
+}
+
+.wc-block-components-express-payment__title-text {
+	color: var(--dtb-checkout-ink-500);
+	font-size: 12px;
+	font-weight: 750;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.wc-block-components-express-payment__event-buttons {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: var(--dtb-checkout-space-3);
+}
+
+.wc-block-components-express-payment-continue-rule {
+	color: var(--dtb-checkout-ink-500);
+	font-size: 11px;
+	font-weight: 750;
+	letter-spacing: 0.08em;
+}
+
+.wc-block-components-express-payment-continue-rule::before,
+.wc-block-components-express-payment-continue-rule::after {
+	border-color: var(--dtb-checkout-border);
+}
+
+/* --------------------------------------------------------------------------
  * 6. Inputs, selects, autofill, validation, and focus
  * ----------------------------------------------------------------------- */
 
@@ -430,20 +518,33 @@ h3,
 .wc-blocks-components-select__container {
 	box-sizing: border-box;
 	min-height: var(--dtb-checkout-touch);
-	border: 1px solid var(--dtb-checkout-border-strong);
+	border: 1.5px solid var(--dtb-checkout-border-strong);
 	border-radius: var(--dtb-checkout-radius-sm);
-	background: var(--dtb-checkout-surface);
+	background: var(--dtb-checkout-surface-subtle);
 	color: var(--dtb-checkout-ink-950);
 	font: inherit;
-	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+}
+
+.wc-block-components-text-input input:hover,
+.wc-block-components-textarea:hover,
+.wc-blocks-components-select__select:hover {
+	border-color: var(--dtb-checkout-ink-500);
 }
 
 .wc-block-components-text-input input:focus,
 .wc-block-components-textarea:focus,
 .wc-blocks-components-select__select:focus {
 	border-color: var(--dtb-checkout-blue-600);
+	background: var(--dtb-checkout-surface);
 	box-shadow: var(--dtb-checkout-shadow-focus);
 	outline: 0;
+}
+
+.wc-block-components-text-input label,
+.wc-blocks-components-select__label {
+	color: var(--dtb-checkout-ink-700);
+	font-weight: 600;
 }
 
 .wc-block-components-text-input input:autofill,
@@ -469,14 +570,35 @@ h3,
 	align-items: center;
 	flex-wrap: wrap;
 	gap: var(--dtb-checkout-space-3);
-	min-height: 56px;
-	margin-bottom: var(--dtb-checkout-space-2);
-	padding: 12px 14px;
+	min-height: 60px;
+	margin-bottom: var(--dtb-checkout-space-3);
+	padding: 14px 16px;
 	overflow: hidden;
-	border: 1px solid var(--dtb-checkout-border);
+	border: 1.5px solid var(--dtb-checkout-border);
 	border-radius: var(--dtb-checkout-radius-md);
 	background: var(--dtb-checkout-surface);
-	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+	box-shadow: var(--dtb-checkout-shadow-xs);
+	cursor: pointer;
+	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized), transform var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+}
+
+.wc-block-components-radio-control__option::before,
+.wc-block-checkout__shipping-method-option::before,
+.wc-block-components-radio-control-accordion-option::before {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 3px;
+	background: var(--dtb-checkout-gradient-accent);
+	opacity: 0;
+	transition: opacity var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+}
+
+.wc-block-components-radio-control__option:hover,
+.wc-block-checkout__shipping-method-option:hover,
+.wc-block-components-radio-control-accordion-option:hover {
+	border-color: var(--dtb-checkout-border-strong);
+	box-shadow: var(--dtb-checkout-shadow-sm);
 }
 
 .wc-block-components-radio-control__option:has(input:checked),
@@ -484,12 +606,24 @@ h3,
 .wc-block-components-radio-control-accordion-option:has(input:checked) {
 	border-color: var(--dtb-checkout-blue-600);
 	background: var(--dtb-checkout-blue-50);
+	box-shadow: var(--dtb-checkout-shadow-sm);
+}
+
+.wc-block-components-radio-control__option:has(input:checked)::before,
+.wc-block-checkout__shipping-method-option:has(input:checked)::before,
+.wc-block-components-radio-control-accordion-option:has(input:checked)::before {
+	opacity: 1;
 }
 
 .wc-block-components-radio-control__option:has(input:focus-visible),
 .wc-block-checkout__shipping-method-option:has(input:focus-visible),
 .wc-block-components-radio-control-accordion-option:has(input:focus-visible) {
 	box-shadow: var(--dtb-checkout-shadow-focus);
+}
+
+.wc-block-components-radio-control-accordion-content {
+	font-weight: 700;
+	color: var(--dtb-checkout-ink-950);
 }
 
 .wc-block-components-radio-control__option input[type="radio"],
@@ -549,24 +683,27 @@ h3,
 
 .wc-block-components-checkout-place-order-button {
 	width: 100%;
-	min-height: 54px;
-	border: 1px solid var(--dtb-checkout-blue-600);
+	min-height: 56px;
+	border: none;
 	border-radius: var(--dtb-checkout-radius-md);
-	background: var(--dtb-checkout-blue-600);
+	background: var(--dtb-checkout-gradient-accent);
+	box-shadow: var(--dtb-checkout-shadow-raised);
 	color: #fff;
 	font-family: var(--dtb-checkout-font-heading);
-	font-size: 16px;
-	font-weight: 700;
-	transition: background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), transform var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+	font-size: 16.5px;
+	font-weight: 750;
+	letter-spacing: 0.01em;
+	transition: box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized), transform var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), filter var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
 }
 
 .wc-block-components-checkout-place-order-button:hover {
-	border-color: var(--dtb-checkout-blue-700);
-	background: var(--dtb-checkout-blue-700);
+	filter: brightness(1.05);
+	box-shadow: var(--dtb-checkout-shadow-md), var(--dtb-checkout-shadow-raised);
 }
 
 .wc-block-components-checkout-place-order-button:active {
 	transform: translateY(1px);
+	filter: brightness(0.98);
 }
 
 /* --------------------------------------------------------------------------
@@ -672,6 +809,50 @@ h3,
 	font-size: 12px;
 	font-weight: 700;
 	text-decoration: none;
+}
+
+/* --------------------------------------------------------------------------
+ * 10b. Trust-signal footer
+ * ----------------------------------------------------------------------- */
+
+.dtb-checkout__trust {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: var(--dtb-checkout-space-5) var(--dtb-checkout-space-3);
+	max-width: 640px;
+	margin: 0 auto;
+	padding: var(--dtb-checkout-space-8) var(--dtb-checkout-gutter) calc(var(--dtb-checkout-space-8) + env(safe-area-inset-bottom, 0px));
+	background: var(--dtb-checkout-surface-subtle);
+	border-top: 1px solid var(--dtb-checkout-border);
+}
+
+.dtb-checkout__trust-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	text-align: center;
+	color: var(--dtb-checkout-ink-500);
+	font-size: 12px;
+}
+
+.dtb-checkout__trust-item svg {
+	width: 26px;
+	height: 26px;
+	color: var(--dtb-checkout-blue-600);
+}
+
+.dtb-checkout__trust-item strong {
+	display: block;
+	color: var(--dtb-checkout-ink-950);
+	font-size: 13px;
+	font-weight: 750;
+}
+
+@media (min-width: 480px) {
+	.dtb-checkout__trust {
+		grid-template-columns: repeat(4, 1fr);
+	}
 }
 
 /* --------------------------------------------------------------------------

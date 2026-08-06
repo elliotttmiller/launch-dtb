@@ -5,11 +5,14 @@
  * WooCommerce owns the rendered checkout baseline and Payment Plugins for
  * Stripe WooCommerce owns its payment surfaces; nothing below reparents,
  * clones, or duplicates a native field, wallet, or order-submission control.
- * The only DTB-owned markup here is the branded top bar. The in-page step
- * wizard (progress rail + Back/Continue bar) is built entirely by
- * checkout.js as progressive enhancement over the native Woo Checkout
- * Block groups — no separate step markup lives in this template, so there
- * is exactly one source of truth for step definitions. Base checkout assets
+ * The only DTB-owned markup here is the branded top bar, a static decorative
+ * breadcrumb, and a static decorative trust-signal footer — none of these
+ * read from or write to checkout/cart/order state, they are presentation
+ * only. The mobile-only single-open accordion (Contact / Shipping / Payment)
+ * is built entirely by checkout.js as progressive enhancement over the
+ * native Woo Checkout Block groups — no separate step markup lives in this
+ * template, so there is exactly one source of truth for step definitions.
+ * Base checkout assets
  * are registered in functions.php (dtb_enqueue_native_checkout_assets());
  * the desktop-only layout layer is enqueued here before wp_head() with an
  * explicit dependency on the base stylesheet. See
@@ -74,6 +77,13 @@ wp_enqueue_style(
 			<img src="<?php echo esc_url( home_url( '/logos/powered_by_stripe.svg' ) ); ?>" alt="<?php esc_attr_e( 'Powered by Stripe', 'drywall-toolbox' ); ?>">
 		</span>
 	</header>
+	<nav class="dtb-checkout__breadcrumb" aria-label="Checkout progress">
+		<a href="<?php echo esc_url( wc_get_cart_url() ); ?>">Cart</a>
+		<span class="dtb-checkout__breadcrumb-sep" aria-hidden="true">&rsaquo;</span>
+		<span class="dtb-checkout__breadcrumb-current" aria-current="step">Checkout</span>
+		<span class="dtb-checkout__breadcrumb-sep" aria-hidden="true">&rsaquo;</span>
+		<span>Order complete</span>
+	</nav>
 	<main id="primary" role="main">
 		<?php
 		if ( have_posts() ) {
@@ -87,6 +97,24 @@ wp_enqueue_style(
 		}
 		?>
 	</main>
+	<footer class="dtb-checkout__trust" aria-label="Purchase assurances">
+		<div class="dtb-checkout__trust-item">
+			<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M2 8h13v9H2zM15 11h4l3 3v3h-7zM6 20a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 6 20Zm12 0a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2Z"/></svg>
+			<span><strong>Fast shipping</strong>On orders over $149</span>
+		</div>
+		<div class="dtb-checkout__trust-item">
+			<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M20 12a8 8 0 1 1-2.34-5.66M20 4v5h-5"/></svg>
+			<span><strong>Easy returns</strong>30-day return policy</span>
+		</div>
+		<div class="dtb-checkout__trust-item">
+			<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M6 11V7a6 6 0 0 1 12 0v4M5 11h14v10H5z"/></svg>
+			<span><strong>Secure checkout</strong>256-bit encryption</span>
+		</div>
+		<div class="dtb-checkout__trust-item">
+			<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="1.6" d="M4 14v-2a8 8 0 0 1 16 0v2M2 14h4v6H4a2 2 0 0 1-2-2Zm20 0h-4v6h2a2 2 0 0 0 2-2Z"/></svg>
+			<span><strong>Expert support</strong>(320) 288-0432</span>
+		</div>
+	</footer>
 <?php wp_footer(); ?>
 </body>
 </html>

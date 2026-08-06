@@ -627,6 +627,45 @@ export default function StorefrontCartSheet({
           line-height: 1;
         }
 
+        .scs-header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        .scs-clear-cart {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          height: 32px;
+          padding: 0 10px;
+          border-radius: 999px;
+          border: 1.5px solid #e2e8f0;
+          background: #f8fafc;
+          color: #475569;
+          font-size: 0.72rem;
+          font-weight: 700;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+        }
+
+        .scs-clear-cart:hover:not(:disabled) {
+          background: #fef2f2;
+          border-color: #fecaca;
+          color: #b91c1c;
+        }
+
+        .scs-clear-cart:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+        }
+
+        .scs-clear-cart svg {
+          flex-shrink: 0;
+        }
+
         .scs-close {
           display: flex;
           align-items: center;
