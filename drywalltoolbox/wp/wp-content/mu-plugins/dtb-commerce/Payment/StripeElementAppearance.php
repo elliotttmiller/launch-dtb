@@ -1,22 +1,11 @@
 <?php
 /**
- * Stripe Elements Appearance API integration for Payment Plugins for Stripe
- * WooCommerce (woo-stripe-payment).
+ * Stripe Elements Appearance API integration for Payment Plugins for Stripe.
  *
- * The Universal Payment Method gateway (`stripe_upm`) mounts Stripe's Payment
- * Element inside a cross-origin iframe. Page-level CSS cannot reach the tab
- * list, card inputs, or labels rendered inside that iframe — Stripe's own
- * documented mechanism for that is the Elements Appearance API, passed at
- * element-initialization time. Payment Plugins for Stripe exposes this via
- * the `wc_stripe_get_element_options` filter, which fires while building the
- * options object handed to `elements()->create()`.
- *
- * Reference: https://docs.stripe.com/elements/appearance-api
- * Reference: https://paymentplugins.com/documentation/stripe/code-examples/customize-payment-form/
- *
- * This class owns brand-token appearance only. It does not select gateways,
- * change eligibility, or touch tokenization/confirmation/capture — those
- * remain exclusively owned by Payment Plugins for Stripe.
+ * Page CSS cannot style Stripe's cross-origin iframe. This adapter mirrors the
+ * authoritative checkout visual tokens through the provider-supported
+ * wc_stripe_get_element_options filter without changing gateway selection,
+ * tokenization, authentication, confirmation or capture.
  *
  * @package drywall-toolbox
  */
@@ -31,8 +20,8 @@ final class DTB_StripeElementAppearance {
 	}
 
 	/**
-	 * @param array $options Options passed to Stripe's elements.create()/update().
-	 * @param mixed $gateway The WC_Payment_Gateway instance initializing elements.
+	 * @param array $options Options passed to Stripe Elements.
+	 * @param mixed $gateway Payment gateway instance.
 	 * @return array
 	 */
 	public static function apply_brand_appearance( array $options, $gateway ): array {
@@ -41,62 +30,48 @@ final class DTB_StripeElementAppearance {
 			return $options;
 		}
 
-		// WC_Payment_Gateway_Stripe_UPM::get_element_options() already sets
-		// appearance.theme from the merchant's own admin selection (Default,
-		// Night, Flat — see Universal Payment Method settings). Preserve that
-		// choice; only add brand variables/rules on top of it.
-		$existing_theme = is_array( $options['appearance'] ?? null ) ? ( $options['appearance']['theme'] ?? 'stripe' ) : 'stripe';
+		$existing_theme = is_array( $options['appearance'] ?? null )
+			? (string) ( $options['appearance']['theme'] ?? 'stripe' )
+			: 'stripe';
 
 		$options['appearance'] = [
 			'theme'     => $existing_theme,
 			'labels'    => 'floating',
 			'variables' => [
-				'fontFamily'             => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-				'fontSizeBase'           => '16px', // Matches page inputs; avoids iOS Safari auto-zoom-on-focus.
-				'colorPrimary'           => '#2f6feb',
-				'colorText'              => '#101423',
-				'colorTextSecondary'     => '#5b6273',
-				'colorBackground'        => '#ffffff',
-				'colorDanger'            => '#d92d20',
-				'borderRadius'           => '8px',
-				'spacingUnit'            => '4px',
+				'fontFamily'         => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+				'fontSizeBase'       => '16px',
+				'colorPrimary'       => '#2563eb',
+				'colorText'          => '#0b0f19',
+				'colorTextSecondary' => '#667085',
+				'colorBackground'    => '#ffffff',
+				'colorDanger'        => '#b42318',
+				'borderRadius'       => '8px',
+				'spacingUnit'        => '4px',
 			],
 			'rules'     => [
 				'.Tab' => [
-					'border'     => '1px solid #e3e6eb',
-					'boxShadow'  => 'none',
-					'padding'    => '10px 12px',
+					'border'    => '1px solid #e2e8f0',
+					'boxShadow' => 'none',
+					'padding'   => '10px 12px',
 				],
-				'.Tab:hover' => [
-					'color' => '#101423',
-				],
+				'.Tab:hover' => [ 'color' => '#0b0f19' ],
 				'.Tab--selected' => [
-					'borderColor' => '#2f6feb',
-					'boxShadow'   => '0 0 0 1px #2f6feb',
+					'borderColor' => '#2563eb',
+					'boxShadow'   => '0 0 0 1px #2563eb',
 				],
-				'.TabIcon--selected' => [
-					'fill' => '#2f6feb',
-				],
-				'.TabLabel--selected' => [
-					'color' => '#1d4fd1',
-				],
-				'.Label' => [
-					'fontWeight' => '500',
-				],
+				'.TabIcon--selected'  => [ 'fill' => '#2563eb' ],
+				'.TabLabel--selected' => [ 'color' => '#1d4ed8' ],
+				'.Label'              => [ 'fontWeight' => '600' ],
 				'.Input' => [
-					'border'    => '1px solid #c9ced8',
+					'border'    => '1px solid #cbd5e1',
 					'boxShadow' => 'none',
 				],
 				'.Input:focus' => [
-					'border'    => '1px solid #2f6feb',
-					'boxShadow' => '0 0 0 3px #eaf1ff',
+					'border'    => '1px solid #2563eb',
+					'boxShadow' => '0 0 0 3px rgba(37, 99, 235, 0.18)',
 				],
-				'.Input--invalid' => [
-					'border' => '1px solid #d92d20',
-				],
-				'.Error' => [
-					'color' => '#d92d20',
-				],
+				'.Input--invalid' => [ 'border' => '1px solid #b42318' ],
+				'.Error'          => [ 'color' => '#b42318' ],
 			],
 		];
 
