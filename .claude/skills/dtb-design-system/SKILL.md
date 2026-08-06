@@ -43,6 +43,19 @@ When asked to explain why a UI area (e.g. checkout) feels overly complex, the ac
 
 Report findings as: which of these four (or a combination) is the actual cause, with file-level evidence — not a generic "the code is too complex" observation.
 
+## Building a new reusable component (API design, not just auditing)
+
+DTB has no component-library package, no TypeScript, and no Storybook (verified — not in `frontend/package.json`) — don't propose any of those. What DTB does have is `frontend/src/components/` with real reuse conventions already established; apply these when a task asks for a genuinely new shared component rather than a page-specific one:
+
+- **Variant prop over boolean explosion.** A single `variant="primary" | "secondary" | "ghost" | "destructive"`-style prop, not `isPrimary`/`isSecondary`/`isDanger` booleans that can combine into invalid states. Match existing components' prop naming (`variant`, `size`, `disabled`, `loading`) rather than inventing new names for the same concept.
+- **Controlled/uncontrolled parity** where the component holds meaningful open/selected/value state (a drawer, a filter, a stepper): accept an optional controlled `value`/`onChange` pair, default to internal state when omitted — don't force every consumer into controlled mode if the codebase's existing usage is mostly uncontrolled.
+- **Compound composition via context** for a component with multiple coordinated parts (e.g. a stepper's step + content), matching the existing `frontend/src/context/` pattern already used for cart/auth state — not a single component with a dozen configuration props trying to cover every internal slot.
+- **`forwardRef`** when a consumer plausibly needs DOM access (focus management, measuring, scroll-into-view) — check existing components in the same directory for the pattern already in use before introducing a new one.
+- **ARIA widget patterns**: since DTB has no `react-aria`/headless-UI dependency, interactive patterns (tabs, dialog/drawer, menu, combobox, disclosure) must follow the WAI-ARIA Authoring Practices roles/states/keyboard interactions by hand — check `storefront-drawer.css`/existing modal-like components for the pattern already implemented before reinventing focus-trap or roving-tabindex logic that may already exist in this codebase.
+- **Single responsibility, ~150-200 line guidance** — same ceiling as `frontend-react`'s component discipline; this skill doesn't duplicate that rule, just flags it applies to new shared components too.
+
+This section is for the rare case of adding a genuinely new shared primitive — most requests should first check whether an existing component in `frontend/src/components/` already covers the need (see "Where the actual system lives" above) before designing a new one.
+
 ## Performance
 
 Core Web Vitals targets and CSR-specific technique guidance live in the `dtb-seo` skill (LCP/INP/CLS are also ranking factors, so that's the canonical home) — load it for performance work rather than duplicating targets here.

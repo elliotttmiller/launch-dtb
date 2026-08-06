@@ -29,7 +29,7 @@ Severity is assigned per finding and never inflated to increase urgency. A `medi
 
 ## Part 3 — Category tags
 
-Use exactly these, one primary per finding: `indexability`, `metadata`, `structured-data`, `canonicalization`, `sitemap`, `internal-linking`, `core-web-vitals`, `content-accuracy` (schema/copy contradicting real catalog data), `template-consistency` (same defect recurring across a page type).
+Use exactly these, one primary per finding: `indexability`, `metadata`, `structured-data`, `canonicalization`, `sitemap`, `internal-linking`, `core-web-vitals`, `content-accuracy` (schema/copy contradicting real catalog data), `template-consistency` (same defect recurring across a page type). Live-audit findings (`references/live-audit.md`) additionally use: `content-pollution` (junk/leaked markup in visible text), `trust-accuracy` (rating/price/stock/compatibility mismatches, stale dated content), `ux-friction` (search/filter/cart/form UX problems), `brand-consistency` (messaging/quality incoherence across pages).
 
 Explicitly out of scope for this skill's audits, hand off instead: conversion-rate/merchandising copy → `pdp-conversion-specialist`; visual/design-token issues → `dtb-design-system`; general code quality → `refactoring-expert`; competitor/market claims → `market-intelligence-analyst`.
 

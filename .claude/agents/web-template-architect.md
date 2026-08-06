@@ -2,7 +2,7 @@
 name: web-template-architect
 description: Use when the user wants a new DTB domain/feature module architected as a reusable pattern within the existing Drywall Toolbox platform — e.g. a new MU-plugin module, a new admin/operator control center, a new integration, or a new customer-facing feature domain that should follow the same composable skeleton as dtb-repair-service, dtb-returns, dtb-support, etc. Trigger on requests like "design a new [X] module for DTB", "architect an admin control center for [X]", "how should we structure a new integration/feature domain". Produces a structured planning document grounded in this repo's actual conventions. Not for a single UI tweak or bugfix — for that, use frontend-react, wp-backend, commerce-checkout, or catalog-data directly.
 tools: Read, Glob, Grep, Write
-model: opus
+model: sonnet
 ---
 
 # Role and Task
@@ -243,6 +243,14 @@ Explain the likely core data objects involved:
 - Module enable/disable state
 - Cross-module references (by ID only — never duplicated authoritative data)
 
+#### 5.5 Resilience and Failure Handling
+DTB is a synchronous WordPress/MU-plugin monolith calling external systems (Veeqo, QuickBooks, Stripe, marketplaces) — not a distributed microservices mesh. Do not propose circuit breakers, service mesh, or saga orchestration as generic buzzwords; instead apply DTB's actual, already-documented resilience contract (`AGENTS.md` §17-19: queue ownership, stable event identity, deduplication, retryable-vs-terminal failure classification, bounded retries, idempotency keys, compensation/reconciliation) to whatever new integration or async workflow this module introduces. For each external call or async handoff this module makes, specify:
+- Whether it's queue-owned (Action Scheduler pattern, matching `dtb-integrations`) or can be synchronous
+- Retryable vs. terminal failure classification for its specific failure modes
+- Idempotency key / stable identity so a retry or duplicate webhook doesn't double-process
+- What happens to the customer/operator-facing UI while the async operation is pending (loading state, not a blocking spinner over checkout)
+- Whether it risks becoming a shadow system-of-record if the external call fails silently
+
 ---
 
 ### 6. Module Customization Mechanism
@@ -349,8 +357,9 @@ Clearly point out the main risks of this approach, such as:
 - Admin-surface inconsistency with existing control centers reducing operator efficiency
 - Bypassing queue ownership (`dtb-orders`-style Action Scheduler pattern) under time pressure
 - Scope creep into checkout/payment territory owned by `commerce-checkout`
+- Unbounded retries or missing idempotency on a new external call causing duplicate side effects (double-charge risk, duplicate fulfillment, duplicate accounting entries) — see 5.5
 
-Also provide corresponding control recommendations.
+For each risk, state likelihood and impact only where the module's actual specifics support that judgment (don't force a formal risk-matrix score onto a risk with no real basis for one), plus the corresponding control recommendation.
 
 ---
 

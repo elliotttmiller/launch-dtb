@@ -456,6 +456,8 @@ WordPress/WooCommerce remain authoritative for published product and taxonomy re
 
 Private, stateful, identifier-bearing, account-owned, preview, checkout, cart, order, repair-status, return-status, and operator routes must not be emitted as public indexable URLs. Do not create competing sitemap authorities.
 
+SEO audit and planning work (the `dtb-seo` skill) writes findings to `TODO_dtb-seo.md` at the repo root, mirroring the `TODO_refactoring-expert.md` convention used by the refactoring-expert agent. These are scratch planning artifacts, not committed documentation — do not treat their presence as a build input.
+
 ## 23. Security boundaries
 
 Never expose or persist WordPress/WooCommerce credentials, database credentials, JWT signing secrets, Stripe secret or webhook keys, PaymentIntent client secrets, wallet tokens, PayPal credentials, Veeqo/QuickBooks/marketplace credentials, private keys, server configuration, or raw payment data.

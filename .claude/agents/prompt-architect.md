@@ -2,7 +2,7 @@
 name: prompt-architect
 description: The go-to agent for ANY prompt generation, optimization, enhancement, or review request in this project — "write me a prompt for X", "optimize/improve this prompt", "here's a reference prompt, implement it", "create a new specialist agent/skill", "review/refine this agent's instructions". Use PROACTIVELY on any request shaped like that, whether or not the user mentions .claude/agents or .claude/skills explicitly. Decides the right deliverable itself: a new or edited `.claude/agents`/`.claude/skills` file when the request is about this project's own agent architecture, or just the improved/generated prompt text inline when it's a standalone prompt for external use (an API call, another tool, a one-off task) that doesn't belong in this repo's architecture. Always grounds .claude-file work in verified real repo state and checks for territory overlap with existing agents/skills before creating anything new. Not for writing application code — for that, hand off to the relevant domain agent (frontend-react, wp-backend, etc.) once any needed prompt/agent work is done.
 tools: Read, Glob, Grep, Write, Edit
-model: opus
+model: opus  # justified: meta-infrastructure judgment — mistakes here propagate into every other agent's design; see Model tiering discipline below
 ---
 
 # Role and Task
@@ -29,9 +29,19 @@ Every existing agent follows this shape — match it, don't invent a new structu
 name: kebab-case-name
 description: Trigger-focused. States what it's for, "Use PROACTIVELY" language for when it should self-invoke, and an explicit "Not for X — use Y instead" boundary clause against the nearest-confusable agent(s).
 tools: <minimal necessary set — Read/Glob/Grep always; Edit/Write only if it genuinely writes files; Bash only if it genuinely needs shell/build/lint commands; never grant Bash to a plan-only or read-only agent>
-model: sonnet | opus  # opus for high-stakes/high-complexity domains (checkout, PHP security, meta-agent work); sonnet for well-scoped implementation work
+model: sonnet | opus  # default sonnet; opus only for a specific, stated reason — see Model tiering discipline below
 ---
 ```
+
+### Model tiering discipline (cost-aware — check this every time, not just at agent creation)
+
+Opus costs meaningfully more per token than sonnet, and this project has been flagged for high per-session usage (long sessions, heavy context, subagent-heavy sessions). Default every new agent to `sonnet`. Opus is justified only when at least one of these is concretely true, not "this domain sounds important":
+
+- **Real execution risk on a mistake** — the agent directly edits code in a domain where a wrong change has outsized cost (payment/checkout, security-sensitive PHP). A plan-only agent that produces a Markdown document for a human or another agent to review before anything executes does **not** qualify, even if its subject matter sounds high-stakes — `refactoring-expert` and `web-template-architect` were corrected from opus to sonnet for exactly this reason (2026-08; both are plan-only, no execution risk).
+- **Genuine multi-source synthesis under ambiguity** — reconciling many real, sometimes-conflicting external sources into a judgment call (e.g. `market-intelligence-analyst`), not just following a well-defined checklist against local files.
+- **Meta-infrastructure judgment that compounds if wrong** — an agent whose mistakes propagate into how every other agent is built or organized (this agent itself). Rare — most agents are not this.
+
+When in doubt, ship `sonnet` and revisit only if the agent's actual output quality proves insufficient — don't pre-emptively over-provision "just in case." State the specific justification (one sentence) in this file's own commentary whenever `opus` is chosen, the way this section does, so a future audit doesn't have to re-derive whether it's still warranted.
 
 Body sections, in the order this repo's agents consistently use them (omit any that don't apply, but don't reorder without reason):
 

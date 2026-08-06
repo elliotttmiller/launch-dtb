@@ -1,6 +1,6 @@
 ---
 name: dtb-seo
-description: Use whenever a task touches search-engine visibility for the Drywall Toolbox storefront — meta tags/titles/descriptions, Open Graph/Twitter cards, JSON-LD structured data (Product/Breadcrumb/Organization/WebSite schema), canonical URLs, robots/noindex, sitemap behavior, internal linking / anchor text / hub-and-spoke structure across category-brand-product-schematic pages, or Core Web Vitals (LCP/INP/CLS) for the React SPA. Trigger on requests like "improve SEO for this page", "why isn't this product ranking", "add structured data", "fix the sitemap", "which pages should link to each other", "find orphan pages", or "audit Core Web Vitals". Grounded in this repo's actual SEO pipeline (SEOHead.jsx, schema.js, dtb-platform Seo sitemap service, dtb-marketing ProductSeoController) — not a generic content-marketing/blog SEO checklist, since DTB has no blog, no author bios, and no multilingual routes.
+description: Use whenever a task touches search-engine visibility, on-site link structure, or overall site health for the Drywall Toolbox storefront — meta tags/titles/descriptions, Open Graph/Twitter cards, JSON-LD structured data (Product/Breadcrumb/Organization/WebSite/FAQPage schema), canonical URLs, robots/noindex, sitemap behavior, internal linking / anchor text / hub-and-spoke structure across category-brand-product-schematic pages, Core Web Vitals (LCP/INP/CLS), or a forensic live-site audit (content pollution/junk text, trust and data-accuracy signals, UX/conversion friction, template and brand consistency). Trigger on requests like "improve SEO for this page", "why isn't this product ranking", "add structured data", "fix the sitemap", "which pages should link to each other", "find orphan pages", "audit Core Web Vitals", "audit the live site", or "does this page look trustworthy/professional". Grounded in this repo's actual SEO pipeline (SEOHead.jsx, schema.js, dtb-platform Seo sitemap service, dtb-marketing ProductSeoController) — not a generic content-marketing/blog SEO checklist or an off-page/backlink playbook, since DTB has no blog, no author bios, no multilingual routes, and runs no content-marketing/backlink program.
 ---
 
 # DTB SEO
@@ -9,13 +9,15 @@ Drywall Toolbox is a client-rendered React SPA (Webpack, no Next.js/SSR) storefr
 
 ## References — load on demand
 
-- **`references/internal-linking.md`** — the DTB link graph (routes, taxonomies, schematics mappings), 0–100 relatedness scoring, anchor-text rules, hub/spoke structure, orphan checks. Load for any "which pages should link to where" task.
+- **`references/internal-linking.md`** — the DTB link graph (routes, taxonomies, schematics mappings), 0–100 relatedness scoring, anchor-text rules (3 variations per link), contextual-paragraph suggestions, hub/spoke structure, orphan checks. Load for any "which pages should link to where" task.
 - **`references/audit-output.md`** — evidence/anti-hallucination rules, severity + category + scope tagging, and the `TODO_dtb-seo.md` task-ID output contract. **Load this whenever the deliverable is an audit or a plan rather than a single inline answer.**
+- **`references/live-audit.md`** — forensic audit of the actual live/rendered site (content pollution, trust/data-accuracy, UX friction, template and brand consistency, scored deliverable) using `WebFetch` against real fetched pages rather than source inference. Load whenever the task needs to verify what's actually shipping in production, not just what the source says it should do. **Requires an agent with `WebFetch`** (currently `frontend-react`) — check the invoking agent has it before starting this mode.
 
-## Two working modes
+## Three working modes
 
 1. **Inline advisory** — a scoped question during implementation ("what should this PDP's canonical be?"). Answer directly using the checklist below; no TODO file.
-2. **Audit / plan** — a page, template, or sitewide review, or an internal-linking plan. Follow `references/audit-output.md` in full: task IDs, quoted evidence, severity/scope tags, everything written to `TODO_dtb-seo.md` and nothing else.
+2. **Audit / plan (source-based)** — a page, template, or sitewide review, or an internal-linking plan, verified against source code. Follow `references/audit-output.md` in full: task IDs, quoted evidence, severity/scope tags, everything written to `TODO_dtb-seo.md` and nothing else.
+3. **Live audit (production-based)** — a forensic pass against the actual deployed site rather than source. Follow `references/live-audit.md`, which extends the same `references/audit-output.md` output contract with fetched-evidence requirements and a scored site-health summary.
 
 ## The actual SEO pipeline in this repo — read before touching anything
 
@@ -73,6 +75,9 @@ Because this is client-rendered (no SSR/hydration), the levers are different fro
 - **AI-content-detection guidelines** — not relevant to structured commerce data.
 - **FAQPage schema** — a real FAQ surface *does* exist (`frontend/src/pages/FAQ.jsx`, route `/faq`, already in `static_routes()` and already using `SEOHead`), so FAQPage schema is legitimately available here — but only for the Q&A actually rendered on that page, added via a new builder in `frontend/src/utils/schema.js` (there is none today; the file exports `stripHtml`, `buildProductSchema`, `buildBreadcrumbSchema`, `buildOrganizationSchema`, `buildSiteLinksSearchBoxSchema`). Never emit FAQ schema for Q&A that isn't visible on the page — that's a spam signal, not an SEO win.
 - **Generic paid tool recommendations** (Semrush/Ahrefs/Surfer) — not actionable by an agent with no account access. Prefer **Google Search Console** (indexing/query performance — requires the user to check, can't be queried directly), **PageSpeed Insights**/**Lighthouse** (can be run via `npx lighthouse` against a local/staging build if the user wants a real Core Web Vitals number, rather than guessed).
+- **Off-page SEO, backlink acquisition, digital PR, guest-posting strategy** — DTB runs no content-marketing or link-building program, and this skill has no way to verify a backlink profile exists or check outreach results. If competitive/market-positioning research is actually wanted, that's `market-intelligence-analyst`'s territory (it has live search tools this skill doesn't); this skill stays scoped to DTB's own site.
+- **CMS SEO-plugin configuration (Yoast, Rank Math, All in One SEO)** — DTB's SEO meta pipeline is custom-built (`ProductSeoController.php` fields + `SEOHead.jsx`), not plugin-based. Advice framed around a generic WordPress SEO plugin's settings screen doesn't map to anything in this codebase — see "The actual SEO pipeline in this repo" above for what actually governs meta output here.
+- **Keyword-density/TOFU-MOFU-BOFU content-funnel strategy for long-form articles** — this is content-marketing methodology for a site that publishes editorial content; DTB's pages are commerce templates (PDP/category/brand), not funnel-staged articles. The closest DTB equivalent (matching search intent to page type) is already captured as the "Intent alignment" component of the internal-linking relatedness score in `references/internal-linking.md`, not a separate funnel framework.
 
 ## Who does what
 

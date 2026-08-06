@@ -78,7 +78,13 @@ Hard rules:
 - Never invent a product/part/model name for anchor text. Every named entity in a proposed anchor must have been read from the catalog, `schematicMappings.js`, or the live product data.
 - Anchors describing fit ("fits the …", "compatible with …") require verified compatibility evidence per Step 3's functional component. An unverified compatibility claim in anchor text is a returns-and-trust liability, not an SEO issue — flag it as such.
 
-Where an editorial sentence is needed to host the link, write one short paragraph (≤2 sentences) that is genuinely useful with the link removed. If the sentence exists only to carry the link, it's filler — do not propose it.
+### Optional deliverable: contextual paragraph suggestion
+
+When a recommendation needs a real sentence to host the link (not just a rail/nav placement), produce a short paragraph, 2–4 sentences, that:
+- Uses one of the three anchor variations above, naturally inline — not appended or bolted on.
+- Reads as genuinely useful editorial content with the link mentally removed. If the paragraph exists only to carry the link, it's filler — do not propose it; say the link belongs in a structural placement (rail, breadcrumb) instead of forcing prose.
+- Is grounded only in real catalog/compatibility facts already verified per Step 3 — no invented specs, fitment claims, or marketing language beyond what `pdp-conversion-specialist`'s voice guidance would itself allow.
+- Is offered as a suggestion for the owning agent to place, not inserted directly — this skill doesn't own PDP copy (`pdp-conversion-specialist` does) or catalog relationship data (`catalog-data` does).
 
 ## Step 5 — Hub-and-spoke structure for DTB
 

@@ -51,8 +51,18 @@ Each plugin follows a consistent layered architecture:
 | `dtb-media` | Product-image sync, product linking, and variation galleries; its admin screen surfaces schematic registration without owning that behavior |
 | `dtb-returns` | Return portal workflow |
 | `dtb-support` | Support tickets, contact form, SLA, admin workbench |
-| `dtb-marketing` | SEO, coming-soon page |
+| `dtb-marketing` | Coming-soon page; per-product SEO meta (`ProductSeoController`, see below) |
 | `dtb-deployment` | Release Management: release event log, signed GitHub Actions webhook, GitHub API bridge (dispatch/drift), System Manager admin UI (Release Management tabs) |
+| `dtb-visual-designer` | Design-token/surface config studio: draft/publish/rollback of token+surface config with preview sessions and revision history (`Domain/TokenRegistry.php`, `Domain/SurfaceRegistry.php`, `Application/DraftService.php`/`PublishService.php`/`RollbackService.php`, `Rest/*Controller.php`, `Admin/DesignerPage.php`); includes an `EmailStudioController` REST endpoint |
+
+Standalone root-level files (not inside a plugin folder) also ship as mu-plugins: `00-aaa-dtb-sitemap-admin-guard.php`, `00-dtb-loader.php`, `dtb-customer-orders-api.php`, `dtb-legacy-commerce-route-hardening.php`, `dtb-order-tracking-links.php`, `dtb-public-labels.php`, `sso.php`, `zzz-dtb-order-loop-containment.php`.
+
+### SEO and Sitemap pipeline
+
+- **Frontend**: `frontend/src/components/shared/SEOHead.jsx` renders per-route `<title>`/meta/canonical via `react-helmet-async`; `frontend/src/utils/schema.js` builds JSON-LD (Product/Breadcrumb/Organization/WebSite, etc.).
+- **Per-product SEO meta** (`dtb-marketing/Seo/ProductSeoController.php`): registers WooCommerce product post-meta fields `_dtb_seo_title`, `_dtb_seo_description`, `_dtb_seo_focus_kw`, `_dtb_seo_canonical`, `_dtb_seo_noindex`.
+- **Sitemap** (`dtb-platform/Seo/SitemapService.php`, `SitemapUrlRepository.php`, `SitemapXmlRenderer.php`): registers rewrite rules for `sitemap.xml` (index) and `sitemaps/{type}-{page}.xml`, serves on `template_redirect`, disables WordPress core's own `wp_sitemaps_enabled` sitemap, filters `robots_txt`, and invalidates its hourly cache on product save/delete and term create/edit/delete. `00-aaa-dtb-sitemap-admin-guard.php` (loaded first, by filename ordering) guards sitemap routes from admin-context interference.
+- **Cache Tools** (`dtb-platform/Cache/`: `CacheKeyBuilder.php`, `CacheService.php`, `CacheHeaders.php`, `CacheInvalidationService.php`, `CachePurgeLock.php`, `CacheOperationsService.php`, `CacheAdminPage.php`) plus `dtb-platform/Admin/AdminCacheToolbar.php`, `CacheToolsPage.php`, and `SeoToolsPage.php` — admin-facing cache purge/inspection tooling with a purge lock to prevent concurrent runs.
 
 ### Plugin Internal Layers (consistent across all plugins)
 
@@ -110,3 +120,4 @@ See `docs/deployment/release-management-architecture.md` for the full design.
 - **JWT auth**: Custom JWT service bridges React auth to WooCommerce sessions
 - **Feature flags**: `dtb-platform/Config/FeatureFlags.php` gates functionality
 - **Generated data files**: `src/data/*.generated.js` are code-generated static catalogs
+- **Checkout**: native WooCommerce Checkout Block (`drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php`), not a custom DTB checkout stack. WooCommerce owns cart/customer/address/shipping/tax/order state; Payment Plugins for Stripe WooCommerce owns card fields/wallets/tokenization/capture; DTB layers on top via one stylesheet (`assets/checkout/checkout.css`) restyling native Checkout Block markup by its real per-block identity classes (`.wp-block-woocommerce-checkout-*-block`) and one script (`assets/checkout/checkout.js`) that, mobile-only, presents the same unmodified DOM as a 3-step wizard (Contact/Shipping/Payment) via `classifyStepGroups()` (classification keyed on WooCommerce Blocks' own stable CSS classes, e.g. `.wc-block-checkout__shipping-fields`, walked up to the nearest `.wc-block-components-checkout-step` ancestor — never DOM position or `data-block-name`, both proved unreliable across redesign iterations). Stripe's Payment Element is themed via the Appearance API (`dtb-commerce/Payment/StripeElementAppearance.php`, the `wc_stripe_get_element_options` filter) without replacing the merchant's own UPM theme setting. See `docs/checkout/checkout-ui-architecture.md` for full redesign history and validation matrix.

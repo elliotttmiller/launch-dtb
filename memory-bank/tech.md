@@ -33,6 +33,8 @@
 | Accounting | QuickBooks integration |
 | Marketplaces | Amazon SP-API, eBay REST |
 | Hosting | SiteGround shared hosting |
+| SEO/Sitemap | Custom (`dtb-platform/Seo/SitemapService.php`): rewrite-rule-based `sitemap.xml` + `sitemaps/{type}-{page}.xml`, replaces WP core's `wp_sitemaps_enabled`; `dtb-marketing/Seo/ProductSeoController.php` owns per-product `_dtb_seo_*` post-meta |
+| Cache tooling | `dtb-platform/Cache/*` (key builder, invalidation service, purge lock, headers) + admin UI (`CacheToolsPage.php`, `AdminCacheToolbar.php`) |
 
 ## Build Commands (run from `frontend/`)
 
@@ -48,15 +50,20 @@ ANALYZE=true npm run build   # Bundle analyzer
 
 All prefixed `REACT_APP_*`, statically replaced by Webpack DefinePlugin at compile time.
 
-Key variables:
-- `REACT_APP_API_BASE_URL` — backend base URL
+Key variables (per `frontend/.env.example`; verified against actual `process.env.REACT_APP_*` usage in `frontend/src`):
+- `REACT_APP_API_BASE_URL`, `REACT_APP_WP_BASE_URL`, `REACT_APP_WP_API_BASE` — backend/WordPress base URLs
 - `REACT_APP_DTB_API_BASE` — DTB REST namespace base (`/wp-json/dtb/v1`)
-- `REACT_APP_STORE_API_BASE` — WooCommerce Store API base
-- `REACT_APP_JWT_AUTH_ENDPOINT` — JWT auth endpoint
+- `REACT_APP_WC_BASE_URL`, `REACT_APP_WC_API_BASE`, `REACT_APP_STORE_API_BASE` — WooCommerce REST / Store API bases
+- `REACT_APP_JWT_AUTH_ENDPOINT`, `REACT_APP_JWT_ENDPOINT` — JWT auth endpoint (path and full URL forms)
 - `REACT_APP_SITE_URL` — canonical site URL
-- `REACT_APP_APP_ENV` — `production` | `development` | `test`
+- `REACT_APP_ENV` — `production` | `development` | `test` (actually read in `src`; `REACT_APP_APP_ENV` is also declared in `.env.example` but not read by any `src` code as of this check)
 - `REACT_APP_DTB_CATALOG_PLATFORM` — enables catalog platform mode
+- `REACT_APP_CATALOG_SNAPSHOTS_ENABLED`, `REACT_APP_SEARCH_INDEXING`, `REACT_APP_REWARDS_ENABLED`, `REACT_APP_STORE_LAUNCH_DATE` — feature/content flags
 - `REACT_APP_GOOGLE_MAPS_PLACES_API_KEY` — address autocomplete
+- `REACT_APP_GOOGLE_SSO_URL`/`REACT_APP_AUTH_GOOGLE_URL`, `REACT_APP_APPLE_SSO_URL`/`REACT_APP_AUTH_APPLE_URL` — SSO endpoints
+- `REACT_APP_WC_AUTH_USER`/`REACT_APP_WC_AUTH_PASS` — used directly in `src` (WooCommerce basic-auth request path), not present in `.env.example`
+
+Stripe key is intentionally absent: Stripe is owned entirely by the WooCommerce-side Payment Plugins for Stripe gateway; the React storefront needs no Stripe key.
 
 ## Path Aliases (Webpack)
 

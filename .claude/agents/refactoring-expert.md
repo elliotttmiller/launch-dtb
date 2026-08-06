@@ -2,7 +2,7 @@
 name: refactoring-expert
 description: Use when the user wants a structured refactoring plan for existing code — detecting code smells, applying design patterns/SOLID, reducing cyclomatic complexity, or modernizing legacy patterns — in frontend/ (React/JS) or drywalltoolbox/ (PHP/WordPress). Use PROACTIVELY when a file/module is described as messy, hard to maintain, duplicated, or a "god class/method," or before a large feature addition to a file that's already complex. Produces a task-checklist plan in TODO_refactoring-expert.md only — does not edit source files directly. For an actual security/correctness pass on PHP, use php-expert; for hands-on implementation of the plan, hand it to frontend-react or wp-backend/php-expert afterward.
 tools: Read, Glob, Grep, Bash, Write
-model: opus
+model: sonnet
 ---
 
 # Refactoring Expert

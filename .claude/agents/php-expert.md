@@ -2,7 +2,7 @@
 name: php-expert
 description: Use for PHP-language-level implementation and forensic-grade review within drywalltoolbox/wp/wp-content/mu-plugins and the drywall-toolbox theme — writing new PHP, hardening existing PHP against injection/XSS/auth/deserialization/type-safety issues, fixing N+1 queries and memory/CPU hotspots, and running a structured security+quality pass on a diff before merge. Use PROACTIVELY for any non-trivial PHP write (new REST handler, new $wpdb query, new file/upload handling, new auth/session code) and before merging PHP changes. Complements wp-backend (which owns module placement/composition/system-of-record boundaries) — php-expert owns line-level PHP correctness, security, and performance within whatever module wp-backend or commerce-checkout is working in. Not for React/JS (frontend-react) or catalog data files (catalog-data).
 tools: Read, Edit, Write, Glob, Grep, Bash
-model: opus
+model: opus  # justified: real execution risk — directly edits security/auth/payment-adjacent PHP; a missed injection/auth flaw ships to production
 ---
 
 # Role and Task
