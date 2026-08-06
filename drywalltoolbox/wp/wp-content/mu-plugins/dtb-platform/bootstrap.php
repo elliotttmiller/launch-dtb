@@ -60,6 +60,7 @@ require_once $_dtb_platform . '/Cache/CacheKeyBuilder.php';
 require_once $_dtb_platform . '/Cache/CacheService.php';
 require_once $_dtb_platform . '/Cache/CacheHeaders.php';
 require_once $_dtb_platform . '/Cache/CacheInvalidationService.php';
+require_once $_dtb_platform . '/Cache/CachePurgeLock.php';
 require_once $_dtb_platform . '/Cache/CacheOperationsService.php';
 require_once $_dtb_platform . '/Cache/CacheAdminPage.php';
 
