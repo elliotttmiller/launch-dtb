@@ -8,7 +8,7 @@
  * physical dimensions (`measurement_attributes`: width/height/depth) are
  * read-only via the API and stay a manual Veeqo-dashboard/CSV-import concern
  * (see products/launch/official/veeqo_inventory_import_optimized.csv and
- * docs/reference/TapeTech UPC Codes, Weights & Dimensions.csv). This service
+ * docs/reference/data/tapetech-upc-codes-weights-dimensions.csv). This service
  * therefore only ever pushes weight, never dimensions.
  *
  * Mirrors the reconciliation architecture of VeeqoInventoryProjectionServiceV3.php

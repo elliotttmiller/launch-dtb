@@ -7,61 +7,53 @@
  * field, wallet, or payment control — it only toggles visibility of the
  * *existing* top-level block groups that WooCommerce itself already renders.
  *
- * Groups are classified by WooCommerce Blocks' own stable, semantic CSS
- * classes — not `data-block-name` attributes (only present in the block
- * editor's own markup, never in this store's frontend HTML — see commit
- * 320b536 / PR #44 in this repo's history) and not bare DOM-position/ordinal
- * inference (fragile against extra wrapper elements a payment gateway's own
- * script may inject around its step). Each semantic class below is verified
- * present in the currently-shipping `woocommerce/assets/client/blocks/checkout.css`:
+ * Step membership is built from WooCommerce Blocks' own real, stable
+ * per-block identity classes — the standard `wp-block-{namespace}-{block}`
+ * convention WordPress core applies automatically to every registered
+ * block, confirmed present in the currently-shipping
+ * `woocommerce/assets/client/blocks/checkout.css`:
  *
- *   .wc-block-components-express-payment   -> Contact (rendered above it)
- *   .wc-block-checkout__contact-fields     -> Contact
- *   .wc-block-checkout__shipping-fields    -> Shipping
- *   .wc-block-checkout__billing-fields     -> Shipping
- *   .wc-block-checkout__shipping-method    -> Shipping
- *   .wc-block-checkout__pickup-options     -> Shipping
- *   .wc-block-checkout__payment-method     -> Payment
- *   .wc-block-checkout__add-note           -> Payment
- *   .wc-block-checkout__terms              -> Payment
- *   .wc-block-checkout__actions            -> Payment (native "Place order")
+ *   .wp-block-woocommerce-checkout-contact-information-block  -> Contact (email only)
+ *   .wp-block-woocommerce-checkout-shipping-address-block     -> Shipping
+ *   .wp-block-woocommerce-checkout-shipping-method-block      -> Shipping
+ *   .wp-block-woocommerce-checkout-pickup-options-block        -> Shipping (if pickup enabled)
+ *   .wp-block-woocommerce-checkout-billing-address-block      -> Shipping (only rendered if
+ *                                                                 "billing same as shipping" is unchecked)
+ *   .wp-block-woocommerce-checkout-payment-block               -> Payment
+ *   .wp-block-woocommerce-checkout-express-payment-block       -> Payment (Apple Pay/Google Pay/Link row)
+ *   .wp-block-woocommerce-checkout-order-note-block            -> Payment
+ *   .wp-block-woocommerce-checkout-terms-block                 -> Payment
+ *   .wp-block-woocommerce-checkout-actions-block                -> Payment (native "Place order")
+ *
+ * These replace an earlier three-times-rewritten DOM-classification
+ * heuristic (`data-block-name` selectors that never render outside the
+ * block editor, then DOM-position/ordinal inference, then a semantic
+ * `.wc-block-checkout__*` class list with a document-order fallback bucket
+ * for anything unmatched) — see docs/checkout/checkout-ui-architecture.md
+ * for that history. The classes above are automatic WordPress core block
+ * markup, not a WooCommerce-specific implementation detail, so there is no
+ * fallback-by-document-order step here: a step's real selector either
+ * resolves or it doesn't, and reconcile() below fails safe to the plain
+ * single-scroll checkout if Contact or Payment content isn't found.
  *
  * For each match, the nearest ancestor `.wc-block-components-checkout-step`
  * (WooCommerce Blocks' stable per-step card wrapper) is what actually gets
  * hidden/shown, so the step's heading, border, and card styling move with
- * its fields rather than leaving an empty shell behind. Express payment has
- * no such wrapper and is toggled directly. See classifyStepGroups() below.
- *
- * Any `.wc-block-components-checkout-step` card the selectors above don't
- * match (a markup variant this pass didn't anticipate — e.g. a "Shipping
- * options" placeholder rendered before an address exists) is bucketed with
- * whichever classified step precedes it in document order, so it is always
- * owned by exactly one step instead of staying permanently visible on every
- * step — this was observed live as a "Shipping options" card bleeding
- * through onto the Contact screen.
+ * its fields rather than leaving an empty shell behind; a match with no such
+ * wrapper (express payment, order note, terms, actions) is toggled directly.
  *
  * Step gating uses the platform's own HTML5 constraint validation
  * (checkValidity/reportValidity) against the fields *inside the active step
  * only*, plus the documented public `wc/store/cart` and `wc/store/checkout`
  * data stores to avoid advancing while shipping/tax totals are still
- * recalculating. No private/internal object graph is read. An earlier
- * version of this gate also checked `wc/store/validation`'s
- * `hasValidationErrors()` — that selector is global across the *entire*
- * checkout, not scoped to the step being left, so it reported true (and
- * permanently blocked Continue with no visibly invalid field) as soon as any
- * not-yet-visited step's required-but-empty fields existed anywhere in the
- * form. Removed; the scoped HTML5 check above is sufficient.
+ * recalculating. No private/internal object graph is read.
  *
- * The Contact screen also collects first/last name via WooCommerce's
- * Additional Checkout Fields API (registered server-side in
- * mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php as
- * `dtb/first_name` / `dtb/last_name`, location `contact`) — real, native,
- * Woo-rendered inputs, not a client-side duplicate. They are registered
- * `required: false` at the API level so an Apple Pay / Google Pay / Link
- * order (which never touches them) is never blocked; this script instead
- * enforces them as required for the typed/card flow only, by checking their
- * `autocomplete="given-name"`/`"family-name"` inputs before leaving the
- * Contact step (see firstEmptyContactIdentityField()).
+ * The Contact step collects email only, matching WooCommerce's own
+ * `CheckoutFields.php` contact-location field list (`['email']` — Woo does
+ * not support a name field at that location by design). Name is collected
+ * on the Shipping step's native address fields, as WooCommerce itself
+ * renders them; this script does not fork or duplicate that field, and does
+ * not maintain any client-side identity-sync workaround.
  *
  * Runs only under a mobile viewport (matches the scope of this redesign
  * pass). At wider viewports every group is left visible and none of this
@@ -81,13 +73,6 @@
 	var MOBILE_QUERY = '(max-width: 767px)';
 	var HIDDEN_ATTR = 'data-dtb-step-hidden';
 
-	// Single source of truth for the Contact step's name inputs, selected by
-	// their `autocomplete` value (stable regardless of the internal id
-	// WooCommerce Blocks assigns) rather than duplicated per call site.
-	var CONTACT_GIVEN_NAME_SELECTOR = 'input[autocomplete="given-name"]';
-	var CONTACT_FAMILY_NAME_SELECTOR = 'input[autocomplete="family-name"]';
-	var CONTACT_IDENTITY_SELECTOR = CONTACT_GIVEN_NAME_SELECTOR + ', ' + CONTACT_FAMILY_NAME_SELECTOR;
-
 	var STEPS = [
 		{ id: 'contact', label: 'Contact' },
 		{ id: 'shipping', label: 'Shipping' },
@@ -96,31 +81,26 @@
 
 	var STEP_WRAPPER_SELECTOR = '.wc-block-components-checkout-step';
 
-	// Index into STEPS above. Selectors are matched against elements *inside*
-	// the checkout root; each match's nearest `.wc-block-components-checkout-step`
-	// ancestor is the node actually shown/hidden. `direct: true` entries have
-	// no such wrapper and are toggled as-is.
-	var GROUP_DEFINITIONS = [
-		{
-			index: 0, // contact
-			wrapped: [ '.wc-block-checkout__contact-fields' ],
-			direct: [ '.wc-block-components-express-payment' ],
-		},
-		{
-			index: 1, // shipping
-			wrapped: [
-				'.wc-block-checkout__shipping-fields',
-				'.wc-block-checkout__billing-fields',
-				'.wc-block-checkout__shipping-method',
-				'.wc-block-checkout__pickup-options',
-			],
-			direct: [],
-		},
-		{
-			index: 2, // payment
-			wrapped: [ '.wc-block-checkout__payment-method' ],
-			direct: [ '.wc-block-checkout__add-note', '.wc-block-checkout__terms', '.wc-block-checkout__actions' ],
-		},
+	// Index into STEPS above. Each selector is WooCommerce Blocks' own real,
+	// stable per-block identity class (see file header). Every match's
+	// nearest `.wc-block-components-checkout-step` ancestor is the node
+	// actually shown/hidden; a match with no such ancestor (express payment,
+	// order note, terms, actions) is toggled directly.
+	var GROUP_SELECTORS = [
+		[ '.wp-block-woocommerce-checkout-contact-information-block' ], // contact
+		[
+			'.wp-block-woocommerce-checkout-shipping-address-block',
+			'.wp-block-woocommerce-checkout-shipping-method-block',
+			'.wp-block-woocommerce-checkout-pickup-options-block',
+			'.wp-block-woocommerce-checkout-billing-address-block',
+		], // shipping
+		[
+			'.wp-block-woocommerce-checkout-payment-block',
+			'.wp-block-woocommerce-checkout-express-payment-block',
+			'.wp-block-woocommerce-checkout-order-note-block',
+			'.wp-block-woocommerce-checkout-terms-block',
+			'.wp-block-woocommerce-checkout-actions-block',
+		], // payment
 	];
 
 	var mobileMedia = null;
@@ -137,12 +117,8 @@
 
 	/**
 	 * Classify the checkout's own section wrappers into Contact / Shipping /
-	 * Payment groups by WooCommerce Blocks' own semantic CSS classes. See the
-	 * file header comment for the full selector map and why this replaced an
-	 * earlier, broken `data-block-name` selector list and, before that, a
-	 * DOM-position/ordinal heuristic that assumed every step wrapper is a
-	 * direct child of one common container — an assumption this store's
-	 * actual markup did not satisfy.
+	 * Payment groups by WooCommerce Blocks' own real per-block identity
+	 * classes. See the file header comment for the full selector map.
 	 */
 	function classifyStepGroups() {
 		var root = checkoutRoot();
@@ -151,77 +127,18 @@
 			return groups;
 		}
 
-		GROUP_DEFINITIONS.forEach( function ( group ) {
-			group.wrapped.forEach( function ( selector ) {
+		GROUP_SELECTORS.forEach( function ( selectors, index ) {
+			selectors.forEach( function ( selector ) {
 				root.querySelectorAll( selector ).forEach( function ( inner ) {
 					var node = inner.closest( STEP_WRAPPER_SELECTOR ) || inner;
-					if ( groups[ group.index ].indexOf( node ) === -1 ) {
-						groups[ group.index ].push( node );
+					if ( groups[ index ].indexOf( node ) === -1 ) {
+						groups[ index ].push( node );
 					}
 				} );
 			} );
-			group.direct.forEach( function ( selector ) {
-				root.querySelectorAll( selector ).forEach( function ( node ) {
-					if ( groups[ group.index ].indexOf( node ) === -1 ) {
-						groups[ group.index ].push( node );
-					}
-				} );
-			} );
-		} );
-
-		// Any `.wc-block-components-checkout-step` card that none of the
-		// semantic selectors above matched (a Woo Blocks markup variant this
-		// pass didn't anticipate, e.g. a "Shipping options" placeholder
-		// rendered before an address exists) must still end up in exactly
-		// one group instead of staying permanently unhidden on every step —
-		// an unclassified card was observed bleeding through onto the
-		// Contact screen. Bucket it with whichever classified step wrapper
-		// precedes it in document order (falling back to Contact if none
-		// does), so every real WooCommerce step card is always owned by
-		// some step and gets hidden/shown with the rest of that step.
-		var classified = allGroupNodes( groups );
-		var allStepWrappers = root.querySelectorAll( STEP_WRAPPER_SELECTOR );
-		var lastGroupIndex = 0;
-		allStepWrappers.forEach( function ( wrapper ) {
-			var ownerIndex = groupIndexOf( groups, wrapper );
-			if ( ownerIndex !== -1 ) {
-				lastGroupIndex = ownerIndex;
-				return;
-			}
-			if ( classified.indexOf( wrapper ) !== -1 ) {
-				return;
-			}
-			groups[ lastGroupIndex ].push( wrapper );
-			classified.push( wrapper );
 		} );
 
 		return groups;
-	}
-
-	function allGroupNodes( groups ) {
-		var all = [];
-		groups.forEach( function ( nodes ) {
-			nodes.forEach( function ( node ) {
-				if ( all.indexOf( node ) === -1 ) {
-					all.push( node );
-				}
-			} );
-		} );
-		return all;
-	}
-
-	function groupIndexOf( groups, node ) {
-		for ( var i = 0; i < groups.length; i++ ) {
-			if ( groups[ i ].indexOf( node ) !== -1 ) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	/** All groups for a step that currently exist in the DOM. */
-	function stepGroups( index ) {
-		return classifyStepGroups()[ index ] || [];
 	}
 
 	function allTrackedGroups() {
@@ -236,29 +153,23 @@
 		return all;
 	}
 
+	/** All groups for a step that currently exist in the DOM. */
+	function stepGroups( index ) {
+		return classifyStepGroups()[ index ] || [];
+	}
+
 	function isMobile() {
 		return Boolean( mobileMedia && mobileMedia.matches );
 	}
 
 	/* -------------------------------------------------------------------
-	 * Documented WooCommerce Blocks data-store access — read selectors, plus
-	 * one sanctioned write (see syncContactIdentityToAddresses() below).
+	 * Documented WooCommerce Blocks data-store access — read selectors only.
 	 * ------------------------------------------------------------------- */
 
 	function selectStore( key ) {
 		try {
 			return window.wp && window.wp.data && typeof window.wp.data.select === 'function'
 				? window.wp.data.select( key )
-				: null;
-		} catch ( e ) {
-			return null;
-		}
-	}
-
-	function dispatchStore( key ) {
-		try {
-			return window.wp && window.wp.data && typeof window.wp.data.dispatch === 'function'
-				? window.wp.data.dispatch( key )
 				: null;
 		} catch ( e ) {
 			return null;
@@ -302,116 +213,6 @@
 	}
 
 	/* -------------------------------------------------------------------
-	 * Contact-step identity -> WooCommerce address sync.
-	 *
-	 * The Contact step collects first/last name through WooCommerce's
-	 * Additional Checkout Fields API (`dtb/first_name`, `dtb/last_name` —
-	 * see mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php), a
-	 * *different* field group than WooCommerce's own canonical billing/
-	 * shipping `first_name`/`last_name` — which that same policy file hides
-	 * from the shipping/billing address forms, since the Contact step
-	 * already collects the name once. CheckoutFieldPolicy.php syncs a
-	 * non-empty Contact value onto the canonical billing/shipping name, but
-	 * only on the *server*, inside the Store API's checkout-processing
-	 * request. Nothing populated WooCommerce Blocks' own *client-side*
-	 * billing/shipping address state (`wc/store/cart`'s billingAddress/
-	 * shippingAddress) before that point, because nothing ever wrote a
-	 * value into it — the native inputs that would normally do that are the
-	 * very ones this store hides.
-	 *
-	 * Two live symptoms traced back to that one gap: Payment Plugins for
-	 * Stripe's Payment Element reads `billing_details.name` from that same
-	 * client-side billing address state when confirming payment (it has no
-	 * knowledge of Woo's Additional Checkout Fields), so an empty name
-	 * there surfaced Stripe's own "Missing required param:
-	 * payment_method_data[billing_details][name]" error at Payment; and
-	 * Stripe's Address Element on the Shipping step reads the same shipping
-	 * address state for its own client-side verification, surfacing
-	 * "Either Name or Company is required" there too.
-	 *
-	 * The fix uses `wc/store/cart`'s own documented, public dispatch
-	 * actions (`setBillingAddress`/`setShippingAddress` — WooCommerce
-	 * Blocks' sanctioned mechanism for a third-party field to feed the
-	 * canonical address, the same public data-store surface this file
-	 * already reads from elsewhere) to mirror a non-empty Contact name into
-	 * both addresses as the customer types, instead of waiting for the
-	 * order-processing request. A pure wallet flow (Apple Pay/Google Pay/
-	 * Link) never touches the Contact step's name inputs at all — see
-	 * firstEmptyContactIdentityField()'s own comment — so this sync simply
-	 * never fires for that flow and never touches a wallet-supplied name.
-	 * ------------------------------------------------------------------- */
-
-	var IDENTITY_SYNC_DEBOUNCE_MS = 400;
-	var identitySyncTimer = null;
-
-	function contactIdentityValues() {
-		var root = checkoutRoot();
-		var given = root ? root.querySelector( CONTACT_GIVEN_NAME_SELECTOR ) : null;
-		var family = root ? root.querySelector( CONTACT_FAMILY_NAME_SELECTOR ) : null;
-		return {
-			firstName: given ? String( given.value || '' ).trim() : '',
-			lastName: family ? String( family.value || '' ).trim() : '',
-		};
-	}
-
-	function syncContactIdentityToAddresses() {
-		var values = contactIdentityValues();
-		if ( ! values.firstName && ! values.lastName ) {
-			return;
-		}
-
-		var cart = selectStore( 'wc/store/cart' );
-		var cartDispatch = dispatchStore( 'wc/store/cart' );
-		if ( ! cart || ! cartDispatch || typeof cart.getCustomerData !== 'function' ) {
-			return;
-		}
-
-		var customerData = cart.getCustomerData() || {};
-		[
-			{ key: 'billingAddress', setter: 'setBillingAddress' },
-			{ key: 'shippingAddress', setter: 'setShippingAddress' },
-		].forEach( function ( pair ) {
-			if ( typeof cartDispatch[ pair.setter ] !== 'function' ) {
-				return;
-			}
-			var current = customerData[ pair.key ] || {};
-			var next = Object.assign( {}, current );
-			var changed = false;
-			if ( values.firstName && current.first_name !== values.firstName ) {
-				next.first_name = values.firstName;
-				changed = true;
-			}
-			if ( values.lastName && current.last_name !== values.lastName ) {
-				next.last_name = values.lastName;
-				changed = true;
-			}
-			if ( changed ) {
-				try {
-					cartDispatch[ pair.setter ]( next );
-				} catch ( e ) {
-					// No-op: a store/version mismatch here should never break checkout.
-				}
-			}
-		} );
-	}
-
-	function scheduleIdentitySync() {
-		window.clearTimeout( identitySyncTimer );
-		identitySyncTimer = window.setTimeout( syncContactIdentityToAddresses, IDENTITY_SYNC_DEBOUNCE_MS );
-	}
-
-	function isContactIdentityField( target ) {
-		var root = checkoutRoot();
-		return Boolean(
-			target &&
-			target.matches &&
-			target.matches( CONTACT_IDENTITY_SELECTOR ) &&
-			root &&
-			root.contains( target )
-		);
-	}
-
-	/* -------------------------------------------------------------------
 	 * Native constraint validation, scoped to the fields visible in the
 	 * step being left — never touches fields belonging to other steps.
 	 * ------------------------------------------------------------------- */
@@ -427,35 +228,6 @@
 		} );
 		return controls.find( function ( control ) {
 			return ! control.disabled && control.type !== 'hidden' && control.willValidate !== false && ! control.checkValidity();
-		} );
-	}
-
-	/**
-	 * First name / last name are registered as WooCommerce Additional
-	 * Checkout Fields (see mu-plugins/dtb-commerce/Validation/CheckoutFieldPolicy.php)
-	 * with `required: false` at the API level, on purpose — a required
-	 * Contact-location field would fail Store API validation for an Apple
-	 * Pay / Google Pay / Link order, which never populates it. "Required"
-	 * for the typed/card flow is therefore enforced only here, client-side,
-	 * scoped to the Contact step; the wallet flow never runs through this
-	 * gate at all. Selected by the field's own `autocomplete` value (set at
-	 * registration) rather than an id/name, since that is stable regardless
-	 * of the internal id WooCommerce Blocks assigns the input.
-	 */
-	function firstEmptyContactIdentityField( groups, stepId ) {
-		if ( stepId !== 'contact' ) {
-			return null;
-		}
-		var controls = [];
-		groups.forEach( function ( group ) {
-			group.querySelectorAll( CONTACT_IDENTITY_SELECTOR ).forEach( function ( control ) {
-				if ( controls.indexOf( control ) === -1 ) {
-					controls.push( control );
-				}
-			} );
-		} );
-		return controls.find( function ( control ) {
-			return ! control.disabled && ! String( control.value || '' ).trim();
 		} );
 	}
 
@@ -475,12 +247,6 @@
 			setStatus( 'Complete the highlighted fields before continuing.', 'error' );
 			invalid.reportValidity && invalid.reportValidity();
 			invalid.focus && invalid.focus();
-			return false;
-		}
-		var missingIdentity = firstEmptyContactIdentityField( groups, STEPS[ index ].id );
-		if ( missingIdentity ) {
-			setStatus( 'Enter your first and last name to continue.', 'error' );
-			missingIdentity.focus && missingIdentity.focus();
 			return false;
 		}
 		if ( STEPS[ index ].id === 'shipping' ) {
@@ -697,10 +463,13 @@
 		// Contact and Payment always exist on any checkout regardless of
 		// whether the cart needs shipping; if either comes back empty, the
 		// classification hasn't found real content yet (Woo Blocks still
-		// hydrating) or its selectors no longer match this store's markup.
+		// hydrating) or its selectors no longer match this store's markup
+		// (e.g. a WooCommerce Blocks version change renamed the block).
 		// Mounting the wizard chrome in that state would show a Back/Continue
 		// bar over a page nothing is actually being hidden on — worse than
-		// the plain page — so wait/skip instead.
+		// the plain page — so wait/skip instead. This is the primary safety
+		// net now that step membership is real-selector-based rather than a
+		// document-order heuristic, so it should rarely if ever trigger.
 		var groups = classifyStepGroups();
 		if ( ! groups[ 0 ].length || ! groups[ 2 ].length ) {
 			unmountWizard();
@@ -732,16 +501,6 @@
 			if ( wizard ) {
 				updateChrome();
 			}
-			// A server-driven cart refresh (e.g. after shipping/tax
-			// recalculation) replaces the store's customer data with
-			// whatever WooCommerce returns, which can race ahead of this
-			// file's own setBillingAddress()/setShippingAddress() calls and
-			// silently drop the synced name again. Re-asserting it on every
-			// store change is safe and cheap: syncContactIdentityToAddresses()
-			// only dispatches when a value actually differs, so once the
-			// name is already correct this is a no-op comparison, not a
-			// resync loop (including against its own dispatches above).
-			syncContactIdentityToAddresses();
 		} );
 	}
 
@@ -777,31 +536,10 @@
 
 		// Woo Blocks hydrates asynchronously after wp-footer scripts run;
 		// a few follow-up passes catch groups that were not yet in the DOM
-		// on first mount without needing a fixed, blind delay. The same
-		// follow-up passes also cover a name pre-filled by browser autofill
-		// or restored on back-navigation without the user ever triggering
-		// an `input`/`blur` event on the field.
+		// on first mount without needing a fixed, blind delay.
 		window.setTimeout( scheduleReconcile, 300 );
 		window.setTimeout( scheduleReconcile, 900 );
-		window.setTimeout( syncContactIdentityToAddresses, 300 );
-		window.setTimeout( syncContactIdentityToAddresses, 900 );
 	}
-
-	// Delegated (not bound to specific elements, since the Contact step's
-	// fields render asynchronously): mirrors a typed Contact name into
-	// WooCommerce's client-side billing/shipping address state — see
-	// syncContactIdentityToAddresses()'s own comment above for why. `blur`
-	// does not bubble, so it's bound on the capture phase instead.
-	document.addEventListener( 'input', function ( event ) {
-		if ( isContactIdentityField( event.target ) ) {
-			scheduleIdentitySync();
-		}
-	} );
-	document.addEventListener( 'blur', function ( event ) {
-		if ( isContactIdentityField( event.target ) ) {
-			syncContactIdentityToAddresses();
-		}
-	}, true );
 
 	if ( document.readyState === 'loading' ) {
 		document.addEventListener( 'DOMContentLoaded', function () {

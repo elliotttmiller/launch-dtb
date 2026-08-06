@@ -1,11 +1,21 @@
 ---
 name: dtb-seo
-description: Use whenever a task touches search-engine visibility for the Drywall Toolbox storefront — meta tags/titles/descriptions, Open Graph/Twitter cards, JSON-LD structured data (Product/Breadcrumb/Organization/WebSite schema), canonical URLs, robots/noindex, sitemap behavior, or Core Web Vitals (LCP/INP/CLS) for the React SPA. Trigger on requests like "improve SEO for this page", "why isn't this product ranking", "add structured data", "fix the sitemap", or "audit Core Web Vitals". Grounded in this repo's actual SEO pipeline (SEOHead.jsx, schema.js, dtb-platform Seo sitemap service, dtb-marketing ProductSeoController) — not a generic content-marketing/blog SEO checklist, since DTB has no blog, no author bios, and no multilingual routes.
+description: Use whenever a task touches search-engine visibility for the Drywall Toolbox storefront — meta tags/titles/descriptions, Open Graph/Twitter cards, JSON-LD structured data (Product/Breadcrumb/Organization/WebSite schema), canonical URLs, robots/noindex, sitemap behavior, internal linking / anchor text / hub-and-spoke structure across category-brand-product-schematic pages, or Core Web Vitals (LCP/INP/CLS) for the React SPA. Trigger on requests like "improve SEO for this page", "why isn't this product ranking", "add structured data", "fix the sitemap", "which pages should link to each other", "find orphan pages", or "audit Core Web Vitals". Grounded in this repo's actual SEO pipeline (SEOHead.jsx, schema.js, dtb-platform Seo sitemap service, dtb-marketing ProductSeoController) — not a generic content-marketing/blog SEO checklist, since DTB has no blog, no author bios, and no multilingual routes.
 ---
 
 # DTB SEO
 
 Drywall Toolbox is a client-rendered React SPA (Webpack, no Next.js/SSR) storefronting WooCommerce products — a commerce catalog, not a content-marketing site. Generic SEO advice built for blogs (E-E-A-T author credentials, Article schema, hreflang, AI-content-detection guidelines) mostly doesn't apply here and should be set aside; what matters is technical correctness of the existing pipeline and Core Web Vitals for a CSR app.
+
+## References — load on demand
+
+- **`references/internal-linking.md`** — the DTB link graph (routes, taxonomies, schematics mappings), 0–100 relatedness scoring, anchor-text rules, hub/spoke structure, orphan checks. Load for any "which pages should link to where" task.
+- **`references/audit-output.md`** — evidence/anti-hallucination rules, severity + category + scope tagging, and the `TODO_dtb-seo.md` task-ID output contract. **Load this whenever the deliverable is an audit or a plan rather than a single inline answer.**
+
+## Two working modes
+
+1. **Inline advisory** — a scoped question during implementation ("what should this PDP's canonical be?"). Answer directly using the checklist below; no TODO file.
+2. **Audit / plan** — a page, template, or sitewide review, or an internal-linking plan. Follow `references/audit-output.md` in full: task IDs, quoted evidence, severity/scope tags, everything written to `TODO_dtb-seo.md` and nothing else.
 
 ## The actual SEO pipeline in this repo — read before touching anything
 
@@ -39,6 +49,12 @@ Drywall Toolbox is a client-rendered React SPA (Webpack, no Next.js/SSR) storefr
 - [ ] Never add an authenticated/session-owned route to the sitemap.
 - [ ] Brand-taxonomy sitemap detection is allowlist-based (`product_brand`, `pwb-brand`, `pa_brand`) — don't introduce a new taxonomy name without updating that allowlist.
 
+**Internal linking** (details in `references/internal-linking.md`)
+- [ ] PDP↔PDP linking goes through WooCommerce upsell/related data (`dtb-catalog-platform/Rest/ProductDetailController.php::get_related_products()`, surfaced by `ProductDetailPage.jsx`) — never a new hard-coded link component.
+- [ ] Product↔schematic↔parts links are built with `frontend/src/data/schematicMappings.js` helpers (`getSchematicLinkForProduct`, `buildSchematicsUrl`, `buildPartsUrl`) — never hand-written URL strings.
+- [ ] Visible breadcrumb links and `buildBreadcrumbSchema` output describe the same trail.
+- [ ] No editorial in-content link to a session-owned route (cart/checkout/account/auth/status/preview).
+
 **Core Web Vitals — CSR-specific, not generic**
 Because this is client-rendered (no SSR/hydration), the levers are different from a Next.js/SSR checklist:
 - **LCP** (<2.5s): the largest content element only paints after JS parses/executes and data fetches resolve — this is a bundle-size and critical-request-path problem more than a markup problem. Check code-splitting/lazy-loading on route boundaries, whether the LCP image is preloaded (`links` prop on `SEOHead` supports `preload`), and whether the first meaningful data fetch is blocking render unnecessarily.
@@ -55,11 +71,12 @@ Because this is client-rendered (no SSR/hydration), the levers are different fro
 - **Article/BlogPosting schema, author bio, "last updated" bylines, E-E-A-T content-authority signals** — there's no blog/content-marketing surface in this repo (verify via Glob before assuming one now exists). If one is added later, revisit.
 - **Hreflang / multilingual** — single-locale storefront; don't add hreflang tags speculatively.
 - **AI-content-detection guidelines** — not relevant to structured commerce data.
-- **FAQPage schema** — only add if a real FAQ page with matching visible content exists (check `frontend/src/pages/` for an FAQ route first); schema must match visible content or it's a spam signal, not an SEO win.
+- **FAQPage schema** — a real FAQ surface *does* exist (`frontend/src/pages/FAQ.jsx`, route `/faq`, already in `static_routes()` and already using `SEOHead`), so FAQPage schema is legitimately available here — but only for the Q&A actually rendered on that page, added via a new builder in `frontend/src/utils/schema.js` (there is none today; the file exports `stripHtml`, `buildProductSchema`, `buildBreadcrumbSchema`, `buildOrganizationSchema`, `buildSiteLinksSearchBoxSchema`). Never emit FAQ schema for Q&A that isn't visible on the page — that's a spam signal, not an SEO win.
 - **Generic paid tool recommendations** (Semrush/Ahrefs/Surfer) — not actionable by an agent with no account access. Prefer **Google Search Console** (indexing/query performance — requires the user to check, can't be queried directly), **PageSpeed Insights**/**Lighthouse** (can be run via `npx lighthouse` against a local/staging build if the user wants a real Core Web Vitals number, rather than guessed).
 
 ## Who does what
 
 - **Frontend changes** (`SEOHead` usage, `schema.js` extensions, Core Web Vitals fixes in components/bundling): `frontend-react` agent, using this skill's checklist.
 - **Backend changes** (`ProductSeoController.php` fields, `SitemapService`/`SitemapUrlRepository`/`SitemapXmlRenderer`): `wp-backend` agent, using this skill's checklist.
+- **Catalog relationship data** (WooCommerce upsell/related/cross-sell assignments, category and brand term assignments that drive both the PDP rail and the internal-link graph): `catalog-data` agent — an internal-linking recommendation that resolves to "these two products should be related" is a catalog data change, not a React change.
 - **Product copy that affects search relevance in DTB's own client-side catalog search** (name/brand/SKU/description fields ranked by `match-sorter`) is a distinct concern from Google/technical SEO — see `pdp-conversion-specialist`, which owns that and cross-references this skill for the technical-SEO half of a product page.

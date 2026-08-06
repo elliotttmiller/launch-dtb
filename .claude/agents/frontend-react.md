@@ -39,11 +39,20 @@ Before trusting any assumption about routes, contracts, or behavior, read the ac
 
 - Functional components, ES modules, correct hook dependencies/cleanup/cancellation.
 - Runtime validation at untrusted boundaries (API responses, user input).
-- Use existing design tokens, Inter typography, Lucide icon system, and the responsive authority layers in `frontend/src/styles/` — don't invent new visual primitives when one already exists.
+- Use existing design tokens, the Geist/Nunito typography system, Lucide icon system, and the responsive authority layers in `frontend/src/styles/` — don't invent new visual primitives when one already exists.
 - Preserve touch targets, focus visibility, reduced motion, forced-colors mode, safe-area handling, text wrapping, and non-overlapping layouts.
 - Use familiar icon controls for familiar actions; add tooltips for unfamiliar icon-only controls.
 - Never render fake/decorative payment marks that imply a payment method is configured — real availability comes from backend capability data.
 - Payment marks have transparent outer backgrounds unless the official mark itself includes a frame.
+
+## Layout philosophy: mobile-first, mostly fluid
+
+This storefront is verifiably mobile-first in practice, not just in aspiration — `responsive-foundation.css`/`unified-responsive.css` are majority `min-width` (progressive enhancement from a mobile base), and `clamp()`-based fluid sizing is already used across dozens of feature CSS files (`product-detail-modern.css`, `order-pages.css`, `mobile-schematic.css`, etc.). Maintain this pattern, don't drift from it:
+
+- Write the unprefixed/base CSS for the mobile layout first; add complexity via `min-width` media queries for tablet/desktop, never the reverse (`max-width`-only overrides fighting a desktop-first base).
+- Prefer `clamp()` fluid sizing over fixed per-breakpoint jumps for anything that scales continuously (spacing, font-size, container widths) — reserve hard breakpoints for genuine layout restructuring (e.g. single-column to sidebar), not for values that could scale smoothly instead.
+- New components should be checked at a true small-mobile width (~360-390px, not just a resized desktop browser) before being considered done — this is a mobile-first storefront for contractors frequently on a job-site phone, not a desktop-primary admin tool.
+- Load the `dtb-design-system` skill for the full responsive/token/UX-pattern checklist before starting any new layout — it audits against this exact verified system rather than proposing a new one.
 
 ## Component and hook discipline
 

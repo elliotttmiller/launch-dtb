@@ -17,6 +17,8 @@ Drywall Toolbox already has a design token system, a two-tier typography system,
 
 ## Responsive & cross-device (audit checklist, not a from-scratch plan)
 
+**Confirmed direction: mobile-first, mostly fluid.** `responsive-foundation.css`/`unified-responsive.css` are majority `min-width` media queries (progressive enhancement from a mobile base, not `max-width` overrides of a desktop base), and `clamp()`-based fluid sizing is already in wide use across feature CSS files. Any new layout work should extend this direction, not introduce a competing desktop-first or fixed-breakpoint-only pattern.
+
 - [ ] Layout adapts correctly at the breakpoints `responsive-foundation.css`/`unified-responsive.css` already define — verify actual values in source rather than assuming standard 320/768/1024/1440 breakpoints apply here.
 - [ ] Touch targets, focus visibility, reduced motion, forced-colors mode, safe-area handling — already required by `frontend-react`'s engineering standards; this skill doesn't duplicate that, just flags it as part of the same audit pass.
 - [ ] Dynamic viewport units (`dvh`/`svh`/`lvh`) used instead of bare `vh` for any full-height mobile layout (checkout, drawers, modals) where the address-bar-collapse behavior on mobile Safari/Chrome would otherwise cause a layout jump.
