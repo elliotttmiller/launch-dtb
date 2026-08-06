@@ -54,7 +54,7 @@ final class DTB_SitemapXmlRenderer {
 
 			$xml .= '<url><loc>' . esc_xml( $loc ) . '</loc>';
 			if ( ! empty( $url['lastmod'] ) ) {
-				$xml .= '<lastmod>' . esc_xml( self::normalized_lastmod( (string) $url['lastmod'] ) . '</lastmod>';
+				$xml .= '<lastmod>' . esc_xml( self::normalized_lastmod( (string) $url['lastmod'] ) ) . '</lastmod>';
 			}
 			$xml .= '</url>';
 		}
@@ -66,9 +66,7 @@ final class DTB_SitemapXmlRenderer {
 		return '<?xml version="1.0" encoding="UTF-8"?>';
 	}
 
-	/**
-	 * Only emit absolute HTTP(S) URLs on the configured site host.
-	 */
+	/** Only emit absolute HTTP(S) URLs on the configured site host. */
 	private static function validated_url( string $url ): string {
 		$url = esc_url_raw( $url, [ 'http', 'https' ] );
 		if ( '' === $url ) {
