@@ -190,7 +190,7 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
               box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.18);
               overflow: hidden;
             }
-            @media (min-width: 769px) {
+            @media (min-width: 48rem) {
               .product-modal-scroll-shell {
                 top: 0;
                 scrollbar-width: thin;
