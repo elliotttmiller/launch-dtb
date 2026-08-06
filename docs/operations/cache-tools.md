@@ -4,13 +4,21 @@
 
 DTB MU Plugins own cache invalidation orchestration, authorization, audit logging, serialization, and provider adapter contracts. WordPress owns transients, rewrite rules, and the object-cache API. WooCommerce owns its cache helpers and transient-version invalidation. SiteGround owns Dynamic Cache, CDN, and hosting policy. PHP owns OPcache availability and restrictions. The React storefront owns browser-side cache consumers.
 
-## Canonical workflow
+## Canonical control plane
 
-`Drywall Toolbox > Cache Tools` and `Tools > DTB Cache` must delegate to `DTB_CacheOperationsService`. No admin surface may implement independent purge logic.
+`Drywall Toolbox > Cache Tools` is the only DTB cache execution surface. It owns the nonce contract, capability check, target selection, AJAX transport, result presentation, and full-system action.
+
+The wp-admin toolbar is navigation only. It must not execute a purge, maintain a second nonce, create result transients, or hide provider-owned controls.
+
+The retired `Tools > DTB Cache` slug is retained only as a permission-checked redirect for existing bookmarks. It registers no menu, form, mutation handler, or cache logic.
+
+Stable procedural functions such as `dtb_invalidate_product_cache()` and `dtb_ops_cache_flush()` are compatibility adapters only. They delegate to `DTB_CacheInvalidationService`; they must not contain fallback SQL. REST cache-header compatibility functions delegate to `DTB_CacheHeaders`; they must not duplicate route policy.
+
+## Canonical workflow
 
 A purge run:
 
-1. Verifies the operator capability and WordPress nonce at the transport boundary.
+1. Verifies `dtb_manage_cache_tools` and the WordPress nonce at the transport boundary.
 2. Acquires `DTB_CachePurgeLock` to prevent overlapping destructive runs.
 3. Expands `all` into the allowlisted target registry.
 4. Executes each target independently and records duration and status.
@@ -29,6 +37,15 @@ A purge run:
 - SiteGround Dynamic/File cache through an active supported integration.
 - Frontend refresh epoch used by storefront cache consumers.
 - SiteGround CDN through an explicit provider adapter, or a truthful skipped result.
+
+## Retained non-duplicates
+
+The following are intentionally separate and must not be folded into DTB purge orchestration:
+
+- WooCommerce core cache invalidation and system-status tools, which are vendor-owned implementation.
+- Web-server and `.htaccess` cache-control policy, which controls response freshness rather than executing a purge.
+- Read-through cache helpers, which own cache population but delegate invalidation.
+- Provider dashboards and SiteGround Site Tools, which remain authoritative for host policy and unsupported CDN actions.
 
 ## Frontend boundary
 
