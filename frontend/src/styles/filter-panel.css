@@ -38,10 +38,6 @@
   scrollbar-color: #d1d5db #f3f4f6;
 }
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 5px;
-}
-
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
@@ -192,7 +188,7 @@
 .filter-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.625rem;
+  padding: var(--dtb-space-1) var(--dtb-space-2);
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
@@ -214,28 +210,33 @@ input[type="checkbox"]:focus {
   outline: none;
 }
 
-/* Mobile responsive adjustments */
-@media (max-width: 1024px) {
-  .filter-panel-overlay {
-    z-index: 40;
-  }
+/* Mobile-first base: overlay stacking, comfortable label spacing, and
+   touch-sized controls/scrollbar are the default (mobile) layout.
+   Desktop (>= 64rem / 1024px) restores the roomier scrollbar; the rest
+   of these values are equally appropriate at any viewport so they stay
+   unconditional rather than being reset back for desktop. */
+.filter-panel-overlay {
+  z-index: 40;
+}
 
-  /* Ensure proper spacing on mobile */
-  .filter-label {
-    padding: 0.5rem;
-    margin: 0 -0.5rem;
-    border-radius: 0.5rem;
-  }
+.filter-label {
+  padding: 0.5rem;
+  margin: 0 -0.5rem;
+  border-radius: 0.5rem;
+}
 
-  /* Better touch targets on mobile */
-  input[type="checkbox"] {
-    min-width: 18px;
-    min-height: 18px;
-  }
+input[type="checkbox"] {
+  min-width: 18px;
+  min-height: 18px;
+}
 
-  /* Optimize scrollbar for mobile */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+@media (min-width: 64rem) {
   .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+    width: 5px;
   }
 }
 
@@ -253,12 +254,11 @@ input[type="checkbox"]:focus {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Prevent text overflow on mobile */
-@media (max-width: 640px) {
-  .filter-label-text {
-    word-break: break-word;
-    overflow-wrap: break-word;
-  }
+/* Prevent text overflow — long filter labels wrap at any viewport,
+   not just mobile, so this is an unconditional base rule. */
+.filter-label-text {
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Touch target sizes - minimum 44px for mobile accessibility */
@@ -283,7 +283,7 @@ label:active {
 .price-range-highlight {
   background: linear-gradient(to right, #eff6ff, rgba(31, 117, 245, 0.1));
   border-radius: 0.5rem;
-  padding: 0.75rem;
+  padding: var(--dtb-space-3);
   margin-bottom: 0.5rem;
 }
 
