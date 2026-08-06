@@ -19,6 +19,8 @@ import './styles/technical-specifications.css';
 import './styles/product-detail-modern.css';
 import './styles/product-variation-selector-overlay.css';
 import './styles/reviews.css';
+import './styles/hero-section.css';
+import './styles/trusted-brands.css';
 import './styles/storefront-shell.css';
 import './styles/storefront-sections.css';
 import './styles/storefront-product-card.css';

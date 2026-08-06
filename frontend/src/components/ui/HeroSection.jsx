@@ -179,52 +179,6 @@ export default function HeroSection({
       )}
 
       {brands.length > 0 && <TrustedBrands brands={brands} title="Trusted Brands" speed={32} transparent />}
-
-      <style>{`
-        .dtb-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-        .dtb-aurora-text { position: relative; display: inline-block; }
-        .dtb-aurora-text__visible {
-          position: relative;
-          display: inline-block;
-          color: transparent;
-          background-size: 360% auto;
-          background-position: 50% 50%;
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 1px 0 rgba(255,255,255,0.72), 0 -1px 0 rgba(15,23,42,0.36), 0 0 18px rgba(248,250,252,0.18), 0 10px 34px rgba(147,197,253,0.15);
-        }
-        .dtb-hero-title-gradient {
-          color: transparent;
-          text-shadow: 0 1px 0 rgba(255,255,255,0.5), 0 -1px 0 rgba(2,6,23,0.5), 0 0 28px rgba(248,250,252,0.18), 0 12px 38px rgba(147,197,253,0.14);
-          filter: drop-shadow(0 1px 0 rgba(255,255,255,0.28)) drop-shadow(0 12px 24px rgba(2,6,23,0.28));
-        }
-        .dtb-hero-cta { padding: 13px 30px; border-radius: 999px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease; letter-spacing: 0.01em; }
-        .dtb-hero-cta:active { transform: scale(0.96) !important; }
-        .dtb-hero-cta--primary { border: none; background: linear-gradient(135deg, #2255ee 0%, #2255ee 60%, #2255ee 100%); color: #ffffff; box-shadow: 0 0 22px rgba(34,85,238,0.42); }
-        .dtb-hero-cta--primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(34,85,238,0.60); }
-        .dtb-hero-cta--ghost { border: 1px solid rgba(148,163,184,0.22); background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.82); backdrop-filter: blur(8px); }
-        .dtb-hero-cta--ghost:hover { background: rgba(255,255,255,0.09); border-color: rgba(148,163,184,0.38); }
-        @media (min-width: 768px) {
-          .dtb-ui-hero .dtb-hero-title-gradient {
-            margin-bottom: 18px !important;
-          }
-          .dtb-ui-hero__content p {
-            margin-bottom: 26px !important;
-          }
-        }
-        @media (max-width: 767px) {
-          .dtb-ui-hero { min-height: unset !important; }
-          .dtb-ui-hero__content {
-            padding: clamp(4rem, 8vw, 6rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 5vw, 3.5rem) !important;
-          }
-          .dtb-ui-hero__carousel {
-            margin-bottom: clamp(0.75rem, 2.2vw, 1.25rem) !important;
-          }
-          .dtb-hero-cta { padding: 12px 24px; font-size: 0.84rem; width: 100%; max-width: 320px; }
-          .dtb-hero-cta-wrap { flex-direction: column; align-items: center; }
-        }
-      `}</style>
     </section>
   );
 }
