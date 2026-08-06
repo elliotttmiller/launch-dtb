@@ -49,7 +49,7 @@ final class DTB_SitemapUrlRepository {
 
 	public static function product_pages(): int {
 		$query = self::product_query( 1, 1 );
-		return max( 1, (int) $query->max_num_pages );
+		return 0 === (int) $query->found_posts ? 0 : (int) ceil( (int) $query->found_posts / self::PAGE_SIZE );
 	}
 
 	/** @return array<int,array{loc:string,lastmod?:string}> */
