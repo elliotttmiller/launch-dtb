@@ -112,6 +112,7 @@ final class DTB_SitemapUrlRepository {
 			if ( taxonomy_exists( $taxonomy ) ) {
 				return $taxonomy;
 			}
+		}
 		return '';
 	}
 
