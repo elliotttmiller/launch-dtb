@@ -88,6 +88,19 @@ body {
 	overflow-x: clip;
 }
 
+/* Browsers do not inherit font-family into form controls by default
+ * (input/select/textarea/button/fieldset/legend use the UA system font).
+ * Force the Nunito/Geist system to apply everywhere in native checkout
+ * markup, including WooCommerce/Stripe-Plugins-rendered fieldsets. */
+button,
+input,
+select,
+textarea,
+fieldset,
+legend {
+	font-family: inherit;
+}
+
 h1,
 h2,
 h3,
@@ -254,7 +267,6 @@ legend {
 	max-width: 100%;
 }
 
-.wc-block-components-checkout-step,
 .wc-block-components-checkout-order-summary,
 .wc-block-components-totals-wrapper {
 	background: var(--dtb-checkout-gradient-surface);
@@ -263,10 +275,31 @@ legend {
 	box-shadow: var(--dtb-checkout-shadow-card);
 }
 
+/* Step content sits directly on the page background rather than in its own
+ * boxed card — the accordion header already provides that visual container
+ * on mobile, and a second nested card underneath it just reads as clutter. */
 .wc-block-components-checkout-step {
 	position: relative;
-	padding: 20px var(--dtb-checkout-gutter);
-	margin-bottom: 16px;
+	padding: 4px var(--dtb-checkout-gutter) 20px;
+	margin-bottom: 4px;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+}
+
+/* Any inner "step" WooCommerce nests inside a step (e.g. the Payment
+ * Methods fieldset) must never re-introduce its own boxed card — only the
+ * shipping-rate option rows are meant to read as distinct cards. */
+.wc-block-components-checkout-step .wc-block-components-checkout-step {
+	padding: 0;
+	margin: 0;
+}
+
+/* WooCommerce's own fieldset legend ("Payment Methods") is redundant next
+ * to the DTB accordion header ("Payment") directly above it — remove it
+ * entirely rather than just visually resetting it. */
+.wp-block-woocommerce-checkout-payment-block legend {
+	display: none;
 }
 
 .wc-block-components-checkout-step__heading {
@@ -311,6 +344,18 @@ legend {
 		display: block;
 	}
 
+	/* Tighter vertical rhythm on small screens: the desktop card padding
+	 * (20px + fluid gutter) reads as bulky when every step is an accordion
+	 * panel rather than a full page section. */
+	.dtb-checkout--accordion .wc-block-components-checkout-step {
+		padding: 14px 16px;
+		margin-bottom: 12px;
+	}
+
+	.dtb-checkout--accordion .wc-block-components-checkout-step__heading {
+		margin-bottom: var(--dtb-checkout-space-3);
+	}
+
 	.dtb-checkout__accordion-header {
 		appearance: none;
 		-webkit-appearance: none;
@@ -320,7 +365,7 @@ legend {
 		align-items: center;
 		gap: var(--dtb-checkout-space-3);
 		width: 100%;
-		min-height: 72px;
+		min-height: 60px;
 		margin: 0 0 var(--dtb-checkout-space-2);
 		padding: 12px 16px 12px 14px;
 		border: 1px solid var(--dtb-checkout-border);
@@ -559,9 +604,13 @@ legend {
 }
 
 /* --------------------------------------------------------------------------
- * 7. Shipping and payment option cards
+ * 7. Shipping and payment options
  * ----------------------------------------------------------------------- */
 
+/* Base row layout shared by shipping-rate and payment-method options. Visual
+ * treatment (card vs. flat) is applied separately below, scoped by block
+ * context, so only Shipping renders as a slim card per the current design
+ * direction. */
 .wc-block-components-radio-control__option,
 .wc-block-checkout__shipping-method-option,
 .wc-block-components-radio-control-accordion-option {
@@ -569,22 +618,31 @@ legend {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: var(--dtb-checkout-space-3);
-	min-height: 60px;
-	margin-bottom: var(--dtb-checkout-space-3);
-	padding: 14px 16px;
+	gap: var(--dtb-checkout-space-2);
+	min-height: var(--dtb-checkout-touch);
+	padding: 9px 14px;
 	overflow: hidden;
-	border: 1.5px solid var(--dtb-checkout-border);
-	border-radius: var(--dtb-checkout-radius-md);
-	background: var(--dtb-checkout-surface);
-	box-shadow: var(--dtb-checkout-shadow-xs);
 	cursor: pointer;
-	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized), transform var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
+	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard), box-shadow var(--dtb-checkout-normal) var(--dtb-checkout-ease-emphasized);
 }
 
-.wc-block-components-radio-control__option::before,
-.wc-block-checkout__shipping-method-option::before,
-.wc-block-components-radio-control-accordion-option::before {
+/* Shipping rates/options: slim, sleek cards — the only "card" context left
+ * inside a step per the current design direction. */
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option,
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-checkout__shipping-method-option,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-checkout__shipping-method-option {
+	margin-bottom: var(--dtb-checkout-space-2);
+	border: 1.5px solid var(--dtb-checkout-border);
+	border-radius: var(--dtb-checkout-radius-sm);
+	background: var(--dtb-checkout-surface);
+	box-shadow: var(--dtb-checkout-shadow-xs);
+}
+
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option::before,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option::before,
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-checkout__shipping-method-option::before,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-checkout__shipping-method-option::before {
 	content: "";
 	position: absolute;
 	inset: 0 auto 0 0;
@@ -594,25 +652,40 @@ legend {
 	transition: opacity var(--dtb-checkout-fast) var(--dtb-checkout-ease-standard);
 }
 
-.wc-block-components-radio-control__option:hover,
-.wc-block-checkout__shipping-method-option:hover,
-.wc-block-components-radio-control-accordion-option:hover {
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option:hover,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option:hover {
 	border-color: var(--dtb-checkout-border-strong);
 	box-shadow: var(--dtb-checkout-shadow-sm);
 }
 
-.wc-block-components-radio-control__option:has(input:checked),
-.wc-block-checkout__shipping-method-option:has(input:checked),
-.wc-block-components-radio-control-accordion-option:has(input:checked) {
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option:has(input:checked),
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option:has(input:checked) {
 	border-color: var(--dtb-checkout-blue-600);
 	background: var(--dtb-checkout-blue-50);
 	box-shadow: var(--dtb-checkout-shadow-sm);
 }
 
-.wc-block-components-radio-control__option:has(input:checked)::before,
-.wc-block-checkout__shipping-method-option:has(input:checked)::before,
-.wc-block-components-radio-control-accordion-option:has(input:checked)::before {
+.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option:has(input:checked)::before,
+.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option:has(input:checked)::before {
 	opacity: 1;
+}
+
+/* Payment methods: flat list rows, no card box — a bottom divider and a
+ * checked-state tint are the only visual distinction. */
+.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option {
+	border: none;
+	border-bottom: 1px solid var(--dtb-checkout-border);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option:last-of-type {
+	border-bottom: none;
+}
+
+.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option:has(input:checked) {
+	background: var(--dtb-checkout-blue-50);
 }
 
 .wc-block-components-radio-control__option:has(input:focus-visible),
@@ -622,8 +695,27 @@ legend {
 }
 
 .wc-block-components-radio-control-accordion-content {
+	width: 100%;
+	margin-top: var(--dtb-checkout-space-2);
+	padding-top: var(--dtb-checkout-space-3);
+	border-top: 1px solid var(--dtb-checkout-border);
 	font-weight: 700;
 	color: var(--dtb-checkout-ink-950);
+}
+
+/* Payment/shipping method row icons (card brand marks, Cash App/Affirm/
+ * Klarna/Afterpay logos) are DTB/Woo-rendered <img>/<svg> content, not
+ * Stripe iframe content — cap their box so a tall source asset can't
+ * inflate the whole row's height. */
+.wc-block-components-radio-control__option img,
+.wc-block-components-radio-control__option svg,
+.wc-block-checkout__shipping-method-option img,
+.wc-block-checkout__shipping-method-option svg,
+.wc-block-components-radio-control-accordion-option img,
+.wc-block-components-radio-control-accordion-option svg {
+	display: block;
+	max-height: 20px;
+	width: auto;
 }
 
 .wc-block-components-radio-control__option input[type="radio"],
