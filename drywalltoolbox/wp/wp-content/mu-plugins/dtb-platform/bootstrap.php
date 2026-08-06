@@ -64,6 +64,11 @@ require_once $_dtb_platform . '/Cache/CachePurgeLock.php';
 require_once $_dtb_platform . '/Cache/CacheOperationsService.php';
 require_once $_dtb_platform . '/Cache/CacheAdminPage.php';
 
+// 5b. Public search and discovery.
+require_once $_dtb_platform . '/Seo/SitemapXmlRenderer.php';
+require_once $_dtb_platform . '/Seo/SitemapUrlRepository.php';
+require_once $_dtb_platform . '/Seo/SitemapService.php';
+
 // 6. Health.
 require_once $_dtb_platform . '/Health/HealthRegistry.php';
 require_once $_dtb_platform . '/Health/DependencyHealthCheck.php';
