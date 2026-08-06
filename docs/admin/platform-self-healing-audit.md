@@ -4,7 +4,7 @@ Last verified against active source: 2026-07-31.
 
 ## Why this exists
 
-A production incident (checkout showing only a flat "Free shipping" rate, no Standard/Express/Overnight) traced back to `dtb_bootstrap_shipping_zones()` (`mu-plugins/dtb-commerce/Shipping/DTBShippingMethod.php`) — a self-healing function that had already been patched four separate times (see `docs/checkout-ui-architecture.md` Redesign v6–v9) chasing edge cases in when it should or shouldn't repair shipping-zone state. The actual root cause that night wasn't something self-healing could ever have caught: an operator-disabled shipping method instance, a state the self-heal correctly and intentionally never overrides. Investigating that incident prompted a wider audit of the same "run a check-and-repair function on every request, forever" pattern across the mu-plugin backend, on the theory that a pattern which had already needed four hardening passes in one place was worth checking for elsewhere.
+A production incident (checkout showing only a flat "Free shipping" rate, no Standard/Express/Overnight) traced back to `dtb_bootstrap_shipping_zones()` (`mu-plugins/dtb-commerce/Shipping/DTBShippingMethod.php`) — a self-healing function that had already been patched four separate times (see `docs/checkout/checkout-ui-architecture.md` Redesign v6–v9) chasing edge cases in when it should or shouldn't repair shipping-zone state. The actual root cause that night wasn't something self-healing could ever have caught: an operator-disabled shipping method instance, a state the self-heal correctly and intentionally never overrides. Investigating that incident prompted a wider audit of the same "run a check-and-repair function on every request, forever" pattern across the mu-plugin backend, on the theory that a pattern which had already needed four hardening passes in one place was worth checking for elsewhere.
 
 ## What was found
 
@@ -21,7 +21,7 @@ A repo-wide search for functions hooked to always-fire hooks (`init`, `admin_ini
 
 **Well-gated patterns that are not a problem** and were left as-is: `dtb_support_maybe_install_schema()` and `DTB_InventoryIntelligenceSchema::maybe_install()`, both dbDelta schema installers gated by a real version-option check that returns immediately once the version matches — the pattern this audit's fix brings the shipping-zone bootstrap in line with.
 
-**No file documented this as a deliberate architecture.** `AGENTS.md` and `memory-bank/` mention "idempotent" only as a general principle for scripts, queues, and webhook handlers — not as a name for "re-run a repair check on every request forever." The only place the shipping-zone version of this pattern was discussed at all was the ad hoc bug-fix narrative in `docs/checkout-ui-architecture.md`, which reads as organic firefighting accumulation rather than an intended design.
+**No file documented this as a deliberate architecture.** `AGENTS.md` and `memory-bank/` mention "idempotent" only as a general principle for scripts, queues, and webhook handlers — not as a name for "re-run a repair check on every request forever." The only place the shipping-zone version of this pattern was discussed at all was the ad hoc bug-fix narrative in `docs/checkout/checkout-ui-architecture.md`, which reads as organic firefighting accumulation rather than an intended design.
 
 ## What changed
 

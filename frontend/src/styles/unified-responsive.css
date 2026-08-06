@@ -258,6 +258,16 @@ body,
   -webkit-overflow-scrolling: touch;
 }
 
+/* The thumbnail strip must always occupy its own row in normal document flow,
+   below the main image and above the product title — never absolutely
+   positioned or collapsed to zero height, in the quick-view modal or the
+   full page PDP. */
+.product-image-gallery__thumb-shell {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
 .product-image-gallery__thumbs > button {
   flex: 0 0 auto;
   min-width: var(--dtb-touch-target, 44px);
@@ -609,7 +619,7 @@ body,
     object-fit: contain;
   }
 
-  .product-image-gallery__thumbs {
+  .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__thumbs {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: clamp(3rem, 16vw, 4rem);

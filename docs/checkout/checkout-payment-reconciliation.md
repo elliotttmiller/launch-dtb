@@ -54,7 +54,7 @@ The reconciliation method never calls Veeqo, QuickBooks, notifications, or anoth
 
 - The prior WooCommerce Stripe Gateway and the replacement plugin must not be simultaneously active as customer-facing card/wallet authorities.
 - The repository does not bundle or patch the regular plugin.
-- Plugin connection, webhooks, settings, saved-token/subscription migration, and live payment acceptance are operator tasks documented in `docs/payment-provider-migration.md`.
+- Plugin connection, webhooks, settings, saved-token/subscription migration, and live payment acceptance are operator tasks documented in `docs/checkout/payment-provider-migration.md`.
 - PayPal is outside this Stripe reconciliation contract and requires a separately reviewed provider/contract before it may enter DTB paid downstream processing.
 - Historical orders and refunds must remain readable during and after cutover.
 

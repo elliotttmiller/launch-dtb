@@ -245,7 +245,7 @@ Initial downstream processing dispatch remains protected by an atomic per-order 
 - Payment Plugins may recognize supported Stripe customer/payment/subscription identity from the previous plugin, but plugin settings are not migrated and must be recreated.
 - Validate representative saved cards/customers/subscriptions before production cutover.
 - PayPal is not supplied by the Stripe plugin. A real PayPal control requires a separate provider; never fabricate one.
-- Complete procedure/checklist: `docs/payment-provider-migration.md`.
+- Complete procedure/checklist: `docs/checkout/payment-provider-migration.md`.
 
 ## 6. Checkout UI contract
 

@@ -22,6 +22,8 @@ After deployment and cache clearing, use a clean browser profile and verify:
 4. Logout clears the canonical host-only cookie and the current host's legacy domain-scoped variants.
 5. Customer checkout remains blocked when the same browser is concurrently authenticated as a privileged WordPress user.
 
+Related: `docs/auth/wp-admin-customer-cookie-boundary.md` documents the separate wp-admin/native-WordPress-cookie boundary that protects administrator login from a concurrent customer session.
+
 ## Rollback
 
 Restore the previous `Auth/AuthRoutes.php`, clear SiteGround caches, clear browser site data for the host, and repeat login/validate checks.

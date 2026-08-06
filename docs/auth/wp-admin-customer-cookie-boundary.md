@@ -33,6 +33,8 @@ This permits the browser to present the administrator login form and replace the
 5. Confirm the customer JWT remains HttpOnly and no token material appears in responses or logs.
 6. Confirm storefront auth continues to fail closed when a privileged native WordPress session conflicts with customer checkout identity.
 
+Related: `docs/auth/auth-cookie-handoff.md` documents the storefront `dtb_auth` cookie lookup/selection contract this boundary preserves.
+
 ## Rollback
 
 Restore the previous `dtb-platform/bootstrap.php`, remove `Auth/AdminLoginIdentityBoundary.php`, clear SiteGround caches and PHP OPcache, and repeat the acceptance checks.

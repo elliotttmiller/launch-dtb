@@ -442,14 +442,19 @@
   }
 }
 
-/* Rail with fixed-width tiles (product tiles, brand tiles, etc.) */
+/*
+ * Rail with fixed-width tiles (product tiles, brand tiles, etc.). The track
+ * width must always match the card's own width (--dtb-rail-tile-w /
+ * --dtb-rail-tile-w-desktop, defined in storefront-product-card.css) so the
+ * tile never overflows or falls short of its grid column.
+ */
 .storefront-rail--fixed-tiles {
-  grid-auto-columns: clamp(162px, 44vw, 188px);
+  grid-auto-columns: var(--dtb-rail-tile-w, clamp(162px, 44vw, 188px));
 }
 
 @media (min-width: 768px) {
   .storefront-rail--fixed-tiles {
-    grid-auto-columns: clamp(210px, 20vw, 236px);
+    grid-auto-columns: var(--dtb-rail-tile-w-desktop, clamp(210px, 22vw, 248px));
   }
 }
 

@@ -7,7 +7,7 @@
  * from the SPA's own /auth/reset-password flow in
  * dtb-platform/Auth/AuthRoutes.php, which is untouched). DTB customization:
  * hero (no progress tracker or support card — an account/security email
- * stays brief and single-CTA per docs/dtb-email-design-system.md's
+ * stays brief and single-CTA per docs/visual-designer/dtb-email-design-system.md's
  * copywriting voice guidance). Hook sequence preserved.
  *
  * @package DrywalltoolboxCommerce

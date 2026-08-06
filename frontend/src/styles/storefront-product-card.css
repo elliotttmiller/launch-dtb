@@ -1,9 +1,24 @@
+/*
+ * Single source of truth for rail-variant product card width. Both the
+ * card's own intrinsic width (.dtb-product-card--rail) and the horizontal
+ * rail track that hosts it (.storefront-rail--fixed-tiles, in
+ * storefront-sections.css) must read from these tokens — otherwise the two
+ * independently-maintained clamp() formulas drift apart at some viewport
+ * widths and the card renders wider/narrower than its grid track.
+ */
+:root {
+  --dtb-rail-tile-w: clamp(162px, 44vw, 188px);
+  --dtb-rail-tile-w-desktop: clamp(210px, 22vw, 248px);
+}
+
 .dtb-product-grid,
 .product-skeleton-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: stretch;
-  gap: 12px;
+  /* Matches the mobile gap in unified-responsive.css so both files agree
+     regardless of stylesheet import order. */
+  gap: clamp(0.625rem, 2.8vw, 0.875rem);
 }
 
 .dtb-product-grid--list {
@@ -239,7 +254,7 @@
   padding-top: 0.65rem;
 }
 
-.dtb-product-card--rail { width: clamp(162px, 44vw, 188px); }
+.dtb-product-card--rail { width: var(--dtb-rail-tile-w); }
 
 .dtb-product-card--rail .dtb-product-card__image {
   min-height: clamp(150px, 40vw, 170px);
@@ -274,7 +289,7 @@
 
   .dtb-product-card { position: relative; height: 100%; }
 
-  .dtb-product-card--rail { width: clamp(210px, 22vw, 248px); }
+  .dtb-product-card--rail { width: var(--dtb-rail-tile-w-desktop); }
 
   .dtb-product-card--grid {
     display: grid;

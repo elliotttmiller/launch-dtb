@@ -13,7 +13,7 @@
  * are registered in functions.php (dtb_enqueue_native_checkout_assets());
  * the desktop-only layout layer is enqueued here before wp_head() with an
  * explicit dependency on the base stylesheet. See
- * docs/checkout-ui-architecture.md for the full redesign contract.
+ * docs/checkout/checkout-ui-architecture.md for the full redesign contract.
  *
  * @package drywall-toolbox
  */

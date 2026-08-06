@@ -46,6 +46,8 @@ React Store API cart
   -> DTB captured-payment gate, event ledger, and downstream queues
 ```
 
+Desktop-specific layout (>=1024px) is a separate, additive stylesheet documented in `docs/checkout/checkout-desktop-layout.md`; it does not modify or duplicate the mobile contract described here.
+
 ## Active source
 
 ```text

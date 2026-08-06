@@ -44,15 +44,17 @@ POST /wp-json/dtb/v1/admin/qbo/connect
 POST /wp-json/dtb/v1/admin/qbo/test
 POST /wp-json/dtb/v1/admin/qbo/disconnect
 POST /wp-json/dtb/v1/admin/qbo/items/discover
-POST /wp-json/dtb/v1/admin/qbo/sync
+GET  /wp-json/dtb/v1/admin/qbo/sync/status
+POST /wp-json/dtb/v1/admin/qbo/sync/queue
 ```
 
 `items/discover` is read-only against QuickBooks (it never creates or mutates
-remote records) and only writes local managed-mapping options. `sync` queues
-unsynced paid/fulfilled orders for accounting projection through the existing
-`dtb-orders` queue; it does not write to QuickBooks synchronously. A
+remote records) and only writes local managed-mapping options. `sync/queue`
+queues unsynced paid/fulfilled orders for accounting projection through the
+existing `dtb-orders` queue; it does not write to QuickBooks synchronously. A
 same-shaped top-level route, `POST /wp-json/dtb/v1/qbo/sync`, also exists for
-scripted/cron use outside the admin UI.
+scripted/cron use outside the admin UI (`DTB_QuickBooksSyncAdminController`,
+`dtb-integrations/OperationalPipeline/QuickBooksQueueController.php`).
 
 Every operator route requires an authenticated WordPress administrator with `manage_options`. Browser requests also require a valid WordPress REST nonce.
 

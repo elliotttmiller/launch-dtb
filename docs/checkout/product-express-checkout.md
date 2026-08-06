@@ -23,8 +23,8 @@ Both the full product page and product modal render the shared purchase panel an
 
 ```text
 Selected product / variation / quantity
-  -> ProductPurchasePanel
-  -> ProductExpressCheckout
+  -> ProductPurchasePanel (frontend/src/components/product/ProductPurchasePanel.jsx)
+  -> ProductBuyNow (frontend/src/components/product/ProductBuyNow.jsx)
   -> serialized WooCommerce Store API add-to-cart mutation
   -> authoritative cart/session response
   -> full-document navigation to /checkout/
@@ -72,7 +72,7 @@ The product checkout handoff:
 - removes duplicate wallet/payment rows by disabling all standalone Payment Plugins gateways;
 - never reads or modifies cross-origin provider iframe contents.
 
-The complete presentation contract is in `docs/checkout-ui-architecture.md`. The provider cutover and operator checklist are in `docs/payment-provider-migration.md`.
+The complete presentation contract is in `docs/checkout/checkout-ui-architecture.md`. The provider cutover and operator checklist are in `docs/checkout/payment-provider-migration.md`.
 
 ## Required operator configuration
 
