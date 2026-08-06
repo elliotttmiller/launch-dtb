@@ -23,6 +23,7 @@ import './styles/storefront-shell.css';
 import './styles/storefront-sections.css';
 import './styles/storefront-product-card.css';
 import './styles/storefront-drawer.css';
+import './styles/storefront-cart-sheet.css';
 import './styles/storefront-search-product-cards.css';
 import './styles/storefront-visibility.css';
 import './styles/account-hub.css';
