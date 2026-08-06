@@ -35,6 +35,7 @@
 		[
 			'.wp-block-woocommerce-checkout-payment-block',
 			'.wp-block-woocommerce-checkout-express-payment-block',
+			'.wc-block-components-express-payment',
 			'.wp-block-woocommerce-checkout-order-note-block',
 			'.wp-block-woocommerce-checkout-terms-block',
 			'.wp-block-woocommerce-checkout-actions-block',
@@ -210,7 +211,9 @@
 				if ( ! panel.id ) {
 					panel.id = 'dtb-checkout-' + step.id + '-panel-' + ( panelIndex + 1 );
 				}
-				var heading = panelIndex === 0 ? panel.querySelector( ':scope > .wc-block-components-checkout-step__heading' ) : null;
+				// Not a direct child: WooCommerce Blocks renders the heading nested one level
+				// deeper, inside `.wc-block-components-checkout-step__heading-container`.
+				var heading = panelIndex === 0 ? panel.querySelector( '.wc-block-components-checkout-step__heading' ) : null;
 				if ( heading ) {
 					heading.classList.add( 'dtb-checkout__native-heading--visually-hidden' );
 				}

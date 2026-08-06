@@ -34,7 +34,16 @@
 	.wc-block-checkout__actions { width: 100%; max-width: none; min-width: 0; float: none; clear: both; margin-inline: 0; }
 	.wc-block-components-checkout-step,
 	.wc-block-components-express-payment { margin-bottom: 20px; }
-	.wc-block-components-checkout-step { padding: clamp(22px, 2vw, 28px); background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); }
+	/*
+	 * Matches the specificity of checkout.css's `body.woocommerce-checkout
+	 * .wc-block-checkout__form .wc-block-components-checkout-step` restatement (0,3,1,
+	 * added there to beat WooCommerce Blocks' own 0,2,0 reset). Tying specificity here
+	 * and loading after checkout.css (this stylesheet depends on the `dtb-checkout`
+	 * handle) lets this desktop padding win at >=1024px without outranking the mobile
+	 * rule at narrower widths.
+	 */
+	.wc-block-components-checkout-step,
+	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step { padding: clamp(22px, 2vw, 28px); background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); }
 	.wc-block-components-sidebar-layout__sidebar,
 	.wc-block-checkout__sidebar { position: sticky; top: 112px; align-self: start; overflow: visible; }
 	.wp-block-woocommerce-checkout-order-summary-block { background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); overflow: hidden; }

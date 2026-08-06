@@ -782,6 +782,21 @@
     margin-bottom: 0;
   }
 
+  /* `.dtb-pdp-gallery` receives an admin-configurable `aspect_ratio` inline
+     style (see ProductDetail.jsx `gallery.getValue('aspect_ratio', ...)`),
+     but that wrapper holds BOTH the main image AND the thumbnail strip below
+     it. Constraining the whole wrapper to a fixed ratio caps its height
+     independently of `.product-image-gallery__main`'s own 1:1 ratio + max
+     height below — on wide desktop columns the combined main image + thumb
+     row content exceeds that capped height and visually overflows/"zooms"
+     past the wrapper's bounds. Neutralize it here (mirroring the existing
+     mobile guard and the `.dtb-pdp--modal` guard above) so only the main
+     image box governs its own aspect ratio, and clip any residual overflow. */
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
+    aspect-ratio: auto !important;
+    overflow: hidden;
+  }
+
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
     height: auto;
     aspect-ratio: 1 / 1;
@@ -1877,8 +1892,12 @@
 
 @media (min-width: 1025px) {
   .dtb-product-page-shell {
-    width: min(100%, 1460px) !important;
-    max-width: 1460px !important;
+    /* Reuse the shared content-width token scale (storefront-tokens.css)
+       instead of an arbitrary pixel cap — this is the same "full" tier the
+       widest cross-route layouts use, so the PDP is allowed to breathe on
+       desktop instead of sitting narrower than the header/wide layouts. */
+    width: min(calc(100% - (2 * var(--dtb-responsive-gutter, 2rem))), var(--dtb-content-full, 120rem)) !important;
+    max-width: var(--dtb-content-full, 120rem) !important;
     padding: 22px 18px 56px !important;
   }
 

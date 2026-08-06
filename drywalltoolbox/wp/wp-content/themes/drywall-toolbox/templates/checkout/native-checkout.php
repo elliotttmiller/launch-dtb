@@ -19,7 +19,8 @@ wp_enqueue_style(
 	'dtb-checkout-desktop',
 	get_template_directory_uri() . '/assets/checkout/checkout-desktop.css',
 	[ 'dtb-checkout' ],
-	$desktop_style_ver
+	$desktop_style_ver,
+	'(min-width: 1024px)'
 );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>

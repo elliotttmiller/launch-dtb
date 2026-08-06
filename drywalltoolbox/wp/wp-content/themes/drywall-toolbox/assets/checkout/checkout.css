@@ -140,7 +140,24 @@ legend { float: none; width: 100%; max-width: 100%; }
 	margin: 0 0 var(--dtb-checkout-space-4);
 	padding: clamp(18px, 4vw, 24px);
 }
-.wc-block-components-checkout-step .wc-block-components-checkout-step {
+/*
+ * WooCommerce Blocks' own `.wc-block-components-form .wc-block-components-checkout-step`
+ * rule (specificity 0,2,0) strips background/border/padding back to none and loads after
+ * this stylesheet in <head>. This higher-specificity (0,3,1) restatement, scoped to a real
+ * native ancestor chain (body.woocommerce-checkout is WooCommerce core's own checkout body
+ * class; .wc-block-checkout__form is the Checkout Block's own form class), wins outright
+ * regardless of stylesheet load order rather than depending on cascade position.
+ */
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step {
+	background: var(--dtb-checkout-surface);
+	border: 1px solid var(--dtb-checkout-border);
+	border-radius: var(--dtb-checkout-radius-lg);
+	box-shadow: var(--dtb-checkout-shadow-sm);
+	margin: 0 0 var(--dtb-checkout-space-4);
+	padding: clamp(18px, 4vw, 24px);
+}
+.wc-block-components-checkout-step .wc-block-components-checkout-step,
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step .wc-block-components-checkout-step {
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -254,6 +271,36 @@ legend { float: none; width: 100%; max-width: 100%; }
 	box-shadow: var(--dtb-checkout-shadow-focus);
 	outline: 0;
 }
+/*
+ * WooCommerce Blocks targets these same controls with type-qualified, form-scoped
+ * selectors (e.g. `.wc-block-components-form .wc-block-components-text-input
+ * input[type="email"]`, specificity 0,3,1; `.wc-blocks-components-select
+ * .wc-blocks-components-select__container`, specificity 0,2,0) that load after this
+ * stylesheet. These higher-specificity restatements, scoped to the same real
+ * body.woocommerce-checkout / .wc-block-checkout__form ancestor chain used above,
+ * win outright regardless of load order.
+ */
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-text-input input,
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-textarea,
+body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select__select,
+body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select__container {
+	min-height: var(--dtb-checkout-touch);
+	max-width: 100%;
+	border: 1.5px solid var(--dtb-checkout-border-strong);
+	border-radius: var(--dtb-checkout-radius-sm);
+	background: var(--dtb-checkout-surface-subtle);
+	color: var(--dtb-checkout-ink-950);
+	font: inherit;
+	transition: border-color var(--dtb-checkout-fast) var(--dtb-checkout-ease), box-shadow var(--dtb-checkout-fast) var(--dtb-checkout-ease), background-color var(--dtb-checkout-fast) var(--dtb-checkout-ease);
+}
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-text-input input:focus,
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-textarea:focus,
+body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select__select:focus {
+	border-color: var(--dtb-checkout-blue-600);
+	background: var(--dtb-checkout-surface);
+	box-shadow: var(--dtb-checkout-shadow-focus);
+	outline: 0;
+}
 .wc-block-components-text-input label,
 .wc-blocks-components-select__label { color: var(--dtb-checkout-ink-700); font-weight: 600; }
 .wc-block-components-text-input input:autofill,
@@ -301,7 +348,8 @@ legend { float: none; width: 100%; max-width: 100%; }
 .wc-block-components-radio-control__label-group { min-width: 0; flex: 1 1 auto; flex-wrap: wrap; }
 .wc-block-components-radio-control__label { overflow-wrap: anywhere; }
 
-.wc-block-components-checkbox__input { width: 20px; height: 20px; border: 1px solid var(--dtb-checkout-border-strong); border-radius: 5px; }
+.wc-block-components-checkbox { display: flex; align-items: center; min-height: var(--dtb-checkout-touch); padding-block: var(--dtb-checkout-space-2); gap: var(--dtb-checkout-space-2); cursor: pointer; }
+.wc-block-components-checkbox__input { width: 20px; height: 20px; border: 1px solid var(--dtb-checkout-border-strong); border-radius: 5px; flex: none; }
 .wc-block-components-checkbox__input:checked { border-color: var(--dtb-checkout-blue-600); background: var(--dtb-checkout-blue-600); }
 .wc-block-components-checkout-place-order-button {
 	width: 100%;
@@ -314,6 +362,30 @@ legend { float: none; width: 100%; max-width: 100%; }
 	font: 750 16px/1.2 var(--dtb-checkout-font-heading);
 }
 .wc-block-components-checkout-place-order-button:hover { background: var(--dtb-checkout-blue-700); }
+/*
+ * Two competing rules beat the single-class selector above:
+ * - WooCommerce Blocks' `body:not(.woocommerce-block-theme-has-button-styles)
+ *   .wc-block-components-button:not(.is-link) { min-height: 3em; }` — specificity 0,3,1
+ *   (body element + :not(.class) + .class + :not(.class)).
+ * - WordPress core's global-styles-inline-css `:root :where(.wp-element-button,
+ *   .wp-block-button__link) { background-color: ...; padding: ...; }` — specificity 0,1,0
+ *   (:root is a pseudo-class; :where() itself contributes zero), but it loads later in
+ *   <head> than this stylesheet, so it wins the tie against the bare rule above.
+ * This higher-specificity (0,4,1) restatement, scoped to a real native ancestor chain
+ * (body.woocommerce-checkout, .wc-block-checkout__form, .wc-block-checkout__actions are
+ * all WooCommerce's own classes), beats both outright regardless of load order.
+ */
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-checkout__actions .wc-block-components-checkout-place-order-button {
+	width: 100%;
+	min-height: 56px;
+	border: 0;
+	border-radius: var(--dtb-checkout-radius-md);
+	background: var(--dtb-checkout-blue-600);
+	box-shadow: var(--dtb-checkout-shadow-sm);
+	color: #fff;
+	font: 750 16px/1.2 var(--dtb-checkout-font-heading);
+}
+body.woocommerce-checkout .wc-block-checkout__form .wc-block-checkout__actions .wc-block-components-checkout-place-order-button:hover { background: var(--dtb-checkout-blue-700); }
 
 .wc-block-components-checkout-order-summary { overflow: hidden; }
 .wc-block-components-order-summary-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
@@ -335,7 +407,12 @@ legend { float: none; width: 100%; max-width: 100%; }
 	.dtb-checkout__utility { max-width: 900px; padding-inline: 28px; }
 	.wc-block-checkout__main,
 	.wc-block-checkout__sidebar { padding-inline: 0; }
-	.wc-block-components-checkout-step { padding: 24px 28px; }
+	/*
+	 * Must beat the higher-specificity (0,3,1) `body.woocommerce-checkout
+	 * .wc-block-checkout__form .wc-block-components-checkout-step` restatement above
+	 * (added for defect 2), which would otherwise still win at this breakpoint.
+	 */
+	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step { padding: 24px 28px; }
 }
 
 :focus-visible { outline: 2px solid var(--dtb-checkout-blue-600); outline-offset: 2px; }
@@ -348,8 +425,15 @@ legend { float: none; width: 100%; max-width: 100%; }
 	}
 }
 @media (forced-colors: active) {
+	/*
+	 * The checkout-step / text-input targets here must match or beat the higher-specificity
+	 * (0,3,1) restatements added above for defects 2 and 3, or this accessibility override
+	 * would silently stop applying under forced-colors mode.
+	 */
 	.wc-block-components-checkout-step,
+	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step,
 	.wc-block-components-radio-control__option,
 	.wc-block-components-text-input input,
+	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-text-input input,
 	.dtb-checkout__accordion-header { border: 1px solid CanvasText; }
 }
