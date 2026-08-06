@@ -1,5 +1,5 @@
 .store-policy-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.12), transparent 34rem),
     linear-gradient(180deg, #f8fafc 0%, #eef4fb 44%, #ffffff 100%);

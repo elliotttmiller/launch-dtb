@@ -1462,6 +1462,20 @@
     margin-bottom: 0;
   }
 
+  /* The gallery column's aspect-ratio is driven by an admin customization
+     value (see ProductDetail.jsx `gallery.getValue('aspect_ratio', ...)`)
+     applied to `.dtb-pdp-gallery`. That wrapper holds BOTH the main image
+     AND the thumbnail strip below it, so forcing it to a fixed ratio
+     constrains the whole column's layout height — the thumbnail row then
+     renders past that height and visually bleeds into the title/price
+     block in the next row. The ratio is only meaningful for the main
+     image itself (`.product-image-gallery__main` sets its own 1:1 ratio),
+     so neutralize it on the shared wrapper here, matching the equivalent
+     desktop modal guard above (`.dtb-pdp--modal .dtb-pdp-gallery`). */
+  .dtb-pdp-gallery {
+    aspect-ratio: auto !important;
+  }
+
   .dtb-pdp-gallery > div:first-child {
     gap: 0.7rem;
   }
@@ -2271,26 +2285,14 @@
   text-underline-offset: 0.25rem;
 }
 
-.product-related__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(0.9rem, 1.6vw, 1.25rem);
-}
-
-@media (max-width: 960px) {
-  .product-related__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
+/* Related products now render through the shared StorefrontRail horizontal
+   scroller (see storefront-sections.css .storefront-rail-shell/.storefront-rail)
+   to match the homepage product carousel pattern — no wrapping grid here. */
 
 @media (max-width: 560px) {
   .product-related__heading {
     align-items: flex-start;
     flex-direction: column;
     gap: 0.75rem;
-  }
-
-  .product-related__grid {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
