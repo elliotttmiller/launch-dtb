@@ -28,7 +28,7 @@ final class DTB_SitemapService {
 		add_filter( 'robots_txt', [ self::class, 'filter_robots_txt' ], 20, 2 );
 
 		add_action( 'save_post_product', [ self::class, 'invalidate_from_post' ], 10, 3 );
-		add_action( 'deleted_post', [ self::class, 'invalidate_from_deleted_post' ] );
+		add_action( 'before_delete_post', [ self::class, 'invalidate_from_deleted_post' ] );
 		add_action( 'created_term', [ self::class, 'invalidate_from_term' ], 10, 3 );
 		add_action( 'edited_term', [ self::class, 'invalidate_from_term' ], 10, 3 );
 		add_action( 'delete_term', [ self::class, 'invalidate_from_term' ], 10, 3 );
@@ -43,6 +43,7 @@ final class DTB_SitemapService {
 		if ( self::REWRITE_VERSION === (string) get_option( self::REWRITE_VERSION_OPTION, '' ) ) {
 			return;
 		}
+
 		flush_rewrite_rules( false );
 		update_option( self::REWRITE_VERSION_OPTION, self::REWRITE_VERSION, false );
 	}
@@ -70,10 +71,13 @@ final class DTB_SitemapService {
 		}
 
 		$etag = '"' . hash( 'sha256', $xml ) . '"';
-		if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && hash_equals( $etag, trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) ) ) ) {
-			status_header( 304 );
-			header( 'ETag: ' . $etag );
-			exit;
+		if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) {
+			$request_etag = trim( sanitize_text_field( wp_unslash( $_SERVER['HTTP_IF_NONE_MATCH'] ) ) );
+			if ( hash_equals( $etag, $request_etag ) ) {
+				status_header( 304 );
+				header( 'ETag: ' . $etag );
+				exit;
+			}
 		}
 
 		status_header( 200 );
@@ -87,8 +91,14 @@ final class DTB_SitemapService {
 	}
 
 	public static function filter_robots_txt( string $output, bool $public ): string {
+		unset( $public );
 		$lines = preg_split( '/\R/', trim( $output ) ) ?: [];
-		$lines = array_values( array_filter( $lines, static fn( string $line ): bool => 0 !== stripos( trim( $line ), 'Sitemap:' ) ) );
+		$lines = array_values(
+			array_filter(
+				$lines,
+				static fn( string $line ): bool => 0 !== stripos( trim( $line ), 'Sitemap:' )
+			)
+		);
 		$lines[] = 'Sitemap: ' . home_url( '/sitemap.xml' );
 		return trim( implode( "\n", $lines ) ) . "\n";
 	}
@@ -97,17 +107,23 @@ final class DTB_SitemapService {
 		if ( self::$invalidated ) {
 			return (int) get_option( self::GENERATION_OPTION, 1 );
 		}
+
 		self::$invalidated = true;
-		$generation = max( 1, (int) get_option( self::GENERATION_OPTION, 1 ) + 1 );
+		$generation       = max( 1, (int) get_option( self::GENERATION_OPTION, 1 ) + 1 );
 		update_option( self::GENERATION_OPTION, $generation, false );
 
 		if ( function_exists( 'dtb_log_cache_event' ) ) {
-			dtb_log_cache_event( 'sitemap_cache_invalidated', [ 'reason' => sanitize_key( $reason ), 'generation' => $generation ] );
+			dtb_log_cache_event(
+				'sitemap_cache_invalidated',
+				[ 'reason' => sanitize_key( $reason ), 'generation' => $generation ]
+			);
 		}
+
 		return $generation;
 	}
 
 	public static function invalidate_from_post( int $post_id, WP_Post $post, bool $update ): void {
+		unset( $post, $update );
 		if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) {
 			return;
 		}
@@ -121,6 +137,7 @@ final class DTB_SitemapService {
 	}
 
 	public static function invalidate_from_term( int $term_id, int $tt_id, string $taxonomy ): void {
+		unset( $term_id, $tt_id );
 		$brand_taxonomy = DTB_SitemapUrlRepository::brand_taxonomy();
 		if ( 'product_cat' === $taxonomy || ( '' !== $brand_taxonomy && $brand_taxonomy === $taxonomy ) ) {
 			self::invalidate( 'taxonomy_changed' );
@@ -129,7 +146,7 @@ final class DTB_SitemapService {
 
 	private static function document( string $type, int $page ): ?string {
 		$generation = max( 1, (int) get_option( self::GENERATION_OPTION, 1 ) );
-		$cache_key  = 'dtb_sitemap_' . md5( $generation . '|' . $type . '|' . $page . '|' . home_url( '/' ) );
+		$cache_key  = 'drywall_cache_sitemap_' . md5( $generation . '|' . $type . '|' . $page . '|' . home_url( '/' ) );
 		$cached     = get_transient( $cache_key );
 		if ( is_string( $cached ) && '' !== $cached ) {
 			return $cached;
@@ -145,9 +162,6 @@ final class DTB_SitemapService {
 	private static function build_document( string $type, int $page ): ?string {
 		if ( 'index' === $type ) {
 			return DTB_SitemapXmlRenderer::render_index( self::index_entries() );
-		}
-		if ( 1 > $page ) {
-			return null;
 		}
 
 		switch ( $type ) {
@@ -174,10 +188,12 @@ final class DTB_SitemapService {
 	/** @return array<int,array{loc:string}> */
 	private static function index_entries(): array {
 		$entries = [ [ 'loc' => home_url( '/sitemaps/static-1.xml' ) ] ];
-		foreach ( [
-			'products'           => DTB_SitemapUrlRepository::product_pages(),
-			'product-categories' => DTB_SitemapUrlRepository::taxonomy_pages( 'product_cat' ),
-		] as $type => $pages ) {
+		foreach (
+			[
+				'products'           => DTB_SitemapUrlRepository::product_pages(),
+				'product-categories' => DTB_SitemapUrlRepository::taxonomy_pages( 'product_cat' ),
+			] as $type => $pages
+		) {
 			for ( $page = 1; $page <= $pages; $page++ ) {
 				$entries[] = [ 'loc' => home_url( '/sitemaps/' . $type . '-' . $page . '.xml' ) ];
 			}
@@ -185,10 +201,12 @@ final class DTB_SitemapService {
 
 		$brand_taxonomy = DTB_SitemapUrlRepository::brand_taxonomy();
 		if ( '' !== $brand_taxonomy ) {
-			for ( $page = 1, $pages = DTB_SitemapUrlRepository::taxonomy_pages( $brand_taxonomy ); $page <= $pages; $page++ ) {
+			$pages = DTB_SitemapUrlRepository::taxonomy_pages( $brand_taxonomy );
+			for ( $page = 1; $page <= $pages; $page++ ) {
 				$entries[] = [ 'loc' => home_url( '/sitemaps/brands-' . $page . '.xml' ) ];
 			}
 		}
+
 		return $entries;
 	}
 }
