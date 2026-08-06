@@ -32,7 +32,8 @@ import ProductDetail from '../components/product/ProductDetail';
 import SEOHead from '../components/shared/SEOHead';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import Toast from '../components/ui/Toast';
-import ProductShoppingCard from '../components/ui/ProductShoppingCard';
+import StorefrontRail from '../components/storefront/StorefrontRail';
+import StorefrontProductTile from '../components/storefront/StorefrontProductTile';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { addRecentlyViewed } from '../utils/recentlyViewed.js';
 import { buildVariantSearch, getVariantParam, resolveInitialVariation } from '../utils/variationUrl.js';
@@ -264,18 +265,19 @@ export default function ProductDetailPage() {
               </div>
               <Link to="/products" className="product-related__browse">Browse all products</Link>
             </div>
-            <div className="product-related__grid">
+            <StorefrontRail label="Related products" className="storefront-rail--fixed-tiles">
               {relatedProducts.map((relatedProduct, index) => (
-                <ProductShoppingCard
+                <StorefrontProductTile
                   key={relatedProduct.id}
                   product={relatedProduct}
-                  cardProduct={relatedProduct.cardProduct}
+                  cardProduct={relatedProduct.cardProduct || relatedProduct}
+                  variant="grid"
                   index={index}
                   onOpenModal={() => navigate(`/products/${relatedProduct.slug}`)}
                   onAddToCart={() => handleAddToCart(relatedProduct.cardProduct || relatedProduct, 1)}
                 />
               ))}
-            </div>
+            </StorefrontRail>
           </section>
         )}
       </div>
