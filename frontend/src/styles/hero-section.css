@@ -38,7 +38,7 @@
 @media (max-width: 767px) {
   .dtb-ui-hero { min-height: unset !important; }
   .dtb-ui-hero__content {
-    padding: clamp(4rem, 8vw, 6rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 5vw, 3.5rem) !important;
+    padding: clamp(2.5rem, 8vw, 6rem) clamp(1.25rem, 5vw, 3rem) clamp(1.5rem, 5vw, 3.5rem) !important;
   }
   .dtb-ui-hero__carousel {
     margin-bottom: clamp(0.75rem, 2.2vw, 1.25rem) !important;

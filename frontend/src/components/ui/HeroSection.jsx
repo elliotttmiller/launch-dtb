@@ -51,8 +51,8 @@ function GradientTitle({ lines }) {
       className="dtb-hero-title-gradient"
       variants={item}
       style={{
-        margin: '0 0 24px',
-        fontSize: 'clamp(2.5rem, 5.5vw, 4.25rem)',
+        margin: '0 0 var(--dtb-space-4)',
+        fontSize: 'clamp(1.85rem, 5.5vw, 4.25rem)',
         fontWeight: 800,
         lineHeight: 1.07,
         letterSpacing: '-0.03em',
@@ -128,8 +128,8 @@ export default function HeroSection({
             className="dtb-hero-title-gradient"
             variants={item}
             style={{
-              margin: '0 0 24px',
-              fontSize: 'clamp(2.5rem, 5.5vw, 4.25rem)',
+              margin: '0 0 var(--dtb-space-4)',
+              fontSize: 'clamp(1.85rem, 5.5vw, 4.25rem)',
               fontWeight: 800,
               lineHeight: 1.07,
               letterSpacing: '-0.03em',
@@ -143,7 +143,7 @@ export default function HeroSection({
           <Motion.p
             variants={item}
             style={{
-              margin: '0 0 42px',
+              margin: '0 0 var(--dtb-space-5)',
               maxWidth: '580px',
               fontSize: 'clamp(0.95rem, 1.8vw, 1.08rem)',
               color: '#dbe3ef',
