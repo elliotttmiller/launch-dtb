@@ -1,0 +1,34 @@
+name: Checkout UI Contract
+
+on:
+  pull_request:
+    paths:
+      - 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/**'
+      - 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/**'
+      - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-checkout-asset-version.php'
+      - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php'
+      - 'scripts/validate-checkout-ui.mjs'
+      - '.github/workflows/checkout-ui-contract.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checkout-ui-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate checkout UI architecture
+        run: node scripts/validate-checkout-ui.mjs
+      - name: Validate JavaScript syntax
+        run: node --check drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.js
+      - name: Validate PHP syntax
+        run: |
+          php -l drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-checkout-asset-version.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-commerce/Payment/StripeElementAppearance.php
