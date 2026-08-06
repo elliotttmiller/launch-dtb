@@ -28,7 +28,7 @@
 
 /* ── Page wrapper ───────────────────────────────────────────────────────── */
 .tsb-page {
-  min-height: 100vh;
+  min-height: 100dvh;
   background: #f1f5f9;
   font-family: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -960,7 +960,7 @@
   .tsb-slot-sidebar {
     position: sticky;
     top: 56px;
-    max-height: calc(100vh - 72px);
+    max-height: calc(100dvh - 72px);
     overflow-y: auto;
     overflow-x: hidden;
     border-right: 1px solid rgba(15,23,42,0.07);

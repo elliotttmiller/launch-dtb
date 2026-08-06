@@ -15,7 +15,7 @@
   --dtb-order-soft: #f8fafc;
   --dtb-order-blue: #2255ee;
 
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: clamp(1.4rem, 3vw, 2.8rem) 0 clamp(2.25rem, 4vw, 4rem);
   background:
     radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.08), transparent 30rem),
