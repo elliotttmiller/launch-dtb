@@ -1,10 +1,10 @@
 /**
- * Drywall Toolbox — mobile checkout accordion navigation.
+ * Drywall Toolbox — mobile checkout section navigation.
  *
- * Progressive enhancement only. WooCommerce retains ownership of every field,
- * validation rule, cart mutation, payment surface and submit action. DTB owns a
- * navigation shell inserted before (never inside) WooCommerce's React-managed
- * checkout subtree and toggles only presentation attributes on native groups.
+ * Progressive enhancement only. WooCommerce retains ownership of fields,
+ * validation, cart/shipping state, payment surfaces, and checkout submission.
+ * DTB mounts navigation outside the React-managed checkout subtree and limits
+ * panel mutations to deterministic presentation/accessibility attributes.
  */
 ( function () {
 	'use strict';
@@ -12,10 +12,8 @@
 	var MOBILE_QUERY = '(max-width: 767px)';
 	var STEP_WRAPPER_SELECTOR = '.wc-block-components-checkout-step';
 	var PANEL_CLASS = 'dtb-checkout__accordion-panel';
-	var COLLAPSED_ATTR = 'data-dtb-accordion-collapsed';
 	var ACTIVE_ATTR = 'data-dtb-accordion-active';
 	var COMPLETE_ATTR = 'data-dtb-accordion-complete';
-	var TRANSITION_MS = 320;
 
 	var STEPS = [
 		{ id: 'contact', label: 'Contact', description: 'Email and contact details' },
@@ -47,11 +45,8 @@
 	var activeStepId = 'contact';
 	var completed = Object.create( null );
 	var observer = null;
-	var resizeObserver = null;
-	var storeUnsubscribe = null;
 	var reconcileFrame = 0;
-	var shippingWasBusy = false;
-	var shippingInteractionPending = false;
+	var observedRoot = null;
 
 	function checkoutRoot() {
 		return document.querySelector( '.wc-block-checkout__form' ) || document.querySelector( '.wc-block-checkout' );
@@ -72,12 +67,13 @@
 			selectors.forEach( function ( selector ) {
 				root.querySelectorAll( selector ).forEach( function ( inner ) {
 					var node = inner.closest( STEP_WRAPPER_SELECTOR ) || inner;
-					if ( groups[ index ].indexOf( node ) === -1 ) {
+					if ( root.contains( node ) && groups[ index ].indexOf( node ) === -1 ) {
 						groups[ index ].push( node );
 					}
 				} );
 			} );
 		} );
+
 		return groups;
 	}
 
@@ -109,9 +105,9 @@
 		return '';
 	}
 
-	function controlsForStep( id ) {
+	function controlsForStep( id, groups ) {
 		var controls = [];
-		groupsForStep( id ).forEach( function ( panel ) {
+		groupsForStep( id, groups ).forEach( function ( panel ) {
 			panel.querySelectorAll( 'input, select, textarea' ).forEach( function ( control ) {
 				if ( controls.indexOf( control ) === -1 ) {
 					controls.push( control );
@@ -121,57 +117,14 @@
 		return controls;
 	}
 
-	function firstInvalidControl( id ) {
-		return controlsForStep( id ).find( function ( control ) {
+	function firstInvalidControl( id, groups ) {
+		return controlsForStep( id, groups ).find( function ( control ) {
 			return ! control.disabled && control.type !== 'hidden' && control.willValidate !== false && ! control.checkValidity();
 		} ) || null;
 	}
 
-	function selectStore( key ) {
-		try {
-			return window.wp && window.wp.data && typeof window.wp.data.select === 'function'
-				? window.wp.data.select( key )
-				: null;
-		} catch ( error ) {
-			return null;
-		}
-	}
-
-	function callSelector( store, names, fallback ) {
-		for ( var index = 0; store && index < names.length; index++ ) {
-			if ( typeof store[ names[ index ] ] === 'function' ) {
-				try {
-					return store[ names[ index ] ]();
-				} catch ( error ) {
-					return fallback;
-				}
-			}
-		}
-		return fallback;
-	}
-
-	function cartBusy() {
-		var cart = selectStore( 'wc/store/cart' );
-		var checkout = selectStore( 'wc/store/checkout' );
-		return Boolean(
-			callSelector( checkout, [ 'isCalculating' ], false ) ||
-			callSelector( cart, [ 'isCustomerDataUpdating' ], false ) ||
-			callSelector( cart, [ 'isLoadingRates' ], false ) ||
-			callSelector( cart, [ 'isAddressFieldsForShippingRatesUpdating' ], false )
-		);
-	}
-
-	function shippingReady() {
-		var cart = selectStore( 'wc/store/cart' );
-		var needsShipping = callSelector( cart, [ 'getNeedsShipping' ], groupsForStep( 'shipping' ).length > 0 );
-		return ! needsShipping || callSelector( cart, [ 'getHasCalculatedShipping', 'hasCalculatedShipping' ], false );
-	}
-
-	function sectionValid( id ) {
-		if ( firstInvalidControl( id ) ) {
-			return false;
-		}
-		return id !== 'shipping' || ( ! cartBusy() && shippingReady() );
+	function sectionValid( id, groups ) {
+		return ! firstInvalidControl( id, groups );
 	}
 
 	function createNavigation( steps ) {
@@ -200,6 +153,7 @@
 			nav.appendChild( button );
 			headers[ step.id ] = button;
 		} );
+
 		return { nav: nav, headers: headers };
 	}
 
@@ -211,8 +165,6 @@
 				if ( ! panel.id ) {
 					panel.id = 'dtb-checkout-' + step.id + '-panel-' + ( panelIndex + 1 );
 				}
-				// Not a direct child: WooCommerce Blocks renders the heading nested one level
-				// deeper, inside `.wc-block-components-checkout-step__heading-container`.
 				var heading = panelIndex === 0 ? panel.querySelector( '.wc-block-components-checkout-step__heading' ) : null;
 				if ( heading ) {
 					heading.classList.add( 'dtb-checkout__native-heading--visually-hidden' );
@@ -221,54 +173,13 @@
 		} );
 	}
 
-	function updateHeaderControls( steps, groups ) {
-		steps.forEach( function ( step ) {
-			var header = ui && ui.headers[ step.id ];
-			if ( ! header ) {
-				return;
-			}
-			header.setAttribute( 'aria-controls', groupsForStep( step.id, groups ).map( function ( panel ) { return panel.id; } ).join( ' ' ) );
-		} );
-	}
-
-	function mount( groups ) {
-		var root = checkoutRoot();
-		var steps = availableSteps( groups );
-		if ( ! root || ! steps.length ) {
-			return;
-		}
-		if ( ! steps.some( function ( step ) { return step.id === activeStepId; } ) ) {
-			activeStepId = steps[ 0 ].id;
-		}
-
-		if ( ! ui ) {
-			var chrome = createNavigation( steps );
-			root.parentNode.insertBefore( chrome.nav, root );
-			root.classList.add( 'dtb-checkout--accordion' );
-			ui = { root: root, nav: chrome.nav, headers: chrome.headers, stepSignature: steps.map( function ( step ) { return step.id; } ).join( '|' ) };
-		} else {
-			var signature = steps.map( function ( step ) { return step.id; } ).join( '|' );
-			if ( signature !== ui.stepSignature ) {
-				unmount();
-				mount( groups );
-				return;
-			}
-		}
-
-		ensurePanelMetadata( groups );
-		updateHeaderControls( steps, groups );
-		applyState( groups );
-	}
-
 	function clearPanelState( panel ) {
 		panel.classList.remove( PANEL_CLASS );
-		panel.removeAttribute( COLLAPSED_ATTR );
 		panel.removeAttribute( ACTIVE_ATTR );
 		panel.removeAttribute( COMPLETE_ATTR );
 		panel.removeAttribute( 'aria-hidden' );
 		panel.removeAttribute( 'inert' );
-		panel.style.removeProperty( 'height' );
-		panel.style.removeProperty( 'overflow' );
+		panel.removeAttribute( 'hidden' );
 		delete panel.dataset.dtbAccordionStep;
 		panel.querySelectorAll( '.dtb-checkout__native-heading--visually-hidden' ).forEach( function ( heading ) {
 			heading.classList.remove( 'dtb-checkout__native-heading--visually-hidden' );
@@ -286,58 +197,76 @@
 		} );
 	}
 
-	function expandPanel( panel ) {
-		panel.removeAttribute( COLLAPSED_ATTR );
-		panel.setAttribute( ACTIVE_ATTR, 'true' );
-		panel.setAttribute( 'aria-hidden', 'false' );
-		panel.removeAttribute( 'inert' );
-		panel.style.overflow = 'hidden';
-		panel.style.height = panel.scrollHeight + 'px';
-		window.setTimeout( function () {
-			if ( panel.hasAttribute( ACTIVE_ATTR ) ) {
-				panel.style.height = 'auto';
-				panel.style.overflow = 'visible';
-			}
-		}, TRANSITION_MS );
-	}
+	function setPanelExpanded( panel, expanded ) {
+		if ( expanded ) {
+			panel.hidden = false;
+			panel.removeAttribute( 'inert' );
+			panel.setAttribute( 'aria-hidden', 'false' );
+			panel.setAttribute( ACTIVE_ATTR, 'true' );
+			return;
+		}
 
-	function collapsePanel( panel ) {
-		var startHeight = panel.getBoundingClientRect().height || panel.scrollHeight;
-		panel.style.height = startHeight + 'px';
-		panel.style.overflow = 'hidden';
 		panel.removeAttribute( ACTIVE_ATTR );
 		panel.setAttribute( 'aria-hidden', 'true' );
 		panel.setAttribute( 'inert', '' );
-		window.requestAnimationFrame( function () {
-			panel.setAttribute( COLLAPSED_ATTR, 'true' );
-			panel.style.height = '0px';
-		} );
+		panel.hidden = true;
 	}
 
 	function applyState( groups ) {
 		if ( ! ui ) {
 			return;
 		}
+
 		availableSteps( groups ).forEach( function ( step ) {
 			var expanded = step.id === activeStepId;
 			var header = ui.headers[ step.id ];
 			if ( header ) {
 				header.setAttribute( 'aria-expanded', expanded ? 'true' : 'false' );
+				header.setAttribute( 'aria-controls', groupsForStep( step.id, groups ).map( function ( panel ) { return panel.id; } ).join( ' ' ) );
 				header.dataset.state = expanded ? 'active' : completed[ step.id ] ? 'complete' : 'idle';
 			}
+
 			groupsForStep( step.id, groups ).forEach( function ( panel ) {
 				if ( completed[ step.id ] ) {
 					panel.setAttribute( COMPLETE_ATTR, 'true' );
 				} else {
 					panel.removeAttribute( COMPLETE_ATTR );
 				}
-				if ( expanded ) {
-					expandPanel( panel );
-				} else if ( ! panel.hasAttribute( COLLAPSED_ATTR ) || panel.style.height !== '0px' ) {
-					collapsePanel( panel );
-				}
+				setPanelExpanded( panel, expanded );
 			} );
 		} );
+	}
+
+	function mount( groups ) {
+		var root = checkoutRoot();
+		var steps = availableSteps( groups );
+		if ( ! root || ! steps.length ) {
+			return;
+		}
+
+		if ( ! steps.some( function ( step ) { return step.id === activeStepId; } ) ) {
+			activeStepId = steps[ 0 ].id;
+		}
+
+		var signature = steps.map( function ( step ) { return step.id; } ).join( '|' );
+		if ( ui && ( ui.root !== root || ui.stepSignature !== signature ) ) {
+			unmount();
+		}
+
+		if ( ! ui ) {
+			var chrome = createNavigation( steps );
+			root.parentNode.insertBefore( chrome.nav, root );
+			root.classList.add( 'dtb-checkout--accordion' );
+			ui = {
+				root: root,
+				nav: chrome.nav,
+				headers: chrome.headers,
+				stepSignature: signature,
+			};
+		}
+
+		ensurePanelMetadata( groups );
+		applyState( groups );
 	}
 
 	function focusHeader( id ) {
@@ -351,13 +280,10 @@
 		if ( ! groupsForStep( id, groups ).length ) {
 			return;
 		}
+
 		activeStepId = id;
 		applyState( groups );
-		if ( id === 'payment' ) {
-			window.requestAnimationFrame( function () {
-				window.requestAnimationFrame( function () { window.dispatchEvent( new Event( 'resize' ) ); } );
-			} );
-		}
+
 		if ( moveFocus ) {
 			focusHeader( id );
 		}
@@ -369,43 +295,31 @@
 		}
 	}
 
-	function nextAvailableStepId( id ) {
-		var steps = availableSteps( classifyStepGroups() );
-		var current = steps.findIndex( function ( step ) { return step.id === id; } );
-		return current >= 0 && steps[ current + 1 ] ? steps[ current + 1 ].id : '';
-	}
-
-	function controlledAdvance( id ) {
-		if ( activeStepId !== id || ! sectionValid( id ) ) {
-			return;
-		}
-		var next = nextAvailableStepId( id );
-		if ( next ) {
-			completed[ id ] = true;
-			openStep( next, true, true );
-		}
-	}
-
 	function revealInvalid( control ) {
-		var id = stepIdForNode( control );
+		var groups = classifyStepGroups();
+		var id = stepIdForNode( control, groups );
 		if ( ! id ) {
 			return;
 		}
+
 		completed[ id ] = false;
-		openStep( id, true, false );
+		activeStepId = id;
+		applyState( groups );
+
 		window.requestAnimationFrame( function () {
-			control.focus( { preventScroll: true } );
-			control.scrollIntoView( { behavior: 'auto', block: 'center' } );
-			if ( typeof control.reportValidity === 'function' ) {
-				control.reportValidity();
+			if ( ! document.documentElement.contains( control ) ) {
+				return;
 			}
+			control.focus( { preventScroll: true } );
+			control.scrollIntoView( { behavior: 'auto', block: 'center', inline: 'nearest' } );
 		} );
 	}
 
 	function firstInvalidAcrossCheckout() {
-		var steps = availableSteps( classifyStepGroups() );
+		var groups = classifyStepGroups();
+		var steps = availableSteps( groups );
 		for ( var index = 0; index < steps.length; index++ ) {
-			var invalid = firstInvalidControl( steps[ index ].id );
+			var invalid = firstInvalidControl( steps[ index ].id, groups );
 			if ( invalid ) {
 				return invalid;
 			}
@@ -434,45 +348,28 @@
 		if ( ! isMobile() || ! event.target ) {
 			return;
 		}
-		var id = stepIdForNode( event.target );
-		if ( id === 'contact' && event.target.matches( 'input[type="email"]' ) ) {
-			window.setTimeout( function () { controlledAdvance( 'contact' ); }, 150 );
+		var groups = classifyStepGroups();
+		var id = stepIdForNode( event.target, groups );
+		if ( id && completed[ id ] && ! sectionValid( id, groups ) ) {
+			completed[ id ] = false;
+			applyState( groups );
 		}
-		if ( id === 'shipping' && event.target.matches( 'input[type="radio"], select' ) ) {
-			shippingInteractionPending = true;
-			if ( ! cartBusy() ) {
-				window.setTimeout( function () { controlledAdvance( 'shipping' ); }, 150 );
-			}
-		}
-	}
-
-	function subscribeStores() {
-		if ( storeUnsubscribe || ! window.wp || ! window.wp.data || typeof window.wp.data.subscribe !== 'function' ) {
-			return;
-		}
-		storeUnsubscribe = window.wp.data.subscribe( function () {
-			var busy = cartBusy();
-			if ( activeStepId === 'shipping' && shippingInteractionPending && shippingWasBusy && ! busy ) {
-				shippingInteractionPending = false;
-				window.setTimeout( function () { controlledAdvance( 'shipping' ); }, 150 );
-			}
-			shippingWasBusy = busy;
-		} );
 	}
 
 	function reconcile() {
 		reconcileFrame = 0;
 		var root = checkoutRoot();
 		if ( ! root ) {
+			unmount();
 			return;
 		}
 		if ( ! isMobile() ) {
 			unmount();
 			return;
 		}
+
 		var groups = classifyStepGroups();
 		if ( ! groups[ 0 ].length || ! groups[ 2 ].length ) {
-			unmount();
 			return;
 		}
 		mount( groups );
@@ -485,6 +382,25 @@
 		reconcileFrame = window.requestAnimationFrame( reconcile );
 	}
 
+	function observeRoot( root ) {
+		if ( observedRoot === root ) {
+			return;
+		}
+		if ( observer ) {
+			observer.disconnect();
+		}
+		observedRoot = root;
+		observer = new MutationObserver( function ( mutations ) {
+			var structuralChange = mutations.some( function ( mutation ) {
+				return mutation.type === 'childList' && ( mutation.addedNodes.length || mutation.removedNodes.length );
+			} );
+			if ( structuralChange ) {
+				scheduleReconcile();
+			}
+		} );
+		observer.observe( root, { childList: true, subtree: true } );
+	}
+
 	function init( attempt ) {
 		var root = checkoutRoot();
 		if ( ! root ) {
@@ -495,32 +411,17 @@
 		}
 
 		media = window.matchMedia( MOBILE_QUERY );
-		media.addEventListener ? media.addEventListener( 'change', scheduleReconcile ) : media.addListener( scheduleReconcile );
+		if ( media.addEventListener ) {
+			media.addEventListener( 'change', scheduleReconcile );
+		} else {
+			media.addListener( scheduleReconcile );
+		}
 
 		root.addEventListener( 'invalid', onInvalid, true );
 		root.addEventListener( 'submit', onSubmit, true );
 		root.addEventListener( 'change', onChange );
-
-		observer = new MutationObserver( scheduleReconcile );
-		observer.observe( root, { childList: true, subtree: true } );
-
-		if ( 'ResizeObserver' in window ) {
-			resizeObserver = new ResizeObserver( function () {
-				if ( ui ) {
-					groupsForStep( activeStepId ).forEach( function ( panel ) {
-						if ( panel.hasAttribute( ACTIVE_ATTR ) && panel.style.height !== 'auto' ) {
-							panel.style.height = panel.scrollHeight + 'px';
-						}
-					} );
-				}
-			} );
-			resizeObserver.observe( root );
-		}
-
-		subscribeStores();
+		observeRoot( root );
 		scheduleReconcile();
-		window.setTimeout( scheduleReconcile, 300 );
-		window.setTimeout( scheduleReconcile, 900 );
 	}
 
 	if ( document.readyState === 'loading' ) {
