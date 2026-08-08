@@ -73,9 +73,7 @@ export default function StorefrontProductRail({
   };
 
   const openModal = (product) => {
-    setModalProduct({
-      product,
-    });
+    setModalProduct({ product });
     setIsModalOpen(true);
   };
 
@@ -88,7 +86,7 @@ export default function StorefrontProductRail({
         skeleton={<StorefrontSkeletons count={4} variant="rail" />}
         label={`Loading ${label.toLowerCase()}`}
       >
-        <StorefrontRail label={label} className="storefront-rail--fixed-tiles">
+        <StorefrontRail label={label} className="storefront-rail--fixed-tiles storefront-rail--equal-height">
           {products.map((product, index) => {
             const cardProduct = product.cardProduct || product;
 
@@ -97,7 +95,7 @@ export default function StorefrontProductRail({
                 key={product.sku || product.id}
                 product={product}
                 cardProduct={cardProduct}
-                variant="grid"
+                variant="rail"
                 onOpenModal={() => openModal(product)}
                 onAddToCart={() => handleAddToCart(cardProduct)}
                 index={index}
