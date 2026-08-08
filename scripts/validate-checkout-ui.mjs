@@ -14,20 +14,19 @@ const source = Object.fromEntries(Object.entries(files).map(([key, filename]) =>
 const failures = [];
 const assert = (condition, message) => { if (!condition) failures.push(message); };
 
-assert(!source.js.includes("panels[ 0 ].parentNode.insertBefore"), 'Accordion headers must not be inserted into WooCommerce-managed panel parents.');
-assert(!source.js.includes('max-height: 2400px'), 'Fixed accordion height ceilings are forbidden.');
-assert(source.js.includes("root.parentNode.insertBefore( chrome.nav, root )"), 'Accordion navigation must be mounted outside the WooCommerce root.');
-assert(source.js.includes('availableSteps'), 'Optional checkout sections must be derived dynamically.');
-assert(source.js.includes("root.addEventListener( 'invalid'"), 'Native invalid events must reveal the owning section.');
-assert(source.js.includes("root.addEventListener( 'submit'"), 'Form submit paths must be covered.');
-assert(source.js.includes("panel.hidden = true"), 'Collapsed mobile checkout panels must use deterministic native visibility.');
-assert(source.js.includes("panel.hidden = false"), 'Expanded mobile checkout panels must restore native visibility before focus/validation.');
-assert(!source.js.includes('panel.scrollHeight'), 'Accordion code must not measure WooCommerce React panel heights.');
-assert(!source.js.includes("panel.style.height"), 'Accordion code must not write inline heights into WooCommerce React panels.');
-assert(!source.js.includes('ResizeObserver'), 'Checkout navigation must not couple WooCommerce rendering to ResizeObserver reconciliation.');
-assert(!source.js.includes("window.dispatchEvent( new Event( 'resize' )"), 'Checkout navigation must not synthesize resize events for payment surfaces.');
-assert(!source.js.includes("window.wp.data.subscribe"), 'Checkout navigation must not auto-advance from WooCommerce store churn.');
-assert(!source.js.includes('controlledAdvance'), 'Checkout sections must not auto-advance while WooCommerce asynchronously validates/recalculates.');
+// Checkout Block is React-managed. DTB mobile behavior must remain passive.
+assert(source.js.includes('Intentionally no-op'), 'Mobile checkout behavior must remain an explicit no-op boundary.');
+assert(!source.js.includes('MutationObserver'), 'DTB must not observe WooCommerce checkout DOM mutations.');
+assert(!source.js.includes('ResizeObserver'), 'DTB must not observe WooCommerce checkout layout changes.');
+assert(!source.js.includes('querySelector'), 'DTB checkout JS must not query or orchestrate WooCommerce-managed DOM.');
+assert(!source.js.includes('insertBefore'), 'DTB must not inject navigation into the WooCommerce checkout document flow.');
+assert(!source.js.includes('.hidden'), 'DTB must not hide WooCommerce checkout sections.');
+assert(!source.js.includes('setAttribute'), 'DTB must not mutate accessibility/state attributes on WooCommerce checkout nodes.');
+assert(!source.js.includes('.focus('), 'DTB must not take ownership of checkout field focus.');
+assert(!source.js.includes('scrollIntoView'), 'DTB must not force checkout scrolling during native input/validation behavior.');
+assert(!source.js.includes('requestAnimationFrame'), 'DTB must not schedule DOM reconciliation against Checkout Block renders.');
+assert(!source.js.includes('window.wp.data'), 'DTB must not couple presentation to WooCommerce data-store churn.');
+
 assert(!source.css.includes('.wp-block-woocommerce-checkout-payment-block legend {\n\tdisplay: none'), 'Payment fieldset legends must remain accessible.');
 assert(!/var\(--dtb-(surface|border|radius|shadow)/.test(source.desktop), 'Desktop CSS contains retired checkout token names.');
 assert(!/max-height:\s*calc\(100dvh/.test(source.desktop), 'Desktop order summary must not create an internal viewport scroll container.');
