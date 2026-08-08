@@ -1,0 +1,278 @@
+/* Product description/tab presentation authority.
+ * Keeps WooCommerce description HTML semantic while restoring the restrained
+ * original DTB PDP treatment. Product data remains owned by WooCommerce. */
+
+.dtb-pdp-sections {
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+}
+
+.dtb-pdp-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  overflow: visible;
+  border-bottom: 1px solid #dbe3ee;
+}
+
+.dtb-pdp-tabs__tab {
+  min-width: 0;
+  padding: .85rem .5rem .8rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #64748b;
+  font-size: clamp(.82rem, 1.3vw, .95rem);
+  font-weight: 650;
+  line-height: 1.15;
+  text-align: center;
+  white-space: nowrap;
+  margin: 0 0 -1px;
+}
+
+.dtb-pdp-tabs__tab::after {
+  display: none;
+}
+
+.dtb-pdp-tabs__tab:hover:not(.is-active) {
+  background: transparent;
+  color: #334155;
+}
+
+.dtb-pdp-tabs__tab.is-active {
+  border-bottom-color: #2255ee;
+  color: #0f172a;
+  font-weight: 750;
+}
+
+.dtb-pdp-tabs__tab:focus-visible {
+  outline: 2px solid rgba(34, 85, 238, .35);
+  outline-offset: -3px;
+}
+
+.dtb-pdp-section {
+  padding-top: clamp(1rem, 2vw, 1.35rem);
+}
+
+.dtb-pdp-section__content--description {
+  position: relative;
+  overflow: visible;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .055);
+}
+
+.dtb-pdp-section__content--description::before {
+  display: none;
+}
+
+.dtb-pdp-description-content {
+  display: block;
+  width: 100%;
+  padding: clamp(1.2rem, 2.6vw, 1.75rem);
+  color: #475569;
+  font-size: clamp(.96rem, .35vw + .88rem, 1.04rem);
+  line-height: 1.7;
+}
+
+.dtb-pdp-description-kicker {
+  display: none;
+}
+
+.dtb-pdp-description-content--formatted {
+  display: grid;
+  gap: .9rem;
+}
+
+.dtb-pdp-description-content--formatted .dtb-pdp-description-card,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card {
+  display: flow-root;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dtb-pdp-description-content--formatted .dtb-pdp-description-card + .dtb-pdp-description-card {
+  margin-top: .15rem;
+}
+
+.dtb-pdp-description-content p,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
+  max-width: 84ch;
+  margin: 0;
+  color: #475569;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.dtb-pdp-description-content p + p,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
+  margin-top: .8rem;
+}
+
+.dtb-pdp-description-lead,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > p:first-child {
+  color: #334155;
+  font-size: clamp(1rem, .45vw + .9rem, 1.08rem);
+  font-weight: 400;
+  line-height: 1.72;
+}
+
+.dtb-pdp-description-content h1,
+.dtb-pdp-description-content h2,
+.dtb-pdp-description-content h3,
+.dtb-pdp-description-content h4,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h2,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h3,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h4 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 1.4rem 0 .65rem;
+  color: #0f172a;
+  font-size: clamp(1.02rem, .45vw + .94rem, 1.18rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -.015em;
+}
+
+.dtb-pdp-description-content h2:first-child,
+.dtb-pdp-description-content h3:first-child,
+.dtb-pdp-description-content h4:first-child,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h2:first-child,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h3:first-child,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h4:first-child {
+  margin-top: 0;
+}
+
+.dtb-pdp-description-content h2::before,
+.dtb-pdp-description-content h3::before,
+.dtb-pdp-description-content h4::before,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h2::before,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h3::before,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h4::before {
+  content: "";
+  width: .55rem;
+  height: .55rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #2255ee;
+  box-shadow: 0 0 0 3px rgba(34, 85, 238, .13);
+}
+
+.dtb-pdp-description-content h2::after,
+.dtb-pdp-description-content h3::after,
+.dtb-pdp-description-content h4::after,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h2::after,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h3::after,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > h4::after {
+  display: none;
+}
+
+.dtb-pdp-description-content ul,
+.dtb-pdp-description-content ol,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .7rem;
+  margin: 0;
+  padding: 0 0 0 1.9rem;
+  list-style: disc;
+  counter-reset: none;
+}
+
+.dtb-pdp-description-content ol,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol {
+  list-style: decimal;
+}
+
+.dtb-pdp-description-content li,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li {
+  display: list-item;
+  position: static;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #475569;
+  font-size: inherit;
+  line-height: 1.62;
+}
+
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li::before,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li::before {
+  display: none;
+  content: none;
+}
+
+.dtb-pdp-description-content li::marker {
+  color: #2255ee;
+}
+
+.dtb-pdp-description-content li strong,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ul > li strong,
+.dtb-pdp-description-content--rich .dtb-pdp-description-card > ol > li strong {
+  display: inline;
+  margin: 0;
+  color: #334155;
+  font-size: inherit;
+  font-weight: 750;
+  line-height: inherit;
+}
+
+@media (max-width: 47.99rem) {
+  .dtb-pdp-tabs__tab {
+    min-height: 44px;
+    padding: .72rem .25rem .68rem;
+    font-size: clamp(.78rem, 3.45vw, .9rem);
+  }
+
+  .dtb-pdp-section {
+    padding-top: .9rem;
+  }
+
+  .dtb-pdp-section__content--description {
+    border-radius: 16px;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+  }
+
+  .dtb-pdp-description-content {
+    padding: 1.05rem 1rem 1.15rem;
+    font-size: 1rem;
+    line-height: 1.64;
+  }
+
+  .dtb-pdp-description-lead,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > p:first-child {
+    font-size: 1rem;
+    line-height: 1.66;
+  }
+
+  .dtb-pdp-description-content h1,
+  .dtb-pdp-description-content h2,
+  .dtb-pdp-description-content h3,
+  .dtb-pdp-description-content h4,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > h2,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > h3,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > h4 {
+    margin-top: 1.2rem;
+    margin-bottom: .6rem;
+    font-size: 1.05rem;
+  }
+
+  .dtb-pdp-description-content ul,
+  .dtb-pdp-description-content ol,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ul,
+  .dtb-pdp-description-content--rich .dtb-pdp-description-card > ol {
+    gap: .62rem;
+    padding-left: 1.55rem;
+  }
+}
