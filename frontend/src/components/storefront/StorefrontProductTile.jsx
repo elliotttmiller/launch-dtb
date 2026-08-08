@@ -119,7 +119,7 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
       <div className="dtb-product-card__meta">
         {displayProduct.brand ? <span className="dtb-product-card__brand">{displayProduct.brand}</span> : null}
         <button type="button" onClick={handleTitleClick} className="dtb-product-card__name" data-dtb-card-action="title" aria-label={isMobile ? `Open full page for ${name}` : `View product details for ${name}`}>{name}</button>
-        {sku ? <span className="dtb-product-card__sku">SKU: {sku}</span> : null}
+        <span className={`dtb-product-card__sku${sku ? '' : ' dtb-product-card__sku--empty'}`} aria-hidden={sku ? undefined : true}>{sku ? `SKU: ${sku}` : '\u00a0'}</span>
         <div className="dtb-product-card__divider" />
         <div className="dtb-product-card__footer"><div className="dtb-product-card__price-col"><div className="dtb-product-card__price-group"><strong className="dtb-product-card__price" style={{ color: outOfStock ? 'var(--dtb-muted)' : 'var(--dtb-text)' }}>{priceStr}</strong>{comparePriceStr ? <span className="dtb-product-card__compare-price">{comparePriceStr}</span> : null}</div></div>{!isMobile && !isVariable && <AddToCartButton onClick={handleAddButtonClick} disabled={outOfStock} className="dtb-product-card__action" size="card" label="Add" productId={displayProduct.id} aria-label={`Add ${name} to cart`} data-dtb-card-action="add" />}</div>
       </div>
