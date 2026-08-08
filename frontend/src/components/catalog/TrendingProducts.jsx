@@ -23,9 +23,7 @@ export default function TrendingProducts() {
   };
 
   const openModal = useCallback((product) => {
-    setModalProduct({
-      product,
-    });
+    setModalProduct({ product });
     setIsModalOpen(true);
   }, []);
 
@@ -99,17 +97,13 @@ export default function TrendingProducts() {
   if (!loading && products.length === 0) return null;
 
   return (
-    <StorefrontSection
-      eyebrow="Featured"
-      title="Trending Products"
-      viewAllHref="/products?sort=popular"
-    >
+    <StorefrontSection eyebrow="Featured" title="Trending Products" viewAllHref="/products?sort=popular">
       <LoadingCardTransition
         loading={loading}
         skeleton={<StorefrontSkeletons count={4} variant="rail" />}
         label="Loading trending products"
       >
-        <StorefrontRail label="Trending products" className="storefront-rail--fixed-tiles">
+        <StorefrontRail label="Trending products" className="storefront-rail--fixed-tiles storefront-rail--equal-height">
           {products.map((product, index) => {
             const cardProduct = product.cardProduct || product;
 
@@ -118,7 +112,7 @@ export default function TrendingProducts() {
                 key={product.sku || product.id}
                 product={product}
                 cardProduct={cardProduct}
-                variant="grid"
+                variant="rail"
                 onOpenModal={() => openModal(product)}
                 onAddToCart={() => handleAddToCart(cardProduct)}
                 index={index}
