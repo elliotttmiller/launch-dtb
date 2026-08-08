@@ -85,34 +85,36 @@ export default function Home() {
           brands={heroBrands}
         />
 
-        <div className="container mx-auto px-5 pb-4 md:px-4">
+        <div className="dtb-home-storefront">
+          <div className="container mx-auto px-5 pb-4 md:px-4">
 
             {/* ── Trending / Featured Products (brand-balanced) ── */}
-          <TrendingProducts />
+            <TrendingProducts />
 
-          {/* ── New Arrivals ── */}
-          <StorefrontSection
-            eyebrow="Just In"
-            title="New Arrivals"
-            viewAllHref="/products?sort=newest"
-          >
-            <StorefrontProductRail sort="newest" maxItems={10} label="New arrivals" />
-          </StorefrontSection>
+            {/* ── New Arrivals ── */}
+            <StorefrontSection
+              eyebrow="Just In"
+              title="New Arrivals"
+              viewAllHref="/products?sort=newest"
+            >
+              <StorefrontProductRail sort="newest" maxItems={10} label="New arrivals" />
+            </StorefrontSection>
 
-          {/* ── Shop by Brand ── */}
-          <StorefrontSection
-            eyebrow="Brands"
-            title="Shop by Brand"
-            viewAllHref="/products/brands"
-            viewAllLabel="All brands"
-          >
-            <StorefrontRail label="Brands" className="storefront-rail--brand">
-              {brands.map((brand) => (
-                <StorefrontBrandTile key={brand.name} {...brand} />
-              ))}
-            </StorefrontRail>
-          </StorefrontSection>
+            {/* ── Shop by Brand ── */}
+            <StorefrontSection
+              eyebrow="Brands"
+              title="Shop by Brand"
+              viewAllHref="/products/brands"
+              viewAllLabel="All brands"
+            >
+              <StorefrontRail label="Brands" className="storefront-rail--brand">
+                {brands.map((brand) => (
+                  <StorefrontBrandTile key={brand.name} {...brand} />
+                ))}
+              </StorefrontRail>
+            </StorefrontSection>
 
+          </div>
         </div>
       </div>
     </>
