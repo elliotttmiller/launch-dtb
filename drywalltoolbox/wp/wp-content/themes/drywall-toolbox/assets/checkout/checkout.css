@@ -16,7 +16,7 @@
 	--dtb-checkout-red-700: #b42318;
 	--dtb-checkout-red-50: #fff1f0;
 	--dtb-checkout-surface: #fff;
-	--dtb-checkout-canvas: #f5f7fa;
+	--dtb-checkout-canvas: #fff;
 	--dtb-checkout-surface-subtle: #f8fafc;
 	--dtb-checkout-border: #e2e8f0;
 	--dtb-checkout-border-strong: #cbd5e1;
@@ -262,6 +262,7 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout
 }
 
 .wc-block-components-express-payment { width: 100%; margin: 0; padding: 22px 0 24px; border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; background: transparent; box-shadow: none; }
+.wc-block-components-express-payment :where(fieldset, .wc-block-components-express-payment__content) { margin: 0; padding: 0; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
 .wc-block-components-express-payment__event-buttons { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--dtb-checkout-space-3); }
 
 .wc-block-components-text-input input,
@@ -357,10 +358,14 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select_
 .wc-block-components-radio-control__option input[type="radio"],
 .wc-block-checkout__shipping-method-option input[type="radio"],
 .wc-block-components-radio-control-accordion-option input[type="radio"] {
+	appearance: none !important;
+	opacity: 0 !important;
 	position: absolute !important;
 	width: 1px;
 	height: 1px;
 	margin: -1px;
+	padding: 0 !important;
+	border: 0 !important;
 	clip-path: inset(50%);
 	overflow: hidden;
 }
@@ -373,6 +378,7 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select_
 .wc-block-components-checkbox { display: flex; align-items: center; min-height: var(--dtb-checkout-touch); padding-block: var(--dtb-checkout-space-2); gap: var(--dtb-checkout-space-2); cursor: pointer; }
 .wc-block-components-checkbox__input { width: 20px; height: 20px; border: 1px solid var(--dtb-checkout-border-strong); border-radius: 5px; flex: none; }
 .wc-block-components-checkbox__input:checked { border-color: var(--dtb-checkout-blue-600); background: var(--dtb-checkout-blue-600); }
+.wc-block-components-address-card address { margin: 0; color: var(--dtb-checkout-ink-900); font-style: normal; font-size: 13px; line-height: 1.5; }
 .wc-block-components-checkout-place-order-button {
 	width: 100%;
 	min-height: 56px;

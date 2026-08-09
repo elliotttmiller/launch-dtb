@@ -50,6 +50,8 @@ assert(!source.template.includes('Secure checkout'), 'Checkout header must not a
 assert(source.template.includes("'Provided by Stripe'"), 'Checkout header must expose the Stripe attribution image with accurate alternative text.');
 assert(source.css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 118px)'), 'Mobile checkout header must reserve a shrink-safe Stripe badge track.');
 assert(source.css.includes('.wc-block-components-order-summary-item__description .wc-block-components-product-price'), 'Order summary must suppress duplicate description-column product prices.');
+assert(source.css.includes('appearance: none !important;\n\topacity: 0 !important;'), 'Native radio inputs must stay visually hidden while preserving their accessible selection state.');
+assert(source.css.includes('.wc-block-components-express-payment :where(fieldset, .wc-block-components-express-payment__content)'), 'Express Checkout structural wrappers must remain unboxed.');
 assert(source.summary.includes('border-radius: 0 !important;\n\t\tbox-shadow: none !important;\n\t\toverflow: visible !important;'), 'Mobile order summary must remain an open ledger instead of a card.');
 assert(source.versioner.includes('filemtime'), 'Checkout-owned assets must use file modification times for cache invalidation.');
 
