@@ -12,6 +12,15 @@ export function buildDisplayCategoryUrl(slug) {
   return `/products?display_category=${encodeURIComponent(slug)}`;
 }
 
+/**
+ * Build a URL against the canonical WooCommerce product category taxonomy.
+ * `category` is resolved server-side as a product_cat slug (including child
+ * terms) before the legacy metadata fallback is considered.
+ */
+export function buildCatalogCategoryUrl(slug) {
+  return `/products?category=${encodeURIComponent(slug)}`;
+}
+
 export function normalizeCatalogBrandEntry(rawBrand = {}) {
   const label = canonicalBrandLabel(rawBrand.label || rawBrand.name || rawBrand.key || rawBrand.slug || '');
   if (!label) return null;
@@ -89,6 +98,45 @@ export function mergeCatalogDisplayCategories(displayCategoriesByBrand = {}) {
   return Array.from(merged.values())
     .filter((item) => item.count > 0)
     .sort((a, b) => (b.count - a.count) || a.label.localeCompare(b.label));
+}
+
+/**
+ * Normalize backend-owned WooCommerce product category navigation groups.
+ * The backend supplies parent/child taxonomy structure; the frontend only
+ * adapts the contract into links and never re-classifies products itself.
+ */
+export function normalizeCatalogNavigationGroups(rawGroups = []) {
+  return (Array.isArray(rawGroups) ? rawGroups : [])
+    .map((rawGroup) => {
+      const label = rawGroup?.label || rawGroup?.name || '';
+      const slug = rawGroup?.slug || rawGroup?.key || '';
+      const children = (Array.isArray(rawGroup?.children) ? rawGroup.children : [])
+        .map((rawChild) => {
+          const childLabel = rawChild?.label || rawChild?.name || '';
+          const childSlug = rawChild?.slug || rawChild?.key || '';
+          if (!childLabel || !childSlug) return null;
+          return {
+            ...rawChild,
+            label: childLabel,
+            slug: childSlug,
+            count: Number(rawChild?.productCount || rawChild?.count || 0),
+            to: buildCatalogCategoryUrl(childSlug),
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => String(a.label).localeCompare(String(b.label)));
+
+      if (!label || !slug) return null;
+      return {
+        ...rawGroup,
+        label,
+        slug,
+        count: Number(rawGroup?.productCount || rawGroup?.count || 0),
+        to: buildCatalogCategoryUrl(slug),
+        children,
+      };
+    })
+    .filter(Boolean);
 }
 
 export function normalizeCatalogCategoryEntry(category) {
