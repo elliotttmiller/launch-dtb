@@ -369,7 +369,7 @@ final class DTB_VariationGalleryResolver {
 	 * Build an exact, separator-tolerant SKU matcher.
 	 *
 	 * Character boundaries prevent a short SKU from matching a longer sibling
-	 * while still matching files such as level5_4_600p_01.webp.
+	 * while still matching files such as level5_4_600p_01.png.
 	 *
 	 * @param string $sku Variation SKU.
 	 * @return string Valid PCRE pattern or an empty string.
