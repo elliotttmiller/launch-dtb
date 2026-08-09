@@ -2,8 +2,9 @@
  * frontend/src/hooks/useCatalogFacets.js
  *
  * Fetches scoped catalog facets from GET /wp-json/dtb/v1/catalog/facets.
- * The product UI must use backend-owned display category metadata rather than
- * hardcoded legacy category lists.
+ * Canonical storefront navigation hierarchy is supplied by the backend-owned
+ * `navigationGroups` facet derived from WooCommerce product_cat terms.
+ * `displayCategoriesByBrand` remains a merchandising/filtering facet only.
  */
 
 import { useState, useEffect } from 'react';
