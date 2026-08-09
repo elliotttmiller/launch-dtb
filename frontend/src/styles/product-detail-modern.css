@@ -1923,6 +1923,17 @@
     padding: 0 !important;
   }
 
+  /* The gallery column and the buy-box column used to each render as an
+     independent "card" (own border/background/shadow) with a wide gap
+     between them — a visible seam down the middle of the PDP. This is the
+     page's primary hero content, not a repeated/scannable grid unit, so
+     neither column gets card framing here: both sit directly on the page
+     background, separated only by grid spacing. The image viewport itself
+     (`.product-image-gallery__main`) already carries its own light border
+     via its component className, which is enough to anchor the gallery
+     against the page background; the info column gets a hairline vertical
+     divider (existing `--dtb-border` token) so the two-column split still
+     reads clearly without boxing either side in. */
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__hero {
     display: grid;
     grid-template-columns: minmax(0, 1.16fr) minmax(470px, 0.84fr);
@@ -1938,14 +1949,13 @@
     min-height: 0;
     height: auto;
     align-self: start;
-    border: 1px solid #dfe5ed;
-    border-radius: 16px;
-    background: #fff;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
-    padding: 20px 28px 24px;
     aspect-ratio: auto !important;
     overflow: hidden;
   }
@@ -1959,8 +1969,11 @@
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
     height: auto !important;
     aspect-ratio: 1 / 1 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
+    /* No outer card wraps the gallery column anymore, so the image
+       viewport keeps its own light frame (border-gray-100 / rounded-2xl
+       set in ProductImageGallery.jsx) rather than having it stripped —
+       otherwise the white product photo has nothing to anchor it against
+       the page background. */
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main img {
@@ -2006,7 +2019,8 @@
     display: flex !important;
     flex-direction: column;
     gap: 0 !important;
-    padding: clamp(26px, 2.15vw, 34px) clamp(30px, 2.55vw, 40px) clamp(24px, 2vw, 32px);
+    padding: clamp(26px, 2.15vw, 34px) 0 clamp(24px, 2vw, 32px) var(--dtb-space-4, 1.5rem);
+    border-left: 1px solid var(--dtb-border, #dbe3f1);
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__summary-region,
