@@ -1,29 +1,35 @@
 /**
  * Drywall Toolbox — mobile/tablet checkout order-summary composition.
- *
- * Presentation only. WooCommerce remains authoritative for summary state,
- * disclosure behavior, cart items, shipping, taxes, discounts, and totals.
- * Loaded after checkout.css and before the desktop-only layout stylesheet.
+ * Presentation only; WooCommerce remains authoritative for checkout state.
  */
 
 @media (max-width: 1023px) {
-	/* Keep the native summary rail on the same viewport gutter as checkout content. */
+	/* One viewport gutter authority. Woo's sidebar must not add its own width/margins. */
+	body.woocommerce-checkout .wc-block-components-sidebar-layout,
+	body.woocommerce-checkout .wc-block-checkout,
 	body.woocommerce-checkout .wc-block-checkout__sidebar,
 	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar {
-		width: 100%;
-		max-width: 100%;
+		box-sizing: border-box;
 		min-width: 0;
-		margin-inline: 0;
-		padding-inline: var(--dtb-checkout-gutter);
+		max-width: 100%;
 	}
 
-	/* The summary owns one surface; its totals wrappers are rows, not cards. */
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block,
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary {
+	body.woocommerce-checkout .wc-block-checkout__sidebar,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar {
+		width: 100% !important;
+		margin: 0 !important;
+		padding: var(--dtb-checkout-gutter) !important;
+	}
+
+	/* Summary is a single sheet. No nested pill/card surfaces. */
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary {
+		box-sizing: border-box;
 		width: 100%;
 		max-width: 100%;
 		min-width: 0;
-		margin-inline: 0;
+		margin: 0;
+		padding: 0;
 		background: var(--dtb-checkout-surface);
 		border: 1px solid var(--dtb-checkout-border);
 		border-radius: var(--dtb-checkout-radius-lg);
@@ -31,64 +37,78 @@
 		overflow: hidden;
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary__title {
 		margin: 0;
 		padding: 16px clamp(16px, 4vw, 20px);
+		background: transparent;
 		border: 0;
 		border-bottom: 1px solid var(--dtb-checkout-border);
 		border-radius: 0;
-		background: transparent;
+		box-shadow: none;
 	}
 
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-cart-items-block,
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-totals-block {
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-cart-items-block,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-totals-block {
+		box-sizing: border-box;
+		width: 100%;
+		min-width: 0;
 		margin: 0;
 		padding-inline: clamp(16px, 4vw, 20px);
-	}
-
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-cart-items-block {
-		padding-block: 4px;
-	}
-
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-totals-block {
-		padding-bottom: 4px;
-		border-top: 1px solid var(--dtb-checkout-border);
-	}
-
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper,
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-wrapper {
-		margin: 0;
-		padding: 0;
 		background: transparent;
 		border: 0;
 		border-radius: 0;
 		box-shadow: none;
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper + .wc-block-components-totals-wrapper,
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-wrapper + .wc-block-components-totals-wrapper {
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-cart-items-block {
+		padding-block: 2px;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-totals-block {
+		padding-bottom: 4px;
 		border-top: 1px solid var(--dtb-checkout-border);
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-item,
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-item {
+	/* Woo/WordPress can style these wrappers as cards later in the cascade. Reset them decisively. */
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-wrapper,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary .wc-block-components-totals-footer-item {
+		width: 100%;
 		min-width: 0;
-		padding: 14px 0;
+		margin: 0 !important;
+		background: transparent !important;
+		border: 0 !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
 	}
 
-	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-footer-item,
-	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-footer-item {
-		padding-block: 18px;
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper {
+		padding: 0 !important;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper + .wc-block-components-totals-wrapper {
+		border-top: 1px solid var(--dtb-checkout-border) !important;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-totals-item {
+		box-sizing: border-box;
+		min-width: 0;
+		padding: 14px 0 !important;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-totals-footer-item {
+		padding: 18px 0 !important;
 		font-size: 18px;
 		font-weight: 750;
 	}
 
-	body.woocommerce-checkout .wc-block-components-order-summary-item {
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item {
+		box-sizing: border-box;
 		min-width: 0;
 		padding-block: 16px;
 	}
 
-	body.woocommerce-checkout :where(
+	body.woocommerce-checkout .wc-block-checkout__sidebar :where(
 		.wc-block-components-product-name,
 		.wc-block-components-product-metadata,
 		.wc-block-components-totals-item__label,
@@ -97,4 +117,36 @@
 		min-width: 0;
 		overflow-wrap: anywhere;
 	}
+
+	/* Keep summary products horizontal on phone widths without forcing overflow. */
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item {
+		display: grid;
+		grid-template-columns: 56px minmax(0, 1fr) max-content;
+		align-items: start;
+		gap: 12px;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image img {
+		width: 56px;
+		max-width: 56px;
+	}
+
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image img {
+		height: 56px;
+		object-fit: contain;
+	}
+}
+
+@media (max-width: 374px) {
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item {
+		grid-template-columns: 48px minmax(0, 1fr) auto;
+		gap: 10px;
+	}
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image img {
+		width: 48px;
+		max-width: 48px;
+	}
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-order-summary-item__image img { height: 48px; }
 }
