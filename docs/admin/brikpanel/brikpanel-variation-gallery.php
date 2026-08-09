@@ -269,6 +269,17 @@ add_action('admin_enqueue_scripts', function () {
                 ],
             ]
         );
+
+        // The Media Studio's native product count intentionally describes only
+        // the parent/simple gallery. The header summary, however, represents all
+        // media owned by this variable product, so aggregate the parent count and
+        // every variation gallery count and keep it synchronized as galleries
+        // are edited in the existing BrikPanel dialog.
+        wp_add_inline_script(
+            'brikpanel-product-media-studio',
+            "(function($){'use strict';$(function(){var root=document.querySelector('.brikpanel-media-studio');if(!root)return;function update(){var productEl=root.querySelector('[data-product-count]');var totalEl=root.querySelector('[data-media-total]');if(!totalEl)return;var total=parseInt(productEl&&productEl.textContent||'0',10)||0;root.querySelectorAll('.brikpanel-media-variation__count').forEach(function(el){total+=parseInt(el.textContent||'0',10)||0;});if(totalEl.textContent!==String(total))totalEl.textContent=String(total);}update();if(window.MutationObserver){var observer=new MutationObserver(update);observer.observe(root,{childList:true,subtree:true,characterData:true});}});})(jQuery);",
+            'after'
+        );
     }
 }, 30);
 
