@@ -24,6 +24,8 @@ The existing Product images card is progressively upgraded into two views:
 
 The first ordered image is presented as the primary image. Existing BrikPanel save behavior remains authoritative.
 
+The variation index is hydrated from the normalized `brikpanelProductData.variations[].images` array emitted by the product editor. That array already represents the variation primary image followed by its additional ordered gallery images. While the variation gallery dialog is open, the Media Studio mirrors the dialog's live image count and first image so add/remove/reorder operations remain accurate before the parent product is saved. The compact variation-row badge is retained only as a compatibility fallback when normalized media data is unavailable.
+
 ## Compatibility
 
 The enhancement intentionally operates over the existing DOM and events exposed by `brikpanel-product-editor.js`. This keeps third-party product fields, variation fields, inventory, pricing, COGS, vendor fields, and the product save transaction unchanged.
