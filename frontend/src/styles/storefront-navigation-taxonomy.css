@@ -262,8 +262,15 @@
 .storefront-mobile-drawer__taxonomy-children {
   display: grid;
   gap: 1px;
+  padding: 0 12px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 180ms cubic-bezier(0.22, 1, 0.36, 1), padding 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.storefront-mobile-drawer__taxonomy-children.is-expanded {
   padding: 0 0 8px 12px;
-  animation: dtb-mobile-taxonomy-enter 160ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  max-height: 760px;
 }
 
 .storefront-mobile-drawer__taxonomy-child {
@@ -292,17 +299,6 @@
   transform: translateX(2px);
 }
 
-@keyframes dtb-mobile-taxonomy-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .dtb-desktop-nav-taxonomy-group__heading,
   .dtb-desktop-nav-taxonomy-group__heading svg,
@@ -312,11 +308,8 @@
   .storefront-mobile-drawer__row-toggle,
   .storefront-mobile-drawer__brand-link,
   .storefront-mobile-drawer__taxonomy-toggle,
+  .storefront-mobile-drawer__taxonomy-children,
   .storefront-mobile-drawer__taxonomy-child {
     transition: none;
-  }
-
-  .storefront-mobile-drawer__taxonomy-children {
-    animation: none;
   }
 }

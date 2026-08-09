@@ -339,11 +339,14 @@ export default function StorefrontCartSheet({
         first.focus();
       }
     };
-    const prev = document.body.style.overflow;
+    const prevDocumentOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
     return () => {
-      document.body.style.overflow = prev;
+      document.documentElement.style.overflow = prevDocumentOverflow;
+      document.body.style.overflow = prevBodyOverflow;
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [isOpen, handleClose]);

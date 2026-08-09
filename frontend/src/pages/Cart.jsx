@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, Lock, ChevronLeft, ShoppingCart, ShieldAlert } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, Lock, ChevronLeft, ShoppingCart, ShieldAlert, LockKeyhole, Truck, RotateCcw } from 'lucide-react';
 
 import SEOHead from '../components/shared/SEOHead';
-import { Container, SidebarLayout } from '../components/layout';
+import { Container } from '../components/layout';
 import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
@@ -33,6 +33,12 @@ export default function Cart() {
   const localSubtotal = cartItems.reduce((sum, item) => sum + (Number(item?.price) || 0) * (Number(item?.quantity) || 1), 0);
   const serverSubtotal = parseStoreMoney(cart?.totals?.total_items, cart?.totals?.currency_minor_unit);
   const subtotal = serverSubtotal ?? localSubtotal;
+  const totalQuantity = cartItems.reduce((sum, item) => sum + (Number(item?.quantity) || 1), 0);
+  // WooCommerce's Store API returns the store's actual configured tax (nexus,
+  // product tax class, rate table) here — this is the same engine checkout
+  // uses, so it's authoritative rather than a client-guessed rate.
+  const estimatedTax = parseStoreMoney(cart?.totals?.total_tax, cart?.totals?.currency_minor_unit);
+  const estimatedTotal = subtotal + (estimatedTax || 0);
   const checkoutDisabled = isMutating || checkoutPending;
 
   const handleCheckout = async (event) => {
@@ -91,8 +97,8 @@ export default function Cart() {
           </div>
         )}
 
-        <SidebarLayout side="end" sidebarWidth="22.5rem" className="dtb-cart-page__layout">
-          <div {...itemsList.rootProps} className="dtb-cart-page__items">
+        <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="dtb-cart-sheet">
+          <div {...itemsList.rootProps} className="dtb-cart-sheet__items">
             <AnimatePresence mode="popLayout" initial={false}>
               {cartItems.map((item, index) => {
                 const itemKey = item.cartKey || item.id;
@@ -100,13 +106,11 @@ export default function Cart() {
                 const unitPrice = Number(item.price) || 0;
                 const optionText = Array.isArray(item.variation_attribute_values) ? item.variation_attribute_values.map((attribute) => attribute.option).filter(Boolean).join(' / ') : '';
                 return (
-                  <Motion.article key={itemKey} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -28, scale: 0.97, transition: { duration: 0.2 } }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.055 }} className="dtb-cart-item-card">
-                    <div className="dtb-cart-item-card__inner">
-                      <div className="dtb-cart-item-card__image">{item.image ? <img src={item.image} alt={item.name} loading="lazy" decoding="async" /> : <div className="dtb-cart-item-card__placeholder"><ShoppingCart size={24} aria-hidden="true" strokeWidth={1.5} /></div>}</div>
-                      <div className="dtb-cart-item-card__content">
-                        <div className="dtb-cart-item-card__heading"><div>{item.brand && <p className="dtb-cart-item-card__brand">{item.brand}</p>}<h2>{item.name}</h2>{optionText && <p className="dtb-cart-item-card__option">{optionText}</p>}</div><button type="button" onClick={() => removeFromCart(itemKey)} disabled={isMutating} className="dtb-cart-item-card__remove" aria-label={`Remove ${item.name}`}><Trash2 size={14} aria-hidden="true" /></button></div>
-                        <div className="dtb-cart-item-card__footer"><div className="dtb-cart-item-card__quantity" role="group" aria-label={`Quantity for ${item.name}`}><button type="button" onClick={() => updateQuantity(itemKey, quantity - 1)} disabled={isMutating} aria-label="Decrease quantity"><Minus size={12} aria-hidden="true" strokeWidth={2.5} /></button><span>{quantity}</span><button type="button" onClick={() => updateQuantity(itemKey, quantity + 1)} disabled={isMutating} aria-label="Increase quantity"><Plus size={12} aria-hidden="true" strokeWidth={2.5} /></button></div><div className="dtb-cart-item-card__price"><small>${unitPrice.toFixed(2)} each</small><strong>${(unitPrice * quantity).toFixed(2)}</strong></div></div>
-                      </div>
+                  <Motion.article key={itemKey} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -28, scale: 0.97, transition: { duration: 0.2 } }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.055 }} className="dtb-cart-row">
+                    <div className="dtb-cart-row__image">{item.image ? <img src={item.image} alt={item.name} loading="lazy" decoding="async" /> : <div className="dtb-cart-row__placeholder"><ShoppingCart size={24} aria-hidden="true" strokeWidth={1.5} /></div>}</div>
+                    <div className="dtb-cart-row__content">
+                      <div className="dtb-cart-row__heading"><div>{item.brand && <p className="dtb-cart-row__brand">{item.brand}</p>}<h2>{item.name}</h2>{optionText && <p className="dtb-cart-row__option">{optionText}</p>}</div><button type="button" onClick={() => removeFromCart(itemKey)} disabled={isMutating} className="dtb-cart-row__remove" aria-label={`Remove ${item.name}`}><Trash2 size={14} aria-hidden="true" /></button></div>
+                      <div className="dtb-cart-row__footer"><div className="dtb-cart-row__quantity" role="group" aria-label={`Quantity for ${item.name}`}><button type="button" onClick={() => updateQuantity(itemKey, quantity - 1)} disabled={isMutating} aria-label="Decrease quantity"><Minus size={12} aria-hidden="true" strokeWidth={2.5} /></button><span>{quantity}</span><button type="button" onClick={() => updateQuantity(itemKey, quantity + 1)} disabled={isMutating} aria-label="Increase quantity"><Plus size={12} aria-hidden="true" strokeWidth={2.5} /></button></div><div className="dtb-cart-row__price"><small>${unitPrice.toFixed(2)} each</small><strong>${(unitPrice * quantity).toFixed(2)}</strong></div></div>
                     </div>
                   </Motion.article>
                 );
@@ -114,10 +118,41 @@ export default function Cart() {
             </AnimatePresence>
           </div>
 
-          <Motion.aside initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="dtb-cart-page__summary-wrap">
-            <div {...orderSummary.rootProps} className="dtb-cart-summary-card"><div className="dtb-cart-summary-card__accent" /><div className="dtb-cart-summary-card__body"><h2>Order summary</h2><div className="dtb-cart-summary-card__row"><span>Merchandise subtotal</span><strong>${subtotal.toFixed(2)}</strong></div><p className="dtb-cart-summary-card__context">Shipping, discounts, and taxes are calculated at checkout.</p><a {...checkoutButton.rootProps} href={getWooCheckoutUrl()} onClick={handleCheckout} aria-disabled={checkoutDisabled ? 'true' : undefined} aria-busy={checkoutPending ? 'true' : undefined} style={{ width: checkoutWidth }} className="dtb-cart-summary-card__checkout"><Lock size={14} aria-hidden="true" strokeWidth={2.5} />{checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : checkoutNotice ? 'Confirm refreshed cart and checkout' : 'Continue to secure checkout'}<ArrowRight size={14} aria-hidden="true" strokeWidth={2.5} /></a></div></div>
-          </Motion.aside>
-        </SidebarLayout>
+          <div {...orderSummary.rootProps} className="dtb-cart-sheet__summary">
+            <h2>Order summary</h2>
+
+            <div className="dtb-cart-sheet__summary-lines">
+              <div className="dtb-cart-sheet__summary-row">
+                <span>Subtotal <small>({totalQuantity} item{totalQuantity !== 1 ? 's' : ''})</small></span>
+                <strong>${subtotal.toFixed(2)}</strong>
+              </div>
+              <div className="dtb-cart-sheet__summary-row">
+                <span>Shipping</span>
+                <strong className="dtb-cart-sheet__summary-pending">Calculated at checkout</strong>
+              </div>
+              <div className="dtb-cart-sheet__summary-row">
+                <span>Tax <small>(MN)</small></span>
+                {estimatedTax !== null
+                  ? <strong>${estimatedTax.toFixed(2)}</strong>
+                  : <strong className="dtb-cart-sheet__summary-pending">Calculated at checkout</strong>}
+              </div>
+            </div>
+
+            <div className="dtb-cart-sheet__summary-total">
+              <span>Estimated total</span>
+              <strong>${estimatedTotal.toFixed(2)}</strong>
+            </div>
+            <p className="dtb-cart-sheet__summary-context">Final total, including shipping, is confirmed at checkout.</p>
+
+            <a {...checkoutButton.rootProps} href={getWooCheckoutUrl()} onClick={handleCheckout} aria-disabled={checkoutDisabled ? 'true' : undefined} aria-busy={checkoutPending ? 'true' : undefined} style={{ width: checkoutWidth }} className="dtb-cart-sheet__checkout"><Lock size={14} aria-hidden="true" strokeWidth={2.5} />{checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : checkoutNotice ? 'Confirm refreshed cart and checkout' : 'Continue to secure checkout'}<ArrowRight size={14} aria-hidden="true" strokeWidth={2.5} /></a>
+
+            <div className="dtb-cart-sheet__trust-row" aria-label="Purchase assurances">
+              <div><LockKeyhole aria-hidden="true" /><span><strong>Secure Checkout</strong><small>SSL encrypted payments</small></span></div>
+              <div><Truck aria-hidden="true" /><span><strong>Fast Shipping</strong><small>Orders ship same day</small></span></div>
+              <div><RotateCcw aria-hidden="true" /><span><strong>Easy Returns</strong><small>90-day returns</small></span></div>
+            </div>
+          </div>
+        </Motion.div>
       </Container>
     </div>
   );

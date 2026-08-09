@@ -92,32 +92,20 @@ function dtb_wc_admin_rest_url( string $url ): string {
 //   C) Full group endpoint falls back when URL is malformed by apiFetch.
 //
 // FIX:
-//   1. Normalise stored option to bare country code on woocommerce_init.
-//   2. Purge WC transients so stale cached values are evicted immediately.
-//   3. Filter single-setting response to always return bare country code.
-//   4. Filter the full settings/general group response as a safety net.
-//   5. Handle the onboarding-profile group in the SAME filter callback to
+//   1. Filter single-setting response to always return bare country code.
+//   2. Filter the full settings/general group response as a safety net.
+//   3. Handle the onboarding-profile group in the SAME filter callback to
 //      avoid the duplicate-registration bug from the previous version.
+//
+// The stored option itself (woocommerce_default_country, e.g. "US:MN") is
+// deliberately left untouched — it must keep the state suffix for the store
+// address and "Calculate tax based on: Shop base address" to work. An earlier
+// version of this fix also rewrote the stored option back to a bare country
+// code on every woocommerce_init, which silently discarded the configured
+// state on every page load (visible as the state field resetting to the
+// first alphabetical option, Alabama, right after saving). Only the REST
+// response is normalized now; the database value stays intact.
 // ============================================================================
-
-// 3a — Normalise stored option and purge stale transients.
-add_action( 'woocommerce_init', function () {
-	$country = get_option( 'woocommerce_default_country', '' );
-	$base    = str_contains( $country, ':' ) ? strstr( $country, ':', true ) : $country;
-
-	if ( empty( $base ) ) {
-		$base = 'US';
-	}
-
-	if ( $base !== $country ) {
-		update_option( 'woocommerce_default_country', $base );
-
-		// Purge WC transients so cached values reflecting the old "US:CA"
-		// string are evicted and rebuilt with the corrected "US" value.
-		delete_transient( 'wc_settings_general' );
-		WC_Cache_Helper::get_transient_version( 'settings', true );
-	}
-} );
 
 // 3b — Single-setting REST response: /wc/v3/settings/general/woocommerce_default_country
 add_filter( 'woocommerce_rest_prepare_setting', function ( $response, $item ) {

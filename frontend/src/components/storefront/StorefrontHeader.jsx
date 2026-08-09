@@ -100,20 +100,21 @@ function MobileTaxonomyGroup({ item, itemKey, expanded, onToggle, onNavigate }) 
           <MobileDrawerChevron expanded={expanded} />
         </button>
       </div>
-      {expanded ? (
-        <div id={childrenId} className="storefront-mobile-drawer__taxonomy-children">
-          {children.map((child) => (
-            <button
-              key={`${itemKey}-${child.slug || child.to || child.label}`}
-              type="button"
-              className="storefront-mobile-drawer__taxonomy-child"
-              onClick={() => onNavigate(child)}
-            >
-              {child.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div
+        id={childrenId}
+        className={`storefront-mobile-drawer__taxonomy-children${expanded ? ' is-expanded' : ''}`}
+      >
+        {children.map((child) => (
+          <button
+            key={`${itemKey}-${child.slug || child.to || child.label}`}
+            type="button"
+            className="storefront-mobile-drawer__taxonomy-child"
+            onClick={() => onNavigate(child)}
+          >
+            {child.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
