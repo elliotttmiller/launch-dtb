@@ -455,11 +455,19 @@ function dtb_enqueue_native_checkout_assets(): void {
 		return;
 	}
 
+	// filemtime-based versioning (matching checkout-summary.css/checkout-desktop.css
+	// in native-checkout.php) so every edit to this file auto-busts the browser/CDN
+	// cache. DTB_VERSION is a static constant that has never changed since it was
+	// introduced, so using it here left checkout.css's cache-busting query string
+	// identical across every deploy — a cache had no signal the file ever changed.
+	$checkout_style_path = get_template_directory() . '/assets/checkout/checkout.css';
+	$checkout_style_ver  = file_exists( $checkout_style_path ) ? (string) filemtime( $checkout_style_path ) : DTB_VERSION;
+
 	wp_enqueue_style(
 		'dtb-checkout',
 		get_template_directory_uri() . '/assets/checkout/checkout.css',
 		[],
-		DTB_VERSION
+		$checkout_style_ver
 	);
 
 	/*
@@ -488,22 +496,28 @@ function dtb_enqueue_native_checkout_assets(): void {
 	// dtb-checkout-desktop (the >=1024px two-column layout authority) is
 	// enqueued from native-checkout.php itself, per docs/checkout/checkout-desktop-layout.md.
 
+	$checkout_script_path = get_template_directory() . '/assets/checkout/checkout.js';
+	$checkout_script_ver  = file_exists( $checkout_script_path ) ? (string) filemtime( $checkout_script_path ) : DTB_VERSION;
+
 	wp_enqueue_script(
 		'dtb-checkout',
 		get_template_directory_uri() . '/assets/checkout/checkout.js',
 		[],
-		DTB_VERSION,
+		$checkout_script_ver,
 		true
 	);
 
 	// Depends on the Cart/Checkout Blocks filter registry (window.wc.blocksCheckout);
 	// declared only if that script handle is actually registered on this install,
 	// since the script's own runtime check already no-ops safely either way.
+	$order_summary_script_path = get_template_directory() . '/assets/checkout/checkout-order-summary.js';
+	$order_summary_script_ver  = file_exists( $order_summary_script_path ) ? (string) filemtime( $order_summary_script_path ) : DTB_VERSION;
+
 	wp_enqueue_script(
 		'dtb-checkout-order-summary',
 		get_template_directory_uri() . '/assets/checkout/checkout-order-summary.js',
 		wp_script_is( 'wc-blocks-checkout', 'registered' ) ? [ 'wc-blocks-checkout' ] : [],
-		DTB_VERSION,
+		$order_summary_script_ver,
 		true
 	);
 }

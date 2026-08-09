@@ -2,15 +2,16 @@
  * Global customer-facing typography authority.
  *
  * Two-tier system: Geist is the display/heading face (hero, page and section
- * titles, product names, nav, order numbers); Nunito is the body/UI face
- * (paragraphs, forms, buttons, labels, checkout, specs). This file is
- * intentionally imported last so route-level and legacy component styles
- * cannot silently reintroduce older font stacks.
+ * titles, product names, nav, order numbers); Work Sans is the body/UI face
+ * (paragraphs, forms, buttons, labels, checkout, specs) — a sharp grotesk
+ * with open counters, chosen deliberately over a rounded/humanist face.
+ * This file is intentionally imported last so route-level and legacy
+ * component styles cannot silently reintroduce older font stacks.
  */
 
 :root {
   --dtb-font-display: "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --dtb-font-body: "Nunito Variable", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --dtb-font-body: "Work Sans Variable", "Work Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --dtb-font-ui: var(--dtb-font-body);
   --dtb-font-sans: var(--dtb-font-body);
 
