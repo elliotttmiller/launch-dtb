@@ -123,13 +123,32 @@ final class DTB_CatalogProductRepository {
 			}
 		}
 
-		$category = (string) ( $filters['category'] ?? '' );
+		$category = trim( (string) ( $filters['category'] ?? '' ) );
 		if ( '' !== $category ) {
-			$meta_query[] = [
-				'key'     => DTB_ProductMeta::CATEGORY_KEY,
-				'value'   => $category,
-				'compare' => '=',
-			];
+			// Canonical storefront navigation is owned by WooCommerce product_cat.
+			// Resolve a taxonomy slug first so parent categories naturally include
+			// descendants. Preserve the metadata lookup only as a compatibility
+			// fallback for existing callers that pass legacy DTB category keys.
+			$category_slug = sanitize_title( str_replace( '_', '-', $category ) );
+			$category_term = get_term_by( 'slug', $category_slug, 'product_cat' );
+
+			if ( $category_term instanceof WP_Term ) {
+				$args['tax_query'] = [
+					[
+						'taxonomy'         => 'product_cat',
+						'field'            => 'term_id',
+						'terms'            => [ (int) $category_term->term_id ],
+						'include_children' => true,
+						'operator'         => 'IN',
+					],
+				];
+			} else {
+				$meta_query[] = [
+					'key'     => DTB_ProductMeta::CATEGORY_KEY,
+					'value'   => $category,
+					'compare' => '=',
+				];
+			}
 		}
 
 		$is_parts_constrained  = false;
