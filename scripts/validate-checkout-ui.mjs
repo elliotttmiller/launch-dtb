@@ -52,6 +52,15 @@ assert(source.css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 118p
 assert(source.css.includes('.wc-block-components-order-summary-item__description .wc-block-components-product-price'), 'Order summary must suppress duplicate description-column product prices.');
 assert(source.css.includes('appearance: none !important;\n\topacity: 0 !important;'), 'Native radio inputs must stay visually hidden while preserving their accessible selection state.');
 assert(source.css.includes('.wc-block-components-express-payment :where(fieldset, .wc-block-components-express-payment__content)'), 'Express Checkout structural wrappers must remain unboxed.');
+assert(source.css.includes('.wc-block-checkout__shipping-method-option--selected'), 'Selected shipping methods must use the open-ledger treatment instead of WooCommerce\'s outline card.');
+assert(source.css.includes('.wc-block-components-radio-control--highlight-checked::after'), 'Payment method generated outline frames must remain suppressed.');
+assert(
+  source.css.includes('.wc-block-components-payment-methods__save-card-info {\n\tdisplay: none !important;'),
+  'The redundant WooCommerce account-vault opt-in must stay hidden while Stripe retains its provider-owned Link control.'
+);
+assert(source.css.includes('.checkout-order-summary-block-fill'), 'The mobile final-review summary shell must remain unboxed.');
+assert(source.summary.includes('.wc-block-checkout__shipping-method .wc-block-checkout__shipping-method-container'), 'Mobile shipping choices must flatten WooCommerce\'s framed flex container.');
+assert(source.summary.includes('grid-template-columns: minmax(0, 1fr) max-content'), 'Mobile shipping choices must keep service copy and price in separate responsive columns.');
 assert(source.summary.includes('border-radius: 0 !important;\n\t\tbox-shadow: none !important;\n\t\toverflow: visible !important;'), 'Mobile order summary must remain an open ledger instead of a card.');
 assert(source.versioner.includes('filemtime'), 'Checkout-owned assets must use file modification times for cache invalidation.');
 

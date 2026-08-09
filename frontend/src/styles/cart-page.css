@@ -5,6 +5,17 @@
   color: var(--dtb-text);
 }
 
+.dtb-cart-page,
+.dtb-cart-page *,
+.dtb-cart-page *::before,
+.dtb-cart-page *::after,
+.dtb-cart-empty,
+.dtb-cart-empty *,
+.dtb-cart-empty *::before,
+.dtb-cart-empty *::after {
+  font-family: var(--dtb-font-display, 'Geist Variable', 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif) !important;
+}
+
 .dtb-cart-page__container {
   padding-block: clamp(1.5rem, 4vw, 3rem);
 }
@@ -283,13 +294,6 @@
   font-weight: 600;
 }
 
-.dtb-cart-sheet__summary-context {
-  margin: 0;
-  color: #94a3b8;
-  font-size: 0.75rem;
-  line-height: 1.55;
-}
-
 .dtb-cart-sheet__summary-total {
   display: flex;
   align-items: center;
@@ -352,45 +356,16 @@
   opacity: 0.6;
 }
 
-.dtb-cart-sheet__trust-row {
-  display: grid;
-  gap: 0.75rem;
+.dtb-cart-sheet__express-checkout {
   margin-top: 1.5rem;
   padding-top: 1.25rem;
   border-top: 1px solid #e4e9ef;
 }
 
-.dtb-cart-sheet__trust-row > div {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-}
-
-.dtb-cart-sheet__trust-row svg {
-  flex: 0 0 auto;
-  width: 1.15rem;
-  height: 1.15rem;
-  color: var(--dtb-primary);
-  stroke-width: 1.8;
-}
-
-.dtb-cart-sheet__trust-row span {
-  display: grid;
-  min-width: 0;
-}
-
-.dtb-cart-sheet__trust-row strong {
-  color: var(--dtb-text);
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.dtb-cart-sheet__trust-row small {
+.dtb-cart-sheet__express-checkout .dtb-express-checkout-methods__label {
   color: var(--dtb-muted);
-  font-size: 0.72rem;
-  line-height: 1.3;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .dtb-cart-empty {

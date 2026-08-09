@@ -1,56 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { getProductBuyNowReadiness } from '../../api/checkoutCapabilities.js';
+import ExpressCheckoutMethods from '../checkout/ExpressCheckoutMethods.jsx';
+import useCheckoutReadiness from '../../hooks/useCheckoutReadiness.js';
 import { scheduleCheckoutPrewarm } from '../../utils/checkoutPrewarm.js';
 import '../../styles/product-buy-now.css';
-
-const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
-
-const EXPRESS_CHECKOUT_METHODS = Object.freeze([
-  {
-    readinessKey: 'paypal',
-    id: 'paypal',
-    label: 'PayPal',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/paypal-blue.svg`,
-  },
-  {
-    readinessKey: 'klarna',
-    id: 'klarna',
-    label: 'Klarna',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/klarna.svg`,
-    framed: true,
-  },
-  {
-    readinessKey: 'googlePay',
-    id: 'google-pay',
-    label: 'Google Pay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
-  },
-  {
-    readinessKey: 'applePay',
-    id: 'apple-pay',
-    label: 'Apple Pay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/apple-pay.svg`,
-    framed: true,
-  },
-  {
-    readinessKey: 'afterpay',
-    id: 'afterpay',
-    label: 'Afterpay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay.svg`,
-    framed: true,
-  },
-  {
-    readinessKey: 'affirm',
-    id: 'affirm',
-    label: 'Affirm',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/affirm.svg`,
-  },
-]);
-
-const DEFAULT_READINESS = Object.freeze({
-  state: 'unknown',
-  paymentMethods: {},
-});
 
 function readinessMessage(readiness) {
   if (readiness.state === 'ready') {
@@ -72,20 +24,11 @@ export default function ProductBuyNow({
   const statusId = useId();
   const clickLockedRef = useRef(false);
   const observedPendingRef = useRef(false);
-  const [readiness, setReadiness] = useState(DEFAULT_READINESS);
+  const readiness = useCheckoutReadiness();
   const [interactionError, setInteractionError] = useState('');
 
   useEffect(() => {
-    let active = true;
     scheduleCheckoutPrewarm();
-
-    getProductBuyNowReadiness().then((result) => {
-      if (active) setReadiness(result || DEFAULT_READINESS);
-    });
-
-    return () => {
-      active = false;
-    };
   }, []);
 
   const pending = status === 'pending';
@@ -112,10 +55,6 @@ export default function ProductBuyNow({
   // never make this button spin too.
   const busy = pending || confirmed;
   const blocked = disabled || busy;
-  const paymentMethods = EXPRESS_CHECKOUT_METHODS.filter(
-    (method) => readiness.paymentMethods?.[method.readinessKey] === true,
-  );
-
   const statusMessage = interactionError
     || (disabled && disabledReason)
     || (pending
@@ -182,22 +121,7 @@ export default function ProductBuyNow({
         </span>
       </button>
 
-      <p className="dtb-product-buy-now__eyebrow">Express checkout with</p>
-      <ul
-        className="dtb-product-buy-now__methods"
-        aria-label="Payment methods available at checkout"
-      >
-        {paymentMethods.map((method) => (
-          <li
-            key={method.id}
-            className={method.framed ? 'is-framed' : undefined}
-            aria-label={method.label}
-            title={method.label}
-          >
-            <img src={method.src} alt="" loading="eager" decoding="async" />
-          </li>
-        ))}
-      </ul>
+      <ExpressCheckoutMethods paymentMethods={readiness.paymentMethods} />
 
       <p
         id={statusId}

@@ -132,7 +132,7 @@
   letter-spacing: -0.012em;
 }
 
-.dtb-pdp__info-column .dtb-product-buy-now__eyebrow {
+.dtb-pdp__info-column .dtb-express-checkout-methods__label {
   color: #7b879a;
   font-size: clamp(0.7rem, 0.67rem + 0.1vw, 0.76rem);
   font-weight: 450;

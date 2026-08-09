@@ -340,21 +340,90 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select_
 	padding: 10px 14px;
 	cursor: pointer;
 }
-.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option,
-.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option,
-.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-checkout__shipping-method-option,
-.wp-block-woocommerce-checkout-shipping-method-block .wc-block-checkout__shipping-method-option {
-	margin-bottom: 8px;
-	border: 1.5px solid var(--dtb-checkout-border);
-	border-radius: var(--dtb-checkout-radius-sm);
-	background: var(--dtb-checkout-surface);
+/*
+ * WooCommerce draws shipping selection borders directly and payment frames with
+ * generated `::after` layers. Keep the native controls and state, but present both
+ * groups as an open ledger: quiet row dividers and a restrained selected accent.
+ */
+body.woocommerce-checkout :where(
+	.wp-block-woocommerce-checkout-shipping-method-block,
+	.wp-block-woocommerce-checkout-shipping-methods-block,
+	.wp-block-woocommerce-checkout-payment-block
+) :where(fieldset, .wc-block-components-radio-control, .wc-block-components-checkout-payment-methods) {
+	border: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
 }
-.wp-block-woocommerce-checkout-shipping-methods-block .wc-block-components-radio-control__option:has(input:checked),
-.wp-block-woocommerce-checkout-shipping-method-block .wc-block-components-radio-control__option:has(input:checked) { border-color: var(--dtb-checkout-blue-600); background: var(--dtb-checkout-blue-50); }
-.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option { border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; background: transparent; }
-.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option:has(input:checked) { background: var(--dtb-checkout-blue-50); }
-.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control { border: 0; border-radius: 0; overflow: visible; }
-.wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-content { box-sizing: border-box; min-width: 0; margin: 0 0 14px 30px; padding: 14px 0 4px; border: 0; border-radius: 0; background: transparent; }
+body.woocommerce-checkout :where(
+	.wp-block-woocommerce-checkout-shipping-method-block,
+	.wp-block-woocommerce-checkout-shipping-methods-block
+) :where(.wc-block-components-radio-control__option, .wc-block-checkout__shipping-method-option) {
+	min-height: 58px;
+	margin: 0 !important;
+	padding: 14px 16px !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+body.woocommerce-checkout :where(
+	.wp-block-woocommerce-checkout-shipping-method-block,
+	.wp-block-woocommerce-checkout-shipping-methods-block
+) :where(
+	.wc-block-components-radio-control__option:has(input:checked),
+	.wc-block-checkout__shipping-method-option:has(input:checked),
+	.wc-block-checkout__shipping-method-option--selected
+) {
+	background: var(--dtb-checkout-blue-50) !important;
+	box-shadow: inset 3px 0 0 var(--dtb-checkout-blue-600) !important;
+}
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control--highlight-checked::after,
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control__option::after,
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option::after {
+	display: none !important;
+	content: none !important;
+}
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option {
+	min-height: 56px;
+	margin: 0 !important;
+	padding: 13px 14px !important;
+	border: 0 !important;
+	border-bottom: 1px solid var(--dtb-checkout-border) !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option > .wc-block-components-radio-control__option {
+	min-height: 0;
+	width: 100%;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option--checked-option-highlighted,
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-option:has(input:checked) {
+	background: var(--dtb-checkout-blue-50) !important;
+	box-shadow: inset 3px 0 0 var(--dtb-checkout-blue-600) !important;
+}
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-content {
+	box-sizing: border-box;
+	min-width: 0;
+	margin: 0 0 14px !important;
+	padding: 14px 16px 4px !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
 .wc-block-components-radio-control__option input[type="radio"],
 .wc-block-checkout__shipping-method-option input[type="radio"],
 .wc-block-components-radio-control-accordion-option input[type="radio"] {
@@ -378,6 +447,16 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-blocks-components-select_
 .wc-block-components-checkbox { display: flex; align-items: center; min-height: var(--dtb-checkout-touch); padding-block: var(--dtb-checkout-space-2); gap: var(--dtb-checkout-space-2); cursor: pointer; }
 .wc-block-components-checkbox__input { width: 20px; height: 20px; border: 1px solid var(--dtb-checkout-border-strong); border-radius: 5px; flex: none; }
 .wc-block-components-checkbox__input:checked { border-color: var(--dtb-checkout-blue-600); background: var(--dtb-checkout-blue-600); }
+/*
+ * WooCommerce Blocks renders this account-vault opt-in after every payment
+ * method whose gateway advertises `showSaveOption`. Stripe's Link opt-in lives
+ * inside the provider-owned Payment Element and is intentionally unaffected.
+ * Keep one clear save-information choice in the card experience without
+ * querying, moving, or mutating WooCommerce/Stripe payment state.
+ */
+body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-payment-methods__save-card-info {
+	display: none !important;
+}
 .wc-block-components-address-card address { margin: 0; color: var(--dtb-checkout-ink-900); font-style: normal; font-size: 13px; line-height: 1.5; }
 .wc-block-components-checkout-place-order-button {
 	width: 100%;
@@ -416,6 +495,20 @@ body.woocommerce-checkout .wc-block-checkout__form .wc-block-checkout__actions .
 body.woocommerce-checkout .wc-block-checkout__form .wc-block-checkout__actions .wc-block-components-checkout-place-order-button:hover { background: var(--dtb-checkout-blue-700); }
 
 .wc-block-components-checkout-order-summary { overflow: hidden; }
+body.woocommerce-checkout :where(
+	.wp-block-woocommerce-checkout-order-summary-block,
+	.checkout-order-summary-block-fill-wrapper,
+	.checkout-order-summary-block-fill,
+	.wc-block-components-checkout-order-summary
+) {
+	box-sizing: border-box !important;
+	max-width: 100% !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	outline: 0 !important;
+	box-shadow: none !important;
+}
 .wc-block-components-checkout-order-summary__title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .wc-block-components-order-summary-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: start; gap: 12px; }
 .wc-block-components-order-summary-item__image,

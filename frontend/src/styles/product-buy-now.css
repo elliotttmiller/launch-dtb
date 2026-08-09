@@ -9,6 +9,10 @@
   box-shadow: none;
 }
 
+.dtb-product-buy-now .dtb-express-checkout-methods {
+  gap: 0.58rem;
+}
+
 .dtb-product-buy-now__button {
   position: relative;
   isolation: isolate;
@@ -80,15 +84,6 @@
   animation: dtb-buy-now-spin 650ms linear infinite;
   animation-play-state: paused;
   transition: opacity 200ms var(--dtb-ease-emphasized);
-}
-
-.dtb-product-buy-now__eyebrow {
-  margin: 0.05rem 0 0;
-  color: #64748b;
-  font-size: 0.78rem;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  text-align: center;
 }
 
 .dtb-product-buy-now__button:hover:not(:disabled) {
@@ -246,40 +241,6 @@
   100% { transform: scale(1); }
 }
 
-.dtb-product-buy-now__methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.42rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.dtb-product-buy-now__methods li {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 25px;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.dtb-product-buy-now__methods li.is-framed {
-  border-radius: 6px;
-}
-
-.dtb-product-buy-now__methods img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
 .dtb-product-buy-now__status {
   position: absolute;
   width: 1px;
@@ -326,14 +287,6 @@
     font-size: 0.95rem;
   }
 
-  .dtb-product-buy-now__methods {
-    gap: 0.3rem;
-  }
-
-  .dtb-product-buy-now__methods li {
-    width: 52px;
-    height: 23px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

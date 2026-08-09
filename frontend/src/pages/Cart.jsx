@@ -2,16 +2,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ArrowLeft, Lock, ShoppingCart, ShieldAlert, LockKeyhole, Truck, RotateCcw } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ArrowLeft, Lock, ShoppingCart, ShieldAlert } from 'lucide-react';
 
 import SEOHead from '../components/shared/SEOHead';
 import BackButton from '../components/shared/BackButton';
+import ExpressCheckoutMethods from '../components/checkout/ExpressCheckoutMethods.jsx';
 import { Container } from '../components/layout';
 import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import { beginCheckoutHandoff } from '../utils/checkoutHandoff.js';
 import { useEditableComponent } from '../designer/useEditableComponent.js';
+import useCheckoutReadiness from '../hooks/useCheckoutReadiness.js';
 
 function parseStoreMoney(value, minorUnit) {
   const raw = Number(value);
@@ -30,6 +32,7 @@ export default function Cart() {
   const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
   const [checkoutPending, setCheckoutPending] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState('');
+  const checkoutReadiness = useCheckoutReadiness();
 
   const itemsList = useEditableComponent('cart', 'cart-items-list');
   const orderSummary = useEditableComponent('cart', 'order-summary');
@@ -158,15 +161,13 @@ export default function Cart() {
               <span>Estimated total</span>
               <strong>${formatMoney(estimatedTotal)}</strong>
             </div>
-            <p className="dtb-cart-sheet__summary-context">Final total, including shipping, is confirmed at checkout.</p>
 
             <a {...checkoutButton.rootProps} href={getWooCheckoutUrl()} onClick={handleCheckout} aria-disabled={checkoutDisabled ? 'true' : undefined} aria-busy={checkoutPending ? 'true' : undefined} style={{ width: checkoutWidth }} className="dtb-cart-sheet__checkout"><Lock size={14} aria-hidden="true" strokeWidth={2.5} />{checkoutPending ? 'Preparing checkout…' : isMutating ? 'Updating cart…' : checkoutNotice ? 'Confirm refreshed cart and checkout' : 'Continue to secure checkout'}<ArrowRight size={14} aria-hidden="true" strokeWidth={2.5} /></a>
 
-            <div className="dtb-cart-sheet__trust-row" aria-label="Purchase assurances">
-              <div><LockKeyhole aria-hidden="true" /><span><strong>Secure Checkout</strong><small>SSL encrypted payments</small></span></div>
-              <div><Truck aria-hidden="true" /><span><strong>Fast Shipping</strong><small>Orders ship same day</small></span></div>
-              <div><RotateCcw aria-hidden="true" /><span><strong>Easy Returns</strong><small>90-day returns</small></span></div>
-            </div>
+            <ExpressCheckoutMethods
+              paymentMethods={checkoutReadiness.paymentMethods}
+              className="dtb-cart-sheet__express-checkout"
+            />
           </div>
         </Motion.div>
       </Container>
