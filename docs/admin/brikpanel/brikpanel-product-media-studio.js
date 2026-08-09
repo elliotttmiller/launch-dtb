@@ -233,7 +233,7 @@
             var gallery = document.querySelector(SELECTORS.gallery);
             if (gallery) {
                 studio.productObserver = new MutationObserver(scheduleRefresh);
-                studio.productObserver.observe(gallery, { childList: true, subtree: true });
+                studio.productObserver.observe(gallery, { childList: true });
             }
             var variationBody = document.querySelector(SELECTORS.variationBody);
             if (variationBody) {
