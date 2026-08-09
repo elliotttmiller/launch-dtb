@@ -19,6 +19,188 @@ if (get_option('brikpanel_simple_product_editor', 'yes') !== 'yes') {
 }
 
 /**
+ * Resolve the complete editable image list for one variation.
+ *
+ * DTB's canonical resolver is authoritative for the storefront gallery. The
+ * BrikPanel compatibility meta is merged as a safety net so an existing larger
+ * manually-managed gallery is never discarded. BrikPanel's editor requires
+ * WordPress attachment IDs for remove/reorder/save operations, therefore URL
+ * entries from the resolver are mapped back to attachment IDs when possible.
+ *
+ * @param WC_Product_Variation $variation Variation product.
+ * @return array<int,array{id:int,url:string}>
+ */
+function brikpanel_media_studio_resolve_variation_images($variation) {
+    if (!$variation || !is_a($variation, 'WC_Product_Variation')) {
+        return [];
+    }
+
+    $variation_id = (int) $variation->get_id();
+    $sku          = trim((string) $variation->get_sku());
+    $candidates   = [];
+
+    if ($sku !== '' && class_exists('DTB_VariationGalleryResolver')) {
+        $resolved = DTB_VariationGalleryResolver::resolve($sku, $variation_id);
+        if (is_array($resolved)) {
+            $candidates = array_merge($candidates, $resolved);
+        }
+    }
+
+    // Preserve the explicit Woo/BrikPanel media contract even when the DTB
+    // resolver is unavailable or returns a partial projection.
+    $primary_id = (int) $variation->get_image_id();
+    if ($primary_id > 0) {
+        $candidates[] = ['id' => $primary_id];
+    }
+
+    $compat_gallery = get_post_meta($variation_id, '_brikpanel_variation_gallery', true);
+    if (is_array($compat_gallery)) {
+        foreach ($compat_gallery as $gallery_id) {
+            $gallery_id = (int) $gallery_id;
+            if ($gallery_id > 0) {
+                $candidates[] = ['id' => $gallery_id];
+            }
+        }
+    }
+
+    // Some WooCommerce builds/extensions expose native variation gallery IDs.
+    // Include them when available without assuming the method exists.
+    if (method_exists($variation, 'get_gallery_image_ids')) {
+        foreach ((array) $variation->get_gallery_image_ids() as $gallery_id) {
+            $gallery_id = (int) $gallery_id;
+            if ($gallery_id > 0) {
+                $candidates[] = ['id' => $gallery_id];
+            }
+        }
+    }
+
+    $images = [];
+    $seen   = [];
+
+    foreach ($candidates as $candidate) {
+        if (is_string($candidate)) {
+            $candidate = ['src' => $candidate];
+        }
+        if (!is_array($candidate)) {
+            continue;
+        }
+
+        $attachment_id = isset($candidate['id']) ? (int) $candidate['id'] : 0;
+        $src = trim((string) ($candidate['src'] ?? $candidate['url'] ?? $candidate['full'] ?? ''));
+
+        if ($attachment_id <= 0 && $src !== '' && function_exists('attachment_url_to_postid')) {
+            $attachment_id = (int) attachment_url_to_postid($src);
+        }
+        if ($attachment_id <= 0 || isset($seen[$attachment_id])) {
+            continue;
+        }
+
+        $url = wp_get_attachment_image_url($attachment_id, 'thumbnail');
+        if (!$url) {
+            $url = wp_get_attachment_url($attachment_id);
+        }
+        if (!$url && $src !== '') {
+            $url = $src;
+        }
+        if (!$url) {
+            continue;
+        }
+
+        $seen[$attachment_id] = true;
+        $images[] = [
+            'id'  => $attachment_id,
+            'url' => (string) $url,
+        ];
+    }
+
+    return $images;
+}
+
+/**
+ * Hydrate BrikPanel's existing variation editor state with the same canonical
+ * galleries used by the DTB storefront.
+ *
+ * render_page() prints window.brikpanelProductData before admin-footer.php.
+ * admin_footer runs before WordPress prints footer-enqueued scripts, so this
+ * bridge executes after the data object exists but before
+ * brikpanel-product-editor.js copies it into its private state. This keeps the
+ * existing BrikPanel dialog, ordering behavior and single product-save
+ * transaction authoritative; no parallel media mutation endpoint is created.
+ */
+add_action('admin_footer', function () {
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if (!$screen || $screen->id !== 'admin_page_brikpanel-product-editor') {
+        return;
+    }
+
+    $product_id = isset($_GET['product_id']) ? absint($_GET['product_id']) : 0;
+    if ($product_id <= 0 || !current_user_can('edit_post', $product_id)) {
+        return;
+    }
+
+    $product = wc_get_product($product_id);
+    if (!$product || !$product->is_type('variable')) {
+        return;
+    }
+
+    $gallery_map = [];
+    foreach ((array) $product->get_children() as $variation_id) {
+        $variation = wc_get_product((int) $variation_id);
+        if (!$variation || !is_a($variation, 'WC_Product_Variation')) {
+            continue;
+        }
+
+        $images = brikpanel_media_studio_resolve_variation_images($variation);
+        if (!empty($images)) {
+            $gallery_map[(string) $variation->get_id()] = $images;
+        }
+    }
+
+    if (empty($gallery_map)) {
+        return;
+    }
+
+    $json = wp_json_encode($gallery_map, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
+    if (!$json) {
+        return;
+    }
+    ?>
+    <script id="brikpanel-media-studio-variation-hydration">
+    (function () {
+        'use strict';
+        var map = <?php echo $json; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- JSON_HEX encoded above. ?>;
+        var data = window.brikpanelProductData;
+        if (!data || !Array.isArray(data.variations)) return;
+
+        data.variations.forEach(function (variation) {
+            if (!variation) return;
+            var resolved = map[String(variation.id || '')];
+            if (!Array.isArray(resolved) || !resolved.length) return;
+
+            // Canonical resolved order wins, while retaining any explicit
+            // BrikPanel images that are not already present.
+            var existing = Array.isArray(variation.images) ? variation.images : [];
+            var merged = [];
+            var seen = Object.create(null);
+
+            resolved.concat(existing).forEach(function (image) {
+                if (!image) return;
+                var id = parseInt(image.id, 10) || 0;
+                if (!id || seen[id]) return;
+                var url = image.url || image.src || '';
+                if (!url) return;
+                seen[id] = true;
+                merged.push({ id: id, url: url });
+            });
+
+            if (merged.length) variation.images = merged;
+        });
+    })();
+    </script>
+    <?php
+}, 1);
+
+/**
  * Load the Product Media Studio only on BrikPanel's product editor.
  *
  * The studio is a progressive enhancement over the existing editor DOM. It
