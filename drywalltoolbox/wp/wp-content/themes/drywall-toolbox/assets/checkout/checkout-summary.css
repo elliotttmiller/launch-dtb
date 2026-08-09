@@ -1,0 +1,107 @@
+/**
+ * Drywall Toolbox — mobile/tablet checkout order-summary composition.
+ *
+ * Presentation only. WooCommerce remains authoritative for summary state,
+ * disclosure behavior, cart items, shipping, taxes, discounts, and totals.
+ * Loaded after checkout.css and before the desktop-only layout stylesheet.
+ */
+
+@media (max-width: 1023px) {
+	/*
+	 * WooCommerce's sidebar can carry width/margin rules independently of the
+	 * DTB shell. Make the native summary rail obey the same viewport gutter as
+	 * the main checkout content without adding compensating child margins.
+	 */
+	body.woocommerce-checkout .wc-block-checkout__sidebar,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout__sidebar {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		margin-inline: 0;
+		padding-inline: var(--dtb-checkout-gutter);
+	}
+
+	/*
+	 * One card owns the summary surface. The native child totals wrappers are
+	 * rows inside that card, not independent edge-to-edge cards.
+	 */
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block,
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary {
+		width: 100%;
+		max-width: 100%;
+		min-width: 0;
+		margin-inline: 0;
+		background: var(--dtb-checkout-surface);
+		border: 1px solid var(--dtb-checkout-border);
+		border-radius: var(--dtb-checkout-radius-lg);
+		box-shadow: var(--dtb-checkout-shadow-sm);
+		overflow: hidden;
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary__title {
+		margin: 0;
+		padding: 16px clamp(16px, 4vw, 20px);
+		border: 0;
+		border-bottom: 1px solid var(--dtb-checkout-border);
+		border-radius: 0;
+		background: transparent;
+	}
+
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-cart-items-block,
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-totals-block {
+		margin: 0;
+		padding-inline: clamp(16px, 4vw, 20px);
+	}
+
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-cart-items-block {
+		padding-block: 4px;
+	}
+
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-totals-block {
+		padding-bottom: 4px;
+		border-top: 1px solid var(--dtb-checkout-border);
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper,
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-wrapper {
+		margin: 0;
+		padding: 0;
+		background: transparent;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-wrapper + .wc-block-components-totals-wrapper,
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-wrapper + .wc-block-components-totals-wrapper {
+		border-top: 1px solid var(--dtb-checkout-border);
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-item,
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-item {
+		min-width: 0;
+		padding: 14px 0;
+	}
+
+	body.woocommerce-checkout .wc-block-components-checkout-order-summary .wc-block-components-totals-footer-item,
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block .wc-block-components-totals-footer-item {
+		padding-block: 18px;
+		font-size: 18px;
+		font-weight: 750;
+	}
+
+	body.woocommerce-checkout .wc-block-components-order-summary-item {
+		min-width: 0;
+		padding-block: 16px;
+	}
+
+	body.woocommerce-checkout :where(
+		.wc-block-components-product-name,
+		.wc-block-components-product-metadata,
+		.wc-block-components-totals-item__label,
+		.wc-block-components-totals-item__value
+	) {
+		min-width: 0;
+		overflow-wrap: anywhere;
+	}
+}
