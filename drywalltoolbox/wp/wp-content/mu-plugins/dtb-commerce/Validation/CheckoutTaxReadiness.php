@@ -4,7 +4,7 @@
  *
  * WooCommerce remains the sole tax authority. DTB does not create or mutate tax
  * rates here; operators configure the applicable Minnesota rate in wp-admin.
- * DTB only fixes the sourcing policy to the shipping destination and surfaces
+ * DTB only fixes the sourcing policy to the shop's base address and surfaces
  * configuration gaps to authorized operators.
  *
  * @package drywall-toolbox
@@ -14,24 +14,28 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_CheckoutTaxReadiness {
 	public static function register(): void {
-		/* Drywall Toolbox's storefront tax policy is destination-based. The rate itself
-		 * remains operator-managed in WooCommerce > Settings > Tax. */
-		add_filter( 'option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shipping' ], 20 );
-		add_filter( 'default_option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shipping' ], 20 );
+		/* Drywall Toolbox's storefront tax policy is origin-based, by deliberate
+		 * business decision: every order is taxed at Minnesota's rate regardless
+		 * of the customer's shipping destination. The rate itself remains
+		 * operator-managed in WooCommerce > Settings > Tax. */
+		add_filter( 'option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shop_base' ], 20 );
+		add_filter( 'default_option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shop_base' ], 20 );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notice' ] );
 	}
 
 	/**
-	 * Force WooCommerce to source storefront tax from the shipping destination.
+	 * Force WooCommerce to source storefront tax from the shop's base address.
 	 *
 	 * This does not calculate tax, alter rates, or bypass Woo's tax engine. It only
-	 * makes the location authority explicit so Minnesota rates configured in wp-admin
-	 * are matched against the customer's delivery address on cart/checkout requests.
+	 * makes the location authority explicit so every order is matched against the
+	 * Minnesota rate configured in wp-admin, regardless of the customer's shipping
+	 * address. This is a deliberate business decision, not a nexus determination —
+	 * confirm with whoever handles DTB's sales tax filings before changing it.
 	 *
 	 * @param mixed $value Stored/default WooCommerce option value.
 	 */
-	public static function tax_based_on_shipping( $value ): string {
-		return 'shipping';
+	public static function tax_based_on_shop_base( $value ): string {
+		return 'base';
 	}
 
 	public static function admin_notice(): void {
@@ -48,7 +52,7 @@ final class DTB_CheckoutTaxReadiness {
 
 		if ( ! self::has_minnesota_standard_rate() ) {
 			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Drywall Toolbox checkout uses WooCommerce as the only tax authority and sources tax from the shipping destination, but no applicable Standard tax rate was found for United States / Minnesota. Configure the Minnesota rate in WooCommerce Settings > Tax before accepting taxable Minnesota orders.', 'drywall-toolbox' )
+				. esc_html__( 'Drywall Toolbox checkout uses WooCommerce as the only tax authority and sources tax from the shop base address (Minnesota) on every order, but no applicable Standard tax rate was found for United States / Minnesota. Configure the Minnesota rate in WooCommerce Settings > Tax before accepting orders.', 'drywall-toolbox' )
 				. '</p></div>';
 		}
 	}
