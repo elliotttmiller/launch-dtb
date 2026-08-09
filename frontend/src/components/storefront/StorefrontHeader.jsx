@@ -20,6 +20,7 @@ import {
   buildDisplayCategoryUrl,
   mapCatalogBrands,
   mergeCatalogDisplayCategories,
+  normalizeCatalogNavigationGroups,
   normalizeDisplayCategorySlug,
 } from '../../utils/catalogFacets.js';
 
@@ -146,17 +147,28 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       .filter((category) => category.slug && category.label && category.count > 0)
       .sort((a, b) => String(a.label).localeCompare(String(b.label)));
   }, [facets]);
+  const drawerProductNavigation = useMemo(() => {
+    const canonicalGroups = normalizeCatalogNavigationGroups(facets?.navigationGroups);
+    return canonicalGroups.length > 0 ? canonicalGroups : drawerCategoryLinks;
+  }, [facets, drawerCategoryLinks]);
   const desktopNavItems = useMemo(() => [
     {
       id: 'products',
       label: 'All Products',
       landingTo: '/products',
       landingLabel: 'View all products',
-      description: 'Browse the complete catalog by tool category.',
+      description: 'Browse professional finishing tools by system and function.',
       size: 'wide',
       columns: 2,
       activePrefixes: ['/products'],
-      items: drawerCategoryLinks.map(({ label, to }) => ({ label, to })),
+      items: drawerProductNavigation.map(({ label, to, slug, children }) => ({
+        label,
+        to,
+        slug,
+        children: Array.isArray(children)
+          ? children.map((child) => ({ label: child.label, to: child.to, slug: child.slug }))
+          : [],
+      })),
     },
     {
       id: 'brands',
@@ -226,7 +238,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       activePrefixes: ['/contact'],
       items: [],
     },
-  ], [drawerBrands, drawerCategoryLinks, partsBrands]);
+  ], [drawerBrands, drawerProductNavigation, partsBrands]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeMenus = () => {
@@ -508,16 +520,47 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
         id={`storefront-mobile-drawer-${id}`}
         className={`storefront-mobile-drawer__brands${expanded ? ' is-expanded' : ''}`}
       >
-        {items.map((item) => (
-          <button
-            key={`${id}-${item.slug || item.to || item.name || item.label}`}
-            type="button"
-            className="storefront-mobile-drawer__brand-link"
-            onClick={() => onItemNavigate(item)}
-          >
-            {item.name || item.label}
-          </button>
-        ))}
+        {items.map((item) => {
+          const children = Array.isArray(item.children) ? item.children : [];
+          const itemKey = `${id}-${item.slug || item.to || item.name || item.label}`;
+
+          if (children.length === 0) {
+            return (
+              <button
+                key={itemKey}
+                type="button"
+                className="storefront-mobile-drawer__brand-link"
+                onClick={() => onItemNavigate(item)}
+              >
+                {item.name || item.label}
+              </button>
+            );
+          }
+
+          return (
+            <div key={itemKey} className="storefront-mobile-drawer__taxonomy-group" role="group" aria-label={item.label}>
+              <button
+                type="button"
+                className="storefront-mobile-drawer__taxonomy-heading"
+                onClick={() => onItemNavigate(item)}
+              >
+                {item.label}
+              </button>
+              <div className="storefront-mobile-drawer__taxonomy-children">
+                {children.map((child) => (
+                  <button
+                    key={`${itemKey}-${child.slug || child.to || child.label}`}
+                    type="button"
+                    className="storefront-mobile-drawer__taxonomy-child"
+                    onClick={() => onItemNavigate(child)}
+                  >
+                    {child.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -690,7 +733,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             expanded: productsExpanded,
             onToggle: () => setProductsExpanded((open) => !open),
             onLanding: handleDrawerProductsLanding,
-            items: drawerCategoryLinks,
+            items: drawerProductNavigation,
             onItemNavigate: (category) => handleDrawerProductCategoryNavigate(category.to),
           })}
           {renderDrawerBrandSection({
