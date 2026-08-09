@@ -3,13 +3,53 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
 import '../../styles/storefront-desktop-navigation-integrity.css';
+import '../../styles/storefront-navigation-taxonomy.css';
 
 const RESILIENT_DROPDOWN_IDS = new Set(['products', 'brands', 'parts', 'repairs', 'schematics']);
+
+function DesktopNavEntry({ entry, onNavigate }) {
+  const children = Array.isArray(entry.children) ? entry.children : [];
+
+  if (children.length === 0) {
+    return (
+      <Link to={entry.to} className="dtb-desktop-nav-dropdown__link" onClick={onNavigate}>
+        <span>{entry.label}</span>
+        <ChevronRight size={14} aria-hidden="true" />
+      </Link>
+    );
+  }
+
+  return (
+    <div className="dtb-desktop-nav-taxonomy-group" role="group" aria-label={entry.label}>
+      <Link
+        to={entry.to}
+        className="dtb-desktop-nav-taxonomy-group__heading"
+        onClick={onNavigate}
+      >
+        <span>{entry.label}</span>
+        <ChevronRight size={14} aria-hidden="true" />
+      </Link>
+      <div className="dtb-desktop-nav-taxonomy-group__children">
+        {children.map((child) => (
+          <Link
+            key={child.to || child.slug || child.label}
+            to={child.to}
+            className="dtb-desktop-nav-taxonomy-group__child"
+            onClick={onNavigate}
+          >
+            {child.label}
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate }) {
   const triggerRef = useRef(null);
   const panelId = useId();
   const entries = Array.isArray(item.items) ? item.items : [];
+  const hasGroupedEntries = entries.some((entry) => Array.isArray(entry.children) && entry.children.length > 0);
 
   const closeAndFocus = () => {
     onClose();
@@ -50,7 +90,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
 
       <section
         id={panelId}
-        className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.size || 'medium'}`}
+        className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.size || 'medium'}${hasGroupedEntries ? ' has-taxonomy-groups' : ''}`}
         aria-label={`${item.label} navigation`}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
@@ -65,12 +105,13 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
         </div>
         <div className="dtb-desktop-nav-dropdown__scroller">
           {entries.length > 0 ? (
-            <div className={`dtb-desktop-nav-dropdown__links${item.columns === 2 ? ' is-two-column' : ''}`}>
+            <div className={`dtb-desktop-nav-dropdown__links${item.columns === 2 ? ' is-two-column' : ''}${hasGroupedEntries ? ' has-taxonomy-groups' : ''}`}>
               {entries.map((entry) => (
-                <Link key={entry.to} to={entry.to} className="dtb-desktop-nav-dropdown__link" onClick={onNavigate}>
-                  <span>{entry.label}</span>
-                  <ChevronRight size={14} aria-hidden="true" />
-                </Link>
+                <DesktopNavEntry
+                  key={entry.to || entry.slug || entry.label}
+                  entry={entry}
+                  onNavigate={onNavigate}
+                />
               ))}
             </div>
           ) : (
