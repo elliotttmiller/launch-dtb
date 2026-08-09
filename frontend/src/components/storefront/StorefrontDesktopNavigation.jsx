@@ -53,8 +53,8 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
   const hasGroupedEntries = entries.some((entry) => Array.isArray(entry.children) && entry.children.length > 0);
 
   const closeAndFocus = () => {
-    onCloseImmediate();
     triggerRef.current?.focus();
+    onCloseImmediate();
   };
 
   return (
@@ -185,6 +185,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
           key={item.id}
           to={item.landingTo}
           className={`dtb-desktop-nav-tab${isItemActive(item) ? ' is-active' : ''}`}
+          onPointerEnter={closeImmediately}
           onClick={onNavigate}
         >
           <span className="dtb-desktop-nav-tab__label">{item.label}</span>
