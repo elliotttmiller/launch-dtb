@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string] $CatalogPath = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
-    [string] $MediaPath = 'products\launch\media\media\tapetech_ttcfs_m_01.jpg'
+    [string] $MediaPath = 'products\launch\media\media\tapetech_ttcfs_m_01.webp'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,8 +24,8 @@ function Get-PrimaryImage {
 
 $catalogResolved = (Resolve-Path -LiteralPath $CatalogPath).Path
 $mediaResolved = (Resolve-Path -LiteralPath $MediaPath).Path
-if ([IO.Path]::GetFileName($mediaResolved) -cne 'tapetech_ttcfs_m_01.jpg') {
-    throw 'The normalized TTCFS-M set image must be named tapetech_ttcfs_m_01.jpg.'
+if ([IO.Path]::GetFileName($mediaResolved) -cne 'tapetech_ttcfs_m_01.webp') {
+    throw 'The normalized TTCFS-M set image must be named tapetech_ttcfs_m_01.webp.'
 }
 
 $bytes = [IO.File]::ReadAllBytes($catalogResolved)
@@ -55,7 +55,7 @@ if ($set.Name -cne 'TapeTech MudRunner Corner Finishing Set') {
     throw 'TTCFS-M product identity does not match the expected toolset.'
 }
 
-$primaryUrl = 'https://elliottm4.sg-host.com/wp/wp-content/uploads/2026/media/tapetech_ttcfs_m_01.jpg'
+$primaryUrl = 'https://elliottm4.sg-host.com/wp/wp-content/uploads/2026/media/tapetech_ttcfs_m_01.webp'
 $gallery = @(
     $primaryUrl,
     (Get-PrimaryImage -Images $bySku['48TT'].Images),

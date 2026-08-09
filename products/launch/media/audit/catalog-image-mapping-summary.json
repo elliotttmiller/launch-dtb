@@ -1,0 +1,19 @@
+{
+  "mode": "apply",
+  "catalog_rows": 759,
+  "changed_catalog_rows": 0,
+  "variation_rows": 314,
+  "variation_rows_with_explicit_galleries": 314,
+  "variation_explicit_parent_fallbacks": 28,
+  "variable_parent_representatives": 90,
+  "media_files": 1020,
+  "mapped_media_files": 1020,
+  "unmapped_media_files": 0,
+  "catalog_image_assignments_before": 1337,
+  "catalog_image_assignments_after": 1337,
+  "missing_variations": [],
+  "wc_export_rows": 759,
+  "wc_export_columns_after": 157,
+  "wc_export_id_removed": true,
+  "wc_export_order_matches_official": true
+}

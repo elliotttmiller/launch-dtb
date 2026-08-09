@@ -4554,7 +4554,7 @@ class Brikpanel_Product_Editor {
                     }
                 }
 
-                // Variation images: thumbnail + custom gallery.
+                // Variation images: thumbnail + native WooCommerce gallery.
                 // Read the variation's OWN image in 'edit' context: WC_Product_Variation
                 // ::get_image_id() falls back to the PARENT product's featured image in
                 // the default 'view' context when the variation has none. Without 'edit',
@@ -4570,7 +4570,12 @@ class Brikpanel_Product_Editor {
                     ];
                 }
                 if (get_option('brikpanel_variation_gallery_enabled', 'yes') === 'yes') {
-                    $var_gallery = get_post_meta($variation->get_id(), '_brikpanel_variation_gallery', true);
+                    $var_gallery = method_exists($variation, 'get_gallery_image_ids')
+                        ? $variation->get_gallery_image_ids('edit')
+                        : [];
+                    if (empty($var_gallery)) {
+                        $var_gallery = get_post_meta($variation->get_id(), '_brikpanel_variation_gallery', true);
+                    }
                     if (!empty($var_gallery) && is_array($var_gallery)) {
                         foreach ($var_gallery as $gid) {
                             $gid = (int) $gid;
@@ -6887,7 +6892,7 @@ class Brikpanel_Product_Editor {
                 $variation->set_downloads([]);
             }
 
-            // Images: first = WC thumbnail, rest = custom gallery meta.
+            // Images: first = WC thumbnail, rest = native Woo gallery IDs.
             // Filter out any non-image attachments the client may have sent
             // (defensive: the media picker is image-only, but validating here
             // avoids persisting broken references if the client is tampered).
@@ -6901,6 +6906,10 @@ class Brikpanel_Product_Editor {
                 }
             }
             $variation->set_image_id(!empty($var_image_ids) ? $var_image_ids[0] : 0);
+            $gallery_ids_for_var = array_slice($var_image_ids, 1);
+            if (method_exists($variation, 'set_gallery_image_ids')) {
+                $variation->set_gallery_image_ids($gallery_ids_for_var);
+            }
 
             $variation->save();
 
@@ -6920,13 +6929,13 @@ class Brikpanel_Product_Editor {
                 clean_post_cache($saved_var_id);
             }
 
-            // Gallery meta must be written after save() so new variations have a real ID.
+            // Compatibility meta mirrors the native gallery after save() so older
+            // BrikPanel storefront integrations continue to read the same IDs.
             // When the variation gallery toggle is off, leave the meta untouched so any
             // previously-saved extra images are preserved (and reappear if re-enabled)
             // — the client only sends the single thumbnail in that mode anyway.
             $var_id_for_meta = $variation->get_id();
             if ($var_id_for_meta && get_option('brikpanel_variation_gallery_enabled', 'yes') === 'yes') {
-                $gallery_ids_for_var = array_slice($var_image_ids, 1);
                 if (!empty($gallery_ids_for_var)) {
                     update_post_meta($var_id_for_meta, '_brikpanel_variation_gallery', $gallery_ids_for_var);
                 } else {

@@ -2,9 +2,8 @@
 /**
  * Canonical resolver for variation-specific product image galleries.
  *
- * The active catalog manifest is authoritative for ordering, while SKU-matched
- * files in the managed upload directory and WooCommerce media attachments fill
- * gaps left by imports that persist only a single variation thumbnail.
+ * The active catalog manifest is authoritative for ordering. Explicit native
+ * WooCommerce variation media is the fallback when the manifest is unavailable.
  *
  * @package drywall-toolbox
  */
@@ -14,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_VariationGalleryResolver {
 
 	/** @var string[] */
-	private const IMAGE_EXTENSIONS = [ 'webp', 'jpg', 'jpeg', 'png', 'avif', 'gif' ];
+	private const IMAGE_EXTENSIONS = [ 'webp' ];
 
 	/** @var array<string,array<int,array<string,mixed>>> */
 	private static array $cache = [];
@@ -25,10 +24,9 @@ final class DTB_VariationGalleryResolver {
 	/**
 	 * Resolve the complete ordered gallery for one variation SKU.
 	 *
-	 * Resolution is additive and deterministic:
+	 * Resolution is deterministic:
 	 * 1. exact filenames from the active catalog CSV manifest;
-	 * 2. exact SKU-token files from the managed upload directory;
-	 * 3. selected-variation and parent WooCommerce attachments.
+	 * 2. explicit selected-variation WooCommerce attachments as fallback.
 	 *
 	 * @param string $sku          Variation SKU.
 	 * @param int    $variation_id WooCommerce variation post ID.
@@ -52,18 +50,17 @@ final class DTB_VariationGalleryResolver {
 		}
 
 		$manifest = self::resolve_from_catalog_manifest( $sku );
-		$uploads  = self::resolve_from_uploads( $sku );
 		$woo      = $variation_id > 0
 			? self::resolve_from_woocommerce_media( $sku, $variation_id )
 			: [];
 
-		$gallery = self::normalize_gallery( array_merge( $manifest, $uploads, $woo ) );
+		$gallery = self::normalize_gallery( ! empty( $manifest ) ? $manifest : $woo );
 
 		self::$last_diagnostics = [
 			'sku'           => $sku,
 			'variationId'   => $variation_id,
 			'manifestCount' => count( $manifest ),
-			'uploadCount'   => count( $uploads ),
+			'uploadCount'   => 0,
 			'wooCount'      => count( $woo ),
 			'resolvedCount' => count( $gallery ),
 		];
@@ -198,7 +195,7 @@ final class DTB_VariationGalleryResolver {
 	}
 
 	/**
-	 * Resolve matching selected-variation and parent WooCommerce attachments.
+	 * Resolve explicit selected-variation WooCommerce attachments.
 	 *
 	 * @param string $sku          Variation SKU.
 	 * @param int    $variation_id WooCommerce variation post ID.
@@ -214,13 +211,8 @@ final class DTB_VariationGalleryResolver {
 			return [];
 		}
 
-		$pattern = self::build_sku_pattern( $sku );
-		if ( '' === $pattern ) {
-			return [];
-		}
-
 		$primary_id = method_exists( $variation, 'get_image_id' )
-			? (int) $variation->get_image_id()
+			? (int) $variation->get_image_id( 'edit' )
 			: 0;
 		$ids        = [];
 
@@ -229,17 +221,6 @@ final class DTB_VariationGalleryResolver {
 		}
 		if ( method_exists( $variation, 'get_gallery_image_ids' ) ) {
 			$ids = array_merge( $ids, array_map( 'intval', (array) $variation->get_gallery_image_ids() ) );
-		}
-
-		$parent_id = method_exists( $variation, 'get_parent_id' )
-			? (int) $variation->get_parent_id()
-			: 0;
-		$parent    = $parent_id > 0 ? wc_get_product( $parent_id ) : null;
-		if ( $parent && method_exists( $parent, 'get_image_id' ) ) {
-			$ids[] = (int) $parent->get_image_id();
-		}
-		if ( $parent && method_exists( $parent, 'get_gallery_image_ids' ) ) {
-			$ids = array_merge( $ids, array_map( 'intval', (array) $parent->get_gallery_image_ids() ) );
 		}
 
 		$gallery = [];
@@ -255,9 +236,7 @@ final class DTB_VariationGalleryResolver {
 			if ( empty( $entry['src'] ) ) {
 				continue;
 			}
-			if ( 1 === preg_match( $pattern, self::attachment_match_text( (int) $attachment_id, (string) $entry['src'] ) ) ) {
-				$gallery[] = $entry;
-			}
+			$gallery[] = $entry;
 		}
 
 		return self::normalize_gallery( $gallery );
@@ -369,7 +348,7 @@ final class DTB_VariationGalleryResolver {
 	 * Build an exact, separator-tolerant SKU matcher.
 	 *
 	 * Character boundaries prevent a short SKU from matching a longer sibling
-	 * while still matching files such as level5_4_600p_01.png.
+	 * while still matching files such as level5_4_600p_01.webp.
 	 *
 	 * @param string $sku Variation SKU.
 	 * @return string Valid PCRE pattern or an empty string.

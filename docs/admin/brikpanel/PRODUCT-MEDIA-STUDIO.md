@@ -11,8 +11,9 @@ WooCommerce remains authoritative for product and variation media persistence.
 - Parent/simple primary image: WooCommerce product image ID.
 - Parent/simple gallery: WooCommerce gallery image IDs.
 - Variation primary image: WooCommerce variation image ID.
-- Additional variation gallery images: the existing BrikPanel `_brikpanel_variation_gallery` compatibility contract used by the BrikPanel save transaction.
-- Complete variation-gallery read model: `DTB_VariationGalleryResolver`, which is also used by the DTB storefront REST enrichment path.
+- Additional variation gallery images: native WooCommerce gallery image IDs on the variation.
+- Compatibility mirror: `_brikpanel_variation_gallery`, written from the native IDs for older BrikPanel consumers.
+- Complete variation-gallery read model: the exact catalog manifest, with the variation's native WooCommerce media used only when that manifest is unavailable.
 
 The media studio does not create media records, product records, variation records, alternate gallery tables, or a second variation-gallery save endpoint.
 
@@ -25,7 +26,7 @@ The existing Product images card is progressively upgraded into two views:
 
 The first ordered image is presented as the primary image. Existing BrikPanel save behavior remains authoritative.
 
-Before `brikpanel-product-editor.js` initializes its private state, the integration enriches `window.brikpanelProductData.variations[].images` with the same canonical gallery resolved for the storefront. Resolution merges the DTB variation-gallery resolver, the variation primary image, existing `_brikpanel_variation_gallery` IDs, and native WooCommerce variation gallery IDs when available. URL-only resolver entries are mapped back to WordPress attachment IDs when possible because BrikPanel's existing editor requires attachment IDs for reorder/remove/save semantics.
+Before `brikpanel-product-editor.js` initializes its private state, the integration enriches `window.brikpanelProductData.variations[].images` with the same canonical gallery resolved for the storefront. The exact catalog manifest is authoritative; native variation IDs are the persistence fallback, and `_brikpanel_variation_gallery` is read only as a compatibility fallback. URL-only manifest entries are mapped back to WordPress attachment IDs when possible because BrikPanel's existing editor requires attachment IDs for reorder/remove/save semantics.
 
 The Media Studio then hydrates its variation cards from the normalized `brikpanelProductData.variations[].images` arrays. While a variation gallery dialog is open, the studio mirrors the dialog's live image count and first image so add/remove/reorder operations remain accurate before the parent product is saved. The compact variation-row badge is retained only as a compatibility fallback when normalized media data is unavailable.
 
@@ -47,6 +48,7 @@ No new mutation endpoint is introduced. Existing BrikPanel nonce, capability, at
 
 Deploy these files together:
 
+- `brikpanel-product-editor.php`
 - `brikpanel-variation-gallery.php`
 - `brikpanel-product-media-studio.js`
 - `brikpanel-product-media-studio.css`

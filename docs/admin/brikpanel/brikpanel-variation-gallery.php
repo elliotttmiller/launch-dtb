@@ -53,7 +53,12 @@ function brikpanel_media_studio_resolve_variation_images($variation) {
         $candidates[] = ['id' => $primary_id];
     }
 
-    $compat_gallery = get_post_meta($variation_id, '_brikpanel_variation_gallery', true);
+    $native_gallery = method_exists($variation, 'get_gallery_image_ids')
+        ? (array) $variation->get_gallery_image_ids('edit')
+        : [];
+    $compat_gallery = !empty($native_gallery)
+        ? $native_gallery
+        : get_post_meta($variation_id, '_brikpanel_variation_gallery', true);
     if (is_array($compat_gallery)) {
         foreach ($compat_gallery as $gallery_id) {
             $gallery_id = (int) $gallery_id;
@@ -295,7 +300,12 @@ if (get_option('brikpanel_variation_gallery_enabled', 'yes') !== 'yes') {
  * Add variation gallery image data to the variation JSON sent to the frontend.
  */
 add_filter('woocommerce_available_variation', function ($data, $product, $variation) {
-    $gallery_ids = get_post_meta($variation->get_id(), '_brikpanel_variation_gallery', true);
+    $gallery_ids = method_exists($variation, 'get_gallery_image_ids')
+        ? (array) $variation->get_gallery_image_ids('edit')
+        : [];
+    if (empty($gallery_ids)) {
+        $gallery_ids = get_post_meta($variation->get_id(), '_brikpanel_variation_gallery', true);
+    }
 
     if (empty($gallery_ids) || !is_array($gallery_ids)) {
         $data['brikpanel_gallery_images'] = [];
