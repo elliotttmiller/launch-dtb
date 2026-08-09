@@ -15,6 +15,12 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_CatalogFacetsController {
 
+	private const NAVIGATION_GROUP_SLUGS = [
+		'automatic-taping-tools',
+		'semi-automatic-taping-tools',
+		'stilts-accessories',
+	];
+
 	public static function register_routes(): void {
 		register_rest_route( 'dtb/v1', '/catalog/facets', [
 			'methods'             => 'GET',
@@ -62,11 +68,12 @@ final class DTB_CatalogFacetsController {
 	 * @return array<string,mixed>|WP_Error
 	 */
 	private static function build_local_facets( array $scope ) {
-		$brands           = [];
-		$categories       = [];
-		$display_by_brand = [];
-		$page             = 1;
-		$per_page         = 100;
+		$brands             = [];
+		$categories         = [];
+		$display_by_brand   = [];
+		$navigation_groups  = [];
+		$page               = 1;
+		$per_page           = 100;
 
 		do {
 			$query = DTB_CatalogProductRepository::find_ids( [
@@ -155,6 +162,39 @@ final class DTB_CatalogFacetsController {
 					}
 					unset( $entry );
 				}
+
+				if ( empty( $dto['isParts'] ) ) {
+					$navigation = self::canonical_navigation_membership( (array) ( $raw['categories'] ?? [] ) );
+					if ( null !== $navigation ) {
+						$group = $navigation['group'];
+						$child = $navigation['child'];
+						$group_slug = $group['slug'];
+
+						if ( ! isset( $navigation_groups[ $group_slug ] ) ) {
+							$navigation_groups[ $group_slug ] = [
+								'key'          => $group_slug,
+								'label'        => $group['label'],
+								'slug'         => $group_slug,
+								'productCount' => 0,
+								'children'     => [],
+							];
+						}
+
+						$navigation_groups[ $group_slug ]['productCount']++;
+						if ( null !== $child ) {
+							$child_slug = $child['slug'];
+							if ( ! isset( $navigation_groups[ $group_slug ]['children'][ $child_slug ] ) ) {
+								$navigation_groups[ $group_slug ]['children'][ $child_slug ] = [
+									'key'          => $child_slug,
+									'label'        => $child['label'],
+									'slug'         => $child_slug,
+									'productCount' => 0,
+								];
+							}
+							$navigation_groups[ $group_slug ]['children'][ $child_slug ]['productCount']++;
+						}
+					}
+				}
 			}
 
 			$page++;
@@ -172,10 +212,22 @@ final class DTB_CatalogFacetsController {
 			usort( $display_result[ $brand_key ], static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 		}
 
+		$navigation_result = [];
+		foreach ( self::NAVIGATION_GROUP_SLUGS as $group_slug ) {
+			if ( ! isset( $navigation_groups[ $group_slug ] ) ) {
+				continue;
+			}
+			$group = $navigation_groups[ $group_slug ];
+			$group['children'] = array_values( $group['children'] );
+			usort( $group['children'], static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
+			$navigation_result[] = $group;
+		}
+
 		return [
 			'brands'                   => $brands,
 			'categories'               => $categories,
 			'displayCategoriesByBrand' => $display_result,
+			'navigationGroups'         => $navigation_result,
 		];
 	}
 
@@ -207,5 +259,93 @@ final class DTB_CatalogFacetsController {
 			return [ 'key' => 'compound_tubes', 'label' => 'Compound Tubes', 'slug' => 'compound-tubes' ];
 		}
 		return is_array( $dto['displayCategory'] ?? null ) ? $dto['displayCategory'] : [];
+	}
+
+	/**
+	 * Resolve a product's customer navigation membership from the authoritative
+	 * WooCommerce product_cat hierarchy. This deliberately ignores legacy
+	 * `_dtb_display_category_key` values so storefront navigation cannot drift
+	 * into a parallel taxonomy.
+	 *
+	 * @param array<int,array<string,mixed>> $raw_categories
+	 * @return array{group:array{label:string,slug:string},child:?array{label:string,slug:string}}|null
+	 */
+	private static function canonical_navigation_membership( array $raw_categories ): ?array {
+		$best = null;
+
+		foreach ( $raw_categories as $raw_category ) {
+			$term_id = absint( $raw_category['id'] ?? 0 );
+			if ( ! $term_id ) {
+				continue;
+			}
+
+			$path = self::product_category_path( $term_id );
+			if ( count( $path ) < 2 ) {
+				continue;
+			}
+
+			foreach ( $path as $index => $term ) {
+				if ( ! in_array( $term['slug'], self::NAVIGATION_GROUP_SLUGS, true ) ) {
+					continue;
+				}
+
+				$child = $path[ $index + 1 ] ?? null;
+				$candidate = [
+					'group' => $term,
+					'child' => $child,
+					'depth' => count( $path ),
+				];
+
+				if ( null === $best || $candidate['depth'] > $best['depth'] ) {
+					$best = $candidate;
+				}
+				break;
+			}
+		}
+
+		if ( null === $best ) {
+			return null;
+		}
+
+		return [
+			'group' => $best['group'],
+			'child' => $best['child'],
+		];
+	}
+
+	/**
+	 * Return a root-to-leaf product_cat path with request-local term caching.
+	 *
+	 * @return array<int,array{label:string,slug:string}>
+	 */
+	private static function product_category_path( int $term_id ): array {
+		static $path_cache = [];
+		if ( isset( $path_cache[ $term_id ] ) ) {
+			return $path_cache[ $term_id ];
+		}
+
+		$term = get_term( $term_id, 'product_cat' );
+		if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
+			$path_cache[ $term_id ] = [];
+			return [];
+		}
+
+		$ancestor_ids = array_reverse( array_map( 'absint', get_ancestors( $term_id, 'product_cat', 'taxonomy' ) ) );
+		$term_ids     = array_merge( $ancestor_ids, [ $term_id ] );
+		$path         = [];
+
+		foreach ( $term_ids as $path_term_id ) {
+			$path_term = get_term( $path_term_id, 'product_cat' );
+			if ( ! $path_term instanceof WP_Term || is_wp_error( $path_term ) ) {
+				continue;
+			}
+			$path[] = [
+				'label' => sanitize_text_field( $path_term->name ),
+				'slug'  => sanitize_title( $path_term->slug ),
+			];
+		}
+
+		$path_cache[ $term_id ] = $path;
+		return $path;
 	}
 }
