@@ -80,109 +80,260 @@ function getCacheEntry(cache, key, prefix, { allowStale = false } = {}) {
 
   cache.set(key, persistentEntry);
   if (persistentAge < FRESH_CACHE_TTL) {
-    return { data: persistentEntry.data, isStale: false, source: 'storage' };
+    return { data: persistentEntry.data, isStale: false, source: 'persistent' };
   }
-  if (allowStale) {
-    return { data: persistentEntry.data, isStale: true, source: 'storage' };
-  }
-  return null;
+
+  return allowStale
+    ? { data: persistentEntry.data, isStale: true, source: 'persistent' }
+    : null;
 }
 
 function setCacheEntry(cache, key, prefix, data) {
+  if (!data) return data;
+
   const entry = { data, cachedAt: Date.now() };
   cache.set(key, entry);
   writePersistent(prefix, key, data);
   return data;
 }
 
-function keyFromParams(params = {}) {
-  return JSON.stringify(Object.keys(params).sort().reduce((acc, key) => {
-    const value = params[key];
-    if (value !== undefined && value !== null && value !== '') acc[key] = value;
-    return acc;
-  }, {}));
+function sortedKey(value = {}) {
+  return JSON.stringify(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)));
 }
 
-function buildSnapshotUrl(type, params = {}) {
+function normalizePathSegment(value = '') {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function normalizeCategoryAlias(value = '') {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function isLiveOnlyCategory(value = '') {
+  return ['compound-tubes', 'compound-tube', 'mud-tubes', 'mud-tube', 'cam-lock-tubes', 'camlock-tubes']
+    .includes(normalizeCategoryAlias(value));
+}
+
+export function normalizeCatalogScope(scope = {}) {
+  const normalized = {};
+
+  if (scope.brand) {
+    normalized.brand = brandToSlug(scope.brand) || String(scope.brand);
+  }
+  if (scope.category) normalized.category = String(scope.category);
+  if (scope.displayCategory && !isAllProductsCategorySlug(scope.displayCategory)) {
+    normalized.display_category = String(scope.displayCategory);
+  }
+  if (scope.productKind) normalized.product_kind = String(scope.productKind);
+  if (scope.isParts !== undefined && scope.isParts !== null && scope.isParts !== '') {
+    normalized.is_parts = String(scope.isParts);
+  }
+
+  return normalized;
+}
+
+export function buildCatalogFacetsUrl(scope = {}) {
+  const params = new URLSearchParams(normalizeCatalogScope(scope));
+  const qs = params.toString();
+  return `/wp-json/dtb/v1/catalog/facets${qs ? `?${qs}` : ''}`;
+}
+
+export function getCachedCatalogFacets(scope = {}, options = {}) {
+  const entry = getCacheEntry(
+    facetsCache,
+    sortedKey(normalizeCatalogScope(scope)),
+    FACETS_STORAGE_PREFIX,
+    options,
+  );
+  return options.returnEntry ? entry : entry?.data || null;
+}
+
+export function fetchCatalogFacets(scope = {}) {
+  const normalized = normalizeCatalogScope(scope);
+  const key = sortedKey(normalized);
+  const cached = getCacheEntry(facetsCache, key, FACETS_STORAGE_PREFIX);
+  if (cached?.data) return Promise.resolve(cached.data);
+
+  if (!facetsInflight.has(key)) {
+    facetsInflight.set(
+      key,
+      apiClient(buildCatalogFacetsUrl(normalized))
+        .then((data) => setCacheEntry(facetsCache, key, FACETS_STORAGE_PREFIX, data))
+        .finally(() => {
+          facetsInflight.delete(key);
+        }),
+    );
+  }
+
+  return facetsInflight.get(key);
+}
+
+export function buildCatalogProductParams(query = {}) {
+  const params = {};
+  if (query.brands && query.brands.length > 0) {
+    params.brand = brandToSlug(query.brands[0]);
+  }
+  if (query.category) params.category = query.category;
+  if (!query.search && query.displayCategory && !isAllProductsCategorySlug(query.displayCategory)) {
+    params.display_category = query.displayCategory;
+  }
+  if (query.toolFamily) params.tool_family = query.toolFamily;
+  if (query.productKind) params.product_kind = query.productKind;
+  if (query.builderSlot) params.builder_slot = query.builderSlot;
+  if (query.workflowScope) params.workflow_scope = query.workflowScope;
+  if (typeof query.isParts === 'number') params.is_parts = query.isParts;
+  if (query.search) params.search = query.search;
+  if (query.page && query.page > 1) params.page = query.page;
+  if (query.perPage) params.per_page = query.perPage;
+  if (query.sort && query.sort !== 'popular') params.sort = query.sort;
+  return params;
+}
+
+export function buildCatalogProductsUrl(query = {}) {
+  const qs = new URLSearchParams(buildCatalogProductParams(query)).toString();
+  return `/wp-json/dtb/v1/catalog/products${qs ? `?${qs}` : ''}`;
+}
+
+function buildCatalogSnapshotUrl(query = {}) {
   if (!CATALOG_SNAPSHOTS_ENABLED) return '';
-  const suffix = type === 'facets' ? 'facets' : 'products';
-  const normalized = parseCatalogQuery(params);
-  const brand = brandToSlug(normalized.brand || '');
-  const category = normalized.displayCategory || normalized.category || '';
-  const file = [suffix, brand || 'all', category || 'all'].join('--');
-  return `${PUBLIC_ASSET_BASE}/catalog-snapshots/${file}.json`;
+
+  const params = buildCatalogProductParams(query);
+  if (params.search || params.tool_family || params.builder_slot || params.workflow_scope || params.product_kind) {
+    return '';
+  }
+
+  // Compound Tube category membership is resolved by backend aliases, taxonomy, SKU,
+  // and title fallbacks. Static snapshots can be stale or incomplete for this bucket,
+  // so this category must always use the live catalog endpoint.
+  if (isLiveOnlyCategory(params.display_category || params.category || '')) {
+    return '';
+  }
+
+  const page = normalizePathSegment(params.page || 1) || '1';
+  const sort = params.sort ? normalizePathSegment(params.sort) : '';
+  const suffix = sort ? `-${sort}` : '';
+
+  if (params.is_parts === 1 || params.is_parts === '1') {
+    return `${PUBLIC_ASSET_BASE}/catalog-snapshots/parts/page-${page}${suffix}.json`;
+  }
+
+  const brand = normalizePathSegment(params.brand || '');
+  const category = normalizePathSegment(params.display_category || params.category || '');
+
+  if (brand && category) {
+    return `${PUBLIC_ASSET_BASE}/catalog-snapshots/brands/${brand}/categories/${category}/page-${page}${suffix}.json`;
+  }
+
+  if (brand) {
+    return `${PUBLIC_ASSET_BASE}/catalog-snapshots/brands/${brand}/page-${page}${suffix}.json`;
+  }
+
+  if (category) {
+    return `${PUBLIC_ASSET_BASE}/catalog-snapshots/categories/${category}/page-${page}${suffix}.json`;
+  }
+
+  return `${PUBLIC_ASSET_BASE}/catalog-snapshots/products/page-${page}${suffix}.json`;
 }
 
-async function readSnapshot(type, params = {}) {
-  const url = buildSnapshotUrl(type, params);
-  if (!url || typeof fetch !== 'function') return null;
-  if (snapshotInflight.has(url)) return snapshotInflight.get(url);
+async function fetchJsonIfPresent(url) {
+  if (!url || typeof window === 'undefined') return null;
 
-  const request = fetch(url, { credentials: 'same-origin' })
-    .then((response) => (response.ok ? response.json() : null))
-    .catch(() => null)
-    .finally(() => snapshotInflight.delete(url));
+  const absoluteUrl = new URL(url, window.location.origin).toString();
+  const response = await fetch(absoluteUrl, {
+    method: 'GET',
+    credentials: 'same-origin',
+    headers: { Accept: 'application/json' },
+    cache: 'force-cache',
+  }).catch(() => null);
 
-  snapshotInflight.set(url, request);
-  return request;
+  if (!response || !response.ok) return null;
+  return response.json().catch(() => null);
 }
 
-async function fetchCatalogResource({
-  cache,
-  inflight,
-  prefix,
-  params,
-  request,
-  snapshotType,
-  allowStale = true,
-}) {
-  const key = keyFromParams(params);
-  const cached = getCacheEntry(cache, key, prefix, { allowStale });
-  if (cached && !cached.isStale) return cached.data;
-  if (inflight.has(key)) return inflight.get(key);
-
-  const operation = (async () => {
-    try {
-      const data = await request();
-      if (data) return setCacheEntry(cache, key, prefix, data);
-      throw new Error('Catalog response was empty.');
-    } catch (error) {
-      const snapshot = await readSnapshot(snapshotType, params);
-      if (snapshot) return setCacheEntry(cache, key, prefix, snapshot);
-      if (cached?.data) return cached.data;
-      throw error;
-    }
-  })().finally(() => inflight.delete(key));
-
-  inflight.set(key, operation);
-  return operation;
+export function getCachedCatalogProducts(query = {}, options = {}) {
+  const entry = getCacheEntry(
+    productCache,
+    sortedKey(buildCatalogProductParams(query)),
+    PRODUCT_STORAGE_PREFIX,
+    options,
+  );
+  return options.returnEntry ? entry : entry?.data || null;
 }
 
-export async function getCatalogProducts(params = {}, options = {}) {
-  return fetchCatalogResource({
-    cache: productCache,
-    inflight: productInflight,
-    prefix: PRODUCT_STORAGE_PREFIX,
-    params,
-    request: () => apiClient.get('/dtb/v1/catalog/products', { params }),
-    snapshotType: 'products',
-    allowStale: options.allowStale !== false,
-  });
+export function getRenderableCatalogProducts(query = {}) {
+  return getCachedCatalogProducts(query, { allowStale: true, returnEntry: true });
 }
 
-export async function getCatalogFacets(params = {}, options = {}) {
-  return fetchCatalogResource({
-    cache: facetsCache,
-    inflight: facetsInflight,
-    prefix: FACETS_STORAGE_PREFIX,
-    params,
-    request: () => apiClient.get('/dtb/v1/catalog/facets', { params }),
-    snapshotType: 'facets',
-    allowStale: options.allowStale !== false,
-  });
+export function fetchCatalogProductSnapshot(query = {}) {
+  const url = buildCatalogSnapshotUrl(query);
+  if (!url) return Promise.resolve(null);
+
+  const key = `snapshot:${url}`;
+  if (!snapshotInflight.has(key)) {
+    snapshotInflight.set(
+      key,
+      fetchJsonIfPresent(url)
+        .then((data) => {
+          if (!data) return null;
+          setCacheEntry(productCache, sortedKey(buildCatalogProductParams(query)), PRODUCT_STORAGE_PREFIX, data);
+          return data;
+        })
+        .finally(() => {
+          snapshotInflight.delete(key);
+        }),
+    );
+  }
+
+  return snapshotInflight.get(key);
 }
 
-export function clearCatalogPlatformCache() {
+export function fetchCatalogProducts(query = {}) {
+  const key = sortedKey(buildCatalogProductParams(query));
+  const cached = getCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX);
+  if (cached?.data) return Promise.resolve(cached.data);
+
+  if (!productInflight.has(key)) {
+    productInflight.set(
+      key,
+      fetchCatalogProductSnapshot(query)
+        .then((snapshot) => snapshot || apiClient(buildCatalogProductsUrl(query)))
+        .then((data) => setCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX, data))
+        .finally(() => {
+          productInflight.delete(key);
+        }),
+    );
+  }
+
+  return productInflight.get(key);
+}
+
+export function invalidateCatalogPlatformCache() {
   productCache.clear();
+  productInflight.clear();
   facetsCache.clear();
+  facetsInflight.clear();
+  snapshotInflight.clear();
+
+  if (!canUseStorage()) return;
+
+  try {
+    Object.keys(window.localStorage)
+      .filter((key) => key.startsWith(PRODUCT_STORAGE_PREFIX) || key.startsWith(FACETS_STORAGE_PREFIX))
+      .forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Non-critical cleanup.
+  }
+}
+
+export function parseCatalogUrlSearch(search = '') {
+  return parseCatalogQuery(new URLSearchParams(search));
 }
