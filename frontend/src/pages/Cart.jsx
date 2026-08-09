@@ -1,10 +1,11 @@
 // Cart checkout remains WooCommerce-authoritative.
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, Lock, ChevronLeft, ShoppingCart, ShieldAlert, LockKeyhole, Truck, RotateCcw } from 'lucide-react';
+import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ArrowLeft, Lock, ShoppingCart, ShieldAlert, LockKeyhole, Truck, RotateCcw } from 'lucide-react';
 
 import SEOHead from '../components/shared/SEOHead';
+import BackButton from '../components/shared/BackButton';
 import { Container } from '../components/layout';
 import { useCart } from '../context/CartContext';
 import { useAuthContext } from '../auth/AuthContext.js';
@@ -24,6 +25,7 @@ function formatMoney(value) {
 }
 
 export default function Cart() {
+  const navigate = useNavigate();
   const { cart, cartItems, updateQuantity, removeFromCart, refreshCart, isMutating } = useCart();
   const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
   const [checkoutPending, setCheckoutPending] = useState(false);
@@ -88,10 +90,20 @@ export default function Cart() {
     <div className="page-wrapper dtb-cart-page">
       <SEOHead noindex title="Shopping Cart" />
       <Container width="wide" className="dtb-cart-page__container">
-        <Motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="dtb-cart-page__header">
-          <Link to="/products" className="dtb-cart-page__continue"><ChevronLeft size={16} aria-hidden="true" strokeWidth={2.5} />Continue shopping</Link>
-          <h1>Shopping cart</h1>
-          <p>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</p>
+        <Motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="dtb-listing-heading dtb-listing-heading--standard">
+          <button type="button" onClick={() => navigate('/products')} className="dtb-listing-heading__back-pill sm:hidden">
+            <ArrowLeft size={14} aria-hidden="true" />
+            <span>Products</span>
+          </button>
+          <div className="dtb-listing-heading__title-row hidden sm:flex">
+            <div className="dtb-listing-heading__nav-col">
+              <BackButton onClick={() => navigate('/products')} label="Products" className="dtb-product-nav-back" />
+            </div>
+            <div className="dtb-listing-heading__title-group">
+              <h1 className="dtb-listing-heading__title">Shopping cart</h1>
+              <p className="dtb-listing-heading__meta">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
         </Motion.header>
 
         {checkoutNotice && (

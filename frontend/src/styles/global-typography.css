@@ -38,6 +38,7 @@ body *::after {
 html,
 body {
   font-optical-sizing: auto;
+  font-kerning: normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

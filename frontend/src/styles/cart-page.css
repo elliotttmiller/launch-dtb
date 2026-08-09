@@ -9,37 +9,11 @@
   padding-block: clamp(1.5rem, 4vw, 3rem);
 }
 
-.dtb-cart-page__header {
+/* Page title/back-button now use the shared .dtb-listing-heading system
+   (storefront-sections.css) and the shared BackButton component, matching
+   the product listing pages instead of a page-specific header. */
+.dtb-cart-page .dtb-listing-heading {
   margin-bottom: var(--dtb-space-6);
-}
-
-.dtb-cart-page__continue {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-bottom: 0.75rem;
-  color: var(--dtb-muted);
-  font-size: 0.875rem;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.dtb-cart-page__continue:hover {
-  color: var(--dtb-primary);
-}
-
-.dtb-cart-page__header h1 {
-  margin: 0;
-  font-size: var(--dtb-text-3xl);
-  font-weight: 850;
-  letter-spacing: -0.035em;
-  line-height: 1.05;
-}
-
-.dtb-cart-page__header p {
-  margin: 0.35rem 0 0;
-  color: var(--dtb-muted);
-  font-size: 0.875rem;
 }
 
 .dtb-cart-page__notice {

@@ -19,6 +19,20 @@ const slideTransition = {
   opacity: { duration: 0.14, ease: [0.4, 0, 0.2, 1] },
 };
 
+// Used when the image set changes because a different variation/product was
+// selected (direction resets to 0), not because the shopper paged through the
+// gallery. A plain crossfade — no x-transform — avoids both the unwanted
+// "slide in from the right" motion and the transform+overflow-hidden
+// compositing flash that could otherwise expose an unpainted frame under the
+// moving layer.
+const fadeVariants = {
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const fadeTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
+
 const LB_NAV_BTN_CLASS = 'absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/[0.22] text-white transition-all hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-white';
 
 function normalizeImageMeta(rawImage, product = {}, index = 0) {
@@ -522,7 +536,7 @@ export default function ProductImageGallery({ product }) {
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false} custom={direction}>
+          <AnimatePresence initial={false} custom={direction} mode={direction === 0 ? 'wait' : 'sync'}>
             <Motion.img
               key={`${activeIndex}-${images[activeIndex]}`}
               src={images[activeIndex]}
@@ -530,16 +544,16 @@ export default function ProductImageGallery({ product }) {
               sizes={activeMeta?.sizes || '(max-width: 767px) 92vw, 48vw'}
               alt={`${product?.name || 'Product'} — image ${activeIndex + 1} of ${images.length}`}
               custom={direction}
-              variants={slideVariants}
+              variants={direction === 0 ? fadeVariants : slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={slideTransition}
+              transition={direction === 0 ? fadeTransition : slideTransition}
               loading={activeIndex === 0 ? 'eager' : 'lazy'}
               fetchPriority={activeIndex === 0 ? 'high' : undefined}
               decoding="async"
               draggable={false}
-              className="absolute inset-0 w-full h-full object-contain p-3 sm:p-4"
+              className="absolute inset-0 w-full h-full object-contain p-3 sm:p-4 bg-white"
               style={{ zIndex: 2, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
               onLoad={() => setImgLoaded((state) => ({ ...state, [activeIndex]: true }))}
               onError={(event) => {
