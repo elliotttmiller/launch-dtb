@@ -68,12 +68,12 @@ final class DTB_CatalogFacetsController {
 	 * @return array<string,mixed>|WP_Error
 	 */
 	private static function build_local_facets( array $scope ) {
-		$brands             = [];
-		$categories         = [];
-		$display_by_brand   = [];
-		$navigation_groups  = [];
-		$page               = 1;
-		$per_page           = 100;
+		$brands            = [];
+		$categories        = [];
+		$display_by_brand  = [];
+		$navigation_groups = [];
+		$page              = 1;
+		$per_page          = 100;
 
 		do {
 			$query = DTB_CatalogProductRepository::find_ids( [
@@ -166,8 +166,8 @@ final class DTB_CatalogFacetsController {
 				if ( empty( $dto['isParts'] ) ) {
 					$navigation = self::canonical_navigation_membership( (array) ( $raw['categories'] ?? [] ) );
 					if ( null !== $navigation ) {
-						$group = $navigation['group'];
-						$child = $navigation['child'];
+						$group      = $navigation['group'];
+						$child      = $navigation['child'];
 						$group_slug = $group['slug'];
 
 						if ( ! isset( $navigation_groups[ $group_slug ] ) ) {
@@ -262,6 +262,20 @@ final class DTB_CatalogFacetsController {
 	}
 
 	/**
+	 * Normalize a taxonomy label before exposing it through navigationGroups.
+	 * WordPress term names can already contain HTML entities (for example
+	 * "&amp;"). React renders API strings as text, so decode once at the API
+	 * boundary and then sanitize the resulting plain-text label.
+	 */
+	private static function navigation_label( string $label, string $slug ): string {
+		if ( 'stilts-accessories' === $slug ) {
+			return 'Stilts';
+		}
+
+		return sanitize_text_field( wp_specialchars_decode( $label, ENT_QUOTES ) );
+	}
+
+	/**
 	 * Resolve a product's customer navigation membership from the authoritative
 	 * WooCommerce product_cat hierarchy. This deliberately ignores legacy
 	 * `_dtb_display_category_key` values so storefront navigation cannot drift
@@ -339,9 +353,10 @@ final class DTB_CatalogFacetsController {
 			if ( ! $path_term instanceof WP_Term || is_wp_error( $path_term ) ) {
 				continue;
 			}
+			$slug   = sanitize_title( $path_term->slug );
 			$path[] = [
-				'label' => sanitize_text_field( $path_term->name ),
-				'slug'  => sanitize_title( $path_term->slug ),
+				'label' => self::navigation_label( (string) $path_term->name, $slug ),
+				'slug'  => $slug,
 			];
 		}
 
