@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Product Media Studio is a progressive enhancement of the existing BrikPanel product editor. It gives administrators a focused workspace for ordering parent/simple product images and opening each variation's image gallery without introducing a second product-media persistence layer.
+The Product Media Studio is a progressive enhancement of the existing BrikPanel product editor. It gives administrators a focused workspace for ordering parent/simple product images and managing each variation's complete image gallery without introducing a second product-media persistence layer.
 
 ## Ownership
 
@@ -11,9 +11,9 @@ WooCommerce remains authoritative for product and variation media persistence.
 - Parent/simple primary image: WooCommerce product image ID.
 - Parent/simple gallery: WooCommerce gallery image IDs.
 - Variation primary image: WooCommerce variation image ID.
-- Additional variation gallery images: native WooCommerce gallery image IDs on the variation.
-- Compatibility mirror: `_brikpanel_variation_gallery`, written from the native IDs for older BrikPanel consumers.
-- Complete variation-gallery read model: the exact catalog manifest, with the variation's native WooCommerce media used only when that manifest is unavailable.
+- Additional variation gallery images: native WooCommerce gallery image IDs on the variation where supported.
+- Compatibility mirror: `_brikpanel_variation_gallery`, retained for older BrikPanel consumers.
+- Complete variation-gallery read model: the DTB canonical variation-gallery resolver, with WooCommerce/BrikPanel attachment-backed media merged as the editable fallback.
 
 The media studio does not create media records, product records, variation records, alternate gallery tables, or a second variation-gallery save endpoint.
 
@@ -21,22 +21,34 @@ The media studio does not create media records, product records, variation recor
 
 The existing Product images card is progressively upgraded into two views:
 
-1. **Product gallery** — existing parent/simple product gallery controls, with larger tiles, explicit ordering, primary-image state, direct upload, and WordPress Media Library selection.
-2. **Variations** — a compact visual index of existing variation galleries. Each row delegates to the existing BrikPanel variation gallery editor, preserving its add/remove/preview/reorder behavior and save payload.
+1. **Product gallery** — the existing parent/simple product gallery controls, with larger tiles, explicit ordering, primary-image state, direct upload, and WordPress Media Library selection.
+2. **Variations** — a compact visual index of existing variation galleries. **Manage** opens the Media Studio variation-gallery manager, not WordPress Media Library. The manager provides an ordered working copy with add, remove, primary-image, and drag/reorder controls. WordPress Media Library opens only from the manager's explicit **Add images** action.
 
-The first ordered image is presented as the primary image. Existing BrikPanel save behavior remains authoritative.
+The first ordered image is the variation primary image. Remaining ordered images are persisted through BrikPanel's existing product-save payload and server-side WooCommerce variation save path.
 
-Before `brikpanel-product-editor.js` initializes its private state, the integration enriches `window.brikpanelProductData.variations[].images` with the same canonical gallery resolved for the storefront. The exact catalog manifest is authoritative; native variation IDs are the persistence fallback, and `_brikpanel_variation_gallery` is read only as a compatibility fallback. URL-only manifest entries are mapped back to WordPress attachment IDs when possible because BrikPanel's existing editor requires attachment IDs for reorder/remove/save semantics.
+Before `brikpanel-product-editor.js` initializes its private state, the integration enriches `window.brikpanelProductData.variations[].images` with the same canonical gallery resolved for the storefront. URL-only resolver entries are mapped back to WordPress attachment IDs when possible because BrikPanel's product-save contract persists attachment IDs.
 
-The Media Studio then hydrates its variation cards from the normalized `brikpanelProductData.variations[].images` arrays. While a variation gallery dialog is open, the studio mirrors the dialog's live image count and first image so add/remove/reorder operations remain accurate before the parent product is saved. The compact variation-row badge is retained only as a compatibility fallback when normalized media data is unavailable.
+The Media Studio hydrates its variation cards and manager working copies from those normalized `brikpanelProductData.variations[].images` arrays. The Product gallery tab count remains the number of parent/simple gallery images. The header media summary is the aggregate of parent product images plus every variation gallery image.
 
-The Product gallery tab count remains the number of parent/simple gallery images. The header media summary is an aggregate count: parent product images plus every variation gallery image. It is recomputed from the rendered variation cards whenever gallery content changes.
+## BrikPanel state bridge
+
+The current BrikPanel product editor keeps `state.variations` private inside its JavaScript module. Its `openVarImagePicker()` implementation owns the existing `state.variations[idx].images` mutation and the variation-row thumbnail refresh, but current BrikPanel versions open `wp.media()` directly and no longer provide the older custom gallery dialog.
+
+The Product Media Studio therefore owns the visual variation-gallery manager while preserving BrikPanel's private state contract:
+
+1. The manager edits an isolated working copy of ordered `{id, url}` image objects.
+2. **Cancel** discards the working copy without mutating BrikPanel state.
+3. **Done** temporarily supplies a scoped `wp.media` facade containing the ordered working-copy selection.
+4. The studio invokes only BrikPanel's direct variation-image handler. BrikPanel's existing `select` callback then updates its private `state.variations[idx].images` and rebuilds the compact variation image cell.
+5. The original `wp.media` implementation is restored immediately after that synchronous hand-off.
+
+This bridge exists solely because the live BrikPanel editor does not expose a public variation-media state API. It does not create an alternate persistence path. If BrikPanel later exposes a stable public setter for variation images, the facade bridge should be replaced with that API.
 
 ## Compatibility
 
-The enhancement intentionally operates over the existing DOM, product-data object, and events exposed by `brikpanel-product-editor.js`. This keeps third-party product fields, variation fields, inventory, pricing, COGS, vendor fields, and the product save transaction unchanged.
+The enhancement operates over the existing product editor DOM, `window.brikpanelProductData`, variation rows, WooCommerce attachment IDs, and BrikPanel's existing product-save transaction. Third-party product fields, variation fields, inventory, pricing, COGS, vendor fields, and checkout/order workflows are unaffected.
 
-The canonical hydration bridge runs in `admin_footer` after the editor page has emitted `window.brikpanelProductData` and before WordPress prints footer-enqueued editor scripts. This ordering is required so the existing BrikPanel editor copies the complete variation galleries into its own state on initialization.
+The canonical hydration bridge runs in `admin_footer` after the editor page has emitted `window.brikpanelProductData` and before WordPress prints footer-enqueued editor scripts. This ordering is required so BrikPanel initializes with the complete attachment-backed variation galleries.
 
 The admin media studio is loaded only on `admin_page_brikpanel-product-editor`. Storefront variation-gallery behavior remains separately controlled by `brikpanel_variation_gallery_enabled`.
 
@@ -46,11 +58,11 @@ No new mutation endpoint is introduced. Existing BrikPanel nonce, capability, at
 
 ## Deployment
 
-Deploy these files together:
+Deploy these files together from `docs/admin/brikpanel/products/`:
 
 - `brikpanel-product-editor.php`
 - `brikpanel-variation-gallery.php`
 - `brikpanel-product-media-studio.js`
 - `brikpanel-product-media-studio.css`
 
-They are expected to be colocated in the deployed BrikPanel plugin directory because the integration resolves the media-studio assets with `plugin_dir_url(__FILE__)` and `plugin_dir_path(__FILE__)`.
+For the variation-manager restoration itself, the changed runtime files are the Media Studio JS and CSS. They are expected to be colocated with `brikpanel-variation-gallery.php`, which resolves the asset URLs with `plugin_dir_url(__FILE__)` and `plugin_dir_path(__FILE__)`.
