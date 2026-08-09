@@ -568,6 +568,8 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 		$marker_row = '';
 		$label_row  = '';
+		$marker_width = min( 22, (int) floor( 66 / $count ) );
+		$line_width   = $count > 1 ? (int) floor( ( 100 - ( $marker_width * $count ) ) / ( $count - 1 ) ) : 0;
 
 		foreach ( $steps as $i => $step ) {
 			$label = dtb_email_clean_text( $step['label'] );
@@ -576,16 +578,16 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			$c     = $colors[ $state ];
 			$glyph = 'done' === $state ? '&#10003;' : esc_html( (string) ( $i + 1 ) );
 
-			$marker_row .= '<td class="dtb-progress-marker" width="1%" align="center" valign="middle" style="padding:0;">'
+			$marker_row .= '<td class="dtb-progress-marker" width="' . $marker_width . '%" align="center" valign="middle" style="width:' . $marker_width . '%;padding:0;">'
 				. dtb_email_progress_marker_badge( $glyph, $c, $state, $font )
 				. '</td>';
 
-			$label_row .= '<td class="dtb-progress-label" width="1%" align="center" valign="top" style="padding:8px 2px 0;"><span style="display:block;width:108px;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:12px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
+			$label_row .= '<td class="dtb-progress-label" width="' . $marker_width . '%" align="center" valign="top" style="width:' . $marker_width . '%;padding:8px 2px 0;"><span style="display:block;width:108px;max-width:100%;color:' . esc_attr( $c['label'] ) . ';font-family:' . $font . ';font-size:12px;font-weight:700;line-height:140%;text-align:center;">' . esc_html( $label ) . '</span></td>';
 
 			if ( $i < $count - 1 ) {
 				$line_color  = $c['line'];
-				$marker_row .= '<td valign="middle" style="padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="3" style="height:3px;line-height:3px;font-size:3px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
-				$label_row  .= '<td style="padding:0;">&nbsp;</td>';
+				$marker_row .= '<td class="dtb-progress-connector" width="' . $line_width . '%" valign="middle" style="width:' . $line_width . '%;padding:0 4px;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td height="3" style="height:3px;line-height:3px;font-size:3px;background:' . esc_attr( $line_color ) . ';background-color:' . esc_attr( $line_color ) . ';">&nbsp;</td></tr></table></td>';
+				$label_row  .= '<td class="dtb-progress-label-spacer" width="' . $line_width . '%" style="width:' . $line_width . '%;padding:0;">&nbsp;</td>';
 			}
 		}
 

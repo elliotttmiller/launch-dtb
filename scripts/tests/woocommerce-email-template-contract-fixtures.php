@@ -102,7 +102,17 @@ assert_contract((bool) preg_match('/@media\s+screen\s+and\s+\(max-width:\s*600px
 assert_contract(str_contains($styles, '#2255ee'), 'Primary brand blue is missing from email CSS.');
 assert_contract(str_contains($platform_source, "'Geist',Arial,sans-serif"), 'Geist with an email-safe fallback is required.');
 assert_contract(!str_contains($platform_source, "'Nunito'"), 'Shared email helpers must not reference Nunito.');
+
+$customer_details = read_fixture($templates . '/email-customer-details.php');
+assert_contract(str_contains($customer_details, "[ 'billing_email', 'billing_phone' ]"), 'Customer details must not repeat contact fields already rendered in the address section.');
+assert_contract(str_contains($customer_details, 'dtb-customer-details'), 'Customer details must use the responsive detail table.');
+assert_contract(!str_contains($customer_details, '<ul'), 'Customer details must not fall back to a generic bulleted list.');
+
+$tracking_links = read_fixture($root . '/drywalltoolbox/wp/wp-content/mu-plugins/dtb-order-tracking-links.php');
+assert_contract(str_contains($tracking_links, 'dtb_email_font_stack'), 'Order-tracking email links must use the shared email font authority.');
+assert_contract(!str_contains($tracking_links, 'Nunito'), 'Order-tracking email links must not reference Nunito.');
 assert_contract(str_contains($platform_source, "'done' === \$state ? '&#10003;'"), 'Completed progress steps must render a checkmark.');
+assert_contract(str_contains($platform_source, 'dtb-progress-connector'), 'Progress steps must reserve deterministic connector width for responsive labels.');
 $progress_start  = strpos($platform_source, 'function dtb_email_progress_steps(');
 $progress_end    = strpos($platform_source, "if ( ! function_exists( 'dtb_email_card_chrome_style' )", (int) $progress_start);
 $progress_source = false !== $progress_start && false !== $progress_end
