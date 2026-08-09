@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { startTransition, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
-import { ShoppingCart, X, ChevronRight, User, LogOut } from 'lucide-react';
+import { ShoppingCart, X, ChevronRight, User } from 'lucide-react';
 import LogoWhite from '/logo-white.svg';
 import StorefrontSearchOverlay from './StorefrontSearchOverlay';
 import StorefrontMobileDrawer from './StorefrontMobileDrawer';
@@ -603,13 +603,13 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
     </div>
   );
 
-  const renderDrawerBrandSection = ({ id, label, expanded, onToggle, onLanding, onBrandNavigate }) => renderDrawerListSection({
+  const renderDrawerBrandSection = ({ id, label, expanded, onToggle, onLanding, items = drawerBrands, onBrandNavigate }) => renderDrawerListSection({
     id,
     label,
     expanded,
     onToggle,
     onLanding,
-    items: drawerBrands,
+    items,
     onItemNavigate: (brand) => onBrandNavigate(brand.slug),
   });
 
@@ -783,6 +783,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             expanded: brandsExpanded,
             onToggle: () => setBrandsExpanded((open) => !open),
             onLanding: handleDrawerBrandsLanding,
+            items: drawerBrands,
             onBrandNavigate: handleDrawerBrandNavigate,
           })}
           {renderDrawerBrandSection({
@@ -791,6 +792,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             expanded: partsExpanded,
             onToggle: () => setPartsExpanded((open) => !open),
             onLanding: handleDrawerPartsLanding,
+            items: partsBrands,
             onBrandNavigate: handleDrawerPartsBrandNavigate,
           })}
           {renderDrawerBrandSection({
@@ -799,6 +801,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             expanded: schematicsExpanded,
             onToggle: () => setSchematicsExpanded((open) => !open),
             onLanding: handleDrawerSchematicsLanding,
+            items: SCHEMATIC_BRANDS,
             onBrandNavigate: handleDrawerSchematicsBrandNavigate,
           })}
           {DRAWER_NAV_ROWS.map(({ to, label }) => (
