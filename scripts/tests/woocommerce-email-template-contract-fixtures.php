@@ -97,10 +97,25 @@ foreach (glob($templates . '/*.php') ?: [] as $template_path) {
 }
 
 $styles = read_fixture($templates . '/email-styles.php');
-assert_contract(str_contains($styles, 'max-width: 680px'), 'Email shell must retain the 680px desktop maximum.');
-assert_contract(str_contains($styles, '@media screen and (max-width: 600px)'), 'Mobile email breakpoint is missing.');
+assert_contract((bool) preg_match('/max-width:\s*680px/', $styles), 'Email shell must retain the 680px desktop maximum.');
+assert_contract((bool) preg_match('/@media\s+screen\s+and\s+\(max-width:\s*600px\)/', $styles), 'Mobile email breakpoint is missing.');
 assert_contract(str_contains($styles, '#2255ee'), 'Primary brand blue is missing from email CSS.');
-assert_contract(str_contains($platform_source, "'Nunito',Arial,sans-serif"), 'Nunito with an email-safe fallback is required.');
+assert_contract(str_contains($platform_source, "'Geist',Arial,sans-serif"), 'Geist with an email-safe fallback is required.');
+assert_contract(!str_contains($platform_source, "'Nunito'"), 'Shared email helpers must not reference Nunito.');
+assert_contract(str_contains($platform_source, "'done' === \$state ? '&#10003;'"), 'Completed progress steps must render a checkmark.');
+$progress_start  = strpos($platform_source, 'function dtb_email_progress_steps(');
+$progress_end    = strpos($platform_source, "if ( ! function_exists( 'dtb_email_card_chrome_style' )", (int) $progress_start);
+$progress_source = false !== $progress_start && false !== $progress_end
+	? substr($platform_source, $progress_start, $progress_end - $progress_start)
+	: '';
+assert_contract('' !== $progress_source, 'Progress helper source could not be isolated.');
+assert_contract(!str_contains($progress_source, 'dtb_email_icon('), 'Progress steps must not render hosted icons.');
+foreach (glob($templates . '/customer-*.php') ?: [] as $template_path) {
+	$template_source = read_fixture($template_path);
+	if (str_contains($template_source, 'dtb_email_progress_steps')) {
+		assert_contract(!str_contains($template_source, "'icon' =>"), basename($template_path) . ' must not pass progress icons.');
+	}
+}
 assert_contract(str_contains($platform_source, '/logos/email-background-pattern.png'), 'Hero background asset mapping is missing.');
 assert_contract(str_contains($platform_source, 'width:680px'), 'Outlook VML hero width must match the shell.');
 

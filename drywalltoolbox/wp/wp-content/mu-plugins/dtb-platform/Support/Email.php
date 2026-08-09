@@ -69,11 +69,11 @@ if ( ! function_exists( 'dtb_email_font_stack' ) ) {
 	/**
 	 * Return the shared email typography stack.
 	 *
-	 * Nunito is requested by the WooCommerce email head. Arial remains the
+	 * Geist is requested by the WooCommerce email head. Arial remains the
 	 * predictable fallback for clients that block remote web fonts.
 	 */
 	function dtb_email_font_stack(): string {
-		return "'Nunito',Arial,sans-serif";
+		return "'Geist',Arial,sans-serif";
 	}
 }
 
@@ -295,7 +295,7 @@ if ( ! function_exists( 'dtb_email_button' ) ) {
 		}
 
 		return '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:24px 0 0;"><tr><td align="center">'
-			. '<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="' . $url . '" style="height:50px;v-text-anchor:middle;width:540px;" arcsize="14%" stroke="f" fillcolor="' . esc_attr( $bg ) . '"><w:anchorlock/><center style="color:' . esc_attr( $text ) . ';font-family:Arial,sans-serif;font-size:15px;font-weight:700;">' . $label . '</center></v:roundrect><![endif]-->'
+			. '<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="' . $url . '" style="height:50px;v-text-anchor:middle;width:540px;" arcsize="14%" stroke="f" fillcolor="' . esc_attr( $bg ) . '"><w:anchorlock/><center style="color:' . esc_attr( $text ) . ';font-family:' . dtb_email_font_stack() . ';font-size:15px;font-weight:700;">' . $label . '</center></v:roundrect><![endif]-->'
 			. '<!--[if !mso]><!--><a href="' . $url . '" class="dtb-btn" style="display:block;background:' . esc_attr( $bg ) . ';color:' . esc_attr( $text ) . ';font-family:' . dtb_email_font_stack() . ';font-size:15px;font-weight:800;line-height:20px;text-decoration:none;text-align:center;padding:15px 24px;border-radius:8px;">' . $label . '</a><!--<![endif]-->'
 			. '</td></tr></table>';
 	}
@@ -504,8 +504,9 @@ if ( ! function_exists( 'dtb_email_hero' ) ) {
 
 if ( ! function_exists( 'dtb_email_progress_marker_badge' ) ) {
 	/**
-	 * Render one progress-tracker step marker: a tinted, ringed circular
-	 * badge. The active step additionally sits inside a wider, lighter halo
+	 * Render one progress-tracker step marker: a state-aware circular badge.
+	 * Completed steps use a checkmark; unfinished steps use their ordinal. The
+	 * active step additionally sits inside a wider, lighter halo
 	 * ring so it reads as the focal point — a static stand-in for the pulsing
 	 * ring animation email clients (Outlook, Gmail app) strip from `<style>`.
 	 *
@@ -521,8 +522,9 @@ if ( ! function_exists( 'dtb_email_progress_marker_badge' ) ) {
 	function dtb_email_progress_marker_badge( string $glyph, array $colors, string $state, string $font ): string {
 		$opacity = 'upcoming' === $state ? '0.4' : '1';
 		$border  = 'upcoming' === $state ? '#dce3ed' : $colors['text'];
+		$size    = 'done' === $state ? '20px' : '14px';
 
-		$badge = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;border-radius:50%;background:' . esc_attr( $colors['soft_bg'] ) . ';background-color:' . esc_attr( $colors['soft_bg'] ) . ';border:2px solid ' . esc_attr( $border ) . ';color:' . esc_attr( $colors['text'] ) . ';font-family:' . $font . ';font-size:14px;font-weight:800;opacity:' . esc_attr( $opacity ) . ';">' . $glyph . '</td></tr></table>';
+		$badge = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:0 auto;"><tr><td class="dtb-progress-marker-badge dtb-progress-marker-badge--' . esc_attr( $state ) . '" width="40" height="40" align="center" valign="middle" style="width:40px;height:40px;border-radius:50%;background:' . esc_attr( $colors['soft_bg'] ) . ';background-color:' . esc_attr( $colors['soft_bg'] ) . ';border:2px solid ' . esc_attr( $border ) . ';color:' . esc_attr( $colors['text'] ) . ';font-family:' . $font . ';font-size:' . esc_attr( $size ) . ';font-weight:800;line-height:40px;opacity:' . esc_attr( $opacity ) . ';">' . $glyph . '</td></tr></table>';
 
 		if ( 'active' !== $state ) {
 			return $badge;
@@ -534,7 +536,7 @@ if ( ! function_exists( 'dtb_email_progress_marker_badge' ) ) {
 
 if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 	/**
-	 * Render a lifecycle progress tracker with standalone icons
+	 * Render a lifecycle progress tracker with semantic checkmarks and ordinals
 	 * connected by a line, with a label under each. Table-based (no
 	 * flexbox/grid), MSO-safe.
 	 *
@@ -543,7 +545,7 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 	 * state should decide each step's tone — this function never guesses or
 	 * implies a delivery stage the caller didn't explicitly assert.
 	 *
-	 * @param array<int,array{label:string,state?:string,icon?:string}> $steps Ordered
+	 * @param array<int,array{label:string,state?:string}> $steps Ordered
 	 *        steps. `state` is one of done|active|warning|danger|upcoming
 	 *        (default upcoming).
 	 * @return string
@@ -557,8 +559,8 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 		$font   = dtb_email_font_stack();
 		$colors = [
-			'done'     => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee', 'soft_bg' => '#e8f1ff', 'halo_bg' => '#f2f7ff' ],
-			'active'   => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#2255ee', 'soft_bg' => '#e8f1ff', 'halo_bg' => '#f2f7ff' ],
+			'done'     => [ 'text' => '#ffffff', 'label' => '#101828', 'line' => '#2255ee', 'soft_bg' => '#2255ee', 'halo_bg' => '#f2f7ff' ],
+			'active'   => [ 'text' => '#2255ee', 'label' => '#101828', 'line' => '#dce3ed', 'soft_bg' => '#e8f1ff', 'halo_bg' => '#f2f7ff' ],
 			'warning'  => [ 'text' => '#a15c00', 'label' => '#a15c00', 'line' => '#f2b25c', 'soft_bg' => '#fef3e2', 'halo_bg' => '#fdf8ef' ],
 			'danger'   => [ 'text' => '#b91c1c', 'label' => '#b91c1c', 'line' => '#f2a3a3', 'soft_bg' => '#fde8e8', 'halo_bg' => '#fdf3f3' ],
 			'upcoming' => [ 'text' => '#94a3b8', 'label' => '#94a3b8', 'line' => '#dce3ed', 'soft_bg' => '#f8fafc', 'halo_bg' => '#f8fafc' ],
@@ -572,8 +574,7 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 			$state = $step['state'] ?? 'upcoming';
 			$state = isset( $colors[ $state ] ) ? $state : 'upcoming';
 			$c     = $colors[ $state ];
-			$icon  = dtb_email_clean_text( $step['icon'] ?? '' );
-			$glyph = '' !== $icon && function_exists( 'dtb_email_icon' ) ? dtb_email_icon( $icon, 22 ) : esc_html( (string) ( $i + 1 ) );
+			$glyph = 'done' === $state ? '&#10003;' : esc_html( (string) ( $i + 1 ) );
 
 			$marker_row .= '<td class="dtb-progress-marker" width="1%" align="center" valign="middle" style="padding:0;">'
 				. dtb_email_progress_marker_badge( $glyph, $c, $state, $font )
@@ -594,7 +595,7 @@ if ( ! function_exists( 'dtb_email_progress_steps' ) ) {
 
 if ( ! function_exists( 'dtb_email_card_chrome_style' ) ) {
 	/**
-	 * Shared border/radius/shadow declarations for the white card surfaces
+	 * Shared open-section declarations for email content surfaces
 	 * (dtb_email_card_open(), dtb_email_support_card()), so the two stay in
 	 * visual sync instead of duplicating the same inline-style fragment.
 	 * Padding is intentionally excluded — callers vary there.
@@ -602,7 +603,7 @@ if ( ! function_exists( 'dtb_email_card_chrome_style' ) ) {
 	 * @return string
 	 */
 	function dtb_email_card_chrome_style(): string {
-		return 'background:#ffffff;background-color:#ffffff;border:1px solid #e9edf3;border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.06);';
+		return 'background:#ffffff;background-color:#ffffff;border:0;border-radius:0;box-shadow:none;';
 	}
 }
 
@@ -635,14 +636,14 @@ if ( ! function_exists( 'dtb_email_card_open' ) ) {
 			$meta_cell = '' !== $meta
 				? '<td valign="middle" align="' . ( is_rtl() ? 'left' : 'right' ) . '" style="color:#94a3b8;font-family:' . $font . ';font-size:12px;font-weight:600;white-space:nowrap;">' . esc_html( $meta ) . '</td>'
 				: '';
-			$header    = '<table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 16px;"><tr>'
+			$header    = '<table class="dtb-email-section-heading" role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin:0 0 16px;border-bottom:1px solid #e4eaf2;"><tr>'
 				. $icon_cell
-				. '<td valign="middle" style="color:#101828;font-family:' . $font . ';font-size:16px;font-weight:800;">' . esc_html( $title ) . '</td>'
+				. '<td valign="middle" style="padding:0 0 12px;color:#101828;font-family:' . $font . ';font-size:17px;font-weight:800;line-height:1.3;">' . esc_html( $title ) . '</td>'
 				. $meta_cell
 				. '</tr></table>';
 		}
 
-		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 18px;border-collapse:separate;"><tr><td style="padding:24px;' . dtb_email_card_chrome_style() . '">' . $header;
+		return '<table class="dtb-email-card" role="presentation" cellspacing="0" cellpadding="0" border="0" width="636" align="center" style="width:calc(100% - 44px);max-width:636px;margin:0 auto 26px;border-collapse:separate;"><tr><td style="padding:20px 24px 8px;' . dtb_email_card_chrome_style() . '">' . $header;
 	}
 }
 

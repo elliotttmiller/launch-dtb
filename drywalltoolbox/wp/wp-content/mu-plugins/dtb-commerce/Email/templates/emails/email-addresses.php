@@ -4,8 +4,8 @@
  *
  * Traced against WooCommerce core emails/email-addresses.php v10.6.0
  * (wp-content/plugins/woocommerce/templates/emails/email-addresses.php).
- * DTB customization: presentation only (now wrapped in the shared card
- * chrome instead of a plain <hr>-separated block); the
+ * DTB customization: presentation only (open, responsive two-column section
+ * instead of nested card chrome); the
  * woocommerce_email_customer_address_section hook is preserved unchanged.
  *
  * @package DrywalltoolboxCommerce
@@ -30,11 +30,11 @@ unset( $display_section_divider );
 
 $card_title = $has_shipping ? __( 'Billing & shipping addresses', 'drywall-toolbox' ) : __( 'Billing address', 'drywall-toolbox' );
 
-echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title, '', 'location' ) : '<div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title ) : '<div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
 <table id="addresses" cellspacing="0" cellpadding="0" style="width:100%;vertical-align:top;" border="0" role="presentation">
 	<tr>
-		<td class="font-family text-align-left" style="border:0;padding:0;" valign="top" width="50%">
+		<td class="font-family text-align-left dtb-address-billing" style="border:0;padding:0 18px 0 0;" valign="top" width="50%">
 			<b class="address-title"><?php esc_html_e( 'Billing address', 'drywall-toolbox' ); ?></b>
 			<address class="address">
 				<?php echo wp_kses_post( $address ? $address : esc_html__( 'N/A', 'drywall-toolbox' ) ); ?>
@@ -58,7 +58,7 @@ echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title
 			</address>
 		</td>
 		<?php if ( $has_shipping ) : ?>
-			<td class="font-family text-align-left" style="padding:0 0 0 12px;" valign="top" width="50%">
+			<td class="font-family text-align-left dtb-address-shipping" style="padding:0 0 0 18px;border-left:1px solid #e4eaf2;" valign="top" width="50%">
 				<b class="address-title"><?php esc_html_e( 'Shipping address', 'drywall-toolbox' ); ?></b>
 				<address class="address">
 					<?php echo wp_kses_post( $shipping ); ?>
