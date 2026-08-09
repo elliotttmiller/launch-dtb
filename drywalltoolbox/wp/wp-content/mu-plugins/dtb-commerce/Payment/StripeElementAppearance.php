@@ -33,16 +33,38 @@ final class DTB_StripeElementAppearance {
 		$existing_theme = is_array( $options['appearance'] ?? null )
 			? (string) ( $options['appearance']['theme'] ?? 'stripe' )
 			: 'stripe';
+		$existing_fonts = is_array( $options['fonts'] ?? null ) ? $options['fonts'] : [];
+		$geist_css_src  = 'https://fonts.googleapis.com/css2?family=Geist:wght@500;600;650;700&display=swap';
+		$has_geist_font = false;
+
+		foreach ( $existing_fonts as $font_source ) {
+			if ( is_array( $font_source ) && $geist_css_src === (string) ( $font_source['cssSrc'] ?? '' ) ) {
+				$has_geist_font = true;
+				break;
+			}
+		}
+
+		if ( ! $has_geist_font ) {
+			$existing_fonts[] = [ 'cssSrc' => $geist_css_src ];
+		}
+
+		$options['fonts'] = $existing_fonts;
 
 		$options['appearance'] = [
 			'theme'     => $existing_theme,
 			'labels'    => 'floating',
 			'variables' => [
-				'fontFamily'         => '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+				'fontFamily'         => '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
 				'fontSizeBase'       => '16px',
+				'fontSizeSm'         => '15px',
+				'fontSizeXs'         => '14px',
+				'fontWeightNormal'   => '500',
+				'fontWeightMedium'   => '600',
+				'fontWeightBold'     => '700',
+				'fontLineHeight'     => '1.4',
 				'colorPrimary'       => '#2563eb',
 				'colorText'          => '#0b0f19',
-				'colorTextSecondary' => '#667085',
+				'colorTextSecondary' => '#394154',
 				'colorBackground'    => '#ffffff',
 				'colorDanger'        => '#b42318',
 				'borderRadius'       => '8px',
@@ -50,9 +72,13 @@ final class DTB_StripeElementAppearance {
 			],
 			'rules'     => [
 				'.Tab' => [
-					'border'    => '1px solid #e2e8f0',
-					'boxShadow' => 'none',
-					'padding'   => '10px 12px',
+					'border'     => '1px solid #e2e8f0',
+					'boxShadow'  => 'none',
+					'color'      => '#131927',
+					'fontSize'   => '15px',
+					'fontWeight' => '600',
+					'lineHeight' => '1.3',
+					'padding'    => '14px 16px',
 				],
 				'.Tab:hover' => [ 'color' => '#0b0f19' ],
 				'.Tab--selected' => [
@@ -60,7 +86,26 @@ final class DTB_StripeElementAppearance {
 					'boxShadow'   => '0 0 0 1px #2563eb',
 				],
 				'.TabIcon--selected'  => [ 'fill' => '#2563eb' ],
-				'.TabLabel--selected' => [ 'color' => '#1d4ed8' ],
+				'.TabLabel' => [
+					'color'      => '#131927',
+					'fontSize'   => '15px',
+					'fontWeight' => '600',
+					'lineHeight' => '1.3',
+				],
+				'.TabLabel--selected' => [
+					'color'      => '#1d4ed8',
+					'fontWeight' => '700',
+				],
+				'.AccordionItem' => [
+					'color'      => '#131927',
+					'fontSize'   => '15px',
+					'fontWeight' => '600',
+					'lineHeight' => '1.3',
+				],
+				'.AccordionItem--selected' => [
+					'color'      => '#1d4ed8',
+					'fontWeight' => '700',
+				],
 				'.Label'              => [ 'fontWeight' => '600' ],
 				'.Input' => [
 					'border'    => '1px solid #cbd5e1',

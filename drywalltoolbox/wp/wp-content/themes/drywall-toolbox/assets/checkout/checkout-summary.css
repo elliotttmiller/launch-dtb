@@ -159,9 +159,9 @@
 	}
 	body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-content {
 		box-sizing: border-box;
-		width: auto;
+		width: 100%;
 		min-width: 0;
-		margin: 0 0 14px 30px !important;
+		margin: 0 0 14px !important;
 		padding: 14px 0 4px !important;
 		border: 0 !important;
 		border-radius: 0 !important;
