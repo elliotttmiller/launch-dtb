@@ -26,8 +26,39 @@
     z-index: 10025;
   }
 
+  /*
+   * The dropdown is intentionally offset below the 98px header. Without a
+   * hit-test bridge, that visual gap briefly moves the pointer outside the nav
+   * menu and fires pointerleave before the panel can receive pointerenter.
+   * This transparent bridge makes the complete trigger -> panel path contiguous.
+   */
+  .site-header .dtb-desktop-nav-menu.is-open::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: -8px;
+    z-index: 10035;
+    width: calc(100% + 16px);
+    height: 12px;
+    background: transparent;
+    pointer-events: auto;
+  }
+
   .site-header .dtb-desktop-nav-dropdown {
     z-index: 10040;
+    filter: none;
+    will-change: opacity, transform;
+    transform: translateY(-4px) scale(0.99);
+    transition:
+      opacity 140ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 180ms;
+  }
+
+  .site-header .dtb-desktop-nav-menu.is-open .dtb-desktop-nav-dropdown {
+    filter: none;
+    transform: translateY(0) scale(1);
+    transition-delay: 0s;
   }
 
   .site-header .dtb-desktop-nav-tab {
@@ -67,7 +98,8 @@
   @media (prefers-reduced-motion: reduce) {
     .site-header .dtb-desktop-nav-tab,
     .site-header .dtb-desktop-nav-tab::before,
-    .site-header .dtb-desktop-nav-tab::after {
+    .site-header .dtb-desktop-nav-tab::after,
+    .site-header .dtb-desktop-nav-dropdown {
       transition: none;
     }
   }
