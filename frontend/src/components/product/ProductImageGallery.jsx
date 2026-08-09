@@ -33,7 +33,7 @@ const fadeVariants = {
 
 const fadeTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
 
-const LB_NAV_BTN_CLASS = 'absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/[0.22] text-white transition-all hover:scale-105 active:scale-95 focus-visible:outline-2 focus-visible:outline-white';
+const LB_NAV_BTN_CLASS = 'product-image-gallery__lb-btn product-image-gallery__lb-btn--nav absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-11 h-11';
 
 function normalizeImageMeta(rawImage, product = {}, index = 0) {
   if (!rawImage) return null;
@@ -508,8 +508,7 @@ export default function ProductImageGallery({ product }) {
       <div className="flex flex-col gap-3">
         <div
           ref={galleryRef}
-          className="product-image-gallery__main relative w-full rounded-2xl overflow-hidden bg-white border border-gray-100 group cursor-zoom-in select-none"
-          style={{ aspectRatio: '1 / 1' }}
+          className="product-image-gallery__main relative w-full overflow-hidden group cursor-zoom-in select-none"
           onClick={onGalleryClick}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
@@ -527,7 +526,7 @@ export default function ProductImageGallery({ product }) {
             {!imgLoaded[activeIndex] && (
               <Motion.div
                 key={`skeleton-${activeIndex}`}
-                className="absolute inset-0 bg-linear-to-br from-white to-gray-100 animate-pulse"
+                className="product-image-gallery__skeleton absolute inset-0"
                 style={{ zIndex: 1 }}
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -553,7 +552,7 @@ export default function ProductImageGallery({ product }) {
               fetchPriority={activeIndex === 0 ? 'high' : undefined}
               decoding="async"
               draggable={false}
-              className="absolute inset-0 w-full h-full object-contain p-3 sm:p-4 bg-white"
+              className="product-image-gallery__image absolute inset-0 w-full h-full object-contain p-3 sm:p-4 bg-white"
               style={{ zIndex: 2, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
               onLoad={() => setImgLoaded((state) => ({ ...state, [activeIndex]: true }))}
               onError={(event) => {
@@ -569,21 +568,21 @@ export default function ProductImageGallery({ product }) {
               <button
                 type="button"
                 onClick={(event) => { event.stopPropagation(); prev(); }}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/95 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all"
+                className="product-image-gallery__nav-btn absolute left-2.5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9"
                 aria-label="Previous image"
               >
-                <ChevronLeft size={17} className="text-gray-700" />
+                <ChevronLeft size={17} />
               </button>
               <button
                 type="button"
                 onClick={(event) => { event.stopPropagation(); next(); }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/95 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all"
+                className="product-image-gallery__nav-btn absolute right-2.5 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-9 h-9"
                 aria-label="Next image"
               >
-                <ChevronRight size={17} className="text-gray-700" />
+                <ChevronRight size={17} />
               </button>
 
-              <div className="absolute bottom-3 right-3 z-10 flex items-center px-2.5 py-1 rounded-full bg-black/40 text-white text-xs font-medium tabular-nums backdrop-blur-sm pointer-events-none">
+              <div className="product-image-gallery__counter absolute bottom-3 right-3 z-10 flex items-center pointer-events-none">
                 {activeIndex + 1} / {images.length}
               </div>
 
@@ -592,7 +591,7 @@ export default function ProductImageGallery({ product }) {
                   {images.map((_, index) => (
                     <span
                       key={index}
-                      className={`rounded-full transition-all duration-300 ${index === activeIndex ? 'w-4 h-1.5 bg-white shadow-sm' : 'w-1.5 h-1.5 bg-white/50'}`}
+                      className={`product-image-gallery__dot ${index === activeIndex ? 'product-image-gallery__dot--active' : ''}`}
                     />
                   ))}
                 </div>
@@ -602,11 +601,11 @@ export default function ProductImageGallery({ product }) {
         </div>
 
         {hasMultiple && (
-          <div className="product-image-gallery__thumb-shell relative rounded-2xl border border-gray-50 bg-white p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.96)]">
+          <div className="product-image-gallery__thumb-shell relative py-1">
             <button
               type="button"
               onClick={onThumbPrev}
-              className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--prev hidden md:flex absolute left-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:border-blue-300 hover:text-blue-700 hover:shadow-xl active:scale-95"
+              className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--prev hidden md:flex absolute left-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
               aria-label="Previous thumbnail image"
             >
               <ChevronLeft size={17} strokeWidth={2.5} />
@@ -620,7 +619,7 @@ export default function ProductImageGallery({ product }) {
                   onClick={() => goTo(index, index > activeIndex ? 1 : -1)}
                   aria-label={`View image ${index + 1}`}
                   aria-current={index === activeIndex ? 'true' : undefined}
-                  className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 ${index === activeIndex ? 'border-blue-600 bg-white ring-2 ring-blue-100/80 scale-[1.04] shadow-sm' : 'border-gray-100 bg-white hover:border-gray-300'}`}
+                  className={`product-image-gallery__thumb shrink-0 w-16 h-16 overflow-hidden ${index === activeIndex ? 'product-image-gallery__thumb--active' : ''}`}
                 >
                   <img
                     src={image}
@@ -649,7 +648,7 @@ export default function ProductImageGallery({ product }) {
             <button
               type="button"
               onClick={onThumbNext}
-              className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--next hidden md:flex absolute right-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg backdrop-blur-sm transition-all hover:border-blue-300 hover:text-blue-700 hover:shadow-xl active:scale-95"
+              className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--next hidden md:flex absolute right-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
               aria-label="Next thumbnail image"
             >
               <ChevronRight size={17} strokeWidth={2.5} />
@@ -672,7 +671,7 @@ export default function ProductImageGallery({ product }) {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
             >
-              <div className="absolute inset-0 bg-black/96" onClick={closeLightbox} aria-hidden="true" />
+              <div className="absolute inset-0 bg-black/95 backdrop-blur-sm" onClick={closeLightbox} aria-hidden="true" />
               <Motion.div
                 className="relative flex items-center justify-center w-full h-full"
                 initial={{ scale: 0.92, opacity: 0 }}
@@ -702,7 +701,7 @@ export default function ProductImageGallery({ product }) {
                   />
                 </AnimatePresence>
 
-                <button ref={lbCloseBtnRef} type="button" onClick={closeLightbox} className="absolute top-4 right-4 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-white/10 hover:bg-white/22 text-white transition-colors focus-visible:outline-2 focus-visible:outline-white" aria-label="Close full-screen image">
+                <button ref={lbCloseBtnRef} type="button" onClick={closeLightbox} className="product-image-gallery__lb-btn absolute top-4 right-4 z-10 flex items-center justify-center w-11 h-11" aria-label="Close full-screen image">
                   <X size={22} />
                 </button>
 
@@ -714,7 +713,7 @@ export default function ProductImageGallery({ product }) {
                     <button type="button" onClick={lightboxNext} className={`${LB_NAV_BTN_CLASS} right-4`} aria-label="Next image">
                       <ChevronRight size={26} />
                     </button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-white/10 text-white text-sm tabular-nums backdrop-blur-sm">
+                    <div className="product-image-gallery__lb-counter absolute bottom-4 left-1/2 -translate-x-1/2">
                       {activeLightboxIndex + 1} / {images.length}
                     </div>
                   </>

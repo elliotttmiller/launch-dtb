@@ -964,7 +964,7 @@ export default function ProductDetail({
       <div className="overflow-x-hidden">
         <div className="dtb-pdp__inner max-w-full">
           <div className="dtb-pdp__hero grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 mb-6 sm:mb-8">
-            <div {...gallery.rootProps} className="dtb-pdp-gallery" style={{ aspectRatio: gallery.getValue('aspect_ratio', 'auto').replace(':', ' / ') }}>
+            <div {...gallery.rootProps} className="dtb-pdp-gallery">
               <ProductImageGallery product={effectiveProduct} />
             </div>
 

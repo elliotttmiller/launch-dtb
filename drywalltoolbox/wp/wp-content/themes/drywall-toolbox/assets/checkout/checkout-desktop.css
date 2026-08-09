@@ -17,16 +17,32 @@
 	#primary .wc-block-checkout,
 	#primary .wc-block-checkout__form,
 	.wc-block-components-sidebar-layout { width: 100%; min-width: 0; max-width: none; }
-	.wc-block-components-sidebar-layout {
+	body.woocommerce-checkout .wc-block-components-sidebar-layout {
 		display: grid !important;
 		grid-template-columns: minmax(0, 1fr) var(--dtb-desktop-sidebar-width) !important;
 		column-gap: var(--dtb-desktop-column-gap);
 		align-items: start;
 	}
-	.wc-block-components-sidebar-layout__main,
-	.wc-block-checkout__main,
-	.wc-block-components-sidebar-layout__sidebar,
-	.wc-block-checkout__sidebar { min-width: 0; width: 100%; max-width: none; margin: 0; padding: 0; flex: none; }
+	/*
+	 * WooCommerce's packages-style.css is printed after this stylesheet and assigns
+	 * 65% to `.wc-block-components-sidebar-layout .wc-block-components-main` and 35%
+	 * to `.wc-block-components-sidebar`. In a grid those percentages shrink each
+	 * child inside its already-sized track (the sidebar becomes 35% of 460px).
+	 * Scope the structural children to the native checkout document so this track
+	 * contract outranks both late rules without relying on load order.
+	 */
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-main,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-checkout__main,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-sidebar,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-checkout__sidebar {
+		box-sizing: border-box;
+		min-width: 0;
+		width: 100%;
+		max-width: none;
+		margin: 0;
+		padding: 0;
+		flex: none;
+	}
 	.wc-block-components-checkout-step,
 	.wc-block-components-express-payment,
 	.wc-block-checkout__add-note,
@@ -44,8 +60,10 @@
 	 */
 	.wc-block-components-checkout-step,
 	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step { padding: clamp(22px, 2vw, 28px); background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); }
-	.wc-block-components-sidebar-layout__sidebar,
-	.wc-block-checkout__sidebar { position: sticky; top: 112px; align-self: start; overflow: visible; }
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-sidebar,
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-checkout__sidebar { position: sticky; top: 112px; align-self: start; overflow: visible; }
+	body.woocommerce-checkout .wc-block-checkout__sidebar > .wp-block-woocommerce-checkout-order-summary-block,
+	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary { width: 100%; min-width: 0; max-width: none; }
 	.wp-block-woocommerce-checkout-order-summary-block { background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); overflow: hidden; }
 	.wc-block-components-checkout-order-summary__title { border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; cursor: default; padding: 20px clamp(20px, 1.6vw, 26px); }
 	.wc-block-components-checkout-order-summary__title-text { font-size: 19px; font-weight: 650; }

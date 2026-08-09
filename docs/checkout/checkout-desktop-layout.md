@@ -39,9 +39,9 @@ At viewport widths of 1024px and wider:
 
 ## Root cause and correction
 
-The previous implementation created multiple competing layout authorities. A grid was applied to inferred wrappers while the WooCommerce main region retained its own flex/grid behavior. Additional descendant resets and CSS ordering then attempted to compensate for the resulting card mosaic.
+The previous implementation created a grid parent but left its direct children vulnerable to WooCommerce's later-loaded percentage widths. WooCommerce assigned 65% to the main child and 35% to the sidebar child; inside the DTB grid, those percentages shrank each child within its already-sized track and reduced a 460px sidebar track to roughly 161px.
 
-The corrected design removes that inference and compensation chain. The published WooCommerce sidebar-layout component is the only desktop grid. The main region is a normal block flow, and only known top-level Checkout Block regions receive width, spacing, and sticky-summary presentation rules.
+The corrected design keeps the published WooCommerce sidebar-layout component as the only desktop grid. Checkout-scoped direct-child rules make both structural children fill their assigned tracks regardless of stylesheet order, the main region remains a normal block flow, and the order summary fills the bounded sidebar track. Only known top-level Checkout Block regions receive width, spacing, and sticky-summary presentation rules.
 
 ## Mobile preservation contract
 

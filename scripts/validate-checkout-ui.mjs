@@ -30,6 +30,18 @@ assert(!source.js.includes('window.wp.data'), 'DTB must not couple presentation 
 assert(!source.css.includes('.wp-block-woocommerce-checkout-payment-block legend {\n\tdisplay: none'), 'Payment fieldset legends must remain accessible.');
 assert(!/var\(--dtb-(surface|border|radius|shadow)/.test(source.desktop), 'Desktop CSS contains retired checkout token names.');
 assert(!/max-height:\s*calc\(100dvh/.test(source.desktop), 'Desktop order summary must not create an internal viewport scroll container.');
+assert(
+  source.desktop.includes('body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-main'),
+  'Desktop main track must outrank WooCommerce Blocks\' late 65% width rule.'
+);
+assert(
+  source.desktop.includes('body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-sidebar'),
+  'Desktop sidebar track must outrank WooCommerce Blocks\' late 35% width rule.'
+);
+assert(
+  source.desktop.includes('.wc-block-checkout__sidebar .wc-block-components-checkout-order-summary { width: 100%'),
+  'Desktop order summary must fill the bounded sidebar track.'
+);
 assert(!source.template.includes('dtb-checkout__breadcrumb'), 'Static checkout breadcrumb must be removed.');
 assert(!source.template.includes('dtb-checkout__trust'), 'Static trust claims must be removed.');
 assert(source.versioner.includes('filemtime'), 'Checkout-owned assets must use file modification times for cache invalidation.');

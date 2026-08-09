@@ -525,12 +525,18 @@ body,
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery,
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
     border: 1px solid var(--dtb-border, #dbe3f1);
     border-radius: var(--dtb-radius-lg, 1rem);
     background: var(--dtb-surface, #fff);
     box-shadow: var(--dtb-shadow-card, 0 8px 22px rgba(15, 23, 42, 0.08));
+  }
+
+  .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .account-hub__sheet {
@@ -634,7 +640,7 @@ body,
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp-gallery {
-    padding: 0.75rem;
+    padding: 0;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
@@ -645,24 +651,9 @@ body,
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
     width: 100%;
-    height: clamp(13rem, 58vw, 20rem);
+    height: auto;
     min-height: 0;
-    aspect-ratio: auto;
-  }
-
-  .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main > img {
-    width: 100%;
-    height: 100%;
-    padding: clamp(1rem, 5vw, 1.75rem);
-    object-fit: contain;
-  }
-
-  .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__thumbs {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: clamp(3rem, 16vw, 4rem);
-    gap: 0.5rem;
-    padding-bottom: 0.25rem;
+    aspect-ratio: 1 / 1;
   }
 
   .dtb-pdp-purchase-row {
