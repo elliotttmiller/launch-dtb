@@ -5,6 +5,17 @@
  * responsive cascade while preserving readable scaling inside the PDP region.
  */
 
+/*
+ * Product descriptions use Geist for long-form readability on both the full
+ * PDP and quick-view modal. The explicit rule protects rich WooCommerce HTML
+ * from legacy component selectors that might otherwise reintroduce another
+ * font family inside product copy.
+ */
+.dtb-pdp-description-content,
+.dtb-pdp-description-content * {
+  font-family: var(--dtb-font-display, "Geist Variable", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif) !important;
+}
+
 .dtb-pdp__info-column {
   font-family: var(--dtb-font-ui);
   font-optical-sizing: auto;

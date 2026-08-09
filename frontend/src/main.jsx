@@ -4,8 +4,6 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import '@fontsource-variable/geist/wght.css';
 import '@fontsource-variable/geist/wght-italic.css';
-import '@fontsource-variable/work-sans/wght.css';
-import '@fontsource-variable/work-sans/wght-italic.css';
 
 /* Canonical global order: utilities -> tokens -> layout foundation. */
 import './index.css';
