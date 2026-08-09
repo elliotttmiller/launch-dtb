@@ -12,8 +12,18 @@
 defined( 'ABSPATH' ) || exit;
 
 $storefront_home_url = home_url( '/' );
+$summary_style_path  = get_template_directory() . '/assets/checkout/checkout-summary.css';
+$summary_style_ver   = file_exists( $summary_style_path ) ? (string) filemtime( $summary_style_path ) : DTB_VERSION;
 $desktop_style_path  = get_template_directory() . '/assets/checkout/checkout-desktop.css';
 $desktop_style_ver   = file_exists( $desktop_style_path ) ? (string) filemtime( $desktop_style_path ) : DTB_VERSION;
+
+wp_enqueue_style(
+	'dtb-checkout-summary',
+	get_template_directory_uri() . '/assets/checkout/checkout-summary.css',
+	[ 'dtb-checkout' ],
+	$summary_style_ver,
+	'(max-width: 1023px)'
+);
 
 wp_enqueue_style(
 	'dtb-checkout-desktop',
