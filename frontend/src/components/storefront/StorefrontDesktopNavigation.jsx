@@ -1,4 +1,4 @@
-import { useId, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
@@ -6,6 +6,7 @@ import '../../styles/storefront-desktop-navigation-integrity.css';
 import '../../styles/storefront-navigation-taxonomy.css';
 
 const RESILIENT_DROPDOWN_IDS = new Set(['products', 'brands', 'parts', 'repairs', 'schematics']);
+const POINTER_CLOSE_DELAY_MS = 160;
 
 function DesktopNavEntry({ entry, onNavigate }) {
   const children = Array.isArray(entry.children) ? entry.children : [];
@@ -45,25 +46,25 @@ function DesktopNavEntry({ entry, onNavigate }) {
   );
 }
 
-function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate }) {
+function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCloseImmediate, onNavigate }) {
   const triggerRef = useRef(null);
   const panelId = useId();
   const entries = Array.isArray(item.items) ? item.items : [];
   const hasGroupedEntries = entries.some((entry) => Array.isArray(entry.children) && entry.children.length > 0);
 
   const closeAndFocus = () => {
-    onClose();
+    onCloseImmediate();
     triggerRef.current?.focus();
   };
 
   return (
     <div
       className={`dtb-desktop-nav-menu${isOpen ? ' is-open' : ''}`}
-      onMouseEnter={onOpen}
-      onMouseLeave={onClose}
+      onPointerEnter={onOpen}
+      onPointerLeave={onRequestClose}
       onFocus={onOpen}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) onClose();
+        if (!event.currentTarget.contains(event.relatedTarget)) onCloseImmediate();
       }}
     >
       <button
@@ -75,7 +76,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
         aria-controls={panelId}
         onClick={() => {
           if (!isOpen) onOpen();
-          else onClose();
+          else onCloseImmediate();
         }}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
@@ -92,6 +93,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
         id={panelId}
         className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.size || 'medium'}${hasGroupedEntries ? ' has-taxonomy-groups' : ''}`}
         aria-label={`${item.label} navigation`}
+        onPointerEnter={onOpen}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.preventDefault();
@@ -132,6 +134,38 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onClose, onNavigate 
 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
   const desktopItems = items.filter((item) => item.id !== 'support');
+  const closeTimerRef = useRef(null);
+
+  const cancelPendingClose = () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  const openMenu = (id) => {
+    cancelPendingClose();
+    onOpen(id);
+  };
+
+  const closeImmediately = () => {
+    cancelPendingClose();
+    onClose();
+  };
+
+  const requestPointerClose = () => {
+    cancelPendingClose();
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      onClose();
+    }, POINTER_CLOSE_DELAY_MS);
+  };
+
+  useEffect(() => () => {
+    if (closeTimerRef.current !== null) {
+      window.clearTimeout(closeTimerRef.current);
+    }
+  }, []);
 
   return (
     <nav className="dtb-desktop-nav" aria-label="Primary navigation">
@@ -141,8 +175,9 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
           item={item}
           isOpen={openMenuId === item.id}
           active={isItemActive(item)}
-          onOpen={() => onOpen(item.id)}
-          onClose={onClose}
+          onOpen={() => openMenu(item.id)}
+          onRequestClose={requestPointerClose}
+          onCloseImmediate={closeImmediately}
           onNavigate={onNavigate}
         />
       ) : (
