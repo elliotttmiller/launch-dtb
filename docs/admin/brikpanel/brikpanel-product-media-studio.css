@@ -5,14 +5,15 @@
 }
 
 .brikpanel-media-studio {
-    --bp-media-border: #d9dde3;
-    --bp-media-border-strong: #c6cbd2;
-    --bp-media-text: #202223;
-    --bp-media-muted: #6d7175;
-    --bp-media-soft: #f6f6f7;
-    --bp-media-soft-2: #fafbfb;
-    --bp-media-primary: #1f5eff;
-    --bp-media-danger: #c5280c;
+    --bp-media-border: `#d9dde3`;
+    --bp-media-border-strong: `#c6cbd2`;
+    --bp-media-text: `#202223`;
+    --bp-media-muted: `#6d7175`;
+    --bp-media-soft: `#f6f6f7`;
+    --bp-media-soft-2: `#fafbfb`;
+    --bp-media-primary: `#1f5eff`;
+    --bp-media-danger: `#c5280c`;
+
     display: block;
     color: var(--bp-media-text);
 }
