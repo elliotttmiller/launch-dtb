@@ -71,6 +71,53 @@ function MobileHamburgerToggle({ checked, onCheckedChange }) {
   );
 }
 
+function MobileTaxonomyGroup({ item, itemKey, expanded, onToggle, onNavigate }) {
+  const children = Array.isArray(item.children) ? item.children : [];
+  const childrenId = `storefront-mobile-taxonomy-${String(itemKey).replace(/[^a-z0-9_-]+/gi, '-')}`;
+
+  return (
+    <div
+      className={`storefront-mobile-drawer__taxonomy-group${expanded ? ' is-expanded' : ''}`}
+      role="group"
+      aria-label={item.label}
+    >
+      <div className="storefront-mobile-drawer__taxonomy-heading-row">
+        <button
+          type="button"
+          className="storefront-mobile-drawer__taxonomy-heading"
+          onClick={() => onNavigate(item)}
+        >
+          {item.label}
+        </button>
+        <button
+          type="button"
+          className="storefront-mobile-drawer__taxonomy-toggle"
+          onClick={onToggle}
+          aria-label={`${expanded ? 'Collapse' : 'Expand'} ${String(item.label || 'category').toLowerCase()}`}
+          aria-expanded={expanded}
+          aria-controls={childrenId}
+        >
+          <MobileDrawerChevron expanded={expanded} />
+        </button>
+      </div>
+      {expanded ? (
+        <div id={childrenId} className="storefront-mobile-drawer__taxonomy-children">
+          {children.map((child) => (
+            <button
+              key={`${itemKey}-${child.slug || child.to || child.label}`}
+              type="button"
+              className="storefront-mobile-drawer__taxonomy-child"
+              onClick={() => onNavigate(child)}
+            >
+              {child.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 const buildProductsBrandRoute = (slug) => `/products/brands/${slug}`;
 const buildPartsBrandRoute = (slug) => `/parts?brand=${encodeURIComponent(slug)}`;
 const buildSchematicsBrandRoute = (slug) => `/schematics?brand=${encodeURIComponent(slug)}`;
@@ -90,6 +137,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const { user, isAuthenticated, isLoading, login, register, logout } = useAuthContext();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [productsExpanded, setProductsExpanded] = useState(false);
+  const [expandedProductGroupKey, setExpandedProductGroupKey] = useState(null);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [partsExpanded, setPartsExpanded] = useState(false);
   const [schematicsExpanded, setSchematicsExpanded] = useState(false);
@@ -147,10 +195,12 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       .filter((category) => category.slug && category.label && category.count > 0)
       .sort((a, b) => String(a.label).localeCompare(String(b.label)));
   }, [facets]);
+
   const drawerProductNavigation = useMemo(() => {
     const canonicalGroups = normalizeCatalogNavigationGroups(facets?.navigationGroups);
     return canonicalGroups.length > 0 ? canonicalGroups : drawerCategoryLinks;
   }, [facets, drawerCategoryLinks]);
+
   const desktopNavItems = useMemo(() => [
     {
       id: 'products',
@@ -293,6 +343,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
 
   const resetDrawerExpansions = useCallback(() => {
     setProductsExpanded(false);
+    setExpandedProductGroupKey(null);
     setBrandsExpanded(false);
     setPartsExpanded(false);
     setSchematicsExpanded(false);
@@ -538,27 +589,14 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
           }
 
           return (
-            <div key={itemKey} className="storefront-mobile-drawer__taxonomy-group" role="group" aria-label={item.label}>
-              <button
-                type="button"
-                className="storefront-mobile-drawer__taxonomy-heading"
-                onClick={() => onItemNavigate(item)}
-              >
-                {item.label}
-              </button>
-              <div className="storefront-mobile-drawer__taxonomy-children">
-                {children.map((child) => (
-                  <button
-                    key={`${itemKey}-${child.slug || child.to || child.label}`}
-                    type="button"
-                    className="storefront-mobile-drawer__taxonomy-child"
-                    onClick={() => onItemNavigate(child)}
-                  >
-                    {child.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <MobileTaxonomyGroup
+              key={itemKey}
+              item={item}
+              itemKey={itemKey}
+              expanded={expandedProductGroupKey === itemKey}
+              onToggle={() => setExpandedProductGroupKey((current) => (current === itemKey ? null : itemKey))}
+              onNavigate={onItemNavigate}
+            />
           );
         })}
       </div>
@@ -731,7 +769,10 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             id: 'products',
             label: 'All Products',
             expanded: productsExpanded,
-            onToggle: () => setProductsExpanded((open) => !open),
+            onToggle: () => {
+              if (productsExpanded) setExpandedProductGroupKey(null);
+              setProductsExpanded((open) => !open);
+            },
             onLanding: handleDrawerProductsLanding,
             items: drawerProductNavigation,
             onItemNavigate: (category) => handleDrawerProductCategoryNavigate(category.to),
