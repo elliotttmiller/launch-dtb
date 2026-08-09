@@ -24,8 +24,11 @@
         $variationPanel: null,
         $variationList: null,
         activeTab: 'product',
+        activeVariationIndex: null,
+        variationMedia: {},
         productObserver: null,
         variationObserver: null,
+        dialogObserver: null,
         refreshTimer: null
     };
 
@@ -43,6 +46,30 @@
 
     function getVariationRows() {
         return $(SELECTORS.variationBody).find('tr.var-main-row');
+    }
+
+    function normalizedInitialVariationImages(index) {
+        var productData = window.brikpanelProductData || {};
+        var variations = Array.isArray(productData.variations) ? productData.variations : [];
+        var variation = index >= 0 && variations[index] ? variations[index] : null;
+        var images = variation && Array.isArray(variation.images) ? variation.images : [];
+
+        return images.filter(function (image) {
+            return image && (image.id || image.url);
+        });
+    }
+
+    function seedVariationMedia() {
+        var productData = window.brikpanelProductData || {};
+        var variations = Array.isArray(productData.variations) ? productData.variations : [];
+
+        variations.forEach(function (variation, index) {
+            var images = normalizedInitialVariationImages(index);
+            studio.variationMedia[index] = {
+                count: images.length,
+                src: images.length && images[0].url ? images[0].url : ''
+            };
+        });
     }
 
     function buildStudio() {
@@ -105,6 +132,7 @@
             setTab($(this).data('media-tab'));
         });
 
+        seedVariationMedia();
         decorateProductGallery();
         renderVariationMedia();
         installObservers();
@@ -148,15 +176,22 @@
     }
 
     function variationMeta($row) {
+        var idx = parseInt($row.data('idx'), 10);
         var name = $.trim($row.find('.var-name-text').text()) || t('variation', 'Variation');
         var sku = $.trim($row.find('.var-sku').val() || '');
         var $imageButton = $row.find('.var-image-btn').first();
-        var count = 0;
-        var countText = $.trim($row.find('.var-image-count').first().text());
-        if (countText) count = parseInt(countText, 10) || 0;
-        if (!count && $imageButton.hasClass('has-images')) count = 1;
-        var src = $imageButton.find('img').attr('src') || '';
-        var idx = parseInt($row.data('idx'), 10);
+        var media = Number.isInteger(idx) && studio.variationMedia[idx] ? studio.variationMedia[idx] : null;
+        var count = media ? media.count : 0;
+        var src = media && media.src ? media.src : '';
+
+        if (!media) {
+            var countText = $.trim($row.find('.var-image-count').first().text());
+            if (countText) count = parseInt(countText, 10) || 0;
+            if (!count && $imageButton.hasClass('has-images')) count = 1;
+        }
+
+        if (!src) src = $imageButton.find('img').attr('src') || '';
+
         return { idx: idx, name: name, sku: sku, count: count, src: src, $row: $row, $button: $imageButton };
     }
 
@@ -213,6 +248,7 @@
             action.textContent = meta.count ? t('manage', 'Manage') : t('add_images', 'Add images');
 
             var open = function () {
+                studio.activeVariationIndex = meta.idx;
                 var $current = getVariationRows().filter('[data-idx="' + meta.idx + '"]').find('.var-image-btn').first();
                 if ($current.length) $current.trigger('click');
             };
@@ -226,6 +262,38 @@
         });
 
         studio.$variationList.empty().append(fragment);
+    }
+
+    function syncVariationDialogState($dlg) {
+        if (!$dlg || !$dlg.length || !Number.isInteger(studio.activeVariationIndex)) return;
+
+        var $items = $dlg.find('.brikpanel-pe-vargal-grid .brikpanel-pe-vargal-item');
+        var $firstImage = $items.first().find('img').first();
+        studio.variationMedia[studio.activeVariationIndex] = {
+            count: $items.length,
+            src: $firstImage.attr('src') || ''
+        };
+        scheduleRefresh();
+    }
+
+    function observeVariationDialog($dlg) {
+        var grid = $dlg.find('.brikpanel-pe-vargal-grid').get(0);
+        if (!grid || !window.MutationObserver) return;
+
+        if (studio.dialogObserver) {
+            studio.dialogObserver.disconnect();
+        }
+
+        syncVariationDialogState($dlg);
+        studio.dialogObserver = new MutationObserver(function () {
+            syncVariationDialogState($dlg);
+        });
+        studio.dialogObserver.observe(grid, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['src']
+        });
     }
 
     function scheduleRefresh() {
@@ -263,6 +331,7 @@
             $dlg.addClass('brikpanel-media-vargal');
             $dlg.find('.brikpanel-pe-linkdlg-title').after('<p class="brikpanel-media-vargal__help">' + esc(t('dialog_hint', 'Drag to set gallery order. The first image becomes the variation primary image.')) + '</p>');
             $dlg.find('.brikpanel-pe-vargal-grid').attr('aria-label', t('variation_gallery_order', 'Variation image order'));
+            observeVariationDialog($dlg);
         });
         observer.observe(document.body, { childList: true, subtree: true });
     }
