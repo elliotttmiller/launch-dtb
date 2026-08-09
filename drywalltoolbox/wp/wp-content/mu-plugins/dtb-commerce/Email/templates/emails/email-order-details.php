@@ -103,7 +103,7 @@ echo function_exists( 'dtb_email_card_open' )
 </table>
 <?php if ( $order->get_customer_note() ) : ?>
 	<hr class="hr" style="margin:18px 0;">
-	<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="1" role="presentation">
+	<table class="td font-family email-order-details" cellspacing="0" cellpadding="6" style="width:100%;" border="0" role="presentation">
 		<tr class="order-customer-note">
 			<td class="td text-align-left">
 				<b><?php esc_html_e( 'Order note', 'drywall-toolbox' ); ?></b><br>
