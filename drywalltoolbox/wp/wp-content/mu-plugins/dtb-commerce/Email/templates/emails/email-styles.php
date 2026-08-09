@@ -11,11 +11,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 $palette = function_exists( 'dtb_email_palette' ) ? dtb_email_palette( 'light' ) : [];
-$font = function_exists( 'dtb_email_font_stack' ) ? dtb_email_font_stack() : "'Nunito',Arial,sans-serif";
+$font = function_exists( 'dtb_email_font_stack' ) ? dtb_email_font_stack() : "'Geist',Arial,sans-serif";
 $is_email_preview = (bool) apply_filters( 'woocommerce_is_email_preview', false );
 unset( $is_email_preview );
 ?>
 body { background-color:<?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;font-family:<?php echo $font; ?>;margin:0;padding:0;text-align:center; }
+body,table,td,th,p,a,span,div,h1,h2,h3,h4,h5,h6 { font-family:<?php echo $font; ?>; }
 #outer_wrapper { background-color:<?php echo esc_attr( $palette['shell_bg'] ?? '#f2f3f5' ); ?>;border-collapse:collapse;margin:0;width:100%; }
 #wrapper { margin:0 auto;padding:24px 0;-webkit-text-size-adjust:none !important;width:100%;max-width:680px; }
 #inner_wrapper { background-color:<?php echo esc_attr( $palette['card_bg'] ?? '#ffffff' ); ?>;border:1px solid #e4eaf2;border-radius:20px;overflow:hidden;box-shadow:0 1px 2px rgba(2,8,23,.04),0 16px 40px rgba(2,8,23,.10); }
@@ -48,15 +49,25 @@ a,.link { color:<?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;font-
 .order-totals-total td,.order-totals-total th { font-weight:800;font-size:18px;color:<?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;border-top:1px solid <?php echo esc_attr( $palette['card_border'] ?? '#e4eaf2' ); ?>;padding-top:14px !important; }
 .address { color:#344054;font-style:normal;line-height:150%;padding:4px 0; }
 .address-title { color:<?php echo esc_attr( $palette['title'] ?? '#101828' ); ?>;font-family:<?php echo $font; ?>;font-size:12px;font-weight:800;text-transform:uppercase; }
+.email-introduction { margin:0 auto 20px;width:calc(100% - 64px);max-width:636px; }
+.email-introduction > p { margin-left:0 !important;margin-right:0 !important; }
+.dtb-customer-details { border-collapse:collapse; }
+.dtb-customer-details th,.dtb-customer-details td { padding:11px 0;border-bottom:1px solid #e4eaf2;font-size:14px;line-height:150%; }
+.dtb-customer-details tr:last-child th,.dtb-customer-details tr:last-child td { border-bottom:0; }
+.dtb-customer-detail-label { width:34%;padding-right:20px !important;color:#475467;font-weight:700;text-align:left; }
+.dtb-customer-detail-value { color:#101828;font-weight:600;text-align:right;overflow-wrap:anywhere; }
 .fulfillment-status { background:<?php echo esc_attr( $palette['accent_soft_bg'] ?? '#e8f1ff' ); ?>;color:<?php echo esc_attr( $palette['accent_soft_tx'] ?? '#2255ee' ); ?>;padding:2px 8px; }
 
 /* Shared DTB component spacing. Section surfaces intentionally merge into the
  * white email body; hierarchy comes from spacing, typography and restrained
  * internal dividers rather than outlined cards. */
 .dtb-email-hero { margin:0 0 28px !important; }
-.dtb-email-card { margin-left:32px !important;margin-right:32px !important;width:auto !important; }
+.dtb-email-card { margin-left:auto !important;margin-right:auto !important;width:calc(100% - 64px) !important;max-width:636px !important; }
 .dtb-email-card > tbody > tr > td { border:0 !important;border-radius:0 !important;box-shadow:none !important;background:#ffffff !important;background-color:#ffffff !important; }
-.dtb-email-progress { margin-left:32px !important;margin-right:32px !important;width:auto !important; }
+.dtb-email-section-heading { border-bottom:1px solid #e4eaf2 !important; }
+#addresses .dtb-address-billing { padding:0 18px 0 0 !important; }
+#addresses .dtb-address-shipping { padding:0 0 0 18px !important;border-left:1px solid #e4eaf2 !important; }
+.dtb-email-progress { margin-left:auto !important;margin-right:auto !important;width:calc(100% - 64px) !important;max-width:636px !important; }
 .email-additional-content { padding:8px 32px 24px; }
 
 @media screen and (max-width:600px) {
@@ -69,8 +80,15 @@ a,.link { color:<?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;font-
 	.dtb-email-hero-cell { padding:28px 24px 32px !important; }
 	.dtb-email-hero h1,h1 { font-size:30px !important;line-height:118% !important; }
 	#body_content_inner > p,#body_content_inner > h2 { margin-left:20px !important;margin-right:20px !important; }
-	.dtb-email-card,.dtb-email-progress { margin-left:14px !important;margin-right:14px !important;width:auto !important; }
+	.dtb-email-card,.dtb-email-progress,.email-introduction { margin-left:auto !important;margin-right:auto !important;width:calc(100% - 28px) !important; }
 	.dtb-email-card > tbody > tr > td { padding:18px 10px !important; }
+	.dtb-progress-label span { width:auto !important;max-width:92px !important; }
+	#addresses,#addresses tbody,#addresses tr,#addresses td { display:block !important;width:100% !important;box-sizing:border-box !important; }
+	#addresses .dtb-address-billing { padding:0 !important; }
+	#addresses .dtb-address-shipping { margin-top:18px !important;padding:18px 0 0 !important;border-top:1px solid #e4eaf2 !important;border-left:0 !important; }
+	.dtb-customer-details th,.dtb-customer-details td { display:block !important;width:100% !important;box-sizing:border-box !important;text-align:left !important; }
+	.dtb-customer-details th { padding:11px 0 2px !important;border-bottom:0 !important;font-size:12px !important;text-transform:uppercase; }
+	.dtb-customer-details td { padding:0 0 11px !important; }
 	.email-additional-content { padding-left:20px !important;padding-right:20px !important; }
 
 	/* Preserve the semantic three-column order table on narrow clients. Do not
@@ -88,4 +106,5 @@ a,.link { color:<?php echo esc_attr( $palette['accent'] ?? '#2255ee' ); ?>;font-
 	.dtb-order-item-image img { width:54px !important;max-width:54px !important;height:auto !important; }
 	.dtb-order-item-sku,.email-order-item-meta { overflow-wrap:anywhere !important;word-break:break-word !important; }
 	.email-order-totals tr.order-totals td,.email-order-totals tr.order-totals th { display:table-cell !important; }
+	.email-order-totals tr.order-totals-shipping td { white-space:normal !important;overflow-wrap:anywhere !important; }
 }

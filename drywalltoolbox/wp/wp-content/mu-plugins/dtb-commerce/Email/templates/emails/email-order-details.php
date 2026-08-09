@@ -92,10 +92,23 @@ echo function_exists( 'dtb_email_card_open' )
 	foreach ( $item_totals as $total ) {
 		$total_type     = sanitize_html_class( (string) ( $total['type'] ?? 'unknown' ) );
 		$is_grand_total = 'total' === $total_type;
+		$total_label    = (string) ( $total['label'] ?? '' );
+		$total_value    = (string) ( $total['value'] ?? '' );
+
+		// WooCommerce can place the selected shipping method in both the row
+		// label and value. Collapse only that duplicated presentation; rates,
+		// totals and the selected method remain entirely WooCommerce-owned.
+		if ( 'shipping' === $total_type ) {
+			$label_text = trim( wp_strip_all_tags( html_entity_decode( $total_label ) ), " \t\n\r\0\x0B:" );
+			$value_text = trim( wp_strip_all_tags( html_entity_decode( $total_value ) ) );
+			if ( '' !== $value_text && false !== stripos( $label_text, $value_text ) ) {
+				$total_label = __( 'Shipping:', 'drywall-toolbox' );
+			}
+		}
 		?>
 		<tr class="order-totals order-totals-<?php echo esc_attr( $total_type ); ?><?php echo $is_grand_total ? ' order-totals-total' : ''; ?>">
-			<th class="td text-align-left" scope="row" colspan="2"><?php echo wp_kses_post( $total['label'] ); ?> <?php echo isset( $total['meta'] ) ? wp_kses_post( $total['meta'] ) : ''; ?></th>
-			<td class="td text-align-right"><?php echo wp_kses_post( $total['value'] ); ?></td>
+			<th class="td text-align-left" scope="row" colspan="2"><?php echo wp_kses_post( $total_label ); ?> <?php echo isset( $total['meta'] ) ? wp_kses_post( $total['meta'] ) : ''; ?></th>
+			<td class="td text-align-right"><?php echo wp_kses_post( $total_value ); ?></td>
 		</tr>
 		<?php
 	}

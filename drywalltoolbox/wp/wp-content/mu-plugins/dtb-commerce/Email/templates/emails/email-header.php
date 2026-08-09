@@ -35,7 +35,7 @@ unset( $is_email_preview );
 		<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;650;700;800&amp;display=swap" rel="stylesheet">
 		<title><?php echo esc_html( $store_name ); ?></title>
 	</head>
 	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0">
