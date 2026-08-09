@@ -15,6 +15,7 @@ import json
 import re
 import shutil
 from collections import defaultdict
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -22,6 +23,14 @@ from urllib.parse import urlparse
 CATALOG_URL = "https://elliottm4.sg-host.com/wp/wp-content/uploads/2026/media/"
 VEEQO_URL = "https://drywalltoolbox.com/wp-content/uploads/2026/media/"
 KNOWN_RENAMES = {"surpro_s2x_a_2131_01.webp": "surpro_s2x_a_3852_01.webp"}
+GALLERY_OVERRIDES = {
+    "CR": [
+        "columbia_tools_cr_04.webp",
+        "columbia_tools_cr_05.webp",
+        "columbia_tools_cr_01.webp",
+    ],
+}
+LOCKED_FILENAME_FAMILIES = {"columbia_tools_cr"}
 
 
 def load_csv(path: Path) -> tuple[list[str], list[dict[str, str]], bool, str]:
@@ -103,7 +112,8 @@ def main() -> int:
     veeqo_path = workspace / "products/launch/official/veeqo_inventory_import.csv"
     media = workspace / "products/launch/media/media"
     audit = workspace / "products/launch/media/audit"
-    quarantine = workspace / "products/launch/media/_quarantine/2026-08-09-media-cleanup/wc-gallery-order"
+    run_stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    quarantine = workspace / "products/launch/media/_quarantine/2026-08-09-media-cleanup/wc-gallery-order-runs" / run_stamp
 
     export_fields, export_rows, export_bom, export_newline = load_csv(export_path)
     official_fields, official_rows, official_bom, official_newline = load_csv(official_path)
@@ -124,6 +134,11 @@ def main() -> int:
         normalized_export = names_from_images(row["Images"])
         duplicate_occurrences_removed += len(raw_names) - len(dict.fromkeys(canonical_name(name) for name in raw_names))
         derivative_references_normalized += sum(name != canonical_name(name) for name in raw_names)
+        if row["SKU"] in GALLERY_OVERRIDES:
+            gallery = list(GALLERY_OVERRIDES[row["SKU"]])
+            export_existing_counts[row["SKU"]] = len(gallery)
+            source_galleries[row["SKU"]] = gallery
+            continue
         export_existing_counts[row["SKU"]] = len(normalized_export)
         gallery = list(normalized_export)
         for name in names_from_images(official_by_sku[row["SKU"]]["Images"]):
@@ -172,7 +187,7 @@ def main() -> int:
                 {"family": family, "authoritative_sku": chosen[3], "lower_priority_conflicting_skus": conflicts}
             )
         for position, old_name in enumerate(ordered, 1):
-            rename_map[old_name] = f"{family}_{position:02d}.webp"
+            rename_map[old_name] = old_name if family in LOCKED_FILENAME_FAMILIES else f"{family}_{position:02d}.webp"
 
     destinations: dict[str, list[str]] = defaultdict(list)
     for old_name, new_name in rename_map.items():
@@ -255,6 +270,7 @@ def main() -> int:
         "physical_files_renamed": len(changed_renames),
         "filename_families": len(family_entries),
         "variation_priority_family_conflicts": len(family_conflicts),
+        "explicit_gallery_overrides": len(GALLERY_OVERRIDES),
         "reference_files_changed": len(changed_text),
         "missing_media": missing,
     }
@@ -303,7 +319,7 @@ def main() -> int:
         for row in export_rows:
             preserved = export_existing_counts[row["SKU"]]
             for position, filename in enumerate(final_galleries[row["SKU"]], 1):
-                reason = "wc_export_order_preserved" if position <= preserved else "optimized_append"
+                reason = "explicit_gallery_override" if row["SKU"] in GALLERY_OVERRIDES else ("wc_export_order_preserved" if position <= preserved else "optimized_append")
                 writer.writerow((row["SKU"], row["Type"], row["Parent"], position, filename, CATALOG_URL + filename, reason))
     with (audit / "wc-gallery-file-rename-manifest.csv").open("w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle, lineterminator="\n")
