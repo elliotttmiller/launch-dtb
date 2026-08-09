@@ -5,14 +5,14 @@
 }
 
 .brikpanel-media-studio {
-    --bp-media-border: `#d9dde3`;
-    --bp-media-border-strong: `#c6cbd2`;
-    --bp-media-text: `#202223`;
-    --bp-media-muted: `#6d7175`;
-    --bp-media-soft: `#f6f6f7`;
-    --bp-media-soft-2: `#fafbfb`;
-    --bp-media-primary: `#1f5eff`;
-    --bp-media-danger: `#c5280c`;
+    --bp-media-border: #d9dde3;
+    --bp-media-border-strong: #c6cbd2;
+    --bp-media-text: #202223;
+    --bp-media-muted: #6d7175;
+    --bp-media-soft: #f6f6f7;
+    --bp-media-soft-2: #fafbfb;
+    --bp-media-primary: #1f5eff;
+    --bp-media-danger: #c5280c;
 
     display: block;
     color: var(--bp-media-text);
@@ -252,17 +252,26 @@
     background: #fff;
 }
 
+/* Reset the legacy full-width footer badge before positioning the primary tag. */
 .brikpanel-media-studio__gallery .brikpanel-pe-gallery-item-badge {
     top: 8px;
+    right: auto;
+    bottom: auto;
     left: 8px;
     z-index: 3;
+    width: auto;
+    max-width: calc(100% - 16px);
     padding: 4px 7px;
     border-radius: 6px;
-    background: #202223;
+    background: rgba(32,34,35,.72);
     color: #fff;
     font-size: 10px;
     font-weight: 700;
+    line-height: 1.2;
     letter-spacing: .02em;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
 }
 
 .brikpanel-media-position {
