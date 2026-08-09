@@ -19,6 +19,10 @@ function parseStoreMoney(value, minorUnit) {
   return Number.isFinite(unit) && unit >= 0 ? raw / (10 ** unit) : raw;
 }
 
+function formatMoney(value) {
+  return (Number(value) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export default function Cart() {
   const { cart, cartItems, updateQuantity, removeFromCart, refreshCart, isMutating } = useCart();
   const { isAuthenticated, ensureNativeCheckoutReady } = useAuthContext();
@@ -109,8 +113,8 @@ export default function Cart() {
                   <Motion.article key={itemKey} layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -28, scale: 0.97, transition: { duration: 0.2 } }} transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: index * 0.055 }} className="dtb-cart-row">
                     <div className="dtb-cart-row__image">{item.image ? <img src={item.image} alt={item.name} loading="lazy" decoding="async" /> : <div className="dtb-cart-row__placeholder"><ShoppingCart size={24} aria-hidden="true" strokeWidth={1.5} /></div>}</div>
                     <div className="dtb-cart-row__content">
-                      <div className="dtb-cart-row__heading"><div>{item.brand && <p className="dtb-cart-row__brand">{item.brand}</p>}<h2>{item.name}</h2>{optionText && <p className="dtb-cart-row__option">{optionText}</p>}</div><button type="button" onClick={() => removeFromCart(itemKey)} disabled={isMutating} className="dtb-cart-row__remove" aria-label={`Remove ${item.name}`}><Trash2 size={14} aria-hidden="true" /></button></div>
-                      <div className="dtb-cart-row__footer"><div className="dtb-cart-row__quantity" role="group" aria-label={`Quantity for ${item.name}`}><button type="button" onClick={() => updateQuantity(itemKey, quantity - 1)} disabled={isMutating} aria-label="Decrease quantity"><Minus size={12} aria-hidden="true" strokeWidth={2.5} /></button><span>{quantity}</span><button type="button" onClick={() => updateQuantity(itemKey, quantity + 1)} disabled={isMutating} aria-label="Increase quantity"><Plus size={12} aria-hidden="true" strokeWidth={2.5} /></button></div><div className="dtb-cart-row__price"><small>${unitPrice.toFixed(2)} each</small><strong>${(unitPrice * quantity).toFixed(2)}</strong></div></div>
+                      <div className="dtb-cart-row__heading"><div>{item.brand && <p className="dtb-cart-row__brand">{item.brand}</p>}<h2>{item.name}</h2>{item.sku && <p className="dtb-cart-row__sku">SKU: {item.sku}</p>}{optionText && <p className="dtb-cart-row__option">{optionText}</p>}</div><button type="button" onClick={() => removeFromCart(itemKey)} disabled={isMutating} className="dtb-cart-row__remove" aria-label={`Remove ${item.name}`}><Trash2 size={14} aria-hidden="true" /></button></div>
+                      <div className="dtb-cart-row__footer"><div className="dtb-cart-row__quantity" role="group" aria-label={`Quantity for ${item.name}`}><button type="button" onClick={() => updateQuantity(itemKey, quantity - 1)} disabled={isMutating} aria-label="Decrease quantity"><Minus size={12} aria-hidden="true" strokeWidth={2.5} /></button><span>{quantity}</span><button type="button" onClick={() => updateQuantity(itemKey, quantity + 1)} disabled={isMutating} aria-label="Increase quantity"><Plus size={12} aria-hidden="true" strokeWidth={2.5} /></button></div><div className="dtb-cart-row__price"><strong>${formatMoney(unitPrice * quantity)}</strong></div></div>
                     </div>
                   </Motion.article>
                 );
@@ -124,23 +128,23 @@ export default function Cart() {
             <div className="dtb-cart-sheet__summary-lines">
               <div className="dtb-cart-sheet__summary-row">
                 <span>Subtotal <small>({totalQuantity} item{totalQuantity !== 1 ? 's' : ''})</small></span>
-                <strong>${subtotal.toFixed(2)}</strong>
+                <strong>${formatMoney(subtotal)}</strong>
               </div>
               <div className="dtb-cart-sheet__summary-row">
                 <span>Shipping</span>
                 <strong className="dtb-cart-sheet__summary-pending">Calculated at checkout</strong>
               </div>
               <div className="dtb-cart-sheet__summary-row">
-                <span>Tax <small>(MN)</small></span>
+                <span>Tax</span>
                 {estimatedTax !== null
-                  ? <strong>${estimatedTax.toFixed(2)}</strong>
+                  ? <strong>${formatMoney(estimatedTax)}</strong>
                   : <strong className="dtb-cart-sheet__summary-pending">Calculated at checkout</strong>}
               </div>
             </div>
 
             <div className="dtb-cart-sheet__summary-total">
               <span>Estimated total</span>
-              <strong>${estimatedTotal.toFixed(2)}</strong>
+              <strong>${formatMoney(estimatedTotal)}</strong>
             </div>
             <p className="dtb-cart-sheet__summary-context">Final total, including shipping, is confirmed at checkout.</p>
 

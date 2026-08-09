@@ -156,6 +156,7 @@
 }
 
 .dtb-cart-row__brand,
+.dtb-cart-row__sku,
 .dtb-cart-row__option {
   margin: 0;
 }
@@ -167,6 +168,13 @@
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.dtb-cart-row__sku {
+  margin-top: 0.2rem;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .dtb-cart-row__option {
@@ -243,18 +251,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.dtb-cart-row__price small,
 .dtb-cart-row__price strong {
   display: block;
-}
-
-.dtb-cart-row__price small {
-  color: #94a3b8;
-  font-size: 0.68rem;
-}
-
-.dtb-cart-row__price strong {
-  margin-top: 0.15rem;
   font-size: 1rem;
 }
 
@@ -498,11 +496,6 @@
 
   .dtb-cart-row__image {
     width: 4.25rem;
-  }
-
-  .dtb-cart-row__footer {
-    align-items: flex-end;
-    flex-direction: column;
   }
 }
 
