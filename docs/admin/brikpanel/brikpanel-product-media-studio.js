@@ -195,6 +195,57 @@
         return { idx: idx, name: name, sku: sku, count: count, src: src, $row: $row, $button: $imageButton };
     }
 
+    /**
+     * Invoke only BrikPanel's variation-gallery manager handler.
+     *
+     * The compact variation image button can accumulate more than one direct
+     * click handler after BrikPanel/plugin updates. trigger()/triggerHandler()
+     * therefore cannot be used safely: either can also invoke an older single-
+     * image wp.media handler. We inspect jQuery's registered handlers and call
+     * only the handler whose closure delegates to openVarImagePicker().
+     */
+    function openVariationGalleryManager(index) {
+        var $button = getVariationRows()
+            .filter('[data-idx="' + index + '"]')
+            .find('.var-image-btn')
+            .first();
+        var button = $button.get(0);
+        if (!button) return false;
+
+        var events = typeof $._data === 'function' ? $._data(button, 'events') : null;
+        var clickHandlers = events && Array.isArray(events.click) ? events.click : [];
+        var managerHandler = null;
+
+        clickHandlers.some(function (entry) {
+            if (!entry || typeof entry.handler !== 'function') return false;
+            var source = '';
+            try {
+                source = Function.prototype.toString.call(entry.handler);
+            } catch (e) {
+                return false;
+            }
+            if (source.indexOf('openVarImagePicker') === -1) return false;
+            managerHandler = entry.handler;
+            return true;
+        });
+
+        if (!managerHandler) {
+            // Do not fall back to a synthetic click. That is exactly the path
+            // that can open WordPress Media Library instead of BrikPanel's
+            // manager after an update changes handlers on the compact button.
+            if (window.console && typeof window.console.error === 'function') {
+                window.console.error('[BrikPanel Media Studio] Variation gallery manager handler was not found for index ' + index + '.');
+            }
+            return false;
+        }
+
+        var event = $.Event('click');
+        event.target = button;
+        event.currentTarget = button;
+        managerHandler.call(button, event);
+        return true;
+    }
+
     function renderVariationMedia() {
         if (!studio.$variationList) return;
         var $rows = getVariationRows();
@@ -249,11 +300,7 @@
 
             var open = function () {
                 studio.activeVariationIndex = meta.idx;
-                var $current = getVariationRows().filter('[data-idx="' + meta.idx + '"]').find('.var-image-btn').first();
-                // BrikPanel binds openVarImagePicker() directly to this button.
-                // Invoke only that direct handler: a synthetic bubbling click can
-                // leak into legacy media controls and open wp.media immediately.
-                if ($current.length) $current.triggerHandler('click');
+                openVariationGalleryManager(meta.idx);
             };
             $(thumb).on('click', open);
             $(action).on('click', open);
