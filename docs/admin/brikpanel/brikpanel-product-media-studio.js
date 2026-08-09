@@ -195,9 +195,17 @@
 
             var body = document.createElement('div');
             body.className = 'brikpanel-media-variation__body';
-            body.innerHTML = '<strong>' + esc(meta.name) + '</strong>' +
-                (meta.sku ? '<span class="brikpanel-media-variation__sku">SKU ' + esc(meta.sku) + '</span>' : '<span class="brikpanel-media-variation__sku">' + esc(t('no_sku', 'No SKU')) + '</span>') +
-                '<span class="brikpanel-media-variation__count">' + esc(meta.count === 1 ? t('one_image', '1 image') : meta.count + ' ' + t('images', 'images')) + '</span>';
+            var name = document.createElement('strong');
+            name.textContent = meta.name;
+            var sku = document.createElement('span');
+            sku.className = 'brikpanel-media-variation__sku';
+            sku.textContent = meta.sku ? 'SKU ' + meta.sku : t('no_sku', 'No SKU');
+            var count = document.createElement('span');
+            count.className = 'brikpanel-media-variation__count';
+            count.textContent = meta.count === 1 ? t('one_image', '1 image') : meta.count + ' ' + t('images', 'images');
+            body.appendChild(name);
+            body.appendChild(sku);
+            body.appendChild(count);
 
             var action = document.createElement('button');
             action.type = 'button';
