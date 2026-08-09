@@ -1,10 +1,10 @@
 # Desktop Checkout Layout Contract
 
-Last updated: 2026-08-03.
+Last updated: 2026-08-09.
 
 ## Scope
 
-This document defines the desktop presentation contract for the native WooCommerce Checkout Block at `/checkout/`. It applies only at viewport widths of 1024px and wider. The existing mobile and tablet checkout presentation remains unchanged.
+This document defines the desktop presentation contract for the native WooCommerce Checkout Block at `/checkout/` and records the responsive presentation assets that must ship with it. Desktop layout rules apply at viewport widths of 1024px and wider; shared typography, header, field, and component styling remains mobile-first.
 
 ## Authority
 
@@ -15,11 +15,12 @@ Full checkout authority boundaries (WooCommerce, Payment Plugins for Stripe, and
 ```text
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-summary.css
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.js
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-desktop.css
 ```
 
-`checkout.css` and `checkout.js` remain authoritative for the current mobile checkout. They are not modified by the desktop redesign. `checkout-desktop.css` is the only desktop redesign file and every rule in it is contained within a `min-width: 1024px` media query.
+`checkout.css` owns shared tokens, typography, fields, controls, and shell presentation. `checkout-summary.css` owns mobile/tablet composition through 1023px. `checkout-desktop.css` owns only the desktop grid and desktop-specific density inside a `min-width: 1024px` media query. `checkout.js` remains a passive no-op boundary; it does not orchestrate WooCommerce DOM or state.
 
 ## Desktop architecture
 
@@ -43,16 +44,16 @@ The previous implementation created a grid parent but left its direct children v
 
 The corrected design keeps the published WooCommerce sidebar-layout component as the only desktop grid. Checkout-scoped direct-child rules make both structural children fill their assigned tracks regardless of stylesheet order, the main region remains a normal block flow, and the order summary fills the bounded sidebar track. Only known top-level Checkout Block regions receive width, spacing, and sticky-summary presentation rules.
 
-## Mobile preservation contract
+## Responsive preservation contract
 
-The following behavior must remain unchanged below 1024px:
+The following native behavior must remain unchanged below 1024px even when presentation is refined:
 
 - mobile Contact → Shipping → Payment wizard;
 - progress rail;
 - Back/Continue action bar;
-- mobile checkout cards and field styling;
-- mobile payment presentation;
-- mobile header sizing and spacing;
+- native order-summary disclosure behavior;
+- native/provider payment presentation and selection state;
+- a shrink-safe header that keeps both the store logo and Stripe attribution within the viewport;
 - tablet single-column checkout behavior;
 - mobile visibility, inert-state, validation, and navigation logic.
 
@@ -66,13 +67,13 @@ No desktop change is accepted if it alters these behaviors.
 - dependency: `dtb-checkout`;
 - version: the desktop stylesheet's `filemtime()`, falling back to `DTB_VERSION` when unavailable.
 
-This preserves deterministic cascade order and cache invalidation without modifying the mobile asset contract.
+This preserves deterministic cascade order and cache invalidation across the shared, mobile/tablet, and desktop presentation assets.
 
 ## Breakpoints
 
-- `< 768px`: existing mobile wizard remains authoritative.
-- `768–1023px`: existing single-column tablet checkout remains unchanged.
-- `1024–1439px`: two-column desktop layout with a fluid 390–460px summary rail.
+- `< 768px`: compact single-column mobile checkout and native order-summary disclosure.
+- `768–1023px`: single-column tablet checkout.
+- `1024–1439px`: two-column desktop layout with a fluid 410–460px summary rail.
 - `1440–1799px`: 460px summary rail.
 - `>= 1800px`: 1480px canvas with a 480px summary rail.
 
@@ -98,9 +99,13 @@ None. No schema, option, order, customer, HPOS, Action Scheduler, event-ledger, 
 
 ## Deployment
 
-Transfer only the reviewed desktop stylesheet for this change:
+Transfer the complete reviewed checkout presentation set for responsive changes:
 
 ```text
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/functions.php
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-summary.css
 drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-desktop.css
 ```
 
@@ -108,4 +113,4 @@ Do not overwrite WordPress core, `wp-config.php`, regular plugins, uploads, cach
 
 ## Rollback
 
-Restore the previously deployed `checkout-desktop.css`, clear all applicable caches, and repeat desktop and mobile checkout smoke testing. Do not modify or delete orders created during a failed visual cutover.
+Restore the previously deployed versions of the five files above as one presentation-consistent set, clear all applicable caches, and repeat desktop and mobile checkout smoke testing. Do not modify or delete orders created during a failed visual cutover.

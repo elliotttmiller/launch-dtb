@@ -60,12 +60,13 @@ for (const contract of [
   '.wc-block-components-sidebar-layout',
   '.wc-block-checkout__main',
   '.wc-block-checkout__sidebar',
-  'max-height: calc(100dvh - 136px)',
-  '@media (min-width: 1024px) and (max-height: 720px)',
+  'body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-main',
+  'body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-sidebar',
 ]) {
   assertIncludes(checkoutDesktop, contract, 'checkout-desktop.css');
 }
 
+assertNotIncludes(checkoutDesktop, 'max-height: calc(100dvh', 'checkout-desktop.css');
 assertNotIncludes(checkoutDesktop, ':has(', 'checkout-desktop.css');
 assertNotIncludes(checkoutDesktop, 'iframe ', 'checkout-desktop.css');
 

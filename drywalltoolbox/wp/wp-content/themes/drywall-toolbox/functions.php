@@ -484,13 +484,14 @@ function dtb_enqueue_native_checkout_assets(): void {
 	 */
 	wp_add_inline_style(
 		'dtb-checkout',
-		'.dtb-checkout__topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;overflow:hidden}'
-		. '.dtb-checkout__brand{display:flex;align-items:center;flex:none;line-height:0;max-width:60vw}'
-		. '.dtb-checkout__brand img{height:clamp(30px,7vw,40px);width:auto;max-width:100%;display:block}'
-		. '.dtb-checkout__stripe-badge{display:inline-flex;align-items:center;gap:6px;flex:none}'
+		'.dtb-checkout__topbar{display:block;overflow:hidden}'
+		. '.dtb-checkout__topbar-inner{box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,118px);align-items:center;gap:12px;width:100%;max-width:1480px;margin:0 auto;padding:14px clamp(16px,4vw,24px)}'
+		. '.dtb-checkout__brand{display:flex;align-items:center;min-width:0;max-width:148px;line-height:0}'
+		. '.dtb-checkout__brand img{height:auto;width:auto;max-width:100%;max-height:36px;display:block}'
+		. '.dtb-checkout__stripe-badge{display:inline-grid;grid-template-columns:14px minmax(0,1fr);align-items:center;gap:6px;min-width:0;max-width:118px;overflow:hidden}'
 		. '.dtb-checkout__stripe-badge svg{width:14px;height:14px;flex:none;color:rgba(255,255,255,0.75)}'
-		. '.dtb-checkout__stripe-badge img{height:18px;width:auto;display:block}'
-		. '@media (min-width:768px){.dtb-checkout__brand img{height:44px}.dtb-checkout__stripe-badge img{height:20px}}'
+		. '.dtb-checkout__stripe-badge img{display:block;width:100%;height:auto;max-width:98px;max-height:18px;object-fit:contain;object-position:right center}'
+		. '@media (min-width:768px){.dtb-checkout__topbar-inner{grid-template-columns:minmax(0,1fr) 140px;padding-block:16px}.dtb-checkout__brand{max-width:176px}.dtb-checkout__brand img{max-height:44px}.dtb-checkout__stripe-badge{max-width:140px}.dtb-checkout__stripe-badge img{max-width:118px;max-height:20px}}'
 	);
 
 	// dtb-checkout-desktop (the >=1024px two-column layout authority) is

@@ -1,17 +1,17 @@
 /** Drywall Toolbox — desktop checkout layout authority (>=1024px). */
 @media (min-width: 1024px) {
 	body {
-		--dtb-desktop-checkout-width: 1360px;
-		--dtb-desktop-sidebar-width: clamp(390px, 30vw, 460px);
-		--dtb-desktop-column-gap: clamp(32px, 3vw, 48px);
+		--dtb-desktop-checkout-width: 1320px;
+		--dtb-desktop-sidebar-width: clamp(410px, 31vw, 460px);
+		--dtb-desktop-column-gap: clamp(28px, 2.8vw, 42px);
 	}
 	#primary {
 		width: 100%;
 		max-width: var(--dtb-desktop-checkout-width);
 		margin-inline: auto;
-		padding: clamp(32px, 4vw, 56px) clamp(24px, 4vw, 56px) 72px;
+		padding: clamp(24px, 3vw, 40px) clamp(24px, 4vw, 56px) 72px;
 	}
-	.dtb-checkout__utility { max-width: var(--dtb-desktop-checkout-width); padding-inline: clamp(24px, 4vw, 56px); }
+	.dtb-checkout__utility { max-width: var(--dtb-desktop-checkout-width); padding: 18px clamp(24px, 4vw, 56px) 0; }
 	#primary > .woocommerce,
 	#primary .wp-block-woocommerce-checkout,
 	#primary .wc-block-checkout,
@@ -49,7 +49,7 @@
 	.wc-block-checkout__terms,
 	.wc-block-checkout__actions { width: 100%; max-width: none; min-width: 0; float: none; clear: both; margin-inline: 0; }
 	.wc-block-components-checkout-step,
-	.wc-block-components-express-payment { margin-bottom: 20px; }
+	.wc-block-components-express-payment { margin-bottom: 18px; }
 	/*
 	 * Matches the specificity of checkout.css's `body.woocommerce-checkout
 	 * .wc-block-checkout__form .wc-block-components-checkout-step` restatement (0,3,1,
@@ -59,19 +59,32 @@
 	 * rule at narrower widths.
 	 */
 	.wc-block-components-checkout-step,
-	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step { padding: clamp(22px, 2vw, 28px); background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); }
+	body.woocommerce-checkout .wc-block-checkout__form .wc-block-components-checkout-step { margin: 0; padding: clamp(26px, 2.2vw, 34px) 0; background: transparent; border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; box-shadow: none; }
+	body.woocommerce-checkout .wc-block-components-checkout-step__heading { margin-bottom: 20px; }
+	body.woocommerce-checkout .wc-block-components-checkout-step__title { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
+	body.woocommerce-checkout .wc-block-components-express-payment { margin: 0; padding: 0 0 28px; background: transparent; border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; box-shadow: none; }
 	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-components-sidebar,
-	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-checkout__sidebar { position: sticky; top: 112px; align-self: start; overflow: visible; }
+	body.woocommerce-checkout .wc-block-components-sidebar-layout > .wc-block-checkout__sidebar { position: sticky; top: 112px; align-self: start; overflow: visible; padding-left: clamp(28px, 3vw, 42px); border-left: 1px solid var(--dtb-checkout-border); }
 	body.woocommerce-checkout .wc-block-checkout__sidebar > .wp-block-woocommerce-checkout-order-summary-block,
 	body.woocommerce-checkout .wc-block-checkout__sidebar .wc-block-components-checkout-order-summary { width: 100%; min-width: 0; max-width: none; }
-	.wp-block-woocommerce-checkout-order-summary-block { background: var(--dtb-checkout-surface); border: 1px solid var(--dtb-checkout-border); border-radius: var(--dtb-checkout-radius-lg); box-shadow: var(--dtb-checkout-shadow-sm); overflow: hidden; }
-	.wc-block-components-checkout-order-summary__title { border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; cursor: default; padding: 20px clamp(20px, 1.6vw, 26px); }
-	.wc-block-components-checkout-order-summary__title-text { font-size: 19px; font-weight: 650; }
+	.wp-block-woocommerce-checkout-order-summary-block { background: transparent; border: 0; border-radius: 0; box-shadow: none; overflow: visible; }
+	.wc-block-components-checkout-order-summary__title { min-height: 64px; border: 0; border-bottom: 1px solid var(--dtb-checkout-border); border-radius: 0; cursor: default; padding: 19px clamp(20px, 1.6vw, 26px); }
+	.wc-block-components-checkout-order-summary__title-text { font-size: 20px; font-weight: 700; letter-spacing: -.025em; }
 	.wp-block-woocommerce-checkout-order-summary-cart-items-block,
 	.wp-block-woocommerce-checkout-order-summary-totals-block,
 	.wc-block-components-sidebar > .wc-block-components-totals-wrapper { padding: 0 clamp(20px, 1.6vw, 26px); }
 	.wp-block-woocommerce-checkout-order-summary-totals-block { padding-top: 6px; padding-bottom: 18px; }
 	.wc-block-components-totals-footer-item { padding-top: 16px; border-top: 1px solid var(--dtb-checkout-border); }
+	body.woocommerce-checkout .wc-block-components-address-card { padding: 0; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control { border: 0; border-radius: 0; overflow: visible; }
+	body.woocommerce-checkout .wp-block-woocommerce-checkout-payment-block .wc-block-components-radio-control-accordion-content { margin: 0 0 16px 32px; padding: 16px 0 4px; border: 0; border-radius: 0; background: transparent; }
+	.wc-block-components-order-summary-item { grid-template-columns: 58px minmax(0, 1fr) minmax(64px, max-content); gap: 12px; padding-block: 14px; }
+	.wc-block-components-order-summary-item__image,
+	.wc-block-components-order-summary-item__image img { width: 58px; }
+	.wc-block-components-order-summary-item__image img { height: 58px; }
+	.wc-block-components-product-name { font-size: 13.5px; }
+	.wc-block-components-totals-item { font-size: 13px; }
+	body.woocommerce-checkout .wc-block-checkout__actions { margin-top: 6px; }
 	:where(.wc-block-components-product-name,.wc-block-components-product-metadata,.wc-block-components-address-form__address_2-toggle,.wc-block-components-radio-control__label,.wc-block-components-notice-banner,.wc-block-components-validation-error) { overflow-wrap: anywhere; word-break: normal; }
 	:where(input, select, textarea, button) { max-width: 100%; }
 }

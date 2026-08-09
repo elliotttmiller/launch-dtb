@@ -5,6 +5,7 @@ const root = process.cwd();
 const files = {
   js: path.join(root, 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.js'),
   css: path.join(root, 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout.css'),
+  summary: path.join(root, 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-summary.css'),
   desktop: path.join(root, 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/assets/checkout/checkout-desktop.css'),
   template: path.join(root, 'drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php'),
   versioner: path.join(root, 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-checkout-asset-version.php'),
@@ -44,10 +45,16 @@ assert(
 );
 assert(!source.template.includes('dtb-checkout__breadcrumb'), 'Static checkout breadcrumb must be removed.');
 assert(!source.template.includes('dtb-checkout__trust'), 'Static trust claims must be removed.');
+assert(source.template.includes('dtb-checkout__topbar-inner'), 'Checkout header must use a bounded inner layout container.');
+assert(!source.template.includes('Secure checkout'), 'Checkout header must not add a redundant Secure checkout label.');
+assert(source.template.includes("'Provided by Stripe'"), 'Checkout header must expose the Stripe attribution image with accurate alternative text.');
+assert(source.css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 118px)'), 'Mobile checkout header must reserve a shrink-safe Stripe badge track.');
+assert(source.css.includes('.wc-block-components-order-summary-item__description .wc-block-components-product-price'), 'Order summary must suppress duplicate description-column product prices.');
+assert(source.summary.includes('border-radius: 0 !important;\n\t\tbox-shadow: none !important;\n\t\toverflow: visible !important;'), 'Mobile order summary must remain an open ledger instead of a card.');
 assert(source.versioner.includes('filemtime'), 'Checkout-owned assets must use file modification times for cache invalidation.');
 
 const defined = new Set([...source.css.matchAll(/(--dtb-checkout-[\w-]+)\s*:/g)].map((match) => match[1]));
-const used = new Set([...`${source.css}\n${source.desktop}`.matchAll(/var\((--dtb-checkout-[\w-]+)/g)].map((match) => match[1]));
+const used = new Set([...`${source.css}\n${source.summary}\n${source.desktop}`.matchAll(/var\((--dtb-checkout-[\w-]+)/g)].map((match) => match[1]));
 for (const token of used) {
   assert(defined.has(token), `Undefined checkout CSS token: ${token}`);
 }
