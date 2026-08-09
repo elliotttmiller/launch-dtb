@@ -140,5 +140,8 @@
         "wordpress", "xml", "xmlreader", "xmlrpc", "xmlwriter", "Zend OPcache",
         "zip", "zlib"
     ],
-    "intelephense.environment.phpVersion": "8.2.0"
+    "intelephense.environment.phpVersion": "8.2.0",
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "main"
+    ]
 }

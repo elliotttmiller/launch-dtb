@@ -15,8 +15,8 @@ const ALL_PRODUCTS_PREVIEW_LIMIT = 8;
 const ALL_PRODUCTS_SLIDE_INTERVAL_MS = 3800;
 
 const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
-  'automatic_tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_04.webp',
-  'automatic-tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_04.webp',
+  'automatic_tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_05.webp',
+  'automatic-tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_05.webp',
   'compound_tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
   'compound-tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
   'corner_tools': '/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',
@@ -49,8 +49,8 @@ const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
  */
 const CATEGORY_IMAGE_OVERRIDES = {
   tapetech: {
-    'automatic_tapers': '/wp-content/uploads/2026/media/tapetech_07tt_04.webp',
-    'automatic-tapers': '/wp-content/uploads/2026/media/tapetech_07tt_04.webp',
+    'automatic_tapers': '/wp-content/uploads/2026/media/tapetech_07tt_08.webp',
+    'automatic-tapers': '/wp-content/uploads/2026/media/tapetech_07tt_08.webp',
     'compound_tubes': '/wp-content/uploads/2026/media/tapetech_ct42tt_01.webp',
     'compound-tubes': '/wp-content/uploads/2026/media/tapetech_ct42tt_01.webp',
     'corner_tools': '/wp-content/uploads/2026/media/tapetech_ca08tt_01.webp',
