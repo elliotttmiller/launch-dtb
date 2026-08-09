@@ -250,7 +250,10 @@
             var open = function () {
                 studio.activeVariationIndex = meta.idx;
                 var $current = getVariationRows().filter('[data-idx="' + meta.idx + '"]').find('.var-image-btn').first();
-                if ($current.length) $current.trigger('click');
+                // BrikPanel binds openVarImagePicker() directly to this button.
+                // Invoke only that direct handler: a synthetic bubbling click can
+                // leak into legacy media controls and open wp.media immediately.
+                if ($current.length) $current.triggerHandler('click');
             };
             $(thumb).on('click', open);
             $(action).on('click', open);
