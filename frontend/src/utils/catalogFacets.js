@@ -21,6 +21,17 @@ export function buildCatalogCategoryUrl(slug) {
   return `/products?category=${encodeURIComponent(slug)}`;
 }
 
+/**
+ * Build a URL against the dedicated category landing page route. This is
+ * what the storefront nav and sitemap should point at — `/category/:slug`
+ * renders the same catalog engine as `/products` plus category hero/SEO
+ * treatment. `buildCatalogCategoryUrl` is kept for any legacy callers that
+ * still need the query-param form.
+ */
+export function buildCategoryPageUrl(slug) {
+  return `/category/${encodeURIComponent(slug)}`;
+}
+
 export function normalizeCatalogBrandEntry(rawBrand = {}) {
   const label = canonicalBrandLabel(rawBrand.label || rawBrand.name || rawBrand.key || rawBrand.slug || '');
   if (!label) return null;
@@ -120,7 +131,7 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
             label: childLabel,
             slug: childSlug,
             count: Number(rawChild?.productCount || rawChild?.count || 0),
-            to: buildCatalogCategoryUrl(childSlug),
+            to: buildCategoryPageUrl(childSlug),
           };
         })
         .filter(Boolean)
@@ -132,7 +143,7 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
         label,
         slug,
         count: Number(rawGroup?.productCount || rawGroup?.count || 0),
-        to: buildCatalogCategoryUrl(slug),
+        to: buildCategoryPageUrl(slug),
         children,
       };
     })

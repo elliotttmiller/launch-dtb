@@ -125,7 +125,7 @@ export const DEFAULT_QUERY = {
  * Parse URL search params + optional path params into a canonical CatalogQuery.
  *
  * @param {URLSearchParams} searchParams
- * @param {{ brandSlug?: string, categorySlug?: string }} [pathParams]
+ * @param {{ brandSlug?: string, categorySlug?: string, categoryPathSlug?: string }} [pathParams]
  * @returns {typeof DEFAULT_QUERY}
  */
 export function parseCatalogQuery(searchParams, pathParams = {}) {
@@ -162,7 +162,7 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
 
   return {
     brands,
-    category: searchParams.get('category') || '',
+    category: pathParams.categoryPathSlug || searchParams.get('category') || '',
     displayCategory,
     toolFamily: searchParams.get('tool_family') || '',
     productKind: searchParams.get('product_kind') || '',
@@ -179,7 +179,7 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
  * Serialize a CatalogQuery into a URL string.
  *
  * @param {Partial<typeof DEFAULT_QUERY>} query
- * @param {{ brandSlug?: string, categorySlug?: string }} [pathParams]
+ * @param {{ brandSlug?: string, categorySlug?: string, categoryPathSlug?: string }} [pathParams]
  * @returns {string}
  */
 export function buildCatalogUrl(query, pathParams = {}) {
@@ -194,7 +194,7 @@ export function buildCatalogUrl(query, pathParams = {}) {
   if (!pathParams.categorySlug && query.displayCategory && !query.search && !isAllProductsCategorySlug(query.displayCategory)) {
     params.set('display_category', query.displayCategory);
   }
-  if (query.category) params.set('category', query.category);
+  if (!pathParams.categoryPathSlug && query.category) params.set('category', query.category);
   if (query.toolFamily) params.set('tool_family', query.toolFamily);
   if (query.productKind) params.set('product_kind', query.productKind);
   if (query.builderSlot) params.set('builder_slot', query.builderSlot);
@@ -206,6 +206,9 @@ export function buildCatalogUrl(query, pathParams = {}) {
   const search = params.toString();
   const qs = search ? `?${search}` : '';
 
+  if (pathParams.categoryPathSlug) {
+    return `/category/${encodeURIComponent(pathParams.categoryPathSlug)}${qs}`;
+  }
   if (pathParams.brandSlug && pathParams.categorySlug) {
     return `/products/brands/${pathParams.brandSlug}/categories/${pathParams.categorySlug}${qs}`;
   }

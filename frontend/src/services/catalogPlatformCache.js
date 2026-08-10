@@ -11,11 +11,15 @@ const CATALOG_SNAPSHOTS_ENABLED = /^(1|true|yes|on)$/i.test(
 );
 const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
 
+const CATEGORY_STORAGE_PREFIX = `dtb:catalog-category:${CACHE_VERSION}:`;
+
 const productCache = new Map();
 const productInflight = new Map();
 const facetsCache = new Map();
 const facetsInflight = new Map();
 const snapshotInflight = new Map();
+const categoryCache = new Map();
+const categoryInflight = new Map();
 
 function canUseStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage);
@@ -316,18 +320,46 @@ export function fetchCatalogProducts(query = {}) {
   return productInflight.get(key);
 }
 
+export function buildCatalogCategoryMetaUrl(slug) {
+  return `/wp-json/dtb/v1/catalog/category?slug=${encodeURIComponent(String(slug || ''))}`;
+}
+
+/** Fetch term-level metadata (hero/description/breadcrumb/children) for a product_cat slug. */
+export function fetchCatalogCategory(slug) {
+  const key = String(slug || '').trim();
+  if (!key) return Promise.resolve(null);
+
+  const cached = getCacheEntry(categoryCache, key, CATEGORY_STORAGE_PREFIX);
+  if (cached?.data) return Promise.resolve(cached.data);
+
+  if (!categoryInflight.has(key)) {
+    categoryInflight.set(
+      key,
+      apiClient(buildCatalogCategoryMetaUrl(key))
+        .then((data) => setCacheEntry(categoryCache, key, CATEGORY_STORAGE_PREFIX, data))
+        .finally(() => {
+          categoryInflight.delete(key);
+        }),
+    );
+  }
+
+  return categoryInflight.get(key);
+}
+
 export function invalidateCatalogPlatformCache() {
   productCache.clear();
   productInflight.clear();
   facetsCache.clear();
   facetsInflight.clear();
   snapshotInflight.clear();
+  categoryCache.clear();
+  categoryInflight.clear();
 
   if (!canUseStorage()) return;
 
   try {
     Object.keys(window.localStorage)
-      .filter((key) => key.startsWith(PRODUCT_STORAGE_PREFIX) || key.startsWith(FACETS_STORAGE_PREFIX))
+      .filter((key) => key.startsWith(PRODUCT_STORAGE_PREFIX) || key.startsWith(FACETS_STORAGE_PREFIX) || key.startsWith(CATEGORY_STORAGE_PREFIX))
       .forEach((key) => window.localStorage.removeItem(key));
   } catch {
     // Non-critical cleanup.

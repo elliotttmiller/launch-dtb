@@ -14,13 +14,15 @@ import Toast from '../components/ui/Toast';
 import { ProductSkeletonGrid, SelectorSkeletonGrid } from '../components/catalog/ProductShoppingCardSkeleton';
 import ProductsBrandSelector from '../components/catalog/ProductsBrandSelector.jsx';
 import ProductsCategorySelector from '../components/catalog/ProductsCategorySelector.jsx';
+import CategoryHero from '../components/catalog/CategoryHero.jsx';
 import LoadingCardTransition from '../components/shared/LoadingCardTransition.jsx';
 import { SORT_OPTIONS } from '../constants/sortOptions';
 import { useCatalogFacets } from '../hooks/useCatalogFacets';
 import { useCatalogProducts } from '../hooks/useCatalogProducts';
+import { useCatalogCategory } from '../hooks/useCatalogCategory';
 import { useCart } from '../context/CartContext';
 import { useWorkflowTransition } from '../context/WorkflowTransitionContext.jsx';
-import { buildSiteLinksSearchBoxSchema } from '../utils/schema';
+import { buildBreadcrumbSchema, buildCategorySchema, buildSiteLinksSearchBoxSchema } from '../utils/schema';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import {
   brandToSlug,
@@ -28,7 +30,7 @@ import {
   canonicalBrandLabel,
   parseCatalogQuery,
 } from '../utils/catalogUrlState.js';
-import { dedupeCatalogBrandEntries, normalizeDisplayCategorySlug } from '../utils/catalogFacets.js';
+import { buildCategoryPageUrl, dedupeCatalogBrandEntries, normalizeDisplayCategorySlug } from '../utils/catalogFacets.js';
 import { searchProducts } from '../services/catalog.js';
 import { fetchCatalogProducts } from '../services/catalogPlatformCache.js';
 
@@ -262,7 +264,7 @@ function CatalogError({ title, message, details, onRetry }) {
 export default function ProductsCatalogPlatform({ forceProductGrid = false, title = 'Products', isPartsFilter = 0 } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { brandSlug, categorySlug } = useParams();
+  const { brandSlug, categorySlug, categoryPathSlug } = useParams();
   const { addToCart } = useCart();
   const { runWorkflow } = useWorkflowTransition();
 
@@ -276,7 +278,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const pathParams = useMemo(() => ({ brandSlug, categorySlug }), [brandSlug, categorySlug]);
+  const pathParams = useMemo(() => ({ brandSlug, categorySlug, categoryPathSlug }), [brandSlug, categorySlug, categoryPathSlug]);
+  const isCategoryPageRoute = Boolean(categoryPathSlug);
   const query = useMemo(() => parseCatalogQuery(new URLSearchParams(location.search), pathParams), [location.search, pathParams]);
   const selectedBrand = query.brands?.[0] || '';
   const [searchInput, setSearchInput] = useState(() => query.search || '');
@@ -291,11 +294,14 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const productsEnabled = !isSelectorRoute || Boolean(query.search);
 
   const effectivePartsFilter = isPartsFilter === 0 && Boolean(query.search) ? null : isPartsFilter;
-  const scopedFacets = effectivePartsFilter === null ? { brand: selectedBrand } : { isParts: effectivePartsFilter, brand: selectedBrand };
+  const scopedFacets = effectivePartsFilter === null
+    ? { brand: selectedBrand, category: query.category }
+    : { isParts: effectivePartsFilter, brand: selectedBrand, category: query.category };
   const productQuery = effectivePartsFilter === null ? query : { ...query, isParts: effectivePartsFilter };
 
   const { facets, loading: facetsLoading, error: facetsError } = useCatalogFacets(scopedFacets);
   const { items, pagination, loading: itemsLoading, error: productsError } = useCatalogProducts(productQuery, { enabled: productsEnabled });
+  const { category: categoryMeta, loading: categoryMetaLoading, error: categoryMetaError } = useCatalogCategory(isCategoryPageRoute ? categoryPathSlug : null);
 
   const brandFacets = useMemo(
     () => dedupeCatalogBrandEntries(
@@ -353,10 +359,37 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const unifiedHeadingMeta = isCategoryProductRoute
     ? `${categoryScopeLabel || 'All brands'}${total > 0 ? ` · ${total.toLocaleString()} product${total === 1 ? '' : 's'}` : ''}`
     : `${isPartsPage ? 'Replacement parts and service components' : 'All brands and categories'}${total > 0 ? ` · ${total.toLocaleString()} product${total === 1 ? '' : 's'}` : ''}`;
-  const canonicalUrl = isPartsPage ? '/parts' : '/products';
+  // Any URL that resolves a `category` filter (the dedicated route or a stray
+  // `?category=` query param on /products) canonicalizes onto the one
+  // dedicated category page for that product_cat slug — this is what
+  // consolidates duplicate-content URLs the sitemap and mega-menu both target.
+  const canonicalCategorySlug = categoryPathSlug || query.category || '';
+  const canonicalUrl = canonicalCategorySlug
+    ? buildCategoryPageUrl(canonicalCategorySlug)
+    : (isPartsPage ? '/parts' : '/products');
   const seoDescription = isPartsPage
     ? 'Shop professional drywall replacement parts, service kits, and repair components from leading brands.'
     : 'Shop professional drywall tools and accessories from leading drywall brands.';
+
+  const categoryBreadcrumbs = useMemo(() => {
+    if (!isCategoryPageRoute || !categoryMeta) return [];
+    const crumbs = [{ label: 'Home', path: '/' }];
+    if (categoryMeta.parent?.slug) {
+      crumbs.push({ label: categoryMeta.parent.label, path: buildCategoryPageUrl(categoryMeta.parent.slug) });
+    }
+    crumbs.push({ label: categoryMeta.label, path: buildCategoryPageUrl(categoryPathSlug) });
+    return crumbs;
+  }, [categoryMeta, categoryPathSlug, isCategoryPageRoute]);
+
+  const categorySeoTitle = isCategoryPageRoute
+    ? (categoryMeta?.label || (categoryMetaError ? 'Category not found' : 'Loading category…'))
+    : pageHeading;
+  const categorySeoDescription = isCategoryPageRoute
+    ? (categoryMeta?.description || seoDescription)
+    : seoDescription;
+  const categorySeoSchema = isCategoryPageRoute
+    ? [buildCategorySchema(categoryMeta, total), buildBreadcrumbSchema(categoryBreadcrumbs)].filter(Boolean)
+    : buildSiteLinksSearchBoxSchema();
 
   const setQuery = useCallback((patch, options = {}) => {
     const next = { ...query, ...patch };
@@ -525,9 +558,27 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
 
   return (
     <div className="min-h-screen bg-gray-50 page-wrapper">
-      <SEOHead title={pageHeading} description={seoDescription} canonical={canonicalUrl} schema={buildSiteLinksSearchBoxSchema()} />
+      <SEOHead title={categorySeoTitle} description={categorySeoDescription} canonical={canonicalUrl} schema={categorySeoSchema} noindex={isCategoryPageRoute && (categoryMetaLoading || itemsLoading || Boolean(categoryMetaError))} />
       <div className="container mx-auto px-4 py-4 pt-6">
-        {!showCategoryLanding && !showBrandLanding && (
+        {isCategoryPageRoute && (
+          categoryMeta ? (
+            <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={itemsLoading ? categoryMeta.productCount : total} />
+          ) : categoryMetaError ? (
+            <div className="mb-6 sm:mb-8">
+              <h1 className="dtb-listing-heading__title">{formatCategoryLabel(categoryPathSlug)}</h1>
+              <p className="dtb-listing-heading__meta">
+                {categoryMetaError?.status === 404 ? 'This category could not be found.' : 'Unable to load category details right now.'}
+              </p>
+            </div>
+          ) : (
+            <div className="mb-6 sm:mb-8" aria-hidden="true">
+              <div className="h-4 w-40 rounded-full dtb-loading-bar mb-3" />
+              <div className="h-8 w-72 rounded-xl dtb-loading-bar" />
+            </div>
+          )
+        )}
+
+        {!isCategoryPageRoute && !showCategoryLanding && !showBrandLanding && (
           <div className="mb-5 sm:mb-8">
             <div className={`dtb-listing-heading${isCategoryProductRoute ? '' : ' dtb-listing-heading--standard'}`}>
               {isCategoryProductRoute && (

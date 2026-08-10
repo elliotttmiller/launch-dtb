@@ -124,6 +124,39 @@ export function buildBreadcrumbSchema(crumbs) {
 }
 
 /**
+ * Build a schema.org/CollectionPage for a product category landing page.
+ *
+ * @param {object} category — normalized `/catalog/category` response
+ *   { slug, label, description, productCount }
+ * @returns {object}
+ */
+/**
+ * `productCount` on the term-meta DTO is WordPress's native (non-descendant)
+ * term count. Callers that already know the true descendant-inclusive total
+ * (the product grid's pagination total) should pass it as `productCountOverride`
+ * so the structured data matches what's actually rendered on the page.
+ */
+export function buildCategorySchema(category, productCountOverride) {
+  if (!category?.slug || !category?.label) return null;
+
+  const path = `/category/${category.slug}`;
+  const itemCount = Number.isFinite(productCountOverride) ? productCountOverride : category.productCount;
+
+  return {
+    '@context':      'https://schema.org',
+    '@type':         'CollectionPage',
+    name:            category.label,
+    ...(category.description && { description: stripHtml(category.description) }),
+    url:             canonicalSiteUrl(path),
+    mainEntity: {
+      '@type':          'ItemList',
+      name:             category.label,
+      ...(Number.isFinite(itemCount) && { numberOfItems: itemCount }),
+    },
+  };
+}
+
+/**
  * Build a static schema.org/Organization object for Drywall Toolbox.
  *
  * @returns {object}
