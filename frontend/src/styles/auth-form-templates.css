@@ -26,7 +26,7 @@
 .dtb-auth-template__card {
   position: relative;
   width: min(100%, 400px);
-  padding: clamp(24px, 4vw, 32px);
+  padding: clamp(var(--dtb-space-5), 4vw, var(--dtb-space-6));
   border: 1px solid var(--auth-border);
   border-radius: 14px;
   background: var(--auth-surface);
@@ -38,7 +38,7 @@
 }
 
 .dtb-auth-template__header {
-  margin-bottom: 24px;
+  margin-bottom: var(--dtb-space-5);
   text-align: center;
 }
 
@@ -48,7 +48,7 @@
   height: 42px;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  margin-bottom: var(--dtb-space-3);
   border: 1px solid var(--auth-border);
   border-radius: 10px;
   background: #f4f4f5;
@@ -65,7 +65,7 @@
 }
 
 .dtb-auth-template__subtitle {
-  margin: 7px 0 0;
+  margin: var(--dtb-space-2) 0 0;
   color: var(--auth-muted);
   font-size: 0.875rem;
   line-height: 1.5;
@@ -79,7 +79,7 @@
 .dtb-auth-template__name-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--dtb-space-3);
 }
 
 .dtb-auth-field {
@@ -88,7 +88,7 @@
 
 .dtb-auth-field__label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--dtb-space-2);
   color: #27272a;
   font-size: 0.82rem;
   font-weight: 650;
@@ -115,7 +115,7 @@
   display: block;
   width: 100%;
   min-height: 44px;
-  padding: 0 13px;
+  padding: 0 var(--dtb-space-3);
   border: 1px solid var(--auth-border-strong);
   border-radius: 9px;
   outline: 0;
@@ -129,7 +129,7 @@
 }
 
 .dtb-auth-field__input.has-icon {
-  padding-left: 40px;
+  padding-left: var(--dtb-space-6);
 }
 
 .dtb-auth-field__input.has-action {
@@ -194,7 +194,7 @@
 
 .dtb-floating-field .dtb-auth-field__input {
   min-height: 48px;
-  padding-top: 11px;
+  padding-top: var(--dtb-space-2);
 }
 
 .dtb-floating-field__label {
@@ -221,20 +221,20 @@
 .dtb-floating-field .dtb-auth-field__input:not(:placeholder-shown) + .dtb-floating-field__label {
   top: 0;
   left: 10px;
-  padding: 0 5px;
+  padding: 0 var(--dtb-space-1);
   color: #3f3f46;
   font-size: 0.7rem;
 }
 
 .dtb-auth-template__password-meta {
-  margin-top: 8px;
+  margin-top: var(--dtb-space-2);
 }
 
 .dtb-auth-template__strength-track {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  margin-bottom: 6px;
+  gap: var(--dtb-space-1);
+  margin-bottom: var(--dtb-space-1);
 }
 
 .dtb-auth-template__strength-segment {
@@ -253,16 +253,16 @@
 }
 
 .dtb-auth-template__field-message {
-  margin-top: 6px;
+  margin-top: var(--dtb-space-1);
   color: var(--auth-danger);
 }
 
 .dtb-auth-template__error {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  margin-bottom: 18px;
-  padding: 11px 12px;
+  gap: var(--dtb-space-2);
+  margin-bottom: var(--dtb-space-4);
+  padding: var(--dtb-space-2) var(--dtb-space-3);
   overflow: hidden;
   border: 1px solid #fecaca;
   border-radius: 9px;
@@ -284,7 +284,7 @@
   min-height: 44px;
   align-items: center;
   justify-content: center;
-  padding: 0 18px;
+  padding: 0 var(--dtb-space-4);
   border: 1px solid var(--auth-accent);
   border-radius: 9px;
   background: var(--auth-accent);
@@ -318,7 +318,7 @@
 .dtb-auth-template__loader {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--dtb-space-1);
 }
 
 .dtb-auth-template__loader-dot {
@@ -330,8 +330,8 @@
 
 .dtb-auth-template__footer {
   display: grid;
-  gap: 8px;
-  margin-top: 22px;
+  gap: var(--dtb-space-2);
+  margin-top: var(--dtb-space-4);
   text-align: center;
 }
 
@@ -365,7 +365,7 @@
 }
 
 .dtb-auth-template__recovery-note {
-  margin: 18px 0 0;
+  margin: var(--dtb-space-4) 0 0;
   color: var(--auth-muted);
   font-size: 0.8rem;
   line-height: 1.55;
@@ -375,8 +375,8 @@
 .dtb-auth-template__success {
   display: flex;
   align-items: flex-start;
-  gap: 11px;
-  padding: 14px;
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-3);
   border: 1px solid #bbf7d0;
   border-radius: 9px;
   background: #f0fdf4;
@@ -391,7 +391,7 @@
 
 .dtb-auth-template__success strong {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--dtb-space-1);
   color: #15803d;
   font-size: 0.86rem;
 }
@@ -403,22 +403,22 @@
 }
 
 .dtb-auth-template__footer--bordered {
-  margin-top: 24px;
-  padding-top: 20px;
+  margin-top: var(--dtb-space-5);
+  padding-top: var(--dtb-space-4);
   border-top: 1px solid var(--auth-border);
 }
 
 @media (max-width: 520px) {
   .dtb-auth-template {
     align-items: flex-start;
-    padding-top: clamp(20px, 6vw, 30px);
+    padding-top: clamp(var(--dtb-space-4), 6vw, var(--dtb-space-5));
     background: #fff;
   }
 
   .dtb-auth-template__card,
   .dtb-auth-template--register .dtb-auth-template__card {
     width: 100%;
-    padding: 22px 18px 24px;
+    padding: var(--dtb-space-4) var(--dtb-space-4) var(--dtb-space-5);
     border-radius: 12px;
     box-shadow: 0 14px 36px rgba(15, 23, 42, 0.09);
   }
@@ -438,14 +438,14 @@
 
 @media (max-width: 360px) {
   .dtb-auth-template {
-    padding-right: 10px;
-    padding-left: 10px;
+    padding-right: var(--dtb-space-2);
+    padding-left: var(--dtb-space-2);
   }
 
   .dtb-auth-template__card,
   .dtb-auth-template--register .dtb-auth-template__card {
-    padding-right: 15px;
-    padding-left: 15px;
+    padding-right: var(--dtb-space-3);
+    padding-left: var(--dtb-space-3);
   }
 }
 

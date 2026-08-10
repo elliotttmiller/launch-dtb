@@ -67,8 +67,8 @@
   min-height: 42px;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 0 14px;
+  gap: var(--dtb-space-3);
+  padding: 0 var(--dtb-space-3);
   border-bottom: 1px solid #e7ecf3;
   color: #334155;
   background: #f8fafc;
@@ -90,7 +90,7 @@
 .dtb-catalog-autocomplete__status,
 .dtb-catalog-autocomplete__empty {
   display: block;
-  padding: 18px;
+  padding: var(--dtb-space-4);
   color: #64748b;
   font-size: 0.82rem;
   line-height: 1.45;
@@ -105,8 +105,8 @@
   box-sizing: border-box;
   display: grid;
   max-height: min(var(--available-height), 450px);
-  gap: 4px;
-  padding: 7px;
+  gap: var(--dtb-space-1);
+  padding: var(--dtb-space-2);
   overflow-y: auto;
   overscroll-behavior: contain;
   scroll-padding-block: 7px;
@@ -136,7 +136,7 @@
   grid-template-columns: 82px minmax(0, 1fr);
   min-width: 0;
   align-items: stretch;
-  gap: 12px;
+  gap: var(--dtb-space-3);
   padding: 0;
   outline: 0;
   color: inherit;
@@ -169,7 +169,7 @@
 .dtb-catalog-autocomplete__copy {
   align-self: center;
   min-width: 0;
-  padding: 8px 0;
+  padding: var(--dtb-space-2) 0;
 }
 
 .dtb-catalog-autocomplete__copy strong {
@@ -192,8 +192,8 @@
 .dtb-catalog-autocomplete__copy small {
   display: flex;
   min-width: 0;
-  gap: 8px;
-  margin-top: 5px;
+  gap: var(--dtb-space-2);
+  margin-top: var(--dtb-space-1);
   color: #64748b;
   font-size: 0.68rem;
   font-weight: 650;
@@ -223,8 +223,8 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: center;
-  gap: 8px;
-  padding: 8px 9px 8px 4px;
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-1);
 }
 
 .dtb-catalog-autocomplete__add {
@@ -234,7 +234,7 @@
 .dtb-catalog-autocomplete__view-all {
   width: 100%;
   min-height: 46px;
-  padding: 0 16px;
+  padding: 0 var(--dtb-space-4);
   border: 0;
   border-top: 1px solid #e2e8f0;
   color: #2255ee;

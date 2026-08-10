@@ -14,7 +14,7 @@
   display: block !important;
   width: min(100%, 1480px);
   margin: 0 auto;
-  padding: clamp(42px, 6vw, 72px) clamp(20px, 4vw, 56px) 0 !important;
+  padding: clamp(42px, 6vw, 72px) clamp(var(--dtb-space-4), 4vw, 56px) 0 !important;
   grid-template-columns: none !important;
   gap: 0 !important;
 }
@@ -22,8 +22,8 @@
 .dtb-footer-template__grid {
   display: grid;
   grid-template-columns: minmax(250px, 1.6fr) repeat(4, minmax(135px, 1fr));
-  gap: clamp(28px, 4vw, 64px);
-  padding-bottom: clamp(40px, 6vw, 64px);
+  gap: clamp(var(--dtb-space-5), 4vw, 64px);
+  padding-bottom: clamp(var(--dtb-space-6), 6vw, 64px);
 }
 
 .dtb-footer-template__brand {
@@ -37,7 +37,7 @@
 }
 
 .dtb-footer-template__heading {
-  margin: 0 0 20px;
+  margin: 0 0 var(--dtb-space-4);
   color: #fff;
   font-size: 0.93rem;
   font-weight: 720;
@@ -46,7 +46,7 @@
 
 .dtb-footer-template__links {
   display: grid;
-  gap: 13px;
+  gap: var(--dtb-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -72,7 +72,7 @@
   min-height: 76px;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--dtb-space-5);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -85,14 +85,14 @@
 
 .dtb-footer-template__legal {
   display: inline-flex;
-  gap: 16px;
-  margin-left: 10px;
+  gap: var(--dtb-space-4);
+  margin-left: var(--dtb-space-2);
 }
 
 .dtb-footer-template__socials {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--dtb-space-2);
 }
 
 .dtb-footer-template__social {
@@ -129,8 +129,8 @@
 
 @media (max-width: 700px) {
   .dtb-footer-template__inner {
-    padding-right: 18px !important;
-    padding-left: 18px !important;
+    padding-right: var(--dtb-space-4) !important;
+    padding-left: var(--dtb-space-4) !important;
   }
 
   .dtb-footer-template__grid {
@@ -167,14 +167,14 @@
   .dtb-footer-template__bottom {
     flex-direction: column;
     justify-content: center;
-    padding: 22px 0 calc(22px + env(safe-area-inset-bottom, 0px));
+    padding: var(--dtb-space-4) 0 calc(var(--dtb-space-4) + env(safe-area-inset-bottom, 0px));
     text-align: center;
   }
 
   .dtb-footer-template__legal {
     display: flex;
     justify-content: center;
-    margin: 8px 0 0;
+    margin: var(--dtb-space-2) 0 0;
   }
 }
 

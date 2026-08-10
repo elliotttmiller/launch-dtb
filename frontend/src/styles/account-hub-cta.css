@@ -4,7 +4,7 @@
 ───────────────────────────────────────────── */
 
 .account-hub__panel--guest {
-  padding: 20px 18px 24px;
+  padding: var(--dtb-space-4) var(--dtb-space-4) var(--dtb-space-5);
 }
 
 .account-hub__close {
@@ -41,7 +41,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 27px;
-  padding: 34px 22px 28px;
+  padding: 34px var(--dtb-space-4) var(--dtb-space-5);
   text-align: center;
   background:
     radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.32), transparent 34%),
@@ -84,10 +84,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--dtb-space-1);
   width: fit-content;
-  margin: 0 auto 14px;
-  padding: 7px 11px;
+  margin: 0 auto var(--dtb-space-3);
+  padding: var(--dtb-space-2) var(--dtb-space-2);
   border: 1px solid rgba(147, 197, 253, 0.34);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.44);
@@ -116,7 +116,7 @@
 
 .account-hub-cta__body {
   max-width: 330px;
-  margin: 16px auto 24px;
+  margin: var(--dtb-space-4) auto var(--dtb-space-5);
   color: rgba(226, 232, 240, 0.78);
   font-size: 0.93rem;
   font-weight: 550;
@@ -130,7 +130,7 @@
   width: min(100%, 320px);
   min-height: 54px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--dtb-space-5);
   border: 0;
   border-radius: 999px;
   background: #ffffff;
@@ -184,7 +184,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--dtb-space-2);
   font-size: 1.02rem;
   font-weight: 900;
   letter-spacing: -0.01em;
@@ -201,11 +201,11 @@
 
 @media (min-width: 560px) {
   .account-hub__panel--guest {
-    padding: 72px 24px 20px;
+    padding: 72px var(--dtb-space-5) var(--dtb-space-4);
   }
 
   .account-hub-cta__inner {
-    padding: 44px 36px 34px;
+    padding: 44px var(--dtb-space-6) 34px;
   }
 }
 

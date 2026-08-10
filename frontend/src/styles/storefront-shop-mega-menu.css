@@ -45,15 +45,15 @@
 .storefront-shop-mega__shell {
     display: grid;
     grid-template-columns: minmax(278px, 330px) 1fr;
-    gap: 26px;
-    padding: 22px 24px 18px;
+    gap: var(--dtb-space-5);
+    padding: var(--dtb-space-4) var(--dtb-space-5) var(--dtb-space-4);
 }
 
 .storefront-shop-mega__rail {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 8px;
+    gap: var(--dtb-space-2);
+    padding: var(--dtb-space-2);
     border-radius: 18px;
     border: 1px solid rgba(15, 23, 42, 0.06);
     background:
@@ -65,9 +65,9 @@
     display: grid;
     grid-template-columns: 38px 1fr 18px;
     align-items: center;
-    gap: 12px;
+    gap: var(--dtb-space-3);
     min-height: 78px;
-    padding: 12px 14px;
+    padding: var(--dtb-space-3) var(--dtb-space-3);
     border: 1px solid transparent;
     border-radius: 14px;
     color: #0f172a;
@@ -108,7 +108,7 @@
 
 .storefront-shop-mega__rail-subtitle {
     display: block;
-    margin-top: 4px;
+    margin-top: var(--dtb-space-1);
     font-size: 0.76rem;
     line-height: 1.32;
     color: rgba(15, 23, 42, 0.56);
@@ -128,9 +128,9 @@
 .storefront-shop-mega__content {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 26px;
+    gap: var(--dtb-space-5);
     align-items: start;
-    padding: 12px 4px 4px;
+    padding: var(--dtb-space-3) var(--dtb-space-1) var(--dtb-space-1);
 }
 
 .storefront-shop-mega__column {
@@ -138,8 +138,8 @@
 }
 
 .storefront-shop-mega__column-title {
-    margin: 0 0 13px;
-    padding-bottom: 12px;
+    margin: 0 0 var(--dtb-space-3);
+    padding-bottom: var(--dtb-space-3);
     border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     color: #0f172a;
     font-size: 0.82rem;
@@ -160,8 +160,8 @@
     min-height: 33px;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 6px 0;
+    gap: var(--dtb-space-2);
+    padding: var(--dtb-space-1) 0;
     border-radius: 9px;
     color: rgba(15, 23, 42, 0.84);
     font-size: 0.9rem;
@@ -173,8 +173,8 @@
 
 .storefront-shop-mega__text-link:hover,
 .storefront-shop-mega__text-link:focus-visible {
-    padding-left: 9px;
-    padding-right: 8px;
+    padding-left: var(--dtb-space-2);
+    padding-right: var(--dtb-space-2);
     color: var(--primary-700, #2255ee);
     background: rgba(34, 85, 238, 0.06);
     outline: none;
@@ -185,7 +185,7 @@
     border-radius: 999px;
     background: linear-gradient(135deg, var(--primary-700, #2255ee), var(--primary-600, #2255ee));
     color: #ffffff;
-    padding: 3px 7px;
+    padding: 3px var(--dtb-space-2);
     font-size: 0.58rem;
     font-weight: 900;
     letter-spacing: 0.06em;
@@ -197,16 +197,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin: 0 24px 22px;
-    padding: 16px 0 0;
+    gap: var(--dtb-space-4);
+    margin: 0 var(--dtb-space-5) var(--dtb-space-4);
+    padding: var(--dtb-space-4) 0 0;
     border-top: 1px solid rgba(15, 23, 42, 0.08);
 }
 
 .storefront-shop-mega__footer-note {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--dtb-space-2);
     color: rgba(15, 23, 42, 0.58);
     font-size: 0.78rem;
     font-weight: 650;
@@ -221,7 +221,7 @@
 .storefront-shop-mega__footer-actions {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--dtb-space-2);
     flex-shrink: 0;
 }
 
@@ -231,7 +231,7 @@
     align-items: center;
     justify-content: center;
     border-radius: 11px;
-    padding: 10px 14px;
+    padding: var(--dtb-space-2) var(--dtb-space-3);
     font-size: 0.82rem;
     font-weight: 800;
     line-height: 1;
@@ -280,12 +280,12 @@
 
     .storefront-shop-mega__shell {
         grid-template-columns: minmax(250px, 300px) 1fr;
-        gap: 18px;
+        gap: var(--dtb-space-4);
     }
 
     .storefront-shop-mega__content {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 22px 26px;
+        gap: var(--dtb-space-4) var(--dtb-space-5);
     }
 }
 

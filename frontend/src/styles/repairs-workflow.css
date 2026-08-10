@@ -288,7 +288,7 @@
     flex: 1 1 0;
     min-width: 0;
     min-height: 56px;
-    padding: 13px 10px !important;
+    padding: var(--dtb-space-3) var(--dtb-space-2) !important;
     white-space: nowrap;
     text-align: center;
     font-size: clamp(0.66rem, 3vw, 0.76rem);

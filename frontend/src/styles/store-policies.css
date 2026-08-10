@@ -15,9 +15,9 @@
 .store-policy-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.72fr);
-  gap: 28px;
+  gap: var(--dtb-space-5);
   align-items: stretch;
-  padding: clamp(40px, 7vw, 74px) 0 34px;
+  padding: clamp(var(--dtb-space-6), 7vw, 74px) 0 34px;
 }
 
 .store-policy-hero--hub {
@@ -35,7 +35,7 @@
   width: fit-content;
   align-items: center;
   min-height: 26px;
-  padding: 0 10px;
+  padding: 0 var(--dtb-space-2);
   border: 1px solid rgba(34, 85, 238, 0.18);
   border-radius: 999px;
   background: rgba(239, 246, 255, 0.9);
@@ -47,7 +47,7 @@
 }
 
 .store-policy-hero h1 {
-  margin: 14px 0 12px;
+  margin: var(--dtb-space-3) 0 var(--dtb-space-3);
   max-width: 720px;
   color: #071329;
   font-size: clamp(2.35rem, 7vw, 5rem);
@@ -66,17 +66,17 @@
 .store-policy-hero__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
+  gap: var(--dtb-space-2);
+  margin-top: var(--dtb-space-5);
 }
 
 .store-policy-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--dtb-space-2);
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 var(--dtb-space-4);
   border-radius: 10px;
   font-size: 0.88rem;
   font-weight: 800;
@@ -103,9 +103,9 @@
 
 .store-policy-hero__panel {
   display: grid;
-  gap: 12px;
+  gap: var(--dtb-space-3);
   align-content: center;
-  padding: 18px;
+  padding: var(--dtb-space-4);
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.78);
@@ -119,8 +119,8 @@
 
 .store-policies-summary {
   display: grid;
-  gap: 8px;
-  padding: 18px;
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-4);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 14px;
   background: #fff;
@@ -144,9 +144,9 @@
 
 .store-policy-fact {
   display: flex;
-  gap: 12px;
+  gap: var(--dtb-space-3);
   align-items: flex-start;
-  padding: 14px;
+  padding: var(--dtb-space-3);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 13px;
   background: #fff;
@@ -179,12 +179,12 @@
 
 .store-policy-content {
   display: grid;
-  gap: 18px;
+  gap: var(--dtb-space-4);
   padding: 0 0 clamp(48px, 8vw, 84px);
 }
 
 .store-policies-content {
-  gap: 20px;
+  gap: var(--dtb-space-4);
 }
 
 .store-policy-section,
@@ -198,13 +198,13 @@
 }
 
 .store-policy-section {
-  padding: clamp(22px, 4vw, 34px);
+  padding: clamp(var(--dtb-space-4), 4vw, 34px);
 }
 
 .store-policy-section--intro {
   display: grid;
   grid-template-columns: minmax(240px, 0.68fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--dtb-space-5);
   align-items: center;
 }
 
@@ -223,7 +223,7 @@
 .store-policy-card h2,
 .store-policy-related h2,
 .store-policy-footer-cta h2 {
-  margin: 9px 0 0;
+  margin: var(--dtb-space-2) 0 0;
   color: #0f172a;
   font-size: clamp(1.18rem, 2.4vw, 1.65rem);
   font-weight: 850;
@@ -231,14 +231,14 @@
 }
 
 .store-policy-section__header {
-  margin-bottom: 18px;
+  margin-bottom: var(--dtb-space-4);
 }
 
 .store-policy-steps,
 .store-policy-grid,
 .store-policy-related-grid {
   display: grid;
-  gap: 14px;
+  gap: var(--dtb-space-3);
 }
 
 .store-policy-steps {
@@ -247,9 +247,9 @@
 
 .store-policy-step {
   display: flex;
-  gap: 12px;
+  gap: var(--dtb-space-3);
   min-width: 0;
-  padding: 16px;
+  padding: var(--dtb-space-4);
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   background: #f8fafc;
@@ -275,7 +275,7 @@
 }
 
 .store-policy-step p {
-  margin: 5px 0 0;
+  margin: var(--dtb-space-1) 0 0;
   color: #64748b;
   font-size: 0.8rem;
   line-height: 1.5;
@@ -283,10 +283,10 @@
 
 .store-policy-alert {
   display: flex;
-  gap: 10px;
+  gap: var(--dtb-space-2);
   align-items: flex-start;
-  margin-top: 16px;
-  padding: 13px 14px;
+  margin-top: var(--dtb-space-4);
+  padding: var(--dtb-space-3) var(--dtb-space-3);
   border: 1px solid #fed7aa;
   border-radius: 12px;
   background: #fff7ed;
@@ -306,9 +306,9 @@
 
 .store-policy-card {
   display: grid;
-  gap: 13px;
+  gap: var(--dtb-space-3);
   align-content: start;
-  padding: clamp(20px, 3vw, 26px);
+  padding: clamp(var(--dtb-space-4), 3vw, var(--dtb-space-5));
 }
 
 .store-policy-card > svg {
@@ -321,13 +321,13 @@
 
 .store-policy-rule-list {
   display: grid;
-  gap: 9px;
+  gap: var(--dtb-space-2);
 }
 
 .store-policy-rule {
   display: grid;
-  gap: 4px;
-  padding: 12px;
+  gap: var(--dtb-space-1);
+  padding: var(--dtb-space-3);
   border-radius: 11px;
   background: #f8fafc;
 }
@@ -346,12 +346,12 @@
 .store-policy-section--split {
   display: grid;
   grid-template-columns: minmax(240px, 0.62fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: var(--dtb-space-5);
 }
 
 .store-policy-checklist {
   display: grid;
-  gap: 9px;
+  gap: var(--dtb-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -359,7 +359,7 @@
 
 .store-policy-checklist li {
   display: flex;
-  gap: 9px;
+  gap: var(--dtb-space-2);
   align-items: flex-start;
   color: #475569;
   font-size: 0.84rem;
@@ -373,7 +373,7 @@
 }
 
 .store-policy-related {
-  padding: clamp(22px, 4vw, 32px);
+  padding: clamp(var(--dtb-space-4), 4vw, var(--dtb-space-6));
 }
 
 .store-policy-related-grid {
@@ -383,15 +383,15 @@
 .store-policies-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--dtb-space-4);
 }
 
 .store-policies-card {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
+  gap: var(--dtb-space-3);
   min-width: 0;
-  padding: clamp(18px, 3vw, 24px);
+  padding: clamp(var(--dtb-space-4), 3vw, var(--dtb-space-5));
   border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 18px;
   background: #fff;
@@ -420,7 +420,7 @@
 
 .store-policies-card__copy {
   display: grid;
-  gap: 6px;
+  gap: var(--dtb-space-1);
   min-width: 0;
 }
 
@@ -439,14 +439,14 @@
   grid-column: 2;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--dtb-space-1);
   color: #2255ee;
   font-size: 0.78rem;
   font-weight: 800;
 }
 
 .store-policy-related-card {
-  padding: 16px;
+  padding: var(--dtb-space-4);
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   background: #f8fafc;
@@ -457,7 +457,7 @@
 }
 
 .store-policy-related-card h2 {
-  margin: 9px 0 6px;
+  margin: var(--dtb-space-2) 0 var(--dtb-space-1);
   font-size: 0.95rem;
 }
 
@@ -467,7 +467,7 @@
 
 .store-policy-check-list {
   display: grid;
-  gap: 10px;
+  gap: var(--dtb-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -475,7 +475,7 @@
 
 .store-policy-check-list li {
   display: flex;
-  gap: 10px;
+  gap: var(--dtb-space-2);
   align-items: flex-start;
   color: #475569;
   font-size: 0.85rem;
@@ -496,8 +496,8 @@
 
 .store-policy-table__row {
   display: grid;
-  gap: 8px;
-  padding: 14px 18px;
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-3) var(--dtb-space-4);
   border-bottom: 1px solid rgba(226, 232, 240, 0.9);
   align-items: center;
 }
@@ -507,7 +507,7 @@
 }
 
 .store-policy-table__row--head {
-  padding: 12px 18px;
+  padding: var(--dtb-space-3) var(--dtb-space-4);
   background: #f8fafc;
 }
 
@@ -545,18 +545,18 @@
 
 .store-policy-faq-list {
   display: grid;
-  gap: 12px;
+  gap: var(--dtb-space-3);
 }
 
 .store-policy-faq {
-  padding: 18px 22px;
+  padding: var(--dtb-space-4) var(--dtb-space-4);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 14px;
   background: #fff;
 }
 
 .store-policy-faq__q {
-  margin: 0 0 8px;
+  margin: 0 0 var(--dtb-space-2);
   color: #0f172a;
   font-weight: 700;
   font-size: 0.9rem;
@@ -572,9 +572,9 @@
 .store-policy-footer-cta {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: var(--dtb-space-4);
   align-items: center;
-  padding: clamp(22px, 4vw, 30px);
+  padding: clamp(var(--dtb-space-4), 4vw, var(--dtb-space-5));
   background: linear-gradient(135deg, #071329 0%, #0f2150 54%, #2255ee 100%);
   color: #fff;
 }
@@ -584,7 +584,7 @@
 }
 
 .store-policy-footer-cta h2 {
-  margin: 0 0 6px;
+  margin: 0 0 var(--dtb-space-1);
   color: #fff;
 }
 
@@ -603,8 +603,8 @@
   }
 
   .store-policy-hero {
-    gap: 20px;
-    padding-top: 30px;
+    gap: var(--dtb-space-4);
+    padding-top: var(--dtb-space-5);
   }
 
   .store-policy-steps,

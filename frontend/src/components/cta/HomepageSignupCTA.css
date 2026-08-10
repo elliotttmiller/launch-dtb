@@ -9,7 +9,7 @@
   z-index: 10030;
   display: grid;
   place-items: center;
-  padding: clamp(18px, 4vw, 32px);
+  padding: clamp(var(--dtb-space-4), 4vw, var(--dtb-space-6));
 }
 
 .homepage-signup-cta__backdrop {
@@ -91,7 +91,7 @@
   position: relative;
   overflow: hidden;
   border-radius: 29px;
-  padding: clamp(34px, 7vw, 72px) clamp(24px, 7vw, 68px) clamp(30px, 6vw, 60px);
+  padding: clamp(34px, 7vw, 72px) clamp(var(--dtb-space-5), 7vw, 68px) clamp(var(--dtb-space-5), 6vw, 60px);
   text-align: center;
   background:
     radial-gradient(circle at 18% 0%, rgba(34, 85, 238, 0.34), transparent 36%),
@@ -134,10 +134,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--dtb-space-1);
   width: fit-content;
-  margin: 0 auto 16px;
-  padding: 7px 11px;
+  margin: 0 auto var(--dtb-space-4);
+  padding: var(--dtb-space-2) var(--dtb-space-2);
   border: 1px solid rgba(147, 197, 253, 0.34);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.44);
@@ -166,7 +166,7 @@
 
 .homepage-signup-cta__body {
   max-width: 520px;
-  margin: clamp(18px, 3.4vw, 26px) auto clamp(24px, 4vw, 38px);
+  margin: clamp(var(--dtb-space-4), 3.4vw, var(--dtb-space-5)) auto clamp(var(--dtb-space-5), 4vw, 38px);
   color: rgba(226, 232, 240, 0.8);
   font-size: clamp(1rem, 3.4vw, 1.28rem);
   font-weight: 650;
@@ -181,7 +181,7 @@
   width: min(100%, 560px);
   min-height: clamp(58px, 11vw, 76px);
   margin: 0 auto;
-  padding: 0 28px;
+  padding: 0 var(--dtb-space-5);
   border: 0;
   border-radius: 999px;
   background: #ffffff;
@@ -232,7 +232,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: var(--dtb-space-2);
   font-size: clamp(1.05rem, 4vw, 1.36rem);
   font-weight: 950;
   letter-spacing: -0.012em;
@@ -249,7 +249,7 @@
 
 @media (max-width: 480px) {
   .homepage-signup-cta {
-    padding: 16px;
+    padding: var(--dtb-space-4);
   }
 
   .homepage-signup-cta__card-wrap {

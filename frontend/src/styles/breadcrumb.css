@@ -38,7 +38,7 @@
   flex: 0 0 auto;
   width: 12px;
   height: 12px;
-  margin: 0 8px;
+  margin: 0 var(--dtb-space-2);
   background: currentColor;
   -webkit-mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;
   mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;

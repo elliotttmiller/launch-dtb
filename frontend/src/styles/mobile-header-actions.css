@@ -33,11 +33,11 @@
 
   .header-mobile-slot--right {
     gap: 0 !important;
-    padding-right: 10px !important;
+    padding-right: var(--dtb-space-2) !important;
   }
 
   .header-mobile-slot--left {
-    padding-left: 10px !important;
+    padding-left: var(--dtb-space-2) !important;
   }
 
   .header-mobile-logo {
@@ -82,7 +82,7 @@
     right: 1px !important;
     min-width: 20px !important;
     height: 20px !important;
-    padding: 0 5px !important;
+    padding: 0 var(--dtb-space-1) !important;
     font-size: 10px !important;
     line-height: 20px;
     border: 2px solid #070d1c;

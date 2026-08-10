@@ -45,7 +45,7 @@
    */
   .site-header .dtb-desktop-nav-tab {
     min-width: max-content;
-    padding-inline: clamp(8px, 0.72vw, 14px);
+    padding-inline: clamp(var(--dtb-space-2), 0.72vw, var(--dtb-space-3));
     font-size: clamp(0.9rem, 0.82vw, 1rem);
     font-weight: 680;
     text-decoration: none;
@@ -142,7 +142,7 @@
   }
 
   .site-header .dtb-desktop-nav-dropdown__header {
-    padding: 20px 20px 16px;
+    padding: var(--dtb-space-4) var(--dtb-space-4) var(--dtb-space-4);
     border-bottom: 1px solid #dfe6ef;
     background: linear-gradient(180deg, #fbfdff, #f7f9fc);
   }
@@ -156,20 +156,20 @@
 
   .site-header .dtb-desktop-nav-dropdown__header span {
     max-width: 34ch;
-    margin-top: 6px;
+    margin-top: var(--dtb-space-1);
     color: #5d6c82;
     font-size: 0.75rem;
     line-height: 1.45;
   }
 
   .site-header .dtb-desktop-nav-dropdown__scroller {
-    padding: 10px 12px;
+    padding: var(--dtb-space-2) var(--dtb-space-3);
     background: #fff;
   }
 
   .site-header .dtb-desktop-nav-dropdown__link {
     min-height: 40px;
-    padding: 9px 10px;
+    padding: var(--dtb-space-2) var(--dtb-space-2);
     border-radius: 8px;
     color: #2d3c53;
     font-size: 0.79rem;
@@ -201,7 +201,7 @@
 
   .site-header .dtb-desktop-nav-dropdown__footer {
     min-height: 50px;
-    padding: 12px 20px;
+    padding: var(--dtb-space-3) var(--dtb-space-4);
     border-top: 1px solid #dfe6ef;
     background: #f7f9fc;
     color: #1748d1;
@@ -229,13 +229,13 @@
   }
 
   .site-header .dtb-desktop-nav {
-    gap: clamp(0px, 0.25vw, 5px);
+    gap: clamp(0px, 0.25vw, var(--dtb-space-1));
   }
 
   .site-header .dtb-desktop-nav-dropdown__empty {
     display: grid;
-    gap: 5px;
-    padding: 18px 14px;
+    gap: var(--dtb-space-1);
+    padding: var(--dtb-space-4) var(--dtb-space-3);
     color: #64748b;
     line-height: 1.45;
   }
@@ -266,7 +266,7 @@
 
 @media (min-width: 1025px) and (max-width: 1365px) {
   .site-header .dtb-desktop-nav-tab {
-    padding-inline: clamp(6px, 0.55vw, 9px);
+    padding-inline: clamp(var(--dtb-space-1), 0.55vw, var(--dtb-space-2));
     font-size: clamp(0.82rem, 0.78vw, 0.9rem);
   }
 

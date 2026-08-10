@@ -21,35 +21,35 @@
 
 @media (min-width: 1025px) {
   .dtb-trusted-brand-link {
-    padding: 0 clamp(28px, 4vw, 54px) !important;
+    padding: 0 clamp(var(--dtb-space-5), 4vw, 54px) !important;
     min-width: clamp(176px, 15vw, 236px) !important;
   }
   .dtb-brands-track {
-    gap: clamp(18px, 2.2vw, 34px);
-    padding: 0 clamp(24px, 4vw, 44px);
+    gap: clamp(var(--dtb-space-4), 2.2vw, 34px);
+    padding: 0 clamp(var(--dtb-space-5), 4vw, 44px);
   }
 }
 
 @media (max-width: 767px) {
   .dtb-brands-track {
-    gap: clamp(18px, 4vw, 28px);
-    padding: 0 clamp(12px, 4vw, 20px);
+    gap: clamp(var(--dtb-space-4), 4vw, var(--dtb-space-5));
+    padding: 0 clamp(var(--dtb-space-3), 4vw, var(--dtb-space-4));
   }
   .dtb-trusted-brand-link {
-    padding-left: clamp(12px, 3.4vw, 18px) !important;
-    padding-right: clamp(12px, 3.4vw, 18px) !important;
+    padding-left: clamp(var(--dtb-space-3), 3.4vw, var(--dtb-space-4)) !important;
+    padding-right: clamp(var(--dtb-space-3), 3.4vw, var(--dtb-space-4)) !important;
     min-width: clamp(126px, 32vw, 156px) !important;
   }
 }
 
 @media (max-width: 479px) {
   .dtb-brands-track {
-    gap: clamp(22px, 5vw, 30px);
-    padding: 0 18px;
+    gap: clamp(var(--dtb-space-4), 5vw, var(--dtb-space-5));
+    padding: 0 var(--dtb-space-4);
   }
   .dtb-trusted-brand-link {
-    padding-left: 14px !important;
-    padding-right: 14px !important;
+    padding-left: var(--dtb-space-3) !important;
+    padding-right: var(--dtb-space-3) !important;
     min-width: clamp(132px, 34vw, 162px) !important;
   }
 }

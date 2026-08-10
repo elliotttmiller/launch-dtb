@@ -18,9 +18,9 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: var(--dtb-space-2);
   width: min(86vw, 248px);
-  padding: 8px 8px 8px 10px;
+  padding: var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-2);
   border: 1px solid rgba(147, 197, 253, 0.18);
   border-radius: 14px;
   background: rgba(7, 19, 41, 0.52);
@@ -108,7 +108,7 @@
 
   .mobile-install-nudge__card {
     width: min(90vw, 232px);
-    padding: 7px 7px 7px 9px;
+    padding: var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-2) var(--dtb-space-2);
   }
 }
 

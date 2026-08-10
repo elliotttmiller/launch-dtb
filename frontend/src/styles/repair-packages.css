@@ -34,7 +34,7 @@
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 4px;
+  padding: var(--dtb-space-1);
   border-radius: 20px;
   scroll-snap-type: x proximity;
   scroll-padding-inline: 0.4rem;

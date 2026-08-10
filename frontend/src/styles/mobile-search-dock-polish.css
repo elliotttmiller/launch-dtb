@@ -8,16 +8,16 @@
 
 @media (max-width: 767px) {
   .header-mobile-search-dock {
-    padding-top: 7px;
-    padding-bottom: 9px;
+    padding-top: var(--dtb-space-2);
+    padding-bottom: var(--dtb-space-2);
   }
 
   .storefront-search-dock {
     min-height: 40px !important;
     height: 40px;
     border-radius: 12px !important;
-    padding: 0 12px !important;
-    gap: 9px !important;
+    padding: 0 var(--dtb-space-3) !important;
+    gap: var(--dtb-space-2) !important;
     background: rgba(15, 23, 42, 0.28) !important;
     border-color: rgba(226, 232, 240, 0.42) !important;
     box-shadow:

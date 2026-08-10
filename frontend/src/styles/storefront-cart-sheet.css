@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 16px 14px;
+  padding: var(--dtb-space-4) var(--dtb-space-4) var(--dtb-space-3);
   border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
   background: var(--dtb-surface);
@@ -33,7 +33,7 @@
 .scs-header-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--dtb-space-2);
 }
 
 .scs-header-icon {
@@ -65,7 +65,7 @@
   justify-content: center;
   min-width: 18px;
   height: 18px;
-  padding: 0 4px;
+  padding: 0 var(--dtb-space-1);
   border-radius: 999px;
   background: var(--dtb-primary);
   color: var(--dtb-surface);
@@ -77,16 +77,16 @@
 .scs-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--dtb-space-2);
   flex-shrink: 0;
 }
 
 .scs-clear-cart {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--dtb-space-1);
   min-height: var(--dtb-touch-target, 44px);
-  padding: 0 10px;
+  padding: 0 var(--dtb-space-2);
   border-radius: 999px;
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
@@ -156,8 +156,8 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 52px 24px;
-  gap: 10px;
+  padding: var(--dtb-space-6) var(--dtb-space-5);
+  gap: var(--dtb-space-2);
 }
 
 .scs-empty-icon {
@@ -169,7 +169,7 @@
   align-items: center;
   justify-content: center;
   color: #94a3b8;
-  margin-bottom: 4px;
+  margin-bottom: var(--dtb-space-1);
 }
 
 .scs-empty-title {
@@ -190,8 +190,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 8px;
-  padding: 11px 26px;
+  margin-top: var(--dtb-space-2);
+  padding: var(--dtb-space-2) var(--dtb-space-5);
   border-radius: 999px;
   background: var(--dtb-text);
   color: var(--dtb-surface);
@@ -215,8 +215,8 @@
 .scs-item {
   display: flex;
   align-items: flex-start;
-  gap: 11px;
-  padding: 13px 16px;
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-3) var(--dtb-space-4);
   border-bottom: 1px solid #f8fafc;
   transition: background 140ms ease, opacity 160ms ease, transform 160ms ease;
 }
@@ -253,7 +253,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 5px;
+  padding: var(--dtb-space-1);
 }
 
 .scs-item-img-placeholder { color: #cbd5e1; }
@@ -291,14 +291,14 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--dtb-space-1);
 }
 
 .scs-item-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--dtb-space-1);
 }
 
 .scs-item-name {
@@ -366,8 +366,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 4px;
-  gap: 8px;
+  margin-top: var(--dtb-space-1);
+  gap: var(--dtb-space-2);
 }
 
 .scs-item-qty-row {
@@ -427,7 +427,7 @@
 .scs-item-line-total {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--dtb-space-1);
   font-size: 0.84rem;
   font-weight: 800;
   color: var(--dtb-text);
@@ -450,21 +450,21 @@
 }
 
 .scs-footer {
-  padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 14px);
+  padding: var(--dtb-space-3) var(--dtb-space-4) calc(env(safe-area-inset-bottom, 0px) + var(--dtb-space-3));
   border-top: 1px solid #f1f5f9;
   flex-shrink: 0;
   background: var(--dtb-surface);
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: var(--dtb-space-2);
 }
 
 .scs-subtotal-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2px 0 6px;
-  gap: 8px;
+  padding: 2px 0 var(--dtb-space-1);
+  gap: var(--dtb-space-2);
 }
 
 .scs-subtotal-info {
@@ -497,8 +497,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 14px 20px;
+  gap: var(--dtb-space-1);
+  padding: var(--dtb-space-3) var(--dtb-space-4);
   border-radius: 14px;
   background: linear-gradient(135deg, #17365d 0%, var(--dtb-primary) 100%);
   color: var(--dtb-surface);
@@ -518,7 +518,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  padding: var(--dtb-space-2) var(--dtb-space-4);
   border-radius: 14px;
   border: 1.5px solid #e2e8f0;
   background: transparent;
