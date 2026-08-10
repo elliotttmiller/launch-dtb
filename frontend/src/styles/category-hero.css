@@ -2,39 +2,32 @@
    Built from the shared design tokens in storefront-tokens.css — no new
    colors/radii introduced here. */
 
-.dtb-category-hero-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  overflow: hidden;
-  border: 1px solid var(--dtb-border, #dbe3f1);
-  border-radius: var(--dtb-radius-2xl, 28px);
-  background: var(--dtb-surface-subtle, #f8fafc);
-  padding: 1.25rem;
-}
-
-.dtb-category-hero-card__media {
-  order: -1;
+/* Seamless banner: the hero photo bleeds full-width with no card chrome
+   (no border/background panel/padding wrapping it) — content sits directly
+   below in normal flow, matching the design blueprint's stacked layout at
+   every breakpoint rather than switching to a boxed side-by-side card. */
+.dtb-category-hero-banner {
   overflow: hidden;
   border-radius: var(--dtb-radius-lg, 16px);
-  background: var(--dtb-surface, #fff);
+  background: var(--dtb-surface-subtle, #f8fafc);
+  margin-bottom: 1.25rem;
 }
 
-.dtb-category-hero-card__image {
+.dtb-category-hero-banner__image {
   display: block;
   width: 100%;
-  height: 200px;
+  height: clamp(200px, 32vw, 320px);
   object-fit: cover;
 }
 
-.dtb-category-hero-card__body {
+.dtb-category-hero-content {
   display: flex;
   min-width: 0;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.dtb-category-hero-card__title {
+.dtb-category-hero-content__title {
   margin: 0;
   color: var(--dtb-text, #0f172a);
   font-size: clamp(1.8rem, 6vw, 2.75rem);
@@ -43,7 +36,7 @@
   line-height: 1.05;
 }
 
-.dtb-category-hero-card__description {
+.dtb-category-hero-content__description {
   margin: 0;
   max-width: 60ch;
   color: var(--dtb-text-soft, #334155);
@@ -51,7 +44,7 @@
   line-height: 1.55;
 }
 
-.dtb-category-hero-card__count {
+.dtb-category-hero-content__count {
   display: inline-flex;
   align-self: flex-start;
   align-items: center;
@@ -68,59 +61,38 @@
   line-height: 1;
 }
 
-@media (min-width: 640px) {
-  .dtb-category-hero-card {
-    flex-direction: row;
-    align-items: center;
-    padding: 1.75rem;
-  }
-
-  .dtb-category-hero-card__media {
-    order: 1;
-    flex: 0 0 42%;
-    align-self: stretch;
-  }
-
-  .dtb-category-hero-card__image {
-    height: 100%;
-    min-height: 240px;
-    object-fit: contain;
-    padding: 1rem;
-  }
-
-  .dtb-category-hero-card__body {
-    flex: 1 1 auto;
-  }
-}
-
-/* Shop by Tool Type */
+/* Shop by Tool Type — mirrors the product-card visual system
+   (storefront-product-card.css: rounded container, soft elevation, gradient
+   image bed, hover lift) instead of a plain bordered box, sized smaller
+   than a product tile since it's a navigation aid, not a sellable item. */
 
 .dtb-tool-type-rail {
-  grid-auto-columns: clamp(128px, 30vw, 152px);
+  grid-auto-columns: clamp(100px, 27vw, 122px);
 }
 
 @media (min-width: 768px) {
   .dtb-tool-type-rail {
-    grid-auto-columns: clamp(140px, 13vw, 168px);
+    grid-auto-columns: clamp(108px, 9vw, 134px);
   }
 }
 
 .dtb-tool-type-tile {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  padding: 0.75rem;
-  border: 1.5px solid var(--dtb-border, #dbe3f1);
-  border-radius: var(--dtb-radius-md, 12px);
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--dtb-border, #dbe3f1);
+  border-radius: var(--dtb-radius-lg, 14px);
   background: var(--dtb-surface, #fff);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
   text-decoration: none;
-  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  transition: box-shadow 200ms ease, transform 200ms ease, border-color 200ms ease;
 }
 
 .dtb-tool-type-tile:hover {
-  border-color: var(--dtb-primary, #2255ee);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
-  transform: translateY(-1px);
+  border-color: rgba(34, 85, 238, 0.22);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.12);
+  transform: translateY(-2px);
 }
 
 .dtb-tool-type-tile__media {
@@ -128,8 +100,8 @@
   align-items: center;
   justify-content: center;
   aspect-ratio: 1 / 1;
-  border-radius: var(--dtb-radius-sm, 8px);
-  background: var(--dtb-surface-subtle, #f8fafc);
+  padding: 8px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 100%);
 }
 
 .dtb-tool-type-tile__image {
@@ -137,7 +109,6 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 0.5rem;
 }
 
 .dtb-tool-type-tile--no-image .dtb-tool-type-tile__media {
@@ -145,14 +116,26 @@
 }
 
 .dtb-tool-type-tile__label {
+  display: -webkit-box;
+  padding: 8px 10px 0;
   color: var(--dtb-text, #0f172a);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.25;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .dtb-tool-type-tile__count {
+  padding: 2px 10px 10px;
   color: var(--dtb-muted, #64748b);
-  font-size: 0.76rem;
+  font-size: 0.7rem;
   line-height: 1.2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-tool-type-tile { transition: none; }
+  .dtb-tool-type-tile:hover { transform: none; }
 }

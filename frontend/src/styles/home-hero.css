@@ -648,6 +648,31 @@
   to { transform: translateX(-50%); }
 }
 
+/* Guarantees the ticker runs across the full mobile/tablet range (closes the
+   901–1199px gap between the two breakpoint blocks above, which only style
+   grid geometry, not the marquee mechanics). */
+@media (max-width: 1199px) {
+  .home-hero-brands__viewport {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  }
+
+  .home-hero-brands__track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    gap: 0;
+    animation: home-hero-brands-scroll 28s linear infinite;
+  }
+
+  .home-hero-brands__link--clone { display: flex; }
+
+  .home-hero-brands__link { flex: 0 0 auto; }
+}
+
 /* Shared mobile/tablet cosmetic refresh for quick links — layout stays in the breakpoint blocks above. */
 @media (max-width: 900px) {
   .home-hero-nav__surface {

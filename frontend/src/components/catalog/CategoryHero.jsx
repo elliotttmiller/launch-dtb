@@ -33,32 +33,32 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount:
         </nav>
       )}
 
-      <div className="dtb-category-hero-card">
-        {image && (
-          <div className="dtb-category-hero-card__media">
-            <img
-              src={image}
-              alt=""
-              className="dtb-category-hero-card__image"
-              width={640}
-              height={480}
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-        )}
-        <div className="dtb-category-hero-card__body">
-          <h1 className="dtb-category-hero-card__title">{label}</h1>
-          {description && (
-            <p className="dtb-category-hero-card__description">{description}</p>
-          )}
-          {typeof productCount === 'number' && (
-            <span className="dtb-category-hero-card__count">
-              <LayoutGrid size={14} aria-hidden="true" />
-              {productCount.toLocaleString()} product{productCount === 1 ? '' : 's'}
-            </span>
-          )}
+      {image && (
+        <div className="dtb-category-hero-banner">
+          <img
+            src={image}
+            alt=""
+            className="dtb-category-hero-banner__image"
+            width={1200}
+            height={480}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+          />
         </div>
+      )}
+
+      <div className="dtb-category-hero-content">
+        <h1 className="dtb-category-hero-content__title">{label}</h1>
+        {description && (
+          <p className="dtb-category-hero-content__description">{description}</p>
+        )}
+        {typeof productCount === 'number' && (
+          <span className="dtb-category-hero-content__count">
+            <LayoutGrid size={14} aria-hidden="true" />
+            {productCount.toLocaleString()} product{productCount === 1 ? '' : 's'}
+          </span>
+        )}
       </div>
     </div>
   );

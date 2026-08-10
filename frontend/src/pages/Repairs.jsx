@@ -1,15 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import {
-  Camera,
-  ClipboardList,
-  FileCheck2,
-  PackageCheck,
-  SearchCheck,
-  ShieldCheck,
-  Truck,
-} from 'lucide-react';
+import { PackageCheck } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import Dropdown from '../components/ui/Dropdown';
 import { useCatalogFacets } from '../hooks/useCatalogFacets.js';
@@ -379,8 +371,6 @@ function Field({ label, required, optional, children, hint }) {
   );
 }
 
-const WORKFLOW_ICONS = [ClipboardList, SearchCheck, Camera, Truck, ShieldCheck, FileCheck2];
-
 function RepairWorkflowSection({ steps }) {
   return (
     <section className="repairs-workflow-section" aria-labelledby="repairs-workflow-title">
@@ -388,44 +378,33 @@ function RepairWorkflowSection({ steps }) {
         <div className="repairs-workflow-intro">
           <p className="repairs-workflow-kicker">Repair workflow</p>
           <h2 id="repairs-workflow-title">How Repairs Work</h2>
-          <p>
-            A guided intake keeps the repair organized from first request to final approval,
-            with the details your crew and our technicians need in one place.
-          </p>
-          <Link to="/repairs/start" className="repairs-workflow-cta">
-            Start a repair
-            <PackageCheck size={17} aria-hidden="true" />
-          </Link>
         </div>
 
         <div className="repairs-workflow-track">
-          {steps.map((step, index) => {
-            const Icon = WORKFLOW_ICONS[index] || ClipboardList;
-
-            return (
-              <Motion.article
-                key={step.title}
-                className="repairs-workflow-card"
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.28, delay: index * 0.035, ease: 'easeOut' }}
-              >
-                <div className="repairs-workflow-card__rail" aria-hidden="true" />
-                <div className="repairs-workflow-card__top">
-                  <span className="repairs-workflow-card__number">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <span className="repairs-workflow-card__icon">
-                    <Icon size={19} aria-hidden="true" />
-                  </span>
-                </div>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </Motion.article>
-            );
-          })}
+          {steps.map((step, index) => (
+            <Motion.article
+              key={step.title}
+              className="repairs-workflow-card"
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-80px' }}
+              transition={{ duration: 0.28, delay: index * 0.035, ease: 'easeOut' }}
+            >
+              <div className="repairs-workflow-card__top">
+                <span className="repairs-workflow-card__number" aria-hidden="true">
+                  {index + 1}
+                </span>
+              </div>
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </Motion.article>
+          ))}
         </div>
+
+        <Link to="/repairs/start" className="repairs-workflow-cta">
+          Start a repair
+          <PackageCheck size={17} aria-hidden="true" />
+        </Link>
       </div>
     </section>
   );
@@ -455,28 +434,20 @@ export default function Repairs() {
 
   const processSteps = [
     {
-      title: 'Choose a service path',
-      description: 'Select a standard package, quote-first diagnostic, or warranty evaluation.',
+      title: 'Tell us about your tool',
+      description: 'Describe the issue and choose a repair, tune-up, or warranty evaluation.',
     },
     {
-      title: 'Identify the tool',
-      description: 'Match the brand, family, model, and serial details so the repair is routed correctly.',
+      title: 'Ship it or drop it off',
+      description: 'Send your tool in or bring it by, whichever is easiest for you.',
     },
     {
-      title: 'Add symptoms and photos',
-      description: 'Share issue notes and upload media that helps the technician evaluate the tool faster.',
+      title: 'Approve your quote',
+      description: 'We inspect the tool and send a quote. No work starts until you approve it.',
     },
     {
-      title: 'Choose shipping or drop-off',
-      description: 'Pick the receiving method and keep shipping decisions connected to the repair record.',
-    },
-    {
-      title: 'Set approval rules',
-      description: 'Define quote limits and warranty context before work begins.',
-    },
-    {
-      title: 'Review status and quotes',
-      description: 'Approve recommended work and track the repair through completion.',
+      title: 'Get it back and running',
+      description: 'Track your repair in real time and get your tool back ready to work.',
     },
   ];
 
@@ -522,9 +493,8 @@ export default function Repairs() {
               lineHeight: 1.65,
               maxWidth: '820px',
             }}>
-              Professional drywall tool repair service for all tools. Every repair is unique and quoted after inspection.
-              No work begins until you approve. Submit a repair request, receive a professional evaluation, approve
-              recommended work, and track progress every step of the way.
+              Professional drywall tool repair service for all tools. Submit a repair request, receive a professional
+              evaluation, approve recommended work, and track progress every step of the way.
             </p>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <Link to="/repairs/start" className="alloy-button" style={{

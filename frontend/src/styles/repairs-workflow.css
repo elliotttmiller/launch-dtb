@@ -53,21 +53,13 @@
   letter-spacing: 0;
 }
 
-.repairs-workflow-intro p:not(.repairs-workflow-kicker) {
-  max-width: 720px;
-  margin: 1rem 0 0;
-  color: rgba(15, 23, 42, 0.64);
-  font-size: clamp(0.94rem, 1.5vw, 1.04rem);
-  line-height: 1.7;
-}
-
 .repairs-workflow-cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   min-height: 44px;
-  margin-top: 1.3rem;
+  margin: 0 auto;
   padding: 0.72rem 1.05rem;
   border-radius: 8px;
   color: #fff;
@@ -87,7 +79,7 @@
 .repairs-workflow-track {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
   padding: clamp(1.25rem, 3vw, 2rem);
   border: 1px solid rgba(148, 163, 184, 0.28);
@@ -155,32 +147,19 @@
   margin-bottom: 1rem;
 }
 
-.repairs-workflow-card__number,
-.repairs-workflow-card__icon {
+.repairs-workflow-card__number {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-}
-
-.repairs-workflow-card__number {
-  position: absolute;
-  top: 2.35rem;
-  color: rgba(34, 85, 238, 0.1);
-  font-size: clamp(2.35rem, 4.4vw, 3.45rem);
-  font-weight: 950;
-  line-height: 1;
-  pointer-events: none;
-}
-
-.repairs-workflow-card__icon {
-  width: 58px;
-  height: 58px;
-  border: 1px solid rgba(34, 85, 238, 0.22);
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  color: var(--primary-600, #2255ee);
-  background: #fff;
-  box-shadow: 0 12px 28px rgba(34, 85, 238, 0.15);
+  color: #fff;
+  background: var(--primary-600, #2255ee);
+  box-shadow: 0 10px 24px rgba(34, 85, 238, 0.28);
+  font-size: 1.05rem;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .repairs-workflow-card h3 {
@@ -203,15 +182,15 @@
 
 @media (max-width: 920px) {
   .repairs-workflow-track {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    row-gap: 1.2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 1.4rem;
   }
 
   .repairs-workflow-track::before {
     display: none;
   }
 
-  .repairs-workflow-card:nth-child(3)::after {
+  .repairs-workflow-card:nth-child(2)::after {
     display: none;
   }
 }
@@ -232,12 +211,6 @@
   .repairs-workflow-intro h2 {
     font-size: clamp(1.55rem, 7vw, 2.15rem);
     line-height: 1.06;
-  }
-
-  .repairs-workflow-intro p:not(.repairs-workflow-kicker) {
-    margin-top: 0.75rem;
-    font-size: 0.9rem;
-    line-height: 1.58;
   }
 
   .repairs-workflow-cta {
@@ -284,10 +257,6 @@
     background: rgba(34, 85, 238, 0.24);
   }
 
-  .repairs-workflow-card:nth-child(3)::after {
-    display: block;
-  }
-
   .repairs-workflow-card:last-child::after {
     display: none;
   }
@@ -299,12 +268,9 @@
   }
 
   .repairs-workflow-card__number {
-    display: none;
-  }
-
-  .repairs-workflow-card__icon {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
+    font-size: 0.92rem;
   }
 
   .repairs-workflow-card h3 {
