@@ -82,7 +82,7 @@ export default function Home() {
         <HomeHero brands={heroBrands} />
 
         <div className="dtb-home-storefront">
-          <div className="container mx-auto px-5 pb-4 md:px-4">
+          <div className="dtb-container dtb-container--fluid pb-4">
 
             {/* ── Trending / Featured Products (brand-balanced) ── */}
             <TrendingProducts />

@@ -187,9 +187,17 @@ summary {
   --dtb-container-max: var(--dtb-content-full);
 }
 
+/* No cap at all, at any viewport size — content spans the full width minus
+ * the fluid viewport gutter. Distinct from `--full` (which still caps at
+ * `--dtb-content-full`, 120rem) for pages that must never show empty
+ * side-gutters on ultra-wide displays: category listings, the homepage
+ * storefront rail, and product grids that should gain columns as space
+ * allows rather than stopping at a fixed content width. `min()` can't
+ * express "no cap" (it needs two lengths), so this bypasses the shared
+ * `width: min(...)` formula rather than trying to feed it a sentinel value.
+ */
 .dtb-container--fluid {
-  width: 100%;
-  max-width: none;
+  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
 }
 
 .dtb-section {

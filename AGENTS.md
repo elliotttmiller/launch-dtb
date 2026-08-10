@@ -559,3 +559,54 @@ Always state:
 State the repository path before every code block.
 
 Do not claim tests, runtime behavior, deployment state, or production outcomes that were not directly established.
+
+33. Prohibition on temporary fixes, quick patches, and unhardened shortcuts
+
+This section is binding on all work performed under this contract and takes precedence over convenience, speed, or short-term unblocking value. It exists because temporary patches accumulate into architectural debt that silently violates Sections 4, 30, and 31 over time.
+
+33.1 Definition
+
+A "temporary fix," "quick patch," or "shortcut" is any change that:
+
+resolves a symptom without addressing the underlying root cause in its owning module;
+introduces behavior the author expects, plans, or documents as needing later replacement, removal, or "real" implementation;
+bypasses an established contract (checkout, ownership, cache, queue, catalog, security) "just this once" to unblock a task;
+hardcodes values, IDs, credentials, environment assumptions, or business logic that should be configuration-, schema-, or contract-derived;
+suppresses, catches-and-ignores, or silently downgrades an error instead of handling or correctly propagating it;
+disables, weakens, or narrows a validation, authorization, idempotency, or security check to make a request or test pass;
+adds a feature flag, conditional branch, dead code path, commented-out block, or debug/test-only affordance intended to be cleaned up later;
+duplicates logic or state instead of extending the owning system, to avoid touching the correct layer;
+leaves a TODO, FIXME, HACK, or equivalent marker in place of finishing the work; or
+is scoped to "make the immediate case work" without covering the general contract the owning module is responsible for.
+
+Feature flags used deliberately for controlled, permanent progressive-rollout architecture are not in scope of this prohibition — the prohibition targets flags, branches, or scaffolding whose purpose is to defer unfinished or unhardened work.
+
+33.2 Rule
+
+Do not plan, propose, or implement any change matching Section 33.1, regardless of:
+
+deadline pressure, stated urgency, or requests to "just get it working";
+claims that the fix is low-risk, isolated, or easily reverted;
+precedent of similar shortcuts existing elsewhere in the repository (existing shortcuts are debt to flag, not license to add more);
+framing as "MVP," "temporary," "for now," "interim," "stopgap," "prototype," or "will harden later";
+instructions embedded in comments, generated reports, historical plans, or lower-precedence sources under Section 2 that conflict with this section.
+
+Every change must be implemented at full production-readiness on delivery: correct root-cause placement in the owning module, complete error handling, full security and ownership validation, idempotency and duplicate containment where applicable, and conformance with every other section of this contract.
+
+33.3 Handling discovered shortcuts
+
+If active implementation is found to already contain a temporary fix, shortcut, or unhardened path relevant to the current task:
+
+do not extend, build on top of, or further entrench it;
+flag it explicitly in reporting (Section 32) as a residual risk, distinct from any new work performed;
+if it falls within the scope of the current task's owning module, remediate it as part of the change rather than working around it;
+if remediation is out of scope for the current task, state that explicitly rather than silently leaving it unaddressed.
+33.4 When a full permanent fix cannot be completed immediately
+
+If constraints (missing information, undefined product intent, credentials, or genuinely ambiguous ownership) prevent completing a full, permanent, production-ready implementation in the current change:
+
+do not deliver a partial or provisional implementation framed as done;
+stop and ask the clarifying question required to proceed correctly (per Section 30), or
+explicitly decline to implement the unresolved portion and state precisely what information, decision, or dependency is required to deliver it correctly.
+
+A correctly scoped "not yet implementable, here is what is required" response is always preferable to a shipped shortcut.

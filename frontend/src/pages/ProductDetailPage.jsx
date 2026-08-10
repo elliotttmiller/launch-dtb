@@ -156,7 +156,7 @@ export default function ProductDetailPage() {
 
   if (status === 'not_found' || !product) {
     return (
-      <div className="min-h-screen container mx-auto px-4 py-16">
+      <div className="min-h-screen dtb-container dtb-container--wide py-16">
         <SEOHead noindex title="Product not found" />
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Product not found</h2>
@@ -172,7 +172,7 @@ export default function ProductDetailPage() {
 
   if (status === 'error') {
     return (
-      <div className="min-h-screen container mx-auto px-4 py-16">
+      <div className="min-h-screen dtb-container dtb-container--wide py-16">
         <SEOHead noindex title="Error loading product" />
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Unable to load product</h2>
@@ -233,7 +233,7 @@ export default function ProductDetailPage() {
         links={heroImage ? [{ rel: 'preload', href: heroImage, as: 'image' }] : []}
       />
 
-      <div className="dtb-product-page-shell container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
+      <div className="dtb-product-page-shell dtb-container py-6 sm:py-8 max-w-6xl">
         <Breadcrumb items={breadcrumbItems} />
         <ProductDetail
           product={product}

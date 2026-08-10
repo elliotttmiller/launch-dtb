@@ -5,26 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    // Tailwind's default `.container` max-width steps up per breakpoint and
-    // tops out at 1536px (the stock `2xl` value) — on wide/ultra-wide
-    // monitors (1800px+) that leaves large empty gutters on both sides of
-    // every page using `container mx-auto` (ProductsCatalogPlatform.jsx,
-    // Home.jsx, Product.jsx, ProductDetailPage.jsx's loading/error shells),
-    // which is what read as the page being "boxed in" instead of spacing
-    // out to the design blueprint's edges. Overriding only the `2xl` step
-    // (not touching sm/md/lg/xl) means `.container` stays width:100% (truly
-    // fluid, no cap) up to 1728px, and only caps beyond that — so it never
-    // artificially narrows a normal desktop/laptop viewport, and only
-    // prevents line-lengths/card rows from stretching uncomfortably thin on
-    // genuinely ultra-wide displays. Pages that deliberately want a
-    // narrower reading width (e.g. ProductDetailPage.jsx's PDP shell stacks
-    // `max-w-6xl` alongside `container`) are unaffected — that utility
-    // already wins the cascade today and continues to.
-    container: {
-      screens: {
-        '2xl': '1728px',
-      },
-    },
+    // Page-width layout is NOT done via Tailwind's `.container` utility
+    // anywhere in this codebase — use `.dtb-container` (`responsive-
+    // foundation.css`) and its `--narrow`/`--default`/`--wide`/`--full`/
+    // `--fluid` modifiers instead. (Tailwind v4 also generates `.container`
+    // as a framework-owned `@utility` and ignores this legacy v3
+    // `theme.container` key entirely, so it wouldn't work here even if used.)
     extend: {
       colors: {
         // Use CSS custom properties so the color palette can be swapped centrally

@@ -20,7 +20,7 @@ SELECTIONS = {
     "automatic-taping-tool-cases": "columbia_tools_tcs_02.webp",
     "automatic-taping-tool-sets": "columbia_tools_pts_01.webp",
     "automatic-taping-tools": "columbia_tools_taper_02.webp",
-    "box-fillers": "columbia_tools_tbbf_01.webp",
+    "box-fillers": "tapetech_90t_01.webp",
     "compound-applicators": "columbia_tools_ica41_01.webp",
     "compound-tubes": "columbia_tools_pcmt42_01.webp",
     "corner-boxes": "platinum_pt_ca8_01.webp",

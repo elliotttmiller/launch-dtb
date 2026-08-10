@@ -26,6 +26,16 @@
   --color-accent-900: #1e3a8a;
 }
 
+/* Tailwind's generated `.container` utility is intentionally unused in this
+ * codebase — see `.dtb-container` in `responsive-foundation.css` for the
+ * project's actual page-width primitive. Redeclaring `.container` here to
+ * fight the built-in utility was tried and reverted: Tailwind v4 emits it as
+ * a framework-owned `@utility`, and a second same-named rule only wins on
+ * whichever properties it explicitly restates, leaving anything unset (like
+ * `max-width`) silently governed by the original — a fragile, easy-to-forget
+ * dependency on generated-CSS ordering. `.dtb-container` is a single
+ * hand-authored source of truth with no such ambiguity. */
+
 @keyframes dtb-spin {
   to {
     transform: rotate(360deg);
@@ -34,14 +44,14 @@
 
 @layer base {
   html {
-    background: var(--dtb-page-bg, #f4f6fb);
+    background: var(--dtb-page-bg, #ffffff);
   }
 
   body {
     @apply text-gray-900 antialiased;
     margin: 0;
     padding: 0;
-    background: var(--dtb-page-bg, #f4f6fb);
+    background: var(--dtb-page-bg, #ffffff);
   }
 
   main {

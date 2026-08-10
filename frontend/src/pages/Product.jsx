@@ -89,7 +89,7 @@ export default function Product() {
 
   if (!product) {
     return (
-      <div className="min-h-screen container mx-auto px-4 py-16">
+      <div className="min-h-screen dtb-container dtb-container--wide py-16">
         <SEOHead noindex title="Product not found" />
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Product not found</h2>
@@ -141,8 +141,8 @@ export default function Product() {
         schema={[productSchema, breadcrumbSchema].filter(Boolean)}
         links={heroImage ? [{ rel: 'preload', href: heroImage, as: 'image' }] : []}
       />
-      <div className="container mx-auto px-4 py-12">
-        <ProductDetail 
+      <div className="dtb-container dtb-container--wide py-12">
+        <ProductDetail
           product={product} 
           onAddToCart={handleAddToCart}
           onClose={() => navigate(-1)}

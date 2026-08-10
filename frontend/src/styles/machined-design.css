@@ -23,12 +23,14 @@
     --dtb-radius:     10px;  /* buttons, inputs, qty, tabs */
     --dtb-radius-lg:  14px;  /* cards, panels */
     --dtb-radius-xl:  20px;  /* modals, sheets */
-    /* Balanced neutral backdrop with no center hotspot */
-    --dtb-page-bg:
-        radial-gradient(120% 120% at 10% -12%, rgba(236, 241, 249, 0.56) 0%, rgba(236, 241, 249, 0) 46%),
-        radial-gradient(120% 120% at 90% -16%, rgba(231, 237, 247, 0.5) 0%, rgba(231, 237, 247, 0) 44%),
-        linear-gradient(180deg, #dfe5ef 0%, #d5dce8 52%, #cfd7e3 100%);
-    
+    /* Pure white — was a "silver/white radial gradient" that independently
+       redeclared this same custom property, silently overriding the
+       storefront-tokens.css `--dtb-bg`-derived value everywhere both files
+       load (custom properties don't cascade by specificity, only by
+       declaration order, so this one was winning site-wide regardless of
+       the token fix). This is the actual site-wide "silver/blueish" tint. */
+    --dtb-page-bg: #ffffff;
+
     /* Legacy primary tokens kept as fallbacks but centralized variables are preferred */
     --primary-600: var(--color-primary-600, #2255ee);
     --primary-700: var(--color-primary-700, #2255ee);
@@ -73,7 +75,7 @@ html, body {
 }
 
 body {
-    /* Silver/white radial gradient — light theme page background */
+    /* Pure white — light theme page background */
     background: var(--dtb-page-bg);
     background-attachment: scroll;
     color: #0f172a;
@@ -3841,16 +3843,9 @@ a.header-contact-icon {
    replaced by a full-width dark split-layout hero.
    ─────────────────────────────────────────────────────── */
 
-/* Mobile home page — soft white/silver gradient background */
 .dtb-home-page {
     position: relative;
-    /* Gradient paints on the element itself so it scrolls with content */
-    background:
-        radial-gradient(ellipse 140% 55% at 50% 0%, rgba(186,200,220,0.55) 0%, transparent 60%),
-        radial-gradient(ellipse 90% 45% at 95% 25%, rgba(210,220,235,0.40) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 40% at 5% 65%, rgba(200,212,230,0.35) 0%, transparent 55%),
-        linear-gradient(170deg, #eef1f6 0%, #e8ecf3 30%, #e4e9f0 60%, #eaecf2 100%);
-    background-attachment: scroll;
+    background: #ffffff;
 }
 
 /* On mobile: strip the opaque backgrounds off sections so the page gradient shows through */
