@@ -1,6 +1,6 @@
 import TrendingProducts from '../components/catalog/TrendingProducts';
 import { useMemo } from 'react';
-import HeroSection from '../components/ui/HeroSection';
+import HomeHero from '../components/home/HomeHero';
 import SEOHead from '../components/shared/SEOHead';
 import { buildOrganizationSchema, buildSiteLinksSearchBoxSchema } from '../utils/schema';
 import StorefrontSection from '../components/storefront/StorefrontSection';
@@ -9,8 +9,8 @@ import StorefrontBrandTile from '../components/storefront/StorefrontBrandTile';
 import StorefrontProductRail from '../components/storefront/StorefrontProductRail';
 import { useCatalogFacets } from '../hooks/useCatalogFacets.js';
 import { getBrandLogo } from '../utils/brandAssets.js';
-import columbiaHeroLogo from '/brands/Columbia/columbia_logo_white.svg';
-import platinumHeroLogo from '/brands/Platinum/platinum_logo_white.svg';
+import columbiaHeroLogo from '/brands/Columbia/columbia_taping_tools_logo.svg';
+import platinumHeroLogo from '/brands/Platinum/platinum_logo.svg';
 import { mapCatalogBrands } from '../utils/catalogFacets.js';
 
 const MAX_HOME_BRANDS = 6;
@@ -79,17 +79,7 @@ export default function Home() {
       />
 
       <div className="page-wrapper dtb-home-page storefront-shell">
-        <HeroSection
-          titleLines={['The New Standard', 'in Drywall.']}
-          subtitle="Premium tools for every drywall job — unbeatable prices, lightning-fast shipping, expert support."
-          imageSrc="/hero/columbia-predator-automatic-taper.webp"
-          imageAlt="Columbia Predator automatic taping tool"
-          ctaLinks={[
-            { to: '/products', label: 'Shop All Products' },
-            { to: '/parts', label: 'Shop Parts' },
-          ]}
-          brands={heroBrands}
-        />
+        <HomeHero brands={heroBrands} />
 
         <div className="dtb-home-storefront">
           <div className="container mx-auto px-5 pb-4 md:px-4">
