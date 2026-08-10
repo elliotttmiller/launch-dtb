@@ -15,6 +15,7 @@ import { ProductSkeletonGrid, SelectorSkeletonGrid } from '../components/catalog
 import ProductsBrandSelector from '../components/catalog/ProductsBrandSelector.jsx';
 import ProductsCategorySelector from '../components/catalog/ProductsCategorySelector.jsx';
 import CategoryHero from '../components/catalog/CategoryHero.jsx';
+import ShopByToolType from '../components/catalog/ShopByToolType.jsx';
 import LoadingCardTransition from '../components/shared/LoadingCardTransition.jsx';
 import { SORT_OPTIONS } from '../constants/sortOptions';
 import { useCatalogFacets } from '../hooks/useCatalogFacets';
@@ -562,7 +563,10 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       <div className="container mx-auto px-4 py-4 pt-6">
         {isCategoryPageRoute && (
           categoryMeta ? (
-            <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={itemsLoading ? categoryMeta.productCount : total} />
+            <>
+              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={itemsLoading ? categoryMeta.productCount : total} />
+              <ShopByToolType category={categoryMeta} onOpenFilters={() => setShowFilters(true)} />
+            </>
           ) : categoryMetaError ? (
             <div className="mb-6 sm:mb-8">
               <h1 className="dtb-listing-heading__title">{formatCategoryLabel(categoryPathSlug)}</h1>
@@ -666,7 +670,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 onSelectSuggestion={(product) => navigate(product?.slug ? `/products/${product.slug}` : `/product/${product?.id}`)}
               />
             </div>
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div id="dtb-category-filters" className="flex flex-col lg:flex-row gap-8">
               <FilterPanel
                 isOpen={showFilters}
                 onClose={() => setShowFilters(false)}
