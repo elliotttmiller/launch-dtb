@@ -160,11 +160,11 @@
 }
 
 .home-hero__button {
-  --border-color: linear-gradient(-45deg, #2255ee, #173fb5, #2255ee);
+  --border-color: linear-gradient(-45deg, var(--color-primary-400, #60a5fa), var(--color-primary-700, #1945d8), var(--color-primary-400, #60a5fa));
   --border-width: 0.125em;
   --curve-size: 0.5em;
   --blur: 30px;
-  --bg: #071329;
+  --bg: linear-gradient(135deg, var(--color-primary-600, #2255ee) 0%, #173fb5 100%);
   --color: #ffffff;
   color: var(--color);
   cursor: pointer;
@@ -175,13 +175,14 @@
   place-content: center;
   align-items: center;
   gap: var(--dtb-space-4);
-  padding: 0.5em 1.5em;
+  padding: 0.62em 1.6em;
   font-size: 17px;
   border: 0;
   text-transform: uppercase;
   text-decoration: none;
-  font-weight: 700;
-  box-shadow: 10px 10px 20px rgba(7, 19, 41, 0.28);
+  font-weight: 800;
+  letter-spacing: 0.015em;
+  box-shadow: 0 14px 26px rgba(34, 85, 238, 0.26), 0 3px 8px rgba(7, 19, 41, 0.16);
   clip-path: polygon(
     0% var(--curve-size),
     var(--curve-size) 0,
@@ -190,20 +191,30 @@
     calc(100% - var(--curve-size)) 100%,
     0 100%
   );
-  transition: color 250ms;
+  transition: color 250ms, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .home-hero__button:where(:hover, :focus) { color: #fff; }
 
+.home-hero__button:active { transform: translateY(1px) scale(0.98); }
+
+.home-hero__button-icon { transition: transform 200ms ease; }
+.home-hero__button:where(:hover, :focus) .home-hero__button-icon { transform: translateX(3px); }
+
 .home-hero__button--primary {
   min-width: 210px;
+  box-shadow: 0 16px 30px rgba(34, 85, 238, 0.3), 0 3px 8px rgba(7, 19, 41, 0.18);
 }
 
 .home-hero__button--secondary {
   --bg: #ffffff;
-  --color: #071329;
+  --color: var(--color-primary-600, #2255ee);
+  --border-color: linear-gradient(-45deg, var(--color-primary-200, #bfdbfe), var(--color-primary-500, #2255ee), var(--color-primary-200, #bfdbfe));
   min-width: 160px;
+  box-shadow: 0 8px 18px rgba(7, 19, 41, 0.1);
 }
+
+.home-hero__button--secondary:where(:hover, :focus) { color: var(--color-primary-700, #1945d8); }
 .home-hero__button:focus-visible,
 .home-hero-nav__item:focus-visible,
 .home-hero-brands__link:focus-visible { outline: 3px solid rgba(11, 92, 255, 0.32); outline-offset: 3px; }
@@ -451,6 +462,15 @@
     flex-direction: column;
   }
 
+  /* Tinted (not flat white/gray) so the backdrop reads as an intentional
+     brand surface instead of dead space while content/image load in. */
+  .home-hero__ambient {
+    background:
+      radial-gradient(circle at 20% 12%, rgba(34, 85, 238, 0.08) 0%, rgba(34, 85, 238, 0) 46%),
+      radial-gradient(circle at 82% 70%, rgba(226, 232, 240, 0.55) 0%, rgba(226, 232, 240, 0) 48%),
+      linear-gradient(165deg, #f8f9ff 0%, #f3f5fb 60%, #eef1f8 100%);
+  }
+
   .home-hero__content {
     position: relative;
     order: 1;
@@ -459,13 +479,15 @@
     right: auto;
     width: 100%;
     max-width: none;
-    padding: clamp(var(--dtb-space-4), 4vw, var(--dtb-space-4)) var(--dtb-space-5) 0;
+    /* Tight to the fixed header offset already reserved by main-content — no
+       extra buffer stacking on top of it. */
+    padding: clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4)) var(--dtb-space-5) 0;
   }
 
   .home-hero__title {
     max-width: 360px;
-    margin-bottom: var(--dtb-space-3);
-    font-size: clamp(40px, 11.5vw, 52px);
+    margin-bottom: var(--dtb-space-2);
+    font-size: clamp(38px, 10.8vw, 50px);
   }
 
   .home-hero__description {
@@ -494,16 +516,19 @@
     top: auto;
     right: auto;
     bottom: auto;
-    width: 170%;
+    width: 188%;
     height: auto;
     max-width: none;
-    margin-top: clamp(-92px, -18vw, -68px);
-    margin-left: -70%;
+    /* Pulled up tighter under the copy block so the product photo starts
+       filling the viewport sooner instead of leaving a gap beneath the CTAs. */
+    margin-top: clamp(-118px, -24vw, -84px);
+    margin-bottom: clamp(-18px, -3vw, -8px);
+    margin-left: -78%;
     align-self: flex-start;
     transform: none;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 13%, #000 27%, #000 100%);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
     -webkit-mask-composite: source-over;
-    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 13%, #000 27%, #000 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
     mask-composite: add;
   }
 
@@ -618,42 +643,58 @@
   .home-hero-brands__link { flex: 0 0 auto; }
 }
 
-/* Shared mobile/tablet cosmetic refresh for quick links — layout stays in the breakpoint blocks above. */
+/* Shared mobile/tablet cosmetic refresh for quick links — layout stays in the breakpoint blocks above.
+   Elevation/radius vocabulary matches storefront-product-card.css (idle 0 12px 28px rgba(15,23,42,.06),
+   hover 0 20px 40px rgba(15,23,42,.12), border rgba(15,23,42,.08), border-radius var(--dtb-radius-lg)). */
 @media (max-width: 900px) {
   .home-hero-nav__item {
-    --bg: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
+    --bg: #ffffff;
+    --border-color: linear-gradient(-135deg, rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.03));
     --curve-size: 16px;
-    box-shadow: 0 3px 14px rgba(7, 19, 41, 0.07), 0 1px 2px rgba(7, 19, 41, 0.04);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
     transition: transform 160ms ease, box-shadow 160ms ease;
   }
 
   .home-hero-nav__item--featured {
-    --bg: linear-gradient(180deg, #eef3ff 0%, #e1eaff 100%);
-    box-shadow: 0 4px 18px rgba(34, 85, 238, 0.16), 0 1px 2px rgba(7, 19, 41, 0.04);
+    --bg: linear-gradient(155deg, #eef3ff 0%, #dfe9ff 100%);
+    --border-color: linear-gradient(-135deg, rgba(34, 85, 238, 0.32), rgba(34, 85, 238, 0.12));
+    box-shadow: 0 12px 26px rgba(34, 85, 238, 0.18), 0 1px 3px rgba(15, 23, 42, 0.05);
   }
 
   .home-hero-nav__item:active {
     transform: scale(0.97);
-    box-shadow: 0 1px 6px rgba(7, 19, 41, 0.08);
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.09);
   }
 
   .home-hero-nav__icon {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
-    border-radius: 11px;
-    background: linear-gradient(135deg, #e7edff 0%, #d5e1ff 100%);
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+    border-radius: var(--dtb-radius-md, 12px);
+    background: linear-gradient(135deg, var(--color-primary-50, #eff6ff) 0%, var(--color-primary-100, #dbeafe) 100%);
+    box-shadow: inset 0 0 0 1px rgba(34, 85, 238, 0.1);
     color: var(--home-hero-blue);
   }
 
   .home-hero-nav__icon svg { width: 22px; height: 22px; }
 
   .home-hero-nav__item--featured .home-hero-nav__icon {
-    background: linear-gradient(135deg, #2255ee 0%, #173fb5 100%);
+    background: linear-gradient(135deg, var(--color-primary-600, #2255ee) 0%, #173fb5 100%);
+    box-shadow: 0 4px 12px rgba(34, 85, 238, 0.32);
     color: #fff;
   }
 
   .home-hero-nav__label { letter-spacing: -0.01em; }
+
+  @media (hover: hover) and (pointer: fine) {
+    .home-hero-nav__item:hover {
+      box-shadow: 0 16px 30px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    .home-hero-nav__item--featured:hover {
+      box-shadow: 0 18px 34px rgba(34, 85, 238, 0.26), 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+  }
 }
 
 /* Touch/mobile interaction authority: stable states only, with no sticky hover effects. */
