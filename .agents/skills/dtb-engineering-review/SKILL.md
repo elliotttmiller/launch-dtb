@@ -12,5 +12,5 @@ Use this workflow for material diffs and pull requests.
 3. Wait for all requested review agents and reconcile duplicate/conflicting findings against active source.
 4. Run `test_verifier` for relevant existing checks when execution is available.
 5. Classify findings as blocking or advisory. Blocking categories include security boundary violations, duplicate system authority, payment/order/refund contract breaks, data corruption/identifier instability, non-idempotent external side effects, and unauthorized destructive behavior.
-6. Verify documentation is updated when architecture, ownership, APIs, routing, persistence, queues or integration contracts changed.
+6. Verify documentation is updated when architecture, ownership, APIs, routing, persistence, queues or integration contracts have changed.
 7. Return a concise merge-readiness summary with findings, validation evidence, unverified runtime behavior, changed ownership boundaries, data/migration impact, security impact, API/queue/integration impact, documentation impact and residual risk.
