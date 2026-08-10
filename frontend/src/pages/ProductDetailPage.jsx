@@ -233,7 +233,7 @@ export default function ProductDetailPage() {
         links={heroImage ? [{ rel: 'preload', href: heroImage, as: 'image' }] : []}
       />
 
-      <div className="dtb-product-page-shell dtb-container py-6 sm:py-8 max-w-6xl">
+      <div className="dtb-product-page-shell dtb-container dtb-container--wide py-6 sm:py-8">
         <Breadcrumb items={breadcrumbItems} />
         <ProductDetail
           product={product}

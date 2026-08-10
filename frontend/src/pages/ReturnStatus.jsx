@@ -44,7 +44,7 @@ export default function ReturnStatus() {
     <main className="min-h-screen">
       <SEOHead title={ data ? `Return ${ data.return_number } - ${ label } | Drywall Toolbox` : 'Return Status | Drywall Toolbox' } />
       <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="dtb-container dtb-container--default py-8">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <SmartBackButton fallbackTo="/dashboard?tab=returns" label="Back to returns" />
             <button
@@ -70,7 +70,7 @@ export default function ReturnStatus() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-4 py-8">
+      <section className="dtb-container dtb-container--default py-8">
         { needsToken ? (
           <Notice title="Tracking token required" body="Open the return status link from your confirmation screen or email so we can verify access to this return." />
         ) : error && ! data ? (

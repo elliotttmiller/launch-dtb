@@ -36,7 +36,7 @@ function TokenEntryForm({ onSubmit }) {
   };
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
+    <div className="flex min-h-[60vh] items-center justify-center" style={{ paddingInline: 'var(--dtb-viewport-gutter)' }}>
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -142,7 +142,7 @@ function ErrorDisplay({ message, onRetry }) {
   const isUnauth = normalized.includes('token') || normalized.includes('401') || normalized.includes('403');
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
+    <div className="flex min-h-[60vh] items-center justify-center" style={{ paddingInline: 'var(--dtb-viewport-gutter)' }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -238,7 +238,7 @@ export default function RepairStatus() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="mx-auto max-w-2xl space-y-4 px-4 py-8"
+        className="dtb-container dtb-container--narrow space-y-4 py-8"
       >
         <motion.div
           initial={{ opacity: 0, y: -10 }}

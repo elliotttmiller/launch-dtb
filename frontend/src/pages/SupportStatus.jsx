@@ -111,7 +111,7 @@ export default function SupportStatus() {
     <main className="min-h-screen">
       <SEOHead title={ data ? `${ displayId } - ${ label } | Drywall Toolbox` : 'Support Status | Drywall Toolbox' } />
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-5xl px-4 py-8">
+        <div className="dtb-container dtb-container--default py-8">
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <SmartBackButton fallbackTo="/dashboard?tab=support" label="Back to support" />
             <button
@@ -135,7 +135,7 @@ export default function SupportStatus() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-4 py-8">
+      <section className="dtb-container dtb-container--default py-8">
         { needsToken ? (
           <Notice title="Secure link required" body="Open the status link from your support email so we can verify this ticket belongs to you." />
         ) : error && ! data ? (
