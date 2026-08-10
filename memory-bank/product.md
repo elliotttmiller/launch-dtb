@@ -1,30 +1,60 @@
-# Drywall Toolbox — Product
+# Drywall Toolbox — Product Overview
 
-## Purpose
-Headless ecommerce storefront for professional drywall contractors. Sells professional-grade drywall tools and parts, with specialized workflows for repairs, schematics, and toolset building.
+## Purpose & Value Proposition
+Drywall Toolbox (DTB) is a headless ecommerce platform purpose-built for professional drywall contractors. It sells professional-grade drywall finishing tools and parts from brands like Columbia Taping Tools, TapeTech, Level5, Platinum, Dura-Stilts, Asgard, SurPro, and Graco.
 
-## Live Deployment
-`elliottm4.sg-host.com` (SiteGround shared hosting)
+The platform differentiates through contractor-focused features: tool repair services, parts schematics with interactive hotspots, toolset builder, and a professional account dashboard — not just a generic storefront.
 
-## Key Features
-- **Product catalog** — browsable by brand/category with faceted filtering, variation selection, and technical specifications
-- **Repair workflow** — multi-step repair submission, package selection, status tracking, and shipping coordination
-- **Schematics viewer** — interactive exploded-view diagrams with hotspot-linked parts for 8 brands
-- **Toolset builder** — guided tool selection and configuration tool for contractors
-- **Checkout** — WooCommerce-native checkout with Stripe payments, address autocomplete, and mobile-optimized flow
-- **Account hub** — order history, return portal, support status, and rewards tracking
-- **Search** — NivoSearch integration with storefront suggestions
-- **PWA** — service worker, web manifest, installable on mobile
+## Key Features & Capabilities
 
-## Supported Brands
-Asgard, Columbia Taping Tools, Dura-Stilts, Graco, Level5, Platinum, SurPro, TapeTech
+### Storefront
+- Product catalog with faceted search, brand/category filtering, and variation selection
+- Product detail pages with technical specifications, schematic diagrams, and compatible parts
+- Category landing pages with hero images
+- Toolset builder for curating contractor tool kits
+
+### Checkout & Payments
+- WooCommerce-native checkout embedded in the React SPA via iframe/block bridge
+- Stripe payment processing with express checkout (Apple Pay, Google Pay, Affirm, Afterpay, Klarna)
+- Guest and authenticated checkout flows
+- Failed payment recovery
+
+### Customer Account
+- JWT-authenticated account dashboard with tabs: orders, repairs, returns, rewards, addresses, settings
+- Order tracking with real-time event stream (SSE)
+- Return portal with status tracking
+- Support ticket system with customer-facing status
+
+### Repair Service
+- Multi-step repair submission workflow (tool selection → package → shipping quote → submit)
+- Repair status tracking with event timeline
+- Admin repair queue with SLA tracking
+
+### Schematics
+- Interactive tool schematics with part hotspots
+- Parts lookup and compatible parts resolution
+- Brand-organized schematic library
+
+### Visual Designer
+- Admin-facing design token editor for storefront surfaces (colors, typography, spacing)
+- Draft/publish/rollback revision system
+- Email studio for transactional email design
+- Live preview via preview session auth
+
+### Integrations
+- Veeqo: inventory sync, fulfillment projection, order status polling
+- QuickBooks: accounting pipeline, invoice sync, OAuth
+- Amazon SP-API: order notifications, messaging
+- eBay: fulfillment, messaging, OAuth
+
+### Operations & Admin
+- Custom WP admin shell with unified navigation
+- Deployment control center (GitHub release management via webhook)
+- Cache management tools (SiteGround optimizer integration)
+- System health dashboard with dependency checks
+- Launch readiness test suite (Python, Selenium)
 
 ## Target Users
-Professional drywall contractors purchasing tools, parts, and repair services.
-
-## Business Workflows
-- Catalog browsing → cart → WooCommerce checkout → Stripe payment
-- Repair submission → package selection → shipping → status tracking
-- Parts lookup via schematics → add to cart
-- Order tracking via Veeqo integration
-- Returns via return portal
+- **Customers**: Professional drywall contractors purchasing tools, parts, and repair services
+- **Admins**: Store operators managing orders, repairs, returns, inventory, and integrations
+- **Developers**: Full-stack team maintaining the headless React + WordPress/WooCommerce architecture

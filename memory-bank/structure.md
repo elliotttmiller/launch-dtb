@@ -1,123 +1,107 @@
-# Drywall Toolbox — Structure
+# Drywall Toolbox — Project Structure
 
 ## Repository Layout
 
 ```
 launch-dtb/
-├── frontend/               # React SPA (canonical source)
-├── drywalltoolbox/wp/      # WordPress + WooCommerce backend (canonical source)
-│   └── wp-content/
-│       ├── mu-plugins/     # Custom mu-plugins (DTB platform)
-│       └── themes/
-├── launch/live/            # Assembled SiteGround deployment overlay (generated)
-├── docs/                   # Architecture docs, contracts, audit reports
-├── scripts/                # Build, smoke-test, and data-migration tooling
-├── products/               # Product catalog CSVs, images, parts data
-└── .github/workflows/      # CI validation and packaging pipelines
+├── frontend/               # React SPA (Webpack 5, React 19)
+│   ├── src/                # Application source
+│   ├── public/             # Static assets copied verbatim to dist/
+│   ├── scripts/            # Build-time assertion scripts (CJS)
+│   ├── server/             # Local reviews mock server (Express)
+│   └── webpack.config.cjs  # Production-grade build config
+├── drywalltoolbox/
+│   └── wp/
+│       └── wp-content/
+│           ├── mu-plugins/ # All custom PHP plugins (must-use)
+│           ├── themes/     # WordPress theme
+│           └── woocommerce/# WooCommerce template overrides
+├── woo-email-templates/    # Custom WooCommerce transactional email templates
+├── products/               # Product catalog data, media, schematics, parts CSVs
+├── scripts/                # DevOps: catalog normalization, deployment, launch readiness
+├── docs/                   # Architecture docs, design specs, integration guides
+└── .github/workflows/      # CI: checkout UI contract tests, SiteGround release
 ```
 
-## Frontend (`frontend/src/`)
+## Frontend Source Structure (`frontend/src/`)
 
 ```
 src/
-├── api/          # API client modules (one file per domain: cart, orders, repairs, etc.)
-├── auth/         # AuthContext, JWT token store, useAuth hook
-├── components/   # UI components grouped by domain
-│   ├── account/, cart/, catalog/, checkout/, repairs/, schematics/, ...
-├── context/      # React contexts: Cart, GlobalLoading, WooCommerce, WorkflowTransition
-├── data/         # Static data files (generated catalogs, repair packages, mappings)
-├── features/     # Feature-level modules (checkout)
-├── hooks/        # Custom React hooks (useCart, useCatalogProducts, useRepairStatus, ...)
-├── pages/        # Route-level page components
-├── services/     # Client-side service layer (catalog cache, product cache, veeqo, woocommerce)
-├── styles/       # Flat CSS files (one per feature/component)
-├── utils/        # Pure utility functions (facets, cart, checkout, navigation, ...)
-└── motion/       # Framer Motion animation config
+├── api/          # API client modules per domain (cart, orders, products, repairs…)
+├── auth/         # AuthContext, JWT tokenStore, useAuth hook
+├── components/   # UI components organized by domain
+│   ├── account/  checkout/ catalog/ cart/ product/ repairs/ schematics/
+│   ├── shell/    # Header, Footer, CartSidebar
+│   ├── routing/  # ProtectedRoute, PageTransition
+│   ├── system/   # AppErrorBoundary
+│   └── ui/       # Shared primitives
+├── context/      # CartContext, WooCommerceContext, DesignConfigContext, WorkflowTransitionContext
+├── designer/     # Visual designer bridge (PreviewBridge, useEditableComponent)
+├── features/     # Feature-sliced modules (checkout/)
+├── hooks/        # Domain hooks (useCart, useCatalogProducts, useOrderStatus…)
+├── pages/        # Route-level page components (lazy-loaded)
+├── services/     # Higher-level service abstractions (catalog, woocommerce, veeqo)
+├── styles/       # Scoped CSS files per component/feature (no CSS modules)
+├── utils/        # Pure utility functions (featureFlags, checkoutUrl, catalogFacets…)
+├── motion/       # Framer Motion animation config
+├── data/         # Generated/static data files (schematic maps, repair catalog)
+└── constants/    # App-wide constants (images, shipping, sort options)
 ```
 
-## Backend — mu-plugins (`drywalltoolbox/wp/wp-content/mu-plugins/`)
+## PHP Plugin Architecture (`mu-plugins/`)
 
-Each plugin follows a consistent layered architecture:
+Each plugin follows a strict layered architecture:
 
+```
+dtb-{plugin}/
+├── Domain/         # Pure value objects, enums, domain models
+├── Application/    # Use-case handlers / command objects
+├── Infrastructure/ # DB repositories, external clients, schema installers
+├── Services/       # Business logic services
+├── Rest/           # WP REST API controllers
+├── Admin/          # WP admin pages, assets
+├── Validation/     # Input validators
+└── bootstrap.php   # Wires everything together via require_once
+```
+
+### Plugins
 | Plugin | Responsibility |
 |---|---|
-| `dtb-platform` | Core platform: auth, security, cache, REST infrastructure, admin shell, observability |
-| `dtb-catalog-platform` | Product catalog, facets, variations, toolset builder, inventory intelligence |
-| `dtb-commerce` | Cart, orders, checkout, Stripe payment, WooCommerce integration |
-| `dtb-repair-service` | Repair submission, workflow, quotes, shipping, status tracking |
-| `dtb-order-platform` | Order lifecycle, event stream, tracking projections |
-| `dtb-integrations` | Veeqo, Amazon, eBay, QuickBooks, WooCommerce webhooks, operational pipeline |
-| `dtb-schematics` | Schematic uploads registration, attachment metadata, media manifests, cache invalidation, and parts resolution |
-| `dtb-media` | Product-image sync, product linking, and variation galleries; its admin screen surfaces schematic registration without owning that behavior |
-| `dtb-returns` | Return portal workflow |
-| `dtb-support` | Support tickets, contact form, SLA, admin workbench |
-| `dtb-marketing` | Coming-soon page; per-product SEO meta (`ProductSeoController`, see below) |
-| `dtb-deployment` | Release Management: release event log, signed GitHub Actions webhook, GitHub API bridge (dispatch/drift), System Manager admin UI (Release Management tabs) |
-| `dtb-visual-designer` | Design-token/surface config studio: draft/publish/rollback of token+surface config with preview sessions and revision history (`Domain/TokenRegistry.php`, `Domain/SurfaceRegistry.php`, `Application/DraftService.php`/`PublishService.php`/`RollbackService.php`, `Rest/*Controller.php`, `Admin/DesignerPage.php`); includes an `EmailStudioController` REST endpoint |
+| `dtb-platform` | Core: auth (JWT), cache, config, security, observability, REST base, admin shell |
+| `dtb-catalog-platform` | Product catalog, facets, variations, parts, toolsets, inventory intelligence |
+| `dtb-commerce` | Checkout, payment (Stripe), order REST, shipping, email overrides |
+| `dtb-order-platform` | Order lifecycle, event sourcing, tracking, admin order UI |
+| `dtb-repair-service` | Repair submission, status workflow, admin repair queue |
+| `dtb-returns` | Return portal, status workflow |
+| `dtb-support` | Support tickets, admin workbench |
+| `dtb-schematics` | Schematic media sync, manifest, parts resolution |
+| `dtb-media` | Product image sync from remote URLs |
+| `dtb-integrations` | Veeqo, QuickBooks, Amazon, eBay, WooCommerce webhooks |
+| `dtb-visual-designer` | Design token editor, draft/publish/rollback, email studio |
+| `dtb-deployment` | GitHub release webhook, deployment lock, git control center |
+| `dtb-marketing` | SEO, coming-soon referral |
 
-Standalone root-level files (not inside a plugin folder) also ship as mu-plugins: `00-aaa-dtb-sitemap-admin-guard.php`, `00-dtb-loader.php`, `dtb-customer-orders-api.php`, `dtb-legacy-commerce-route-hardening.php`, `dtb-order-tracking-links.php`, `dtb-public-labels.php`, `sso.php`, `zzz-dtb-order-loop-containment.php`.
+## Architectural Patterns
 
-### SEO and Sitemap pipeline
+### Headless Architecture
+- React SPA is the customer-facing frontend; WordPress/WooCommerce is the backend API only
+- SPA communicates via WP REST API (`/wp-json/`) and custom DTB REST routes (`/wp-json/drywall/v1/`)
+- WooCommerce native checkout is embedded via a bridge (not a full page redirect)
+- JWT tokens issued by WP, stored in React tokenStore, sent as Bearer headers
 
-- **Frontend**: `frontend/src/components/shared/SEOHead.jsx` renders per-route `<title>`/meta/canonical via `react-helmet-async`; `frontend/src/utils/schema.js` builds JSON-LD (Product/Breadcrumb/Organization/WebSite, etc.).
-- **Per-product SEO meta** (`dtb-marketing/Seo/ProductSeoController.php`): registers WooCommerce product post-meta fields `_dtb_seo_title`, `_dtb_seo_description`, `_dtb_seo_focus_kw`, `_dtb_seo_canonical`, `_dtb_seo_noindex`.
-- **Sitemap** (`dtb-platform/Seo/SitemapService.php`, `SitemapUrlRepository.php`, `SitemapXmlRenderer.php`): registers rewrite rules for `sitemap.xml` (index) and `sitemaps/{type}-{page}.xml`, serves on `template_redirect`, disables WordPress core's own `wp_sitemaps_enabled` sitemap, filters `robots_txt`, and invalidates its hourly cache on product save/delete and term create/edit/delete. `00-aaa-dtb-sitemap-admin-guard.php` (loaded first, by filename ordering) guards sitemap routes from admin-context interference.
-- **Cache Tools** (`dtb-platform/Cache/`: `CacheKeyBuilder.php`, `CacheService.php`, `CacheHeaders.php`, `CacheInvalidationService.php`, `CachePurgeLock.php`, `CacheOperationsService.php`, `CacheAdminPage.php`) plus `dtb-platform/Admin/AdminCacheToolbar.php`, `CacheToolsPage.php`, and `SeoToolsPage.php` — admin-facing cache purge/inspection tooling with a purge lock to prevent concurrent runs.
+### Event Sourcing (Orders & Repairs)
+- Orders and repairs use append-only event tables (`OrderEvent`, `RepairEvent`)
+- Projections are built from event streams for customer-facing status and admin timelines
+- Status transitions are validated before being applied
 
-### Plugin Internal Layers (consistent across all plugins)
+### REST API Pattern
+- All controllers extend `AbstractRestController` from `dtb-platform`
+- Responses use `RestResponseFactory` for consistent shape
+- Schema validation via `RestSchema` helpers
+- Rate limiting applied at platform level
 
-```
-PluginName/
-├── Domain/         # Pure domain models and value objects
-├── Application/    # Use-case command handlers
-├── Infrastructure/ # WordPress/WooCommerce persistence adapters
-├── Services/       # Business logic services
-├── Rest/           # REST API controllers
-├── Validation/     # Input validators
-├── Admin/          # WP admin UI pages and menus
-└── bootstrap.php   # Loads all files in dependency order
-```
-
-## Schematic Media Flow
-
-```
-frontend schematic registry + hotspot JSON
-  -> GET /wp-json/dtb/v1/schematics/media
-  -> dtb-schematics manifest repository
-  -> WordPress attachment metadata
-  -> wp-content/uploads/2026/schematics/*
-```
-
-The frontend production artifact does not own schematic image binaries. Stable schematic IDs join frontend definitions to WordPress attachment metadata. The DTB Image Sync screen exposes a bounded, idempotent registration action, while all registration and manifest behavior remains inside `dtb-schematics`.
-
-## Deployment Pipeline
-
-Two independent, non-competing deployment paths, split by ownership boundary:
-
-**Frontend + site root** (`frontend/` build, root `.htaccess`, logos) — unchanged, operator-managed:
-
-1. `frontend/` → Webpack production build
-2. `launch/scripts/assemble-siteground.ps1` reconstructs the bounded `launch/live/` overlay
-3. CI validates source, PHP, JavaScript, routing, and payload boundaries without writing to production
-4. An operator creates independent backups and transfers the reviewed `launch/live/` change set manually through FileZilla
-5. Runtime caches and production acceptance checks are completed separately
-
-**Production `/wp` application tree** (mu-plugins, themes, `.htaccess`, `index.php`) — the Release Management platform, built around the official SiteGround Git repository:
-
-1. An operator dispatches `.github/workflows/release-siteground.yml` (from System Manager's Release Management tabs or GitHub Actions directly) with a reviewed ref and a typed `DEPLOY`/`ROLLBACK` confirmation.
-2. The workflow plans and validates the release, assembles a payload scoped to `scripts/deployment/protected-paths.json`'s owned paths, and tags an immutable manifest (`dtb-release/<id>`) on this repository.
-3. `scripts/deployment/siteground-git-release.sh` backs up the current SiteGround Git state (tag), then applies the payload as a scoped commit pushed to the SiteGround Git remote — the official deployment backend. Any change outside the owned paths aborts the release before a commit is created.
-4. The workflow verifies production (root, `/wp-json/dtb/v1/health`, `/checkout/`) and auto-restores from the backup tag on any failure.
-5. Every stage reports a signed event to `dtb-deployment`'s webhook, which records it in `wp_dtb_release_events`, purges PHP OPcache/SiteGround Dynamic Cache on success, and powers System Manager (production status, history, drift, rollback).
-
-See `docs/deployment/release-management-architecture.md` for the full design.
-
-## Key Architectural Patterns
-
-- **Headless**: React SPA communicates exclusively via WP REST API (`/wp-json/dtb/v1/`)
-- **Proxy routes**: `dtb-platform/Rest/ProxyRoutes.php` forwards requests to WooCommerce Store API
-- **Event sourcing**: Orders and repairs use event repositories + status projectors
-- **JWT auth**: Custom JWT service bridges React auth to WooCommerce sessions
-- **Feature flags**: `dtb-platform/Config/FeatureFlags.php` gates functionality
-- **Generated data files**: `src/data/*.generated.js` are code-generated static catalogs
-- **Checkout**: native WooCommerce Checkout Block (`drywalltoolbox/wp/wp-content/themes/drywall-toolbox/templates/checkout/native-checkout.php`), not a custom DTB checkout stack. WooCommerce owns cart/customer/address/shipping/tax/order state; Payment Plugins for Stripe WooCommerce owns card fields/wallets/tokenization/capture; DTB layers on top via one stylesheet (`assets/checkout/checkout.css`) restyling native Checkout Block markup by its real per-block identity classes (`.wp-block-woocommerce-checkout-*-block`) and one script (`assets/checkout/checkout.js`) that, mobile-only, presents the same unmodified DOM as a 3-step wizard (Contact/Shipping/Payment) via `classifyStepGroups()` (classification keyed on WooCommerce Blocks' own stable CSS classes, e.g. `.wc-block-checkout__shipping-fields`, walked up to the nearest `.wc-block-components-checkout-step` ancestor — never DOM position or `data-block-name`, both proved unreliable across redesign iterations). Stripe's Payment Element is themed via the Appearance API (`dtb-commerce/Payment/StripeElementAppearance.php`, the `wc_stripe_get_element_options` filter) without replacing the merchant's own UPM theme setting. See `docs/checkout/checkout-ui-architecture.md` for full redesign history and validation matrix.
+### Frontend Data Flow
+- API modules in `src/api/` are thin wrappers around axios client
+- Domain hooks (`useCart`, `useCatalogProducts`) encapsulate fetch + state
+- Contexts provide global state (cart, auth, design config)
+- Pages are all lazy-loaded via `lazyWithReload()` with chunk-load failure auto-retry

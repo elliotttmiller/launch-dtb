@@ -1,176 +1,186 @@
 # Drywall Toolbox — Development Guidelines
 
-## PHP (Backend mu-plugins)
+## PHP Conventions
 
-### Naming Conventions
-- Functions: `dtb_snake_case()` prefix — e.g. `dtb_proxy_products`, `dtb_cached_wc_get`, `dtb_image_sync_log`
-- Constants: `SCREAMING_SNAKE_CASE` — e.g. `DTB_PRODUCT_DETAIL_FIELDS`, `DTB_SYNC_LOCK_KEY`
-- Files: `PascalCase.php` inside namespaced plugin directories
-- All files begin with `defined( 'ABSPATH' ) || exit;`
-
-### REST Route Patterns
-- Register all routes on `rest_api_init` hook
-- Always declare `permission_callback` — use `'__return_true'` for public, `'dtb_jwt_permission'` for JWT-gated
-- Declare `args` with `sanitize_callback` and `validate_callback` for all route parameters
-- Register more-specific routes (slug, resolve-sku) BEFORE generic `{id}` numeric routes
-- Return `WP_REST_Response` from all callbacks; never echo directly
-- Use `dtb_error_envelope( $code, $message, $status )` for all error responses
-- Use `rest_ensure_response()` for success responses when returning arrays
-
-### Security Patterns
-- Always call `dtb_check_origin()` before proxying to WooCommerce
-- Always call `dtb_rate_limit_get()` or `dtb_rate_limit()` before mutating routes
-- Sanitize all user input: `sanitize_text_field()`, `sanitize_email()`, `sanitize_textarea_field()`, `sanitize_title()`, `absint()`
-- Use `hash_equals()` for all secret/signature comparisons (timing-safe)
-- Use `wp_unslash()` before sanitizing `$_SERVER` / `$_COOKIE` values
-- Strip CR/LF from user-supplied values before using in email headers
-
-### WooCommerce Proxy Pattern
+### File Guards (every PHP file)
 ```php
-// Cached GET (public catalog data)
-return dtb_cached_wc_get( 'wc/v3/products', $params );
+defined( 'ABSPATH' ) || exit;
 
-// Uncached GET (user-specific data)
-return dtb_wc_get( 'wc/v3/orders/' . absint( $id ) );
-
-// POST (mutating)
-return dtb_wc_post( 'wc/v3/customers', $body );
+if ( class_exists( 'DTB_ClassName' ) ) {
+    return;
+}
 ```
 
-### Database Queries
-- Always use `$wpdb->prepare()` for parameterized queries
-- Use `$wpdb->esc_like()` for LIKE patterns
-- Use `ARRAY_A` for associative result sets
-- Wrap direct DB queries in `try/catch ( Throwable $e )` and return `WP_Error` on failure
-- Add `// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching` when direct queries are intentional
+### Class Patterns
+- All custom classes use `DTB_` prefix (e.g. `DTB_RestResponseFactory`, `DTB_Diagnostics`)
+- Utility/singleton classes are declared `final`
+- `abstract` for base classes that define contracts (e.g. `DTB_AbstractRestController`)
+- Static methods preferred for stateless services and factories
+- PHPDoc type annotations: `@return array<string,mixed>`, `@param WP_REST_Request $request`
+
+### Plugin Bootstrap Pattern
+Each plugin's `bootstrap.php` uses flat `require_once __DIR__ . '/Layer/ClassName.php'` — no autoloader. Load order: Domain → Infrastructure → Application → Services → Rest → Admin.
+
+### REST Controllers
+- Extend `DTB_AbstractRestController`, implement `register_routes(): void`
+- Use `DTB_RestResponseFactory::ok($data)` for success responses
+- Use `DTB_RestResponseFactory::error($code, $message, $status)` for errors
+- Pagination helpers: `self::page_from_request($request)`, `self::per_page_from_request($request)`
+- Success envelope: `{ ok: true, ...data }`
+- Error envelope: `{ error: { code, message, status, details? } }`
+
+### Layered Architecture (per plugin)
+```
+Domain/       → pure value objects, no WP dependencies
+Application/  → use-case handlers, orchestrate services
+Infrastructure/ → DB, external HTTP, WP APIs
+Services/     → business logic
+Rest/         → WP REST controllers only
+Admin/        → WP admin pages, assets
+Validation/   → input validators, return bool or throw
+```
+
+---
+
+## JavaScript / React Conventions
+
+### File Extensions
+- `.jsx` — components and pages (anything returning JSX)
+- `.js` — hooks, utilities, API modules, contexts, services
+
+### Imports
+- Named imports preferred; default exports for components and pages
+- Path aliases: `@/`, `@api/`, `@components/`, `@hooks/`, `@pages/`, `@styles/`, `@context/`
+- API modules imported from `../api/{domain}.js`; never call `fetch` directly in components
+
+### Hooks Pattern
+```js
+export function useSomething() {
+  const [data,      setData]      = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error,     setError]     = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchSomething()
+      .then((d)   => { if (!cancelled) setData(d); })
+      .catch((err) => { if (!cancelled) setError(err.message || 'Failed.'); })
+      .finally(()  => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  return { data, isLoading, error };
+}
+```
+- Always use `cancelled` flag in `useEffect` async fetches to prevent state updates on unmounted components
+- Wrap mutation operations in a `withUpdate(fn)` pattern (see `useCart`) to centralize loading/error state
+
+### Lazy Loading (pages)
+All pages use `lazyWithReload()` — never bare `lazy()`:
+```js
+const MyPage = lazyWithReload(() => import('./pages/MyPage'));
+```
+This handles `ChunkLoadError` with a single auto-retry via `sessionStorage`.
+
+### API Client Usage
+- Use `apiClient(endpoint, options)` from `src/api/client.js` for DTB/WP REST calls
+- Use `wpClient` (axios) for WP REST calls needing interceptors
+- Use `wcClient` (axios) for `drywall/v1` proxy calls
+- Never include WooCommerce consumer keys or secrets in browser code
+- All requests use `credentials: 'include'` for cookie-based session continuity
+- Bearer token auto-attached from `tokenStore` via interceptors
 
 ### Error Handling
-- Return `WP_Error` from service/repository functions on failure
-- Check `is_wp_error( $result )` before using results
-- Extract status from `$result->get_error_data()['status'] ?? 502`
-- Log diagnostics via `dtb_log()` or `error_log( '[DTB Module] ...' )`
+- API errors are plain objects: `{ code, message, status, url? }`
+- 401 responses auto-dispatch `auth:expired` window event and clear token
+- 429 responses set a cooldown; duplicate GET requests are deduplicated via `inflightGetRequests` Map
 
-### Bootstrap Pattern
-Each plugin's `bootstrap.php` loads files in strict dependency order with numbered sections:
-```php
-// 1. Configuration
-// 2. Support primitives
-// 3. Security
-// 4. Auth
-// 5. Cache
-// ...
-require_once $_dtb_platform . '/Config/Constants.php';
+### Feature Flags
+```js
+import { getFeatureFlag, isCatalogPlatformEnabled } from '@/utils/featureFlags';
+
+// Named flag helpers preferred over raw getFeatureFlag() calls
+export function isMyFeatureEnabled() {
+  return getFeatureFlag('my_feature', false);
+}
 ```
+- Flags read from `REACT_APP_*` env vars (baked at build time)
+- In non-production, can be overridden via `localStorage` key `dtb_flag_{key}`
+- Hard-disabled features (like rewards) return `false` unconditionally with a comment explaining why
 
-### Type Casting in Responses
-Always cast output values explicitly:
-```php
-'id'    => (int) ( $row['id'] ?? 0 ),
-'name'  => (string) ( $row['name'] ?? '' ),
-'flag'  => (bool) ( $row['flag'] ?? false ),
-'items' => (array) ( $row['items'] ?? [] ),
-```
+### CSS / Styling
+- One CSS file per component/feature in `src/styles/`
+- BEM-style class names with `dtb-` prefix: `.dtb-route-back-bar`, `.dtb-route-back-bar--orders`
+- Design tokens via CSS custom properties (managed by Visual Designer plugin)
+- Tailwind utility classes used alongside scoped CSS files
+- No CSS Modules; no inline styles for layout
 
-### Section Separators
-Use `// =============================================================================` banners to separate major logical sections within large files.
+### Context Providers
+Provider nesting order in `App.jsx` (outermost first):
+1. `AppErrorBoundary`
+2. `AuthProvider`
+3. `DesignConfigProvider`
+4. `WooCommerceProvider`
+5. `CartProvider`
+6. `WorkflowTransitionProvider`
+7. `Router`
+
+### Component Naming
+- PascalCase for all components and pages
+- `use` prefix for all hooks
+- `dtb:` prefix for `localStorage`/`sessionStorage` keys (e.g. `dtb:lazy-retry:/path`)
+- `dtb-` prefix for CSS class names
 
 ---
 
-## JavaScript / React (Frontend)
+## Security Invariants
 
-### Naming Conventions
-- Components: `PascalCase.jsx`
-- Hooks: `useCamelCase.js`
-- Utilities: `camelCase.js`
-- Constants/data: `SCREAMING_SNAKE_CASE` for exported constants
-- Generated files: `*.generated.js` — excluded from Babel, never hand-edited
+### Frontend
+- No WooCommerce application passwords, consumer keys, or secrets in browser code
+- Auth uses HttpOnly DTB cookie + optional in-memory Bearer token only
+- All API calls are same-origin in production (no cross-origin WP REST calls)
+- `DOMPurify` used for any HTML rendered from API responses
 
-### Data File Patterns
-Static data modules export named constants and pure utility functions:
-```js
-export const REPAIR_PACKAGES = [ ... ];
-
-export function getRepairPackageById( packageId ) {
-  return REPAIR_PACKAGES.find( ( pkg ) => pkg.id === packageId ) || null;
-}
-```
-- Use `Object.entries()` + `.map()` / `.filter()` for deriving secondary exports from primary data
-- Optional chaining (`?.`) for safe property access on derived values
-- Default parameters with `= {}` for options objects
-
-### Generated Data Files
-- `*.generated.js` files are auto-generated from CSV/WooCommerce catalog data
-- They are excluded from Babel transpilation in webpack config
-- Never edit generated files manually — regenerate from source
-- Header comment identifies source: `// Auto-generated from official WooCommerce production catalog CSV.`
-
-### API Module Pattern
-Each domain has a dedicated file in `src/api/`:
-```js
-// src/api/repairs.js
-import client from './client';
-export const submitRepair = (data) => client.post('/dtb/v1/repairs', data);
-```
-
-### Environment Variables
-- All env vars use `process.env.REACT_APP_*` prefix
-- Statically replaced by Webpack DefinePlugin at compile time
-- Never access `import.meta.env.*` directly — use `process.env.*` equivalents
-- Feature flags: `process.env.REACT_APP_DTB_CATALOG_PLATFORM === 'true'`
-
-### Path Aliases
-Use webpack aliases instead of relative paths:
-```js
-import { useCart } from '@hooks/useCart';
-import ProductCard from '@components/catalog/ProductCard';
-```
-
-### CSS Architecture
-- One CSS file per feature/component in `src/styles/`
-- Flat file naming: `feature-name.css`, `mobile-feature-name.css`
-- Design tokens in `storefront-tokens.css`
-- Tailwind v4 utility classes used alongside custom CSS
-
-### ESLint Rules
-- `no-unused-vars`: vars matching `/^(?:[A-Z_].*|motion|getPaymentBaseUrl)$/` are ignored
-- `react-hooks/rules-of-hooks`: error
-- No TypeScript — plain JS with JSX
+### PHP
+- All REST endpoints validate permissions before processing
+- Rate limiting applied at platform level (`DTB_RateLimiter`)
+- CORS policy enforced via `DTB_CorsPolicy` / `DTB_OriginAllowlist`
+- Admin REST endpoints protected by `DTB_AdminRestTopology`
+- `defined('ABSPATH') || exit` on every PHP file
 
 ---
 
-## Shared Patterns
+## Build & Deployment
 
-### Repair Package Data Shape
-```js
-{
-  id: 'taper_tune_up',
-  toolFamily: 'automatic_taper',   // links to REPAIR_TOOL_FAMILIES key
-  routeType: 'standard_package' | 'diagnostic_quote' | 'custom_repair',
-  startingPrice: 179,              // number (omitted for quote-required)
-  requiresApproval: false,
-  allowPreApproval: true,
-  estimatedTurnaroundDays: { standard: 7, expedited: 3 },
-  warrantyDays: 30,
-}
-```
+### Build Assertions (run automatically on `npm run build`)
+1. `assert-public-env-safe.cjs` — validates env vars are safe for production
+2. `assert-pwa-hardening.cjs` — validates PWA manifest and service worker
+3. `assert-font-authority.cjs` — validates font sources
+4. `assert-build-routing.cjs` — validates SPA routing contract post-build
 
-### REST API Namespaces
-- `drywall/v1` — WooCommerce proxy (products, orders, customers, coupons)
-- `dtb/v1` — DTB platform (auth, catalog, repairs, schematics, support, returns)
-- `wc/store/v1` — WooCommerce Store API (cart, checkout — proxied via dtb-platform)
+### Never Ship to `dist/`
+- `.csv` data files (served via WooCommerce REST)
+- `.zip` archives
+- `scripts/` directory
+- `scraped_results/` directory
 
-### Image Sync Health Labels
-Health states: `'ok'`, `'warning'`, `'error'`, `'never'`, `'running'`, `'locked'`
-Computed from error/warning counts via `dtb_image_sync_health_label( $errors, $warnings )`.
+### Deployment Flow
+1. Build: `npm run build` → `dist/` at repo root
+2. Release: GitHub Actions triggers `siteground-git-release.sh` via webhook
+3. Protected paths policy prevents overwriting critical WP files
 
-### Transient Cache Keys
-- Product cache: `drywall_cache_*` prefix
-- Rate limiting: `drywall_rl_*` (mutating), `drywall_rl_get_*` (GET)
-- Sync lock: `DTB_SYNC_LOCK_KEY` constant
-- Sync progress: `DTB_SYNC_PROGRESS_KEY` constant
+---
 
-### Deployment Checklist
-- Run `npm run build` from `frontend/` — never commit `dist/` directly
-- Run `launch/scripts/assemble-siteground.ps1` to assemble the overlay
-- Smoke tests in `scripts/smoke-dtb-*.ps1` validate live endpoints after deploy
-- Never commit `wp-config.php` secrets — they are server-owned
+## Naming Conventions Summary
+
+| Context | Convention | Example |
+|---|---|---|
+| PHP classes | `DTB_PascalCase` | `DTB_RestResponseFactory` |
+| PHP files | `PascalCase.php` | `RestResponseFactory.php` |
+| JS/JSX components | `PascalCase` | `ProductDetailPage.jsx` |
+| JS hooks | `camelCase` with `use` prefix | `useCart.js` |
+| JS utilities | `camelCase` | `featureFlags.js` |
+| CSS classes | `dtb-kebab-case` | `.dtb-route-back-bar` |
+| localStorage keys | `dtb:kebab-case:version` | `dtb:lazy-retry:/products` |
+| REST namespaces | `drywall/v1` | `/wp-json/drywall/v1/` |
+| Env vars | `REACT_APP_SCREAMING_SNAKE` | `REACT_APP_DTB_API_BASE` |
