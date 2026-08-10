@@ -30,6 +30,7 @@ import { getVariationSelectionMap } from '../utils/variationSelection';
 import { buildBreadcrumbSchema, buildProductSchema, stripHtml } from '../utils/schema';
 import ProductDetail from '../components/product/ProductDetail';
 import SEOHead from '../components/shared/SEOHead';
+import Breadcrumb from '../components/shared/Breadcrumb.jsx';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import Toast from '../components/ui/Toast';
 import StorefrontRail from '../components/storefront/StorefrontRail';
@@ -212,11 +213,12 @@ export default function ProductDetailPage() {
     || product.images?.[0]?.src || product.image || '';
 
   const productSchema    = buildProductSchema({ ...product, ...effectiveProduct, name: effectiveProductName });
-  const breadcrumbSchema = buildBreadcrumbSchema([
+  const breadcrumbItems  = [
     { label: 'Home',       path: '/' },
     { label: 'Products',   path: '/products' },
     { label: effectiveProductName, path: productDetailPath },
-  ]);
+  ];
+  const breadcrumbSchema = buildBreadcrumbSchema(breadcrumbItems);
 
   return (
     <div className="min-h-screen bg-gray-50 page-wrapper">
@@ -232,13 +234,7 @@ export default function ProductDetailPage() {
       />
 
       <div className="dtb-product-page-shell container mx-auto px-4 py-6 sm:py-8 max-w-6xl">
-        <nav className="dtb-product-breadcrumb" aria-label="Breadcrumb">
-          <Link to="/">Home</Link>
-          <span aria-hidden="true">›</span>
-          <Link to="/products">Products</Link>
-          <span aria-hidden="true">›</span>
-          <span className="dtb-product-breadcrumb__current">{effectiveProductName}</span>
-        </nav>
+        <Breadcrumb items={breadcrumbItems} />
         <ProductDetail
           product={product}
           onAddToCart={handleAddToCart}

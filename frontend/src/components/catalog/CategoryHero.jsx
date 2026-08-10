@@ -1,5 +1,5 @@
 import { LayoutGrid } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
 
@@ -24,21 +24,7 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount:
 
   return (
     <div className="dtb-category-hero mb-6 sm:mb-8">
-      {breadcrumbs.length > 0 && (
-        <nav className="dtb-product-breadcrumb mb-3" aria-label="Breadcrumb">
-          {breadcrumbs.map((crumb, index) => {
-            const isLast = index === breadcrumbs.length - 1;
-            return isLast ? (
-              <span key={crumb.path} className="dtb-product-breadcrumb__current">{crumb.label}</span>
-            ) : (
-              <span key={crumb.path} className="contents">
-                <Link to={crumb.path}>{crumb.label}</Link>
-                <span aria-hidden="true">›</span>
-              </span>
-            );
-          })}
-        </nav>
-      )}
+      <Breadcrumb items={breadcrumbs} />
 
       <div className="dtb-category-hero-card">
         <div className="dtb-category-hero-card__content">

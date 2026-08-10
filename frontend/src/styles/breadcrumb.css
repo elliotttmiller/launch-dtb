@@ -1,0 +1,90 @@
+/* Shared breadcrumb component (components/shared/Breadcrumb.jsx). Adapted
+   from the CodeFronts "Minimalist CSS Breadcrumb with Custom SVG Separators"
+   pattern (MIT — https://codefronts.com/navigation/css-breadcrumbs/retro-terminal-path/):
+   the divider is a CSS-generated SVG chevron recolored via mask-image so it
+   always matches the surrounding text color, no JS needed. Colors/sizes
+   swapped for this project's tokens (storefront-tokens.css); the original
+   demo's page-centering wrapper styles (min-height:100vh, place-items:center,
+   etc.) were showcase-only and are not part of the reusable component.
+   Replaces the old `.dtb-product-breadcrumb` (plain "›" character
+   separator), previously duplicated inline in CategoryHero.jsx and
+   ProductDetailPage.jsx. */
+
+.dtb-breadcrumb {
+  --dtb-breadcrumb-sep: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  min-width: 0;
+  margin: 0 0 1.25rem;
+}
+
+.dtb-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dtb-breadcrumb li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  color: var(--dtb-muted, #64748b);
+}
+
+.dtb-breadcrumb li:not(:last-child)::after {
+  content: '';
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  margin: 0 8px;
+  background: currentColor;
+  -webkit-mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;
+  mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;
+  opacity: 0.5;
+}
+
+.dtb-breadcrumb a {
+  flex: 0 0 auto;
+  padding: 2px 3px;
+  border-radius: 6px;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.dtb-breadcrumb a:hover {
+  color: var(--dtb-primary, #2255ee);
+}
+
+.dtb-breadcrumb a:focus-visible {
+  outline: 2px solid var(--dtb-primary, #2255ee);
+  outline-offset: 2px;
+}
+
+.dtb-breadcrumb li[aria-current='page'] {
+  min-width: 0;
+  color: var(--dtb-text, #0f172a);
+}
+
+.dtb-breadcrumb__current {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .dtb-breadcrumb {
+    margin-bottom: 0.75rem;
+  }
+
+  .dtb-breadcrumb a,
+  .dtb-breadcrumb__current {
+    font-size: 0.76rem;
+  }
+}
