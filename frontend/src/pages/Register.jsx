@@ -236,7 +236,7 @@ export default function Register() {
       >
         <header className="dtb-auth-template__header">
           <h1 id="signup-title" className="dtb-auth-template__title">Create an account</h1>
-          <p className="dtb-auth-template__subtitle">Enter your details below to create your account</p>
+          <p className="dtb-auth-template__subtitle">One account for orders, repairs, and support</p>
         </header>
 
         <AnimatePresence initial={false}>

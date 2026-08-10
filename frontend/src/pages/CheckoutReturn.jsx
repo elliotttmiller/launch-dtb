@@ -23,7 +23,7 @@ export default function CheckoutReturn({ fallbackState = 'complete' }) {
 							orderId={id}
 							title="Order confirmed"
 							titleId="checkout-return-title"
-							message="Your order is confirmed. A receipt is on its way to your inbox."
+							message="A receipt is on its way to your inbox."
 						/>
 					</section>
 				</div>

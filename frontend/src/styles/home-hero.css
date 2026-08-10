@@ -202,7 +202,6 @@
 }
 .home-hero__button:focus-visible,
 .home-hero-nav__item:focus-visible,
-.home-hero-nav__arrow:focus-visible,
 .home-hero-brands__link:focus-visible { outline: 3px solid rgba(11, 92, 255, 0.32); outline-offset: 3px; }
 
 .home-hero-nav {
@@ -214,29 +213,9 @@
   transform: translateX(-50%);
 }
 
-.home-hero-nav__surface {
-  --home-hero-nav-cut: 15px;
-  min-height: 104px;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid #d7e0ef;
-  background: rgba(255, 255, 255, 0.99);
-  box-shadow: 12px 16px 32px rgba(7, 19, 41, 0.12), 0 2px 5px rgba(7, 19, 41, 0.04);
-  clip-path: polygon(
-    0 var(--home-hero-nav-cut),
-    var(--home-hero-nav-cut) 0,
-    100% 0,
-    100% calc(100% - var(--home-hero-nav-cut)),
-    calc(100% - var(--home-hero-nav-cut)) 100%,
-    0 100%
-  );
-}
-
 .home-hero-nav__track {
+  width: 100%;
   min-width: 0;
-  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
@@ -289,28 +268,6 @@
 .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon,
 .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__label,
 .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__description { color: #fff; }
-
-.home-hero-nav__arrow {
-  --home-hero-arrow-cut: 7px;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  padding: 0;
-  border: 1px solid #b9c9e6;
-  display: grid;
-  place-items: center;
-  color: #17233a;
-  background: #fff;
-  cursor: pointer;
-  clip-path: polygon(
-    0 var(--home-hero-arrow-cut),
-    var(--home-hero-arrow-cut) 0,
-    100% 0,
-    100% calc(100% - var(--home-hero-arrow-cut)),
-    calc(100% - var(--home-hero-arrow-cut)) 100%,
-    0 100%
-  );
-}
 
 .home-hero-brands {
   min-height: 218px;
@@ -420,14 +377,6 @@
     margin: -24px auto 0;
     transform: none;
   }
-
-  .home-hero-nav__surface {
-    --home-hero-nav-cut: 11px;
-    min-height: 0;
-    padding: 10px;
-  }
-
-  .home-hero-nav__arrow { display: none; }
 
   .home-hero-nav__track {
     display: grid;
@@ -563,14 +512,6 @@
     transform: none;
   }
 
-  .home-hero-nav__surface {
-    --home-hero-nav-cut: 11px;
-    min-height: 0;
-    padding: 10px;
-  }
-
-  .home-hero-nav__arrow { display: none; }
-
   .home-hero-nav__track {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -675,11 +616,6 @@
 
 /* Shared mobile/tablet cosmetic refresh for quick links — layout stays in the breakpoint blocks above. */
 @media (max-width: 900px) {
-  .home-hero-nav__surface {
-    background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
-    box-shadow: 0 10px 30px rgba(7, 19, 41, 0.08), 0 2px 6px rgba(7, 19, 41, 0.05);
-  }
-
   .home-hero-nav__item {
     --bg: linear-gradient(180deg, #ffffff 0%, #f5f8ff 100%);
     --curve-size: 16px;

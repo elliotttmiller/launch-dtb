@@ -210,7 +210,7 @@ function OrderStatusTracker({ order, streaming }) {
       <ol className="dtb-order-steps" aria-label="Order progress">
         {TRACKING_STEPS.map((step, index) => {
           const complete = index < activeIndex; const active = index === activeIndex; const future = !complete && !active; const StepIcon = step.Icon; const timestamp = getStepTimestamp(order, step, index, activeIndex);
-          return <li key={step.id} className={`dtb-order-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`} aria-current={active ? 'step' : undefined}><span className="dtb-order-step__connector" aria-hidden="true" /><span className="dtb-order-step__icon" aria-hidden="true">{complete ? <Check size={16} strokeWidth={3} /> : active ? <span className="dtb-order-step__dot" /> : <StepIcon size={16} strokeWidth={1.8} />}</span><strong>{step.label}</strong><small>{active ? statusDescription : step.description}</small>{timestamp ? <time>{formatDateTime(timestamp)}</time> : null}</li>;
+          return <li key={step.id} className={`dtb-order-step ${complete ? 'is-complete' : ''} ${active ? 'is-active' : ''} ${future ? 'is-future' : ''}`} aria-current={active ? 'step' : undefined}><span className="dtb-order-step__connector" aria-hidden="true" /><span className="dtb-order-step__icon" aria-hidden="true">{complete ? <Check size={16} strokeWidth={3} /> : active ? <span className="dtb-order-step__dot" /> : <StepIcon size={16} strokeWidth={1.8} />}</span><strong>{step.label}</strong><small>{step.description}</small>{timestamp ? <time>{formatDateTime(timestamp)}</time> : null}</li>;
         })}
       </ol>
     </section>

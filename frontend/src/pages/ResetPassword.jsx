@@ -19,373 +19,248 @@ import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { KeyRound, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { useAuthContext } from '../auth/AuthContext.js';
-import '../styles/password-recovery.css';
-
-// ─── Animation variants ───────────────────────────────────────────────────────
+import { dtbDuration, dtbEase } from '../motion/dtbMotion.js';
+import '../styles/auth-form-templates.css';
 
 const cardVariants = {
-  hidden:  { opacity: 0, y: 24, scale: 0.98 },
+  hidden: { opacity: 0, y: 18, scale: 0.985 },
   visible: {
-    opacity: 1, y: 0, scale: 1,
-    transition: { duration: 0.45, ease: [ 0.16, 1, 0.3, 1 ] },
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: dtbDuration.normal, ease: dtbEase.standard },
   },
 };
 
-const fieldVariants = {
-  hidden:  { opacity: 0, x: -12 },
-  visible: ( i ) => ( {
-    opacity: 1, x: 0,
-    transition: { duration: 0.35, ease: [ 0.16, 1, 0.3, 1 ], delay: 0.1 + i * 0.08 },
-  } ),
+const noticeVariants = {
+  initial: { opacity: 0, y: -6, height: 0 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    height: 'auto',
+    transition: { duration: dtbDuration.normal, ease: dtbEase.standard },
+  },
+  exit: { opacity: 0, y: -4, height: 0, transition: { duration: dtbDuration.fast } },
 };
 
-const bannerVariants = {
-  initial: { opacity: 0, y: -8, height: 0 },
-  animate: { opacity: 1, y: 0,  height: 'auto', transition: { duration: 0.28, ease: [ 0.16, 1, 0.3, 1 ] } },
-  exit:    { opacity: 0, y: -4, height: 0,       transition: { duration: 0.18, ease: 'easeIn' } },
-};
-
-function BreathingLoader() {
+function SubmitLoader() {
   return (
-    <span className="flex items-center gap-2 justify-center">
-      { [ 0, 1, 2 ].map( ( i ) => (
+    <span className="dtb-auth-template__loader" aria-label="Resetting password">
+      {[0, 1, 2].map((index) => (
         <Motion.span
-          key={ i }
-          className="block w-1.5 h-1.5 rounded-full bg-white"
-          animate={ { scale: [ 1, 1.5, 1 ], opacity: [ 0.4, 1, 0.4 ] } }
-          transition={ { duration: 1.1, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' } }
+          key={index}
+          className="dtb-auth-template__loader-dot"
+          animate={{ scale: [1, 1.45, 1], opacity: [0.45, 1, 0.45] }}
+          transition={{ duration: 1.05, repeat: Infinity, delay: index * 0.17, ease: 'easeInOut' }}
         />
-      ) ) }
-      <span className="text-xs tracking-widest uppercase ml-1">Resetting…</span>
+      ))}
     </span>
   );
 }
 
-// ─── ResetPassword page ───────────────────────────────────────────────────────
-
 export default function ResetPassword() {
-  const { resetPassword }          = useAuthContext();
-  const [ searchParams ]           = useSearchParams();
+  const { resetPassword } = useAuthContext();
+  const [searchParams] = useSearchParams();
 
-  const resetKey   = searchParams.get( 'key' )   || '';
-  const resetLogin = searchParams.get( 'login' ) || '';
+  const resetKey = searchParams.get('key') || '';
+  const resetLogin = searchParams.get('login') || '';
 
-  const [ password,    setPassword    ] = useState( '' );
-  const [ confirm,     setConfirm     ] = useState( '' );
-  const [ showPw,      setShowPw      ] = useState( false );
-  const [ showConfirm, setShowConfirm ] = useState( false );
-  const [ submitting,  setSubmitting  ] = useState( false );
-  const [ success,     setSuccess     ] = useState( false );
-  const [ submitError, setSubmitError ] = useState( null );
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   // If the URL is missing the required params, show a broken-link notice.
-  const missingParams = ! resetKey || ! resetLogin;
+  const missingParams = !resetKey || !resetLogin;
 
   const confirmMismatch = confirm.length > 0 && confirm !== password;
-  const confirmMatch    = confirm.length > 0 && confirm === password;
+  const confirmMatch = confirm.length > 0 && confirm === password;
 
-  const handleSubmit = async ( e ) => {
-    e.preventDefault();
-    setSubmitError( null );
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitError(null);
 
-    if ( password !== confirm ) {
-      setSubmitError( 'Passwords do not match.' );
+    if (password !== confirm) {
+      setSubmitError('Passwords do not match.');
       return;
     }
-    if ( password.length < 8 ) {
-      setSubmitError( 'Password must be at least 8 characters.' );
+    if (password.length < 8) {
+      setSubmitError('Password must be at least 8 characters.');
       return;
     }
 
-    setSubmitting( true );
+    setSubmitting(true);
     try {
-      await resetPassword( resetKey, resetLogin, password );
-      setSuccess( true );
-    } catch ( err ) {
-      setSubmitError( err.message || 'This link is invalid or has expired.' );
+      await resetPassword(resetKey, resetLogin, password);
+      setSuccess(true);
+    } catch (err) {
+      setSubmitError(err.message || 'This link is invalid or has expired.');
     } finally {
-      setSubmitting( false );
+      setSubmitting(false);
     }
   };
 
   return (
-    <div
-      className="page-wrapper dtb-password-recovery"
-      style={ {
-        minHeight:       '100vh',
-        display:         'flex',
-        alignItems:      'center',
-        justifyContent:  'center',
-        padding:         'clamp(2rem, 6vw, 4rem) clamp(1.5rem, 5vw, 3rem)',
-        background:      '#f8fafc',
-      } }
-    >
-      <Motion.div
-        className="dtb-password-recovery__card"
-        variants={ cardVariants }
+    <main className="page-wrapper dtb-auth-template dtb-auth-template--recovery">
+      <Motion.section
+        className="dtb-auth-template__card"
+        variants={cardVariants}
         initial="hidden"
         animate="visible"
-        style={ {
-          background:   'white',
-          border:       '1px solid rgba(15,23,42,0.08)',
-          borderRadius: '8px',
-          padding:      'clamp(2rem, 5vw, 2.75rem)',
-          width:        '100%',
-          maxWidth:     '420px',
-          boxShadow:    '0 8px 32px rgba(15,23,42,0.07)',
-        } }
+        aria-labelledby="reset-password-title"
       >
-        {/* Header */}
-        <div style={ { marginBottom: '28px' } }>
-          <div style={ {
-            width:           '44px',
-            height:          '44px',
-            background:      'linear-gradient(135deg, #eff6ff, #dbeafe)',
-            borderRadius:    '10px',
-            display:         'flex',
-            alignItems:      'center',
-            justifyContent:  'center',
-            marginBottom:    '16px',
-          } }>
-            <KeyRound size={ 20 } style={ { color: '#2255ee' } } />
-          </div>
-          <h2 style={ {
-            fontSize:      '1.4rem',
-            fontWeight:    800,
-            color:         '#0f172a',
-            margin:        '0 0 6px',
-            letterSpacing: '-0.02em',
-          } }>
-            Set new password
-          </h2>
-          <p style={ { fontSize: '0.875rem', color: 'rgba(15,23,42,0.5)', margin: 0 } }>
-            Enter your new password below.
-          </p>
-        </div>
+        <header className="dtb-auth-template__header">
+          <span className="dtb-auth-template__icon" aria-hidden="true">
+            <KeyRound size={20} strokeWidth={1.9} />
+          </span>
+          <h1 id="reset-password-title" className="dtb-auth-template__title">Set new password</h1>
+          <p className="dtb-auth-template__subtitle">Choose a new password for your account.</p>
+        </header>
 
-        { missingParams && (
-          <div style={ {
-            padding:      '16px',
-            background:   '#fef2f2',
-            border:       '1px solid #fecaca',
-            borderRadius: '6px',
-            marginBottom: '20px',
-          } }>
-            <p style={ { margin: '0 0 12px', fontSize: '0.875rem', color: '#991b1b', lineHeight: 1.55 } }>
-              This reset link is incomplete or has expired.
-            </p>
-            <Link
-              to="/forgot-password"
-              style={ { fontSize: '0.875rem', fontWeight: 600, color: '#2255ee', textDecoration: 'none' } }
-            >
-              Request a new reset link →
-            </Link>
+        {missingParams && (
+          <div className="dtb-auth-template__error" role="alert">
+            <AlertCircle size={16} />
+            <div>
+              <p style={{ margin: '0 0 6px' }}>This reset link is incomplete or has expired.</p>
+              <Link className="dtb-auth-template__link" to="/forgot-password">
+                Request a new reset link →
+              </Link>
+            </div>
           </div>
-        ) }
+        )}
 
-        { ! missingParams && success && (
-          <Motion.div
-            initial={ { opacity: 0, y: 10 } }
-            animate={ { opacity: 1, y: 0 } }
-            transition={ { duration: 0.35, ease: [ 0.16, 1, 0.3, 1 ] } }
-          >
-            <div style={ {
-              display:      'flex',
-              alignItems:   'flex-start',
-              gap:          '12px',
-              padding:      '16px',
-              background:   '#f0fdf4',
-              border:       '1px solid #bbf7d0',
-              borderRadius: '6px',
-              marginBottom: '24px',
-            } }>
-              <CheckCircle size={ 18 } style={ { color: '#16a34a', flexShrink: 0, marginTop: '1px' } } />
+        {!missingParams && success && (
+          <Motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="dtb-auth-template__success" role="status">
+              <CheckCircle size={18} />
               <div>
-                <p style={ { margin: '0 0 4px', fontSize: '0.875rem', fontWeight: 600, color: '#15803d' } }>
-                  Password updated!
-                </p>
-                <p style={ { margin: 0, fontSize: '0.8rem', color: '#166534', lineHeight: 1.55 } }>
-                  Your password has been reset. You can now sign in with your new password.
-                </p>
+                <strong>Password updated!</strong>
+                <p>You can now sign in with your new password.</p>
               </div>
             </div>
 
             <Link
               to="/login"
-              className="alloy-button w-full justify-center"
-              style={ { textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' } }
+              className="dtb-auth-template__submit"
+              style={{ textDecoration: 'none', marginTop: '18px' }}
             >
               Sign In
             </Link>
           </Motion.div>
-        ) }
+        )}
 
-        { ! missingParams && ! success && (
+        {!missingParams && !success && (
           <>
-            {/* Error banner */}
-            <AnimatePresence>
-              { submitError && (
+            <AnimatePresence initial={false}>
+              {submitError ? (
                 <Motion.div
-                  variants={ bannerVariants }
+                  className="dtb-auth-template__error"
+                  variants={noticeVariants}
                   initial="initial"
                   animate="animate"
                   exit="exit"
-                  style={ {
-                    display:      'flex',
-                    alignItems:   'flex-start',
-                    gap:          '10px',
-                    padding:      '12px 14px',
-                    background:   '#fef2f2',
-                    border:       '1px solid #fecaca',
-                    borderRadius: '6px',
-                    marginBottom: '20px',
-                    overflow:     'hidden',
-                  } }
+                  role="alert"
                 >
-                  <AlertCircle size={ 16 } style={ { color: '#dc2626', flexShrink: 0, marginTop: '1px' } } />
+                  <AlertCircle size={16} />
                   <div>
-                    <p style={ { margin: '0 0 6px', fontSize: '0.825rem', color: '#991b1b', lineHeight: 1.5 } }>
-                      { submitError }
-                    </p>
-                    <Link
-                      to="/forgot-password"
-                      style={ { fontSize: '0.775rem', fontWeight: 600, color: '#dc2626', textDecoration: 'underline' } }
-                    >
+                    <p style={{ margin: '0 0 6px' }}>{submitError}</p>
+                    <Link className="dtb-auth-template__link" to="/forgot-password">
                       Request a new reset link
                     </Link>
                   </div>
                 </Motion.div>
-              ) }
+              ) : null}
             </AnimatePresence>
 
-            <form onSubmit={ handleSubmit } noValidate>
-              {/* New password */}
-              <Motion.div
-                className="form-group"
-                custom={ 0 }
-                variants={ fieldVariants }
-                initial="hidden"
-                animate="visible"
-              >
-                <label className="machined-label text-blue-600" htmlFor="rp-password">
-                  New Password
-                </label>
-                <div style={ { position: 'relative' } }>
+            <form className="dtb-auth-template__form" onSubmit={handleSubmit}>
+              <div className="dtb-auth-field">
+                <label className="dtb-auth-field__label" htmlFor="rp-password">New Password</label>
+                <div className="dtb-auth-field__control">
                   <input
                     id="rp-password"
-                    type={ showPw ? 'text' : 'password' }
-                    className="machined-input text-black"
+                    className="dtb-auth-field__input has-action"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="At least 8 characters"
-                    value={ password }
-                    onChange={ ( e ) => setPassword( e.target.value ) }
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     required
                     autoComplete="new-password"
-                    disabled={ submitting }
-                    style={ { paddingRight: '48px' } }
+                    disabled={submitting}
                   />
                   <button
+                    className="dtb-auth-field__action"
                     type="button"
-                    onClick={ () => setShowPw( ( v ) => ! v ) }
-                    style={ {
-                      position:   'absolute', right: '14px', top: '50%',
-                      transform:  'translateY(-50%)', background: 'none',
-                      border:     'none', cursor: 'pointer',
-                      color:      'rgba(15,23,42,0.4)', padding: '4px',
-                      display:    'flex', lineHeight: 1,
-                    } }
-                    aria-label={ showPw ? 'Hide password' : 'Show password' }
+                    onClick={() => setShowPassword((visible) => !visible)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                    disabled={submitting}
                   >
-                    { showPw ? <EyeOff size={ 16 } /> : <Eye size={ 16 } /> }
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                   </button>
                 </div>
-              </Motion.div>
+              </div>
 
-              {/* Confirm password */}
-              <Motion.div
-                className="form-group"
-                custom={ 1 }
-                variants={ fieldVariants }
-                initial="hidden"
-                animate="visible"
-              >
-                <label className="machined-label text-blue-600" htmlFor="rp-confirm">
-                  Confirm Password
-                </label>
-                <div style={ { position: 'relative' } }>
+              <div className="dtb-auth-field">
+                <label className="dtb-auth-field__label" htmlFor="rp-confirm">Confirm Password</label>
+                <div className="dtb-auth-field__control">
                   <input
                     id="rp-confirm"
-                    type={ showConfirm ? 'text' : 'password' }
-                    className="machined-input text-black"
+                    className="dtb-auth-field__input has-action"
+                    type={showConfirm ? 'text' : 'password'}
                     placeholder="Repeat your new password"
-                    value={ confirm }
-                    onChange={ ( e ) => setConfirm( e.target.value ) }
+                    value={confirm}
+                    onChange={(event) => setConfirm(event.target.value)}
                     required
                     autoComplete="new-password"
-                    disabled={ submitting }
-                    style={ {
-                      paddingRight: '48px',
-                      borderColor:  confirmMismatch ? '#f87171' : undefined,
-                    } }
+                    disabled={submitting}
+                    style={confirmMismatch ? { borderColor: '#f87171' } : undefined}
                   />
-                  <button
-                    type="button"
-                    onClick={ () => setShowConfirm( ( v ) => ! v ) }
-                    style={ {
-                      position:   'absolute', right: '14px', top: '50%',
-                      transform:  'translateY(-50%)', background: 'none',
-                      border:     'none', cursor: 'pointer',
-                      color:      'rgba(15,23,42,0.4)', padding: '4px',
-                      display:    'flex', lineHeight: 1,
-                    } }
-                    aria-label={ showConfirm ? 'Hide confirm password' : 'Show confirm password' }
-                  >
-                    { showConfirm ? <EyeOff size={ 16 } /> : <Eye size={ 16 } /> }
-                  </button>
-                  { confirmMatch && (
+                  {confirmMatch && (
                     <CheckCircle
-                      size={ 16 }
-                      style={ {
-                        position: 'absolute', right: '42px', top: '50%',
+                      size={16}
+                      style={{
+                        position: 'absolute', right: '44px', top: '50%',
                         transform: 'translateY(-50%)', color: '#16a34a',
-                      } }
+                      }}
                     />
-                  ) }
+                  )}
+                  <button
+                    className="dtb-auth-field__action"
+                    type="button"
+                    onClick={() => setShowConfirm((visible) => !visible)}
+                    aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                    aria-pressed={showConfirm}
+                    disabled={submitting}
+                  >
+                    {showConfirm ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
                 </div>
                 <AnimatePresence>
-                  { confirmMismatch && (
+                  {confirmMismatch && (
                     <Motion.p
-                      initial={ { opacity: 0, height: 0 } }
-                      animate={ { opacity: 1, height: 'auto' } }
-                      exit={ { opacity: 0, height: 0 } }
-                      transition={ { duration: 0.2 } }
-                      style={ { margin: '6px 0 0', fontSize: '0.75rem', color: '#dc2626', overflow: 'hidden' } }
+                      className="dtb-auth-template__field-message"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: 'hidden' }}
                     >
                       Passwords don&apos;t match
                     </Motion.p>
-                  ) }
+                  )}
                 </AnimatePresence>
-              </Motion.div>
+              </div>
 
-              <Motion.div
-                custom={ 2 }
-                variants={ fieldVariants }
-                initial="hidden"
-                animate="visible"
-                style={ { marginTop: '8px' } }
-              >
-                <button
-                  type="submit"
-                  className="alloy-button w-full justify-center"
-                  disabled={ submitting }
-                  style={ { opacity: submitting ? 0.75 : 1, transition: 'opacity 0.2s' } }
-                >
-                  { submitting ? <BreathingLoader /> : 'Reset Password' }
-                </button>
-              </Motion.div>
+              <button className="dtb-auth-template__submit" type="submit" disabled={submitting}>
+                {submitting ? <SubmitLoader /> : 'Reset Password'}
+              </button>
             </form>
           </>
-        ) }
-      </Motion.div>
-    </div>
+        )}
+      </Motion.section>
+    </main>
   );
 }

@@ -142,10 +142,6 @@ export default function ForgotPassword() {
               </button>
             </form>
 
-            <p className="dtb-auth-template__recovery-note">
-              We&apos;ll send you a secure link to reset your password.
-            </p>
-
             <footer className="dtb-auth-template__footer dtb-auth-template__footer--bordered">
               <p>
                 Remembered your password?{' '}

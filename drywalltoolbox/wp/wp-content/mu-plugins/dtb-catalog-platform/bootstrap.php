@@ -84,6 +84,7 @@ require_once $_dtb_cp . '/Validation/SeoValidator.php';
 require_once $_dtb_cp . '/Validation/ProductMappingValidator.php';
 
 // Application hook wiring and use cases.
+require_once $_dtb_cp . '/Application/RegisterCategoryHeroImageSize.php';
 require_once $_dtb_cp . '/Application/RegisterCatalogMeta.php';
 require_once $_dtb_cp . '/Application/RegisterCatalogRoutes.php';
 require_once $_dtb_cp . '/Application/RegisterCatalogHooks.php';
@@ -120,6 +121,7 @@ if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	require_once $_dtb_cp . '/Admin/InventoryIntelligencePage.php';
 	require_once $_dtb_cp . '/Admin/InventoryIntelligenceActions.php';
 	require_once $_dtb_cp . '/Admin/ImportExportPage.php';
+	require_once $_dtb_cp . '/Admin/CategoryHeroImageField.php';
 }
 
 unset( $_dtb_cp );

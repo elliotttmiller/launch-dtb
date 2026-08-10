@@ -224,9 +224,8 @@ export default function ReturnPortal() {
             maxWidth:   '500px',
             lineHeight: 1.6,
           }}>
-            Start a return or exchange in seconds. Enter your order details below
-            and our team will get back to you within one business day with your
-            Return ID and next steps.
+            Tell us what's going on with your order and we'll get back to you
+            within one business day with a Return ID and next steps.
           </p>
         </div>
       </section>

@@ -465,6 +465,110 @@
   font-size: 0.8rem;
 }
 
+.store-policy-check-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.store-policy-check-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: #475569;
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.store-policy-check-list svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.store-policy-table {
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.store-policy-table__row {
+  display: grid;
+  gap: 8px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  align-items: center;
+}
+
+.store-policy-table__row:last-child {
+  border-bottom: none;
+}
+
+.store-policy-table__row--head {
+  padding: 12px 18px;
+  background: #f8fafc;
+}
+
+.store-policy-table__row--head span {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.store-policy-table--rates {
+  grid-template-columns: 2fr 1.5fr 1.5fr 1.5fr;
+}
+
+.store-policy-table--rules {
+  grid-template-columns: minmax(140px, 1fr) 2fr;
+}
+
+.store-policy-table__cell {
+  color: #64748b;
+  font-size: 0.82rem;
+}
+
+.store-policy-table__cell--label {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.store-policy-table__cell--highlight {
+  color: #16a34a;
+  font-weight: 700;
+}
+
+.store-policy-faq-list {
+  display: grid;
+  gap: 12px;
+}
+
+.store-policy-faq {
+  padding: 18px 22px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.store-policy-faq__q {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.store-policy-faq__a {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
 .store-policy-footer-cta {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -510,6 +614,19 @@
 
   .store-policy-footer-cta {
     justify-items: start;
+  }
+
+  .store-policy-table--rates {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+  }
+
+  .store-policy-table--rates .store-policy-table__row--head {
+    display: none;
+  }
+
+  .store-policy-table--rules {
+    grid-template-columns: 1fr;
   }
 }
 

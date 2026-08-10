@@ -109,13 +109,45 @@ final class DTB_CatalogFacetsController {
 		}
 		usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 
+		// Hero banner image is a distinct term-meta field (`dtb_hero_image_id`,
+		// set via Admin/CategoryHeroImageField.php) from `image` above (the
+		// WooCommerce `thumbnail_id` field, used for subcategory tiles). Only
+		// resolved here — the single-category detail response — not inside
+		// `term_to_navigation_dto()`, since that helper also builds
+		// `product_category_path()` breadcrumbs in a per-product loop where an
+		// extra term-meta lookup per call would add avoidable overhead.
+		//
+		// Served at DTB_CATEGORY_HERO_IMAGE_SIZE ('dtb_category_hero': soft
+		// resize, longest side capped at 1920px — see
+		// Application/RegisterCategoryHeroImageSize.php) rather than 'large'
+		// (WP core default, capped at 1024px) so the banner isn't upscaled and
+		// blurry at full viewport width on desktop. The srcset lets the
+		// browser pick a smaller generated size on narrow viewports instead
+		// of always downloading the 1920px file.
+		$hero_image         = '';
+		$hero_image_srcset  = '';
+		$hero_image_id      = absint( get_term_meta( $term->term_id, 'dtb_hero_image_id', true ) );
+		if ( $hero_image_id > 0 ) {
+			$hero_image_url = wp_get_attachment_image_url( $hero_image_id, DTB_CATEGORY_HERO_IMAGE_SIZE );
+			if ( is_string( $hero_image_url ) && '' !== $hero_image_url ) {
+				$hero_image = esc_url_raw( $hero_image_url );
+			}
+
+			$srcset = wp_get_attachment_image_srcset( $hero_image_id, DTB_CATEGORY_HERO_IMAGE_SIZE );
+			if ( is_string( $srcset ) && '' !== $srcset ) {
+				$hero_image_srcset = esc_attr( $srcset );
+			}
+		}
+
 		return new WP_REST_Response( [
-			'slug'         => $dto['slug'],
-			'label'        => $dto['label'],
-			'description'  => $dto['description'],
-			'image'        => $dto['image'],
-			'productCount' => absint( $term->count ),
-			'parent'       => $parent,
+			'slug'            => $dto['slug'],
+			'label'           => $dto['label'],
+			'description'     => $dto['description'],
+			'image'           => $dto['image'],
+			'heroImage'       => $hero_image,
+			'heroImageSrcset' => $hero_image_srcset,
+			'productCount'    => absint( $term->count ),
+			'parent'          => $parent,
 			'children'     => $children,
 		], 200 );
 	}

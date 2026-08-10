@@ -127,7 +127,7 @@ export default function Contact() {
             maxWidth: '500px',
             lineHeight: 1.6
           }}>
-            Technical support, bulk orders, or custom tool fabrication inquiries - our team of industry veterans has you covered.
+            Technical support, bulk orders, returns, or custom tool fabrication — talk to a real person who knows the tools.
           </p>
         </div>
       </section>
@@ -232,7 +232,7 @@ export default function Contact() {
                 <div>
                   <p style={{ fontWeight: 700, fontSize: '1rem', color: 'black', margin: '0 0 6px' }}>Message Sent!</p>
                   <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.6)', margin: 0 }}>
-                    Our engineers will get back to you within one business day.
+                    Our team will get back to you within one business day.
                   </p>
                   {tracking && (
                     <p style={{ fontSize: '0.875rem', margin: '12px 0 0' }}>

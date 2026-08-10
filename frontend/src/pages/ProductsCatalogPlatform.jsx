@@ -247,12 +247,11 @@ function formatCategoryLabel(value) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function CatalogError({ title, message, details, onRetry }) {
+function CatalogError({ title, message, onRetry }) {
   return (
     <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-900">
       <h2 className="text-lg font-bold mb-2">{title}</h2>
       <p className="text-sm mb-3">{message}</p>
-      {details && <pre className="text-xs whitespace-pre-wrap bg-white/70 rounded-lg p-3 mb-4 overflow-auto">{details}</pre>}
       {onRetry && (
         <button type="button" onClick={onRetry} className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700">
           Reload catalog
@@ -564,7 +563,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
         {isCategoryPageRoute && (
           categoryMeta ? (
             <>
-              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={itemsLoading ? categoryMeta.productCount : total} />
+              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} />
               <ShopByToolType category={categoryMeta} onOpenFilters={() => setShowFilters(true)} />
             </>
           ) : categoryMetaError ? (
@@ -620,11 +619,11 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
         )}
 
         {facetsError && brandFacets.length === 0 && (
-          <CatalogError title="Unable to load catalog brands" message="The product brand selector depends on /wp-json/dtb/v1/catalog/facets. The request failed or returned an invalid response." details={facetsError?.message || String(facetsError)} onRetry={() => window.location.reload()} />
+          <CatalogError title="Unable to load brands" message="We couldn't load the brand list just now — give it another try." onRetry={() => window.location.reload()} />
         )}
 
         {productsError && !itemsLoading && mappedProducts.length === 0 && showProductGrid && (
-          <CatalogError title="Unable to load products" message="The product grid depends on /wp-json/dtb/v1/catalog/products. Check the live backend endpoint and WordPress error logs." details={productsError?.message || String(productsError)} onRetry={() => window.location.reload()} />
+          <CatalogError title="Unable to load products" message="We couldn't load products right now — give it another try." onRetry={() => window.location.reload()} />
         )}
 
         {showBrandLanding ? (

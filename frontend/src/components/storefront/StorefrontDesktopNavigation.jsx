@@ -119,7 +119,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
           ) : (
             <div className="dtb-desktop-nav-dropdown__empty" role="status">
               <strong>{item.emptyTitle || `${item.label} temporarily unavailable`}</strong>
-              <span>{item.emptyMessage || 'Catalog navigation is still loading or the catalog service is temporarily unavailable.'}</span>
+              <span>{item.emptyMessage || 'Still loading — give it a moment, or try again in a bit.'}</span>
             </div>
           )}
         </div>
