@@ -139,9 +139,6 @@ add_action( 'init', function (): void {
 				'name' => 'Hero', 'type' => 'hero', 'kind' => 'content',
 				'properties' => [
 					'background_color' => dtb_vd_color_ref_prop( 'Background', 'color-shell' ),
-					'min_height'        => dtb_vd_spacing_prop( 'Minimum Height', 420, 240, 720 ),
-					'content_align'     => dtb_vd_enum_schema( 'Content Alignment', [ 'left', 'center', 'right' ], 'left' ),
-					'image_aspect'      => [ 'type' => 'aspect_ratio', 'name' => 'Image Aspect Ratio', 'default' => '16:9' ],
 					'cta_visible'       => dtb_vd_bool_prop( 'Show CTA Button', true ),
 				],
 				'visibility_toggle' => true,
