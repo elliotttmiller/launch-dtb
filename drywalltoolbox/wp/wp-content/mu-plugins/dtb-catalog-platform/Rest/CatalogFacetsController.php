@@ -81,10 +81,10 @@ final class DTB_CatalogFacetsController {
 		if ( $term->parent > 0 ) {
 			$parent_term = get_term( $term->parent, 'product_cat' );
 			if ( $parent_term instanceof WP_Term && ! is_wp_error( $parent_term ) ) {
-				$parent_slug = sanitize_title( $parent_term->slug );
-				$parent      = [
-					'slug'  => $parent_slug,
-					'label' => self::navigation_label( (string) $parent_term->name, $parent_slug ),
+				$parent_dto = self::term_to_navigation_dto( $parent_term );
+				$parent     = [
+					'slug'  => $parent_dto['slug'],
+					'label' => $parent_dto['label'],
 				];
 			}
 		}
@@ -101,12 +101,10 @@ final class DTB_CatalogFacetsController {
 				if ( ! $child_term instanceof WP_Term ) {
 					continue;
 				}
-				$child_slug = sanitize_title( $child_term->slug );
-				$children[] = [
-					'slug'         => $child_slug,
-					'label'        => self::navigation_label( (string) $child_term->name, $child_slug ),
-					'productCount' => absint( $child_term->count ),
-				];
+				$children[] = array_merge(
+					self::term_to_navigation_dto( $child_term ),
+					[ 'productCount' => absint( $child_term->count ) ]
+				);
 			}
 		}
 		usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
