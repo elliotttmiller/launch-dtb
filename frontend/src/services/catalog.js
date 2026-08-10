@@ -429,17 +429,6 @@ export async function searchProducts(query) {
 }
 
 /**
- * Return products in a given category (internal key, e.g. "finishing").
- *
- * @param {string} categoryKey
- * @returns {Promise<Object[]>}
- */
-export async function getProductsByCategory(categoryKey) {
-  const all = await loadCatalog();
-  return all.filter(p => p.category === categoryKey);
-}
-
-/**
  * Force a full reload of the catalog (clears both memory and IndexedDB cache).
  * Useful after a WooCommerce product sync.
  */

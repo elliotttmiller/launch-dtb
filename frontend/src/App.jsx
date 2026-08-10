@@ -74,7 +74,7 @@ const Products = lazyWithReload(() => import('./pages/Products'));
 const Parts = lazyWithReload(() => import('./pages/Parts'));
 const Product = lazyWithReload(() => import('./pages/Product'));
 const ProductDetailPage = lazyWithReload(() => import('./pages/ProductDetailPage'));
-const CategoryPage = lazyWithReload(() => import('./pages/CategoryPage'));
+const CategoryLandingPage = lazyWithReload(() => import('./pages/CategoryLandingPage'));
 const Schematics = lazyWithReload(() => import('./pages/Schematics'));
 const Repairs = lazyWithReload(() => import('./pages/Repairs'));
 const RepairStart = lazyWithReload(() => import('./pages/RepairStart'));
@@ -240,7 +240,7 @@ function AppRoutes() {
         <Route path="/all-products" element={<RedirectToProducts />} />
         <Route path="/parts" element={<Parts />} />
         <Route path="/product/:partNumber" element={<Product />} />
-        <Route path="/category/:slug" element={<CategoryPage />} />
+        <Route path="/category/:categoryPathSlug" element={<CategoryLandingPage />} />
         <Route path="/schematics" element={<Schematics />} />
         <Route path="/repairs" element={<Repairs />} />
         <Route path="/repairs/start" element={<RepairStart />} />

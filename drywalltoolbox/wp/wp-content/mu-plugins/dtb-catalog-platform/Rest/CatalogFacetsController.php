@@ -34,6 +34,92 @@ final class DTB_CatalogFacetsController {
 				'is_parts'         => [ 'sanitize_callback' => 'sanitize_text_field' ],
 			],
 		] );
+
+		register_rest_route( 'dtb/v1', '/catalog/category', [
+			'methods'             => 'GET',
+			'callback'            => [ self::class, 'handle_category' ],
+			'permission_callback' => '__return_true',
+			'args'                => [
+				'slug' => [ 'sanitize_callback' => 'sanitize_title' ],
+			],
+		] );
+	}
+
+	/**
+	 * GET /dtb/v1/catalog/category?slug=<product_cat slug>
+	 *
+	 * Returns per-category storefront metadata (label, description, image,
+	 * product count, immediate parent, immediate children) sourced entirely
+	 * from the native `product_cat` taxonomy. No self-HTTP or Woo REST call.
+	 *
+	 * `productCount` uses the native `$term->count` (WordPress core
+	 * `term_taxonomy.count`, maintained by `wp_update_term_count()`). This
+	 * counts only products directly assigned to that exact term — it is
+	 * NOT descendant-inclusive, unlike `DTB_CatalogProductRepository`'s
+	 * `category` filter, which resolves descendant term IDs before
+	 * querying. Callers that need a descendant-inclusive count should use
+	 * the `/catalog/facets` or `/catalog/products` endpoints instead.
+	 */
+	public static function handle_category( WP_REST_Request $request ): WP_REST_Response {
+		if ( ! dtb_check_origin() ) {
+			return new WP_REST_Response( dtb_error_envelope( 'forbidden_origin', 'Origin not allowed.', 403 ), 403 );
+		}
+
+		$slug = sanitize_title( (string) $request->get_param( 'slug' ) );
+		if ( '' === $slug ) {
+			return new WP_REST_Response( dtb_error_envelope( 'invalid_slug', 'Category slug is required.', 400 ), 400 );
+		}
+
+		$term = get_term_by( 'slug', $slug, 'product_cat' );
+		if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
+			return new WP_REST_Response( dtb_error_envelope( 'not_found', 'Category not found.', 404 ), 404 );
+		}
+
+		$dto = self::term_to_navigation_dto( $term );
+
+		$parent = null;
+		if ( $term->parent > 0 ) {
+			$parent_term = get_term( $term->parent, 'product_cat' );
+			if ( $parent_term instanceof WP_Term && ! is_wp_error( $parent_term ) ) {
+				$parent_slug = sanitize_title( $parent_term->slug );
+				$parent      = [
+					'slug'  => $parent_slug,
+					'label' => self::navigation_label( (string) $parent_term->name, $parent_slug ),
+				];
+			}
+		}
+
+		$children_terms = get_terms( [
+			'taxonomy'   => 'product_cat',
+			'parent'     => $term->term_id,
+			'hide_empty' => false,
+		] );
+
+		$children = [];
+		if ( is_array( $children_terms ) ) {
+			foreach ( $children_terms as $child_term ) {
+				if ( ! $child_term instanceof WP_Term ) {
+					continue;
+				}
+				$child_slug = sanitize_title( $child_term->slug );
+				$children[] = [
+					'slug'         => $child_slug,
+					'label'        => self::navigation_label( (string) $child_term->name, $child_slug ),
+					'productCount' => absint( $child_term->count ),
+				];
+			}
+		}
+		usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
+
+		return new WP_REST_Response( [
+			'slug'         => $dto['slug'],
+			'label'        => $dto['label'],
+			'description'  => $dto['description'],
+			'image'        => $dto['image'],
+			'productCount' => absint( $term->count ),
+			'parent'       => $parent,
+			'children'     => $children,
+		], 200 );
 	}
 
 	public static function handle( WP_REST_Request $request ): WP_REST_Response {
@@ -175,6 +261,8 @@ final class DTB_CatalogFacetsController {
 								'key'          => $group_slug,
 								'label'        => $group['label'],
 								'slug'         => $group_slug,
+								'description'  => $group['description'] ?? '',
+								'image'        => $group['image'] ?? '',
 								'productCount' => 0,
 								'children'     => [],
 							];
@@ -188,6 +276,8 @@ final class DTB_CatalogFacetsController {
 									'key'          => $child_slug,
 									'label'        => $child['label'],
 									'slug'         => $child_slug,
+									'description'  => $child['description'] ?? '',
+									'image'        => $child['image'] ?? '',
 									'productCount' => 0,
 								];
 							}
@@ -330,7 +420,7 @@ final class DTB_CatalogFacetsController {
 	/**
 	 * Return a root-to-leaf product_cat path with request-local term caching.
 	 *
-	 * @return array<int,array{label:string,slug:string}>
+	 * @return array<int,array{label:string,slug:string,description:string,image:string}>
 	 */
 	private static function product_category_path( int $term_id ): array {
 		static $path_cache = [];
@@ -353,14 +443,41 @@ final class DTB_CatalogFacetsController {
 			if ( ! $path_term instanceof WP_Term || is_wp_error( $path_term ) ) {
 				continue;
 			}
-			$slug   = sanitize_title( $path_term->slug );
-			$path[] = [
-				'label' => self::navigation_label( (string) $path_term->name, $slug ),
-				'slug'  => $slug,
-			];
+			$path[] = self::term_to_navigation_dto( $path_term );
 		}
 
 		$path_cache[ $term_id ] = $path;
 		return $path;
+	}
+
+	/**
+	 * Map a product_cat WP_Term to the shared navigation DTO shape used by
+	 * both navigationGroups (facets) and the dedicated /catalog/category
+	 * endpoint. Sourced purely from native term fields: name, description,
+	 * and the standard WooCommerce `thumbnail_id` term-meta key (no ACF, no
+	 * new taxonomy or term meta).
+	 *
+	 * @return array{label:string,slug:string,description:string,image:string}
+	 */
+	private static function term_to_navigation_dto( WP_Term $term ): array {
+		$slug        = sanitize_title( $term->slug );
+		$label       = self::navigation_label( (string) $term->name, $slug );
+		$description = sanitize_text_field( wp_specialchars_decode( wp_strip_all_tags( (string) $term->description ), ENT_QUOTES ) );
+
+		$image        = '';
+		$thumbnail_id = absint( get_term_meta( $term->term_id, 'thumbnail_id', true ) );
+		if ( $thumbnail_id > 0 ) {
+			$image_url = wp_get_attachment_image_url( $thumbnail_id, 'large' );
+			if ( is_string( $image_url ) && '' !== $image_url ) {
+				$image = esc_url_raw( $image_url );
+			}
+		}
+
+		return [
+			'label'       => $label,
+			'slug'        => $slug,
+			'description' => $description,
+			'image'       => $image,
+		];
 	}
 }
