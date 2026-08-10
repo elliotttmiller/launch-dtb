@@ -82,6 +82,12 @@ export default function Home() {
         <HeroSection
           titleLines={['The New Standard', 'in Drywall.']}
           subtitle="Premium tools for every drywall job — unbeatable prices, lightning-fast shipping, expert support."
+          imageSrc="/hero/columbia-predator-automatic-taper.webp"
+          imageAlt="Columbia Predator automatic taping tool"
+          ctaLinks={[
+            { to: '/products', label: 'Shop All Products' },
+            { to: '/parts', label: 'Shop Parts' },
+          ]}
           brands={heroBrands}
         />
 

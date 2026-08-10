@@ -75,6 +75,8 @@ export default function HeroSection({
   brands = [],
   showCarousel = true,
   className = '',
+  imageSrc,
+  imageAlt = '',
 }) {
   const { rootProps, hidden, getValue, getColorVar } = useEditableComponent('home', 'hero-section');
 
@@ -167,6 +169,17 @@ export default function HeroSection({
           </Motion.div>
         )}
       </Motion.div>
+
+      {imageSrc && (
+        <Motion.div
+          variants={item}
+          initial="hidden"
+          animate="visible"
+          className="dtb-ui-hero__image"
+        >
+          <img src={imageSrc} alt={imageAlt} loading="eager" decoding="async" />
+        </Motion.div>
+      )}
 
       {showCarousel && (
         <div className="dtb-ui-hero__carousel" style={{ position: 'relative', zIndex: 1, width: '100%', marginBottom: 'clamp(0.4rem, 1.2vw, 0.75rem)' }}>
