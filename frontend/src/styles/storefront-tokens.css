@@ -2,7 +2,7 @@
   color-scheme: light;
 
   /* Brand and semantic color authorities. */
-  --dtb-bg: #f4f6fb;
+  --dtb-bg: #ffffff;
   --dtb-page-bg: var(--dtb-bg);
   --dtb-surface: #ffffff;
   --dtb-surface-subtle: #f8fafc;

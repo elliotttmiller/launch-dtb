@@ -41,7 +41,7 @@ export default function ReturnStatus() {
   const timeline = toTimeline( data );
 
   return (
-    <main className="min-h-screen bg-neutral-50">
+    <main className="min-h-screen">
       <SEOHead title={ data ? `Return ${ data.return_number } - ${ label } | Drywall Toolbox` : 'Return Status | Drywall Toolbox' } />
       <section className="border-b border-neutral-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-8">

@@ -108,7 +108,7 @@ export default function SupportStatus() {
   } ), [ addOptimisticReply, id, refresh, token ] );
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <SEOHead title={ data ? `${ displayId } - ${ label } | Drywall Toolbox` : 'Support Status | Drywall Toolbox' } />
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-8">

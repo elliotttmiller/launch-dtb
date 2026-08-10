@@ -32,7 +32,7 @@ export default function CheckoutReturn({ fallbackState = 'complete' }) {
 	}
 
 	return (
-		<div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-16 page-wrapper">
+		<div className="min-h-screen flex items-center justify-center px-4 py-16 page-wrapper">
 			<SEOHead noindex title={title} />
 			<div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-[0_18px_48px_rgba(15,23,42,0.10)] sm:p-10">
 				<div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-slate-50">

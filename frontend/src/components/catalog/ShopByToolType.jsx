@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import StorefrontRail from '../storefront/StorefrontRail.jsx';
 import { buildCategoryPageUrl } from '../../utils/catalogFacets.js';
+import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import '../../styles/category-hero.css';
 
 function ToolTypeTile({ child }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const hasImage = Boolean(child.image) && !imageFailed;
+  const image = resolveCategoryThumbnail(child);
+  const hasImage = Boolean(image) && !imageFailed;
 
   return (
     <Link
@@ -17,11 +19,11 @@ function ToolTypeTile({ child }) {
       <span className="dtb-tool-type-tile__media">
         {hasImage && (
           <img
-            src={child.image}
+            src={image}
             alt=""
             className="dtb-tool-type-tile__image"
-            width={200}
-            height={200}
+            width={348}
+            height={128}
             loading="lazy"
             decoding="async"
             onError={() => setImageFailed(true)}

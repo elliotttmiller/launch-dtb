@@ -557,7 +557,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 page-wrapper">
+    <div className="min-h-screen page-wrapper">
       <SEOHead title={categorySeoTitle} description={categorySeoDescription} canonical={canonicalUrl} schema={categorySeoSchema} noindex={isCategoryPageRoute && (categoryMetaLoading || itemsLoading || Boolean(categoryMetaError))} />
       <div className="container mx-auto px-4 py-4 pt-6">
         {isCategoryPageRoute && (

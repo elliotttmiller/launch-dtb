@@ -130,7 +130,7 @@ export default function Product() {
   ]);
 
   return (
-    <div className="min-h-screen bg-gray-50 page-wrapper">
+    <div className="min-h-screen page-wrapper">
       <SEOHead
         title={seoTitle}
         description={seoDesc}

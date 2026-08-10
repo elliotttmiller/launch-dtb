@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
+import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import './products-selector.css';
 import './products-selector-slideshow.css';
 
@@ -82,7 +83,7 @@ function resolveCategoryImage(brand, category) {
   const normalizedCatKey = catKey.replace(/_/g, '-');
   const underscoredCatKey = catKey.replace(/-/g, '_');
   const overrides = CATEGORY_IMAGE_OVERRIDES[slug] || {};
-  return overrides[catKey] || overrides[normalizedCatKey] || overrides[underscoredCatKey] || category.image || '';
+  return overrides[catKey] || overrides[normalizedCatKey] || overrides[underscoredCatKey] || resolveCategoryThumbnail(category);
 }
 
 const WORDPRESS_RESIZED_IMAGE_RE = /-\d+x\d+(?=\.(?:avif|jpe?g|png|webp)(?:[?#]|$))/i;

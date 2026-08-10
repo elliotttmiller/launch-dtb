@@ -7,7 +7,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
-if ( class_exists( 'DTB_SitemapService' ) ) {
+// Use autoload=false: this file is the canonical declaration site and must
+// never trigger a class autoloader lookup while deciding whether to
+// (re)declare itself. Kept symmetric with the admin recovery guard's check
+// in 00-aaa-dtb-sitemap-admin-guard.php so both guards agree on identity.
+if ( class_exists( 'DTB_SitemapService', false ) ) {
 	return;
 }
 

@@ -43,7 +43,7 @@ export default function TechnicalSpecificationsPreview() {
         description="Preview page for the Drywall Toolbox product technical specifications component."
       />
 
-      <div className="page-wrapper bg-slate-50">
+      <div className="page-wrapper">
         <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <div className="mb-8 max-w-3xl">
             <p className="mb-3 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-600">
