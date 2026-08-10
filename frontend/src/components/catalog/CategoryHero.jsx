@@ -1,5 +1,6 @@
 import { LayoutGrid } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
 
 /**
@@ -10,8 +11,9 @@ import '../../styles/category-hero.css';
 export default function CategoryHero({ category, breadcrumbs = [], productCount: productCountOverride }) {
   if (!category) return null;
 
-  const { label, description, image, productCount: metaProductCount } = category;
+  const { label, description, productCount: metaProductCount } = category;
   const productCount = Number.isFinite(productCountOverride) ? productCountOverride : metaProductCount;
+  const image = resolveCategoryHeroImage(category);
 
   return (
     <div className="dtb-category-hero mb-6 sm:mb-8">
