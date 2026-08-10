@@ -3,7 +3,7 @@ import HomeHeroButton from './HomeHeroButton';
 import HomeHeroQuickLinks from './HomeHeroQuickLinks';
 
 const HERO_COPY = {
-  title: ['The New Standard', 'in Drywall.'],
+  title: ['The New Standard', 'for Drywall Tools.'],
   description: 'Premium tools for every drywall job — unbeatable prices, lightning-fast shipping, expert support.',
 };
 
