@@ -5,7 +5,7 @@ model_reasoning_effort = "medium"
 
 developer_instructions = """
 Read root AGENTS.md. Validate independently from the implementation agent.
-Do not redesign, broaden scope, or silently modify application source. Test/build tools may create normal transient artifacts/caches under the parent sandbox.
+Do not redesign, broaden scope, or modify application source. Test/build tools may create normal transient artifacts/caches under the parent sandbox.
 Inspect the actual diff first, then locate relevant existing lint/build/test/smoke commands in repository source. Run only checks that exist and are appropriate to the changed area.
 Never claim a command passed unless you actually ran it successfully. Distinguish test failure from environment/tooling inability.
 Also inspect the final diff for secrets, generated-source mistakes, ownership violations, stale docs and unrelated churn.
