@@ -8,7 +8,6 @@ import '../../styles/category-hero.css';
 function ToolTypeTile({ child }) {
   const [imageFailed, setImageFailed] = useState(false);
   const hasImage = Boolean(child.image) && !imageFailed;
-  const count = Number(child.productCount || 0);
 
   return (
     <Link
@@ -30,7 +29,6 @@ function ToolTypeTile({ child }) {
         )}
       </span>
       <span className="dtb-tool-type-tile__label">{child.label}</span>
-      <span className="dtb-tool-type-tile__count">{count.toLocaleString()} product{count === 1 ? '' : 's'}</span>
     </Link>
   );
 }
