@@ -4,23 +4,13 @@ const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '
 
 const EXPRESS_CHECKOUT_METHODS = Object.freeze([
   {
-    readinessKey: 'paypal',
-    id: 'paypal',
-    label: 'PayPal',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/paypal-blue.svg`,
-  },
-  {
-    readinessKey: 'klarna',
-    id: 'klarna',
-    label: 'Klarna',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/klarna.svg`,
-    framed: true,
-  },
-  {
-    readinessKey: 'googlePay',
-    id: 'google-pay',
-    label: 'Google Pay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
+    // Cash App Pay has no backend readiness flag yet (unlike the Stripe UPM
+    // wallets below, which are gated on live capability checks) — always
+    // shown rather than silently hidden for lack of a signal.
+    readinessKey: null,
+    id: 'cash-app',
+    label: 'Cash App',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/cashapp-color-black.svg`,
   },
   {
     readinessKey: 'applePay',
@@ -30,10 +20,16 @@ const EXPRESS_CHECKOUT_METHODS = Object.freeze([
     framed: true,
   },
   {
-    readinessKey: 'afterpay',
-    id: 'afterpay',
-    label: 'Afterpay',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay.svg`,
+    readinessKey: 'googlePay',
+    id: 'google-pay',
+    label: 'Google Pay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
+  },
+  {
+    readinessKey: 'klarna',
+    id: 'klarna',
+    label: 'Klarna',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/klarna.svg`,
     framed: true,
   },
   {
@@ -42,11 +38,24 @@ const EXPRESS_CHECKOUT_METHODS = Object.freeze([
     label: 'Affirm',
     src: `${PUBLIC_ASSET_BASE}/payment_logos/affirm.svg`,
   },
+  {
+    readinessKey: 'paypal',
+    id: 'paypal',
+    label: 'PayPal',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/paypal-blue.svg`,
+  },
+  {
+    readinessKey: 'afterpay',
+    id: 'afterpay',
+    label: 'Afterpay',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/afterpay.svg`,
+    framed: true,
+  },
 ]);
 
 export default function ExpressCheckoutMethods({ paymentMethods = {}, className = '' }) {
   const availableMethods = EXPRESS_CHECKOUT_METHODS.filter(
-    (method) => paymentMethods?.[method.readinessKey] === true,
+    (method) => method.readinessKey === null || paymentMethods?.[method.readinessKey] === true,
   );
 
   if (availableMethods.length === 0) return null;

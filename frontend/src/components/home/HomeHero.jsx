@@ -3,7 +3,7 @@ import HomeHeroButton from './HomeHeroButton';
 import HomeHeroQuickLinks from './HomeHeroQuickLinks';
 
 const HERO_COPY = {
-  title: ['The New Standard', 'for Drywall Tools.'],
+  title: 'A New Standard in Drywall.',
   description: 'Premium tools for every drywall job — unbeatable prices, lightning-fast shipping, expert support.',
 };
 
@@ -23,7 +23,7 @@ export default function HomeHero({ brands = [] }) {
 
         <div className="home-hero__content">
           <h1 id="home-hero-title" className="home-hero__title">
-            {HERO_COPY.title.map((line) => <span key={line}>{line}</span>)}
+            {HERO_COPY.title}
           </h1>
           <p className="home-hero__description">{HERO_COPY.description}</p>
           <div className="home-hero__actions">

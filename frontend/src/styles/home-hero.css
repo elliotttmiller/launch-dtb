@@ -95,8 +95,6 @@
   letter-spacing: -0.047em;
 }
 
-.home-hero__title span { display: block; }
-
 .home-hero__description {
   max-width: 520px;
   margin: 0 0 var(--dtb-space-5);
