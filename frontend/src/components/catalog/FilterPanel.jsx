@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { X, ChevronDown, Sliders, RefreshCw, Check } from 'lucide-react';
+import { X, ChevronDown, Sliders, Check } from 'lucide-react';
 import '../../styles/filter-panel.css';
+
+const VISIBLE_ITEM_LIMIT = 8;
 
 function normalizeFilterBrands(brands = []) {
   if (!Array.isArray(brands) || brands.length === 0) return [];
@@ -196,102 +198,49 @@ function FilterContent({
   resultsCount,
   isMobile,
 }) {
-  const totalApplied =
-    selectedBrands.length +
-    selectedCategories.length +
-    (priceRange[0] !== 0 || priceRange[1] !== maxPrice ? 1 : 0);
-
   return (
     <div
-      className={`overflow-hidden border border-slate-200 bg-linear-to-b from-slate-50 to-white ${
+      className={`overflow-hidden border border-slate-200 bg-white ${
         isMobile ? 'rounded-2xl' : 'rounded-2xl shadow-sm'
       }`}
     >
-      <div className="border-b border-slate-200 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-600 text-white">
-            <Sliders size={18} />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-900">Advanced Filters</h3>
-            <p className="text-xs text-slate-500">Refine your search</p>
-          </div>
-        </div>
-        {resultsCount !== undefined && (
-          <p className="mt-3 text-xs text-slate-600">
-            <span className="font-semibold text-primary-700">{resultsCount}</span> products found
-          </p>
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3.5">
+        <h3 className="text-xs font-bold tracking-wider text-slate-900 uppercase">Filters</h3>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+          >
+            Clear all
+          </button>
         )}
       </div>
 
-      <div className="space-y-2 px-3 py-3">
+      {resultsCount !== undefined && (
+        <p className="px-4 pt-3 text-xs text-slate-600">
+          <span className="font-semibold text-primary-700">{resultsCount}</span> products found
+        </p>
+      )}
+
+      <div className="space-y-4 px-4 py-3">
         {/* Categories Section - only shown when categories are provided */}
         {categories && categories.length > 0 && (
-        <FilterSection
-          title="Categories"
-          isExpanded={expandedSections.categories}
-          onToggle={() => toggleSection('categories')}
-          itemCount={selectedCategories.length}
-          isMobile={isMobile}
-        >
-          <div className="space-y-2">
-            {categories.map(category => {
-              const isSelected = selectedCategories.includes(category.id);
-              return (
-                <button
-                  key={category.id}
-                  type="button"
-                  onClick={() => onCategoryChange(category.id)}
-                  aria-pressed={isSelected}
-                  className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left border transition-all ${
-                    isSelected
-                      ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-sm font-medium">{category.name}</span>
-                  {isSelected && (
-                    <Check size={16} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </FilterSection>
+          <FilterCheckboxGroup
+            title="Category"
+            items={categories.map((category) => ({ id: category.id, label: category.name, count: category.count }))}
+            selectedIds={selectedCategories}
+            onToggle={onCategoryChange}
+          />
         )}
 
         {/* Brands Section */}
-        <FilterSection
-          title="Brands"
-          isExpanded={expandedSections.brands}
-          onToggle={() => toggleSection('brands')}
-          itemCount={selectedBrands.length}
-          isMobile={isMobile}
-        >
-          <div className={`space-y-2 ${isMobile ? 'max-h-48' : 'max-h-56'} overflow-y-auto pr-1 custom-scrollbar`}>
-            {brands.map(brand => {
-              const isSelected = selectedBrands.includes(brand);
-              return (
-                <button
-                  key={brand}
-                  type="button"
-                  onClick={() => onBrandChange(brand)}
-                  aria-pressed={isSelected}
-                  className={`w-full flex items-center justify-between gap-3 p-3 rounded-lg text-left border transition-all ${
-                    isSelected
-                      ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                      : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="text-sm font-medium">{brand}</span>
-                  {isSelected && (
-                    <Check size={16} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </FilterSection>
+        <FilterCheckboxGroup
+          title="Brand"
+          items={brands.map((brand) => ({ id: brand, label: brand }))}
+          selectedIds={selectedBrands}
+          onToggle={onBrandChange}
+        />
 
         {/* Price Range Section - only shown when maxPrice is set */}
         {maxPrice > 0 && (
@@ -367,35 +316,72 @@ function FilterContent({
         </FilterSection>
         )}
       </div>
+    </div>
+  );
+}
 
-      {/* Clear Filters Button */}
-      {hasActiveFilters && !isMobile && (
-        <div className="border-t border-slate-200 px-4 py-4">
-          <div className="flex gap-3">
-            <button
-              onClick={onClearFilters}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 border border-slate-300 rounded-xl hover:bg-slate-50 text-slate-700 font-medium text-sm transition-colors"
-            >
-              <RefreshCw size={16} />
-              Clear All
-            </button>
-            <button
-              className="flex-1 px-3 py-2.5 bg-primary-600 rounded-xl hover:bg-primary-700 text-white font-semibold text-sm transition-colors"
-            >
-              Apply
-            </button>
-          </div>
-        </div>
+/**
+ * Inline checkbox-style list for a filter group (Category / Brand), with a
+ * "Show more" expander once the list exceeds `VISIBLE_ITEM_LIMIT` — keeps
+ * long category/brand lists from dominating the sidebar by default while
+ * staying reachable in one click. Selection/toggle logic is unchanged from
+ * the previous button-list implementation; this only restyles it as an
+ * inline checkbox row instead of a bordered pill.
+ */
+function FilterCheckboxGroup({ title, items, selectedIds, onToggle }) {
+  const [showAll, setShowAll] = useState(false);
+  const visibleItems = showAll ? items : items.slice(0, VISIBLE_ITEM_LIMIT);
+  const hiddenCount = items.length - visibleItems.length;
+
+  if (!items || items.length === 0) return null;
+
+  return (
+    <div>
+      <h4 className="mb-2 text-xs font-bold tracking-wider text-slate-500 uppercase">{title}</h4>
+      <ul className="space-y-1">
+        {visibleItems.map((item) => {
+          const isSelected = selectedIds.includes(item.id);
+          return (
+            <li key={item.id}>
+              <label className="flex min-h-11 w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-slate-50">
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={() => onToggle(item.id)}
+                  className="h-4 w-4 shrink-0 rounded border-slate-300 text-primary-600 accent-primary-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500"
+                />
+                <span className="flex min-w-0 flex-1 items-center justify-between gap-2 text-sm text-slate-700">
+                  <span className={`truncate ${isSelected ? 'font-semibold text-slate-900' : ''}`}>{item.label}</span>
+                  {typeof item.count === 'number' && item.count > 0 && (
+                    <span className="shrink-0 text-xs text-slate-400">{item.count}</span>
+                  )}
+                </span>
+                {isSelected && <Check size={14} className="shrink-0 text-primary-600" aria-hidden="true" />}
+              </label>
+            </li>
+          );
+        })}
+      </ul>
+
+      {hiddenCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(true)}
+          className="mt-1 flex min-h-9 items-center gap-1 px-2 text-xs font-semibold text-primary-600 hover:text-primary-700 hover:underline"
+        >
+          Show {hiddenCount} more
+          <ChevronDown size={14} aria-hidden="true" />
+        </button>
       )}
-
-      <div className="border-t border-slate-200 px-4 py-3 bg-slate-50">
-        <div className="flex items-center justify-between text-xs text-slate-600">
-          <span>{hasActiveFilters ? 'Filters active' : 'No filters'}</span>
-          <span className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 font-semibold text-primary-800">
-            {totalApplied}
-          </span>
-        </div>
-      </div>
+      {showAll && items.length > VISIBLE_ITEM_LIMIT && (
+        <button
+          type="button"
+          onClick={() => setShowAll(false)}
+          className="mt-1 flex min-h-9 items-center gap-1 px-2 text-xs font-semibold text-slate-500 hover:text-slate-700 hover:underline"
+        >
+          Show less
+        </button>
+      )}
     </div>
   );
 }
