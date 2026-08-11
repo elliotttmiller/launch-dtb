@@ -1,8 +1,6 @@
-import { useEffect, useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
-import { sampleImageEdgeColor } from '../../utils/imageAverageColor.js';
 import '../../styles/category-hero.css';
 
 /**
@@ -10,45 +8,13 @@ import '../../styles/category-hero.css';
  * above the shared catalog engine (search/filter/grid) — it never owns
  * product data itself, only the category term metadata passed in.
  *
- * Layout matches the design blueprint: a single rounded panel containing
- * both the text content and the hero photo — image stacked above content on
- * narrow screens, side-by-side (content left, image right) from `md` up.
- * The photo has no border/background/shadow of its own; it sits directly on
- * the panel's fill so it blends into the panel rather than reading as a
- * separate card nested inside it.
- *
- * The panel's background color is sampled from the photo's own edge pixels
- * (see utils/imageAverageColor.js) via a hidden offscreen probe image — not
- * the visible <img> below — so a CORS-tainted canvas read (cross-origin in
- * local dev, etc.) only loses the color match and silently falls back to
- * `--dtb-surface-subtle`; it can never break the actual displayed photo.
+ * Flush/seamless layout (no card, sheet, or container chrome): text
+ * content and the hero photo render directly in the page's own layout —
+ * image stacked above content on narrow screens, side-by-side (content
+ * left, image right) from `md` up.
  */
 export default function CategoryHero({ category, breadcrumbs = [], productCount = 0 }) {
   const { src: heroImageSrc, srcSet: heroImageSrcSet } = resolveCategoryHeroImage(category || {});
-  const [heroBg, setHeroBg] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    Promise.resolve().then(() => {
-      if (!cancelled) setHeroBg('');
-    });
-
-    if (!heroImageSrc) return () => { cancelled = true; };
-
-    const probe = new Image();
-    probe.crossOrigin = 'anonymous';
-    probe.onload = () => {
-      if (cancelled) return;
-      const color = sampleImageEdgeColor(probe);
-      if (color) setHeroBg(color);
-    };
-    probe.src = heroImageSrc;
-
-    return () => {
-      cancelled = true;
-    };
-  }, [heroImageSrc]);
 
   if (!category) return null;
 
@@ -71,10 +37,7 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
     <div className="dtb-category-hero mb-6 sm:mb-8">
       <Breadcrumb items={breadcrumbs} />
 
-      <div
-        className="dtb-category-hero-card"
-        style={heroBg ? { '--dtb-category-hero-bg': heroBg } : undefined}
-      >
+      <div className="dtb-category-hero-card">
         <div className="dtb-category-hero-card__content">
           {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
           <h1 className="dtb-category-hero-card__title">{label}</h1>

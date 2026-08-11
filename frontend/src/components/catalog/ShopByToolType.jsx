@@ -76,7 +76,7 @@ export default function ShopByToolType({ displayCategories = [], onOpenFilters }
         </a>
       </div>
 
-      <StorefrontRail label="Shop by tool type" className="dtb-tool-type-rail dtb-tool-type-rail--grid">
+      <StorefrontRail label="Shop by tool type" className="dtb-tool-type-rail">
         {items.map((displayCategory) => (
           <ToolTypeTile key={displayCategory.slug} displayCategory={displayCategory} />
         ))}

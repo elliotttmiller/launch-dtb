@@ -301,16 +301,25 @@
   text-transform: uppercase;
 }
 
-.home-hero-brands__track {
+.home-hero-brands__viewport {
+  display: block;
+  width: 100%;
   max-width: 1540px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  align-items: center;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
 }
 
-.home-hero-brands__viewport { display: contents; }
-.home-hero-brands__link--clone { display: none; }
+.home-hero-brands__track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  gap: 0;
+  animation: home-hero-brands-scroll 34s linear infinite;
+}
+
+.home-hero-brands__link--clone { display: flex; }
 
 .home-hero-brands__link {
   min-width: 0;
@@ -319,6 +328,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   opacity: 0.98;
   transition: opacity 150ms ease, transform 150ms ease;
 }
