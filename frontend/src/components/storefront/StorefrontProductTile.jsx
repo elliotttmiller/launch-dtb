@@ -117,7 +117,10 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
 
   return (
     <article ref={cardRef} className={`dtb-product-card dtb-product-card--${variant} storefront-motion-card${isVariable ? ' dtb-product-card--variable' : ''}`} style={{ '--dtb-card-delay': `${Math.min(index, 8) * 30}ms` }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={openModalFromMobileCard}>
-      <div ref={imageButtonRef} role="button" tabIndex={0} className="dtb-product-card__image" onClick={handleImageClick} onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleImageClick(e); } }} aria-label={isMobile ? `Quick view ${name}` : `View ${name}`}>
+      <div className="dtb-product-card__image">
+        <div ref={imageButtonRef} role="button" tabIndex={0} className="dtb-product-card__image-hit" onClick={handleImageClick} onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleImageClick(e); } }} aria-label={isMobile ? `Quick view ${name}` : `View ${name}`}>
+          <ProductCardImage product={displayProduct} src={image} srcSet={imageSrcset} sizes={variant === 'rail' ? '(max-width: 767px) 44vw, 188px' : variant === 'list' ? '(max-width: 767px) 32vw, 240px' : '(max-width: 767px) 50vw, (max-width: 1024px) 33vw, 240px'} alt={name} className="dtb-product-card__img" padding="0" fit="contain" preferThumbnail eager={index < 4} />
+        </div>
         <span className={`dtb-product-card__badge dtb-product-card__badge--${outOfStock ? 'out' : 'in'} dtb-product-card__badge--right`}>{outOfStock ? 'Out of Stock' : 'In Stock'}</span>
         {onSale && <span className="dtb-product-card__badge dtb-product-card__badge--sale dtb-product-card__badge--left">Sale</span>}
         <button
@@ -130,7 +133,6 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
         >
           <Heart size={15} strokeWidth={2.2} fill={wishlisted ? 'currentColor' : 'none'} />
         </button>
-        <ProductCardImage product={displayProduct} src={image} srcSet={imageSrcset} sizes={variant === 'rail' ? '(max-width: 767px) 44vw, 188px' : variant === 'list' ? '(max-width: 767px) 32vw, 240px' : '(max-width: 767px) 50vw, (max-width: 1024px) 33vw, 240px'} alt={name} className="dtb-product-card__img" padding="0" fit="contain" preferThumbnail eager={index < 4} />
         {showDesktopOverlay && <div ref={overlayRef} aria-hidden={!overlayActive && !overlayHasFocus} className={`dtb-product-card__qv-overlay${overlayActive ? ' dtb-product-card__qv-overlay--active' : ''}`} onFocusCapture={() => setOverlayHasFocus(true)} onBlurCapture={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setOverlayHasFocus(false); }} onClick={(e) => { e.stopPropagation(); closeOverlay(); if (productUrl) navigate(productUrl); }}><div className={`dtb-product-card__qv-actions${overlayActive ? ' dtb-product-card__qv-actions--active' : ''}`}><button type="button" tabIndex={overlayActive ? 0 : -1} className="dtb-product-card__qv-btn" onClick={handleQuickView} aria-label={`Quick view ${name}`}><Eye size={14} strokeWidth={2.2} /><span>Quick View</span></button></div></div>}
         {showDesktopOverlay && <div className="dtb-product-card__inside" aria-hidden="true"><div className="dtb-product-card__inside-icon"><Info size={18} strokeWidth={2.4} /></div><div className="dtb-product-card__inside-contents"><dl className="dtb-product-card__inside-grid"><div><dt>Brand</dt><dd>{displayProduct.brand || 'DTB'}</dd></div>{sku ? <div><dt>SKU</dt><dd>{sku}</dd></div> : null}</dl>{shortDescription ? <p className="dtb-product-card__inside-desc">{shortDescription}</p> : null}</div></div>}
       </div>

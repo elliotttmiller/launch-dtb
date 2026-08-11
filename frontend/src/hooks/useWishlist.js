@@ -37,10 +37,25 @@ function writeStoredIds(ids) {
   }
 }
 
+// The native `storage` event only fires in *other* tabs/documents, never in
+// the one that made the write — so two card instances for the same product
+// on one page (e.g. a rail + the grid below it) would drift out of sync
+// without this same-document pub-sub layer.
+const listeners = new Set();
+
+function notifyListeners(ids) {
+  listeners.forEach((listener) => listener(ids));
+}
+
 export function useWishlist() {
   const [ids, setIds] = useState(() => readStoredIds());
 
-  // Keep in sync if the wishlist is toggled from another tab/card instance.
+  useEffect(() => {
+    listeners.add(setIds);
+    return () => listeners.delete(setIds);
+  }, []);
+
+  // Keep in sync if the wishlist is toggled from another tab/window.
   useEffect(() => {
     const onStorage = (event) => {
       if (event.key && event.key !== STORAGE_KEY) return;
@@ -54,11 +69,10 @@ export function useWishlist() {
 
   const toggleWishlist = useCallback((productId) => {
     const id = String(productId);
-    setIds((prev) => {
-      const next = prev.includes(id) ? prev.filter((existing) => existing !== id) : [...prev, id];
-      writeStoredIds(next);
-      return next;
-    });
+    const current = readStoredIds();
+    const next = current.includes(id) ? current.filter((existing) => existing !== id) : [...current, id];
+    writeStoredIds(next);
+    notifyListeners(next);
   }, []);
 
   return { wishlistIds: ids, isWishlisted, toggleWishlist };

@@ -427,16 +427,14 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return () => window.clearTimeout(timer);
   }, [commitSearch, query.search, searchInput]);
 
+  const searchTooShortForSuggestions = searchInput.trim().length < 2;
+
   useEffect(() => {
     const search = searchInput.trim();
+    if (search.length < 2) return undefined;
+
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
-
-    if (search.length < 2) {
-      setSearchSuggestions([]);
-      setSearchSuggestionsLoading(false);
-      return undefined;
-    }
 
     // 280 ms debounce for suggestions — slightly faster than the commit debounce
     // so the dropdown appears before the grid begins loading.
@@ -661,8 +659,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 placeholder={isPartsPage ? 'Search parts by name, SKU, or brand...' : 'Search products by name, SKU, or brand...'}
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                suggestions={searchSuggestions}
-                loading={searchSuggestionsLoading}
+                suggestions={searchTooShortForSuggestions ? [] : searchSuggestions}
+                loading={searchTooShortForSuggestions ? false : searchSuggestionsLoading}
                 onSubmit={(value) => commitSearch(value, { replace: false })}
                 onClear={() => {
                   setSearchInput('');
@@ -685,7 +683,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 onBrandChange={toggleBrand}
                 onCategoryChange={toggleDisplayCategory}
                 onPriceChange={() => {}}
-                onClearFilters={() => selectedBrand ? setQuery({ category: '', displayCategory: '', search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
+                onClearFilters={() => selectedBrand ? setQuery({ brands: [], category: '', displayCategory: '', search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
                 resultsCount={total}
               />
 

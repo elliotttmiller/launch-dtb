@@ -58,8 +58,10 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
   // categories nobody's filled that in for yet, so the hero never renders
   // with just a bare title. Replace it category-by-category by filling in
   // the real field; this line stops showing the moment that field is set.
+  // Kept neutral — no manufacturer-support/replacement-parts claims we
+  // can't actually back for every category.
   const displayDescription = description
-    || `Professional ${label} and accessories from top brands. Built for daily jobsite use, backed by manufacturer support and fast replacement parts.`;
+    || `Browse our full selection of ${label} for professional drywall work.`;
   const eyebrow = parent?.label || '';
   const productCountLabel = Number(productCount) > 0
     ? `${Number(productCount).toLocaleString()} product${Number(productCount) === 1 ? '' : 's'}`
