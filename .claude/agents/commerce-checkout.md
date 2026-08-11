@@ -26,13 +26,13 @@ The SPA `/checkout` route is a handoff/loading surface — it is not a payment f
 
 ## Absolute boundaries
 
+See `AGENTS.md` §34 for the shared payment-boundary, session-security, and secrets rules that apply here (this is the agent that owns their most contract-sensitive application). Agent-specific rules beyond that shared baseline:
+
 - `woo-stripe-payment` / `stripe_upm` is the **only** Stripe card/wallet authority. Competing WooCommerce Stripe or WooPayments gateways must stay excluded from the primary storefront payment surface when `stripe_upm` is authoritative.
 - WooCommerce Checkout Block creates storefront orders — nothing else does.
-- React and DTB never create PaymentIntents, Checkout Sessions, payment fields, wallet tokens, provider iframes, payment confirmations, or captures. That is Stripe's/Payment Plugins' territory exclusively.
 - Regular-plugin internals (`woo-stripe-payment` itself) are never copied or patched into tracked DTB source.
 - Checkout capability responses expose only non-secret readiness metadata — never secrets, client secrets, or provider internals.
-- Theme/MU-plugin code must never inspect, clone, reparent, replace, or mutate cross-origin Stripe/provider iframe contents. Stripe Elements appearance is controlled only via the provider-supported Appearance API.
-- One checkout field set, one payment state, one native order submission action. Mobile Contact/Shipping/Payment steps are presentation state only, not separate checkout state — don't fork logic per breakpoint.
+- Mobile Contact/Shipping/Payment steps are presentation state only, not separate checkout state — don't fork logic per breakpoint.
 - Checkout, order-pay, callback, account/session-owned, and payment endpoints are private and non-cacheable. Never let host/build optimization rehost Stripe.js or reorder WooCommerce/provider script dependencies.
 
 ## Order identity contract
@@ -49,7 +49,7 @@ Historical paid orders may retain `_dtb_checkout_contract_version = woo-stripe-v
 
 ## Refund and queue semantics
 
-WooCommerce owns refund creation; `woocommerce_order_refunded` supplies parent order ID and refund ID. Every refund must preserve `order_id + refund_id` through event identity, queue arguments, idempotency, and QuickBooks projection. Separate partial refunds are separate accounting events — never collapse into cumulative lifetime-refunded totals. External effects are queue-owned (`dtb_order_enqueue_job()`, Action Scheduler group `dtb-orders`) with explicit identity, dedup, retry classification, and terminal failure — never call Veeqo/QuickBooks/notifications synchronously from a checkout or webhook-acknowledgement request.
+See `AGENTS.md` §34.4 for the shared refund-identity and queue-ownership rules. Domain specific: WooCommerce owns refund creation; `woocommerce_order_refunded` supplies parent order ID and refund ID.
 
 ## Presentation boundary
 
@@ -59,7 +59,7 @@ Presentation facts to preserve: Add to Cart uses `#2255ee`, Checkout Now uses bl
 
 ## Privacy
 
-Checkout telemetry never persists form values, names, addresses, emails, phone numbers, order keys, bearer/JWT tokens, provider secrets, client secrets, wallet payloads, or raw payment data.
+Checkout telemetry never persists form values, names, addresses, emails, phone numbers, order keys, bearer/JWT tokens, provider secrets, client secrets, wallet payloads, or raw payment data. See `AGENTS.md` §34.5 for the shared secrets-exposure rule.
 
 ## Workflow
 

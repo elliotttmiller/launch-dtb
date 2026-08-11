@@ -64,11 +64,11 @@ When writing or reviewing:
 
 **Deserialization**: never `unserialize()` on data that could be user-influenced (cookies, request bodies, third-party webhook payloads) — use `json_decode()` for cross-boundary data instead; if `unserialize()` is unavoidable, use `allowed_classes => false`.
 
-**Secrets**: no hardcoded API keys/credentials/webhook secrets in tracked source — these come from WordPress options/environment, never committed. Per `AGENTS.md` §11: never expose WooCommerce application credentials, JWT signing secrets, Stripe secret/webhook keys, PaymentIntent client secrets, wallet tokens, or other server-only material in responses, logs, or telemetry.
+**Secrets**: no hardcoded API keys/credentials/webhook secrets in tracked source — these come from WordPress options/environment, never committed. Per `AGENTS.md` §34.5: never expose WooCommerce application credentials, JWT signing secrets, Stripe secret/webhook keys, PaymentIntent client secrets, wallet tokens, or other server-only material in responses, logs, or telemetry.
 
 **Headers/redirects**: no `header('Location: ' . $user_input)` or similar without validating against an allowlist — open-redirect and header-injection risk.
 
-**Session/cookies**: WordPress's own auth-cookie mechanism is authoritative; do not build parallel session handling. Never decode unsigned Cart-Token payloads or query `woocommerce_sessions` to recover arbitrary sessions (per `AGENTS.md` §6).
+**Session/cookies**: WordPress's own auth-cookie mechanism is authoritative; do not build parallel session handling. Per `AGENTS.md` §34.3: never decode unsigned Cart-Token payloads or query `woocommerce_sessions` to recover arbitrary sessions.
 
 ## 4. Database interactions
 
@@ -91,13 +91,13 @@ When writing or reviewing:
 - Loops: no expensive operation (query, regex compilation, date parsing, external call) that could be hoisted outside the loop or batched.
 - Memory: large datasets processed via `WP_Query`/`$wpdb` pagination or generators, not loaded wholesale into an array.
 - Caching: repeated expensive reads within a request use `wp_cache_get()`/a local static cache; check cache invalidation is correct before adding a cache, not after.
-- External calls (Veeqo/QuickBooks/marketplace/notifications): never synchronous inside an interactive request or webhook-acknowledgement path — queue-owned via `dtb_order_enqueue_job()` / Action Scheduler group `dtb-orders`, per `AGENTS.md` §10.
+- External calls (Veeqo/QuickBooks/marketplace/notifications): never synchronous inside an interactive request or webhook-acknowledgement path — queue-owned via `dtb_order_enqueue_job()` / Action Scheduler group `dtb-orders`, per `AGENTS.md` §34.4.
 - Autoloading: rely on the module's existing PSR-4-style or explicit `require` pattern — don't introduce a second autoloading mechanism.
 
 ## 7. Concurrency and idempotency
 
 - Flag check-then-act patterns on shared state (stock counts, idempotency flags) without a lock or atomic operation.
-- Every webhook/queue/event handler is idempotent — re-delivery must not double-apply an effect. This is a hard requirement per `AGENTS.md` §10, not a nice-to-have.
+- Every webhook/queue/event handler is idempotent — re-delivery must not double-apply an effect. This is a hard requirement per `AGENTS.md` §34.4, not a nice-to-have.
 - Queue jobs have explicit identity, dedup, and retry/terminal-failure classification consistent with the existing `dtb-orders` pattern.
 
 ## 8. Code quality

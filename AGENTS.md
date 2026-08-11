@@ -610,3 +610,30 @@ stop and ask the clarifying question required to proceed correctly (per Section 
 explicitly decline to implement the unresolved portion and state precisely what information, decision, or dependency is required to deliver it correctly.
 
 A correctly scoped "not yet implementable, here is what is required" response is always preferable to a shipped shortcut.
+
+## 34. Shared cross-agent contract (authority chain, payment boundary, identifier stability)
+
+This section exists because the rules below were independently restated, in near-identical language, across most `.claude/agents/*.md` files. It is the single canonical statement of those specific rules; every agent inherits it by reference (see each agent file's own "Ground truth"/"Hard boundaries" section) instead of restating it. Full detail and rationale for each item lives in the section cross-referenced beside it — this section is the short, quotable form.
+
+**34.1 Authority chain / system-of-record (full detail: §§4, 8)**
+One authority per concern: React presents, WooCommerce owns commerce, payment providers own payment collection/UI/tokens, Veeqo owns inventory/fulfillment truth, QuickBooks owns the accounting projection only, DTB MU-plugins own domain policy/orchestration/events/queues. No layer may silently create a parallel source of truth for data another layer already owns.
+
+**34.2 Payment/checkout boundary (full detail: §§8.3, 11, 12)**
+- React and DTB never create PaymentIntents, Checkout Sessions, payment fields, wallet tokens, provider iframes, payment confirmations, or captures — that is the active payment provider's territory exclusively.
+- Theme/MU-plugin/frontend code must never inspect, clone, reparent, replace, or mutate cross-origin payment-provider iframe contents. Provider UI appearance is controlled only via the provider-supported Appearance/theming API.
+- The `/checkout` React route and any theme checkout presentation layer are a handoff/presentation surface only — one field set, one payment state, one native order submission action; never a second payment state or a competing order-creation path.
+- Payment-method marks are informational only and must never imply a method is configured/available unless real backend capability data confirms it.
+
+**34.3 Session and identity security (full detail: §10)**
+Never decode unsigned Cart-Token payloads, query `woocommerce_sessions` to recover arbitrary customer sessions, or accept a caller-supplied customer/order ID as authorization — ownership is always verified server-side from authenticated context. Never weaken nonce/cookie/origin/CORS/capability/ownership/rate-limit boundaries to make a request succeed.
+
+**34.4 Refund and queue identity (full detail: §§16, 17)**
+Every refund event preserves `order_id + refund_id` through event identity, queue arguments, idempotency keys, and QuickBooks projection. Separate partial refunds remain separate events — never collapse into cumulative lifetime-refunded totals. External order effects (Veeqo/QuickBooks/notifications/marketplace) are queue-owned (`dtb_order_enqueue_job()`, Action Scheduler group `dtb-orders`) with explicit identity, dedup, and retryable-vs-terminal failure classification — never called synchronously from a checkout or webhook-acknowledgement request.
+
+**34.5 Secrets (full detail: §23)**
+Never expose or persist WordPress/WooCommerce credentials, database credentials, JWT signing secrets, Stripe secret/webhook keys, PaymentIntent client secrets, wallet tokens, PayPal/Veeqo/QuickBooks/marketplace credentials, private keys, or raw payment data — in responses, logs, telemetry, or capability metadata.
+
+**34.6 Business identifier stability (full detail: §§5.3, 13)**
+SKU, MPN, GTIN, part number, brand identity, taxonomy identity, compatibility IDs, and external provider IDs are stable business identifiers. They change only through an explicit, deliberate data correction — never as incidental cleanup, a formatting pass, or collateral damage from a bulk/unrelated edit.
+
+Agent-specific exceptions, additional detail, or domain-specific file paths belong in the owning agent file, not here — this section states only the rule, not the full domain context.
