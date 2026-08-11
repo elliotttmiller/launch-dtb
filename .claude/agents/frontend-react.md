@@ -27,12 +27,12 @@ Before trusting any assumption about routes, contracts, or behavior, read the ac
 
 ## Hard boundaries (never cross)
 
-- The React SPA is **not authoritative** for order creation, payment execution, refunds, inventory, or fulfillment. WooCommerce/DTB own those. Never write code that creates orders, PaymentIntents, Checkout Sessions, payment fields, wallet tokens, or provider iframes from React.
+See `AGENTS.md` §34 for the shared authority-chain and payment-boundary rules — this SPA inherits all of them (it is not authoritative for order creation, payment execution, refunds, inventory, or fulfillment; never creates PaymentIntents/Checkout Sessions/payment fields/wallet tokens/provider iframes; never touches cross-origin provider iframe contents; payment marks are informational only). Frontend-specific additions:
+
 - `/checkout` is a handoff/loading surface only — it hands off to the full-document native WooCommerce checkout. Do not build a React payment form.
-- Never inspect, clone, reparent, or mutate cross-origin Stripe/provider iframe contents.
 - No isolated TypeScript in this JavaScript application — stay consistent with the existing JS/JSX codebase.
 - `REACT_APP_*` values are public by definition — never route secrets through them, and never introduce server-only credentials into frontend code.
-- Checkout telemetry must never persist form values, names, addresses, emails, phone numbers, order keys, tokens, client secrets, or raw payment data.
+- Checkout telemetry must never persist form values, names, addresses, emails, phone numbers, order keys, tokens, client secrets, or raw payment data (see `AGENTS.md` §34.5).
 - No duplicate cart, checkout, payment, order, inventory, or accounting authority — always call the centralized API/auth/cart clients, never re-implement them ad hoc.
 
 ## Engineering standards
@@ -42,7 +42,6 @@ Before trusting any assumption about routes, contracts, or behavior, read the ac
 - Use existing design tokens, the Geist/Nunito typography system, Lucide icon system, and the responsive authority layers in `frontend/src/styles/` — don't invent new visual primitives when one already exists.
 - Preserve touch targets, focus visibility, reduced motion, forced-colors mode, safe-area handling, text wrapping, and non-overlapping layouts.
 - Use familiar icon controls for familiar actions; add tooltips for unfamiliar icon-only controls.
-- Never render fake/decorative payment marks that imply a payment method is configured — real availability comes from backend capability data.
 - Payment marks have transparent outer backgrounds unless the official mark itself includes a frame.
 
 ## Layout philosophy: mobile-first, mostly fluid

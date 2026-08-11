@@ -343,6 +343,9 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return match?.name || formatCategoryLabel(query.displayCategory);
   }, [brandCategoryCards, filterCategories, query.displayCategory]);
 
+  // Mirrors FilterPanel's own selectedBrands/selectedCategories inputs so the
+  // toolbar badge always agrees with what the filter panel considers "active".
+  const activeFilterCount = (selectedBrand ? 1 : 0) + (query.displayCategory ? 1 : 0);
   const categoryScopeLabel = selectedBrandFacet?.label || selectedBrand;
   const pageHeading = selectedCategoryLabel
     ? `${categoryScopeLabel ? `${categoryScopeLabel} ` : ''}${selectedCategoryLabel}`
@@ -424,16 +427,14 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return () => window.clearTimeout(timer);
   }, [commitSearch, query.search, searchInput]);
 
+  const searchTooShortForSuggestions = searchInput.trim().length < 2;
+
   useEffect(() => {
     const search = searchInput.trim();
+    if (search.length < 2) return undefined;
+
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
-
-    if (search.length < 2) {
-      setSearchSuggestions([]);
-      setSearchSuggestionsLoading(false);
-      return undefined;
-    }
 
     // 280 ms debounce for suggestions — slightly faster than the commit debounce
     // so the dropdown appears before the grid begins loading.
@@ -563,8 +564,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
         {isCategoryPageRoute && (
           categoryMeta ? (
             <>
-              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} />
-              <ShopByToolType category={categoryMeta} onOpenFilters={() => setShowFilters(true)} />
+              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={total} />
+              <ShopByToolType category={categoryMeta} displayCategories={filterCategories} onOpenFilters={() => setShowFilters(true)} />
             </>
           ) : categoryMetaError ? (
             <div className="mb-6 sm:mb-8">
@@ -658,8 +659,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 placeholder={isPartsPage ? 'Search parts by name, SKU, or brand...' : 'Search products by name, SKU, or brand...'}
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                suggestions={searchSuggestions}
-                loading={searchSuggestionsLoading}
+                suggestions={searchTooShortForSuggestions ? [] : searchSuggestions}
+                loading={searchTooShortForSuggestions ? false : searchSuggestionsLoading}
                 onSubmit={(value) => commitSearch(value, { replace: false })}
                 onClear={() => {
                   setSearchInput('');
@@ -682,15 +683,18 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 onBrandChange={toggleBrand}
                 onCategoryChange={toggleDisplayCategory}
                 onPriceChange={() => {}}
-                onClearFilters={() => selectedBrand ? setQuery({ category: '', displayCategory: '', search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
+                onClearFilters={() => selectedBrand ? setQuery({ brands: [], category: '', displayCategory: '', search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
                 resultsCount={total}
               />
 
               <div className="flex-1">
                 <div className="dtb-listing-toolbar mb-5 sm:mb-6">
-                  <button onClick={() => setShowFilters(!showFilters)} className="dtb-listing-toolbar__pill" aria-label="Toggle filters">
+                  <button onClick={() => setShowFilters(!showFilters)} className="dtb-listing-toolbar__pill" aria-label={`Toggle filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}>
                     <Filter size={18} />
                     <span>Filters</span>
+                    {activeFilterCount > 0 && (
+                      <span className="dtb-listing-toolbar__filter-count" aria-hidden="true">{activeFilterCount}</span>
+                    )}
                   </button>
                   <div className="dtb-listing-toolbar__sort">
                     <Dropdown value={query.sort} onChange={(value) => setQuery({ sort: value })} options={SORT_OPTIONS} />

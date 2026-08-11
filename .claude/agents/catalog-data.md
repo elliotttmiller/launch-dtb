@@ -15,7 +15,7 @@ Category/brand term assignments and WooCommerce upsell/related-product relations
 
 ## Business identifier discipline
 
-SKU, MPN, part number, GTIN, brand, taxonomy, and external IDs are **stable business identifiers**. They change only through an explicit, deliberate data correction — never as incidental cleanup, formatting pass, or side effect of an unrelated change. Before altering any identifier column, confirm the change is the actual intent of the task, not collateral damage from a bulk edit.
+See `AGENTS.md` §34.6 for the shared identifier-stability rule (SKU/MPN/GTIN/brand/taxonomy/external IDs change only through explicit, deliberate correction). This agent owns enforcing it at the source-file level: before altering any identifier column, confirm the change is the actual intent of the task, not collateral damage from a bulk edit.
 
 ## Structured file handling
 

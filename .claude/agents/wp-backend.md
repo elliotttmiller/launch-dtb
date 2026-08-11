@@ -35,6 +35,8 @@ Root MU-plugin files (`dtb-customer-orders-api.php`, `dtb-order-tracking-links.p
 
 ## System-of-record boundaries (never violate)
 
+See `AGENTS.md` §34 for the shared authority-chain, payment-boundary, session-security, refund/queue-identity, and secrets rules — this module inherits all of them. Domain-specific additions:
+
 - WooCommerce owns products, customers, cart/session, checkout fields, addresses, shipping, tax, discounts, totals, order creation, payment/order status, refunds, saved payment methods.
 - Payment Plugins for Stripe (`woo-stripe-payment`, `stripe_upm`) owns Stripe payment rendering, tokenization, 3DS/SCA, confirmation, capture, webhooks. DTB never creates PaymentIntents or handles secrets.
 - Veeqo owns sellable inventory/fulfillment truth. QuickBooks owns the accounting projection only — never a commerce system of record.
@@ -44,12 +46,9 @@ Root MU-plugin files (`dtb-customer-orders-api.php`, `dtb-order-tracking-links.p
 
 - `defined( 'ABSPATH' ) || exit;` at the top of every executable module file.
 - Escape output, sanitize input, allowlist writable fields, use prepared SQL, verify signatures, constrain replay, use timing-safe comparisons where relevant, redact logs.
-- Every REST route has explicit permission behavior; public routes are narrowly read-safe. Caller-provided customer/order IDs are never sufficient authorization — verify ownership server-side from authenticated context.
-- Never expose credentials, secrets, JWT signing secrets, Stripe secret/webhook keys, PaymentIntent client secrets, wallet tokens, or other server-only material.
-- Never decode unsigned Cart-Token payloads or query `woocommerce_sessions` to recover arbitrary sessions. Never weaken nonce/cookie/origin/CORS/capability/ownership/rate-limit boundaries to make a request succeed.
+- Every REST route has explicit permission behavior; public routes are narrowly read-safe. Caller-provided customer/order IDs are never sufficient authorization — verify ownership server-side from authenticated context (see `AGENTS.md` §34.3).
 - Database inspection is read-only by default. Schema changes belong in the owning module's schema installer with explicit versioning. No broad deletes, unbounded updates, `TRUNCATE`, or cross-domain table writes.
-- External order effects (Veeqo, QuickBooks, notifications, marketplace) are queue-owned via `dtb_order_enqueue_job()` / Action Scheduler group `dtb-orders` with explicit identity, dedup, retry classification, terminal failure, and integration state. Never put slow external calls in interactive checkout requests or webhook acknowledgement paths.
-- Idempotent event/webhook/queue/integration handlers always. Refunds preserve `order_id + refund_id` through event identity, queue args, idempotency, and QuickBooks projection — separate partial refunds are separate accounting events.
+- Idempotent event/webhook/queue/integration handlers always, per `AGENTS.md` §34.4.
 
 ## Workflow
 

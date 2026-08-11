@@ -22,7 +22,7 @@
 .dtb-footer-template__grid {
   display: grid;
   grid-template-columns: minmax(250px, 1.6fr) repeat(4, minmax(135px, 1fr));
-  gap: clamp(var(--dtb-space-5), 4vw, 64px);
+  gap: clamp(1.25rem, 3vw, 64px);
   padding-bottom: clamp(var(--dtb-space-6), 6vw, 64px);
 }
 
@@ -69,7 +69,7 @@
 
 .dtb-footer-template__bottom {
   display: flex;
-  min-height: 76px;
+  min-height: clamp(56px, 8vw, 76px);
   align-items: center;
   justify-content: space-between;
   gap: var(--dtb-space-5);
@@ -135,8 +135,8 @@
 
   .dtb-footer-template__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 22px;
-    row-gap: 36px;
+    column-gap: clamp(1rem, 5vw, 22px);
+    row-gap: clamp(1.5rem, 7vw, 36px);
   }
 
   .dtb-footer-template__brand {
