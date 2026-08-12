@@ -4,15 +4,6 @@ const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '
 
 const EXPRESS_CHECKOUT_METHODS = Object.freeze([
   {
-    // Cash App Pay has no backend readiness flag yet (unlike the Stripe UPM
-    // wallets below, which are gated on live capability checks) — always
-    // shown rather than silently hidden for lack of a signal.
-    readinessKey: null,
-    id: 'cash-app',
-    label: 'Cash App',
-    src: `${PUBLIC_ASSET_BASE}/payment_logos/cashapp-color-black.svg`,
-  },
-  {
     readinessKey: 'applePay',
     id: 'apple-pay',
     label: 'Apple Pay',
@@ -24,6 +15,16 @@ const EXPRESS_CHECKOUT_METHODS = Object.freeze([
     id: 'google-pay',
     label: 'Google Pay',
     src: `${PUBLIC_ASSET_BASE}/payment_logos/google-pay.svg`,
+  },
+  {
+    // Cash App Pay has no backend readiness flag yet (unlike the Stripe UPM
+    // wallets, which are gated on live capability checks) — always shown
+    // rather than silently hidden for lack of a signal.
+    readinessKey: null,
+    id: 'cash-app',
+    label: 'Cash App',
+    src: `${PUBLIC_ASSET_BASE}/payment_logos/cashapp-color-black.svg`,
+    large: true,
   },
   {
     readinessKey: 'klarna',
@@ -70,7 +71,7 @@ export default function ExpressCheckoutMethods({ paymentMethods = {}, className 
         {availableMethods.map((method) => (
           <li
             key={method.id}
-            className={method.framed ? 'is-framed' : undefined}
+            className={[method.framed && 'is-framed', method.large && 'is-large'].filter(Boolean).join(' ') || undefined}
             aria-label={method.label}
             title={method.label}
           >

@@ -151,78 +151,113 @@ final class DTB_CatalogProductRepository {
 			}
 		}
 
-		$is_parts_constrained  = false;
-		$display_category_slug = sanitize_title( (string) ( $filters['display_category'] ?? '' ) );
-		$display_category_key  = str_replace( '-', '_', $display_category_slug );
-		if ( '' !== $display_category_slug ) {
-			if ( self::is_parts_display_category( $display_category_slug ) ) {
-				$meta_query[] = [
-					'key'     => DTB_ProductMeta::IS_PARTS,
-					'value'   => '1',
-					'compare' => '=',
-				];
-				$is_parts_constrained = true;
-			} else {
-				// Resolve to canonical slug and expand to all known raw DB forms so
-				// products imported with any alias variant (e.g. 'Nailspotters',
-				// 'nail_spotters', 'Nail Spotters') are matched correctly.
-				$canonical  = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
-				$raw_forms  = DTB_CategoryNormalizer::display_category_raw_forms( $canonical );
+		$is_parts_constrained = false;
 
-				// Always include the standard derived forms as a safety net for
-				// any unknown/custom values not covered by the alias map.
-				$space_form = str_replace( '_', ' ', $display_category_key );
-				$title_form = ucwords( $space_form );
-				$hyphen_form = str_replace( '_', '-', $display_category_key );
-				$all_forms  = array_values( array_unique( array_filter( array_merge(
-					$raw_forms,
-					[ $display_category_key, $display_category_slug, $hyphen_form, $space_form, $title_form ]
-				) ) ) );
+		// `display_category` accepts either a single slug or a comma-separated
+		// list of slugs for multi-select storefront filtering. Multiple values
+		// are OR-combined: a product qualifies if it matches ANY listed category.
+		$display_category_raw    = (string) ( $filters['display_category'] ?? '' );
+		$display_category_values = array_values( array_filter(
+			array_map( 'trim', explode( ',', $display_category_raw ) ),
+			static function ( $value ) {
+				return '' !== $value;
+			}
+		) );
 
-				$is_compound_selection = 'compound_tubes' === $canonical;
-				$is_legacy_tube_category = in_array(
-					$canonical,
-					[ 'automatic_tapers', 'semi_automatic_tapers', 'corner_tools', 'predator_family' ],
-					true
-				);
-				$compound_ids = ( $is_compound_selection || $is_legacy_tube_category )
-					? self::compound_tube_product_ids()
-					: [];
+		if ( count( $display_category_values ) > 1 ) {
+			// Multi-select path: resolve each slug's matching product IDs
+			// independently (reusing the exact single-slug resolution rules
+			// below) and union the results so any-match products qualify.
+			$union_ids       = [];
+			$any_slug_parsed = false;
 
-				if ( $is_compound_selection ) {
-					self::intersect_post_ids( $args, $compound_ids );
-				} else {
-					$meta_query[] = [
-						'key'     => DTB_ProductMeta::DISPLAY_CATEGORY_KEY,
-						'value'   => $all_forms,
-						'compare' => 'IN',
-					];
-
-					// A tube imported under a legacy display category must not leak
-					// into that category while its response DTO says Compound Tubes.
-					if ( ! empty( $compound_ids ) ) {
-						$args['post__not_in'] = array_values( array_unique( array_merge(
-							array_map( 'absint', $args['post__not_in'] ?? [] ),
-							$compound_ids
-						) ) );
-					}
+			foreach ( $display_category_values as $raw_value ) {
+				$slug = sanitize_title( $raw_value );
+				if ( '' === $slug ) {
+					continue;
 				}
+				$any_slug_parsed = true;
+				$union_ids        = array_merge( $union_ids, self::resolve_display_category_ids( $slug, $filters ) );
+			}
 
-				// Tool/category filters must not leak schematic replacement parts.
-				if ( ! array_key_exists( 'is_parts', $filters ) || null === $filters['is_parts'] ) {
+			if ( $any_slug_parsed ) {
+				$union_ids = array_values( array_unique( array_map( 'absint', $union_ids ) ) );
+				self::intersect_post_ids( $args, $union_ids );
+				$is_parts_constrained = true;
+			}
+		} elseif ( 1 === count( $display_category_values ) ) {
+			$display_category_slug = sanitize_title( $display_category_values[0] );
+			$display_category_key  = str_replace( '-', '_', $display_category_slug );
+			if ( '' !== $display_category_slug ) {
+				if ( self::is_parts_display_category( $display_category_slug ) ) {
 					$meta_query[] = [
-						'relation' => 'OR',
-						[
-							'key'     => DTB_ProductMeta::IS_PARTS,
-							'value'   => '1',
-							'compare' => '!=',
-						],
-						[
-							'key'     => DTB_ProductMeta::IS_PARTS,
-							'compare' => 'NOT EXISTS',
-						],
+						'key'     => DTB_ProductMeta::IS_PARTS,
+						'value'   => '1',
+						'compare' => '=',
 					];
 					$is_parts_constrained = true;
+				} else {
+					// Resolve to canonical slug and expand to all known raw DB forms so
+					// products imported with any alias variant (e.g. 'Nailspotters',
+					// 'nail_spotters', 'Nail Spotters') are matched correctly.
+					$canonical  = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
+					$raw_forms  = DTB_CategoryNormalizer::display_category_raw_forms( $canonical );
+
+					// Always include the standard derived forms as a safety net for
+					// any unknown/custom values not covered by the alias map.
+					$space_form = str_replace( '_', ' ', $display_category_key );
+					$title_form = ucwords( $space_form );
+					$hyphen_form = str_replace( '_', '-', $display_category_key );
+					$all_forms  = array_values( array_unique( array_filter( array_merge(
+						$raw_forms,
+						[ $display_category_key, $display_category_slug, $hyphen_form, $space_form, $title_form ]
+					) ) ) );
+
+					$is_compound_selection = 'compound_tubes' === $canonical;
+					$is_legacy_tube_category = in_array(
+						$canonical,
+						[ 'automatic_tapers', 'semi_automatic_tapers', 'corner_tools', 'predator_family' ],
+						true
+					);
+					$compound_ids = ( $is_compound_selection || $is_legacy_tube_category )
+						? self::compound_tube_product_ids()
+						: [];
+
+					if ( $is_compound_selection ) {
+						self::intersect_post_ids( $args, $compound_ids );
+					} else {
+						$meta_query[] = [
+							'key'     => DTB_ProductMeta::DISPLAY_CATEGORY_KEY,
+							'value'   => $all_forms,
+							'compare' => 'IN',
+						];
+
+						// A tube imported under a legacy display category must not leak
+						// into that category while its response DTO says Compound Tubes.
+						if ( ! empty( $compound_ids ) ) {
+							$args['post__not_in'] = array_values( array_unique( array_merge(
+								array_map( 'absint', $args['post__not_in'] ?? [] ),
+								$compound_ids
+							) ) );
+						}
+					}
+
+					// Tool/category filters must not leak schematic replacement parts.
+					if ( ! array_key_exists( 'is_parts', $filters ) || null === $filters['is_parts'] ) {
+						$meta_query[] = [
+							'relation' => 'OR',
+							[
+								'key'     => DTB_ProductMeta::IS_PARTS,
+								'value'   => '1',
+								'compare' => '!=',
+							],
+							[
+								'key'     => DTB_ProductMeta::IS_PARTS,
+								'compare' => 'NOT EXISTS',
+							],
+						];
+						$is_parts_constrained = true;
+					}
 				}
 			}
 		}
@@ -314,6 +349,143 @@ final class DTB_CatalogProductRepository {
 	 */
 	private static function is_parts_display_category( string $display_category ): bool {
 		return in_array( sanitize_title( $display_category ), [ 'parts', 'repair-parts', 'replacement-parts' ], true );
+	}
+
+	/**
+	 * Resolve the full set of product IDs matching a single display-category
+	 * slug, applying the same alias/raw-form expansion, parts-bucket, and
+	 * compound-tube special-case rules as the single-value filter path.
+	 *
+	 * Used by the multi-select `display_category` path to OR-combine several
+	 * category selections; each slug is resolved independently and the
+	 * resulting ID sets are unioned by the caller.
+	 *
+	 * @param  string $display_category_slug  Already sanitize_title()'d slug.
+	 * @param  array  $filters                Original filter set (checked for an explicit is_parts override).
+	 * @return int[]
+	 */
+	private static function resolve_display_category_ids( string $display_category_slug, array $filters ): array {
+		if ( '' === $display_category_slug ) {
+			return [];
+		}
+
+		$base_args = [
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'fields'                 => 'ids',
+			'posts_per_page'         => -1,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+		];
+
+		if ( self::is_parts_display_category( $display_category_slug ) ) {
+			$query = new WP_Query( array_merge( $base_args, [
+				'meta_query' => [
+					[
+						'key'     => DTB_ProductMeta::IS_PARTS,
+						'value'   => '1',
+						'compare' => '=',
+					],
+				],
+			] ) );
+
+			return array_map( 'absint', $query->posts ?? [] );
+		}
+
+		$display_category_key = str_replace( '-', '_', $display_category_slug );
+
+		$canonical  = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
+		$raw_forms  = DTB_CategoryNormalizer::display_category_raw_forms( $canonical );
+
+		$space_form  = str_replace( '_', ' ', $display_category_key );
+		$title_form  = ucwords( $space_form );
+		$hyphen_form = str_replace( '_', '-', $display_category_key );
+		$all_forms   = array_values( array_unique( array_filter( array_merge(
+			$raw_forms,
+			[ $display_category_key, $display_category_slug, $hyphen_form, $space_form, $title_form ]
+		) ) ) );
+
+		$is_compound_selection    = 'compound_tubes' === $canonical;
+		$is_legacy_tube_category  = in_array(
+			$canonical,
+			[ 'automatic_tapers', 'semi_automatic_tapers', 'corner_tools', 'predator_family' ],
+			true
+		);
+		$compound_ids = ( $is_compound_selection || $is_legacy_tube_category )
+			? self::compound_tube_product_ids()
+			: [];
+
+		if ( $is_compound_selection ) {
+			$ids = $compound_ids;
+		} else {
+			$query_args = $base_args;
+			$query_args['meta_query'] = [
+				[
+					'key'     => DTB_ProductMeta::DISPLAY_CATEGORY_KEY,
+					'value'   => $all_forms,
+					'compare' => 'IN',
+				],
+			];
+
+			// A tube imported under a legacy display category must not leak
+			// into that category while its response DTO says Compound Tubes.
+			if ( ! empty( $compound_ids ) ) {
+				$query_args['post__not_in'] = $compound_ids;
+			}
+
+			$query = new WP_Query( $query_args );
+			$ids   = array_map( 'absint', $query->posts ?? [] );
+		}
+
+		// Tool/category filters must not leak schematic replacement parts,
+		// unless the caller explicitly requested an is_parts value.
+		if ( ! array_key_exists( 'is_parts', $filters ) || null === $filters['is_parts'] ) {
+			$ids = self::exclude_parts_from_ids( $ids );
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Filter a product ID list down to those that are NOT flagged as
+	 * schematic replacement parts (mirrors the OR/NOT-EXISTS meta_query used
+	 * in the single-category filter path).
+	 *
+	 * @param  int[] $ids
+	 * @return int[]
+	 */
+	private static function exclude_parts_from_ids( array $ids ): array {
+		if ( empty( $ids ) ) {
+			return [];
+		}
+
+		$query = new WP_Query( [
+			'post_type'              => 'product',
+			'post_status'            => 'publish',
+			'fields'                 => 'ids',
+			'posts_per_page'         => -1,
+			'no_found_rows'          => true,
+			'ignore_sticky_posts'    => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'post__in'               => array_values( array_unique( array_map( 'absint', $ids ) ) ),
+			'meta_query'              => [
+				'relation' => 'OR',
+				[
+					'key'     => DTB_ProductMeta::IS_PARTS,
+					'value'   => '1',
+					'compare' => '!=',
+				],
+				[
+					'key'     => DTB_ProductMeta::IS_PARTS,
+					'compare' => 'NOT EXISTS',
+				],
+			],
+		] );
+
+		return array_map( 'absint', $query->posts ?? [] );
 	}
 
 	/** Return product IDs that resolve to the Compound Tubes display category. */

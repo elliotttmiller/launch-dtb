@@ -29,7 +29,11 @@ final class DTB_CatalogFacetsController {
 			'args'                => [
 				'brand'            => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'category'         => [ 'sanitize_callback' => 'sanitize_key' ],
-				'display_category' => [ 'sanitize_callback' => 'sanitize_key' ],
+				// sanitize_key() would strip commas, breaking the comma-separated
+				// multi-select display_category filter. Use sanitize_text_field
+				// (matching /catalog/products) so multi-value scoping works; each
+				// slug is still sanitize_title()'d downstream in the repository.
+				'display_category' => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'product_kind'     => [ 'sanitize_callback' => 'sanitize_key' ],
 				'is_parts'         => [ 'sanitize_callback' => 'sanitize_text_field' ],
 			],

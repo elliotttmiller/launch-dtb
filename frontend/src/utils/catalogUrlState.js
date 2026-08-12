@@ -108,7 +108,7 @@ export const SORT_OPTIONS = [
 export const DEFAULT_QUERY = {
   brands: [],
   category: '',
-  displayCategory: '',
+  displayCategory: [],
   toolFamily: '',
   productKind: '',
   builderSlot: '',
@@ -145,8 +145,11 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
   }
 
   const rawDisplayCategory = pathParams.categorySlug
-    ? pathParams.categorySlug
-    : (searchParams.get('display_category') || '');
+    ? [pathParams.categorySlug]
+    : (searchParams.get('display_category') || '')
+      .split(',')
+      .map((slug) => decodeURIComponent(slug.trim()))
+      .filter(Boolean);
 
   const search = searchParams.get('search')
     ? decodeURIComponent(searchParams.get('search'))
@@ -158,7 +161,7 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
   // display_category is silently cleared so the query makes sense.
   // The synthetic All Products slug is preserved here as view state so the page
   // can still render the correct heading; lower data layers strip it from API filters.
-  const displayCategory = search ? '' : rawDisplayCategory;
+  const displayCategory = search ? [] : rawDisplayCategory;
 
   return {
     brands,
@@ -191,8 +194,9 @@ export function buildCatalogUrl(query, pathParams = {}) {
   // Never include display_category and search in the same URL — they are
   // mutually exclusive.  Search takes priority. The synthetic All Products
   // selector is only a route/view state and must not become a filter param.
-  if (!pathParams.categorySlug && query.displayCategory && !query.search && !isAllProductsCategorySlug(query.displayCategory)) {
-    params.set('display_category', query.displayCategory);
+  if (!pathParams.categorySlug && query.displayCategory?.length > 0 && !query.search) {
+    const slugs = query.displayCategory.filter((slug) => !isAllProductsCategorySlug(slug));
+    if (slugs.length > 0) params.set('display_category', slugs.join(','));
   }
   if (!pathParams.categoryPathSlug && query.category) params.set('category', query.category);
   if (query.toolFamily) params.set('tool_family', query.toolFamily);

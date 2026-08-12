@@ -8,28 +8,17 @@ import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowRight,
-  CheckCircle2,
-  Clock3,
   CreditCard,
-  Mail,
-  PackageCheck,
   RotateCcw,
   ShieldCheck,
-  Truck,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import '../styles/store-policies.css';
 
-const QUICK_FACTS = [
-  { Icon: Clock3, label: '45 days', text: 'Return eligible items within 45 days of invoice date.' },
-  { Icon: CheckCircle2, label: 'No restocking fee', text: 'Unused approved returns are not charged a restocking fee.' },
-  { Icon: PackageCheck, label: 'Like-new condition', text: 'Items must be unused, complete, and in original packaging.' },
-];
-
 const RETURN_STEPS = [
   {
     title: 'Start your request',
-    text: 'Use the Return Portal or email info@drywalltoolbox.com with your order number.',
+    text: 'Use our Returns Portal and enter your order number to begin.',
   },
   {
     title: 'Wait for return approval',
@@ -39,11 +28,6 @@ const RETURN_STEPS = [
     title: 'Pack and ship',
     text: 'Pack the item securely and include your Return ID with the package.',
   },
-];
-
-const SHIPPING_RULES = [
-  { label: 'Damaged, defective, wrong item, or covered warranty claim', value: 'Drywall Toolbox provides a prepaid label.' },
-  { label: 'Ordered wrong item, changed mind, or no longer needed', value: 'Customer pays return shipping; label cost may be deducted from the refund.' },
 ];
 
 const NOT_RETURNABLE = [
@@ -74,18 +58,6 @@ const RELATED_POLICIES = [
 
 function PolicyPill({ children }) {
   return <span className="store-policy-pill">{children}</span>;
-}
-
-function QuickFactCard({ Icon, label, text }) {
-  return (
-    <article className="store-policy-fact">
-      <span className="store-policy-fact__icon"><Icon size={20} /></span>
-      <div>
-        <strong>{label}</strong>
-        <p>{text}</p>
-      </div>
-    </article>
-  );
 }
 
 function StepCard({ step, title, text }) {
@@ -131,15 +103,8 @@ export default function ReturnPolicy() {
             <Link to="/returns" className="store-policy-button store-policy-button--primary">
               Start a return <ArrowRight size={16} />
             </Link>
-            <a href="mailto:info@drywalltoolbox.com" className="store-policy-button store-policy-button--secondary">
-              <Mail size={16} /> Email returns
-            </a>
           </div>
         </div>
-
-        <aside className="store-policy-hero__panel" aria-label="Return policy highlights">
-          {QUICK_FACTS.map((fact) => <QuickFactCard key={fact.label} {...fact} />)}
-        </aside>
       </section>
 
       <main className="store-policy-content">
@@ -173,48 +138,6 @@ export default function ReturnPolicy() {
               Returns without a valid Return ID may be refused or delayed.
             </p>
           </div>
-        </section>
-
-        <section className="store-policy-grid">
-          <article className="store-policy-card">
-            <Truck size={22} />
-            <h2>Return shipping</h2>
-            <div className="store-policy-rule-list">
-              {SHIPPING_RULES.map((rule) => (
-                <div key={rule.label} className="store-policy-rule">
-                  <span>{rule.label}</span>
-                  <strong>{rule.value}</strong>
-                </div>
-              ))}
-            </div>
-            <p>
-              Use a trackable shipping service for returns over $75. When we
-              provide a discounted label for a discretionary return, the label
-              cost may be deducted from the refund. We are not responsible for
-              items lost or damaged in transit when return shipping is the
-              customer's responsibility.
-            </p>
-          </article>
-
-          <article className="store-policy-card">
-            <CreditCard size={22} />
-            <h2>Refunds</h2>
-            <p>
-              Once your return is received and inspected, we email confirmation
-              within 1 business day. Approved refunds are issued to the original
-              payment method within 3-5 business days.
-            </p>
-            <p>
-              Original outbound shipping charges are non-refundable unless the
-              return is caused by our error, damage in transit, or a verified
-              defect. If an order shipped under a free-shipping promotion, the
-              actual outbound shipping cost may be deducted from the refund.
-            </p>
-            <p>
-              Items returned used, incomplete, damaged, or missing accessories
-              may be refused or refunded at a reduced amount after inspection.
-            </p>
-          </article>
         </section>
 
         <section className="store-policy-section store-policy-section--split">

@@ -11,6 +11,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+  padding-block: 0.75rem;
 }
 
 .dtb-category-hero-card__content {
@@ -51,32 +52,6 @@
   overflow: hidden;
 }
 
-.dtb-category-hero-card__count-pill {
-  display: inline-flex;
-  width: fit-content;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.15rem;
-  padding: 0.3rem 0.65rem 0.3rem 0.3rem;
-  border-radius: var(--dtb-radius-md, 10px);
-  background: rgba(34, 85, 238, 0.08);
-  color: var(--color-primary-700, #1a44c0);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.dtb-category-hero-card__count-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: var(--dtb-radius-sm, 6px);
-  background: var(--color-primary-600, #2255ee);
-  color: #fff;
-}
-
 /* Image stacks first (above the content) on narrow screens — matches the
    mobile mockup. No fixed aspect-ratio or `cover` crop on the box itself —
    the photo renders at its own natural proportions via `object-fit:
@@ -87,14 +62,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  max-height: 110px;
+  height: clamp(140px, 32vw, 180px);
 }
 
 .dtb-category-hero-card__image {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 110px;
+  height: 100%;
   object-fit: contain;
   object-position: center;
 }
@@ -104,6 +78,7 @@
     flex-direction: row;
     align-items: center;
     gap: 1.5rem;
+    padding-block: 1.5rem;
   }
 
   .dtb-category-hero-card__content {
@@ -113,11 +88,7 @@
   .dtb-category-hero-card__media {
     order: 1;
     flex: 1 1 42%;
-    max-height: 128px;
-  }
-
-  .dtb-category-hero-card__image {
-    max-height: 128px;
+    height: clamp(180px, 16vw, 240px);
   }
 }
 

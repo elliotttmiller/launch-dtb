@@ -91,16 +91,16 @@
 }
 
 @media (min-width:768px) {
-  .dtb-product-grid,.product-skeleton-grid { grid-template-columns:repeat(auto-fill,minmax(240px,273px));justify-content:start;gap:20px; }
+  .dtb-product-grid,.product-skeleton-grid { grid-template-columns:repeat(auto-fill,minmax(210px,240px));justify-content:start;gap:20px; }
   .dtb-product-grid--list { grid-template-columns:1fr; }
   .dtb-product-card { position:relative;height:100%; }
   .dtb-product-card--rail { width:var(--dtb-rail-tile-w-desktop); }
   /* Fixed content tracks keep short and long product names from pushing the
      divider and commerce rail to different vertical positions. Card height is
      intrinsic instead of being inflated by a viewport-based minimum. */
-  .dtb-product-card--grid { display:grid;grid-template-rows:clamp(200px,17vw,270px) auto;min-height:0;border-radius:10px;border-color:rgba(203,213,225,.72);background:#fff;box-shadow:0 0 0 rgba(15,23,42,0);transform:scale(.985);transition:box-shadow .5s ease,transform .5s ease,border-color .3s ease; }
+  .dtb-product-card--grid { display:grid;grid-template-rows:clamp(175px,15vw,237px) auto;min-height:0;border-radius:10px;border-color:rgba(203,213,225,.72);background:#fff;box-shadow:0 0 0 rgba(15,23,42,0);transform:scale(.985);transition:box-shadow .5s ease,transform .5s ease,border-color .3s ease; }
   .dtb-product-card--grid:hover { transform:scale(1);box-shadow:5px 20px 30px rgba(15,23,42,.18);border-color:rgba(148,163,184,.45); }
-  .dtb-product-card--grid .dtb-product-card__image { aspect-ratio:4/3;min-height:clamp(200px,17vw,270px);height:clamp(200px,17vw,270px);padding:clamp(10px,1vw,16px);background:#fff;position:relative;overflow:hidden; }
+  .dtb-product-card--grid .dtb-product-card__image { aspect-ratio:4/3;min-height:clamp(175px,15vw,237px);height:clamp(175px,15vw,237px);padding:clamp(10px,1vw,16px);background:#fff;position:relative;overflow:hidden; }
   .dtb-product-card--grid .dtb-product-card__image .product-card-image { transition:transform .5s ease; }
   .dtb-product-card--grid:hover .dtb-product-card__image .product-card-image { transform:scale(1.035); }
   .dtb-product-card--grid .dtb-product-card__meta,

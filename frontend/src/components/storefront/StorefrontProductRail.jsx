@@ -47,7 +47,7 @@ export default function StorefrontProductRail({
       perPage: maxItems,
       sort: sort || 'popular',
       ...(brand ? { brands: [brand] } : {}),
-      ...(category ? { displayCategory: category } : {}),
+      ...(category ? { displayCategory: [category] } : {}),
     };
 
     fetchCatalogProducts(query).then((payload) => {

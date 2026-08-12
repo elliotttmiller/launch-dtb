@@ -337,15 +337,22 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return mergeCategoryEntries(byBrand);
   }, [brandSlug, facets, selectedBrand, selectedBrandFacet]);
 
+  const selectedDisplayCategories = query.displayCategory || [];
+
   const selectedCategoryLabel = useMemo(() => {
-    if (!query.displayCategory) return '';
-    const match = [...filterCategories, ...brandCategoryCards].find((cat) => cat.slug === query.displayCategory || cat.key === query.displayCategory || cat.id === query.displayCategory);
-    return match?.name || formatCategoryLabel(query.displayCategory);
-  }, [brandCategoryCards, filterCategories, query.displayCategory]);
+    if (selectedDisplayCategories.length === 0) return '';
+    const pool = [...filterCategories, ...brandCategoryCards];
+    const labels = selectedDisplayCategories.map((slug) => {
+      const match = pool.find((cat) => cat.slug === slug || cat.key === slug || cat.id === slug);
+      return match?.name || formatCategoryLabel(slug);
+    });
+    if (labels.length === 1) return labels[0];
+    return `${labels[0]} +${labels.length - 1} more`;
+  }, [brandCategoryCards, filterCategories, selectedDisplayCategories]);
 
   // Mirrors FilterPanel's own selectedBrands/selectedCategories inputs so the
   // toolbar badge always agrees with what the filter panel considers "active".
-  const activeFilterCount = (selectedBrand ? 1 : 0) + (query.displayCategory ? 1 : 0);
+  const activeFilterCount = (selectedBrand ? 1 : 0) + selectedDisplayCategories.length;
   const categoryScopeLabel = selectedBrandFacet?.label || selectedBrand;
   const pageHeading = selectedCategoryLabel
     ? `${categoryScopeLabel ? `${categoryScopeLabel} ` : ''}${selectedCategoryLabel}`
@@ -405,7 +412,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     committedSearchRef.current = search;
     setQuery(
       search
-        ? { search, displayCategory: '', category: '' }
+        ? { search, displayCategory: [], category: '' }
         : { search: '' },
       { replace },
     );
@@ -506,14 +513,17 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const toggleBrand = (brand) => {
     const canonical = canonicalBrandLabel(brand);
     const nextBrand = canonicalBrandLabel(selectedBrand) === canonical ? '' : canonical;
-    setQuery({ brands: nextBrand ? [nextBrand] : [], displayCategory: '', category: '', search: query.search || '', sort: query.sort || 'popular', perPage: query.perPage || 24 });
+    setQuery({ brands: nextBrand ? [nextBrand] : [], displayCategory: [], category: '', search: query.search || '', sort: query.sort || 'popular', perPage: query.perPage || 24 });
   };
 
   const toggleDisplayCategory = (displayCategory) => {
-    const next = query.displayCategory === displayCategory ? '' : displayCategory;
+    const current = query.displayCategory || [];
+    const next = current.includes(displayCategory)
+      ? current.filter((slug) => slug !== displayCategory)
+      : [...current, displayCategory];
     // When activating a category filter, clear any active search — the backend
     // ANDs display_category + search together which returns zero results.
-    setQuery({ displayCategory: next, category: '', ...(next ? { search: '' } : {}) });
+    setQuery({ displayCategory: next, category: '', ...(next.length > 0 ? { search: '' } : {}) });
   };
   const resetToBrandList = () => navigate('/products/brands');
   const resetToCategoryCards = () => navigate(`/products/brands/${brandToSlug(selectedBrand)}`);
@@ -565,7 +575,9 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
           categoryMeta ? (
             <>
               <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={total} />
-              <ShopByToolType category={categoryMeta} displayCategories={filterCategories} onOpenFilters={() => setShowFilters(true)} />
+              {Array.isArray(categoryMeta.children) && categoryMeta.children.length > 0 && (
+                <ShopByToolType category={categoryMeta} displayCategories={filterCategories} onOpenFilters={() => setShowFilters(true)} />
+              )}
             </>
           ) : categoryMetaError ? (
             <div className="mb-6 sm:mb-8">
@@ -588,7 +600,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
               {isCategoryProductRoute && (
                 <button
                   type="button"
-                  onClick={selectedBrand ? (query.displayCategory ? resetToCategoryCards : resetToBrandList) : () => navigate('/products')}
+                  onClick={selectedBrand ? (selectedDisplayCategories.length > 0 ? resetToCategoryCards : resetToBrandList) : () => navigate('/products')}
                   className="dtb-listing-heading__back-pill sm:hidden"
                 >
                   <ArrowLeft size={14} aria-hidden="true" />
@@ -599,8 +611,8 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 <div className="dtb-listing-heading__title-row hidden sm:flex">
                   <div className="dtb-listing-heading__nav-col shrink-0 lg:w-80">
                     <BackButton
-                      onClick={selectedBrand ? (query.displayCategory ? resetToCategoryCards : resetToBrandList) : () => navigate('/products')}
-                      label={selectedBrand ? (query.displayCategory ? selectedBrand : 'Brands') : 'Products'}
+                      onClick={selectedBrand ? (selectedDisplayCategories.length > 0 ? resetToCategoryCards : resetToBrandList) : () => navigate('/products')}
+                      label={selectedBrand ? (selectedDisplayCategories.length > 0 ? selectedBrand : 'Brands') : 'Products'}
                       className="dtb-product-nav-back"
                     />
                   </div>
@@ -678,12 +690,12 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 brands={brands}
                 maxPrice={0}
                 selectedBrands={selectedBrand ? [canonicalBrandLabel(selectedBrand)] : []}
-                selectedCategories={query.displayCategory ? [query.displayCategory] : []}
+                selectedCategories={selectedDisplayCategories}
                 priceRange={[0, 0]}
                 onBrandChange={toggleBrand}
                 onCategoryChange={toggleDisplayCategory}
                 onPriceChange={() => {}}
-                onClearFilters={() => selectedBrand ? setQuery({ brands: [], category: '', displayCategory: '', search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
+                onClearFilters={() => selectedBrand ? setQuery({ brands: [], category: '', displayCategory: [], search: '', sort: 'popular' }) : navigate(isPartsPage ? '/parts' : '/products')}
                 resultsCount={total}
               />
 

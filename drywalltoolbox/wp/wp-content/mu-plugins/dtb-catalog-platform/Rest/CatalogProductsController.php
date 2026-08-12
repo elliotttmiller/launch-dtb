@@ -10,6 +10,11 @@
  * tool_family, product_kind, builder_eligible, builder_slot, workflow_scope,
  * search, page, per_page, and sort.
  *
+ * `display_category` accepts either a single slug (e.g. `handles`) or a
+ * comma-separated list of slugs (e.g. `handles,corner_tools`) for storefront
+ * multi-select filtering. Multiple values are OR-combined: a product is
+ * included if it matches ANY listed category.
+ *
  * @package drywall-toolbox
  */
 

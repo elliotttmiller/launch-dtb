@@ -47,6 +47,13 @@
   object-fit: contain;
 }
 
+/* Cash App's mark renders visually smaller than the surrounding wordmarks
+   at the same box size — nudge it up slightly so it reads as the same
+   visual weight rather than looking undersized in the row. */
+.dtb-express-checkout-methods__list li.is-large img {
+  transform: scale(1.18);
+}
+
 @media (max-width: 420px) {
   .dtb-express-checkout-methods__list {
     gap: 0.3rem;

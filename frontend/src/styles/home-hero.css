@@ -9,7 +9,7 @@
 
 .home-hero__stage {
   position: relative;
-  height: clamp(540px, 36vw, 600px);
+  height: clamp(405px, 27vw, 450px);
   overflow: hidden;
   background: #f7f7f5;
 }
@@ -81,27 +81,27 @@
 .home-hero__content {
   position: absolute;
   z-index: 2;
-  top: clamp(92px, 6.3vw, 121px);
-  left: clamp(56px, 6.35vw, 122px);
-  width: min(610px, 44vw);
+  top: clamp(69px, 4.7vw, 91px);
+  left: clamp(42px, 4.75vw, 92px);
+  width: min(458px, 33vw);
 }
 
 .home-hero__title {
   margin: 0 0 var(--dtb-space-5);
   color: var(--home-hero-ink);
-  font-size: clamp(58px, 3.7vw, 71px);
+  font-size: clamp(44px, 2.8vw, 53px);
   font-weight: 800;
   line-height: 0.98;
   letter-spacing: -0.047em;
 }
 
 .home-hero__description {
-  max-width: 520px;
+  max-width: 390px;
   margin: 0 0 var(--dtb-space-5);
   color: #40506c;
-  font-size: clamp(16px, 1.02vw, 19px);
+  font-size: clamp(14px, 0.85vw, 16px);
   font-weight: 550;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .home-hero__actions {
@@ -169,6 +169,7 @@
   position: relative;
   isolation: isolate;
   display: inline-grid;
+  flex-shrink: 0;
   grid-auto-flow: column;
   place-content: center;
   align-items: center;
@@ -180,6 +181,7 @@
   text-decoration: none;
   font-weight: 800;
   letter-spacing: 0.015em;
+  white-space: nowrap;
   box-shadow: 0 14px 26px rgba(34, 85, 238, 0.26), 0 3px 8px rgba(7, 19, 41, 0.16);
   clip-path: polygon(
     0% var(--curve-size),
@@ -221,7 +223,7 @@
   position: absolute;
   z-index: 4;
   left: 50%;
-  top: calc(clamp(540px, 36vw, 600px) - 40px);
+  top: calc(clamp(405px, 27vw, 450px) - 40px);
   width: min(1540px, calc(100% - 150px));
   transform: translateX(-50%);
 }
@@ -313,7 +315,7 @@
   display: flex;
   align-items: center;
   width: max-content;
-  gap: 0;
+  gap: clamp(10px, 1.4vw, 20px);
   animation: home-hero-brands-scroll 34s linear infinite;
 }
 
@@ -442,7 +444,7 @@
     display: flex;
     align-items: center;
     width: max-content;
-    gap: 0;
+    gap: 12px;
     animation: home-hero-brands-scroll 30s linear infinite;
   }
 
@@ -600,7 +602,7 @@
     display: flex;
     align-items: center;
     width: max-content;
-    gap: 0;
+    gap: 8px;
     padding: 0;
     animation: home-hero-brands-scroll 24s linear infinite;
   }
@@ -642,7 +644,7 @@
     display: flex;
     align-items: center;
     width: max-content;
-    gap: 0;
+    gap: 12px;
     animation: home-hero-brands-scroll 28s linear infinite;
   }
 

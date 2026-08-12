@@ -1010,6 +1010,15 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "variant": null,
     "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-inside-corner-applicator"
   },
+  "ICA4-1": {
+    "schematicId": "columbia-inside-corner-applicator",
+    "brand": "Columbia Taping Tools",
+    "category": "Applicators",
+    "title": "Inside Corner Applicator",
+    "page": null,
+    "variant": null,
+    "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-inside-corner-applicator"
+  },
   "ICATW": {
     "schematicId": "columbia-2-way-internal-corner",
     "brand": "Columbia Taping Tools",

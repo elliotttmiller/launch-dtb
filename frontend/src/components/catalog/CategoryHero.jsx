@@ -1,4 +1,3 @@
-import { LayoutGrid } from 'lucide-react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
@@ -13,7 +12,7 @@ import '../../styles/category-hero.css';
  * image stacked above content on narrow screens, side-by-side (content
  * left, image right) from `md` up.
  */
-export default function CategoryHero({ category, breadcrumbs = [], productCount = 0 }) {
+export default function CategoryHero({ category, breadcrumbs = [] }) {
   const { src: heroImageSrc, srcSet: heroImageSrcSet } = resolveCategoryHeroImage(category || {});
 
   if (!category) return null;
@@ -29,9 +28,6 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
   const displayDescription = description
     || `Browse our full selection of ${label} for professional drywall work.`;
   const eyebrow = parent?.label || '';
-  const productCountLabel = Number(productCount) > 0
-    ? `${Number(productCount).toLocaleString()} product${Number(productCount) === 1 ? '' : 's'}`
-    : '';
 
   return (
     <div className="dtb-category-hero mb-6 sm:mb-8">
@@ -42,14 +38,6 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
           {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
           <h1 className="dtb-category-hero-card__title">{label}</h1>
           <p className="dtb-category-hero-card__description">{displayDescription}</p>
-          {productCountLabel && (
-            <span className="dtb-category-hero-card__count-pill">
-              <span className="dtb-category-hero-card__count-icon" aria-hidden="true">
-                <LayoutGrid size={12} strokeWidth={2.5} />
-              </span>
-              {productCountLabel.toUpperCase()}
-            </span>
-          )}
         </div>
 
         {heroImageSrc && (

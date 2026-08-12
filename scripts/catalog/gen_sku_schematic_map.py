@@ -1,6 +1,6 @@
 import csv, json, os, re, sys
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def php_str(s):
@@ -73,6 +73,74 @@ for key, row in csv_sku_rows.items():
 
     sku_map[key] = {"schematic_id": resolved_id, "page": None}
     added += 1
+
+# ---------------------------------------------------------------------
+# Part 1b: fill remaining gaps from the canonical-filename SKU table
+#   (scripts/catalog/normalize_schematic_filenames.py PREFERRED_SKU).
+#   That table is the source of truth used to *name* the on-disk
+#   products/schematics files (e.g. "platinum_pt-bh_sch-page-001.webp"),
+#   so any SKU it names must also resolve here or every upload for that
+#   schematic id is unregisterable. Each SKU is verified against the
+#   official WooCommerce catalog CSV before being added, so a typo in
+#   PREFERRED_SKU can never silently mint a fake identifier.
+# ---------------------------------------------------------------------
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from normalize_schematic_filenames import PREFERRED_SKU  # noqa: E402
+
+official_catalog_path = f"{REPO}/products/launch/official/dtb_woocommerce_official_catalog.csv"
+official_skus = set()
+with open(official_catalog_path, encoding="utf-8-sig", newline="") as f:
+    for row in csv.DictReader(f):
+        sku = (row.get("SKU") or "").strip()
+        if sku:
+            official_skus.add(sku.upper())
+
+preferred_added = 0
+preferred_skipped_unknown = []
+for schematic_id, preferred_sku in PREFERRED_SKU.items():
+    key = preferred_sku.upper()
+    if key in sku_map:
+        continue
+    if key not in official_skus:
+        preferred_skipped_unknown.append((preferred_sku, schematic_id))
+        continue
+    sku_map[key] = {"schematic_id": schematic_id, "page": None}
+    preferred_added += 1
+
+print(f"[sku map] PREFERRED_SKU entries added: {preferred_added}", file=sys.stderr)
+for sku, schematic_id in preferred_skipped_unknown:
+    print(f"  SKIPPED (not in official catalog): {sku} -> {schematic_id}", file=sys.stderr)
+
+# ---------------------------------------------------------------------
+# Part 1c: explicit SKU aliases — filename-only SKU tokens that are not
+#   themselves purchasable catalog SKUs but denote the same physical
+#   product/schematic as an existing mapped SKU (e.g. a model-year export
+#   naming variant). Each alias is copied verbatim from its canonical
+#   SKU's resolved entry, so it can never drift out of sync with it.
+#   Confirmed 2026-08-11 with the catalog owner: TBMP-2022 is the 2022
+#   sub-assembly export naming for the same Tall Boy Mud Pump product line
+#   as TBMP/TBMP1 (see all_brands_schematic_parts_master.csv,
+#   Pumps/TallBoyMudPump rows).
+# ---------------------------------------------------------------------
+SKU_ALIASES = {
+    "TBMP-2022": "TBMP",
+}
+
+alias_added = 0
+for alias, canonical in SKU_ALIASES.items():
+    alias_key = alias.upper()
+    canonical_key = canonical.upper()
+    if canonical_key not in sku_map:
+        raise RuntimeError(
+            f"SKU_ALIASES: canonical SKU {canonical_key} (for alias {alias_key}) "
+            "is not present in the resolved sku map."
+        )
+    if alias_key in sku_map:
+        continue
+    sku_map[alias_key] = dict(sku_map[canonical_key])
+    alias_added += 1
+
+print(f"[sku map] SKU_ALIASES entries added: {alias_added}", file=sys.stderr)
 
 print(f"[sku map] catalog entries: {len(catalog)}, csv entries added: {added}, total: {len(sku_map)}", file=sys.stderr)
 

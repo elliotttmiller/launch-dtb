@@ -187,8 +187,9 @@ export function buildCatalogProductParams(query = {}) {
     params.brand = brandToSlug(query.brands[0]);
   }
   if (query.category) params.category = query.category;
-  if (!query.search && query.displayCategory && !isAllProductsCategorySlug(query.displayCategory)) {
-    params.display_category = query.displayCategory;
+  if (!query.search && Array.isArray(query.displayCategory) && query.displayCategory.length > 0) {
+    const slugs = query.displayCategory.filter((slug) => !isAllProductsCategorySlug(slug));
+    if (slugs.length > 0) params.display_category = slugs.join(',');
   }
   if (query.toolFamily) params.tool_family = query.toolFamily;
   if (query.productKind) params.product_kind = query.productKind;
@@ -212,6 +213,12 @@ function buildCatalogSnapshotUrl(query = {}) {
 
   const params = buildCatalogProductParams(query);
   if (params.search || params.tool_family || params.builder_slot || params.workflow_scope || params.product_kind) {
+    return '';
+  }
+  // Static snapshots are pre-built per single category — a multi-select
+  // (comma-separated) display_category has no matching snapshot file, so
+  // fall back to the live endpoint, which supports the OR-combined filter.
+  if (params.display_category && params.display_category.includes(',')) {
     return '';
   }
 
