@@ -43,7 +43,7 @@ export default function HomeHero({ brands = [] }) {
           </h1>
           <p className="home-hero__description">{HERO_COPY.description}</p>
           <div className="home-hero__actions">
-            <HomeHeroButton to="/all-products">Shop All Products</HomeHeroButton>
+            <HomeHeroButton to="/all-products">Shop Products</HomeHeroButton>
             <HomeHeroButton to="/parts" variant="secondary">Shop Parts</HomeHeroButton>
           </div>
         </div>

@@ -421,12 +421,7 @@
     transform: none;
     width: calc(100% - 40px);
     margin: 0 auto;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .home-hero-trustbar__item:nth-child(2) { border-right: 0; }
-  .home-hero-trustbar__item:nth-child(1),
-  .home-hero-trustbar__item:nth-child(2) { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
 
   .home-hero-nav {
     width: calc(100% - 40px);
@@ -601,9 +596,15 @@
   .home-hero__media {
     top: auto;
     bottom: 0;
-    right: -18%;
-    height: 52%;
+    right: -30%;
+    height: 66%;
     transform: none;
+    -webkit-mask-image:
+      linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.06) 30%, rgba(0, 0, 0, 0.32) 46%, rgba(0, 0, 0, 0.78) 58%, #000 68%, #000 100%),
+      linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.62) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.62) 95%, transparent 100%);
+    mask-image:
+      linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.06) 30%, rgba(0, 0, 0, 0.32) 46%, rgba(0, 0, 0, 0.78) 58%, #000 68%, #000 100%),
+      linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.62) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.62) 95%, transparent 100%);
   }
 
   .home-hero-trustbar {
@@ -613,20 +614,9 @@
     transform: none;
     width: calc(100% - 32px);
     margin: clamp(16px, 5vw, 24px) auto 0;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .home-hero-trustbar__item {
-    padding: 16px 12px;
-    gap: 10px;
-  }
-
-  .home-hero-trustbar__item:nth-child(2) { border-right: 0; }
-  .home-hero-trustbar__item:nth-child(1),
-  .home-hero-trustbar__item:nth-child(2) { border-bottom: 1px solid rgba(255, 255, 255, 0.12); }
-
-  .home-hero-trustbar__icon { width: 20px; height: 20px; }
-  .home-hero-trustbar__label { font-size: 11.5px; white-space: normal; }
+  .home-hero-trustbar__item { padding: 12px 4px; }
 
   .home-hero-nav {
     width: calc(100% - 24px);
@@ -745,6 +735,19 @@
    Elevation/radius vocabulary matches storefront-product-card.css (idle 0 12px 28px rgba(15,23,42,.06),
    hover 0 20px 40px rgba(15,23,42,.12), border rgba(15,23,42,.08), border-radius var(--dtb-radius-lg)). */
 @media (max-width: 900px) {
+  /* Always 4-across, never a 2x2 stack — items go vertical (icon over
+     label) below the width a horizontal icon+label pair can fit. */
+  .home-hero-trustbar__item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 6px;
+    text-align: center;
+  }
+
+  .home-hero-trustbar__icon { width: 20px; height: 20px; }
+  .home-hero-trustbar__label { font-size: 10px; line-height: 1.3; white-space: normal; }
+
   .home-hero-nav__item {
     border-radius: var(--dtb-radius-lg);
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
