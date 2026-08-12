@@ -1,6 +1,7 @@
 .home-hero {
   --home-hero-blue: #3d6dff;
   --home-hero-ink: #071329;
+
   position: relative;
   isolation: isolate;
   background: #fff;
@@ -239,9 +240,10 @@
 }
 
 .home-hero__button--secondary:where(:hover, :focus) { color: var(--color-primary-700, #1945d8); }
-.home-hero__button:focus-visible,
 .home-hero-nav__item:focus-visible,
-.home-hero-brands__link:focus-visible { outline: 3px solid rgba(11, 92, 255, 0.32); outline-offset: 3px; }
+.home-hero-brands__link:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
+
+.home-hero__button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 /* ── Trust bar: dark card overlapping the bottom edge of the hero stage.
    Lives outside .home-hero__stage (not a descendant) because the stage has
