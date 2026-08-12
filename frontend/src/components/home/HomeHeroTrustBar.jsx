@@ -9,17 +9,17 @@ const TRUST_ITEMS = [
 
 export default function HomeHeroTrustBar() {
   return (
-    <div className="home-hero-trustbar" role="list" aria-label="Why shop Drywall Toolbox">
+    <ul className="home-hero-trustbar" aria-label="Why shop Drywall Toolbox">
       {TRUST_ITEMS.map(({ id, Icon, lines }) => (
-        <div className="home-hero-trustbar__item" role="listitem" key={id}>
+        <li className="home-hero-trustbar__item" key={id}>
           <Icon className="home-hero-trustbar__icon" size={26} strokeWidth={1.8} aria-hidden="true" />
           <span className="home-hero-trustbar__label">
             {lines[0]}
             <br />
             {lines[1]}
           </span>
-        </div>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
