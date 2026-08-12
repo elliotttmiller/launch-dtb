@@ -546,11 +546,7 @@
 
 @media (max-width: 640px) {
   .home-hero__stage {
-    height: auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    padding-bottom: clamp(28px, 7vw, 40px);
+    height: clamp(480px, 128vw, 560px);
   }
 
   /* Kept dark and tinted with the brand blue so the backdrop reads as an
@@ -563,32 +559,29 @@
       linear-gradient(165deg, #060b18 0%, var(--dtb-shell, #0a1020) 55%, var(--dtb-shell-2, #121a2f) 100%);
   }
 
+  /* Content overlays the left column of the hero photo — matching the
+     mockup — rather than stacking above it as a separate block. */
   .home-hero__content {
-    position: relative;
-    order: 1;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    max-width: none;
-    /* Tight to the fixed header offset already reserved by main-content — no
-       extra buffer stacking on top of it. */
-    padding: clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4)) var(--dtb-space-5) 0;
+    top: clamp(24px, 7vw, 36px);
+    left: var(--dtb-space-5);
+    right: var(--dtb-space-5);
+    width: auto;
   }
 
-  .home-hero__eyebrow { margin-bottom: var(--dtb-space-2); }
+  .home-hero__eyebrow { margin-bottom: var(--dtb-space-2); font-size: 10.5px; gap: 8px; }
+  .home-hero__eyebrow-bar { height: 13px; }
 
   .home-hero__title {
-    max-width: 360px;
+    max-width: 250px;
     margin-bottom: var(--dtb-space-2);
-    font-size: clamp(38px, 10.8vw, 50px);
+    font-size: clamp(32px, 9.4vw, 42px);
   }
 
   .home-hero__description {
-    max-width: 350px;
+    max-width: 240px;
     margin-bottom: var(--dtb-space-3);
-    font-size: clamp(15px, 4.1vw, 16px);
-    line-height: 1.48;
+    font-size: 13.5px;
+    line-height: 1.46;
   }
 
   .home-hero__actions {
@@ -601,34 +594,20 @@
   .home-hero__button {
     width: 100%;
     min-width: 0;
-    min-height: 50px;
+    min-height: 46px;
+    font-size: 14px;
   }
 
   .home-hero__media {
-    position: relative;
-    order: 2;
     top: auto;
-    right: auto;
-    bottom: auto;
-    width: 188%;
-    height: auto;
-    max-width: none;
-    /* Pulled up tighter under the copy block so the product photo starts
-       filling the viewport sooner instead of leaving a gap beneath the CTAs. */
-    margin-top: clamp(-118px, -24vw, -84px);
-    margin-bottom: clamp(-18px, -3vw, -8px);
-    margin-left: -78%;
-    align-self: flex-start;
+    bottom: 0;
+    right: -18%;
+    height: 52%;
     transform: none;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
-    -webkit-mask-composite: source-over;
-    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
-    mask-composite: add;
   }
 
   .home-hero-trustbar {
     position: relative;
-    order: 3;
     left: auto;
     bottom: auto;
     transform: none;
@@ -772,8 +751,18 @@
   }
 
   .home-hero-nav__item--featured {
-    box-shadow: 0 12px 26px rgba(34, 85, 238, 0.18), 0 1px 3px rgba(15, 23, 42, 0.05);
+    background: #fff;
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
   }
+
+  .home-hero-nav__item--featured .home-hero-nav__label,
+  .home-hero-nav__item--featured .home-hero-nav__description {
+    color: inherit;
+  }
+
+  .home-hero-nav__item--featured .home-hero-nav__label { color: #111827; }
+  .home-hero-nav__item--featured .home-hero-nav__description { color: #63708a; }
 
   .home-hero-nav__item:active {
     transform: scale(0.97);
@@ -793,8 +782,8 @@
   .home-hero-nav__icon svg { width: 22px; height: 22px; }
 
   .home-hero-nav__item--featured .home-hero-nav__icon {
-    background: transparent;
-    box-shadow: none;
+    background: linear-gradient(135deg, var(--color-primary-600, #2255ee) 0%, #173fb5 100%);
+    box-shadow: 0 4px 12px rgba(34, 85, 238, 0.32);
     color: #fff;
   }
 
