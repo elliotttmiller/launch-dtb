@@ -572,46 +572,53 @@
   .home-hero__actions {
     width: 100%;
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 8px;
   }
 
   .home-hero__button {
-    width: 100%;
-    min-width: 0;
+    width: auto;
+    min-width: 150px;
     min-height: 40px;
-    padding: 0.5em 1em;
+    padding: 0.5em 1.3em;
     font-size: 12.5px;
   }
 
-  /* Clean split-panel photo — a hard-edged column filling the right side
-     of the stage top-to-bottom (matching the mockup's two-tone block
-     composition) rather than a softly-faded floating cutout. Swapped for
-     a purpose-shot mobile crop once that asset exists. */
+  /* Split-panel photo filling the right side of the stage top-to-bottom
+     (matching the mockup's two-tone composition), with a wide feathered
+     seam — plus a soft scrim over the image itself — so the two halves
+     read as one continuous surface instead of a hard-cut edge. Swapped
+     for a purpose-shot mobile crop once that asset exists. */
   .home-hero__media {
     top: 0;
     right: 0;
     bottom: 0;
     left: auto;
-    width: 54%;
+    width: 58%;
     height: 100%;
     max-width: none;
     object-fit: cover;
     object-position: 58% center;
     transform: none;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 22%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
+    mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
   }
 
+  /* Flush, edge-to-edge continuation of the dark stage — no floating-card
+     treatment (radius/shadow/gutter) at this size, per the mockup, which
+     reads the badge row as part of the same hero surface, not a card
+     overlapping it. */
   .home-hero-trustbar {
     position: relative;
     left: auto;
     bottom: auto;
     transform: none;
-    width: calc(100% - 32px);
-    margin: clamp(16px, 5vw, 24px) auto 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .home-hero-trustbar__item { padding: 12px 4px; }
