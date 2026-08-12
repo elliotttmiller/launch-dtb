@@ -1,26 +1,27 @@
 .home-hero {
-  --home-hero-blue: #0b5cff;
+  --home-hero-blue: #3d6dff;
   --home-hero-ink: #071329;
+
   position: relative;
   isolation: isolate;
   background: #fff;
-  color: var(--home-hero-ink);
+  color: #fff;
 }
 
 .home-hero__stage {
   position: relative;
-  height: clamp(405px, 27vw, 450px);
+  height: clamp(468px, 34vw, 560px);
   overflow: hidden;
-  background: #f7f7f5;
+  background: var(--dtb-shell, #0a1020);
 }
 
 .home-hero__ambient {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 18% 38%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0) 42%),
-    radial-gradient(circle at 42% 68%, rgba(226, 232, 240, 0.5) 0%, rgba(226, 232, 240, 0) 44%),
-    linear-gradient(100deg, #fafafa 0%, #f5f5f3 56%, #efeeeb 100%);
+    radial-gradient(circle at 12% 22%, rgba(34, 85, 238, 0.22) 0%, rgba(34, 85, 238, 0) 46%),
+    radial-gradient(circle at 46% 78%, rgba(18, 26, 47, 0.5) 0%, rgba(18, 26, 47, 0) 48%),
+    linear-gradient(115deg, #060b18 0%, var(--dtb-shell, #0a1020) 46%, var(--dtb-shell-2, #121a2f) 100%);
 }
 
 .home-hero__ambient::before,
@@ -28,7 +29,7 @@
   content: "";
   position: absolute;
   border-radius: 50%;
-  filter: blur(54px);
+  filter: blur(64px);
   animation: home-hero-drift 18s ease-in-out infinite alternate;
 }
 
@@ -37,7 +38,7 @@
   height: 72%;
   left: -8%;
   top: -18%;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(61, 109, 255, 0.16);
 }
 
 .home-hero__ambient::after {
@@ -45,7 +46,7 @@
   height: 66%;
   left: 26%;
   bottom: -28%;
-  background: rgba(218, 225, 234, 0.42);
+  background: rgba(18, 26, 47, 0.6);
   animation-delay: -7s;
   animation-direction: alternate-reverse;
 }
@@ -57,7 +58,7 @@
   right: clamp(-24px, -0.8vw, -8px);
   display: block;
   width: auto;
-  height: 98%;
+  height: 92%;
   max-width: none;
   object-fit: contain;
   transform: translateY(-50%);
@@ -81,24 +82,48 @@
 .home-hero__content {
   position: absolute;
   z-index: 2;
-  top: clamp(69px, 4.7vw, 91px);
+  top: clamp(64px, 4.6vw, 88px);
   left: clamp(42px, 4.75vw, 92px);
-  width: min(458px, 33vw);
+  width: min(470px, 34vw);
+}
+
+.home-hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 var(--dtb-space-3);
+  color: #aebbdc;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.home-hero__eyebrow-bar {
+  display: block;
+  width: 3px;
+  height: 15px;
+  background: var(--home-hero-blue);
+  border-radius: 2px;
+  flex: none;
 }
 
 .home-hero__title {
   margin: 0 0 var(--dtb-space-5);
-  color: var(--home-hero-ink);
+  color: #fff;
   font-size: clamp(44px, 2.8vw, 53px);
   font-weight: 800;
   line-height: 0.98;
   letter-spacing: -0.047em;
 }
 
+.home-hero__title-line--accent { color: var(--home-hero-blue); }
+
 .home-hero__description {
   max-width: 390px;
   margin: 0 0 var(--dtb-space-5);
-  color: #40506c;
+  color: #a9b4cd;
   font-size: clamp(14px, 0.85vw, 16px);
   font-weight: 550;
   line-height: 1.5;
@@ -211,21 +236,59 @@
   --color: var(--color-primary-600, #2255ee);
   --border-color: linear-gradient(-45deg, var(--color-primary-200, #bfdbfe), var(--color-primary-500, #2255ee), var(--color-primary-200, #bfdbfe));
   min-width: 160px;
-  box-shadow: 0 8px 18px rgba(7, 19, 41, 0.1);
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.34);
 }
 
 .home-hero__button--secondary:where(:hover, :focus) { color: var(--color-primary-700, #1945d8); }
-.home-hero__button:focus-visible,
 .home-hero-nav__item:focus-visible,
-.home-hero-brands__link:focus-visible { outline: 3px solid rgba(11, 92, 255, 0.32); outline-offset: 3px; }
+.home-hero-brands__link:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
+
+.home-hero__button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* ── Trust bar: dark card overlapping the bottom edge of the hero stage.
+   Lives outside .home-hero__stage (not a descendant) because the stage has
+   overflow:hidden for the product-photo mask crop — nesting an overlapping
+   element inside it would get silently clipped at the stage's own edge. ── */
+.home-hero-trustbar {
+  position: relative;
+  z-index: 4;
+  width: min(1180px, calc(100% - 96px));
+  margin: -48px auto 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--dtb-shell-2, #121a2f);
+  border-radius: var(--dtb-radius-lg);
+  box-shadow: 0 24px 48px rgba(2, 6, 23, 0.32), 0 4px 14px rgba(2, 6, 23, 0.2);
+}
+
+.home-hero-trustbar__item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px clamp(16px, 2vw, 28px);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.home-hero-trustbar__item:last-child { border-right: 0; }
+
+.home-hero-trustbar__icon { flex: none; color: #fff; }
+
+.home-hero-trustbar__label {
+  min-width: 0;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
 
 .home-hero-nav {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  top: calc(clamp(405px, 27vw, 450px) - 40px);
-  width: min(1540px, calc(100% - 150px));
-  transform: translateX(-50%);
+  position: relative;
+  width: min(1180px, calc(100% - 96px));
+  margin: clamp(28px, 3.4vw, 44px) auto 0;
 }
 
 .home-hero-nav__track {
@@ -237,10 +300,6 @@
 }
 
 .home-hero-nav__item {
-  --border-color: linear-gradient(-45deg, #2255ee, #173fb5, #2255ee);
-  --border-width: 0.125em;
-  --curve-size: 0.5em;
-  --bg: #ffffff;
   position: relative;
   isolation: isolate;
   min-width: 0;
@@ -249,21 +308,23 @@
   display: flex;
   align-items: center;
   gap: 17px;
-  border: 0;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   color: inherit;
   text-decoration: none;
-  clip-path: polygon(
-    0 var(--curve-size),
-    var(--curve-size) 0,
-    100% 0,
-    100% calc(100% - var(--curve-size)),
-    calc(100% - var(--curve-size)) 100%,
-    0 100%
-  );
+  background: #fff;
+  border-radius: var(--dtb-radius-md);
+  box-shadow: var(--dtb-shadow-card);
+  transition: transform 160ms var(--dtb-ease), box-shadow 160ms var(--dtb-ease);
+}
+
+.home-hero-nav__item:where(:hover, :focus) {
+  box-shadow: var(--dtb-shadow-elevated);
 }
 
 .home-hero-nav__item--featured {
-  --bg: #f3f6ff;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--color-primary-600, #2255ee) 0%, #173fb5 100%);
+  box-shadow: 0 14px 30px rgba(34, 85, 238, 0.32);
 }
 
 .home-hero-nav__icon {
@@ -273,20 +334,19 @@
   display: grid;
   place-items: center;
   color: var(--home-hero-blue);
-  transition: color 250ms;
 }
 
 .home-hero-nav__copy { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-.home-hero-nav__label { color: #111827; font-size: 15px; font-weight: 750; line-height: 1; white-space: nowrap; transition: color 250ms; }
-.home-hero-nav__description { color: #63708a; font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; transition: color 250ms; }
+.home-hero-nav__label { color: #111827; font-size: 15px; font-weight: 750; line-height: 1; white-space: nowrap; }
+.home-hero-nav__description { color: #63708a; font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; }
 
-.home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon,
-.home-hero-nav__item:where(:hover, :focus) .home-hero-nav__label,
-.home-hero-nav__item:where(:hover, :focus) .home-hero-nav__description { color: #fff; }
+.home-hero-nav__item--featured .home-hero-nav__icon,
+.home-hero-nav__item--featured .home-hero-nav__label,
+.home-hero-nav__item--featured .home-hero-nav__description { color: #fff; }
 
 .home-hero-brands {
   min-height: 218px;
-  padding: 108px clamp(48px, 6vw, 112px) 34px;
+  padding: 64px clamp(48px, 6vw, 112px) 34px;
   background: #fff;
 }
 
@@ -352,8 +412,22 @@
 @media (max-width: 1199px) {
   .home-hero__content { left: clamp(36px, 5vw, 64px); width: min(510px, 52vw); }
   .home-hero__title { font-size: clamp(48px, 5.4vw, 62px); }
-  .home-hero__media { height: 82%; right: -8%; }
-  .home-hero-nav { width: calc(100% - 40px); }
+  .home-hero__media { height: 78%; right: -8%; }
+
+  .home-hero-trustbar {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    width: calc(100% - 40px);
+    margin: 0 auto;
+  }
+
+  .home-hero-nav {
+    width: calc(100% - 40px);
+    margin-top: var(--dtb-space-6);
+  }
+
   .home-hero-nav__track { display: flex; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
   .home-hero-nav__track::-webkit-scrollbar { display: none; }
   .home-hero-nav__item { flex: 0 0 190px; padding-inline: 18px; }
@@ -395,30 +469,31 @@
 
 @media (min-width: 641px) and (max-width: 900px) {
   .home-hero-nav {
-    position: relative;
-    left: auto;
-    top: auto;
     width: calc(100% - 32px);
-    margin: -24px auto 0;
-    transform: none;
+    margin: var(--dtb-space-6) auto 0;
   }
 
   .home-hero-nav__track {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: var(--dtb-space-2);
     overflow: visible;
   }
 
   .home-hero-nav__item {
     width: auto;
-    min-height: 76px;
-    padding: var(--dtb-space-2) var(--dtb-space-3);
+    min-height: 96px;
+    padding: var(--dtb-space-2) var(--dtb-space-1);
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
     flex: none;
-    gap: var(--dtb-space-2);
+    gap: 8px;
   }
 
-  .home-hero-nav__item:last-child { grid-column: 1 / -1; }
+  .home-hero-nav__copy { align-items: center; gap: 4px; }
+  .home-hero-nav__label { white-space: normal; font-size: 12px; }
+  .home-hero-nav__description { white-space: normal; font-size: 10px; text-align: center; }
 
   .home-hero-brands {
     min-height: 0;
@@ -465,115 +540,123 @@
 }
 
 @media (max-width: 640px) {
-  .home-hero__stage {
-    height: auto;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Tinted (not flat white/gray) so the backdrop reads as an intentional
-     brand surface instead of dead space while content/image load in. */
-  .home-hero__ambient {
-    background:
-      radial-gradient(circle at 20% 12%, rgba(34, 85, 238, 0.08) 0%, rgba(34, 85, 238, 0) 46%),
-      radial-gradient(circle at 82% 70%, rgba(226, 232, 240, 0.55) 0%, rgba(226, 232, 240, 0) 48%),
-      linear-gradient(165deg, #f8f9ff 0%, #f3f5fb 60%, #eef1f8 100%);
-  }
+  /* Same overlay composition as desktop/tablet (content and photo layered
+     in one dark stage, not stacked into separate blocks) — scaled down
+     for the narrower column. The one structural difference at this size
+     is the CTA row switching from side-by-side to stacked. */
+  .home-hero__stage { height: clamp(350px, 94vw, 400px); }
 
   .home-hero__content {
-    position: relative;
-    order: 1;
-    top: auto;
-    left: auto;
-    right: auto;
-    width: 100%;
-    max-width: none;
-    /* Tight to the fixed header offset already reserved by main-content — no
-       extra buffer stacking on top of it. */
-    padding: clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4)) var(--dtb-space-5) 0;
+    top: clamp(20px, 6vw, 30px);
+    left: var(--dtb-space-5);
+    right: var(--dtb-space-5);
+    width: auto;
   }
 
+  .home-hero__eyebrow { margin-bottom: 10px; font-size: 9.5px; gap: 7px; }
+  .home-hero__eyebrow-bar { height: 12px; }
+
   .home-hero__title {
-    max-width: 360px;
-    margin-bottom: var(--dtb-space-2);
-    font-size: clamp(38px, 10.8vw, 50px);
+    max-width: 175px;
+    margin-bottom: 10px;
+    font-size: clamp(27px, 7.6vw, 32px);
   }
 
   .home-hero__description {
-    max-width: 350px;
+    max-width: 168px;
     margin-bottom: var(--dtb-space-3);
-    font-size: clamp(15px, 4.1vw, 16px);
-    line-height: 1.48;
+    font-size: 11.5px;
+    line-height: 1.4;
   }
 
   .home-hero__actions {
     width: 100%;
     flex-direction: column;
-    align-items: stretch;
-    gap: var(--dtb-space-2);
+    align-items: flex-start;
+    gap: 8px;
   }
 
   .home-hero__button {
-    width: 100%;
-    min-width: 0;
-    min-height: 50px;
+    width: auto;
+    min-width: 150px;
+    min-height: 40px;
+    padding: 0.5em 1.3em;
+    font-size: 12.5px;
   }
 
+  /* Split-panel photo filling the right side of the stage top-to-bottom
+     (matching the mockup's two-tone composition), with a wide feathered
+     seam — plus a soft scrim over the image itself — so the two halves
+     read as one continuous surface instead of a hard-cut edge. Swapped
+     for a purpose-shot mobile crop once that asset exists. */
   .home-hero__media {
-    position: relative;
-    order: 2;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    width: 188%;
-    height: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: 58%;
+    height: 100%;
     max-width: none;
-    /* Pulled up tighter under the copy block so the product photo starts
-       filling the viewport sooner instead of leaving a gap beneath the CTAs. */
-    margin-top: clamp(-118px, -24vw, -84px);
-    margin-bottom: clamp(-18px, -3vw, -8px);
-    margin-left: -78%;
-    align-self: flex-start;
+    object-fit: cover;
+    object-position: 58% center;
     transform: none;
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
-    -webkit-mask-composite: source-over;
-    mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.42) 9%, #000 20%, #000 100%);
-    mask-composite: add;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
+    mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
   }
 
-  .home-hero-nav {
+  /* Flush, edge-to-edge continuation of the dark stage — no floating-card
+     treatment (radius/shadow/gutter) at this size, per the mockup, which
+     reads the badge row as part of the same hero surface, not a card
+     overlapping it. */
+  .home-hero-trustbar {
     position: relative;
     left: auto;
-    top: auto;
-    width: calc(100% - 24px);
-    margin: -24px auto 0;
+    bottom: auto;
     transform: none;
+    width: 100%;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .home-hero-trustbar__item { padding: 12px 4px; }
+
+  .home-hero-nav {
+    width: calc(100% - 24px);
+    margin: var(--dtb-space-5) auto 0;
   }
 
   .home-hero-nav__track {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--dtb-space-2);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
     overflow: visible;
   }
 
   .home-hero-nav__item {
     width: auto;
-    min-height: 76px;
-    padding: var(--dtb-space-2) var(--dtb-space-2);
+    min-height: 94px;
+    padding: 10px 4px;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
     flex: none;
-    gap: var(--dtb-space-2);
+    gap: 6px;
   }
 
-  .home-hero-nav__item:last-child { grid-column: 1 / -1; }
+  .home-hero-nav__copy { align-items: center; gap: 3px; }
   .home-hero-nav__icon { width: 32px; height: 32px; flex-basis: 32px; }
-  .home-hero-nav__icon svg { width: 25px; height: 25px; }
-  .home-hero-nav__label { font-size: 13px; }
+  .home-hero-nav__icon svg { width: 22px; height: 22px; }
+  .home-hero-nav__label { font-size: 11px; white-space: normal; }
 
   .home-hero-nav__description {
     overflow: hidden;
-    font-size: 10px;
+    max-width: 100%;
+    font-size: 9px;
+    line-height: 1.25;
+    white-space: normal;
     text-overflow: ellipsis;
   }
 
@@ -657,19 +740,37 @@
    Elevation/radius vocabulary matches storefront-product-card.css (idle 0 12px 28px rgba(15,23,42,.06),
    hover 0 20px 40px rgba(15,23,42,.12), border rgba(15,23,42,.08), border-radius var(--dtb-radius-lg)). */
 @media (max-width: 900px) {
+  /* Always 4-across, never a 2x2 stack — items go vertical (icon over
+     label) below the width a horizontal icon+label pair can fit. */
+  .home-hero-trustbar__item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 6px;
+    text-align: center;
+  }
+
+  .home-hero-trustbar__icon { width: 20px; height: 20px; }
+  .home-hero-trustbar__label { font-size: 10px; line-height: 1.3; white-space: normal; }
+
   .home-hero-nav__item {
-    --bg: #ffffff;
-    --border-color: linear-gradient(-135deg, rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.03));
-    --curve-size: 16px;
+    border-radius: var(--dtb-radius-lg);
     box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
-    transition: transform 160ms ease, box-shadow 160ms ease;
   }
 
   .home-hero-nav__item--featured {
-    --bg: linear-gradient(155deg, #eef3ff 0%, #dfe9ff 100%);
-    --border-color: linear-gradient(-135deg, rgba(34, 85, 238, 0.32), rgba(34, 85, 238, 0.12));
-    box-shadow: 0 12px 26px rgba(34, 85, 238, 0.18), 0 1px 3px rgba(15, 23, 42, 0.05);
+    background: #fff;
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.07), 0 1px 3px rgba(15, 23, 42, 0.05);
   }
+
+  .home-hero-nav__item--featured .home-hero-nav__label,
+  .home-hero-nav__item--featured .home-hero-nav__description {
+    color: inherit;
+  }
+
+  .home-hero-nav__item--featured .home-hero-nav__label { color: #111827; }
+  .home-hero-nav__item--featured .home-hero-nav__description { color: #63708a; }
 
   .home-hero-nav__item:active {
     transform: scale(0.97);
