@@ -22,27 +22,27 @@ final class DTB_SeoValidator {
 
 		$issues = [];
 
-		if ( '' === (string) ( $meta['meta:seo_title'] ?? '' ) ) {
+		if ( '' === (string) ( $meta['_dtb_seo_title'] ?? '' ) ) {
 			$issues[] = [
 				'severity' => 'warning',
 				'code'     => 'missing_seo_title',
-				'message'  => 'Product is missing meta:seo_title.',
+				'message'  => 'Product is missing _dtb_seo_title.',
 			];
 		}
 
-		if ( '' === (string) ( $meta['meta:seo_description'] ?? '' ) ) {
+		if ( '' === (string) ( $meta['_dtb_seo_description'] ?? '' ) ) {
 			$issues[] = [
 				'severity' => 'warning',
 				'code'     => 'missing_seo_description',
-				'message'  => 'Product is missing meta:seo_description.',
+				'message'  => 'Product is missing _dtb_seo_description.',
 			];
 		}
 
-		if ( '' === (string) ( $meta['meta:seo_canonical'] ?? '' ) ) {
+		if ( '' === (string) ( $meta['_dtb_seo_canonical'] ?? '' ) ) {
 			$issues[] = [
 				'severity' => 'info',
 				'code'     => 'missing_seo_canonical',
-				'message'  => 'Product has no explicit meta:seo_canonical. The default WooCommerce permalink will be used; set this if the canonical should differ.',
+				'message'  => 'Product has no explicit _dtb_seo_canonical. The default WooCommerce permalink will be used; set this if the canonical should differ.',
 			];
 		}
 
