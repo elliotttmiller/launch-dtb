@@ -164,9 +164,8 @@ scripts/launch-readiness/.venv/
 scripts/launch-readiness/.env
 scripts/launch-readiness/reports/output/
 
-# Authenticated supplier catalog scraper: local session and private cost exports
+# Authenticated supplier catalog scraper: local session artifacts
 scripts/supplier-catalog/.venv/
 scripts/supplier-catalog/.browser-profile/
 scripts/supplier-catalog/brands.json
 scripts/supplier-catalog/output/
-scripts/supplier-catalog/results/
