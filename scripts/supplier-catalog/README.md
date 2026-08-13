@@ -80,3 +80,48 @@ supplier account data; keep generated output private.
 Every product is written as exactly one physical CSV line. Newlines embedded in
 supplier descriptions and description HTML are converted to spaces at export;
 the HTML elements themselves remain intact.
+
+## Normalize costs for the production catalog
+
+`scripts/supplier-catalog/results/tsw-costs.csv` is raw supplier evidence and is
+not a WooCommerce import file. Do not rewrite its supplier SKUs or copy its TSW
+namespace prefixes into canonical product identifiers.
+
+Run the deterministic reconciliation step after a successful scrape:
+
+```powershell
+scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\normalize_tsw_costs.py
+```
+
+The normalizer reads the raw TSW export and the canonical
+`products/launch/official/dtb_woocommerce_official_catalog.csv`, then writes:
+
+- `results/tsw-costs-normalized.csv` — normalized supplier costs with explicit
+  catalog match status and the matched canonical SKU/MPN when exactly one match
+  exists.
+- `results/tsw-costs-normalization-report.json` — counts plus complete unmatched
+  and ambiguous supplier-SKU lists for review.
+
+TSW uses distributor namespace prefixes rather than the manufacturer identifiers
+stored in the DTB catalog. Prefix removal is allowlisted, never inferred:
+`CTT` for Columbia Tools, `TTT` for TapeTech, `DSS` for Dura-Stilts, and `SUR`
+for SurPro. The stripped value is comparison-only; the normalizer never mutates
+canonical SKU or MPN values.
+
+Catalog reconciliation checks both `SKU` and supported `MPN` columns using a
+comparison-only identifier normalization. Brand compatibility is also enforced,
+so an identifier collision across manufacturers cannot silently match. Exactly
+one compatible catalog row is required for `matched` status. Zero candidates are
+`unmatched`; multiple candidates are `ambiguous`.
+
+The command fails closed when unmatched or ambiguous rows remain. Use
+`--allow-unmatched` only for an intentional audit/export where unresolved rows
+will be reviewed manually. Overlapping TSW source catalogs are collapsed only
+when supplier SKU, cost, and currency agree; conflicting supplier records stop
+the run instead of choosing a price silently.
+
+The normalized output is a reconciliation artifact, not authority for retail
+price, product identity, inventory, fulfillment, or WooCommerce persistence.
+Supplier cost can be projected into the production catalog only after the match
+report has been reviewed and any pricing/margin policy has been applied by the
+owning catalog workflow.
