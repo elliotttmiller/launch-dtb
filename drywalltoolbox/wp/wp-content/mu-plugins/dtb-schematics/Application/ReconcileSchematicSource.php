@@ -25,6 +25,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// Fallback only, used when a source binary cannot be located under any
+// wp-content/uploads/{year}/schematics candidate directory (e.g. the
+// dev-only repo-relative source package) — in the normal production case
+// each row's actual uploads-relative path is derived per-file via
+// dtb_schematics_relative_uploads_file_for_filename()
+// (Infrastructure/SchematicSourceManifestReader.php), so this is never
+// hardcoded to a single year for real uploaded assets.
 const DTB_SCHEMATIC_RECONCILE_DEFAULT_UPLOAD_PATH = '2026/schematics';
 const DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE  = 25;
 const DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE      = 100;
@@ -283,7 +290,16 @@ function dtb_schematic_reconcile_process_row( array $row, array $resolved, array
 		return $asset;
 	}
 
-	return dtb_schematic_reconcile_process_row_with_wp( $asset, $row, $canonical_id, $page, $dry_run, $upload_path );
+	// Prefer the uploads-relative path actually derived from where this
+	// row's source binary was found (correct regardless of which
+	// wp-content/uploads/{year}/schematics directory it lives under); fall
+	// back to the caller-supplied/default $upload_path only when the binary
+	// was not found under any candidate uploads directory at all (e.g. it
+	// only exists in the dev-only repo-relative source package).
+	$derived_relative_file = dtb_schematics_relative_uploads_file_for_filename( $row['filename'] );
+	$effective_upload_path = $derived_relative_file ? dirname( $derived_relative_file ) : $upload_path;
+
+	return dtb_schematic_reconcile_process_row_with_wp( $asset, $row, $canonical_id, $page, $dry_run, $effective_upload_path );
 }
 
 /**

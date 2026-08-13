@@ -2,18 +2,36 @@
 /**
  * DTB Schematics — SchematicSourceManifestReader
  *
- * Deterministic reader for the canonical Phase 1 source package:
- *   products/launch/media/schematics/schematic_source_manifest.csv
- * plus the binaries living alongside it.
+ * Deterministic reader for the canonical schematic source assets. Two data
+ * sources are supported, in priority order:
+ *
+ *   1. schematic_source_manifest.csv (schematic_id/brand/sku_or_alias/page/
+ *      filename/checksum_sha256/size_bytes) — a git-repo-only artifact that
+ *      lives at products/launch/media/schematics/ in this checkout. Used
+ *      when present as an optimization/cross-check (pre-computed checksums,
+ *      explicit brand/sku columns).
+ *   2. Direct filesystem scan of uploaded image binaries — the ONLY data
+ *      source available on a real deployed WordPress host, which has no git
+ *      checkout of this repository and therefore no manifest CSV. Identity
+ *      (schematic_id/page) is derived via the existing authoritative
+ *      dtb_schematics_parse_upload_filename() / dtb_schematics_retired_upload_reason()
+ *      (Application/RegisterSchematicUploads.php); checksums are computed
+ *      live via hash_file('sha256', ...).
+ *
+ * Both sources are searched across every candidate source directory
+ * (dtb_schematics_source_candidate_directories()), which on a production
+ * host means every existing wp-content/uploads/{year}/schematics directory
+ * — not a single hardcoded year — plus (only when present, e.g. a local dev
+ * checkout of this repository) the repo-relative canonical source package
+ * directory.
  *
  * This is a read-only infrastructure component. It never writes to the
  * source package and never writes domain state — see
  * Application/ReconcileSchematicSource.php for the engine that consumes it.
  *
- * The source package may not exist on every runtime (e.g. a deployed
- * WordPress host that only carries the already-synced wp-content/uploads
- * copies). Callers must treat an absent source directory as an explicit,
- * reportable condition rather than a fatal error.
+ * The source package may not exist on every runtime. Callers must treat an
+ * absent source directory as an explicit, reportable condition rather than
+ * a fatal error.
  *
  * @package drywall-toolbox
  */
@@ -23,22 +41,25 @@ defined( 'ABSPATH' ) || exit;
 const DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME = 'schematic_source_manifest.csv';
 
 /**
- * Resolve the canonical source package directory. Overridable via the
- * `dtb_schematics_source_package_dir` filter for hosts where the repository
- * checkout does not live in the conventional location relative to ABSPATH.
+ * Extensions recognized as schematic source binaries when deriving manifest
+ * rows directly from uploaded files (no CSV present).
+ */
+const DTB_SCHEMATIC_SOURCE_IMAGE_EXTENSIONS = [ 'webp', 'jpg', 'jpeg', 'png' ];
+
+/**
+ * Resolve the primary/first canonical source package directory. Kept for
+ * backward compatibility (Configuration screen, existing callers) and as the
+ * highest-priority entry in dtb_schematics_source_candidate_directories().
+ *
+ * Overridable via the `dtb_schematics_source_package_dir` filter for hosts
+ * where an explicit single directory should be used instead of the built-in
+ * discovery logic below.
  */
 function dtb_schematics_source_package_dir(): string {
-	$default = '';
-
-	if ( defined( 'ABSPATH' ) ) {
-		// ABSPATH -> .../drywalltoolbox/wp/ ; repo root is two levels up.
-		$wp_root   = untrailingslashit( ABSPATH );
-		$repo_root = dirname( dirname( $wp_root ) );
-		$default   = $repo_root . '/products/launch/media/schematics';
-	}
+	$default = dtb_schematics_default_source_package_dir();
 
 	/**
-	 * Filter the canonical schematic source package directory.
+	 * Filter the canonical (primary) schematic source package directory.
 	 *
 	 * @param string $default Computed default path.
 	 */
@@ -46,22 +67,333 @@ function dtb_schematics_source_package_dir(): string {
 }
 
 /**
- * Whether the canonical source package is reachable from this runtime.
+ * Compute the built-in default source directory with no filter applied:
+ *   1. The repo-relative canonical source package, when this runtime
+ *      happens to have a git checkout of this repository present (local/dev
+ *      convenience only — never true on a deployed WordPress host).
+ *   2. The newest existing wp-content/uploads/{year}/schematics directory —
+ *      the documented production convention. Not hardcoded to a single
+ *      year: every year subdirectory under uploads is inspected.
+ *   3. If neither exists on disk yet, the current-year uploads/{year}/schematics
+ *      path is still returned (even though it does not yet exist) so the
+ *      Configuration screen shows an actionable, self-explanatory path
+ *      rather than an empty string.
  */
-function dtb_schematics_source_package_available(): bool {
-	$dir = dtb_schematics_source_package_dir();
-	return '' !== $dir && is_dir( $dir ) && is_file( trailingslashit( $dir ) . DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME );
+function dtb_schematics_default_source_package_dir(): string {
+	if ( defined( 'ABSPATH' ) ) {
+		// ABSPATH -> .../drywalltoolbox/wp/ ; repo root is two levels up.
+		$wp_root   = untrailingslashit( ABSPATH );
+		$repo_root = dirname( dirname( $wp_root ) );
+		$repo_dir  = $repo_root . '/products/launch/media/schematics';
+		if ( is_dir( $repo_dir ) ) {
+			return $repo_dir;
+		}
+	}
+
+	$uploads_years = dtb_schematics_discover_uploads_year_directories();
+	if ( ! empty( $uploads_years ) ) {
+		return reset( $uploads_years ); // Newest year first.
+	}
+
+	if ( function_exists( 'wp_upload_dir' ) ) {
+		$uploads = wp_upload_dir();
+		if ( ! empty( $uploads['basedir'] ) ) {
+			$current_year = function_exists( 'current_time' ) ? current_time( 'Y' ) : gmdate( 'Y' );
+			return untrailingslashit( (string) $uploads['basedir'] ) . '/' . $current_year . '/schematics';
+		}
+	}
+
+	return '';
 }
 
 /**
- * Parse the canonical source manifest CSV into a deterministic, ordered list
- * of rows. Order is stable (sorted by schematic_id, then page, then filename)
- * so batch offsets are reproducible across runs.
+ * Every existing wp-content/uploads/{year}/schematics directory, newest
+ * year first. Deliberately does not assume any particular year — schematics
+ * may be uploaded in different years over time.
+ *
+ * @return string[] Absolute paths, keyed loosely by year (values only after array_values()).
+ */
+function dtb_schematics_discover_uploads_year_directories(): array {
+	if ( ! function_exists( 'wp_upload_dir' ) ) {
+		return [];
+	}
+	$uploads = wp_upload_dir();
+	$basedir = isset( $uploads['basedir'] ) ? untrailingslashit( (string) $uploads['basedir'] ) : '';
+	if ( '' === $basedir || ! is_dir( $basedir ) ) {
+		return [];
+	}
+
+	$years = [];
+	foreach ( ( scandir( $basedir ) ?: [] ) as $entry ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_scandir
+		if ( ! preg_match( '/^\d{4}$/', $entry ) ) {
+			continue;
+		}
+		$schematics_dir = trailingslashit( $basedir ) . $entry . '/schematics';
+		if ( is_dir( $schematics_dir ) ) {
+			$years[ $entry ] = $schematics_dir;
+		}
+	}
+	krsort( $years ); // Newest year first.
+	return array_values( $years );
+}
+
+/**
+ * Every directory that should be searched for source binaries/manifest,
+ * highest priority first: the resolved primary directory (filter-overridable
+ * via dtb_schematics_source_package_dir), then every other existing
+ * wp-content/uploads/{year}/schematics directory not already covered.
+ *
+ * @return string[]
+ */
+function dtb_schematics_source_candidate_directories(): array {
+	$candidates = [];
+
+	$primary = dtb_schematics_source_package_dir();
+	if ( '' !== $primary && is_dir( $primary ) ) {
+		$candidates[] = untrailingslashit( $primary );
+	}
+
+	foreach ( dtb_schematics_discover_uploads_year_directories() as $dir ) {
+		$dir = untrailingslashit( $dir );
+		if ( ! in_array( $dir, $candidates, true ) ) {
+			$candidates[] = $dir;
+		}
+	}
+
+	return $candidates;
+}
+
+/**
+ * Whether the canonical source package is reachable from this runtime —
+ * either a manifest CSV or at least one recognizable image file, in any
+ * candidate directory.
+ */
+function dtb_schematics_source_package_available(): bool {
+	foreach ( dtb_schematics_source_candidate_directories() as $dir ) {
+		if ( is_file( trailingslashit( $dir ) . DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME ) ) {
+			return true;
+		}
+		if ( dtb_schematics_directory_has_image_files( $dir ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Which data source is currently effective: 'manifest_csv' when a manifest
+ * CSV is present in any candidate directory (preferred when available),
+ * 'filesystem_scan' when no CSV exists anywhere but at least one candidate
+ * directory has recognizable image files (the expected production path), or
+ * 'unavailable' when nothing usable was found.
+ */
+function dtb_schematics_source_resolution_mode(): string {
+	$candidates = dtb_schematics_source_candidate_directories();
+
+	foreach ( $candidates as $dir ) {
+		if ( is_file( trailingslashit( $dir ) . DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME ) ) {
+			return 'manifest_csv';
+		}
+	}
+	foreach ( $candidates as $dir ) {
+		if ( dtb_schematics_directory_has_image_files( $dir ) ) {
+			return 'filesystem_scan';
+		}
+	}
+	return 'unavailable';
+}
+
+/**
+ * Per-directory diagnostic summary for operator self-diagnosis (Configuration
+ * Reference screen).
+ *
+ * @return array<int, array{directory:string, exists:bool, has_manifest_csv:bool, image_file_count:int}>
+ */
+function dtb_schematics_source_resolution_summary(): array {
+	$rows = [];
+	foreach ( dtb_schematics_source_candidate_directories() as $dir ) {
+		$rows[] = [
+			'directory'         => $dir,
+			'exists'            => is_dir( $dir ),
+			'has_manifest_csv'  => is_file( trailingslashit( $dir ) . DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME ),
+			'image_file_count'  => count( dtb_schematics_scan_directory_image_files( $dir ) ),
+		];
+	}
+	return $rows;
+}
+
+/**
+ * Recognizable schematic source image filenames (not full paths) directly
+ * inside a directory, sorted for determinism. Excludes the manifest CSV
+ * itself.
+ *
+ * @return string[]
+ */
+function dtb_schematics_scan_directory_image_files( string $dir ): array {
+	if ( '' === $dir || ! is_dir( $dir ) ) {
+		return [];
+	}
+	$files = [];
+	foreach ( ( scandir( $dir ) ?: [] ) as $entry ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_scandir
+		if ( '.' === $entry || '..' === $entry || DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME === $entry ) {
+			continue;
+		}
+		$path = trailingslashit( $dir ) . $entry;
+		if ( ! is_file( $path ) ) {
+			continue;
+		}
+		$ext = strtolower( (string) pathinfo( $entry, PATHINFO_EXTENSION ) );
+		if ( in_array( $ext, DTB_SCHEMATIC_SOURCE_IMAGE_EXTENSIONS, true ) ) {
+			$files[] = $entry;
+		}
+	}
+	sort( $files );
+	return $files;
+}
+
+function dtb_schematics_directory_has_image_files( string $dir ): bool {
+	return ! empty( dtb_schematics_scan_directory_image_files( $dir ) );
+}
+
+/**
+ * Resolve the manifest source: prefer a manifest CSV if any candidate
+ * directory has one (first found wins, in candidate priority order),
+ * otherwise fall back to deriving an equivalent row set directly from the
+ * uploaded files themselves (the required production path — no CSV is ever
+ * deployed to a live WordPress host).
+ *
+ * @return array{ok:bool, error?:string, rows: array[], source?:string}
+ */
+function dtb_schematics_read_source_manifest(): array {
+	$candidates = dtb_schematics_source_candidate_directories();
+	if ( empty( $candidates ) ) {
+		return [ 'ok' => false, 'error' => 'source_package_directory_not_found', 'rows' => [] ];
+	}
+
+	foreach ( $candidates as $dir ) {
+		if ( is_file( trailingslashit( $dir ) . DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME ) ) {
+			$manifest = dtb_schematics_read_manifest_file( $dir, DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME );
+			if ( $manifest['ok'] ) {
+				$manifest['source'] = 'manifest_csv';
+				return $manifest;
+			}
+			// A CSV exists but failed to parse (malformed) — surface that error
+			// rather than silently degrading to a filesystem scan that would
+			// mask a real authoring bug in the manifest.
+			return $manifest;
+		}
+	}
+
+	$scanned = dtb_schematics_scan_source_directories();
+	if ( $scanned['ok'] ) {
+		$scanned['source'] = 'filesystem_scan';
+	}
+	return $scanned;
+}
+
+/**
+ * Derive a manifest-row-shaped array directly from image files present in
+ * the candidate directories — the no-CSV production code path. Checksums
+ * are computed live via hash_file(). Identity (schematic_id/page) is left to
+ * the caller's own resolution via dtb_schematics_parse_upload_filename()
+ * (Application/RegisterSchematicUploads.php); the best-effort schematic_id/
+ * page/brand/sku_or_alias populated here are for human-readable reporting
+ * only, never for authoritative identity — see
+ * Application/ReconcileSchematicSource.php, which re-derives identity from
+ * `filename` regardless of what this function fills in here.
  *
  * @return array{ok:bool, error?:string, rows: array[]}
  */
-function dtb_schematics_read_source_manifest(): array {
-	return dtb_schematics_read_manifest_file( dtb_schematics_source_package_dir(), DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME );
+function dtb_schematics_scan_source_directories(): array {
+	$candidates = dtb_schematics_source_candidate_directories();
+	if ( empty( $candidates ) ) {
+		return [ 'ok' => false, 'error' => 'source_package_directory_not_found', 'rows' => [] ];
+	}
+
+	$rows           = [];
+	$seen_filenames = [];
+
+	foreach ( $candidates as $dir ) {
+		foreach ( dtb_schematics_scan_directory_image_files( $dir ) as $filename ) {
+			if ( isset( $seen_filenames[ $filename ] ) ) {
+				continue; // Same filename already found in a higher-priority candidate.
+			}
+			$seen_filenames[ $filename ] = true;
+
+			$path     = trailingslashit( $dir ) . $filename;
+			$identity = dtb_schematics_derive_manifest_row_identity_from_filename( $filename );
+
+			$rows[] = [
+				'schematic_id'    => $identity['schematic_id'],
+				'brand'           => $identity['brand'],
+				'sku_or_alias'    => $identity['sku_or_alias'],
+				'page'            => $identity['page'],
+				'filename'        => $filename,
+				'checksum_sha256' => strtolower( (string) hash_file( 'sha256', $path ) ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+				'size_bytes'      => (int) filesize( $path ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_filesize
+			];
+		}
+	}
+
+	if ( empty( $rows ) ) {
+		return [ 'ok' => false, 'error' => 'source_package_empty', 'rows' => [] ];
+	}
+
+	// Same deterministic ordering as CSV-sourced rows, so batch offsets stay
+	// reproducible regardless of which data source produced them.
+	usort(
+		$rows,
+		static function ( $a, $b ) {
+			return [ $a['schematic_id'], $a['page'], $a['filename'] ] <=> [ $b['schematic_id'], $b['page'], $b['filename'] ];
+		}
+	);
+
+	return [ 'ok' => true, 'rows' => $rows ];
+}
+
+/**
+ * Best-effort schematic_id/page/brand/sku_or_alias for reporting purposes
+ * only, using the same authoritative parser the reconciliation engine itself
+ * uses for identity resolution
+ * (Application/RegisterSchematicUploads.php::dtb_schematics_parse_upload_filename()).
+ * Guarded with function_exists() because this Infrastructure file loads
+ * before Application/RegisterSchematicUploads.php in the module boot order;
+ * by the time any caller actually invokes this scan at runtime both files
+ * are loaded, but the guard keeps this file safely self-contained.
+ *
+ * @return array{schematic_id:string, brand:string, sku_or_alias:string, page:int}
+ */
+function dtb_schematics_derive_manifest_row_identity_from_filename( string $filename ): array {
+	$schematic_id = '';
+	$page         = 0;
+
+	if ( function_exists( 'dtb_schematics_retired_upload_reason' ) && function_exists( 'dtb_schematics_parse_upload_filename' ) ) {
+		if ( null === dtb_schematics_retired_upload_reason( $filename ) ) {
+			$parsed = dtb_schematics_parse_upload_filename( $filename );
+			if ( ! is_wp_error( $parsed ) ) {
+				$schematic_id = (string) $parsed['schematic_id'];
+				$page         = (int) $parsed['page'];
+			}
+		}
+	}
+
+	// Best-effort brand/SKU extraction from the canonical
+	// {brand}_{sku-or-alias}_sch-page-{n}.ext naming convention, for display
+	// only — never used for identity resolution.
+	$brand        = '';
+	$sku_or_alias = '';
+	$name         = pathinfo( $filename, PATHINFO_FILENAME );
+	if ( preg_match( '/^([a-z0-9-]+)_(.+?)_sch(?:[-_].+)?$/i', $name, $matches ) ) {
+		$brand        = strtolower( $matches[1] );
+		$sku_or_alias = strtoupper( $matches[2] );
+	}
+
+	return [
+		'schematic_id' => $schematic_id,
+		'brand'        => $brand,
+		'sku_or_alias' => $sku_or_alias,
+		'page'         => $page,
+	];
 }
 
 /**
@@ -140,21 +472,59 @@ function dtb_schematics_read_manifest_file( string $dir, string $filename ): arr
 /**
  * Describe the source binary for a manifest row: existence, actual size, and
  * (only when requested — checksum computation is not free) actual checksum.
+ * Searches every candidate source directory, not just the primary one, so a
+ * row can be located regardless of which uploads/{year}/schematics
+ * directory (or the dev-only repo-relative directory) actually holds it.
  *
  * @return array{exists:bool, path:string, size_bytes:int, checksum_sha256:string}
  */
 function dtb_schematics_describe_source_binary( string $filename, bool $compute_checksum = true ): array {
-	$dir  = dtb_schematics_source_package_dir();
-	$path = '' !== $dir ? trailingslashit( $dir ) . $filename : '';
-
-	if ( '' === $path || ! is_file( $path ) ) {
-		return [ 'exists' => false, 'path' => $path, 'size_bytes' => 0, 'checksum_sha256' => '' ];
+	foreach ( dtb_schematics_source_candidate_directories() as $dir ) {
+		$path = trailingslashit( $dir ) . $filename;
+		if ( is_file( $path ) ) {
+			return [
+				'exists'          => true,
+				'path'            => $path,
+				'size_bytes'      => (int) filesize( $path ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_filesize
+				'checksum_sha256' => $compute_checksum ? (string) hash_file( 'sha256', $path ) : '',
+			];
+		}
 	}
 
-	return [
-		'exists'          => true,
-		'path'            => $path,
-		'size_bytes'      => (int) filesize( $path ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_filesize
-		'checksum_sha256' => $compute_checksum ? (string) hash_file( 'sha256', $path ) : '',
-	];
+	return [ 'exists' => false, 'path' => '', 'size_bytes' => 0, 'checksum_sha256' => '' ];
+}
+
+/**
+ * Resolve the wp-content/uploads-relative path (e.g. "2026/schematics/foo.webp")
+ * for a source filename, by locating which candidate directory actually
+ * contains it and expressing that directory relative to the uploads
+ * basedir. Returns null when the file was not found under any candidate
+ * directory, or the directory it was found in is not under wp-content/uploads
+ * at all (e.g. the dev-only repo-relative source package directory) — callers
+ * should fall back to their own configured/default uploads path in that case.
+ */
+function dtb_schematics_relative_uploads_file_for_filename( string $filename ): ?string {
+	if ( ! function_exists( 'wp_upload_dir' ) ) {
+		return null;
+	}
+	$uploads = wp_upload_dir();
+	$basedir = isset( $uploads['basedir'] ) ? untrailingslashit( str_replace( '\\', '/', (string) $uploads['basedir'] ) ) : '';
+	if ( '' === $basedir ) {
+		return null;
+	}
+
+	foreach ( dtb_schematics_source_candidate_directories() as $dir ) {
+		$normalized_dir = untrailingslashit( str_replace( '\\', '/', $dir ) );
+		$path           = $normalized_dir . '/' . $filename;
+		if ( ! is_file( $path ) ) {
+			continue;
+		}
+		if ( 0 === strpos( $normalized_dir . '/', $basedir . '/' ) ) {
+			$relative_dir = ltrim( substr( $normalized_dir, strlen( $basedir ) ), '/' );
+			return '' === $relative_dir ? $filename : $relative_dir . '/' . $filename;
+		}
+		return null; // Found, but outside wp-content/uploads (dev repo-relative dir).
+	}
+
+	return null;
 }
