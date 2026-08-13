@@ -275,25 +275,25 @@ function dtb_system_media_health_summary(): array {
 
 function dtb_system_schematic_health_summary(): array {
 	/*
-	 * Probe current schematics symbols.
-	 * Legacy dtb_schematics_get() and the dtb_schematic CPT no longer represent
-	 * schematic availability — schematics now live as attachment meta. Probe the
-	 * current canonical surface instead.
+	 * Probe current schematics symbols. The authoritative source of truth is
+	 * the `dtb_schematic` CPT domain record (Infrastructure/
+	 * SchematicRecordRepository.php), not attachment meta. Probe the current
+	 * canonical surface: the public API route registrar, the domain record
+	 * repository query function, and the exact-identity part resolver.
 	 */
 	$schematics_available =
-		function_exists( 'dtb_register_schematics_endpoint' ) ||
-		function_exists( 'dtb_get_schematics' ) ||
+		function_exists( 'dtb_register_schematics_public_api_routes' ) ||
+		function_exists( 'dtb_schematic_record_repo_query' ) ||
 		function_exists( 'dtb_schematics_resolve_product_ids_for_schematic' ) ||
-		function_exists( 'dtb_get_schematic_media_manifest' ) ||
-		function_exists( 'dtb_schematic_supported_brands' );
+		function_exists( 'dtb_schematic_is_supported_brand' );
 
 	// Route-level check.
 	$schematic_routes_registered = false;
 	if ( did_action( 'rest_api_init' ) && function_exists( 'rest_get_server' ) ) {
 		$routes                      = rest_get_server()->get_routes();
 		$schematic_routes_registered =
-			isset( $routes['/dtb/v1/schematics/media'] ) ||
-			isset( $routes['/dtb/v1/schematics/manifest'] );
+			isset( $routes['/dtb/v1/schematics'] ) ||
+			isset( $routes['/dtb/v1/schematics/(?P<schematic_id>[a-zA-Z0-9_-]+)'] );
 	}
 
 	return [

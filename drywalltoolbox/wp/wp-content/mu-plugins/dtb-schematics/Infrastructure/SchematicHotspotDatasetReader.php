@@ -1,0 +1,258 @@
+<?php
+/**
+ * DTB Schematics — SchematicHotspotDatasetReader (Phase 5).
+ *
+ * Reads and normalizes the source hotspot JSON files under
+ * frontend/public/brands/**\/schematic_data.json into the canonical v2
+ * dataset shape (Domain/SchematicHotspotDataset.php). Read-only against
+ * these files — they are migration INPUT only, never written to or deleted
+ * here (Phase 9 owns eventual legacy-file removal).
+ *
+ * Two source schemas coexist:
+ *   - legacy: { id, title, diagramPages, legendPages, parts: [...] } — a
+ *     flat parts list with no hotspot coordinates at all. Normalized up to
+ *     parts_catalog only; hotspots stays empty (there is nothing to migrate
+ *     spatially — fabricating coordinates is explicitly disallowed).
+ *   - v2 native: { schema_version: "2.0", diagram, parts_catalog, hotspots }
+ *     with real per-occurrence normalized coordinates.
+ *
+ * @package drywall-toolbox
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+const DTB_SCHEMATIC_HOTSPOT_READ_OK               = 'ok';
+const DTB_SCHEMATIC_HOTSPOT_READ_FILE_NOT_FOUND    = 'file_not_found';
+const DTB_SCHEMATIC_HOTSPOT_READ_UNREADABLE        = 'file_unreadable';
+const DTB_SCHEMATIC_HOTSPOT_READ_MALFORMED_JSON    = 'malformed_json';
+const DTB_SCHEMATIC_HOTSPOT_READ_EMPTY             = 'empty_document';
+const DTB_SCHEMATIC_HOTSPOT_READ_UNRECOGNIZED_SHAPE = 'unrecognized_schema_shape';
+const DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS           = 'no_parts_found';
+
+/**
+ * Resolve the repository root the same way
+ * Infrastructure/SchematicSourceManifestReader.php does, so this reader
+ * works both under a live WordPress runtime and the static verification
+ * harness pattern already established for Phase 3.
+ */
+function dtb_schematics_hotspot_source_root(): string {
+	if ( defined( 'ABSPATH' ) && function_exists( 'untrailingslashit' ) ) {
+		$wp_root   = untrailingslashit( ABSPATH );
+		$repo_root = dirname( dirname( $wp_root ) );
+		return $repo_root . '/frontend/public/brands';
+	}
+	return '';
+}
+
+/**
+ * Read + normalize one hotspot dataset JSON file from an absolute path.
+ * Pure/testable: does not touch WordPress state.
+ *
+ * @return array{
+ *   status:string,
+ *   dataset:?array,
+ *   error:?string,
+ *   bom_stripped:bool,
+ *   source_schema:?string
+ * }
+ */
+function dtb_schematic_hotspot_read_file( string $absolute_path ): array {
+	if ( ! is_file( $absolute_path ) ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_FILE_NOT_FOUND, null, 'File does not exist.' );
+	}
+
+	$raw = file_get_contents( $absolute_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
+	if ( false === $raw ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_UNREADABLE, null, 'File could not be read.' );
+	}
+
+	$bom_stripped = false;
+	if ( 0 === strpos( $raw, "\xEF\xBB\xBF" ) ) {
+		$raw          = substr( $raw, 3 );
+		$bom_stripped = true;
+	}
+
+	$trimmed = trim( $raw );
+	if ( '' === $trimmed ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_EMPTY, null, 'File is empty.', $bom_stripped );
+	}
+
+	$decoded = json_decode( $trimmed, true );
+	if ( null === $decoded && JSON_ERROR_NONE !== json_last_error() ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_MALFORMED_JSON, null, 'json_decode error: ' . json_last_error_msg(), $bom_stripped );
+	}
+	if ( ! is_array( $decoded ) ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_MALFORMED_JSON, null, 'Decoded document is not a JSON object/array.', $bom_stripped );
+	}
+
+	$checksum = hash( 'sha256', $trimmed );
+
+	if ( isset( $decoded['parts_catalog'] ) || isset( $decoded['hotspots'] ) ) {
+		return dtb_schematic_hotspot_normalize_v2( $decoded, $checksum, $bom_stripped );
+	}
+
+	if ( isset( $decoded['parts'] ) && is_array( $decoded['parts'] ) ) {
+		return dtb_schematic_hotspot_normalize_legacy( $decoded, $checksum, $bom_stripped );
+	}
+
+	return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_UNRECOGNIZED_SHAPE, null, 'Document has neither a "parts" (legacy) nor "parts_catalog"/"hotspots" (v2) top-level key.', $bom_stripped );
+}
+
+function dtb_schematic_hotspot_read_result( string $status, ?array $dataset, ?string $error, bool $bom_stripped = false, ?string $source_schema = null ): array {
+	return [
+		'status'        => $status,
+		'dataset'       => $dataset,
+		'error'         => $error,
+		'bom_stripped'  => $bom_stripped,
+		'source_schema' => $source_schema,
+	];
+}
+
+/**
+ * Normalize a native v2 document ({ parts_catalog, hotspots, diagram }).
+ */
+function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, bool $bom_stripped ): array {
+	$parts_catalog = $decoded['parts_catalog'] ?? [];
+	if ( ! is_array( $parts_catalog ) || empty( $parts_catalog ) ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS, null, 'v2 document has an empty or missing "parts_catalog".', $bom_stripped, 'v2' );
+	}
+
+	$normalized_parts = [];
+	foreach ( $parts_catalog as $part ) {
+		if ( ! is_array( $part ) ) {
+			continue;
+		}
+		$normalized_parts[] = dtb_schematic_hotspot_part_make(
+			[
+				'part_ref'   => (string) ( $part['part_id'] ?? '' ),
+				'display_id' => (string) ( $part['display_id'] ?? ( $part['part_id'] ?? '' ) ),
+				'name'       => (string) ( $part['name'] ?? '' ),
+				'sku'        => (string) ( $part['sku'] ?? '' ),
+				'source_sku' => (string) ( $part['source_sku'] ?? '' ),
+				'quantity'   => (float) ( $part['quantity'] ?? 0 ),
+				'notes'      => (string) ( $part['notes'] ?? '' ),
+			]
+		);
+	}
+
+	$normalized_hotspots = [];
+	foreach ( (array) ( $decoded['hotspots'] ?? [] ) as $hotspot ) {
+		if ( ! is_array( $hotspot ) ) {
+			continue;
+		}
+		$shape       = is_array( $hotspot['shape'] ?? null ) ? $hotspot['shape'] : [];
+		$shape_type  = (string) ( $shape['type'] ?? 'point' );
+		$normalized  = is_array( $hotspot['normalized'] ?? null ) ? $hotspot['normalized'] : [];
+
+		$normalized_hotspots[] = dtb_schematic_hotspot_occurrence_make(
+			[
+				'hotspot_id'  => (string) ( $hotspot['hotspot_id'] ?? '' ),
+				'part_ref'    => (string) ( $hotspot['part_ref'] ?? '' ),
+				'page'        => (int) ( $hotspot['page'] ?? 1 ),
+				'shape_type'  => $shape_type,
+				'coordinates' => $normalized,
+				'label'       => (string) ( $hotspot['label'] ?? '' ),
+			]
+		);
+	}
+
+	$dataset = dtb_schematic_hotspot_dataset_make(
+		[
+			'source_schema' => 'v2',
+			'checksum'      => $checksum,
+			'parts_catalog' => $normalized_parts,
+			'hotspots'      => $normalized_hotspots,
+		]
+	);
+
+	return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_OK, $dataset, null, $bom_stripped, 'v2' );
+}
+
+/**
+ * Normalize a legacy document ({ id, title, diagramPages, legendPages, parts }).
+ *
+ * Legacy files carry no coordinate data at all, so `hotspots` stays empty —
+ * fabricating positions is not permitted. `parts_catalog` is built by
+ * deduplicating the flat `parts` list on the part `id` field, which is
+ * exactly the "collapses repeated physical occurrences" behavior the spec
+ * describes for this schema.
+ */
+function dtb_schematic_hotspot_normalize_legacy( array $decoded, string $checksum, bool $bom_stripped ): array {
+	$parts = $decoded['parts'];
+	if ( empty( $parts ) ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS, null, 'Legacy document has an empty or missing "parts" list.', $bom_stripped, 'legacy' );
+	}
+
+	$normalized_parts = [];
+	$seen             = [];
+	foreach ( $parts as $part ) {
+		if ( ! is_array( $part ) ) {
+			continue;
+		}
+		$part_ref = (string) ( $part['id'] ?? '' );
+		if ( '' === $part_ref || isset( $seen[ $part_ref ] ) ) {
+			continue;
+		}
+		$seen[ $part_ref ] = true;
+
+		$normalized_parts[] = dtb_schematic_hotspot_part_make(
+			[
+				'part_ref'   => $part_ref,
+				'display_id' => $part_ref,
+				'name'       => (string) ( $part['name'] ?? '' ),
+				'sku'        => (string) ( $part['sku'] ?? '' ),
+				'source_sku' => (string) ( $part['source_sku'] ?? '' ),
+				'quantity'   => (float) ( $part['quantity'] ?? 0 ),
+			]
+		);
+	}
+
+	$dataset = dtb_schematic_hotspot_dataset_make(
+		[
+			'source_schema' => 'legacy',
+			'checksum'      => $checksum,
+			'parts_catalog' => $normalized_parts,
+			'hotspots'      => [], // No spatial data exists in the legacy shape.
+		]
+	);
+
+	return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_OK, $dataset, null, $bom_stripped, 'legacy' );
+}
+
+/**
+ * Enumerate every schematic_data*.json file under the source root
+ * (bounded — on the order of ~90 files). Used by the migration/reconciliation
+ * batch operation and the static verification harness. Returns paths
+ * relative to the source root (matching the existing
+ * _dtb_schematic_hotspot_dataset "reference" convention of
+ * "frontend/public/brands/...").
+ *
+ * @return string[] Relative paths (repo-root-relative, forward slashes).
+ */
+function dtb_schematic_hotspot_enumerate_source_files(): array {
+	$root = dtb_schematics_hotspot_source_root();
+	if ( '' === $root || ! is_dir( $root ) ) {
+		return [];
+	}
+
+	$files = [];
+	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
+	foreach ( $iterator as $file ) {
+		if ( 'json' !== strtolower( $file->getExtension() ) ) {
+			continue;
+		}
+		$name = $file->getFilename();
+		if ( 'schematic_data.schema.json' === $name || 'schematic_data_template.json' === $name ) {
+			continue; // Not a dataset — the JSON Schema definition and the authoring template.
+		}
+		if ( 0 !== strpos( $name, 'schematic_data' ) ) {
+			continue;
+		}
+		$repo_root = dirname( $root, 3 ); // brands -> public -> frontend -> repo root.
+		$relative  = str_replace( '\\', '/', str_replace( $repo_root . '/', '', $file->getPathname() ) );
+		$files[]   = $relative;
+	}
+
+	sort( $files );
+	return $files;
+}

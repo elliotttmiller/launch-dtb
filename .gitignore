@@ -110,7 +110,7 @@ drywalltoolbox/wp/wp-content/updraft/log*.txt
 #   wp/wp-content/themes/drywall-toolbox/           — legacy theme (kept until headless-base validated)
 #   wp/wp-content/themes/headless-base/             — active minimal headless theme (zero frontend output)
 #   wp/wp-content/mu-plugins/dtb-cors.php           — CORS mu-plugin (auto-loaded)
-#   wp/wp-content/mu-plugins/dtb-schematics-api.php — Schematic media manifest REST endpoint
+#   wp/wp-content/mu-plugins/dtb-schematics/        — Schematics domain module (public API: Rest/SchematicPublicApiController.php)
 # All other installed themes and all plugins are installed on the server only.
 wp-content/themes/twenty*/
 wp-content/themes/yith*/
@@ -121,10 +121,12 @@ vendor/
 
 # ---------------------------------------------------------------
 # Schematic diagram images — served exclusively from the WordPress Media
-# Library (see drywalltoolbox/wp/wp-content/mu-plugins/dtb-schematics and
-# frontend/src/hooks/useSchematicMedia.js). They must never be re-added
-# here as local build assets — that defeats the point of the WP-hosted
-# pipeline and bloats every dist build and file transfer.
+# Library via the public schematic API (see
+# drywalltoolbox/wp/wp-content/mu-plugins/dtb-schematics/Rest/
+# SchematicPublicApiController.php and frontend/src/pages/SchematicsPage.jsx).
+# They must never be re-added here as local build assets — that defeats the
+# point of the WP-hosted pipeline and bloats every dist build and file
+# transfer.
 #
 # NOTE: the actual local path is frontend/public/brands/, not public/brands/
 # — a prior version of this pattern was anchored to a path that doesn't
@@ -139,10 +141,6 @@ frontend/public/brands/*/Schematics/**/*.png
 frontend/public/brands/*/Schematics/**/*.jpg
 frontend/public/brands/*/Schematics/**/*.jpeg
 frontend/public/brands/*/Schematics/**/*.webp
-
-# Legacy/orphaned schematics tree — unreferenced by any build, workflow, or
-# runtime code. Diagram images live in the WP Media Library instead.
-/products/schematics/
 
 # Local backup directories (large binary files — not needed in the repo)
 # The originals live here after scripts/convert_schematics_to_webp.py backs them up.
@@ -165,3 +163,10 @@ __pycache__/
 scripts/launch-readiness/.venv/
 scripts/launch-readiness/.env
 scripts/launch-readiness/reports/output/
+
+# Authenticated supplier catalog scraper: local session and private cost exports
+scripts/supplier-catalog/.venv/
+scripts/supplier-catalog/.browser-profile/
+scripts/supplier-catalog/brands.json
+scripts/supplier-catalog/output/
+scripts/supplier-catalog/results/

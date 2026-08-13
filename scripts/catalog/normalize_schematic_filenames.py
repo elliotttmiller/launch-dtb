@@ -1,4 +1,4 @@
-"""Normalize products/schematics images to {brand}_{sku}_sch-page-{NNN}.webp.
+"""Normalize products/launch/media/schematics images to {brand}_{sku}_sch-page-{NNN}.webp.
 
 The script is dry-run by default. Pass --apply to rename files and migrate exact
 filename references in JSON, CSV, PHP, and other repository text sources.
@@ -14,8 +14,8 @@ import re
 from pathlib import Path
 
 
-REPO = Path(__file__).resolve().parents[1]
-IMAGE_DIR = REPO / "products" / "schematics"
+REPO = Path(__file__).resolve().parents[2]
+IMAGE_DIR = REPO / "products" / "launch" / "media" / "schematics"
 CATALOG = REPO / "products" / "launch" / "official" / "dtb_woocommerce_official_catalog.csv"
 PRODUCT_LINKS = REPO / "frontend" / "src" / "data" / "productSchematicLinks.generated.js"
 SCHEMATIC_MAP = REPO / "drywalltoolbox" / "wp" / "wp-content" / "mu-plugins" / "dtb-schematics" / "Data" / "SkuSchematicMap.php"

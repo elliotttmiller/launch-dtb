@@ -141,16 +141,10 @@ function dtb_integration_health_get(): array {
 		],
 		'dtb-schematics' => [
 			'functions' => [
-				'dtb_schematic_media_register_routes',
-				'dtb_schematic_manifest_register_routes',
-				'dtb_schematic_parts_register_routes',
-				'dtb_schematics_render_sync_page',
-			],
-			'classes' => [
-				'DTB_SchematicManifestController',
-				'DTB_SchematicMediaController',
-				'DTB_SchematicPartsController',
-				'DTB_SchematicMediaService',
+				'dtb_register_schematics_public_api_routes',
+				'dtb_schematic_record_repo_query',
+				'dtb_schematics_resolve_product_ids_for_schematic',
+				'dtb_schematics_suite_render_publication',
 			],
 			'files' => [ 'dtb-schematics/bootstrap.php' ],
 		],

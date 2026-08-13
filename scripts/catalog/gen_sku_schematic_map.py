@@ -78,7 +78,7 @@ for key, row in csv_sku_rows.items():
 # Part 1b: fill remaining gaps from the canonical-filename SKU table
 #   (scripts/catalog/normalize_schematic_filenames.py PREFERRED_SKU).
 #   That table is the source of truth used to *name* the on-disk
-#   products/schematics files (e.g. "platinum_pt-bh_sch-page-001.webp"),
+#   products/launch/media/schematics files (e.g. "platinum_pt-bh_sch-page-001.webp"),
 #   so any SKU it names must also resolve here or every upload for that
 #   schematic id is unregisterable. Each SKU is verified against the
 #   official WooCommerce catalog CSV before being added, so a typo in

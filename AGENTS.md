@@ -372,17 +372,19 @@ Avoid direct writes to WooCommerce internals, mutable names/slugs as cross-domai
 
 ## 14. Schematics and part resolution
 
-Schematics connect frontend diagrams, stable schematic IDs, WordPress attachment metadata, and product/part records.
+The `dtb_schematic` CPT domain record (Infrastructure/SchematicRecordRepository.php) is the sole authority for schematic existence, lifecycle, and page ownership — not WordPress attachment flags. See `docs/architecture/schematics-platform.md` for the full architecture.
 
 ```text
-frontend schematic registry and hotspot data
-  -> DTB schematic API
-  -> schematic manifest repository
-  -> WordPress attachment metadata
-  -> compatible product/part resolution
+canonical source package (products/launch/media/schematics/)
+  -> reconciliation engine (Application/ReconcileSchematicSource.php)
+  -> dtb_schematic domain record + pages (Infrastructure/SchematicRecordRepository.php)
+  -> WordPress attachments (projection, not authority)
+  -> hotspot dataset + exact product/part resolution
+  -> public API (GET /dtb/v1/schematics, GET /dtb/v1/schematics/{id})
+  -> React storefront (frontend/src/pages/SchematicsPage.jsx)
 ```
 
-The frontend does not own production attachment binaries. `dtb-schematics` owns registration and manifest behavior. Part resolution should prefer stable IDs and explicit compatibility records over fuzzy runtime assumptions.
+The frontend does not own production attachment binaries or decide which schematics/pages/products exist — it consumes the authoritative public API. `dtb-schematics` owns registration, reconciliation, and API behavior. Part resolution uses explicit WooCommerce product/variation IDs, exact SKU, or exact brand+MPN — never fuzzy matching at request time.
 
 ## 15. Repair workflow
 

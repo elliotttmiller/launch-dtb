@@ -1,13 +1,16 @@
 <?php
 /**
- * Register filesystem schematic images as WordPress media attachments.
+ * Upload-filename parsing shared by the reconciliation engine
+ * (Application/ReconcileSchematicSource.php), which is the sole live caller
+ * of these helpers and the sole writer of WordPress attachments for
+ * schematic uploads.
  *
  * Expected filename contract (either form accepted):
  *   {schematic-id}--page-{n}.{ext}
  *   {schematic-id}--preview.{ext}
  *   {sku}_SCH-page-{n}.{ext}                 (SKU resolved via DTB_SKU_SCHEMATIC_MAP)
  *   {sku}_SCH-preview.{ext}
- *   {brand}_{sku}_sch-page-{n}.{ext}         (canonical products/schematics naming;
+ *   {brand}_{sku}_sch-page-{n}.{ext}         (canonical products/launch/media/schematics naming;
  *                                             see scripts/catalog/normalize_schematic_filenames.py.
  *                                             {brand} is stripped before the SKU lookup.)
  *
@@ -17,108 +20,6 @@
  */
 
 defined( 'ABSPATH' ) || exit;
-
-function dtb_schematics_register_uploads( string $upload_path, bool $dry_run = true, int $limit = 100, int $offset = 0 ): array {
-	$upload_path = trim( $upload_path, '/' );
-	if ( ! preg_match( '#^\d{4}/[a-z0-9-]+$#', $upload_path ) ) {
-		return [ 'error' => 'Invalid uploads path.' ];
-	}
-
-	$uploads = wp_upload_dir();
-	$base_dir = trailingslashit( $uploads['basedir'] );
-	$base_url = trailingslashit( $uploads['baseurl'] );
-	$directory = $base_dir . $upload_path;
-	if ( ! is_dir( $directory ) ) {
-		return [ 'error' => 'Uploads directory does not exist.' ];
-	}
-
-	$files = glob( trailingslashit( $directory ) . '*.{webp,jpg,jpeg,png,avif,gif}', GLOB_BRACE );
-	$files = is_array( $files ) ? array_values( array_filter( $files, 'is_file' ) ) : [];
-	sort( $files, SORT_NATURAL | SORT_FLAG_CASE );
-	$total = count( $files );
-	$batch = array_slice( $files, max( 0, $offset ), max( 1, min( 250, $limit ) ) );
-
-	$result = [
-		'upload_path' => $upload_path,
-		'dry_run' => $dry_run,
-		'total' => $total,
-		'processed' => 0,
-		'registered' => 0,
-		'updated' => 0,
-		'skipped' => 0,
-		'skipped_files' => [],
-		'errors' => [],
-		'next_offset' => null,
-	];
-
-	foreach ( $batch as $file ) {
-		$result['processed']++;
-		$retired_reason = dtb_schematics_retired_upload_reason( basename( $file ) );
-		if ( null !== $retired_reason ) {
-			$result['skipped']++;
-			$result['skipped_files'][] = [
-				'file' => basename( $file ),
-				'reason' => $retired_reason,
-			];
-			continue;
-		}
-		$parsed = dtb_schematics_parse_upload_filename( basename( $file ) );
-		if ( is_wp_error( $parsed ) ) {
-			$result['errors'][] = [ 'file' => basename( $file ), 'message' => $parsed->get_error_message() ];
-			continue;
-		}
-
-		$relative_file = $upload_path . '/' . basename( $file );
-		$attachment_id = dtb_schematics_find_attachment_by_relative_file( $relative_file );
-		if ( $dry_run ) {
-			$result[ $attachment_id ? 'updated' : 'registered' ]++;
-			continue;
-		}
-
-		if ( ! $attachment_id ) {
-			$filetype = wp_check_filetype( basename( $file ), null );
-			if ( empty( $filetype['type'] ) || 0 !== strpos( (string) $filetype['type'], 'image/' ) ) {
-				$result['errors'][] = [ 'file' => basename( $file ), 'message' => 'Unsupported image MIME type.' ];
-				continue;
-			}
-			$attachment_id = wp_insert_attachment(
-				[
-					'post_mime_type' => $filetype['type'],
-					'post_title' => sanitize_text_field( $parsed['schematic_id'] . ' ' . $parsed['type'] ),
-					'post_status' => 'inherit',
-				],
-				$file
-			);
-			if ( is_wp_error( $attachment_id ) ) {
-				$result['errors'][] = [ 'file' => basename( $file ), 'message' => $attachment_id->get_error_message() ];
-				continue;
-			}
-			update_post_meta( $attachment_id, '_wp_attached_file', $relative_file );
-			require_once ABSPATH . 'wp-admin/includes/image.php';
-			$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
-			if ( is_array( $metadata ) ) {
-				wp_update_attachment_metadata( $attachment_id, $metadata );
-			}
-			$result['registered']++;
-		} else {
-			$result['updated']++;
-		}
-
-		update_post_meta( $attachment_id, '_dtb_schematic_id', $parsed['schematic_id'] );
-		update_post_meta( $attachment_id, '_dtb_schematic_type', $parsed['type'] );
-		update_post_meta( $attachment_id, '_dtb_schematic_page', $parsed['page'] );
-		update_post_meta( $attachment_id, '_dtb_schematic_source_path', $relative_file );
-	}
-
-	$next = $offset + count( $batch );
-	if ( $next < $total ) {
-		$result['next_offset'] = $next;
-	}
-	if ( ! $dry_run && ( $result['registered'] > 0 || $result['updated'] > 0 ) ) {
-		dtb_schematics_manifest_repo_delete_cache();
-	}
-	return $result;
-}
 
 /**
  * Identify residual uploads for the retired Asgard schematic catalog. The
@@ -147,8 +48,26 @@ function dtb_schematics_is_retired_upload_filename( string $filename ): bool {
  *     mapped in DTB_SKU_SCHEMATIC_MAP); no HMP-2022 SKU exists in the
  *     official catalog.
  *   - TOMAHAWK: not a real active product.
+ *   - TBMP-2022: not a real catalog SKU (no "TBMP-2022" row exists in
+ *     dtb_woocommerce_official_catalog.csv; the active Tall Boy Mud Pump
+ *     variation SKU is "TBMP", already mapped in DTB_SKU_SCHEMATIC_MAP).
+ *     Confirmed 2026-08-13 with the catalog owner: columbia_tbmp-2022_sch-
+ *     page-001.webp and columbia_tbmp_sch-page-001.webp are the same
+ *     physical pump model's diagram (both single-page, same schematic
+ *     content) — NOT distinct products, unlike Columbia HMP-2022 vs
+ *     TBMP-2022, which per the original spec doc genuinely are distinct
+ *     tools and must stay untouched. This entry only stops the "-2022"
+ *     export-batch filename from being independently registered as a
+ *     WordPress attachment (it would otherwise collide with the canonical
+ *     TBMP filename's schematic_id + page, per
+ *     Application/ReconcileSchematicSource.php's DUPLICATE_SCHEMATIC_PAGE
+ *     disposition). The physical source file is kept on disk, unrenamed,
+ *     under products/launch/media/schematics/ as a historical alias; it is
+ *     not deleted. TBMP-2022 -> TBMP SKU resolution elsewhere (e.g.
+ *     DTB_SKU_SCHEMATIC_MAP, admin SKU lookups) is unaffected — only
+ *     upload-filename registration is skipped for this exact source file.
  */
-const DTB_RETIRED_SCHEMATIC_UPLOAD_SKUS = [ 'COL-SANDER-HEAD', 'HMP-2022', 'TOMAHAWK' ];
+const DTB_RETIRED_SCHEMATIC_UPLOAD_SKUS = [ 'COL-SANDER-HEAD', 'HMP-2022', 'TOMAHAWK', 'TBMP-2022' ];
 
 /**
  * Identify residual uploads for retired products/schematics, returning a
@@ -269,7 +188,7 @@ function dtb_schematics_parse_sku_upload_filename( string $name ) {
 }
 
 /**
- * Known brand tokens used by the canonical products/schematics filename
+ * Known brand tokens used by the canonical products/launch/media/schematics filename
  * convention ({brand}_{sku}_sch-page-{n}.webp — see
  * scripts/catalog/normalize_schematic_filenames.py). DTB_SKU_SCHEMATIC_MAP
  * keys are bare catalog SKUs (no brand prefix), so a captured token like
@@ -356,28 +275,3 @@ function dtb_schematics_find_attachment_by_relative_file( string $relative_file 
 	return empty( $ids ) ? 0 : (int) $ids[0];
 }
 
-/**
- * AJAX entry point wired into the Schematics admin page (Import & Audit tab).
- * Reuses that page's existing 'dtb_schematics_nonce' and capability check.
- */
-add_action( 'wp_ajax_dtb_schematics_register_by_filename', 'dtb_schematics_ajax_register_by_filename' );
-
-function dtb_schematics_ajax_register_by_filename(): void {
-	check_ajax_referer( 'dtb_schematics_nonce', 'nonce' );
-	if ( ! dtb_schematics_can_manage() ) {
-		wp_send_json_error( [ 'message' => 'Insufficient permissions.' ], 403 );
-	}
-
-	$upload_path = isset( $_POST['upload_path'] ) ? sanitize_text_field( wp_unslash( (string) $_POST['upload_path'] ) ) : '2026/schematics';
-	$dry_run = ! empty( $_POST['dry_run'] );
-	$limit = isset( $_POST['limit'] ) ? absint( $_POST['limit'] ) : 100;
-	$offset = isset( $_POST['offset'] ) ? absint( $_POST['offset'] ) : 0;
-
-	$result = dtb_schematics_register_uploads( $upload_path, $dry_run, $limit, $offset );
-
-	if ( isset( $result['error'] ) ) {
-		wp_send_json_error( [ 'message' => $result['error'] ] );
-	}
-
-	wp_send_json_success( $result );
-}

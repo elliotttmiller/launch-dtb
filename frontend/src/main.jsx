@@ -48,14 +48,15 @@ import './styles/unified-responsive.css';
 
 import App from './App.jsx';
 import ErrorBoundary from './components/system/AppErrorBoundary.jsx';
-import { installSchematicPageLabelRuntime } from './utils/schematicPageLabelRuntime.js';
-import { installMobileSchematicNavRuntime } from './utils/mobileSchematicNavRuntime.js';
 import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js';
 import { installCustomerFacingCopyRuntime } from './utils/customerFacingCopyRuntime.js';
 import { prewarmCatalog } from './services/catalog.js';
 
-installSchematicPageLabelRuntime();
-installMobileSchematicNavRuntime();
+// Note: the legacy schematicPageLabelRuntime / mobileSchematicNavRuntime
+// global DOM/history runtimes were schematics-only compatibility shims for
+// the old, now-removed frontend/src/pages/Schematics.jsx implementation.
+// The /schematics route (frontend/src/pages/SchematicsPage.jsx) owns page
+// labels and navigation directly through React state and React Router.
 installRepairPackageSelectionRuntime();
 installCustomerFacingCopyRuntime();
 
