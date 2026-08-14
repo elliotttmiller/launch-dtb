@@ -276,21 +276,11 @@ function dtb_schematics_workspace_handle_ajax_action(): void {
  * output — the single implementation shared by the admin-post.php (no-JS)
  * and AJAX action handlers above.
  */
-// Hard ceiling on batches per click, purely as a runaway/timeout guard —
-// 20 * DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE (25) = 500 rows, several
-// times the current ~126-row source manifest, so a normal full pass never
-// gets truncated by this.
-const DTB_SCHEMATICS_WORKSPACE_RECONCILE_MAX_BATCHES = 20;
-
 function dtb_schematics_workspace_perform_operation( string $operation, int $id, bool $commit ): array {
 	if ( str_starts_with( $operation, 'reconcile_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_RECONCILE; } elseif ( str_starts_with( $operation, 'migrate_hotspots_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS; } elseif ( str_starts_with( $operation, 'refresh_products_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS; } else { $kind = [ 'publish' => DTB_SCHEMATIC_OPERATION_PUBLISH, 'retire' => DTB_SCHEMATIC_OPERATION_RETIRE, 'refresh_projection' => DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ][ $operation ]; }
-
-	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) {
-		return dtb_schematics_workspace_run_full_reconcile( ! $commit );
-	}
-
-	$args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id(), 'schematic_ids' => [ $id ] ];
-	$run  = dtb_schematic_run_operation( $args );
+	$args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id() ];
+	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } else { $args['schematic_ids'] = [ $id ]; }
+	$run = dtb_schematic_run_operation( $args );
 	if ( is_wp_error( $run ) ) { return [ 'notice' => $run->get_error_message(), 'notice_type' => 'error', 'run_id' => '' ]; }
 	$result = (array) ( $run['result'] ?? [] );
 	$ok     = 'completed' === ( $run['status'] ?? '' ) && empty( $result['failed'] ) && empty( $result['unresolved'] );
@@ -298,66 +288,6 @@ function dtb_schematics_workspace_perform_operation( string $operation, int $id,
 		'notice'      => $ok ? __( 'Operation run completed.', 'drywall-toolbox' ) : (string) ( $run['error'] ?? __( 'Operation completed with unresolved or failed items.', 'drywall-toolbox' ) ),
 		'notice_type' => $ok ? 'success' : 'error',
 		'run_id'      => (string) ( $run['id'] ?? '' ),
-	];
-}
-
-/**
- * Runs reconciliation to completion in one click instead of one bounded
- * batch (25 rows) per click. dtb_schematic_reconcile_source() is designed
- * to be resumable — commit mode persists its cursor to the DB between calls,
- * dry-run mode threads a returned `next_state` explicitly (never persisted,
- * per its own isolation contract) — so this just keeps calling
- * dtb_schematic_run_operation() until a batch reports is_last_batch, a fatal
- * error occurs, or DTB_SCHEMATICS_WORKSPACE_RECONCILE_MAX_BATCHES is hit,
- * aggregating totals across every batch into one notice.
- */
-function dtb_schematics_workspace_run_full_reconcile( bool $dry_run ): array {
-	$operator_id = get_current_user_id();
-	$state       = null;
-	$totals      = [ 'examined' => 0, 'changed' => 0, 'skipped' => 0, 'unresolved' => 0 ];
-	$last_run    = null;
-	$batches     = 0;
-
-	do {
-		$args = [
-			'kind'         => DTB_SCHEMATIC_OPERATION_RECONCILE,
-			'dry_run'      => $dry_run,
-			'operator_id'  => $operator_id,
-			'batch_size'   => DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE,
-			'resume'       => true,
-		];
-		if ( $dry_run && null !== $state ) { $args['state'] = $state; }
-
-		$run = dtb_schematic_run_operation( $args );
-		if ( is_wp_error( $run ) ) { return [ 'notice' => $run->get_error_message(), 'notice_type' => 'error', 'run_id' => '' ]; }
-
-		$last_run = $run;
-		$result   = (array) ( $run['result'] ?? [] );
-		foreach ( array_keys( $totals ) as $key ) { $totals[ $key ] += (int) ( $result[ $key ] ?? 0 ); }
-
-		if ( ! empty( $result['fatal_error'] ) ) { break; }
-
-		$batches++;
-		$is_last_batch = ! empty( $result['is_last_batch'] );
-		$state         = $result['next_state'] ?? null;
-	} while ( ! $is_last_batch && $batches < DTB_SCHEMATICS_WORKSPACE_RECONCILE_MAX_BATCHES );
-
-	$result = (array) ( $last_run['result'] ?? [] );
-	$ok     = 'completed' === ( $last_run['status'] ?? '' ) && empty( $result['fatal_error'] ) && empty( $totals['unresolved'] );
-	$notice = $ok
-		? sprintf(
-			/* translators: 1: examined count, 2: changed count, 3: batches run */
-			__( 'Schematic sync completed: examined %1$d; changed %2$d (across %3$d batch(es)).', 'drywall-toolbox' ),
-			$totals['examined'],
-			$totals['changed'],
-			$batches
-		)
-		: (string) ( $last_run['error'] ?? $result['fatal_error'] ?? __( 'Schematic sync completed with unresolved or failed items.', 'drywall-toolbox' ) );
-
-	return [
-		'notice'      => $notice,
-		'notice_type' => $ok ? 'success' : 'error',
-		'run_id'      => (string) ( $last_run['id'] ?? '' ),
 	];
 }
 
