@@ -12,8 +12,8 @@
 defined( 'ABSPATH' ) || exit;
 
 const DTB_PRICING_TARGET_MARGIN_OPTION = 'dtb_catalog_pricing_target_margin';
-const DTB_PRICING_MAP_PRICE_META       = '_dtb_map_price';
-const DTB_PRICING_MAP_SOURCE_META      = '_dtb_map_source';
+const DTB_PRICING_MAP_PRICE_META       = DTB_ProductMeta::MAP_PRICE;
+const DTB_PRICING_MAP_SOURCE_META      = DTB_ProductMeta::MAP_SOURCE;
 const DTB_PRICING_INDEX_TRANSIENT      = 'dtb_catalog_pricing_index_v1';
 
 /** Return the configured default target gross margin percentage. */
@@ -432,9 +432,7 @@ function dtb_pricing_update_product( int $product_id, array $fields ) {
 		}
 		$price = wc_format_decimal( $raw, wc_get_price_decimals() );
 		$product->set_regular_price( $price );
-		if ( ! $product->is_on_sale( 'edit' ) ) {
-			$product->set_price( $price );
-		}
+		$product->set_price( $product->is_on_sale( 'edit' ) ? $product->get_sale_price( 'edit' ) : $price );
 	}
 
 	if ( array_key_exists( 'map_price', $fields ) ) {
