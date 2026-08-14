@@ -2,7 +2,7 @@
 /**
  * Schematic filename -> schematic id/page lookups, generated from:
  *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)
- *   - frontend/src/pages/Schematics.jsx (tool id / page ordering)
+ *   - scripts/catalog/data/schematic_verbose_id_map.json (tool id / page ordering)
  *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv
  *     (Level5 spare-part codes and verbose Columbia/TapeTech/Platinum export
  *     ids, none of which are catalog SKUs)

@@ -149,70 +149,36 @@ print(f"[sku map] catalog entries: {len(catalog)}, csv entries added: {added}, t
 #   Columbia/TapeTech/Platinum exports use filenames like
 #   {verbose-schematic-id}-schematic-page-{n}.webp or
 #   platinum_{name}-page-{n}.webp, where {verbose-schematic-id} matches the
-#   master CSV's own 'schematic_id' column (not a catalog SKU). Resolve each
-#   to the frontend's actual short schematic id + page by cross-referencing
-#   Schematics.jsx: which '/brands/...' JSON import (source_file_from_brands)
-#   is referenced inside which tool's `id: '...'` block, and in what order
-#   (order = page number, matching diagramPages/pageLabels).
+#   master CSV's own 'schematic_id' column (not a catalog SKU). The
+#   normalized-key -> (schematic_id, page) resolution used to be derived by
+#   parsing the now-deleted frontend/src/pages/Schematics.jsx (its
+#   '/brands/...' imports and per-tool `id:` blocks encoded the tool/page
+#   ordering). That resolution is frozen as static data in
+#   scripts/catalog/data/schematic_verbose_id_map.json so this script no
+#   longer depends on any frontend page file. Any *new* verbose schematic id
+#   that isn't already a key in that JSON cannot be auto-resolved here and
+#   is reported below for manual addition to the JSON file.
 # =====================================================================
 
-jsx_path = f"{REPO}/frontend/src/pages/Schematics.jsx"
-with open(jsx_path, encoding="utf-8") as f:
-    jsx_src = f.read()
-jsx_lines = jsx_src.split("\n")
-
-import_re = re.compile(r"^import\s+(\w+)\s+from\s+'/brands/(.+?)';")
-data_var_to_relpath = {}
-for line in jsx_lines:
-    m = import_re.match(line.strip())
-    if m:
-        data_var_to_relpath[m.group(1)] = m.group(2)
-
-bpfd_re = re.compile(r"const\s+(\w+)\s*=\s*buildPartsFromData\(\s*(\w+)")
-parts_var_to_data_var = {}
-for line in jsx_lines:
-    m = bpfd_re.search(line)
-    if m:
-        parts_var_to_data_var[m.group(1)] = m.group(2)
-
-id_re = re.compile(r"^\s*id:\s*'([^']+)',?\s*$")
-block_starts = [(i, id_re.match(l).group(1)) for i, l in enumerate(jsx_lines) if id_re.match(l)]
-blocks = []
-for idx, (start_line, tool_id) in enumerate(block_starts):
-    end_line = block_starts[idx + 1][0] if idx + 1 < len(block_starts) else len(jsx_lines)
-    blocks.append((tool_id, "\n".join(jsx_lines[start_line:end_line])))
-
-relpath_to_target = {}
-for tool_id, block_text in blocks:
-    seen_relpaths = []
-    for m in re.finditer(r"\b(\w+)\b", block_text):
-        w = m.group(1)
-        relpath = None
-        if w in data_var_to_relpath:
-            relpath = data_var_to_relpath[w]
-        elif w in parts_var_to_data_var:
-            relpath = data_var_to_relpath.get(parts_var_to_data_var[w])
-        if relpath is not None and relpath not in seen_relpaths:
-            seen_relpaths.append(relpath)
-    for page_idx, relpath in enumerate(seen_relpaths, start=1):
-        relpath_to_target[relpath] = (tool_id, page_idx)
+verbose_map_json_path = f"{REPO}/scripts/catalog/data/schematic_verbose_id_map.json"
+with open(verbose_map_json_path, encoding="utf-8") as f:
+    verbose_map_source = json.load(f)
 
 verbose_map = {}  # normalized_key -> (schematic_id, page)
-unresolved = []
-for sid, meta in csv_by_schematic_id.items():
-    if meta["brand"] in ("Asgard", "Level5") or not meta["source_file_from_brands"]:
-        continue
-    target = relpath_to_target.get(meta["source_file_from_brands"])
-    if target is None:
-        unresolved.append((sid, meta["source_file_from_brands"]))
-        continue
-    key = normalize_key(sid)
-    diagram_pages = [page for page in meta["diagram_pages"].split("|") if page]
-    verbose_map[key] = (target[0], None if len(diagram_pages) > 1 else target[1])
+for key, (schematic_id, page) in verbose_map_source.items():
+    verbose_map[key] = (schematic_id, page)
 
-print(f"[verbose map] resolved: {len(verbose_map)}, unresolved: {len(unresolved)}", file=sys.stderr)
-for sid, relpath in unresolved:
-    print(f"  UNRESOLVED: {sid} | {relpath}", file=sys.stderr)
+known_keys = {normalize_key(sid) for sid in csv_by_schematic_id}
+unresolved = [
+    sid for sid in csv_by_schematic_id
+    if csv_by_schematic_id[sid]["brand"] not in ("Asgard", "Level5")
+    and csv_by_schematic_id[sid]["source_file_from_brands"]
+    and normalize_key(sid) not in verbose_map
+]
+
+print(f"[verbose map] loaded from JSON: {len(verbose_map)}, unresolved (new, needs manual JSON entry): {len(unresolved)}", file=sys.stderr)
+for sid in unresolved:
+    print(f"  UNRESOLVED: {sid} | {csv_by_schematic_id[sid]['source_file_from_brands']}", file=sys.stderr)
 
 # Exact legacy source basenames that do not encode a SKU or schematic id.
 # Keep this list narrow: every entry must be traceable to one unique source asset.
@@ -231,7 +197,7 @@ lines.append("<?php")
 lines.append("/**")
 lines.append(" * Schematic filename -> schematic id/page lookups, generated from:")
 lines.append(" *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)")
-lines.append(" *   - frontend/src/pages/Schematics.jsx (tool id / page ordering)")
+lines.append(" *   - scripts/catalog/data/schematic_verbose_id_map.json (tool id / page ordering)")
 lines.append(" *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv")
 lines.append(" *     (Level5 spare-part codes and verbose Columbia/TapeTech/Platinum export")
 lines.append(" *     ids, none of which are catalog SKUs)")
