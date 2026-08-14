@@ -218,6 +218,43 @@ function dtb_schematic_associate_hotspot_dataset( int $schematic_id, array $data
 }
 
 /**
+ * Move a record to `ready` once it meets every publication requirement.
+ * dtb_schematic_publish() only permits the ready -> published transition
+ * (see DTB_Schematic_Lifecycle_Status::allowed_transitions()); nothing
+ * elsewhere in this codebase performs the draft/incomplete -> ready step, so
+ * without this a record could satisfy every requirement and still be
+ * permanently unpublishable. Idempotent: already-ready/published records are
+ * returned unchanged.
+ *
+ * @return DTB_Schematic_Record_Entity|WP_Error
+ */
+function dtb_schematic_mark_ready( int $schematic_id ) {
+	$record = dtb_schematic_record_repo_get( $schematic_id );
+	if ( ! $record ) {
+		return new WP_Error( 'dtb_schematic_not_found', __( 'Schematic record not found.', 'drywall-toolbox' ) );
+	}
+
+	if ( DTB_Schematic_Lifecycle_Status::READY === $record->lifecycle->value() || $record->lifecycle->is_published() ) {
+		return $record;
+	}
+
+	if ( ! DTB_Schematic_Lifecycle_Status::can_transition( $record->lifecycle->value(), DTB_Schematic_Lifecycle_Status::READY ) ) {
+		return new WP_Error( 'dtb_schematic_invalid_transition', __( 'This schematic cannot move to ready from its current lifecycle state.', 'drywall-toolbox' ) );
+	}
+
+	$unmet = dtb_schematic_publication_requirements( $record->to_array() );
+	if ( ! empty( $unmet ) ) {
+		return new WP_Error(
+			'dtb_schematic_not_publication_eligible',
+			__( 'This schematic does not meet the requirements to become ready.', 'drywall-toolbox' ),
+			[ 'unmet_requirements' => $unmet ]
+		);
+	}
+
+	return dtb_schematic_update( $schematic_id, [ 'lifecycle' => DTB_Schematic_Lifecycle_Status::READY ] );
+}
+
+/**
  * Publish a schematic. Fails with a WP_Error listing unmet requirements if
  * the record is not publication-eligible, or if the current lifecycle state
  * does not permit the transition.
