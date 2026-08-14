@@ -204,6 +204,77 @@ legacy_filename_map = {
 }
 
 # =====================================================================
+# Part 3: DTB_SCHEMATIC_BRAND_CATEGORY_MAP (canonical schematic id -> brand/category)
+#   Publication eligibility (Domain/SchematicPublicationRules.php) requires a
+#   non-empty brand_id and category_id on every schematic record, but the
+#   reconciliation pipeline (Application/ReconcileSchematicSource.php) never
+#   set either when creating a record, so every record was stuck un-publishable
+#   in Draft. brand/schematic_category are both present per-row in the master
+#   CSV; this resolves each row's raw (verbose or SKU-keyed) schematic_id to
+#   its canonical dtb id via the same verbose_map/sku_map already built above,
+#   so the mapping can't drift from the id resolution the backend itself uses.
+# =====================================================================
+
+
+def to_kebab(s):
+    s = re.sub(r"(?<!^)(?=[A-Z])", "-", s.strip())
+    return re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
+
+
+def resolve_row_canonical_id(sid, sku):
+    verbose_key = normalize_key(sid)
+    if verbose_key in verbose_map:
+        return verbose_map[verbose_key][0]
+    if sku:
+        sku_key = sku.upper()
+        if sku_key in sku_map:
+            return sku_map[sku_key]["schematic_id"]
+    return None
+
+
+from collections import Counter  # noqa: E402
+
+brand_category_votes = {}  # canonical_id -> Counter[(brand_id, category_id)]
+with open(csv_path, encoding="utf-8-sig", newline="") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        brand = (row.get("brand") or "").strip()
+        if brand in ("", "Asgard"):
+            continue
+        sid = (row.get("schematic_id") or "").strip()
+        sku = (row.get("product_sku") or "").strip()
+        category = (row.get("schematic_category") or "").strip()
+        if not sid or not category:
+            continue
+        canonical_id = resolve_row_canonical_id(sid, sku)
+        if not canonical_id:
+            continue
+        pair = (to_kebab(brand), to_kebab(category))
+        brand_category_votes.setdefault(canonical_id, Counter())[pair] += 1
+
+brand_category_map = {}
+for canonical_id, votes in brand_category_votes.items():
+    (brand_id, category_id), _count = votes.most_common(1)[0]
+    brand_category_map[canonical_id] = (brand_id, category_id)
+
+# Fallback for canonical ids with no master-CSV row at all (e.g. Surpro,
+# Dura-Stilts Dura III): productSchematicLinks.generated.js entries already
+# carry their own brand/category fields.
+catalog_fallback_added = 0
+for entry in catalog.values():
+    canonical_id = entry.get("schematicId")
+    if not canonical_id or canonical_id in brand_category_map:
+        continue
+    brand = (entry.get("brand") or "").strip()
+    category = (entry.get("category") or "").strip()
+    if not brand or not category:
+        continue
+    brand_category_map[canonical_id] = (to_kebab(brand), to_kebab(category))
+    catalog_fallback_added += 1
+
+print(f"[brand/category map] resolved from CSV: {len(brand_category_map) - catalog_fallback_added}, from generated.js fallback: {catalog_fallback_added}, total: {len(brand_category_map)}", file=sys.stderr)
+
+# =====================================================================
 # Emit PHP
 # =====================================================================
 
@@ -259,6 +330,18 @@ lines.append("// other map above.")
 lines.append("const DTB_RETIRED_SCHEMATIC_IDS = [")
 for sid in sorted(retired_schematic_ids):
     lines.append(f"\t'{php_str(sid)}' => true,")
+lines.append("];")
+lines.append("")
+lines.append("// Canonical schematic id -> brand_id/category_id, sourced from brand/")
+lines.append("// schematic_category columns in all_brands_schematic_parts_master.csv.")
+lines.append("// Consumed by Application/ReconcileSchematicSource.php to populate the")
+lines.append("// publication-required brand_id/category_id fields")
+lines.append("// (Domain/SchematicPublicationRules.php) on record create and backfill,")
+lines.append("// which the reconciliation pipeline previously never set.")
+lines.append("const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [")
+for canonical_id in sorted(brand_category_map.keys()):
+    brand_id, category_id = brand_category_map[canonical_id]
+    lines.append(f"\t'{php_str(canonical_id)}' => [ 'brand_id' => '{php_str(brand_id)}', 'category_id' => '{php_str(category_id)}' ],")
 lines.append("];")
 lines.append("")
 

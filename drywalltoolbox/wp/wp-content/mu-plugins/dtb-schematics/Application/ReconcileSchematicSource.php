@@ -504,18 +504,43 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 	$source_filename  = (string) ( $row['filename'] ?? '' );
 
 	if ( ! $record ) {
-		$created = dtb_schematic_create(
-			[
-				'canonical_id'      => $canonical_id,
-				'title'             => dtb_schematic_reconcile_default_title( $canonical_id ),
-				'source_provenance' => [ 'source' => 'reconciliation_pipeline', 'created_at' => gmdate( 'c' ) ],
-			]
-		);
+		$create_data = [
+			'canonical_id'      => $canonical_id,
+			'title'             => dtb_schematic_reconcile_default_title( $canonical_id ),
+			'source_provenance' => [ 'source' => 'reconciliation_pipeline', 'created_at' => gmdate( 'c' ) ],
+		];
+		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $canonical_id ] ?? null;
+		if ( $brand_category ) {
+			$create_data['brand_id']    = $brand_category['brand_id'];
+			$create_data['category_id'] = $brand_category['category_id'];
+		}
+		$created = dtb_schematic_create( $create_data );
 		if ( is_wp_error( $created ) ) {
 			return $created;
 		}
 		$record          = $created;
 		$record_changed  = true;
+	} elseif ( '' === trim( $record->brand_id ) || '' === trim( $record->category_id ) ) {
+		// Backfill records created before DTB_SCHEMATIC_BRAND_CATEGORY_MAP
+		// existed; publication requires both fields
+		// (Domain/SchematicPublicationRules.php) and reconciliation is the
+		// only writer of these ids, so a record with neither ever set stays
+		// unpublishable forever without this pass.
+		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $canonical_id ] ?? null;
+		if ( $brand_category ) {
+			$backfill = [];
+			if ( '' === trim( $record->brand_id ) ) {
+				$backfill['brand_id'] = $brand_category['brand_id'];
+			}
+			if ( '' === trim( $record->category_id ) ) {
+				$backfill['category_id'] = $brand_category['category_id'];
+			}
+			$updated = dtb_schematic_update( $record->id, $backfill );
+			if ( ! is_wp_error( $updated ) ) {
+				$record         = $updated;
+				$record_changed = true;
+			}
+		}
 	}
 
 	$existing_page = null;
