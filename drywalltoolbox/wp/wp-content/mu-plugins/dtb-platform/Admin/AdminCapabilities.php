@@ -63,6 +63,7 @@ function dtb_admin_all_capabilities(): array {
 		'dtb_manage_image_sync',
 		'dtb_manage_product_mapping',
 		'dtb_manage_catalog_health',
+		'dtb_manage_catalog_pricing',
 		'dtb_manage_cache_tools',
 		'dtb_view_api_health',
 		'dtb_manage_seo_tools',
@@ -122,6 +123,7 @@ function dtb_admin_role_capability_map(): array {
 			'dtb_manage_image_sync',
 			'dtb_manage_product_mapping',
 			'dtb_manage_catalog_health',
+			'dtb_manage_catalog_pricing',
 			'dtb_manage_seo_tools',
 			'dtb_manage_import_export',
 			'dtb_manage_parts',
@@ -156,7 +158,6 @@ function dtb_admin_assign_capabilities(): void {
 				$role->add_cap( $cap, true );
 			}
 		}
-	}
 }
 
 add_action( 'init', 'dtb_admin_assign_capabilities', 5 );
