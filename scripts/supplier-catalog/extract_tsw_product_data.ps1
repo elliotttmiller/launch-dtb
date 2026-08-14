@@ -19,9 +19,12 @@ $brandPrefixes = [ordered]@{
     DSS = 'Dura-Stilts'
     SUR = 'SurPro'
 }
-$excludedNamePattern = '(?i)\b(trowels?|knife|knives|cloth(?:e|es|ing)?|shirts?|t[- ]?shirts?|jackets?|jkt|trousers?|pants?|shorts|hoodies?|sweatshirts?|coats?|vests?|hats?|beanies?|aprons?|gloves?|workgloves?|dry[- ]fit|socks?|kits?|sanders?|sanding|tools?)\b'
+$excludedNamePattern = '(?i)\b(trowels?|knife|knives|cloth(?:e|es|ing)?|shirts?|t[- ]?shirts?|jackets?|jkt|trousers?|pants?|shorts|hoodies?|sweatshirts?|coats?|vests?|hats?|beanies?|aprons?|gloves?|workgloves?|dry[- ]fit|socks?|kits?|sanders?|sanding|tools?|floats?|bags?|saws?|stools?|pools?|rasps?|eifs|vacuums?|wash|washing|cleaning|cleaners?)\b'
 $excludedNameSubstringPattern = '(?i)(wire|batter(?:y|ies)|sand)'
-$excludedCategoryPattern = '(?i)\b(apparel|clothing|garments?|gloves?)\b'
+$excludedCategoryPattern = '(?i)\b(apparel|clothing|garments?|gloves?|eifs|vacuums?)\b'
+if ('EASYCLEAN' -match $excludedNamePattern -or 'EASYCLEAN' -match $excludedNameSubstringPattern) {
+    throw 'Exclusion rules must not classify EasyClean as a cleaning product.'
+}
 
 $requiredHeaders = @(
     'Categaory', 'prod', 'countryoforigin', 'tariffcd', 'eccnclasscd',
