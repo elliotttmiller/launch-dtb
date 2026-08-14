@@ -116,9 +116,6 @@ function dtb_schematics_reject_if_retired( $result ) {
 	if ( is_wp_error( $result ) ) {
 		return $result;
 	}
-	if ( ! isset( $result['schematic_id'] ) ) {
-		return $result;
-	}
 	if ( isset( DTB_RETIRED_SCHEMATIC_IDS[ $result['schematic_id'] ] ) ) {
 		return new WP_Error( 'dtb_retired_schematic_id', sprintf( 'Schematic id "%s" belongs to a retired brand catalog and must not be registered.', $result['schematic_id'] ) );
 	}
