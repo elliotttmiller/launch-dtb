@@ -83,7 +83,7 @@ function dtb_pricing_manager_render_products_tab(): void {
 		<div class="dtb-pricing-summary__item"><strong data-summary-review>—</strong><span><?php esc_html_e( 'Needs review', 'drywall-toolbox' ); ?></span></div>
 	</section>
 
-	<section class="dtb-pricing-workspace" aria-labelledby="dtb-pricing-products-heading">
+	<section class="dtb-pricing-workspace" aria-label="<?php esc_attr_e( 'Product pricing workspace', 'drywall-toolbox' ); ?>">
 		<div class="dtb-pricing-toolbar">
 			<div class="dtb-pricing-toolbar__primary">
 				<label class="screen-reader-text" for="dtb-pricing-search"><?php esc_html_e( 'Search products', 'drywall-toolbox' ); ?></label>
@@ -140,7 +140,7 @@ function dtb_pricing_manager_render_optimizer_tab(): void {
 		</div>
 	</section>
 
-	<section class="dtb-pricing-workspace" aria-labelledby="dtb-pricing-optimizer-heading">
+	<section class="dtb-pricing-workspace" aria-label="<?php esc_attr_e( 'Pricing optimizer', 'drywall-toolbox' ); ?>">
 		<div class="dtb-pricing-toolbar">
 			<div class="dtb-pricing-toolbar__primary">
 				<select data-optimizer-filter aria-label="<?php esc_attr_e( 'Recommendation type', 'drywall-toolbox' ); ?>">
