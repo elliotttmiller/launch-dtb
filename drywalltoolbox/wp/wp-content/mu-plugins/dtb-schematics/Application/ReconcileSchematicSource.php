@@ -536,10 +536,16 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 				$backfill['category_id'] = $brand_category['category_id'];
 			}
 			$updated = dtb_schematic_update( $record->id, $backfill );
-			if ( ! is_wp_error( $updated ) ) {
+			if ( is_wp_error( $updated ) ) {
+				error_log( sprintf( '[dtb-schematics] brand/category backfill failed for %s: %s', $canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			} else {
 				$record         = $updated;
 				$record_changed = true;
 			}
+		} else {
+			// No catalog-derived mapping for this id — surfaced so a real
+			// catalog/map gap doesn't look identical to "already backfilled".
+			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
 

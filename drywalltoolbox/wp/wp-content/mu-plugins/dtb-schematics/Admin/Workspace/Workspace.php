@@ -8,6 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 add_action( 'admin_post_dtb_schematics_workspace_action', 'dtb_schematics_workspace_handle_action' );
+add_action( 'wp_ajax_dtb_schematics_workspace_ajax_action', 'dtb_schematics_workspace_handle_ajax_action' );
 add_action( 'admin_enqueue_scripts', 'dtb_schematics_workspace_enqueue_assets' );
 
 function dtb_schematics_workspace_url( array $args = [] ): string {
@@ -23,13 +24,33 @@ function dtb_schematics_workspace_enqueue_assets( string $hook ): void {
 		return;
 	}
 
-	$path = __DIR__ . '/../assets/schematics-workspace.css';
-	if ( is_file( $path ) ) {
+	$css_path = __DIR__ . '/../assets/schematics-workspace.css';
+	if ( is_file( $css_path ) ) {
 		wp_enqueue_style(
 			'dtb-schematics-workspace',
 			content_url( '/mu-plugins/dtb-schematics/Admin/assets/schematics-workspace.css' ),
 			[],
-			(string) filemtime( $path )
+			(string) filemtime( $css_path )
+		);
+	}
+
+	$js_path = __DIR__ . '/../assets/schematics-workspace.js';
+	if ( is_file( $js_path ) ) {
+		wp_enqueue_script(
+			'dtb-schematics-workspace',
+			content_url( '/mu-plugins/dtb-schematics/Admin/assets/schematics-workspace.js' ),
+			[],
+			(string) filemtime( $js_path ),
+			true
+		);
+		wp_localize_script(
+			'dtb-schematics-workspace',
+			'dtbSchematicsWorkspace',
+			[
+				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
+				'workingLabel'      => __( 'Working…', 'drywall-toolbox' ),
+				'genericErrorLabel' => __( 'Something went wrong. Please try again.', 'drywall-toolbox' ),
+			]
 		);
 	}
 }
@@ -41,10 +62,24 @@ function dtb_schematics_workspace_render_page(): void {
 	$view = sanitize_key( wp_unslash( $_GET['view'] ?? 'dashboard' ) );
 	$view = in_array( $view, [ 'dashboard', 'catalog', 'record', 'operations' ], true ) ? $view : 'dashboard';
 	echo '<main class="wrap dtb-schematics-workspace"><h1>' . esc_html__( 'Schematics & Hotspots', 'drywall-toolbox' ) . '</h1><p class="description">' . esc_html__( 'Control schematic records, hotspot synchronization, exact product links, and storefront readiness.', 'drywall-toolbox' ) . '</p>';
-	dtb_schematics_workspace_notice_and_run();
 	dtb_schematics_workspace_navigation( $view );
+	echo '<div id="dtb-schematics-workspace-app">';
+	echo dtb_schematics_workspace_render_app_content( $view ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-escaped markup assembled by the render_* functions.
+	echo '</div></main>';
+}
+
+/**
+ * Renders the notice/run banner plus the requested view's content and
+ * returns it as a string, so both the normal page load and the AJAX action
+ * handler (dtb_schematics_workspace_handle_ajax_action()) can produce the
+ * exact same markup — the AJAX response is a drop-in replacement for
+ * #dtb-schematics-workspace-app, never a full page navigation.
+ */
+function dtb_schematics_workspace_render_app_content( string $view, ?string $notice = null, string $notice_type = 'success', string $run_id = '' ): string {
+	ob_start();
+	dtb_schematics_workspace_notice_and_run( $notice, $notice_type, $run_id );
 	if ( 'catalog' === $view ) { dtb_schematics_workspace_render_catalog(); } elseif ( 'record' === $view ) { dtb_schematics_workspace_render_record(); } elseif ( 'operations' === $view ) { dtb_schematics_workspace_render_operations(); } else { dtb_schematics_workspace_render_dashboard(); }
-	echo '</main>';
+	return (string) ob_get_clean();
 }
 
 function dtb_schematics_workspace_navigation( string $active ): void {
@@ -55,12 +90,21 @@ function dtb_schematics_workspace_navigation( string $active ): void {
 	echo '</nav>';
 }
 
-function dtb_schematics_workspace_notice_and_run(): void {
-	if ( ! empty( $_GET['dtb_schematics_notice'] ) ) {
-		$error = 'error' === sanitize_key( wp_unslash( $_GET['dtb_schematics_notice_type'] ?? '' ) );
-		echo '<div class="notice ' . ( $error ? 'notice-error' : 'notice-success' ) . '"><p>' . esc_html( sanitize_text_field( wp_unslash( $_GET['dtb_schematics_notice'] ) ) ) . '</p></div>';
+/**
+ * @param string|null $notice      Explicit notice text (AJAX callers). Null reads from $_GET (normal page loads).
+ * @param string      $notice_type 'success' or 'error'; only used when $notice is explicitly passed.
+ * @param string      $run_id      Explicit run id (AJAX callers). Ignored when $notice is null (reads $_GET instead).
+ */
+function dtb_schematics_workspace_notice_and_run( ?string $notice = null, string $notice_type = 'success', string $run_id = '' ): void {
+	if ( null === $notice ) {
+		if ( ! empty( $_GET['dtb_schematics_notice'] ) ) {
+			$error = 'error' === sanitize_key( wp_unslash( $_GET['dtb_schematics_notice_type'] ?? '' ) );
+			echo '<div class="notice ' . ( $error ? 'notice-error' : 'notice-success' ) . '"><p>' . esc_html( sanitize_text_field( wp_unslash( $_GET['dtb_schematics_notice'] ) ) ) . '</p></div>';
+		}
+		$run_id = sanitize_text_field( wp_unslash( $_GET['run_id'] ?? '' ) );
+	} elseif ( '' !== $notice ) {
+		echo '<div class="notice ' . ( 'error' === $notice_type ? 'notice-error' : 'notice-success' ) . '"><p>' . esc_html( $notice ) . '</p></div>';
 	}
-	$run_id = sanitize_text_field( wp_unslash( $_GET['run_id'] ?? '' ) );
 	if ( '' === $run_id || ! function_exists( 'dtb_schematic_operation_run_get_for_operator' ) ) { return; }
 	$run = dtb_schematic_operation_run_get_for_operator( $run_id, get_current_user_id() );
 	if ( ! $run ) { return; }
@@ -163,25 +207,88 @@ function dtb_schematics_workspace_render_operations(): void {
 
 function dtb_schematics_workspace_activity_table( array $items ): void { echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'When', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Operation', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Result', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Summary', 'drywall-toolbox' ) . '</th></tr></thead><tbody>'; foreach ( $items as $item ) { $summary = str_ireplace( [ 'Reconcile commit', 'Reconcile dry run' ], [ 'Schematic sync applied', 'Schematic sync previewed' ], (string) $item['summary'] ); $error = sanitize_text_field( (string) ( $item['detail']['error'] ?? '' ) ); if ( 'error' === $item['result'] && '' !== $error ) { $summary .= ' — ' . $error; } echo '<tr><td>' . esc_html( $item['completed_at'] ) . '</td><td>' . esc_html( $item['operation_type'] ) . '</td><td>' . esc_html( $item['result'] ) . '</td><td>' . esc_html( $summary ) . '</td></tr>'; } if ( ! $items ) { echo '<tr><td colspan="4">' . esc_html__( 'No recorded operations.', 'drywall-toolbox' ) . '</td></tr>'; } echo '</tbody></table>'; }
 function dtb_schematics_workspace_pagination( int $current, int $pages, array $args ): void { if ( $pages > 1 ) { echo '<div class="tablenav"><div class="tablenav-pages">' . wp_kses_post( paginate_links( [ 'base' => esc_url_raw( add_query_arg( array_merge( $args, [ 'paged' => '%#%' ] ), admin_url( 'admin.php?page=dtb-schematics' ) ) ), 'format' => '', 'current' => $current, 'total' => $pages ] ) ) . '</div></div>'; } }
-function dtb_schematics_workspace_action_form( string $operation, string $label, int $id = 0, bool $commit = false ): void { echo '<form class="dtb-schematics-workspace__inline-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="dtb_schematics_workspace_action"><input type="hidden" name="operation" value="' . esc_attr( $operation ) . '"><input type="hidden" name="schematic_id" value="' . esc_attr( (string) $id ) . '">'; wp_nonce_field( 'dtb_schematics_workspace_action', 'dtb_schematics_workspace_nonce' ); if ( $commit ) { echo '<label class="dtb-schematics-workspace__confirm"><input type="checkbox" name="commit_confirmation" value="1" required> ' . esc_html__( 'I confirm these changes.', 'drywall-toolbox' ) . '</label>'; } echo '<button class="button ' . ( $commit ? 'button-secondary' : 'button-primary' ) . '">' . esc_html( $label ) . '</button></form>'; }
+/**
+ * Renders an operation button. No-JS fallback: a normal admin-post.php form
+ * submit (full page redirect via dtb_schematics_workspace_handle_action()).
+ * With JS: schematics-workspace.js intercepts the submit and runs it via
+ * dtb_schematics_workspace_handle_ajax_action() instead, swapping
+ * #dtb-schematics-workspace-app in place — no navigation, no confirmation
+ * dialog/checkbox gate for either path.
+ */
+function dtb_schematics_workspace_action_form( string $operation, string $label, int $id = 0, bool $commit = false ): void { echo '<form class="dtb-schematics-workspace__inline-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" data-dtb-schematics-operation="' . esc_attr( $operation ) . '"><input type="hidden" name="action" value="dtb_schematics_workspace_action"><input type="hidden" name="operation" value="' . esc_attr( $operation ) . '"><input type="hidden" name="schematic_id" value="' . esc_attr( (string) $id ) . '">'; wp_nonce_field( 'dtb_schematics_workspace_action', 'dtb_schematics_workspace_nonce' ); echo '<button class="button ' . ( $commit ? 'button-secondary' : 'button-primary' ) . '">' . esc_html( $label ) . '</button></form>'; }
+
+const DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS = [ 'publish', 'retire', 'refresh_projection', 'reconcile_preview', 'reconcile_commit', 'migrate_hotspots_preview', 'migrate_hotspots_commit', 'refresh_products_preview', 'refresh_products_commit' ];
 
 function dtb_schematics_workspace_handle_action(): void {
 	if ( ! dtb_schematics_can_manage() ) { wp_die( esc_html__( 'You do not have permission to perform this action.', 'drywall-toolbox' ), 403 ); }
 	check_admin_referer( 'dtb_schematics_workspace_action', 'dtb_schematics_workspace_nonce' );
 	$operation = sanitize_key( wp_unslash( $_POST['operation'] ?? '' ) );
 	$id        = absint( $_POST['schematic_id'] ?? 0 );
-	$allowed   = [ 'publish', 'retire', 'refresh_projection', 'reconcile_preview', 'reconcile_commit', 'migrate_hotspots_preview', 'migrate_hotspots_commit', 'refresh_products_preview', 'refresh_products_commit' ];
-	if ( ! in_array( $operation, $allowed, true ) ) { dtb_schematics_workspace_redirect( $id, __( 'Unsupported workspace action.', 'drywall-toolbox' ), 'error' ); }
-	$commit                = str_ends_with( $operation, '_commit' );
-	$requires_confirmation = $commit || in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
-	if ( $requires_confirmation && '1' !== (string) ( $_POST['commit_confirmation'] ?? '' ) ) { dtb_schematics_workspace_redirect( $id, __( 'Confirm the requested changes before submitting them.', 'drywall-toolbox' ), 'error' ); }
-	$is_global_reconcile = str_starts_with( $operation, 'reconcile_' );
-	$is_record_run       = str_starts_with( $operation, 'migrate_hotspots_' ) || str_starts_with( $operation, 'refresh_products_' );
-	$is_record_mutation  = in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
-	$requires_record     = $is_record_run || $is_record_mutation;
+	if ( ! in_array( $operation, DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS, true ) ) { dtb_schematics_workspace_redirect( $id, __( 'Unsupported workspace action.', 'drywall-toolbox' ), 'error' ); }
+	$commit             = str_ends_with( $operation, '_commit' );
+	$is_record_run      = str_starts_with( $operation, 'migrate_hotspots_' ) || str_starts_with( $operation, 'refresh_products_' );
+	$is_record_mutation = in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
+	$requires_record    = $is_record_run || $is_record_mutation;
 	if ( $requires_record && ! dtb_schematic_record_repo_get( $id ) ) { dtb_schematics_workspace_redirect( $id, __( 'Schematic record not found.', 'drywall-toolbox' ), 'error' ); }
-	dtb_schematics_workspace_execute_run( $operation, $id, $commit || $is_record_mutation );
+	$outcome = dtb_schematics_workspace_perform_operation( $operation, $id, $commit || $is_record_mutation );
+	dtb_schematics_workspace_redirect( $id, $outcome['notice'], $outcome['notice_type'], $outcome['run_id'] );
 }
 
-function dtb_schematics_workspace_execute_run( string $operation, int $id, bool $commit ): void { if ( str_starts_with( $operation, 'reconcile_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_RECONCILE; } elseif ( str_starts_with( $operation, 'migrate_hotspots_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS; } elseif ( str_starts_with( $operation, 'refresh_products_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS; } else { $kind = [ 'publish' => DTB_SCHEMATIC_OPERATION_PUBLISH, 'retire' => DTB_SCHEMATIC_OPERATION_RETIRE, 'refresh_projection' => DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ][ $operation ]; } $args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id() ]; if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } else { $args['schematic_ids'] = [ $id ]; } $run = dtb_schematic_run_operation( $args ); if ( is_wp_error( $run ) ) { dtb_schematics_workspace_redirect( $id, $run->get_error_message(), 'error' ); } $result = (array) ( $run['result'] ?? [] ); $ok = 'completed' === ( $run['status'] ?? '' ) && empty( $result['failed'] ) && empty( $result['unresolved'] ); dtb_schematics_workspace_redirect( $id, $ok ? __( 'Operation run completed.', 'drywall-toolbox' ) : (string) ( $run['error'] ?? __( 'Operation completed with unresolved or failed items.', 'drywall-toolbox' ) ), $ok ? 'success' : 'error', $run['id'] ); }
+/**
+ * AJAX counterpart of dtb_schematics_workspace_handle_action(): same
+ * validation and the same dtb_schematics_workspace_perform_operation() call,
+ * but responds with the freshly rendered view markup as JSON instead of
+ * issuing a redirect, so the browser never navigates or reloads.
+ */
+function dtb_schematics_workspace_handle_ajax_action(): void {
+	if ( ! dtb_schematics_can_manage() ) { wp_send_json_error( [ 'message' => __( 'You do not have permission to perform this action.', 'drywall-toolbox' ) ], 403 ); }
+	check_ajax_referer( 'dtb_schematics_workspace_action', 'dtb_schematics_workspace_nonce' );
+	$operation = sanitize_key( wp_unslash( $_POST['operation'] ?? '' ) );
+	$id        = absint( $_POST['schematic_id'] ?? 0 );
+	if ( ! in_array( $operation, DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS, true ) ) { wp_send_json_error( [ 'message' => __( 'Unsupported workspace action.', 'drywall-toolbox' ) ] ); }
+	$commit             = str_ends_with( $operation, '_commit' );
+	$is_record_run      = str_starts_with( $operation, 'migrate_hotspots_' ) || str_starts_with( $operation, 'refresh_products_' );
+	$is_record_mutation = in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
+	$requires_record    = $is_record_run || $is_record_mutation;
+	if ( $requires_record && ! dtb_schematic_record_repo_get( $id ) ) { wp_send_json_error( [ 'message' => __( 'Schematic record not found.', 'drywall-toolbox' ) ] ); }
+
+	$outcome = dtb_schematics_workspace_perform_operation( $operation, $id, $commit || $is_record_mutation );
+
+	// Carry forward the caller's filter/pagination state so the re-rendered
+	// view is a faithful drop-in replacement for what triggered the action.
+	foreach ( [ 'view', 's', 'lifecycle', 'paged' ] as $key ) {
+		if ( isset( $_POST[ $key ] ) ) { $_GET[ $key ] = wp_unslash( $_POST[ $key ] ); }
+	}
+	if ( $id ) { $_GET['schematic_id'] = $id; }
+	$view = sanitize_key( wp_unslash( $_GET['view'] ?? ( $id ? 'record' : 'operations' ) ) );
+	$view = in_array( $view, [ 'dashboard', 'catalog', 'record', 'operations' ], true ) ? $view : 'operations';
+
+	wp_send_json_success(
+		[
+			'html' => dtb_schematics_workspace_render_app_content( $view, $outcome['notice'], $outcome['notice_type'], $outcome['run_id'] ),
+			'view' => $view,
+		]
+	);
+}
+
+/**
+ * Runs an operation and returns its outcome without redirecting or emitting
+ * output — the single implementation shared by the admin-post.php (no-JS)
+ * and AJAX action handlers above.
+ */
+function dtb_schematics_workspace_perform_operation( string $operation, int $id, bool $commit ): array {
+	if ( str_starts_with( $operation, 'reconcile_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_RECONCILE; } elseif ( str_starts_with( $operation, 'migrate_hotspots_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS; } elseif ( str_starts_with( $operation, 'refresh_products_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS; } else { $kind = [ 'publish' => DTB_SCHEMATIC_OPERATION_PUBLISH, 'retire' => DTB_SCHEMATIC_OPERATION_RETIRE, 'refresh_projection' => DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ][ $operation ]; }
+	$args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id() ];
+	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } else { $args['schematic_ids'] = [ $id ]; }
+	$run = dtb_schematic_run_operation( $args );
+	if ( is_wp_error( $run ) ) { return [ 'notice' => $run->get_error_message(), 'notice_type' => 'error', 'run_id' => '' ]; }
+	$result = (array) ( $run['result'] ?? [] );
+	$ok     = 'completed' === ( $run['status'] ?? '' ) && empty( $result['failed'] ) && empty( $result['unresolved'] );
+	return [
+		'notice'      => $ok ? __( 'Operation run completed.', 'drywall-toolbox' ) : (string) ( $run['error'] ?? __( 'Operation completed with unresolved or failed items.', 'drywall-toolbox' ) ),
+		'notice_type' => $ok ? 'success' : 'error',
+		'run_id'      => (string) ( $run['id'] ?? '' ),
+	];
+}
+
 function dtb_schematics_workspace_redirect( int $id, string $notice, string $type = 'success', string $run_id = '' ): void { $args = [ 'view' => $id ? 'record' : 'operations', 'dtb_schematics_notice' => $notice, 'dtb_schematics_notice_type' => $type ]; if ( $id ) { $args['schematic_id'] = $id; } if ( $run_id ) { $args['run_id'] = sanitize_text_field( $run_id ); } wp_safe_redirect( dtb_schematics_workspace_url( $args ) ); exit; }
