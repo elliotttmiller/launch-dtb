@@ -22,6 +22,7 @@ from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, sy
 
 
 BASE_URL = "https://www.tswfast.com"
+CHECKPOINT_SCHEMA_VERSION = 6
 DEFAULT_PROFILE = Path(__file__).resolve().parent / ".browser-profile"
 DEFAULT_SOURCES = Path(__file__).resolve().parent / "catalog-sources.json"
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "results" / "tsw-costs.csv"
@@ -43,6 +44,28 @@ FIELDNAMES = [
     "source_catalog_page",
     "scraped_at_utc",
 ]
+OUTPUT_FIELDS = [
+    "brand",
+    "sku",
+    "product_name",
+    "supplier_cost",
+    "product_description_html",
+]
+BRAND_PREFIXES = {
+    "Columbia Tools": ("CTT",),
+    "TapeTech": ("TTT", "AME"),
+    "Dura-Stilts": ("DSS",),
+    "SurPro": ("SUR",),
+}
+GLOBAL_EXCLUDE_NAME_CONTAINS = (
+    "kit",
+    "trowel",
+    "knife",
+    "knives",
+    "sand",
+    "sponge",
+    "smoothing blade",
+)
 
 
 class ScrapeError(RuntimeError):
@@ -63,6 +86,20 @@ class ProductRef:
     url: str
     image_url: str
     source_catalog_page: int
+
+
+def normalize_supplier_sku(brand: str, sku: str) -> str:
+    prefixes = BRAND_PREFIXES.get(brand)
+    if prefixes is None:
+        raise ScrapeError(f"No explicit TSW SKU-prefix rule exists for {brand!r}")
+    prefix = next((value for value in prefixes if sku.upper().startswith(value)), None)
+    if prefix is None:
+        expected = ", ".join(repr(value) for value in prefixes)
+        raise ScrapeError(f"{sku}: expected an explicit TSW prefix ({expected}) for {brand}")
+    normalized = sku[len(prefix):].strip()
+    if not normalized:
+        raise ScrapeError(f"{sku}: TSW prefix removal produced an empty SKU")
+    return normalized
 
 
 def parse_args() -> argparse.Namespace:
@@ -289,7 +326,7 @@ def scrape_product_detail(
     return {
         "source_name": brand.source_name,
         "brand": brand.name,
-        "sku": sku,
+        "sku": normalize_supplier_sku(brand.name, sku),
         "product_name": name,
         "manufacturer": " ".join(str(detail.get("manufacturer", "")).split()),
         "supplier_cost": amount,
@@ -333,7 +370,7 @@ def load_checkpoint(path: Path, fingerprint: str) -> dict[str, dict[str, object]
         raise ScrapeError(f"Cannot read progress checkpoint {path}: {exc}") from exc
     if not isinstance(payload, dict):
         raise ScrapeError(f"Progress checkpoint {path} must contain a JSON object")
-    if payload.get("schema_version") != 1 or payload.get("config_sha256") != fingerprint:
+    if payload.get("schema_version") != CHECKPOINT_SCHEMA_VERSION or payload.get("config_sha256") != fingerprint:
         raise ScrapeError(
             f"Progress checkpoint {path} does not match the current source configuration; "
             "move it aside before starting a new catalog definition"
@@ -357,7 +394,7 @@ def write_checkpoint_atomic(
     try:
         with handle:
             json.dump(
-                {"schema_version": 1, "config_sha256": fingerprint, "records": records},
+                {"schema_version": CHECKPOINT_SCHEMA_VERSION, "config_sha256": fingerprint, "records": records},
                 handle, ensure_ascii=False, indent=2, sort_keys=True,
             )
             handle.write("\n")
@@ -434,7 +471,8 @@ def scrape_brand(
             continue
         row = scrape_product_detail(page, brand, product, timeout_ms, scraped_at)
         folded_name = row["product_name"].casefold()
-        matched = next((term for term in brand.exclude_name_contains if term.casefold() in folded_name), None)
+        excluded_terms = GLOBAL_EXCLUDE_NAME_CONTAINS + brand.exclude_name_contains
+        matched = next((term for term in excluded_terms if term.casefold() in folded_name), None)
         if matched is not None:
             excluded += 1
             progress[key] = {"status": "excluded", "product_name": row["product_name"]}
@@ -477,6 +515,25 @@ def validate_rows(rows: list[dict[str, str]], allow_missing: bool) -> None:
         print(f"WARNING: exporting {len(missing)} products with unresolved prices", file=sys.stderr)
 
 
+def collapse_overlapping_sources(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Collapse overlapping source catalogs without losing commercial conflicts."""
+    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
+    for row in rows:
+        key = (row["brand"].casefold(), row["sku"].casefold())
+        grouped.setdefault(key, []).append(row)
+
+    collapsed: list[dict[str, str]] = []
+    for key, candidates in grouped.items():
+        costs = {(row["supplier_cost"], row["currency"]) for row in candidates}
+        if len(costs) != 1:
+            evidence = ", ".join(
+                f"{row['source_name']}={row['supplier_cost']} {row['currency']}" for row in candidates
+            )
+            raise ScrapeError(f"Conflicting overlapping supplier rows for {key}: {evidence}")
+        collapsed.append(max(candidates, key=lambda row: (row["scraped_at_utc"], row["source_name"].casefold())))
+    return collapsed
+
+
 def write_csv_atomic(path: Path, rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     handle = tempfile.NamedTemporaryFile(
@@ -485,15 +542,22 @@ def write_csv_atomic(path: Path, rows: list[dict[str, str]]) -> None:
     temp_path = Path(handle.name)
     try:
         with handle:
-            writer = csv.DictWriter(handle, fieldnames=FIELDNAMES, lineterminator="\r\n")
-            writer.writeheader()
-            writer.writerows(
-                {
-                    field: re.sub(r"[\r\n]+", " ", str(row.get(field, ""))).strip()
-                    for field in FIELDNAMES
-                }
-                for row in rows
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=OUTPUT_FIELDS,
+                lineterminator="\r\n",
+                quoting=csv.QUOTE_NONNUMERIC,
             )
+            writer.writeheader()
+            output_rows = []
+            for row in collapse_overlapping_sources(rows):
+                output_row = {
+                    field: re.sub(r"[\r\n]+", " ", str(row.get(field, ""))).strip()
+                    for field in OUTPUT_FIELDS
+                }
+                output_row["supplier_cost"] = Decimal(output_row["supplier_cost"])
+                output_rows.append(output_row)
+            writer.writerows(output_rows)
         os.replace(temp_path, path)
     except Exception:
         temp_path.unlink(missing_ok=True)
@@ -536,6 +600,7 @@ def main() -> int:
                         )
                     )
                 validate_rows(rows, args.allow_missing_prices)
+                rows = collapse_overlapping_sources(rows)
                 rows.sort(
                     key=lambda row: (
                         row["source_name"].casefold(),

@@ -1,0 +1,28 @@
+{
+  "approved_manual_matches": 1,
+  "confirmed_identifier_matches": 272,
+  "confirmed_match_rate": 0.3375,
+  "confirmed_matches": 273,
+  "fuzzy_matching": {
+    "brand_scoped": true,
+    "candidate_blocking": "at least one shared normalized name token",
+    "exact_name_threshold": 1.0,
+    "likely_minimum_gap": 0.05,
+    "likely_name_threshold": 0.86,
+    "numeric_mismatch_penalty": 0.65,
+    "possible_name_threshold": 0.7,
+    "score": "maximum of ordered-name and token-sorted SequenceMatcher ratios"
+  },
+  "interpretation": "matched_identifier and approved_manual_match rows are confirmed. Other name-based rows require manual identifier verification.",
+  "launch_catalog": "C:\\Users\\Elliott\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.csv",
+  "match_status": {
+    "ambiguous_identifier": 3,
+    "approved_manual_match": 1,
+    "matched_identifier": 272,
+    "possible_name_review": 39,
+    "unmatched": 494
+  },
+  "schema_version": 1,
+  "supplier_catalog": "C:\\Users\\Elliott\\launch-dtb\\scripts\\supplier-catalog\\results\\tsw-costs.csv",
+  "supplier_rows": 809
+}

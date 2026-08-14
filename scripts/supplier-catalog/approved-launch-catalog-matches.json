@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "matches": [
+    {
+      "supplier_brand": "TapeTech",
+      "supplier_sku": "90TT",
+      "catalog_sku": "90T",
+      "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
+    }
+  ]
+}
