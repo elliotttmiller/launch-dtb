@@ -196,7 +196,7 @@ def supplier_ids(row: dict[str, str]) -> tuple[tuple[str, str], ...]:
     return tuple(out)
 
 def result_row(s: dict[str, str], r: CatalogRecord | None, **v: object) -> dict[str, object]:
-    return {
+    row = {
         "match_status": v.get("match_status", "unmatched"), "match_basis": v.get("match_basis", ""), "confidence": v.get("confidence", ""),
         "supplier_brand": s["brand"], "supplier_sku": s["sku"], "supplier_source_sku": s["supplier_sku"], "supplier_name": s["name"],
         "supplier_category": s["category"], "supplier_weight": s.get("weight", ""), "supplier_length": s.get("length", ""), "supplier_width": s.get("width", ""), "supplier_height": s.get("height", ""),
@@ -205,6 +205,9 @@ def result_row(s: dict[str, str], r: CatalogRecord | None, **v: object) -> dict[
         "matched_identifier": v.get("matched_identifier", ""), "candidate_count": v.get("candidate_count", 0), "name_score": v.get("name_score", ""), "name_score_gap": v.get("name_score_gap", ""),
         "numeric_tokens_match": v.get("numeric_tokens_match", ""), "category_compatible": v.get("category_compatible", ""), "dimension_score": v.get("dimension_score", ""), "review_notes": v.get("review_notes", ""),
     }
+    if tuple(row) != OUTPUT_FIELDS:
+        raise AnalysisError("Result-row fields have drifted from the output CSV schema")
+    return row
 
 def analyze(suppliers: list[dict[str, str]], catalog: list[CatalogRecord], approvals: dict[tuple[str, str], dict[str, str]]) -> list[dict[str, object]]:
     id_index: dict[tuple[str, str], list[tuple[CatalogRecord, str, str]]] = defaultdict(list)
@@ -217,8 +220,13 @@ def analyze(suppliers: list[dict[str, str]], catalog: list[CatalogRecord], appro
     output, used = [], set()
     for s in suppliers:
         bk, name_key = brand_key(s["brand"]), norm_name(s["name"])
-        approval_key = (bk, ident(s["sku"]))
-        approval = approvals.get(approval_key)
+        approval_keys = tuple((bk, key) for _, key in supplier_ids(s))
+        matching_approvals = [(key, approvals[key]) for key in approval_keys if key in approvals]
+        if len(matching_approvals) > 1:
+            raise AnalysisError(
+                f"Multiple approved mappings for {s['brand']} / {s['sku']} / {s['supplier_sku']}"
+            )
+        approval_key, approval = matching_approvals[0] if matching_approvals else (None, None)
         if approval:
             used.add(approval_key)
             records = [r for r in by_sku.get(ident(approval["catalog_sku"]), []) if r.brand_key == bk]
@@ -288,7 +296,7 @@ def main() -> int:
     p.add_argument("--confirmed-output", type=Path, default=DEFAULT_CONFIRMED); p.add_argument("--review-output", type=Path, default=DEFAULT_REVIEW); p.add_argument("--unmatched-output", type=Path, default=DEFAULT_UNMATCHED)
     args = p.parse_args()
     fields, suppliers = read_csv(args.supplier)
-    required = {"brand", "name", "sku", "weight", "length", "width", "height", "supplier_sku", "category"}
+    required = {"brand", "name", "sku", "supplier_sku", "category"}
     if missing := sorted(required - set(fields)): raise AnalysisError(f"{args.supplier}: missing supplier fields: {', '.join(missing)}")
     rows = analyze(suppliers, load_catalog(args.catalog), load_approvals(args.approvals))
     write_csv(args.output, rows); write_csv(args.confirmed_output, [r for r in rows if r["match_status"] in CONFIRMED]); write_csv(args.review_output, [r for r in rows if r["match_status"] in REVIEW]); write_csv(args.unmatched_output, [r for r in rows if r["match_status"] == "unmatched"]); write_report(args.report, rows, args.supplier, args.catalog)
