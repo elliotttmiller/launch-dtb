@@ -11,22 +11,20 @@
 import { useMemo } from 'react';
 
 // The REST API serializes normalized coordinates from post meta, which can
-// come back as numeric strings (e.g. "42.5") rather than JS numbers — coerce
-// before validating so those occurrences aren't silently dropped. Values are
-// percentages (0-100), converted here to fractions (0-1) for CSS percent output.
+// come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
+// before validating so those occurrences aren't silently dropped.
 function toFraction(value) {
   const num = typeof value === 'string' ? Number(value) : value;
-  if (typeof num !== 'number' || !Number.isFinite(num) || num < 0 || num > 100) return null;
-  return num / 100;
+  return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 1 ? num : null;
 }
 
 function toStyle(coordinates) {
-  const x = toFraction(coordinates?.x_pct);
-  const y = toFraction(coordinates?.y_pct);
+  const x = toFraction(coordinates?.x);
+  const y = toFraction(coordinates?.y);
   if (x === null || y === null) return null;
 
-  const width = toFraction(coordinates?.width_pct);
-  const height = toFraction(coordinates?.height_pct);
+  const width = toFraction(coordinates?.width);
+  const height = toFraction(coordinates?.height);
 
   if (width !== null && height !== null && width > 0 && height > 0) {
     return {
