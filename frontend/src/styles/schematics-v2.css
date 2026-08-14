@@ -5,6 +5,13 @@
  * (frontend/src/pages/SchematicsPage.jsx and
  * frontend/src/components/schematics-v2/*). Mobile-first, fluid via
  * clamp(), built on the shared DTB tokens in storefront-tokens.css.
+ *
+ * Visual language ported from the pre-Phase-9 /schematics page
+ * (frontend/src/pages/Schematics.jsx @ 41fa4bb) and its companion
+ * frontend/src/styles/mobile-schematic.css, re-applied to the current
+ * REST-driven schematics-v2 component tree and class names. The data
+ * layer (useSchematicCatalog / useSchematicRouteState / useSchematicDetail /
+ * schematicsApi.js) is untouched by this file.
  */
 
 .dtb-schematics-page {
@@ -69,31 +76,35 @@
 }
 
 /* ---- Cards -------------------------------------------------------------- */
+/* Old page: bold uppercase title, blue accent chevron, machined-style
+   border, lift-on-hover. Ported here 1:1 onto the current REST-driven
+   card markup (BrandSelector / CategorySelector / ToolSelector). */
 
 .dtb-schematics-card {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  background: var(--dtb-surface);
-  border: 1px solid var(--dtb-border);
-  border-radius: var(--dtb-radius-lg);
-  box-shadow: var(--dtb-shadow-card);
+  background: var(--dtb-surface, var(--dtb-surface));
+  border: 1px solid rgba(15, 23, 42, 0.10);
+  border-radius: clamp(10px, 1.6vw, 14px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   padding: 0;
   min-height: var(--dtb-touch-target);
-  transition: box-shadow var(--dtb-fast) var(--dtb-ease), transform var(--dtb-fast) var(--dtb-ease);
+  transition: box-shadow 180ms ease, transform 180ms ease, border-color 180ms ease;
 }
 
 .dtb-schematics-card:hover,
 .dtb-schematics-card:focus-visible {
-  box-shadow: var(--dtb-shadow-elevated);
+  border-color: rgba(34, 85, 238, 0.35);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
 }
 
 .dtb-schematics-card:focus-visible {
-  outline: 3px solid var(--dtb-focus);
+  outline: 3px solid var(--dtb-focus, var(--dtb-primary));
   outline-offset: 2px;
 }
 
@@ -108,21 +119,27 @@
 
 .dtb-schematics-card--brand,
 .dtb-schematics-card--category {
-  padding: var(--dtb-space-4);
-  gap: var(--dtb-space-1);
+  padding: clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4));
+  padding-right: clamp(2.25rem, 5vw, 2.75rem);
+  gap: 4px;
   aspect-ratio: 4 / 3;
   justify-content: center;
 }
 
 .dtb-schematics-card__title {
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-weight: 700;
-  font-size: var(--dtb-text-lead);
+  font-weight: 800;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  line-height: 1.2;
   color: var(--dtb-text);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
 }
 
 .dtb-schematics-card__meta {
-  font-size: var(--dtb-text-sm);
+  font-size: clamp(0.72rem, 1.8vw, 0.82rem);
+  font-weight: 600;
   color: var(--dtb-muted);
 }
 
@@ -130,7 +147,7 @@
   position: absolute;
   top: var(--dtb-space-3);
   right: var(--dtb-space-3);
-  color: var(--dtb-muted);
+  color: var(--dtb-primary);
 }
 
 .dtb-schematics-card--tool {
@@ -142,6 +159,7 @@
   aspect-ratio: 4 / 3;
   object-fit: contain;
   background: var(--dtb-surface-subtle);
+  padding: var(--dtb-space-2);
 }
 
 .dtb-schematics-card__image--unavailable {
@@ -157,65 +175,116 @@
 .dtb-schematics-card__body {
   display: flex;
   flex-direction: column;
-  gap: var(--dtb-space-1);
-  padding: var(--dtb-space-3);
+  gap: 3px;
+  padding: clamp(var(--dtb-space-2), 2.4vw, var(--dtb-space-3));
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.dtb-schematics-card--tool .dtb-schematics-card__title {
+  font-size: clamp(0.85rem, 2vw, 0.98rem);
+  text-transform: none;
 }
 
 /* ---- Viewer -------------------------------------------------------------- */
+/* Compact single-row top bar: back pill | brand/title stack | (pager lives
+   in SchematicPageTabs below it) — matches old .viewer-top-bar. */
 
 .dtb-schematic-viewer {
   display: flex;
   flex-direction: column;
-  gap: var(--dtb-space-4);
+  gap: var(--dtb-space-3);
 }
 
 .dtb-schematic-viewer__header {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--dtb-space-3);
+  gap: var(--dtb-space-2);
+  padding: var(--dtb-space-2) var(--dtb-space-3);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+  background: var(--dtb-surface);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
+  border-radius: clamp(10px, 1.6vw, 14px);
+  min-height: 64px;
+}
+
+.dtb-schematic-viewer__heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
 }
 
 .dtb-schematic-viewer__title {
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: var(--dtb-text-h3);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.2vw, 1.15rem);
   color: var(--dtb-text);
   overflow-wrap: anywhere;
+  margin: 0;
+  line-height: 1.3;
 }
 
 .dtb-schematic-viewer__subtitle {
-  font-size: var(--dtb-text-sm);
+  font-size: clamp(0.72rem, 1.8vw, 0.85rem);
+  font-weight: 600;
   color: var(--dtb-muted);
+  margin: 0;
 }
+
+/* ---- Page tabs / pager -------------------------------------------------- */
+/* Old page rendered pages as a rounded "pager" strip of pill buttons.
+   Reproduced here for SchematicPageTabs. */
 
 .dtb-schematic-page-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--dtb-space-2);
+  justify-content: center;
+  gap: clamp(6px, 1.5vw, 10px);
+  padding: clamp(6px, 1.5vw, 10px);
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: clamp(10px, 2vw, 16px);
 }
 
 .dtb-schematic-page-tab {
-  min-height: var(--dtb-touch-target);
-  padding: var(--dtb-space-2) var(--dtb-space-3);
-  border-radius: var(--dtb-radius-pill);
-  border: 1px solid var(--dtb-border);
+  min-height: clamp(32px, 8vw, 40px);
+  min-width: clamp(32px, 8vw, 40px);
+  padding: 0 clamp(var(--dtb-space-2), 2vw, var(--dtb-space-3));
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.46);
   background: var(--dtb-surface);
   color: var(--dtb-text-soft);
-  font-size: var(--dtb-text-sm);
+  font-weight: 700;
+  font-size: clamp(0.72rem, 1.9vw, 0.85rem);
   cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.dtb-schematic-page-tab:hover {
+  border-color: rgba(34, 85, 238, 0.48);
+  color: var(--dtb-primary);
 }
 
 .dtb-schematic-page-tab--active {
-  background: var(--dtb-primary);
+  background: var(--dtb-primary-strong);
   border-color: var(--dtb-primary);
-  color: #fff;
+  color: var(--dtb-surface);
+  box-shadow: 0 7px 18px rgba(34, 85, 238, 0.22);
 }
 
 .dtb-schematic-page-tab:focus-visible {
-  outline: 3px solid var(--dtb-focus);
+  outline: 2px solid var(--dtb-primary);
   outline-offset: 2px;
 }
 
+/* ---- Diagram stage ------------------------------------------------------- */
+
 .dtb-schematic-diagram-wrap {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--dtb-space-2);
@@ -224,11 +293,13 @@
 .dtb-schematic-diagram {
   position: relative;
   overflow: hidden;
-  border-radius: var(--dtb-radius-lg);
-  border: 1px solid var(--dtb-border);
-  background: var(--dtb-surface-subtle);
+  border-radius: clamp(8px, 2vw, 12px);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: var(--dtb-surface);
   touch-action: pan-y;
-  min-height: 16rem;
+  min-height: clamp(300px, 60vh, 640px);
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .dtb-schematic-diagram--missing {
@@ -254,42 +325,80 @@
   height: auto;
   display: block;
   user-select: none;
+  pointer-events: none;
 }
 
 .dtb-schematic-diagram__note {
   font-size: var(--dtb-text-xs);
   color: var(--dtb-muted);
+  text-align: center;
 }
 
+/* ---- Zoom controls -------------------------------------------------------
+   Old page: dark frosted-glass floating pill, centered/top on mobile,
+   inline top-left on desktop. */
+
 .dtb-schematic-zoom-controls {
-  align-self: flex-end;
+  position: absolute;
+  top: clamp(8px, 1.6vw, 16px);
+  left: 50%;
+  transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: var(--dtb-space-2);
-  background: var(--dtb-surface);
-  border: 1px solid var(--dtb-border);
-  border-radius: var(--dtb-radius-pill);
-  padding: var(--dtb-space-1) var(--dtb-space-2);
+  gap: clamp(4px, 1vw, 8px);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: clamp(4px, 1vw, 6px) clamp(8px, 1.6vw, 12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  z-index: 20;
+}
+
+@media (min-width: 48rem) {
+  .dtb-schematic-zoom-controls {
+    left: clamp(10px, 1.5vw, 16px);
+    transform: none;
+  }
 }
 
 .dtb-schematic-zoom-btn {
-  width: var(--dtb-touch-target);
-  height: var(--dtb-touch-target);
+  width: clamp(30px, 8vw, 36px);
+  height: clamp(30px, 8vw, 36px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: none;
-  background: transparent;
-  color: var(--dtb-text-soft);
-  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
   cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.dtb-schematic-zoom-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.dtb-schematic-zoom-btn:active:not(:disabled) {
+  transform: scale(0.92);
 }
 
 .dtb-schematic-zoom-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.dtb-schematic-zoom-btn:focus-visible { outline: 3px solid var(--dtb-focus); outline-offset: 2px; }
-.dtb-schematic-zoom-value { font-size: var(--dtb-text-xs); color: var(--dtb-muted); min-width: 3ch; text-align: center; }
+.dtb-schematic-zoom-btn:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.6); outline-offset: 2px; }
 
-/* ---- Hotspots -------------------------------------------------------------- */
+.dtb-schematic-zoom-value {
+  font-size: clamp(0.65rem, 1.8vw, 0.78rem);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  min-width: 3.4ch;
+  text-align: center;
+}
+
+/* ---- Hotspots -------------------------------------------------------------
+   Old page: transparent circular hit-area with a subtle blue glow and a
+   gentle scale-pulse to draw the eye without covering the diagram. */
 
 .dtb-schematic-hotspot-layer {
   position: absolute;
@@ -301,31 +410,63 @@
   position: absolute;
   pointer-events: auto;
   cursor: pointer;
-  border: 2px solid var(--dtb-primary);
-  background: rgba(34, 85, 238, 0.16);
-  border-radius: var(--dtb-radius-sm);
+  background: rgba(34, 85, 238, 0.12);
+  border: 2px solid rgba(34, 85, 238, 0.75);
+  border-radius: 4px;
+  transition: transform 180ms ease-out, box-shadow 180ms ease-out, background-color 180ms ease-out;
+  animation: dtb-hotspot-pulse 2.4s ease-out infinite;
 }
 
 .dtb-schematic-hotspot--point {
-  width: 20px;
-  height: 20px;
+  width: clamp(26px, 6vw, 36px);
+  height: clamp(26px, 6vw, 36px);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(34, 85, 238, 0.28);
+  background: rgba(34, 85, 238, 0.16);
+}
+
+.dtb-schematic-hotspot--region {
+  border-radius: 6px;
+}
+
+.dtb-schematic-hotspot:hover {
+  background: rgba(34, 85, 238, 0.22);
+  box-shadow: 0 4px 14px rgba(34, 85, 238, 0.28);
+  animation-play-state: paused;
+}
+
+.dtb-schematic-hotspot--point:hover {
+  transform: translate(-50%, -50%) scale(1.14);
 }
 
 .dtb-schematic-hotspot:focus-visible {
-  outline: 3px solid var(--dtb-focus);
+  outline: 2px solid var(--dtb-primary);
   outline-offset: 2px;
+  animation-play-state: paused;
 }
 
-/* ---- Part dialog -------------------------------------------------------------- */
+@keyframes dtb-hotspot-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 85, 238, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(34, 85, 238, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 85, 238, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-schematic-hotspot { animation: none; }
+}
+
+/* ---- Part dialog -----------------------------------------------------------
+   Old page's "schematic-hotspot-card": horizontal layout, image column on
+   the left, info stack (title/SKU/stock/price/CTA) on the right. Bottom
+   sheet on mobile, centered card on desktop. */
 
 .dtb-schematic-part-dialog-overlay {
   position: fixed;
   inset: 0;
-  z-index: var(--dtb-z-dialog);
-  background: rgba(10, 16, 32, 0.55);
+  z-index: var(--dtb-z-dialog, 1200);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -337,74 +478,128 @@
 
 .dtb-schematic-part-dialog {
   position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   width: 100%;
-  max-width: 28rem;
+  max-width: 26rem;
   max-height: 90dvh;
   overflow-y: auto;
   background: var(--dtb-surface);
-  border-radius: var(--dtb-radius-xl) var(--dtb-radius-xl) 0 0;
-  padding: var(--dtb-space-5);
-  box-shadow: var(--dtb-shadow-sheet);
-  padding-bottom: calc(var(--dtb-space-5) + var(--dtb-safe-bottom));
+  border-radius: clamp(14px, 3vw, 18px) clamp(14px, 3vw, 18px) 0 0;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
 }
 
 @media (min-width: 48rem) {
-  .dtb-schematic-part-dialog { border-radius: var(--dtb-radius-xl); }
+  .dtb-schematic-part-dialog {
+    border-radius: clamp(12px, 2vw, 16px);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+  }
+}
+
+.dtb-schematic-part-dialog__image {
+  flex: 0 0 30%;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dtb-surface-subtle);
+  min-height: 120px;
+}
+
+.dtb-schematic-part-dialog__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--dtb-space-2);
+}
+
+.dtb-schematic-part-dialog__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4));
+  padding-bottom: calc(clamp(var(--dtb-space-3), 3vw, var(--dtb-space-4)) + var(--dtb-safe-bottom, 0px));
 }
 
 .dtb-schematic-part-dialog__close {
   position: absolute;
-  top: var(--dtb-space-3);
-  right: var(--dtb-space-3);
-  width: var(--dtb-touch-target);
-  height: var(--dtb-touch-target);
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
   border: none;
-  background: var(--dtb-surface-muted);
-  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--dtb-text);
+  transition: background 150ms ease;
+}
+
+.dtb-schematic-part-dialog__close:hover {
+  background: rgba(15, 23, 42, 0.12);
 }
 
 .dtb-schematic-part-dialog__status {
-  font-size: var(--dtb-text-xs);
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--dtb-primary);
-  margin-bottom: var(--dtb-space-1);
+  margin: 0 0 3px;
 }
 
 .dtb-schematic-part-dialog__title {
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: var(--dtb-text-h3);
+  font-weight: 700;
+  font-size: clamp(0.95rem, 2.6vw, 1.15rem);
+  line-height: 1.25;
   color: var(--dtb-text);
-  margin-bottom: var(--dtb-space-3);
-  padding-right: var(--dtb-touch-target);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0 0 4px;
+  padding-right: 30px;
+  overflow-wrap: anywhere;
 }
 
 .dtb-schematic-part-dialog__meta {
   display: flex;
   flex-direction: column;
-  gap: var(--dtb-space-1);
-  font-size: var(--dtb-text-sm);
-  color: var(--dtb-text-soft);
-  margin-bottom: var(--dtb-space-3);
+  gap: 2px;
+  font-size: clamp(0.7rem, 1.9vw, 0.8rem);
+  color: var(--dtb-muted);
+  margin-bottom: var(--dtb-space-2);
 }
 
 .dtb-schematic-part-dialog__meta > div { display: flex; gap: var(--dtb-space-2); }
-.dtb-schematic-part-dialog__meta dt { color: var(--dtb-muted); min-width: 4rem; }
+.dtb-schematic-part-dialog__meta dt { color: #94a3b8; min-width: 3.5rem; }
+.dtb-schematic-part-dialog__meta dd { margin: 0; color: #475569; }
 
 .dtb-schematic-part-dialog__notice {
-  font-size: var(--dtb-text-sm);
-  color: var(--dtb-warning);
+  font-size: clamp(0.72rem, 1.9vw, 0.82rem);
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 6px;
+  padding: 6px 8px;
   margin-bottom: var(--dtb-space-3);
+}
+
+.dtb-schematic-part-dialog__price {
+  font-family: 'Courier New', monospace;
+  font-weight: 800;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  color: var(--dtb-primary);
+  margin: 2px 0 var(--dtb-space-2);
 }
 
 .dtb-schematic-part-dialog__actions {
   display: flex;
   gap: var(--dtb-space-2);
+  margin-top: auto;
 }
 
 .dtb-schematic-part-dialog__link {
@@ -413,9 +608,13 @@
   justify-content: center;
   min-height: var(--dtb-touch-target);
   padding: 0 var(--dtb-space-4);
-  border-radius: var(--dtb-radius-md);
-  border: 1px solid var(--dtb-border-strong);
-  color: var(--dtb-text);
+  border-radius: 8px;
+  background: var(--dtb-primary);
+  color: var(--dtb-surface);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.8rem;
   text-decoration: none;
 }
 

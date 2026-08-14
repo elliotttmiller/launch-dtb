@@ -72,7 +72,8 @@ export default function SchematicPartDialog({ part, onClose }) {
   // The documented part contract guarantees identity/URL, not necessarily
   // price/id — only offer "Add to cart" when those fields are present, and
   // fall back to a "View product" link otherwise, never a synthetic add.
-  const canAddToCart = Boolean(part.product_id && part.price != null);
+  const parsedPrice = parseFloat(part.price);
+  const canAddToCart = Boolean(part.product_id && Number.isFinite(parsedPrice));
 
   const handleAdd = async () => {
     if (!canAddToCart) return;
@@ -80,7 +81,7 @@ export default function SchematicPartDialog({ part, onClose }) {
       id: part.product_id,
       name: part.title,
       brand: part.brand,
-      price: parseFloat(part.price) || 0,
+      price: parsedPrice,
       part_number: part.mpn || part.sku,
       sku: part.sku || part.mpn,
       image: part.image || '',
@@ -99,59 +100,71 @@ export default function SchematicPartDialog({ part, onClose }) {
         aria-labelledby="dtb-schematic-part-dialog-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <button
-          type="button"
-          className="dtb-schematic-part-dialog__close"
-          onClick={onClose}
-          aria-label="Close part details"
-        >
-          <X size={18} aria-hidden="true" />
-        </button>
-
-        <p className="dtb-schematic-part-dialog__status">{resolutionLabel}</p>
-        <h2 id="dtb-schematic-part-dialog-title" className="dtb-schematic-part-dialog__title">
-          {part.title || 'Part'}
-        </h2>
-
-        <dl className="dtb-schematic-part-dialog__meta">
-          {part.brand && (
-            <div><dt>Brand</dt><dd>{part.brand}</dd></div>
-          )}
-          {part.mpn && (
-            <div><dt>MPN</dt><dd>{part.mpn}</dd></div>
-          )}
-          {part.sku && (
-            <div><dt>SKU</dt><dd>{part.sku}</dd></div>
-          )}
-          {part.occurrence_count > 1 && (
-            <div><dt>Used</dt><dd>{part.occurrence_count} places on this diagram</dd></div>
-          )}
-        </dl>
-
-        {isUnavailable && (
-          <p className="dtb-schematic-part-dialog__notice">
-            This part is not sold separately.
-          </p>
-        )}
-        {isUnresolved && (
-          <p className="dtb-schematic-part-dialog__notice">
-            We don't have a linked product for this part yet.
-          </p>
+        {part.image && (
+          <div className="dtb-schematic-part-dialog__image">
+            <img src={part.image} alt={part.title || 'Part'} loading="lazy" decoding="async" />
+          </div>
         )}
 
-        <div className="dtb-schematic-part-dialog__actions">
-          {canAddToCart ? (
-            <AddToCartButton
-              label="Add to cart"
-              state="idle"
-              productId={part.product_id}
-              onClick={handleAdd}
-            />
-          ) : part.product_url ? (
-            <Link to={part.product_url} className="dtb-schematic-part-dialog__link" onClick={onClose}>
-              View product
-            </Link>
-          ) : null}
+        <div className="dtb-schematic-part-dialog__body">
+          <button
+            type="button"
+            className="dtb-schematic-part-dialog__close"
+            onClick={onClose}
+            aria-label="Close part details"
+          >
+            <X size={18} aria-hidden="true" />
+          </button>
+
+          <p className="dtb-schematic-part-dialog__status">{resolutionLabel}</p>
+          <h2 id="dtb-schematic-part-dialog-title" className="dtb-schematic-part-dialog__title">
+            {part.title || 'Part'}
+          </h2>
+
+          <dl className="dtb-schematic-part-dialog__meta">
+            {part.brand && (
+              <div><dt>Brand</dt><dd>{part.brand}</dd></div>
+            )}
+            {part.mpn && (
+              <div><dt>MPN</dt><dd>{part.mpn}</dd></div>
+            )}
+            {part.sku && (
+              <div><dt>SKU</dt><dd>{part.sku}</dd></div>
+            )}
+            {part.occurrence_count > 1 && (
+              <div><dt>Used</dt><dd>{part.occurrence_count} places on this diagram</dd></div>
+            )}
+          </dl>
+
+          {canAddToCart && (
+            <p className="dtb-schematic-part-dialog__price">${parsedPrice.toFixed(2)}</p>
+          )}
+
+          {isUnavailable && (
+            <p className="dtb-schematic-part-dialog__notice">
+              This part is not sold separately.
+            </p>
+          )}
+          {isUnresolved && (
+            <p className="dtb-schematic-part-dialog__notice">
+              We don't have a linked product for this part yet.
+            </p>
+          )}
+
+          <div className="dtb-schematic-part-dialog__actions">
+            {canAddToCart ? (
+              <AddToCartButton
+                label="Add to cart"
+                state="idle"
+                productId={part.product_id}
+                onClick={handleAdd}
+              />
+            ) : part.product_url ? (
+              <Link to={part.product_url} className="dtb-schematic-part-dialog__link" onClick={onClose}>
+                View product
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>,
