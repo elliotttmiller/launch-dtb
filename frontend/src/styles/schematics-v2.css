@@ -430,6 +430,63 @@
   outline-offset: 2px;
 }
 
+/* ---- Variant (size) pills -------------------------------------------------
+   Case B only: sibling schematic records sharing one family_id, each with a
+   distinct variant_label (e.g. Level5 10"/12"/14" flat boxes). Reuses the
+   page-tab pill visual language but is a distinct row above the diagram so
+   it never gets confused with page navigation. */
+
+.dtb-schematic-variant-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(6px, 1.5vw, 10px);
+  padding: clamp(6px, 1.5vw, 10px);
+  background: rgba(15, 23, 42, 0.05);
+  border-radius: clamp(10px, 2vw, 16px);
+}
+
+.dtb-schematic-variant-pills__label {
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-weight: 800;
+  font-size: clamp(0.68rem, 1.7vw, 0.78rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dtb-muted);
+  padding: 0 clamp(4px, 1vw, 8px);
+}
+
+.dtb-schematic-variant-pill {
+  min-height: clamp(32px, 8vw, 40px);
+  min-width: clamp(44px, 10vw, 56px);
+  padding: 0 clamp(var(--dtb-space-2), 2vw, var(--dtb-space-3));
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.46);
+  background: var(--dtb-surface);
+  color: var(--dtb-text-soft);
+  font-weight: 700;
+  font-size: clamp(0.72rem, 1.9vw, 0.85rem);
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.dtb-schematic-variant-pill:hover {
+  border-color: rgba(34, 85, 238, 0.48);
+  color: var(--dtb-primary);
+}
+
+.dtb-schematic-variant-pill--active {
+  background: var(--dtb-primary-strong);
+  border-color: var(--dtb-primary);
+  color: var(--dtb-surface);
+  box-shadow: 0 7px 18px rgba(34, 85, 238, 0.22);
+}
+
+.dtb-schematic-variant-pill:focus-visible {
+  outline: 2px solid var(--dtb-primary);
+  outline-offset: 2px;
+}
+
 /* ---- Diagram stage ------------------------------------------------------- */
 
 .dtb-schematic-diagram-wrap {

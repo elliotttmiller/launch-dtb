@@ -1,5 +1,12 @@
 ﻿// Auto-generated from official WooCommerce production catalog CSV.
 // Source: products/Production/catalogs/official/woocommerce_catalog_production.csv
+// NOTE: As of 2026-08-14, the source CSV path above and any generator script
+// that references it or the OFFICIAL_REPAIR_CATALOG export could not be found
+// anywhere in this repository (checked scripts/, build config, CI, git log/
+// blame on this file's introducing commit). This file currently appears to be
+// hand-maintained / the original generation pipeline is lost or external to
+// this repo. Treat edits as manual and surgical until a real generator is
+// located or rebuilt.
 export const OFFICIAL_REPAIR_CATALOG = {
     "brands":  {
                    "SurPro":  {
@@ -762,12 +769,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "sku":  "FFB16A"
                                                                            },
                                                                            {
-                                                                               "label":  "Sander Head Main Body (S1) - S1",
-                                                                               "name":  "Sander Head Main Body (S1)",
-                                                                               "value":  "Sander Head Main Body (S1) - S1",
-                                                                               "sku":  "S1"
-                                                                           },
-                                                                           {
                                                                                "label":  "Left Wafer Bushing - CT4",
                                                                                "name":  "Left Wafer Bushing",
                                                                                "value":  "Left Wafer Bushing - CT4",
@@ -1114,12 +1115,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "name":  "Drive Sprocket - Large",
                                                                                "value":  "Drive Sprocket - Large - CT77",
                                                                                "sku":  "CT77"
-                                                                           },
-                                                                           {
-                                                                               "label":  "Sander Head Return Spring (S3) - S3",
-                                                                               "name":  "Sander Head Return Spring (S3)",
-                                                                               "value":  "Sander Head Return Spring (S3) - S3",
-                                                                               "sku":  "S3"
                                                                            },
                                                                            {
                                                                                "label":  "Adaptor (MP34) - MP34",
@@ -2886,12 +2881,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "sku":  "FA256"
                                                                            },
                                                                            {
-                                                                               "label":  "Sander Head Pivot Pin (S2) - S2",
-                                                                               "name":  "Sander Head Pivot Pin (S2)",
-                                                                               "value":  "Sander Head Pivot Pin (S2) - S2",
-                                                                               "sku":  "S2"
-                                                                           },
-                                                                           {
                                                                                "label":  "Octogon Tube for Hydro Handle for COL88 (HH10) - HH10EXTLONG",
                                                                                "name":  "Octogon Tube for Hydro Handle for COL88 (HH10)",
                                                                                "value":  "Octogon Tube for Hydro Handle for COL88 (HH10) - HH10EXTLONG",
@@ -2952,12 +2941,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "sku":  "HFFB1410IN"
                                                                            },
                                                                            {
-                                                                               "label":  "Sander Head Swivel Bearing (S6) - S6",
-                                                                               "name":  "Sander Head Swivel Bearing (S6)",
-                                                                               "value":  "Sander Head Swivel Bearing (S6) - S6",
-                                                                               "sku":  "S6"
-                                                                           },
-                                                                           {
                                                                                "label":  "Head (No Holes for Cap) (CT1R) - CT1R",
                                                                                "name":  "Head (No Holes for Cap) (CT1R)",
                                                                                "value":  "Head (No Holes for Cap) (CT1R) - CT1R",
@@ -2974,12 +2957,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "name":  "Predator Taper Deep Lever Assembly (CT240 - DL)",
                                                                                "value":  "Predator Taper Deep Lever Assembly (CT240 - DL) - CT240DL",
                                                                                "sku":  "CT240DL"
-                                                                           },
-                                                                           {
-                                                                               "label":  "Sander Head Pivot Washer (S4) - S4",
-                                                                               "name":  "Sander Head Pivot Washer (S4)",
-                                                                               "value":  "Sander Head Pivot Washer (S4) - S4",
-                                                                               "sku":  "S4"
                                                                            },
                                                                            {
                                                                                "label":  "Plunger Housing (CMT4) - CMT4",
@@ -4318,12 +4295,6 @@ export const OFFICIAL_REPAIR_CATALOG = {
                                                                                "name":  "Brake Connecing Strap - 42\"",
                                                                                "value":  "Brake Connecing Strap - 42\" - BH942",
                                                                                "sku":  "BH942"
-                                                                           },
-                                                                           {
-                                                                               "label":  "Sander Head Retainer Clip (S5) - S5",
-                                                                               "name":  "Sander Head Retainer Clip (S5)",
-                                                                               "value":  "Sander Head Retainer Clip (S5) - S5",
-                                                                               "sku":  "S5"
                                                                            },
                                                                            {
                                                                                "label":  "Corner Flusher Tension Spring 15 x 3.5 in (CF15 - 3.5) - CF1535IN",

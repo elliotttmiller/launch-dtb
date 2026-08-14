@@ -42,6 +42,10 @@ function SchematicsPageInner() {
     routeState.backFromViewer(derivedBrandId, derivedCategoryId);
   }, [routeState]);
 
+  const handleSelectVariant = useCallback((nextSchematicId) => {
+    routeState.goToSchematic(nextSchematicId);
+  }, [routeState]);
+
   return (
     <div className="dtb-schematics-page">
       <SEOHead
@@ -71,6 +75,8 @@ function SchematicsPageInner() {
             initialPage={routeState.page}
             onBack={handleBackFromViewer}
             onPageChange={handlePageChange}
+            catalogItems={catalog.items}
+            onSelectVariant={handleSelectVariant}
           />
         ) : (
           <SchematicsCatalog catalog={catalog} routeState={routeState} />

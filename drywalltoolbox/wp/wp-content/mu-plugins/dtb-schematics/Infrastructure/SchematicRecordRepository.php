@@ -193,6 +193,8 @@ function dtb_schematic_record_repo_save( array $data ) {
 		'_dtb_schematic_brand_name'    => 'brand_name',
 		'_dtb_schematic_category_id'   => 'category_id',
 		'_dtb_schematic_category_name' => 'category_name',
+		'_dtb_schematic_family_id'     => 'family_id',
+		'_dtb_schematic_variant_label' => 'variant_label',
 		'_dtb_schematic_model'         => 'model',
 		'_dtb_schematic_source_version'=> 'source_version',
 	];

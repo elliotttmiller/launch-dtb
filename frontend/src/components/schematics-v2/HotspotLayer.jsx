@@ -2,8 +2,10 @@
  * frontend/src/components/schematics-v2/HotspotLayer.jsx
  *
  * Renders EVERY hotspot occurrence for the active page (never collapsed to
- * one marker per part). Coordinates are normalized fractions (0-1) of the
- * diagram's intrinsic width/height. An occurrence with invalid/missing
+ * one marker per part). Coordinates are normalized percentage-of-page values
+ * (0-100, keyed x_pct/y_pct/width_pct/height_pct — see
+ * Domain/SchematicHotspotDataset.php's dtb_schematic_hotspot_normalize_coordinates())
+ * of the diagram's intrinsic width/height. An occurrence with invalid/missing
  * coordinates is hidden — it is never defaulted to the image center.
  */
 import { useMemo } from 'react';

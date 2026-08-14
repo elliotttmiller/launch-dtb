@@ -182,11 +182,19 @@ function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, b
 /**
  * Normalize a legacy document ({ id, title, diagramPages, legendPages, parts }).
  *
- * Legacy files carry no coordinate data at all, so `hotspots` stays empty —
- * fabricating positions is not permitted. `parts_catalog` is built by
- * deduplicating the flat `parts` list on the part `id` field, which is
- * exactly the "collapses repeated physical occurrences" behavior the spec
- * describes for this schema.
+ * Most legacy files carry no coordinate data, so `hotspots` stays empty for
+ * those — fabricating positions is not permitted. However, a majority of the
+ * legacy-shaped files (55 of 88, as of this writing) also carry a sibling
+ * top-level `coordinates` object keyed by the same `id` used in each
+ * `parts[]` entry — e.g. `coordinates.<id> = { x_pct, y_pct, shape,
+ * pageNumber, rotation, widthPx, heightPx, ... }`. When that map is present,
+ * real hotspot occurrences are built from it (see
+ * dtb_schematic_hotspot_normalize_legacy_coordinates()); when it is absent,
+ * behavior is unchanged from before — `hotspots` stays empty.
+ *
+ * `parts_catalog` is built by deduplicating the flat `parts` list on the
+ * part `id` field, which is exactly the "collapses repeated physical
+ * occurrences" behavior the spec describes for this schema.
  */
 function dtb_schematic_hotspot_normalize_legacy( array $decoded, string $checksum, bool $bom_stripped ): array {
 	$parts = $decoded['parts'];
@@ -221,16 +229,108 @@ function dtb_schematic_hotspot_normalize_legacy( array $decoded, string $checksu
 		);
 	}
 
+	$normalized_hotspots = dtb_schematic_hotspot_normalize_legacy_coordinates( $decoded, $normalized_parts );
+
+	if ( count( $normalized_hotspots ) > DTB_SCHEMATIC_HOTSPOT_MAX_OCCURRENCES ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT, null, 'Dataset exceeds the supported hotspot count.', $bom_stripped, 'legacy' );
+	}
+
 	$dataset = dtb_schematic_hotspot_dataset_make(
 		[
 			'source_schema' => 'legacy',
 			'checksum'      => $checksum,
 			'parts_catalog' => $normalized_parts,
-			'hotspots'      => [], // No spatial data exists in the legacy shape.
+			'hotspots'      => $normalized_hotspots,
 		]
 	);
 
 	return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_OK, $dataset, null, $bom_stripped, 'legacy' );
+}
+
+/**
+ * Build hotspot occurrences from a legacy document's sibling top-level
+ * `coordinates` map, when one is present. Returns an empty array when the
+ * document has no `coordinates` map at all, or when it is not shaped as
+ * expected — this never fabricates positions for parts the source data
+ * genuinely has no coordinates for.
+ *
+ * Source `coordinates.<id>` entries already carry `x_pct`/`y_pct` as
+ * percentage-of-page values (0..100), which is the same normalized
+ * percentage scale used by the v2-native `hotspots[].normalized` shape
+ * (see dtb_schematic_hotspot_normalize_v2()) and by
+ * dtb_schematic_hotspot_normalize_coordinates() — so no unit conversion is
+ * needed for x_pct/y_pct, only a key/shape reshape. `width_pct`/`height_pct`
+ * are not present in the source directly, but many entries carry pixel-space
+ * `widthPx`/`heightPx` alongside document-level `image_natural_width`/
+ * `image_natural_height`; when all four are present and non-zero, this
+ * derives width_pct/height_pct from them (a direct unit conversion of real
+ * data, not a fabrication). Entries missing usable pixel dimensions simply
+ * get a point-style occurrence (x_pct/y_pct only).
+ *
+ * @param array $normalized_parts Already-deduplicated parts_catalog, used only to know which part_refs are legitimate.
+ */
+function dtb_schematic_hotspot_normalize_legacy_coordinates( array $decoded, array $normalized_parts ): array {
+	$coordinates = $decoded['coordinates'] ?? null;
+	if ( ! is_array( $coordinates ) || empty( $coordinates ) ) {
+		return [];
+	}
+
+	$known_parts = [];
+	foreach ( $normalized_parts as $part ) {
+		$known_parts[ $part['part_ref'] ] = true;
+	}
+
+	$image_width  = (float) ( $decoded['image_natural_width'] ?? 0 );
+	$image_height = (float) ( $decoded['image_natural_height'] ?? 0 );
+
+	$shape_map = [
+		'rectangle' => 'rect',
+		'rect'      => 'rect',
+		'circle'    => 'circle',
+		'polygon'   => 'polygon',
+		'point'     => 'point',
+	];
+
+	$doc_id    = (string) ( $decoded['id'] ?? '' );
+	$occurrences = [];
+
+	foreach ( $coordinates as $part_ref => $entry ) {
+		$part_ref = (string) $part_ref;
+		if ( ! is_array( $entry ) || '' === $part_ref || ! isset( $known_parts[ $part_ref ] ) ) {
+			continue;
+		}
+		if ( ! is_numeric( $entry['x_pct'] ?? null ) || ! is_numeric( $entry['y_pct'] ?? null ) ) {
+			continue; // No usable spatial data for this part — skip, never default to (0,0)/center.
+		}
+
+		$coords = [
+			'x_pct' => (float) $entry['x_pct'],
+			'y_pct' => (float) $entry['y_pct'],
+		];
+
+		$width_px  = (float) ( $entry['widthPx'] ?? 0 );
+		$height_px = (float) ( $entry['heightPx'] ?? 0 );
+		if ( $width_px > 0 && $height_px > 0 && $image_width > 0 && $image_height > 0 ) {
+			$coords['width_pct']  = ( $width_px / $image_width ) * 100;
+			$coords['height_pct'] = ( $height_px / $image_height ) * 100;
+		}
+
+		$shape_key  = strtolower( (string) ( $entry['shape'] ?? 'point' ) );
+		$shape_type = $shape_map[ $shape_key ] ?? 'point';
+
+		$occurrences[] = dtb_schematic_hotspot_occurrence_make(
+			[
+				'hotspot_id'  => sprintf( 'legacy-%s-%s', '' !== $doc_id ? $doc_id : 'coord', $part_ref ),
+				'part_ref'    => $part_ref,
+				'page'        => (int) ( $entry['pageNumber'] ?? 1 ),
+				'shape_type'  => $shape_type,
+				'coordinates' => $coords,
+				'label'       => '',
+			]
+		);
+	}
+
+	return $occurrences;
 }
 
 /**

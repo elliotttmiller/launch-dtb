@@ -25,6 +25,26 @@ class DTB_Schematic_Record_Entity {
 	public string $brand_name;
 	public string $category_id;
 	public string $category_name;
+
+	/**
+	 * Groups size/variant siblings of one WooCommerce parent product under a
+	 * shared identifier (e.g. all of 8FFBA/10FFBA/12FFBA/14FFBA's records
+	 * resolve to family_id "col-automatic-flat-box"). Empty when no family
+	 * grouping is known for this record. See
+	 * Data/SkuSchematicMap.php::DTB_SCHEMATIC_FAMILY_MAP and
+	 * scripts/catalog/gen_sku_schematic_map.py for derivation.
+	 */
+	public string $family_id;
+
+	/**
+	 * Human-readable variant label (e.g. "8 in.") when this record
+	 * unambiguously represents exactly one WooCommerce variation of its
+	 * family. Left empty when one record represents multiple variants (the
+	 * variant is then only known per-WooCommerce-variation, not per
+	 * schematic record) or when no family is known at all.
+	 */
+	public string $variant_label;
+
 	public string $title;
 	public string $model;
 	public string $description;
@@ -68,6 +88,8 @@ class DTB_Schematic_Record_Entity {
 		$e->brand_name             = (string) get_post_meta( $post->ID, '_dtb_schematic_brand_name', true );
 		$e->category_id            = (string) get_post_meta( $post->ID, '_dtb_schematic_category_id', true );
 		$e->category_name          = (string) get_post_meta( $post->ID, '_dtb_schematic_category_name', true );
+		$e->family_id              = (string) get_post_meta( $post->ID, '_dtb_schematic_family_id', true );
+		$e->variant_label          = (string) get_post_meta( $post->ID, '_dtb_schematic_variant_label', true );
 		$e->title                  = (string) $post->post_title;
 		$e->model                  = (string) get_post_meta( $post->ID, '_dtb_schematic_model', true );
 		$e->description            = (string) get_post_meta( $post->ID, '_dtb_schematic_description', true );
@@ -116,6 +138,8 @@ class DTB_Schematic_Record_Entity {
 			'brand_name'             => $this->brand_name,
 			'category_id'            => $this->category_id,
 			'category_name'          => $this->category_name,
+			'family_id'              => $this->family_id,
+			'variant_label'          => $this->variant_label,
 			'title'                  => $this->title,
 			'model'                  => $this->model,
 			'description'            => $this->description,

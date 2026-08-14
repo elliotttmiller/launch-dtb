@@ -36,7 +36,6 @@ export const SCHEMATIC_DEFINITIONS = {
     { id: 'columbia-standard-corner-flusher',       title: 'Standard Corner Flusher',          mpn: 'CTT-SCF',  category: 'Corner Flushers'       },
     { id: 'columbia-direct-corner-flusher',         title: 'Direct Corner Flusher',            mpn: 'CTT-DCF',  category: 'Corner Flushers'       },
     { id: 'columbia-combo-flusher',                 title: 'Combo Corner Flusher',             mpn: 'CTT-CCF',  category: 'Corner Flushers'       },
-    { id: 'columbia-sander-head',                   title: 'Sander Head',                      mpn: 'CTT-SH',   category: 'Sanders'               },
     { id: 'columbia-compound-tube',                 title: 'Compound Tube',                    mpn: 'CTT-CT',   category: 'Compound Tubes'        },
     { id: 'columbia-cam-lock-tube',                 title: 'Cam Lock Compound Tube',           mpn: 'CTT-CLT',  category: 'Compound Tubes'        },
   ],
@@ -103,7 +102,6 @@ export const PRODUCT_SEARCH_MAPPINGS = {
   'External Corner': ['external', 'corner', 'applicator'],
   'Internal Corner': ['internal', 'corner'],
   'Corner Flusher': ['corner', 'flusher'],
-  'Sander': ['sander', 'head'],
   'Handle': ['handle'],
   'Flat Box Handle': ['flat box', 'handle'],
   'Closet Monster': ['closet', 'monster'],
@@ -358,9 +356,6 @@ export function getSchematicIdForProduct(product) {
     name.includes('smoothing blade') ||
     name.includes('tomalock')
   ) return 'columbia-tomahawk-smoothing-blades';
-
-  // ── Sanders ───────────────────────────────────────────────────────────────
-  if (name.includes('sander') || name.includes('pole sander')) return 'columbia-sander-head';
 
   return null;
 }

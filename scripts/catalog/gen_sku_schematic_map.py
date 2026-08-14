@@ -41,9 +41,12 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         sku = (row.get("product_sku") or "").strip()
         sid = (row.get("schematic_id") or "").strip()
         brand = (row.get("brand") or "").strip()
+        category = (row.get("schematic_category") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
-        if sid and brand == "Asgard":
-            # Asgard schematics are retired and must not enter runtime maps.
+        if sid and (brand == "Asgard" or category == "Sanders"):
+            # Asgard schematics are retired, and the Sanders category is
+            # discontinued (see DTB_RETIRED_SCHEMATIC_UPLOAD_SKUS'
+            # COL-SANDER-HEAD entry) — neither may enter runtime maps.
             # Recorded (not just skipped) so DTB_RETIRED_SCHEMATIC_IDS can deny
             # them even via the {schematic-id}--page-{n} passthrough upload
             # pattern, which bypasses DTB_SKU_SCHEMATIC_MAP /
@@ -247,7 +250,7 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         if not sid or not category:
             continue
         canonical_id = resolve_row_canonical_id(sid, sku)
-        if not canonical_id:
+        if not canonical_id or canonical_id in retired_schematic_ids:
             continue
         pair = (to_kebab(brand), to_kebab(category))
         brand_category_votes.setdefault(canonical_id, Counter())[pair] += 1
@@ -273,6 +276,73 @@ for entry in catalog.values():
     catalog_fallback_added += 1
 
 print(f"[brand/category map] resolved from CSV: {len(brand_category_map) - catalog_fallback_added}, from generated.js fallback: {catalog_fallback_added}, total: {len(brand_category_map)}", file=sys.stderr)
+
+# =====================================================================
+# Part 4: DTB_SCHEMATIC_FAMILY_MAP (canonical schematic id -> family_id/variant_label)
+#   Several WooCommerce parent products (e.g. COL-AUTOMATIC-FLAT-BOX, sizes
+#   8/10/12/14) either (a) share one schematic diagram/canonical id across
+#   all size variations (the WooCommerce variation carries its own
+#   `Meta: _dtb_schematic_variant` value, e.g. "8"), or (b) have a genuinely
+#   distinct diagram per size (e.g. Level5's 7/10/12-inch flat boxes are
+#   separate schematic ids under one LV5-FLAT-BOX-STANDARD parent). Both
+#   cases are grouped consistently by keying off the shared WooCommerce
+#   parent SKU (`Meta: _dtb_parent_product_sku` in
+#   products/launch/official/dtb_official_catalog.csv) rather than trying to
+#   string-parse a trailing size/variant token off the schematic id itself —
+#   canonical ids don't follow one consistent suffix convention (compare
+#   "columbia-automatic-flat-box" [no suffix at all] against
+#   "level5-10-inch-flat-box-4-765" [size embedded mid-string]), while the
+#   parent SKU is an explicit, already-authoritative WooCommerce signal.
+#
+#   A `variant_label` is only ever emitted when every WooCommerce row that
+#   resolves to a given schematic id agrees on one
+#   `Meta: _dtb_variation_label` value — i.e. when the schematic id
+#   unambiguously represents exactly one size/variant (case (b) above, or a
+#   product with no size variation at all). When a schematic id is shared by
+#   multiple distinct variants (case (a) above), no single label describes
+#   the record, so variant_label is left empty; the frontend groups by
+#   family_id and reads each variant's own label from the WooCommerce
+#   variation, not from the schematic record.
+#
+#   A schematic id observed under more than one distinct parent SKU (a
+#   handful of SurPro Manual/Automatic head schematic ids, shared across two
+#   separate parent product lines) is a genuine one-to-many case, not a data
+#   error — rather than arbitrarily picking one parent, no family_id is
+#   emitted for it; these are reported below for manual review.
+# =====================================================================
+
+family_by_schematic = {}
+label_by_schematic = {}
+with open(official_catalog_path, encoding="utf-8-sig", newline="") as f:
+    for row in csv.DictReader(f):
+        sid = (row.get("Meta: _dtb_schematic_id") or "").strip()
+        parent = (row.get("Meta: _dtb_parent_product_sku") or "").strip()
+        label = (row.get("Meta: _dtb_variation_label") or "").strip()
+        if not sid or not parent:
+            continue
+        family_by_schematic.setdefault(sid, set()).add(parent)
+        if label:
+            label_by_schematic.setdefault(sid, set()).add(label)
+
+family_map = {}
+family_conflicts = []
+for sid, parents in family_by_schematic.items():
+    if len(parents) != 1:
+        family_conflicts.append((sid, sorted(parents)))
+        continue
+    parent = next(iter(parents))
+    labels = label_by_schematic.get(sid, set())
+    variant_label = next(iter(labels)) if len(labels) == 1 else ""
+    # Parent SKUs are already hyphen-separated and all-caps (e.g.
+    # "COL-AUTOMATIC-FLAT-BOX") — a straight lowercase, not to_kebab()
+    # (which assumes CamelCase input and would insert a hyphen before every
+    # letter of an all-caps string), is the correct normalization here.
+    family_id = re.sub(r"[^a-z0-9]+", "-", parent.lower()).strip("-")
+    family_map[sid] = (family_id, variant_label)
+
+print(f"[family map] resolved: {len(family_map)}, skipped (schematic id spans >1 parent SKU): {len(family_conflicts)}", file=sys.stderr)
+for sid, parents in family_conflicts:
+    print(f"  SKIPPED (multi-parent): {sid} -> {parents}", file=sys.stderr)
 
 # =====================================================================
 # Emit PHP
@@ -342,6 +412,21 @@ lines.append("const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [")
 for canonical_id in sorted(brand_category_map.keys()):
     brand_id, category_id = brand_category_map[canonical_id]
     lines.append(f"\t'{php_str(canonical_id)}' => [ 'brand_id' => '{php_str(brand_id)}', 'category_id' => '{php_str(category_id)}' ],")
+lines.append("];")
+lines.append("")
+lines.append("// Canonical schematic id -> family_id/variant_label, sourced from")
+lines.append("// Meta: _dtb_parent_product_sku / Meta: _dtb_variation_label columns in")
+lines.append("// products/launch/official/dtb_official_catalog.csv. Consumed by")
+lines.append("// Application/ReconcileSchematicSource.php to populate")
+lines.append("// DTB_Schematic_Record_Entity::$family_id/$variant_label so the public")
+lines.append("// API/frontend can group size/variant siblings of one WooCommerce parent")
+lines.append("// product under a single schematic family. variant_label is only present")
+lines.append("// when every variant row observed for that schematic id agrees on one")
+lines.append("// label (i.e. the schematic id unambiguously represents one variant).")
+lines.append("const DTB_SCHEMATIC_FAMILY_MAP = [")
+for canonical_id in sorted(family_map.keys()):
+    family_id, variant_label = family_map[canonical_id]
+    lines.append(f"\t'{php_str(canonical_id)}' => [ 'family_id' => '{php_str(family_id)}', 'variant_label' => '{php_str(variant_label)}' ],")
 lines.append("];")
 lines.append("")
 
