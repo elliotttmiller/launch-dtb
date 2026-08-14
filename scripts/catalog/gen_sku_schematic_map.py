@@ -41,9 +41,12 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         sku = (row.get("product_sku") or "").strip()
         sid = (row.get("schematic_id") or "").strip()
         brand = (row.get("brand") or "").strip()
+        category = (row.get("schematic_category") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
-        if sid and brand == "Asgard":
-            # Asgard schematics are retired and must not enter runtime maps.
+        if sid and (brand == "Asgard" or category == "Sanders"):
+            # Asgard schematics are retired, and the Sanders category is
+            # discontinued (see DTB_RETIRED_SCHEMATIC_UPLOAD_SKUS'
+            # COL-SANDER-HEAD entry) — neither may enter runtime maps.
             # Recorded (not just skipped) so DTB_RETIRED_SCHEMATIC_IDS can deny
             # them even via the {schematic-id}--page-{n} passthrough upload
             # pattern, which bypasses DTB_SKU_SCHEMATIC_MAP /
@@ -247,7 +250,7 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         if not sid or not category:
             continue
         canonical_id = resolve_row_canonical_id(sid, sku)
-        if not canonical_id:
+        if not canonical_id or canonical_id in retired_schematic_ids:
             continue
         pair = (to_kebab(brand), to_kebab(category))
         brand_category_votes.setdefault(canonical_id, Counter())[pair] += 1

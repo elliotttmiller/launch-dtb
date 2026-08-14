@@ -235,7 +235,6 @@ const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'columbiaboxfillersch' => [ 'schematic_id' => 'columbia-box-filler', 'page' => 1 ],
 	'columbiacamlocktubesch' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => 1 ],
 	'columbiaclosetmonsterhandlesch' => [ 'schematic_id' => 'columbia-closet-monster-flat-box-handle', 'page' => 1 ],
-	'columbiacomboflusher33csfsch' => [ 'schematic_id' => 'columbia-sander-head', 'page' => 1 ],
 	'columbiacomboflushersch' => [ 'schematic_id' => 'columbia-combo-flusher', 'page' => 1 ],
 	'columbiacompoundtubesch' => [ 'schematic_id' => 'columbia-compound-tube', 'page' => 1 ],
 	'columbiacornercobrasch' => [ 'schematic_id' => 'columbia-corner-cobra', 'page' => 1 ],
@@ -312,6 +311,7 @@ const DTB_RETIRED_SCHEMATIC_IDS = [
 	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => true,
 	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => true,
 	'asgard-xh-ad-extension-support-handle-43-76-sch' => true,
+	'columbia-combo-flusher-3-3csf-sch' => true,
 ];
 
 // Canonical schematic id -> brand_id/category_id, sourced from brand/
@@ -344,7 +344,6 @@ const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [
 	'columbia-nailspotter' => [ 'brand_id' => 'columbia', 'category_id' => 'nailspotters' ],
 	'columbia-one' => [ 'brand_id' => 'columbia', 'category_id' => 'handles' ],
 	'columbia-predator-taper' => [ 'brand_id' => 'columbia', 'category_id' => 'automatic-tapers' ],
-	'columbia-sander-head' => [ 'brand_id' => 'columbia', 'category_id' => 'sanders' ],
 	'columbia-semi-automatic-taper' => [ 'brand_id' => 'columbia', 'category_id' => 'semi-automatic-tapers' ],
 	'columbia-standard-corner-flusher' => [ 'brand_id' => 'columbia', 'category_id' => 'corner-flushers' ],
 	'columbia-standard-outside-corner-roller' => [ 'brand_id' => 'columbia', 'category_id' => 'corner-rollers' ],
