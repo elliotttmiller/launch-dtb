@@ -2,27 +2,31 @@
  * frontend/src/components/schematics-v2/HotspotLayer.jsx
  *
  * Renders EVERY hotspot occurrence for the active page (never collapsed to
- * one marker per part). Coordinates are normalized fractions (0-1) of the
- * diagram's intrinsic width/height. An occurrence with invalid/missing
+ * one marker per part). Coordinates are normalized percentage-of-page values
+ * (0-100, keyed x_pct/y_pct/width_pct/height_pct — see
+ * Domain/SchematicHotspotDataset.php's dtb_schematic_hotspot_normalize_coordinates())
+ * of the diagram's intrinsic width/height. An occurrence with invalid/missing
  * coordinates is hidden — it is never defaulted to the image center.
  */
 import { useMemo } from 'react';
 
 // The REST API serializes normalized coordinates from post meta, which can
-// come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
-// before validating so those occurrences aren't silently dropped.
+// come back as numeric strings (e.g. "42.5") rather than JS numbers — coerce
+// before validating so those occurrences aren't silently dropped. Values are
+// percentages (0-100), converted here to fractions (0-1) for CSS percent output.
 function toFraction(value) {
   const num = typeof value === 'string' ? Number(value) : value;
-  return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 1 ? num : null;
+  if (typeof num !== 'number' || !Number.isFinite(num) || num < 0 || num > 100) return null;
+  return num / 100;
 }
 
 function toStyle(coordinates) {
-  const x = toFraction(coordinates?.x);
-  const y = toFraction(coordinates?.y);
+  const x = toFraction(coordinates?.x_pct);
+  const y = toFraction(coordinates?.y_pct);
   if (x === null || y === null) return null;
 
-  const width = toFraction(coordinates?.width);
-  const height = toFraction(coordinates?.height);
+  const width = toFraction(coordinates?.width_pct);
+  const height = toFraction(coordinates?.height_pct);
 
   if (width !== null && height !== null && width > 0 && height > 0) {
     return {
