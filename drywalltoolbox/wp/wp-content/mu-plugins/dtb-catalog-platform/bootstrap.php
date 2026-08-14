@@ -62,6 +62,7 @@ require_once $_dtb_cp . '/Services/UniversalPartsProjectionService.php';
 require_once $_dtb_cp . '/Services/VeeqoStockSyncService.php';
 require_once $_dtb_cp . '/Services/InventoryRollupService.php';
 require_once $_dtb_cp . '/Services/InventoryIntelligenceService.php';
+require_once $_dtb_cp . '/Services/PricingManagerService.php';
 
 // REST controllers.
 require_once $_dtb_cp . '/Rest/CatalogFacetsController.php';
@@ -72,6 +73,7 @@ require_once $_dtb_cp . '/Rest/ToolsetTemplatesController.php';
 require_once $_dtb_cp . '/Rest/ToolsetOptionsController.php';
 require_once $_dtb_cp . '/Rest/ToolsetValidationController.php';
 require_once $_dtb_cp . '/Rest/InventoryIntelligenceController.php';
+require_once $_dtb_cp . '/Rest/PricingManagerController.php';
 
 // Validation.
 require_once $_dtb_cp . '/Validation/CatalogValidationService.php';
@@ -112,6 +114,7 @@ if ( is_admin() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
 	// Exclude admin-ajax requests to avoid loading UI-only code there.
 	if ( ! ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) ) {
 		require_once $_dtb_cp . '/Admin/CatalogHealthPage.php';
+		require_once $_dtb_cp . '/Admin/PricingManagerPage.php';
 	}
 	require_once $_dtb_cp . '/Admin/ProductMappingRenderer.php';
 	require_once $_dtb_cp . '/Admin/ProductMappingPage.php';

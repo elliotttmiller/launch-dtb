@@ -92,13 +92,19 @@ final class DTB_ProductMeta {
 	/** Sort weight within a variable product (lower = first). */
 	const VARIATION_SORT = '_dtb_variation_sort';
 
-	// ── Commerce keys ─────────────────────────────────────────────────────────
+	// ── Commerce keys ──────────────────────────────────────────────────────────
 
 	/**
 	 * Commerce mode for this product. Governs pricing, cart, and visibility.
 	 * Valid values: purchasable | quote_only | hidden_reference | repair_only | included_item
 	 */
 	const COMMERCE_MODE = '_dtb_commerce_mode';
+
+	/** Optional minimum advertised price used by the catalog pricing workspace. */
+	const MAP_PRICE = '_dtb_map_price';
+
+	/** Short operator-facing source/evidence label for MAP. */
+	const MAP_SOURCE = '_dtb_map_source';
 
 	// ── Toolset Builder keys ───────────────────────────────────────────────────
 
@@ -202,6 +208,8 @@ final class DTB_ProductMeta {
 		self::SCHEMATIC_GROUP       => [ 'type' => 'string',  'description' => 'Schematics tool group identifier.' ],
 		self::SCHEMATIC_POSITION    => [ 'type' => 'integer', 'description' => 'Position number on schematic diagram.' ],
 		self::COMMERCE_MODE         => [ 'type' => 'string',  'description' => 'Commerce mode: purchasable | quote_only | hidden_reference | repair_only | included_item.' ],
+		self::MAP_PRICE             => [ 'type' => 'string',  'description' => 'Optional minimum advertised price used by the catalog pricing workspace.' ],
+		self::MAP_SOURCE            => [ 'type' => 'string',  'description' => 'Short operator-facing source/evidence label for MAP.' ],
 		self::UNIVERSAL_PART_ID         => [ 'type' => 'string', 'description' => 'Backend-only universal physical part identifier.' ],
 		self::UNIVERSAL_PART_STATUS     => [ 'type' => 'string', 'description' => 'Universal part import/sync status.' ],
 		self::UNIVERSAL_PART_CONFIDENCE => [ 'type' => 'string', 'description' => 'Universal part confidence.' ],

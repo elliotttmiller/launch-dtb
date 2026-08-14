@@ -15,6 +15,7 @@
  *     ├─ Catalog Health          (position 40)
  *     ├─ Parts Manager           (position 45)
  *     ├─ Inventory Intelligence  (position 47)
+ *     ├─ Catalog Pricing         (position 48)
  *     ├─ Cache Tools             (position 50)
  *     ├─ API Health              (position 55)
  *     ├─ SEO Tools               (position 60)
@@ -106,6 +107,37 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 47,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+	] );
+
+	// Catalog Pricing.
+	dtb_register_admin_page( [
+		'library'    => 'tools',
+		'slug'       => 'dtb-pricing-manager',
+		'title'      => __( 'Catalog Pricing', 'drywall-toolbox' ),
+		'menu_title' => __( 'Catalog Pricing', 'drywall-toolbox' ),
+		'capability' => 'dtb_manage_catalog_pricing',
+		'callback'   => 'dtb_pricing_manager_render_page',
+		'position'   => 48,
+		'template'   => 'tool',
+		'section'    => 'Catalog Maintenance',
+		'assets'     => [
+			'css' => [
+				[
+					'id'   => 'dtb-pricing-manager',
+					'dir'  => WP_CONTENT_DIR . '/mu-plugins/dtb-catalog-platform/Admin/assets/',
+					'url'  => content_url( '/mu-plugins/dtb-catalog-platform/Admin/assets/' ),
+					'file' => 'dtb-pricing-manager.css',
+				],
+			],
+			'js' => [
+				[
+					'id'   => 'dtb-pricing-manager',
+					'dir'  => WP_CONTENT_DIR . '/mu-plugins/dtb-catalog-platform/Admin/assets/',
+					'url'  => content_url( '/mu-plugins/dtb-catalog-platform/Admin/assets/' ),
+					'file' => 'dtb-pricing-manager.js',
+				],
+			],
+		],
 	] );
 
 	// Cache Tools.
