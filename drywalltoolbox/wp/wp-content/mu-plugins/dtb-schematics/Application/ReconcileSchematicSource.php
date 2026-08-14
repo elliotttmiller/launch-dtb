@@ -597,6 +597,33 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 		}
 		$record          = $created;
 		$record_changed  = true;
+	} elseif ( '' === trim( $record->brand_id ) || '' === trim( $record->category_id ) ) {
+		// Backfill records created before DTB_SCHEMATIC_BRAND_CATEGORY_MAP
+		// existed; publication requires both fields
+		// (Domain/SchematicPublicationRules.php) and reconciliation is the
+		// only writer of these ids, so a record with neither ever set stays
+		// unpublishable forever without this pass.
+		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $canonical_id ] ?? null;
+		if ( $brand_category ) {
+			$backfill = [];
+			if ( '' === trim( $record->brand_id ) ) {
+				$backfill['brand_id'] = $brand_category['brand_id'];
+			}
+			if ( '' === trim( $record->category_id ) ) {
+				$backfill['category_id'] = $brand_category['category_id'];
+			}
+			$updated = dtb_schematic_update( $record->id, $backfill );
+			if ( is_wp_error( $updated ) ) {
+				error_log( sprintf( '[dtb-schematics] brand/category backfill failed for %s: %s', $canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			} else {
+				$record         = $updated;
+				$record_changed = true;
+			}
+		} else {
+			// No catalog-derived mapping for this id — surfaced so a real
+			// catalog/map gap doesn't look identical to "already backfilled".
+			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
 	}
 	// Backfilling brand_id/category_id on an *existing* record, and promoting
 	// an eligible record through ready -> published, both happen in
