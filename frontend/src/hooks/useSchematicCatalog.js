@@ -67,9 +67,16 @@ export function useSchematicCatalog() {
       if (!map.has(brandId)) map.set(brandId, new Map());
       const catMap = map.get(brandId);
       if (!catMap.has(category.id)) {
-        catMap.set(category.id, { id: category.id, name: category.name || category.id, count: 0 });
+        catMap.set(category.id, { id: category.id, name: category.name || category.id, count: 0, preview: null });
       }
-      catMap.get(category.id).count += 1;
+      const entry = catMap.get(category.id);
+      entry.count += 1;
+      // Representative preview image for the category tile — first item in
+      // the group that actually has a usable preview URL. Purely a UI
+      // derivation over already-fetched items; no extra fetch.
+      if (!entry.preview && item.preview?.url) {
+        entry.preview = item.preview;
+      }
     });
     const result = new Map();
     map.forEach((catMap, brandId) => {
