@@ -117,12 +117,12 @@ function dtb_schematic_operation_commit_lease_acquire( string $run_id, int $seco
 	$current = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	$decoded = json_decode( (string) $current, true );
 	if ( ! is_array( $decoded ) || (int) ( $decoded['expires_at'] ?? 0 ) >= time() ) {
-		return new WP_Error( 'dtb_schematic_operation_locked', __( 'Another schematic commit operation is currently running. Try again after it completes.', 'drywall-toolbox' ) );
+		return new WP_Error( 'dtb_schematic_operation_locked', __( 'Another schematic synchronization is currently running. Try again after it completes.', 'drywall-toolbox' ) );
 	}
 
 	$updated = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $lease, $option_name, $current ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	if ( 1 !== $updated ) {
-		return new WP_Error( 'dtb_schematic_operation_locked', __( 'Another schematic commit operation acquired the lease. Try again.', 'drywall-toolbox' ) );
+		return new WP_Error( 'dtb_schematic_operation_locked', __( 'Another schematic synchronization started first. Try again after it completes.', 'drywall-toolbox' ) );
 	}
 	wp_cache_delete( $option_name, 'options' );
 	return true;
@@ -147,14 +147,20 @@ function dtb_schematic_operation_commit_lease_renew( string $run_id, int $second
 	$current = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $option_name ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	$decoded = json_decode( (string) $current, true );
 	if ( ! is_array( $decoded ) || ! hash_equals( (string) ( $decoded['run_id'] ?? '' ), $run_id ) ) {
-		return new WP_Error( 'dtb_schematic_operation_lease_lost', __( 'The schematic commit lease was lost. The run stopped before continuing writes.', 'drywall-toolbox' ) );
+		return new WP_Error( 'dtb_schematic_operation_lease_lost', __( 'The schematic synchronization lock was lost. The run stopped before continuing changes.', 'drywall-toolbox' ) );
 	}
 
 	$seconds = max( 30, min( 900, $seconds ) );
+	// A newly acquired lease already has the full interval remaining. Avoid an
+	// identical UPDATE, which MySQL reports as zero changed rows even though
+	// ownership is intact.
+	if ( (int) ( $decoded['expires_at'] ?? 0 ) >= time() + (int) floor( $seconds / 2 ) ) {
+		return true;
+	}
 	$renewed = wp_json_encode( [ 'run_id' => $run_id, 'expires_at' => time() + $seconds ] );
 	$updated = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s", $renewed, $option_name, $current ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching
 	if ( 1 !== $updated ) {
-		return new WP_Error( 'dtb_schematic_operation_lease_lost', __( 'The schematic commit lease changed while the run was active. The run stopped before continuing writes.', 'drywall-toolbox' ) );
+		return new WP_Error( 'dtb_schematic_operation_lease_lost', __( 'The schematic synchronization lock changed while the run was active. The run stopped before continuing changes.', 'drywall-toolbox' ) );
 	}
 	wp_cache_delete( $option_name, 'options' );
 	return true;

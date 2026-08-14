@@ -158,6 +158,14 @@ function dtb_schematic_operation_log_activity( string $kind, array $run ): void 
 		DTB_SCHEMATIC_OPERATION_RETIRE           => 'retire',
 		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'update_published_projection',
 	];
+	$labels = [
+		DTB_SCHEMATIC_OPERATION_RECONCILE        => 'Schematic sync',
+		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS => 'Hotspot synchronization',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS => 'Product linking',
+		DTB_SCHEMATIC_OPERATION_PUBLISH          => 'Publish',
+		DTB_SCHEMATIC_OPERATION_RETIRE           => 'Retire',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'Public projection refresh',
+	];
 	$result = (array) ( $run['result'] ?? [] );
 	dtb_schematic_activity_log( [
 		'operation_type' => $types[ $kind ],
@@ -167,7 +175,7 @@ function dtb_schematic_operation_log_activity( string $kind, array $run ): void 
 		'changed'        => (int) ( $result['changed'] ?? 0 ),
 		'skipped'        => (int) ( $result['skipped'] ?? 0 ),
 		'unresolved'     => (int) ( $result['unresolved'] ?? 0 ),
-		'summary'        => sprintf( '%s %s (%s).', ucwords( str_replace( '_', ' ', $kind ) ), ! empty( $run['dry_run'] ) ? 'dry run' : 'commit', $run['id'] ),
+		'summary'        => sprintf( '%s %s (%s).', $labels[ $kind ], ! empty( $run['dry_run'] ) ? 'previewed' : 'applied', $run['id'] ),
 		'detail'         => [ 'run_id' => $run['id'], 'status' => $run['status'], 'error' => $run['error'] ?? '' ],
 	] );
 }

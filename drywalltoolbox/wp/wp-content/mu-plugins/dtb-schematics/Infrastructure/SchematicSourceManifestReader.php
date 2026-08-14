@@ -257,12 +257,20 @@ function dtb_schematics_scan_directory_image_files( string $dir ): array {
 			continue;
 		}
 		$ext = strtolower( (string) pathinfo( $entry, PATHINFO_EXTENSION ) );
-		if ( in_array( $ext, DTB_SCHEMATIC_SOURCE_IMAGE_EXTENSIONS, true ) ) {
+		if ( in_array( $ext, DTB_SCHEMATIC_SOURCE_IMAGE_EXTENSIONS, true ) && ! dtb_schematics_is_generated_image_derivative_filename( $entry ) ) {
 			$files[] = $entry;
 		}
 	}
 	sort( $files );
 	return $files;
+}
+
+/**
+ * WordPress creates responsive derivatives beside the original attachment.
+ * They are projections, never independent schematic source pages.
+ */
+function dtb_schematics_is_generated_image_derivative_filename( string $filename ): bool {
+	return 1 === preg_match( '/(?:-\d+x\d+|-scaled|-rotated)\.(?:webp|jpe?g|png)$/i', basename( $filename ) );
 }
 
 function dtb_schematics_directory_has_image_files( string $dir ): bool {

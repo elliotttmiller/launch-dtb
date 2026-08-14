@@ -146,6 +146,7 @@ function dtb_image_sync_route_schematic_pathway( WP_REST_Request $request ) {
 			'scanned'    => (int) ( $report['examined'] ?? 0 ),
 			'total'      => (int) ( $report['source_row_count'] ?? 0 ),
 			'changed'    => (int) ( $report['changed'] ?? 0 ),
+			'unchanged'  => (int) ( $report['unchanged'] ?? 0 ),
 			'skipped'    => (int) ( $report['skipped'] ?? 0 ),
 			'unresolved' => (int) ( $report['unresolved'] ?? 0 ),
 			'errors'     => array_slice( $errors, 0, 10 ),

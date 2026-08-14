@@ -422,6 +422,7 @@ function dtb_image_sync_render_page(): void {
 			var offset = 0;
 			var batch = 0;
 			var missingFiles = [];
+			var schematicTotals = { examined: 0, changed: 0, unchanged: 0, skipped: 0, unresolved: 0 };
 
 			function next() {
 				batch += 1;
@@ -437,13 +438,26 @@ function dtb_image_sync_render_page(): void {
 					}
 
 					if (data.pathway === 'schematics') {
+						var changed = parseInt(data.changed || 0, 10);
+						var skipped = parseInt(data.skipped || 0, 10);
+						var unresolved = parseInt(data.unresolved || 0, 10);
+						var unchanged = typeof data.unchanged !== 'undefined'
+							? parseInt(data.unchanged || 0, 10)
+							: Math.max(0, scanned - changed - skipped - unresolved);
+						var synchronized = changed + unchanged;
+						schematicTotals.examined += scanned;
+						schematicTotals.changed += changed;
+						schematicTotals.unchanged += unchanged;
+						schematicTotals.skipped += skipped;
+						schematicTotals.unresolved += unresolved;
 						appendLog(
 							'Batch ' + batch +
-							' | examined ' + (data.scanned || 0) +
-							' | registered/linked ' + (data.changed || 0) +
-							' | unchanged ' + Math.max(0, (data.scanned || 0) - (data.changed || 0) - (data.skipped || 0) - (data.unresolved || 0)) +
-							' | skipped ' + (data.skipped || 0) +
-							' | unresolved ' + (data.unresolved || 0)
+							' | examined ' + scanned +
+							' | synchronized ' + synchronized +
+							' | updated ' + changed +
+							' | already current ' + unchanged +
+							' | retired/skipped ' + skipped +
+							' | unresolved ' + unresolved
 						);
 						if (data.run_id) appendLog('Run: ' + data.run_id);
 					} else {
@@ -481,7 +495,17 @@ function dtb_image_sync_render_page(): void {
 					readSnapshot();
 
 					if (typeof data.next_offset === 'undefined' || data.next_offset === null) {
-						setStatus('Completed.' + (missingFiles.length ? ' Missing file samples were logged.' : ''));
+						if (data.pathway === 'schematics') {
+							setStatus(
+								'Completed. Synchronized ' + (schematicTotals.changed + schematicTotals.unchanged) +
+								'; updated ' + schematicTotals.changed +
+								'; already current ' + schematicTotals.unchanged +
+								'; retired/skipped ' + schematicTotals.skipped +
+								'; unresolved ' + schematicTotals.unresolved + '.'
+							);
+						} else {
+							setStatus('Completed.' + (missingFiles.length ? ' Missing file samples were logged.' : ''));
+						}
 						setProgress(1);
 						return;
 					}

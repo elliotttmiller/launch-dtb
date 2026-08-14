@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$OfficialCatalog = 'products\launch\official\dtb_official_catalog.csv',
-    [string]$VeeqoImport = 'products\launch\official\veeqo_inventory_import.csv'
+    [string]$VeeqoImport = 'products\launch\official\veeqo_inventory.csv'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,7 +111,7 @@ foreach ($row in $sellable) {
         product_title = if ($row.Type -eq 'variation') { [string]$parent.Name } else { [string]$row.Name }
         variant_title = if ($row.Type -eq 'variation') { [string]$row.'Attribute 1 value(s)' } else { '' }
         sales_price = Format-Price -Value $(if ($row.'Sale price') { [string]$row.'Sale price' } else { [string]$row.'Regular price' })
-        cost_price = Get-PriorValue $prior 'cost_price'
+        cost_price = if ($row.'Cost of goods') { Format-Price -Value ([string]$row.'Cost of goods') } else { Get-PriorValue $prior 'cost_price' }
         description = [string]$row.'Short description'
         brand = [string]$row.Brands
         upc_code = if ($row.'GTIN, UPC, EAN, or ISBN') { [string]$row.'GTIN, UPC, EAN, or ISBN' } else { Get-PriorValue $prior 'upc_code' }

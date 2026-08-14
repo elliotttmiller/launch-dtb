@@ -221,7 +221,7 @@ function dtb_schematic_activity_log_reconciliation( array $report, string $start
 				? sprintf( 'Reconciliation failed: %s', (string) $report['fatal_error'] )
 				: sprintf(
 					'%s batch: rows %d-%d of %d — %s',
-					! empty( $report['dry_run'] ) ? 'Dry-run' : 'Commit',
+					! empty( $report['dry_run'] ) ? 'Preview' : 'Applied sync',
 					$report['batch_start'] ?? 0,
 					$report['batch_end'] ?? 0,
 					$report['source_row_count'] ?? 0,

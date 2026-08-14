@@ -10,6 +10,8 @@ The private `dtb_schematic` custom post type is the sole authority for whether a
 
 WooCommerce remains authoritative for products and variations. On SiteGround, `wp-content/uploads/2026/schematics/` is the primary read-only runtime binary source. Other upload years are fallback candidates; the 2026 directory wins filename collisions. A local repository checkout may use `products/launch/media/schematics/` for deterministic development verification. React owns storefront presentation only.
 
+Filesystem discovery treats only original diagram filenames as source rows. WordPress-generated responsive derivatives (`-{width}x{height}`, `-scaled`, and `-rotated`) remain attachment projections and are excluded, preventing attachment generation from changing the reconciliation manifest between batches.
+
 ## 2. Source-to-storefront flow
 
 ```text
