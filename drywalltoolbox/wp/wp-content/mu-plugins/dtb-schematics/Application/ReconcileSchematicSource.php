@@ -537,6 +537,14 @@ function dtb_schematic_reconcile_ensure_published( DTB_Schematic_Record_Entity $
 		}
 	}
 
+	if ( '' === trim( $record->family_id ) ) {
+		$backfilled = dtb_schematic_reconcile_backfill_family( $record );
+		if ( $backfilled ) {
+			$record  = $backfilled;
+			$changed = true;
+		}
+	}
+
 	if ( $record->lifecycle->is_published() || $record->lifecycle->is_retired() ) {
 		return $changed;
 	}
@@ -560,6 +568,41 @@ function dtb_schematic_reconcile_ensure_published( DTB_Schematic_Record_Entity $
 	}
 
 	return true;
+}
+
+/**
+ * Backfill family_id/variant_label from DTB_SCHEMATIC_FAMILY_MAP for a
+ * record that doesn't have one yet. Mirrors the brand/category backfill
+ * pattern above: idempotent (only writes when the map actually has an entry
+ * this record is missing), never overwrites an operator-set value, and
+ * failure is logged rather than silently swallowed.
+ *
+ * @return DTB_Schematic_Record_Entity|null The updated record, or null if nothing changed.
+ */
+function dtb_schematic_reconcile_backfill_family( DTB_Schematic_Record_Entity $record ): ?DTB_Schematic_Record_Entity {
+	$family = DTB_SCHEMATIC_FAMILY_MAP[ $record->canonical_id ] ?? null;
+	if ( ! $family ) {
+		return null; // No family grouping known for this id — not every schematic belongs to a multi-variant family.
+	}
+
+	$backfill = [];
+	if ( '' === trim( $record->family_id ) && '' !== trim( (string) $family['family_id'] ) ) {
+		$backfill['family_id'] = $family['family_id'];
+	}
+	if ( '' === trim( $record->variant_label ) && '' !== trim( (string) $family['variant_label'] ) ) {
+		$backfill['variant_label'] = $family['variant_label'];
+	}
+	if ( empty( $backfill ) ) {
+		return null;
+	}
+
+	$updated = dtb_schematic_update( $record->id, $backfill );
+	if ( is_wp_error( $updated ) ) {
+		error_log( sprintf( '[dtb-schematics] family backfill failed for %s: %s', $record->canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return null;
+	}
+
+	return $updated;
 }
 
 /**
@@ -590,6 +633,15 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 		if ( $brand_category ) {
 			$create_data['brand_id']    = $brand_category['brand_id'];
 			$create_data['category_id'] = $brand_category['category_id'];
+		}
+		$family = DTB_SCHEMATIC_FAMILY_MAP[ $canonical_id ] ?? null;
+		if ( $family ) {
+			if ( '' !== trim( (string) $family['family_id'] ) ) {
+				$create_data['family_id'] = $family['family_id'];
+			}
+			if ( '' !== trim( (string) $family['variant_label'] ) ) {
+				$create_data['variant_label'] = $family['variant_label'];
+			}
 		}
 		$created = dtb_schematic_create( $create_data );
 		if ( is_wp_error( $created ) ) {

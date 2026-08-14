@@ -396,3 +396,63 @@ const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [
 	'tapetech-xhtt' => [ 'brand_id' => 'tape-tech', 'category_id' => 'x-h-t-t' ],
 ];
 
+// Canonical schematic id -> family_id/variant_label, sourced from
+// Meta: _dtb_parent_product_sku / Meta: _dtb_variation_label columns in
+// products/launch/official/dtb_official_catalog.csv. Consumed by
+// Application/ReconcileSchematicSource.php to populate
+// DTB_Schematic_Record_Entity::$family_id/$variant_label so the public
+// API/frontend can group size/variant siblings of one WooCommerce parent
+// product under a single schematic family. variant_label is only present
+// when every variant row observed for that schematic id agrees on one
+// label (i.e. the schematic id unambiguously represents one variant).
+const DTB_SCHEMATIC_FAMILY_MAP = [
+	'columbia-2-way-internal-corner' => [ 'family_id' => 'col-billet-mud-applicator', 'variant_label' => 'Two-Way Internal Corner - 4 Wheels' ],
+	'columbia-angle-head' => [ 'family_id' => 'col-angle-head', 'variant_label' => '' ],
+	'columbia-automatic-flat-box' => [ 'family_id' => 'col-automatic-flat-box', 'variant_label' => '' ],
+	'columbia-box-filler' => [ 'family_id' => 'col-box-filler', 'variant_label' => '' ],
+	'columbia-cam-lock-tube' => [ 'family_id' => 'col-cam-lock-tube', 'variant_label' => '' ],
+	'columbia-combo-flusher' => [ 'family_id' => 'col-combo-flusher', 'variant_label' => '' ],
+	'columbia-compound-tube' => [ 'family_id' => 'col-compound-tube', 'variant_label' => '' ],
+	'columbia-direct-corner-flusher' => [ 'family_id' => 'col-direct-flusher', 'variant_label' => '' ],
+	'columbia-external-corner-applicator' => [ 'family_id' => 'col-billet-mud-applicator', 'variant_label' => 'External 90' ],
+	'columbia-fat-boy-box' => [ 'family_id' => 'col-automatic-fat-boy-box', 'variant_label' => '' ],
+	'columbia-flat-box' => [ 'family_id' => 'col-flat-finisher-box', 'variant_label' => '' ],
+	'columbia-flat-box-handle' => [ 'family_id' => 'col-180-grip-flat-box-handle', 'variant_label' => '' ],
+	'columbia-gooseneck-adapter' => [ 'family_id' => 'col-gooseneck', 'variant_label' => '' ],
+	'columbia-inside-corner-applicator' => [ 'family_id' => 'col-billet-mud-applicator', 'variant_label' => 'Inside Corner - 2 Wheels - 1"' ],
+	'columbia-long-extendable-handle' => [ 'family_id' => 'col-one-handle', 'variant_label' => 'Long Extendable 4\'-8\'' ],
+	'columbia-matrix' => [ 'family_id' => 'col-predator-matrix-handle', 'variant_label' => '' ],
+	'columbia-mud-pump' => [ 'family_id' => 'col-hot-mud-pump', 'variant_label' => 'Standard' ],
+	'columbia-nailspotter' => [ 'family_id' => 'col-nail-spotter', 'variant_label' => '3"' ],
+	'columbia-one' => [ 'family_id' => 'col-one-handle', 'variant_label' => '' ],
+	'columbia-standard-corner-flusher' => [ 'family_id' => 'col-standard-flusher', 'variant_label' => '' ],
+	'columbia-standard-outside-corner-roller' => [ 'family_id' => 'col-outside-corner-roller', 'variant_label' => 'Standard' ],
+	'columbia-tall-boy-mud-pump' => [ 'family_id' => 'col-hot-mud-pump', 'variant_label' => 'Tall Boy' ],
+	'columbia-throttle-box' => [ 'family_id' => 'col-throttle-corner-flusher-box', 'variant_label' => '' ],
+	'dura-stilts-dura-iii' => [ 'family_id' => 'ds-dura-iii', 'variant_label' => '' ],
+	'level5-10-inch-flat-box-4-765' => [ 'family_id' => 'lv5-flat-box-standard', 'variant_label' => '10”' ],
+	'level5-10-inch-mega-flat-box-4-768' => [ 'family_id' => 'lv5-flat-box-mega', 'variant_label' => '10”' ],
+	'level5-12-inch-flat-box-4-766' => [ 'family_id' => 'lv5-flat-box-standard', 'variant_label' => '12”' ],
+	'level5-12-inch-mega-box-4-769' => [ 'family_id' => 'lv5-flat-box-mega', 'variant_label' => '12”' ],
+	'level5-4-734-3-5-corner-finisher' => [ 'family_id' => 'lv5-corner-finisher', 'variant_label' => '3.5”' ],
+	'level5-7-inch-flat-box-4-764' => [ 'family_id' => 'lv5-flat-box-standard', 'variant_label' => '7”' ],
+	'level5-7-inch-mega-flat-box-4-767' => [ 'family_id' => 'lv5-flat-box-mega', 'variant_label' => '7”' ],
+	'platinum-corner-finisher' => [ 'family_id' => 'pt-cf', 'variant_label' => '' ],
+	'platinum-corner-roller-handle' => [ 'family_id' => 'pt-corner-handle-50', 'variant_label' => 'Corner Roller' ],
+	'platinum-flat-box' => [ 'family_id' => 'pt-fb', 'variant_label' => '' ],
+	'platinum-outside-corner-roller' => [ 'family_id' => 'pt-corner-roller', 'variant_label' => 'Outside 90°' ],
+	'tapetech-07tt' => [ 'family_id' => 'tt-easyclean-automatic-taper', 'variant_label' => 'Standard' ],
+	'tapetech-17tt' => [ 'family_id' => 'tt-corner-roller', 'variant_label' => 'Outside Corner' ],
+	'tapetech-42tt' => [ 'family_id' => 'tt-corner-finisher', 'variant_label' => '2.5"' ],
+	'tapetech-48tt' => [ 'family_id' => 'tt-corner-finisher', 'variant_label' => '3" EasyRoll® Adjustable' ],
+	'tapetech-76tt' => [ 'family_id' => 'tt-easyclean-pump', 'variant_label' => 'Standard' ],
+	'tapetech-80xxtt' => [ 'family_id' => 'tt-flat-box-handle', 'variant_label' => '' ],
+	'tapetech-81xxtt' => [ 'family_id' => 'tt-easyfinish-box-handle', 'variant_label' => '' ],
+	'tapetech-85t' => [ 'family_id' => 'tt-gooseneck', 'variant_label' => 'Standard' ],
+	'tapetech-easyclean-finishing-box' => [ 'family_id' => 'tt-easyclean-finishing-box', 'variant_label' => '' ],
+	'tapetech-maxxbox-ehc' => [ 'family_id' => 'tt-maxxbox-high-capacity-finishing-box', 'variant_label' => '' ],
+	'tapetech-power-assist-maxxbox' => [ 'family_id' => 'tt-power-assist-maxxbox-finishing-box', 'variant_label' => '' ],
+	'tapetech-quickbox-qsx' => [ 'family_id' => 'tt-quickbox-qsx-finishing-box', 'variant_label' => '' ],
+	'tapetech-xhtt' => [ 'family_id' => 'tt-support-handle', 'variant_label' => 'Extension' ],
+];
+

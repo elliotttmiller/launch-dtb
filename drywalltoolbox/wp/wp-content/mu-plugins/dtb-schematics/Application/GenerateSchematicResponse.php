@@ -131,6 +131,15 @@ function dtb_schematic_generate_catalog_entry( DTB_Schematic_Record_Entity $reco
 			'id'   => $record->category_id,
 			'name' => $record->category_name,
 		],
+		// Groups size/variant siblings of one WooCommerce parent product
+		// (e.g. 8FFBA/10FFBA/12FFBA/14FFBA) under a shared id so the
+		// frontend can render them as one family with variant selection.
+		// Empty when this schematic has no known family (see
+		// Data/SkuSchematicMap.php::DTB_SCHEMATIC_FAMILY_MAP).
+		'family_id'       => $record->family_id,
+		// Only non-empty when this record unambiguously represents exactly
+		// one variant of its family (see DTB_Schematic_Record_Entity::$variant_label).
+		'variant_label'   => $record->variant_label,
 		'preview'         => dtb_schematic_resolve_preview( $record ),
 		'page_count'      => count( $record->pages ),
 	];
@@ -240,6 +249,8 @@ function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $re
 			'id'   => $record->category_id,
 			'name' => $record->category_name,
 		],
+		'family_id'       => $record->family_id,
+		'variant_label'   => $record->variant_label,
 		'pages'           => $pages,
 		'parts'           => $parts,
 	];
