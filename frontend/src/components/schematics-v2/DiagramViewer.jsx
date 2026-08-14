@@ -5,7 +5,7 @@
  * (wheel + drag) and touch (pinch + drag) zoom/pan state. Handles explicit
  * missing-page / missing-media / missing-hotspot-data states.
  */
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ImageOff } from 'lucide-react';
 import DiagramImage from './DiagramImage';
 import ZoomControls from './ZoomControls';
@@ -54,6 +54,16 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
     setOffset({ x: 0, y: 0 });
     setImageLoaded(false);
   }
+
+  // Browser-cached images can complete before the React `onLoad` handler is
+  // attached, so the load event never fires and the hotspot layer would stay
+  // hidden forever. Back-check `img.complete` after each page switch so the
+  // hotspot overlay still mounts for already-cached diagrams.
+  useEffect(() => {
+    if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+      setImageLoaded(true);
+    }
+  }, [page?.page_id]);
 
   const applyScale = useCallback((nextScale, nextOffset) => {
     const container = containerRef.current;

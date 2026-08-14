@@ -10,6 +10,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchSchematicsCollection, SchematicApiError } from '../api/schematicsApi.js';
+import { humanizeLabel } from '../utils/string.js';
 
 /**
  * @typedef {'loading'|'success'|'empty'|'error'} SchematicCatalogStatus
@@ -52,7 +53,7 @@ export function useSchematicCatalog() {
     items.forEach((item) => {
       const brand = item.brand;
       if (!brand?.id) return;
-      if (!map.has(brand.id)) map.set(brand.id, { id: brand.id, name: brand.name || brand.id, count: 0 });
+      if (!map.has(brand.id)) map.set(brand.id, { id: brand.id, name: humanizeLabel(brand.name, brand.id), count: 0 });
       map.get(brand.id).count += 1;
     });
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
@@ -67,7 +68,7 @@ export function useSchematicCatalog() {
       if (!map.has(brandId)) map.set(brandId, new Map());
       const catMap = map.get(brandId);
       if (!catMap.has(category.id)) {
-        catMap.set(category.id, { id: category.id, name: category.name || category.id, count: 0, preview: null });
+        catMap.set(category.id, { id: category.id, name: humanizeLabel(category.name, category.id), count: 0, preview: null });
       }
       const entry = catMap.get(category.id);
       entry.count += 1;
