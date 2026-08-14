@@ -332,6 +332,18 @@ for sid in sorted(retired_schematic_ids):
     lines.append(f"\t'{php_str(sid)}' => true,")
 lines.append("];")
 lines.append("")
+lines.append("// Canonical schematic id -> brand_id/category_id, sourced from brand/")
+lines.append("// schematic_category columns in all_brands_schematic_parts_master.csv.")
+lines.append("// Consumed by Application/ReconcileSchematicSource.php to populate the")
+lines.append("// publication-required brand_id/category_id fields")
+lines.append("// (Domain/SchematicPublicationRules.php) on record create and backfill,")
+lines.append("// which the reconciliation pipeline previously never set.")
+lines.append("const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [")
+for canonical_id in sorted(brand_category_map.keys()):
+    brand_id, category_id = brand_category_map[canonical_id]
+    lines.append(f"\t'{php_str(canonical_id)}' => [ 'brand_id' => '{php_str(brand_id)}', 'category_id' => '{php_str(category_id)}' ],")
+lines.append("];")
+lines.append("")
 
 out_path = f"{REPO}/drywalltoolbox/wp/wp-content/mu-plugins/dtb-schematics/Data/SkuSchematicMap.php"
 with open(out_path, "w", encoding="utf-8", newline="\n") as f:
