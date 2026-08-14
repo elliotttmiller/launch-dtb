@@ -454,6 +454,10 @@ function dtb_schematic_reconcile_finalize_asset( array $asset, ?DTB_Schematic_Re
 
 	if ( $already_synchronized ) {
 		$asset['disposition'] = DTB_Schematic_Asset_Disposition::ACTIVE_AND_SYNCHRONIZED;
+		if ( ! $dry_run && $record && dtb_schematic_reconcile_ensure_published( $record ) ) {
+			$asset['changed'] = true;
+			$asset['notes'][] = 'Schematic record backfilled and/or published via ManageSchematicRecord.';
+		}
 		return $asset;
 	}
 
@@ -482,7 +486,80 @@ function dtb_schematic_reconcile_finalize_asset( array $asset, ?DTB_Schematic_Re
 		$asset['notes'][] = 'Domain record page attached/updated via ManageSchematicRecord.';
 	}
 
+	$fresh_record = dtb_schematic_record_repo_find_by_canonical_id( $canonical_id );
+	if ( $fresh_record && dtb_schematic_reconcile_ensure_published( $fresh_record ) ) {
+		$asset['changed'] = true;
+		$asset['notes'][] = 'Schematic record backfilled and/or published via ManageSchematicRecord.';
+	}
+
 	return $asset;
+}
+
+/**
+ * Closes the loop for a reconciled record: backfills brand_id/category_id
+ * from DTB_SCHEMATIC_BRAND_CATEGORY_MAP if either is still missing (covers
+ * records created before that map existed), then — if the record is now
+ * publication-eligible and not already published/retired — promotes it
+ * straight through draft/incomplete -> ready -> published. Called for every
+ * resolved record in a commit-mode pass regardless of whether its page
+ * needed (re)writing, so "successfully registered, linked and synced" always
+ * results in a published record without a separate manual publish step.
+ * Idempotent and safe to call repeatedly; every failure is logged rather
+ * than silently swallowed, since a record that stays unpublished here has
+ * no other signal surfaced to the operator.
+ *
+ * @return bool True if this call changed the record (backfill and/or lifecycle).
+ */
+function dtb_schematic_reconcile_ensure_published( DTB_Schematic_Record_Entity $record ): bool {
+	$changed = false;
+
+	if ( '' === trim( $record->brand_id ) || '' === trim( $record->category_id ) ) {
+		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $record->canonical_id ] ?? null;
+		if ( $brand_category ) {
+			$backfill = [];
+			if ( '' === trim( $record->brand_id ) ) {
+				$backfill['brand_id'] = $brand_category['brand_id'];
+			}
+			if ( '' === trim( $record->category_id ) ) {
+				$backfill['category_id'] = $brand_category['category_id'];
+			}
+			$updated = dtb_schematic_update( $record->id, $backfill );
+			if ( is_wp_error( $updated ) ) {
+				error_log( sprintf( '[dtb-schematics] brand/category backfill failed for %s: %s', $record->canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			} else {
+				$record  = $updated;
+				$changed = true;
+			}
+		} else {
+			// No catalog-derived mapping for this id — surfaced so a real
+			// catalog/map gap doesn't look identical to "already backfilled".
+			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $record->canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		}
+	}
+
+	if ( $record->lifecycle->is_published() || $record->lifecycle->is_retired() ) {
+		return $changed;
+	}
+
+	if ( ! empty( dtb_schematic_publication_requirements( $record->to_array() ) ) ) {
+		return $changed;
+	}
+
+	if ( DTB_Schematic_Lifecycle_Status::READY !== $record->lifecycle->value() ) {
+		$ready = dtb_schematic_mark_ready( $record->id );
+		if ( is_wp_error( $ready ) ) {
+			error_log( sprintf( '[dtb-schematics] auto mark-ready failed for %s: %s', $record->canonical_id, $ready->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+			return $changed;
+		}
+	}
+
+	$published = dtb_schematic_publish( $record->id );
+	if ( is_wp_error( $published ) ) {
+		error_log( sprintf( '[dtb-schematics] auto-publish failed for %s: %s', $record->canonical_id, $published->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return $changed;
+	}
+
+	return true;
 }
 
 /**
@@ -520,34 +597,13 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 		}
 		$record          = $created;
 		$record_changed  = true;
-	} elseif ( '' === trim( $record->brand_id ) || '' === trim( $record->category_id ) ) {
-		// Backfill records created before DTB_SCHEMATIC_BRAND_CATEGORY_MAP
-		// existed; publication requires both fields
-		// (Domain/SchematicPublicationRules.php) and reconciliation is the
-		// only writer of these ids, so a record with neither ever set stays
-		// unpublishable forever without this pass.
-		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $canonical_id ] ?? null;
-		if ( $brand_category ) {
-			$backfill = [];
-			if ( '' === trim( $record->brand_id ) ) {
-				$backfill['brand_id'] = $brand_category['brand_id'];
-			}
-			if ( '' === trim( $record->category_id ) ) {
-				$backfill['category_id'] = $brand_category['category_id'];
-			}
-			$updated = dtb_schematic_update( $record->id, $backfill );
-			if ( is_wp_error( $updated ) ) {
-				error_log( sprintf( '[dtb-schematics] brand/category backfill failed for %s: %s', $canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			} else {
-				$record         = $updated;
-				$record_changed = true;
-			}
-		} else {
-			// No catalog-derived mapping for this id — surfaced so a real
-			// catalog/map gap doesn't look identical to "already backfilled".
-			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		}
 	}
+	// Backfilling brand_id/category_id on an *existing* record, and promoting
+	// an eligible record through ready -> published, both happen in
+	// dtb_schematic_reconcile_ensure_published() below — called for every
+	// resolved record regardless of whether its page needed writing, so it
+	// also covers already-page-synchronized records that never reach this
+	// function (see dtb_schematic_reconcile_finalize_asset()).
 
 	$existing_page = null;
 	foreach ( $record->pages as $existing ) {
