@@ -85,7 +85,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  background: var(--dtb-surface, #ffffff);
+  background: var(--dtb-surface, var(--dtb-surface));
   border: 1px solid rgba(15, 23, 42, 0.10);
   border-radius: clamp(10px, 1.6vw, 14px);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
@@ -104,7 +104,7 @@
 }
 
 .dtb-schematics-card:focus-visible {
-  outline: 3px solid var(--dtb-focus, #2255ee);
+  outline: 3px solid var(--dtb-focus, var(--dtb-primary));
   outline-offset: 2px;
 }
 
@@ -131,7 +131,7 @@
   font-weight: 800;
   font-size: clamp(0.95rem, 2.4vw, 1.15rem);
   line-height: 1.2;
-  color: #0f172a;
+  color: var(--dtb-text);
   text-transform: uppercase;
   letter-spacing: 0.01em;
   overflow-wrap: anywhere;
@@ -140,14 +140,14 @@
 .dtb-schematics-card__meta {
   font-size: clamp(0.72rem, 1.8vw, 0.82rem);
   font-weight: 600;
-  color: #64748b;
+  color: var(--dtb-muted);
 }
 
 .dtb-schematics-card__chevron {
   position: absolute;
   top: var(--dtb-space-3);
   right: var(--dtb-space-3);
-  color: #2255ee;
+  color: var(--dtb-primary);
 }
 
 .dtb-schematics-card--tool {
@@ -158,7 +158,7 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: contain;
-  background: #f8fafc;
+  background: var(--dtb-surface-subtle);
   padding: var(--dtb-space-2);
 }
 
@@ -202,7 +202,7 @@
   gap: var(--dtb-space-2);
   padding: var(--dtb-space-2) var(--dtb-space-3);
   border-bottom: 1px solid rgba(15, 23, 42, 0.10);
-  background: #ffffff;
+  background: var(--dtb-surface);
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
   border-radius: clamp(10px, 1.6vw, 14px);
   min-height: 64px;
@@ -223,7 +223,7 @@
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
   font-weight: 700;
   font-size: clamp(0.95rem, 2.2vw, 1.15rem);
-  color: #0f172a;
+  color: var(--dtb-text);
   overflow-wrap: anywhere;
   margin: 0;
   line-height: 1.3;
@@ -232,7 +232,7 @@
 .dtb-schematic-viewer__subtitle {
   font-size: clamp(0.72rem, 1.8vw, 0.85rem);
   font-weight: 600;
-  color: #64748b;
+  color: var(--dtb-muted);
   margin: 0;
 }
 
@@ -256,8 +256,8 @@
   padding: 0 clamp(var(--dtb-space-2), 2vw, var(--dtb-space-3));
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.46);
-  background: #ffffff;
-  color: #334155;
+  background: var(--dtb-surface);
+  color: var(--dtb-text-soft);
   font-weight: 700;
   font-size: clamp(0.72rem, 1.9vw, 0.85rem);
   cursor: pointer;
@@ -266,18 +266,18 @@
 
 .dtb-schematic-page-tab:hover {
   border-color: rgba(34, 85, 238, 0.48);
-  color: #2255ee;
+  color: var(--dtb-primary);
 }
 
 .dtb-schematic-page-tab--active {
-  background: #174ea6;
-  border-color: #2255ee;
-  color: #ffffff;
+  background: var(--dtb-primary-strong);
+  border-color: var(--dtb-primary);
+  color: var(--dtb-surface);
   box-shadow: 0 7px 18px rgba(34, 85, 238, 0.22);
 }
 
 .dtb-schematic-page-tab:focus-visible {
-  outline: 2px solid #2255ee;
+  outline: 2px solid var(--dtb-primary);
   outline-offset: 2px;
 }
 
@@ -295,7 +295,7 @@
   overflow: hidden;
   border-radius: clamp(8px, 2vw, 12px);
   border: 1px solid rgba(15, 23, 42, 0.1);
-  background: #ffffff;
+  background: var(--dtb-surface);
   touch-action: pan-y;
   min-height: clamp(300px, 60vh, 640px);
   -webkit-user-select: none;
@@ -440,7 +440,7 @@
 }
 
 .dtb-schematic-hotspot:focus-visible {
-  outline: 2px solid #2255ee;
+  outline: 2px solid var(--dtb-primary);
   outline-offset: 2px;
   animation-play-state: paused;
 }
@@ -485,7 +485,7 @@
   max-width: 26rem;
   max-height: 90dvh;
   overflow-y: auto;
-  background: #ffffff;
+  background: var(--dtb-surface);
   border-radius: clamp(14px, 3vw, 18px) clamp(14px, 3vw, 18px) 0 0;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.2);
 }
@@ -503,7 +503,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8fafc;
+  background: var(--dtb-surface-subtle);
   min-height: 120px;
 }
 
@@ -536,7 +536,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #0f172a;
+  color: var(--dtb-text);
   transition: background 150ms ease;
 }
 
@@ -549,7 +549,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #2255ee;
+  color: var(--dtb-primary);
   margin: 0 0 3px;
 }
 
@@ -558,7 +558,7 @@
   font-weight: 700;
   font-size: clamp(0.95rem, 2.6vw, 1.15rem);
   line-height: 1.25;
-  color: #0f172a;
+  color: var(--dtb-text);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   margin: 0 0 4px;
@@ -571,7 +571,7 @@
   flex-direction: column;
   gap: 2px;
   font-size: clamp(0.7rem, 1.9vw, 0.8rem);
-  color: #64748b;
+  color: var(--dtb-muted);
   margin-bottom: var(--dtb-space-2);
 }
 
@@ -592,7 +592,7 @@
   font-family: 'Courier New', monospace;
   font-weight: 800;
   font-size: clamp(1rem, 3vw, 1.2rem);
-  color: #2255ee;
+  color: var(--dtb-primary);
   margin: 2px 0 var(--dtb-space-2);
 }
 
@@ -609,8 +609,8 @@
   min-height: var(--dtb-touch-target);
   padding: 0 var(--dtb-space-4);
   border-radius: 8px;
-  background: #2255ee;
-  color: #ffffff;
+  background: var(--dtb-primary);
+  color: var(--dtb-surface);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;

@@ -72,7 +72,8 @@ export default function SchematicPartDialog({ part, onClose }) {
   // The documented part contract guarantees identity/URL, not necessarily
   // price/id — only offer "Add to cart" when those fields are present, and
   // fall back to a "View product" link otherwise, never a synthetic add.
-  const canAddToCart = Boolean(part.product_id && part.price != null);
+  const parsedPrice = parseFloat(part.price);
+  const canAddToCart = Boolean(part.product_id && Number.isFinite(parsedPrice));
 
   const handleAdd = async () => {
     if (!canAddToCart) return;
@@ -80,7 +81,7 @@ export default function SchematicPartDialog({ part, onClose }) {
       id: part.product_id,
       name: part.title,
       brand: part.brand,
-      price: parseFloat(part.price) || 0,
+      price: parsedPrice,
       part_number: part.mpn || part.sku,
       sku: part.sku || part.mpn,
       image: part.image || '',
@@ -101,7 +102,7 @@ export default function SchematicPartDialog({ part, onClose }) {
       >
         {part.image && (
           <div className="dtb-schematic-part-dialog__image">
-            <img src={part.image} alt="" loading="lazy" decoding="async" />
+            <img src={part.image} alt={part.title || 'Part'} loading="lazy" decoding="async" />
           </div>
         )}
 
@@ -136,7 +137,7 @@ export default function SchematicPartDialog({ part, onClose }) {
           </dl>
 
           {canAddToCart && (
-            <p className="dtb-schematic-part-dialog__price">${parseFloat(part.price).toFixed(2)}</p>
+            <p className="dtb-schematic-part-dialog__price">${parsedPrice.toFixed(2)}</p>
           )}
 
           {isUnavailable && (
