@@ -41,7 +41,9 @@ function dtb_ajax_image_sync_handler(): void {
 	// phpcs:enable WordPress.Security.NonceVerification.Missing
 
 	try {
-		if ( 'progress' === $sync_action ) {
+		if ( 'sync_schematics' === $sync_action ) {
+			$result = dtb_image_sync_route_schematic_pathway( $request );
+		} elseif ( 'progress' === $sync_action ) {
 			$result = dtb_route_sync_images_progress();
 		} elseif ( 'status' === $sync_action || 'status_snapshot' === $sync_action ) {
 			$result = dtb_route_sync_images_status( $request );
@@ -80,6 +82,76 @@ function dtb_ajax_image_sync_handler(): void {
 	}
 
 	wp_send_json_success( $result->get_data() );
+}
+
+/**
+ * Image Sync transport adapter for the Schematics-owned registration/linking
+ * pathway. Product-media services must never process schematic diagrams.
+ */
+function dtb_image_sync_route_schematic_pathway( WP_REST_Request $request ) {
+	if ( ! function_exists( 'dtb_schematics_can_manage' ) || ! dtb_schematics_can_manage() ) {
+		return new WP_Error( 'dtb_schematic_sync_forbidden', 'You do not have permission to synchronize schematics.' );
+	}
+	if ( '2026/schematics' !== (string) $request->get_param( 'upload_path' ) ) {
+		return new WP_Error( 'dtb_schematic_sync_path_invalid', 'The Schematics pathway is restricted to uploads/2026/schematics.' );
+	}
+	if ( ! function_exists( 'dtb_schematic_run_operation' ) ) {
+		return new WP_Error( 'dtb_schematic_sync_unavailable', 'The Schematics synchronization service is unavailable.' );
+	}
+	$uploads       = wp_upload_dir();
+	$schematic_dir = ! empty( $uploads['basedir'] ) ? trailingslashit( (string) $uploads['basedir'] ) . '2026/schematics' : '';
+	if ( '' === $schematic_dir || ! is_dir( $schematic_dir ) || ! dtb_schematics_directory_has_image_files( $schematic_dir ) ) {
+		return new WP_Error( 'dtb_schematic_sync_source_missing', 'No schematic images were found in uploads/2026/schematics.' );
+	}
+
+	$dry_run = (bool) $request->get_param( 'dry_run' );
+	// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce verified by the calling AJAX handler.
+	if ( ! $dry_run && '1' !== (string) ( $_POST['schematic_confirmation'] ?? '' ) ) {
+		return new WP_Error( 'dtb_schematic_sync_confirmation_required', 'Confirm schematic registration and linking before applying changes.' );
+	}
+
+	$offset = max( 0, (int) $request->get_param( 'offset' ) );
+	$limit  = max( 1, min( DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE, (int) $request->get_param( 'limit' ) ) );
+	$run    = dtb_schematic_run_operation(
+		[
+			'kind'          => DTB_SCHEMATIC_OPERATION_RECONCILE,
+			'dry_run'       => $dry_run,
+			'operator_id'   => get_current_user_id(),
+			'batch_size'    => $limit,
+			'resume'        => false,
+			'persist_state' => false,
+			'state'         => [ 'cursor' => $offset ],
+		]
+	);
+	if ( is_wp_error( $run ) ) {
+		return $run;
+	}
+	if ( 'completed' !== ( $run['status'] ?? '' ) ) {
+		return new WP_Error( 'dtb_schematic_sync_failed', (string) ( $run['error'] ?? 'Schematic synchronization failed.' ) );
+	}
+
+	$report = (array) ( $run['result'] ?? [] );
+	$errors = [];
+	foreach ( (array) ( $report['assets'] ?? [] ) as $asset ) {
+		if ( DTB_Schematic_Asset_Disposition::AMBIGUOUS_AND_UNRESOLVED === ( $asset['disposition'] ?? '' ) ) {
+			$errors[] = sprintf( '%s: %s', $asset['source_filename'] ?? 'unknown', implode( '; ', (array) ( $asset['notes'] ?? [] ) ) );
+		}
+	}
+
+	return rest_ensure_response(
+		[
+			'pathway'    => 'schematics',
+			'run_id'     => $run['id'],
+			'dry_run'    => $dry_run,
+			'scanned'    => (int) ( $report['examined'] ?? 0 ),
+			'total'      => (int) ( $report['source_row_count'] ?? 0 ),
+			'changed'    => (int) ( $report['changed'] ?? 0 ),
+			'skipped'    => (int) ( $report['skipped'] ?? 0 ),
+			'unresolved' => (int) ( $report['unresolved'] ?? 0 ),
+			'errors'     => array_slice( $errors, 0, 10 ),
+			'next_offset'=> $report['next_offset'] ?? null,
+		]
+	);
 }
 
 /**

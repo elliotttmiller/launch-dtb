@@ -43,6 +43,8 @@ The dashboard reports whether the SiteGround 2026 directory is detected, its bou
 
 The control center does not accept arbitrary filesystem paths, edit diagram graphics, edit hotspot coordinates, create products, or write post meta directly. It delegates mutations to application services and presents operator-scoped run results.
 
+The Image Sync tool also exposes a fixed `Schematic diagrams — uploads/2026/schematics` pathway. It is an operator entry point only: its `Register & Link Schematics` action requires both Image Sync and Schematics permissions and delegates bounded preview/apply batches to `dtb_schematic_run_operation()`. Product-media registration and WooCommerce gallery services never process the schematic directory.
+
 ## 4. Operation contract
 
 `Application/RunSchematicOperation.php` is the shared command boundary for wp-admin and reconciliation CLI work. Supported operation kinds are:

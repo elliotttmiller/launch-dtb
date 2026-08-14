@@ -76,6 +76,11 @@ function dtb_image_sync_render_page(): void {
 	$directory_options = function_exists( 'dtb_get_upload_subdirectories' )
 		? dtb_get_upload_subdirectories()
 		: [];
+	$fixed_pathways = [ dtb_image_sync_page_default_path() ];
+	if ( function_exists( 'dtb_schematics_can_manage' ) && dtb_schematics_can_manage() ) {
+		$fixed_pathways[] = '2026/schematics';
+	}
+	$directory_options = array_values( array_unique( array_merge( $fixed_pathways, $directory_options ) ) );
 	if ( ! in_array( $upload_path, $directory_options, true ) ) {
 		array_unshift( $directory_options, $upload_path );
 	}
@@ -83,7 +88,7 @@ function dtb_image_sync_render_page(): void {
 	dtb_admin_shell_open(
 		[
 			'title'    => __( 'Image Sync', 'drywall-toolbox' ),
-			'subtitle' => __( 'Register and link product media to catalog SKUs without exposing backend diagnostics.', 'drywall-toolbox' ),
+			'subtitle' => __( 'Choose a controlled pathway to register and link product images or schematic diagrams.', 'drywall-toolbox' ),
 			'section'  => 'tools',
 			'page'     => 'dtb-image-sync',
 			'template' => 'tool',
@@ -92,14 +97,19 @@ function dtb_image_sync_render_page(): void {
 	);
 
 	echo dtb_admin_ui_toolbar_open();
-	echo '<label class="screen-reader-text" for="dtb-image-sync-upload-path">' . esc_html__( 'Upload directory', 'drywall-toolbox' ) . '</label>';
+	echo '<label for="dtb-image-sync-upload-path"><strong>' . esc_html__( 'Pathway', 'drywall-toolbox' ) . '</strong></label>';
 	echo '<select id="dtb-image-sync-upload-path" class="dtb-input dtb-select">';
 	foreach ( $directory_options as $directory ) {
+		$is_schematic = '2026/schematics' === $directory;
+		$option_label = $is_schematic
+			? __( 'Schematic diagrams — uploads/2026/schematics', 'drywall-toolbox' )
+			: sprintf( __( 'Product images — uploads/%s', 'drywall-toolbox' ), $directory );
 		printf(
-			'<option value="%s"%s>%s</option>',
+			'<option value="%s" data-pathway="%s"%s>%s</option>',
 			esc_attr( $directory ),
+			$is_schematic ? 'schematics' : 'product-images',
 			selected( $directory, $upload_path, false ),
-			esc_html( 'wp-content/uploads/' . $directory )
+			esc_html( $option_label )
 		);
 	}
 	echo '</select>';
@@ -165,6 +175,8 @@ function dtb_image_sync_render_page(): void {
 		var limitInput = document.getElementById('dtb-image-sync-limit');
 		var dryRunInput = document.getElementById('dtb-image-sync-dry-run');
 		var forceInput = document.getElementById('dtb-image-sync-force');
+		var forceLabel = forceInput ? forceInput.closest('label') : null;
+		var primaryAction = document.querySelector('[data-dtb-image-sync-action="sync"]');
 		var statusLine = document.getElementById('dtb-image-sync-status-line');
 		var progressBar = document.getElementById('dtb-image-sync-progress');
 		var logEl = document.getElementById('dtb-image-sync-log');
@@ -174,6 +186,21 @@ function dtb_image_sync_render_page(): void {
 		var progressPollBusy = false;
 		var snapshotPollBusy = false;
 		var MAX_BATCHES = 2000;
+		var schematicConfirmed = false;
+
+		function isSchematicPathway() {
+			return getUploadPath() === '2026/schematics';
+		}
+
+		function updatePathwayControls() {
+			var schematic = isSchematicPathway();
+			['release_lock', 'fix_renamed', 'register_only', 'link_only'].forEach(function (action) {
+				var control = document.querySelector('[data-dtb-image-sync-action="' + action + '"]');
+				if (control) control.hidden = schematic;
+			});
+			if (forceLabel) forceLabel.hidden = schematic;
+			if (primaryAction) primaryAction.textContent = schematic ? 'Register & Link Schematics' : 'Register + Link';
+		}
 
 		function appendLog(line) {
 			if (!logEl) return;
@@ -233,6 +260,7 @@ function dtb_image_sync_render_page(): void {
 			body.set('dry_run', dryRunInput && dryRunInput.checked ? '1' : '0');
 			body.set('force', forceInput && forceInput.checked ? '1' : '0');
 			body.set('register_only', syncAction === 'register_only' ? '1' : '0');
+			if (syncAction === 'sync_schematics' && schematicConfirmed) body.set('schematic_confirmation', '1');
 			return body;
 		}
 
@@ -264,7 +292,7 @@ function dtb_image_sync_render_page(): void {
 		}
 
 		function post(syncAction, extra) {
-			var maxRetries = ['progress', 'status', 'status_snapshot'].indexOf(syncAction) !== -1 ? 5 : 3;
+			var maxRetries = syncAction === 'sync_schematics' ? 0 : (['progress', 'status', 'status_snapshot'].indexOf(syncAction) !== -1 ? 5 : 3);
 
 			function attemptFetch(attempt) {
 				return fetch(cfg.ajaxUrl || window.ajaxurl, {
@@ -318,6 +346,7 @@ function dtb_image_sync_render_page(): void {
 		}
 
 		function readProgress() {
+			if (isSchematicPathway()) return Promise.resolve();
 			if (progressPollBusy) return Promise.resolve();
 			progressPollBusy = true;
 			return post('progress', {}).then(function (payload) {
@@ -353,6 +382,10 @@ function dtb_image_sync_render_page(): void {
 		}
 
 		function readSnapshot() {
+			if (isSchematicPathway()) {
+				refreshWorkspace();
+				return Promise.resolve();
+			}
 			if (snapshotPollBusy) return Promise.resolve();
 			snapshotPollBusy = true;
 			return post('status', { upload_path: getUploadPath() }).then(function () {
@@ -403,15 +436,27 @@ function dtb_image_sync_render_page(): void {
 						setProgress(complete / total);
 					}
 
-					appendLog(
-						'Batch ' + batch +
-						' | scanned ' + (data.scanned || 0) +
-						' | registered ' + (data.registered || 0) +
-						' | linked ' + (data.linked || 0) +
-						' | skipped ' + (data.skipped || 0) +
-						' | no_file ' + (data.no_file || 0) +
-						' | errors ' + (Array.isArray(data.errors) ? data.errors.length : 0)
-					);
+					if (data.pathway === 'schematics') {
+						appendLog(
+							'Batch ' + batch +
+							' | examined ' + (data.scanned || 0) +
+							' | registered/linked ' + (data.changed || 0) +
+							' | unchanged ' + Math.max(0, (data.scanned || 0) - (data.changed || 0) - (data.skipped || 0) - (data.unresolved || 0)) +
+							' | skipped ' + (data.skipped || 0) +
+							' | unresolved ' + (data.unresolved || 0)
+						);
+						if (data.run_id) appendLog('Run: ' + data.run_id);
+					} else {
+						appendLog(
+							'Batch ' + batch +
+							' | scanned ' + (data.scanned || 0) +
+							' | registered ' + (data.registered || 0) +
+							' | linked ' + (data.linked || 0) +
+							' | skipped ' + (data.skipped || 0) +
+							' | no_file ' + (data.no_file || 0) +
+							' | errors ' + (Array.isArray(data.errors) ? data.errors.length : 0)
+						);
+					}
 
 					if (data.active_csv) {
 						appendLog('Active CSV: ' + data.active_csv);
@@ -459,9 +504,11 @@ function dtb_image_sync_render_page(): void {
 
 		if (pathSelect) {
 			pathSelect.addEventListener('change', function () {
+				updatePathwayControls();
 				refreshWorkspace();
 			});
 		}
+		updatePathwayControls();
 
 		document.addEventListener('click', function (event) {
 			var refreshBtn = event.target.closest('[data-dtb-image-sync-refresh]');
@@ -476,6 +523,14 @@ function dtb_image_sync_render_page(): void {
 
 			event.preventDefault();
 			var syncAction = actionBtn.getAttribute('data-dtb-image-sync-action') || 'status';
+			if (isSchematicPathway()) {
+				if (syncAction !== 'sync') return;
+				syncAction = 'sync_schematics';
+				if (!(dryRunInput && dryRunInput.checked)) {
+					schematicConfirmed = window.confirm('Register and link schematic diagrams from uploads/2026/schematics?');
+					if (!schematicConfirmed) return;
+				}
+			}
 
 			if (syncAction === 'release_lock') {
 				setToolbarDisabled(true);
@@ -512,6 +567,8 @@ function dtb_image_sync_render_page(): void {
 			runBatched(syncAction).catch(function (err) {
 				setStatus(err.message || 'Run failed.', true);
 				appendLog(err.message || 'Run failed.');
+			}).finally(function () {
+				schematicConfirmed = false;
 			});
 		});
 	})();
@@ -524,6 +581,9 @@ function dtb_image_sync_render_page(): void {
  * Render live workspace HTML.
  */
 function dtb_image_sync_page_render_workspace_html( string $upload_path ): string {
+	if ( '2026/schematics' === $upload_path ) {
+		return dtb_image_sync_page_render_schematic_pathway_html();
+	}
 	$snapshot = dtb_build_image_sync_snapshot( $upload_path );
 	$health   = is_array( $snapshot['health'] ?? null ) ? $snapshot['health'] : [];
 	$catalog  = is_array( $snapshot['catalog'] ?? null ) ? $snapshot['catalog'] : [];
@@ -602,6 +662,30 @@ function dtb_image_sync_page_render_workspace_html( string $upload_path ): strin
 }
 
 /**
+ * Read-only Schematics pathway summary. All writes remain delegated to the
+ * dtb-schematics operation service.
+ */
+function dtb_image_sync_page_render_schematic_pathway_html(): string {
+	$uploads       = wp_upload_dir();
+	$schematic_dir = ! empty( $uploads['basedir'] ) ? trailingslashit( (string) $uploads['basedir'] ) . '2026/schematics' : '';
+	$detected      = '' !== $schematic_dir && is_dir( $schematic_dir );
+	$image_count   = $detected && function_exists( 'dtb_schematics_scan_directory_image_files' ) ? count( dtb_schematics_scan_directory_image_files( $schematic_dir ) ) : 0;
+	$records       = function_exists( 'dtb_schematic_record_repo_query' ) ? dtb_schematic_record_repo_query( [ 'per_page' => 1 ] ) : [ 'total' => 0 ];
+	$published     = function_exists( 'dtb_schematic_record_repo_query' ) ? dtb_schematic_record_repo_query( [ 'lifecycle' => DTB_Schematic_Lifecycle_Status::PUBLISHED, 'per_page' => 1 ] ) : [ 'total' => 0 ];
+
+	ob_start();
+	echo '<div class="dtb-grid dtb-grid--four dtb-mb-16">';
+	echo dtb_admin_ui_kpi( number_format_i18n( $image_count ), __( 'Source Diagrams', 'drywall-toolbox' ), [ 'icon' => 'dashicons-format-image', 'trend' => $detected ? __( 'uploads/2026/schematics detected', 'drywall-toolbox' ) : __( 'Source directory missing', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo dtb_admin_ui_kpi( number_format_i18n( (int) ( $records['total'] ?? 0 ) ), __( 'Schematic Records', 'drywall-toolbox' ), [ 'icon' => 'dashicons-media-document' ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo dtb_admin_ui_kpi( number_format_i18n( (int) ( $published['total'] ?? 0 ) ), __( 'Published', 'drywall-toolbox' ), [ 'icon' => 'dashicons-visibility' ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo dtb_admin_ui_kpi( $detected && $image_count > 0 ? __( 'Ready', 'drywall-toolbox' ) : __( 'Unavailable', 'drywall-toolbox' ), __( 'Registration Pathway', 'drywall-toolbox' ), [ 'icon' => 'dashicons-update', 'trend' => __( 'Owned by DTB Schematics', 'drywall-toolbox' ) ] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo '</div><div class="dtb-card"><div class="dtb-card__header"><h3 class="dtb-card__title">' . esc_html__( 'Schematic registration and linking', 'drywall-toolbox' ) . '</h3></div><div class="dtb-card__body">';
+	echo '<p>' . esc_html__( 'Register and link diagrams from uploads/2026/schematics. The Schematics module creates or updates authoritative records, page attachments, hotspot references, and exact product relationships.', 'drywall-toolbox' ) . '</p>';
+	echo '<p><a class="button button-secondary" href="' . esc_url( admin_url( 'admin.php?page=dtb-schematics' ) ) . '">' . esc_html__( 'Open Schematics control center', 'drywall-toolbox' ) . '</a></p></div></div>';
+	return (string) ob_get_clean();
+}
+
+/**
  * Resolve default uploads path.
  */
 function dtb_image_sync_page_default_path(): string {
@@ -620,6 +704,9 @@ function dtb_image_sync_page_resolve_upload_path( string $upload_path ): string 
 	}
 
 	if ( function_exists( 'dtb_image_sync_validate_upload_path' ) && ! dtb_image_sync_validate_upload_path( $upload_path ) ) {
+		return dtb_image_sync_page_default_path();
+	}
+	if ( '2026/schematics' === $upload_path && ( ! function_exists( 'dtb_schematics_can_manage' ) || ! dtb_schematics_can_manage() ) ) {
 		return dtb_image_sync_page_default_path();
 	}
 

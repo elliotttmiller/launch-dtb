@@ -41,6 +41,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) {
 		$request['batch_size'] = max( 1, min( DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE, (int) ( $args['batch_size'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE ) ) );
 		$request['resume'] = array_key_exists( 'resume', $args ) ? (bool) $args['resume'] : true;
+		$request['persist_state'] = array_key_exists( 'persist_state', $args ) ? (bool) $args['persist_state'] : ! $dry_run;
 		if ( $trusted_cli && isset( $args['upload_path'] ) ) {
 			$upload_path = trim( str_replace( '\\', '/', (string) $args['upload_path'] ), '/' );
 			if ( '' === $upload_path || false !== strpos( $upload_path, '..' ) || ! preg_match( '#^[A-Za-z0-9._/-]+$#', $upload_path ) ) {
@@ -48,7 +49,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 			}
 			$request['upload_path'] = $upload_path;
 		}
-		if ( $dry_run && $trusted_cli && isset( $args['state'] ) && is_array( $args['state'] ) ) {
+		if ( isset( $args['state'] ) && is_array( $args['state'] ) ) {
 			$request['state'] = $args['state'];
 		}
 	}
@@ -95,7 +96,7 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 			'dry_run'          => $dry_run,
 			'batch_size'       => $request['batch_size'],
 			'resume'           => $request['resume'],
-			'persist_state'    => ! $dry_run,
+			'persist_state'    => $request['persist_state'],
 			'retire_uncovered' => false,
 			'upload_path'      => $request['upload_path'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_UPLOAD_PATH,
 			'state'            => $request['state'] ?? [],
