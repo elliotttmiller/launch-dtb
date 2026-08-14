@@ -11,12 +11,33 @@ import { useSchematicDetail } from '../../hooks/useSchematicDetail';
 import { humanizeLabel } from '../../utils/string.js';
 import SchematicHeader from './SchematicHeader';
 import SchematicPageTabs from './SchematicPageTabs';
+import SchematicVariantPills, { sortVariants } from './SchematicVariantPills';
 import DiagramViewer from './DiagramViewer';
 import SchematicPartDialog from './SchematicPartDialog';
 
-export default function SchematicViewerPage({ schematicId, initialPage, onBack, onPageChange }) {
+export default function SchematicViewerPage({
+  schematicId,
+  initialPage,
+  onBack,
+  onPageChange,
+  catalogItems,
+  onSelectVariant,
+}) {
   const { status, detail, error } = useSchematicDetail(schematicId);
   const [activePartRef, setActivePartRef] = useState(null);
+
+  // Case B only: sibling schematic records sharing this record's family_id,
+  // each with its own populated variant_label. Case A (one shared record,
+  // empty variant_label) intentionally yields an empty list here — there is
+  // nothing to switch between within dtb-schematics data alone.
+  const variants = useMemo(() => {
+    const familyId = detail?.family_id;
+    if (!familyId || !Array.isArray(catalogItems)) return [];
+    const siblings = catalogItems.filter(
+      (item) => item.family_id === familyId && item.variant_label,
+    );
+    return siblings.length > 1 ? sortVariants(siblings) : [];
+  }, [detail, catalogItems]);
 
   const pages = useMemo(() => detail?.pages || [], [detail]);
   const activePage = useMemo(() => {
@@ -76,6 +97,12 @@ export default function SchematicViewerPage({ schematicId, initialPage, onBack, 
         brandName={humanizeLabel(detail.brand?.name, detail.brand?.id)}
         categoryName={humanizeLabel(detail.category?.name, detail.category?.id)}
         onBack={() => onBack(detail.brand?.id, detail.category?.id)}
+      />
+
+      <SchematicVariantPills
+        variants={variants}
+        activeSchematicId={schematicId}
+        onSelectVariant={onSelectVariant}
       />
 
       {pages.length === 0 ? (
