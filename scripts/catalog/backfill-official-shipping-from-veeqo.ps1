@@ -1,12 +1,14 @@
 [CmdletBinding()]
 param(
-    [string]$OfficialCatalog = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
+    [string]$OfficialCatalog = 'products\launch\official\dtb_official_catalog.csv',
     [string]$VeeqoImport = 'products\launch\official\veeqo_inventory_import.csv'
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'catalog-write-guard.ps1')
 $invariant = [System.Globalization.CultureInfo]::InvariantCulture
 $officialPath = (Resolve-Path -LiteralPath $OfficialCatalog).Path
+Assert-CanonicalCatalog -CatalogPath $officialPath
 $veeqoPath = (Resolve-Path -LiteralPath $VeeqoImport).Path
 $official = @(Import-Csv -LiteralPath $officialPath)
 $veeqo = @(Import-Csv -LiteralPath $veeqoPath)
@@ -66,7 +68,9 @@ foreach ($row in $official) {
 
 $csvLines = @($official | ConvertTo-Csv -NoTypeInformation -UseQuotes AsNeeded)
 $text = [string]::Join("`r`n", $csvLines) + "`r`n"
+$backupPath = New-CatalogRollbackSnapshot -CatalogPath $officialPath
 [System.IO.File]::WriteAllText($officialPath, $text, [System.Text.UTF8Encoding]::new($true))
+Assert-CanonicalCatalog -CatalogPath $officialPath
 
 [pscustomobject]@{
     catalog_rows = $official.Count
@@ -74,4 +78,5 @@ $text = [string]::Join("`r`n", $csvLines) + "`r`n"
     weight_fields_updated = $weightFields
     dimension_rows_updated = $dimensionRows
     dimension_fields_updated = $dimensionFields
+    rollback_snapshot = $backupPath
 }

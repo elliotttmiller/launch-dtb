@@ -107,7 +107,7 @@ def main() -> int:
     args = parser.parse_args()
 
     workspace = Path(__file__).resolve().parents[2]
-    official_path = workspace / "products/launch/official/dtb_woocommerce_official_catalog.csv"
+    official_path = workspace / "products/launch/official/dtb_official_catalog.csv"
     export_path = workspace / "products/launch/official/dtb_woocommerce_official_catalog_wc_export.csv"
     veeqo_path = workspace / "products/launch/official/veeqo_inventory_import.csv"
     media = workspace / "products/launch/media/media"

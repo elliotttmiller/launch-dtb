@@ -28,6 +28,10 @@ const DTB_SCHEMATIC_HOTSPOT_READ_MALFORMED_JSON    = 'malformed_json';
 const DTB_SCHEMATIC_HOTSPOT_READ_EMPTY             = 'empty_document';
 const DTB_SCHEMATIC_HOTSPOT_READ_UNRECOGNIZED_SHAPE = 'unrecognized_schema_shape';
 const DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS           = 'no_parts_found';
+const DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT     = 'resource_limit_exceeded';
+const DTB_SCHEMATIC_HOTSPOT_MAX_FILE_BYTES          = 5 * 1024 * 1024;
+const DTB_SCHEMATIC_HOTSPOT_MAX_PARTS               = 5000;
+const DTB_SCHEMATIC_HOTSPOT_MAX_OCCURRENCES         = 10000;
 
 /**
  * Resolve the repository root the same way
@@ -59,6 +63,10 @@ function dtb_schematics_hotspot_source_root(): string {
 function dtb_schematic_hotspot_read_file( string $absolute_path ): array {
 	if ( ! is_file( $absolute_path ) ) {
 		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_FILE_NOT_FOUND, null, 'File does not exist.' );
+	}
+	$file_size = filesize( $absolute_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_filesize
+	if ( false === $file_size || $file_size > DTB_SCHEMATIC_HOTSPOT_MAX_FILE_BYTES ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT, null, 'Dataset exceeds the supported file-size limit.' );
 	}
 
 	$raw = file_get_contents( $absolute_path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents
@@ -115,6 +123,9 @@ function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, b
 	$parts_catalog = $decoded['parts_catalog'] ?? [];
 	if ( ! is_array( $parts_catalog ) || empty( $parts_catalog ) ) {
 		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS, null, 'v2 document has an empty or missing "parts_catalog".', $bom_stripped, 'v2' );
+	}
+	if ( count( $parts_catalog ) > DTB_SCHEMATIC_HOTSPOT_MAX_PARTS || count( (array) ( $decoded['hotspots'] ?? [] ) ) > DTB_SCHEMATIC_HOTSPOT_MAX_OCCURRENCES ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT, null, 'Dataset exceeds the supported part or hotspot count.', $bom_stripped, 'v2' );
 	}
 
 	$normalized_parts = [];
@@ -181,6 +192,9 @@ function dtb_schematic_hotspot_normalize_legacy( array $decoded, string $checksu
 	$parts = $decoded['parts'];
 	if ( empty( $parts ) ) {
 		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_NO_PARTS, null, 'Legacy document has an empty or missing "parts" list.', $bom_stripped, 'legacy' );
+	}
+	if ( count( $parts ) > DTB_SCHEMATIC_HOTSPOT_MAX_PARTS ) {
+		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT, null, 'Dataset exceeds the supported part count.', $bom_stripped, 'legacy' );
 	}
 
 	$normalized_parts = [];

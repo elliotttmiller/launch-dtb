@@ -36,36 +36,46 @@ function dtb_register_cli_schematic_migrate_hotspots(): void {
  */
 function dtb_schematic_migrate_hotspots_cli_command( array $args, array $assoc_args ): void {
 	$dry_run = ! isset( $assoc_args['commit'] );
+	$per_page = max( 1, min( DTB_SCHEMATIC_OPERATION_MAX_SELECTED, (int) ( $assoc_args['per_page'] ?? 50 ) ) );
+	$canonical_id = sanitize_key( (string) ( $assoc_args['schematic'] ?? '' ) );
 
 	WP_CLI::log( sprintf( 'DTB Schematic Hotspot/Part Migration — %s.', $dry_run ? 'DRY RUN (no writes)' : 'COMMIT MODE' ) );
 
-	$result = dtb_schematic_migrate_hotspot_datasets(
-		[
-			'dry_run'           => $dry_run,
-			'per_page'          => (int) ( $assoc_args['per_page'] ?? 50 ),
-			'only_canonical_id' => (string) ( $assoc_args['schematic'] ?? '' ),
-		]
-	);
-
-	foreach ( $result['results'] as $row ) {
-		WP_CLI::log(
-			sprintf(
-				'  %-40s %-28s %s',
-				$row['canonical_id'],
-				$row['status'],
-				$row['detail']
-			)
-		);
+	if ( '' !== $canonical_id ) {
+		$record = dtb_schematic_record_repo_find_by_canonical_id( $canonical_id );
+		if ( ! $record ) {
+			WP_CLI::error( sprintf( 'No authoritative schematic record found for "%s".', $canonical_id ) );
+		}
+		$batches = [ [ $record->id ] ];
+	} else {
+		$batches = [];
+		$page    = 1;
+		do {
+			$query = dtb_schematic_record_repo_query( [ 'page' => $page, 'per_page' => $per_page ] );
+			if ( ! empty( $query['items'] ) ) {
+				$batches[] = array_map( static fn( $record ) => $record->id, $query['items'] );
+			}
+			$page++;
+		} while ( $page <= (int) $query['pages'] && $page <= DTB_SCHEMATIC_HOTSPOT_MIGRATE_MAX_PAGES );
 	}
 
-	WP_CLI::success(
-		sprintf(
-			'Complete. Examined %d, migrated %d, unchanged %d, skipped %d, failed %d.',
-			$result['examined'],
-			$result['migrated'],
-			$result['unchanged'],
-			$result['skipped'],
-			$result['failed']
-		)
-	);
+	$summary = [ 'examined' => 0, 'changed' => 0, 'failed' => 0 ];
+	foreach ( $batches as $ids ) {
+		$run = dtb_schematic_run_operation( [ 'kind' => DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, 'dry_run' => $dry_run, 'operator_id' => 0, 'schematic_ids' => $ids, 'trusted_cli' => true ] );
+		if ( is_wp_error( $run ) || 'completed' !== ( $run['status'] ?? '' ) ) {
+			WP_CLI::error( is_wp_error( $run ) ? $run->get_error_message() : (string) ( $run['error'] ?? 'Hotspot migration run failed.' ) );
+		}
+		$result = (array) ( $run['result'] ?? [] );
+		$summary['examined'] += (int) ( $result['examined'] ?? 0 );
+		$summary['changed']  += (int) ( $result['changed'] ?? 0 );
+		$summary['failed']   += (int) ( $result['failed'] ?? 0 );
+		foreach ( (array) ( $result['results'] ?? [] ) as $row ) {
+			WP_CLI::log( sprintf( '  %-40s %-28s %s', $row['canonical_id'] ?? (string) ( $row['schematic_id'] ?? '' ), $row['status'] ?? 'unknown', $row['detail'] ?? '' ) );
+		}
+	}
+
+	if ( $summary['failed'] > 0 ) {
+		WP_CLI::error( sprintf( 'Complete with failures. Examined %d, changed %d, failed %d.', $summary['examined'], $summary['changed'], $summary['failed'] ) );
+	}
+	WP_CLI::success( sprintf( 'Complete. Examined %d, changed %d, failed 0.', $summary['examined'], $summary['changed'] ) );
 }

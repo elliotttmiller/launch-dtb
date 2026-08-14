@@ -1,6 +1,6 @@
 name = "security_reviewer"
 description = "Read-only DTB security reviewer for REST/authentication/authorization, payments, webhooks, operator mutations, sensitive logging, replay, injection, ownership and secret exposure."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 

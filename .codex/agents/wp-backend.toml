@@ -1,6 +1,6 @@
 name = "wp_backend"
 description = "DTB WordPress/WooCommerce backend implementation agent for MU plugins, tracked theme integration, REST APIs, queues, admin tooling, and domain orchestration outside the specialized checkout contract."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """

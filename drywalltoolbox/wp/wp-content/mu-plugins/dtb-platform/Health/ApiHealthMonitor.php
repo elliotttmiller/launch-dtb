@@ -157,9 +157,9 @@ function dtb_ajax_run_health_checks() {
 			'group'   => 'DTB Custom',
 		],
 		[
-			'label'   => 'DTB Schematics Manifest',
+			'label'   => 'DTB Schematics Catalog',
 			'method'  => 'GET',
-			'url'     => rest_url( 'dtb/v1/schematics/media' ),
+			'url'     => rest_url( 'dtb/v1/schematics?per_page=1' ),
 			'auth'    => 'none',
 			'expects' => [ 200 ],
 			'group'   => 'DTB Custom',

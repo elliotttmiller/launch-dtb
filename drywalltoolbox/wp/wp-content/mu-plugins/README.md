@@ -33,13 +33,16 @@ navigation, submenu presentation, content offsets, core page surfaces, and
 responsive admin chrome. The regular-plugin directory is operator-managed and is
 not part of the tracked MU-plugin deployment mirror.
 
-DTB does not enqueue an independent admin stylesheet layer. At the end of
+DTB does not enqueue an independent admin theme layer. At the end of
 `admin_enqueue_scripts`, `dtb-platform/Admin/AdminAssets.php` removes styles
 registered from any `dtb-*` MU-plugin source and the legacy DTB font handle on
 every wp-admin screen. Functional DTB JavaScript remains available, but BrikPanel is
 the only runtime owner of typography, colors, spacing, surfaces, navigation,
-content offsets, and responsive admin chrome. Module markup may retain narrowly
-required state styles such as hidden controls or progress widths; it must not
+content offsets, and responsive admin chrome. The Schematics control center may
+enqueue its single scoped `dtb-schematics-workspace` stylesheet for content-grid,
+table, form, and responsive layout only; it inherits BrikPanel tokens and does not
+style global chrome. Other module markup may retain narrowly required state styles
+such as hidden controls or progress widths; it must not
 introduce a second admin theme or attach inline CSS to a WordPress core style
 handle.
 

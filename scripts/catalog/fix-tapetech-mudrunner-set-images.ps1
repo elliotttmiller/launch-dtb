@@ -1,10 +1,11 @@
 [CmdletBinding()]
 param(
-    [string] $CatalogPath = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
+    [string] $CatalogPath = 'products\launch\official\dtb_official_catalog.csv',
     [string] $MediaPath = 'products\launch\media\media\tapetech_ttcfs_m_01.webp'
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'catalog-write-guard.ps1')
 
 function ConvertTo-MinimalCsvField {
     param([AllowNull()] [object] $Value)
@@ -23,6 +24,7 @@ function Get-PrimaryImage {
 }
 
 $catalogResolved = (Resolve-Path -LiteralPath $CatalogPath).Path
+Assert-CanonicalCatalog -CatalogPath $catalogResolved
 $mediaResolved = (Resolve-Path -LiteralPath $MediaPath).Path
 if ([IO.Path]::GetFileName($mediaResolved) -cne 'tapetech_ttcfs_m_01.webp') {
     throw 'The normalized TTCFS-M set image must be named tapetech_ttcfs_m_01.webp.'
@@ -85,11 +87,13 @@ $csvText = ($outputLines -join "`n") + "`n"
 if ($usesCrLf) {
     $csvText = $csvText -replace "(?<!`r)`n", "`r`n"
 }
+$backupPath = New-CatalogRollbackSnapshot -CatalogPath $catalogResolved
 [IO.File]::WriteAllText($catalogResolved, $csvText, [Text.UTF8Encoding]::new($hasBom))
+Assert-CanonicalCatalog -CatalogPath $catalogResolved
 
 $reloaded = @(Import-Csv -LiteralPath $catalogResolved | Where-Object SKU -eq 'TTCFS-M')
 if ($reloaded.Count -ne 1 -or [string] $reloaded[0].Images -cne $expected) {
     throw 'TTCFS-M gallery validation failed after writing the official catalog.'
 }
 
-Write-Output "sku=TTCFS-M changed=$changed gallery_images=$($gallery.Count) bom=$hasBom crlf=$usesCrLf"
+Write-Output "sku=TTCFS-M changed=$changed gallery_images=$($gallery.Count) bom=$hasBom crlf=$usesCrLf backup=$backupPath"

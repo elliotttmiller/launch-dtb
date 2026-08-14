@@ -1,9 +1,10 @@
 [CmdletBinding()]
 param(
-    [string] $CatalogPath = 'products\launch\official\dtb_woocommerce_official_catalog.csv'
+    [string] $CatalogPath = 'products\launch\official\dtb_official_catalog.csv'
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'catalog-write-guard.ps1')
 
 $brandSegments = @(
     'Columbia Tools',
@@ -251,6 +252,7 @@ function ConvertTo-MinimalCsvField {
 }
 
 $resolvedPath = (Resolve-Path -LiteralPath $CatalogPath).Path
+Assert-CanonicalCatalog -CatalogPath $resolvedPath
 $bytes = [System.IO.File]::ReadAllBytes($resolvedPath)
 $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
 $text = [System.Text.Encoding]::UTF8.GetString($bytes, $(if ($hasBom) { 3 } else { 0 }), $bytes.Length - $(if ($hasBom) { 3 } else { 0 }))
@@ -309,7 +311,9 @@ if ($usesCrLf) {
 }
 
 $utf8 = [System.Text.UTF8Encoding]::new($hasBom)
+$backupPath = New-CatalogRollbackSnapshot -CatalogPath $resolvedPath
 [System.IO.File]::WriteAllText($resolvedPath, $csvText, $utf8)
+Assert-CanonicalCatalog -CatalogPath $resolvedPath
 
 $reloaded = @(Import-Csv -LiteralPath $resolvedPath)
 if ($reloaded.Count -ne $rows.Count) {

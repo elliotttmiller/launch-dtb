@@ -34,6 +34,7 @@ dtb_module_require( 'dtb-schematics/Infrastructure/SchematicReconciliationStateS
 dtb_module_require( 'dtb-schematics/Infrastructure/SchematicHotspotDatasetReader.php' );
 dtb_module_require( 'dtb-schematics/Infrastructure/SchematicHotspotDatasetRepository.php' );
 dtb_module_require( 'dtb-schematics/Infrastructure/SchematicActivitySchemaInstaller.php' );
+dtb_module_require( 'dtb-schematics/Infrastructure/SchematicOperationRunStore.php' );
 
 // Validation and services.
 dtb_module_require( 'dtb-schematics/Validation/SchematicBrandValidator.php' );
@@ -52,26 +53,14 @@ dtb_module_require( 'dtb-schematics/Application/ResolveSchematicPartOccurrences.
 dtb_module_require( 'dtb-schematics/Application/MigrateSchematicHotspotDatasets.php' );
 dtb_module_require( 'dtb-schematics/Application/MigrateSchematicHotspotDatasetsCli.php' );
 dtb_module_require( 'dtb-schematics/Application/RecordSchematicActivity.php' );
+dtb_module_require( 'dtb-schematics/Application/RunSchematicOperation.php' );
 
 // REST.
 dtb_module_require( 'dtb-schematics/Rest/SchematicPublicApiController.php' );
 
-// Admin.
-dtb_module_require( 'dtb-schematics/Admin/SchematicAdminMenu.php' );
-
-// Admin — Schematics Pipeline Suite (Phase 6). SuiteShell.php defines the
-// `dtb_schematics_render_page()` callback registered by
-// dtb-platform/Admin/ToolLibraryMenu.php for the `dtb-schematics` page slug.
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/SuiteMetrics.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/SuiteShell.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/SuiteActions.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/OverviewScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/InventoryScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/DetailScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/AssetsScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/HotspotDataScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/ProductRelationshipsScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/ReconciliationScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/PublicationScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/ActivityScreen.php' );
-dtb_module_require( 'dtb-schematics/Admin/PipelineSuite/ConfigurationScreen.php' );
+// Admin control center. Rendering stays transport-only; every mutation
+// delegates to the application services loaded above.
+if ( dtb_is_admin_or_ajax_request() ) {
+	dtb_module_require( 'dtb-schematics/Admin/SchematicAdminMenu.php' );
+	dtb_module_require( 'dtb-schematics/Admin/Workspace/Workspace.php' );
+}

@@ -5,7 +5,7 @@
  * The `dtb_schematic` CPT is the sole authoritative existence signal for a
  * schematic. It is intentionally private (not public, not shown in the
  * default WP admin UI, not indexed/rewritten) — all operator interaction
- * happens through the Schematics Pipeline Suite (later phase) and all
+ * happens through the Schematics and Hotspots control center and all
  * customer interaction happens through the public REST API (later phase),
  * never through this post type directly.
  *

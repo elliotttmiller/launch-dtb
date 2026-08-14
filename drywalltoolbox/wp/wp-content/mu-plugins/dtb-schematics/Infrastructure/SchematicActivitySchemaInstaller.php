@@ -3,7 +3,7 @@
  * DTB Schematics — SchematicActivitySchemaInstaller
  *
  * Creates `wp_dtb_schematic_activity`, the bounded/paginated operation-history
- * table backing the Pipeline Suite's "Activity and Operations" screen and the
+ * table backing the control center's operation history and the
  * Overview screen's "recent operations" feed. This is the simplest
  * WordPress-compatible mechanism for recording pipeline operations (source
  * scans, reconciliation runs, publication/retirement, product-projection

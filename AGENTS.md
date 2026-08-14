@@ -375,7 +375,7 @@ Avoid direct writes to WooCommerce internals, mutable names/slugs as cross-domai
 The `dtb_schematic` CPT domain record (Infrastructure/SchematicRecordRepository.php) is the sole authority for schematic existence, lifecycle, and page ownership — not WordPress attachment flags. See `docs/architecture/schematics-platform.md` for the full architecture.
 
 ```text
-canonical source package (products/launch/media/schematics/)
+runtime source (SiteGround wp-content/uploads/2026/schematics/; local repository package for verification)
   -> reconciliation engine (Application/ReconcileSchematicSource.php)
   -> dtb_schematic domain record + pages (Infrastructure/SchematicRecordRepository.php)
   -> WordPress attachments (projection, not authority)
@@ -385,6 +385,8 @@ canonical source package (products/launch/media/schematics/)
 ```
 
 The frontend does not own production attachment binaries or decide which schematics/pages/products exist — it consumes the authoritative public API. `dtb-schematics` owns registration, reconciliation, and API behavior. Part resolution uses explicit WooCommerce product/variation IDs, exact SKU, or exact brand+MPN — never fuzzy matching at request time.
+
+The wp-admin Schematics and Hotspots control center is a synchronization and linking surface, not a diagram or hotspot editor. SiteGround `wp-content/uploads/2026/schematics/` is the primary runtime source; other upload years are fallback candidates. Admin and reconciliation CLI commits, including lifecycle/public-projection mutations, use `Application/RunSchematicOperation.php`, bounded run identity/results, and one commit lease. Dry-run reconciliation uses isolated cursor state and must not mutate shared progress. Ordinary reconciliation never retires uncovered records implicitly.
 
 ## 15. Repair workflow
 

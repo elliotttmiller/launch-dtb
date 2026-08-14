@@ -37,7 +37,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'title'      => __( 'Schematics', 'drywall-toolbox' ),
 		'menu_title' => __( 'Schematics', 'drywall-toolbox' ),
 		'capability' => 'dtb_manage_schematics',
-		'callback'   => 'dtb_schematics_render_page',
+		'callback'   => 'dtb_schematics_workspace_render_page',
 		'position'   => 10,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',

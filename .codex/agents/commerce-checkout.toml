@@ -1,6 +1,6 @@
 name = "commerce_checkout"
 description = "DTB checkout/payment contract specialist. Use proactively for Checkout Block, Stripe/provider behavior, checkout presentation, order identity metadata, captured-payment gating, refunds, shipping/tax checkout policy, or payment-related order transitions."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """

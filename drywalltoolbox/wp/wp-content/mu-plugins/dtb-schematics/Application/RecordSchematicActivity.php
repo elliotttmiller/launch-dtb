@@ -2,18 +2,15 @@
 /**
  * DTB Schematics — RecordSchematicActivity (application service).
  *
- * The one operation-history authority for the Schematics Pipeline Suite.
- * Every Suite-triggered operation (source scan, reconciliation run,
+ * The one operation-history authority for the Schematics control center.
+ * Every control-center operation (source scan, reconciliation run,
  * attachment registration, hotspot dataset association, product-projection
  * refresh, publication, retirement, public/frontend projection refresh)
  * should call dtb_schematic_activity_log() once it has a structured result.
  *
- * This does not attempt to retroactively capture operations performed
- * outside the Suite (e.g. the standalone reconciliation/migration CLI
- * scripts) — those still run and still write to the authoritative domain
- * records via Application/ManageSchematicRecord.php, but are not yet logged
- * here. See the Activity screen's empty-state copy and the Phase 6 handoff
- * report for this known boundary.
+ * Reconciliation CLI runs share RunSchematicOperation.php and are recorded
+ * here as well. Historical operations performed before that shared boundary
+ * are not backfilled.
  *
  * @package drywall-toolbox
  */

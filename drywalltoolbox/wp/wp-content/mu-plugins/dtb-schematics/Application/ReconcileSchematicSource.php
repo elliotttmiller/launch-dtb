@@ -44,6 +44,10 @@ const DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE      = 100;
  *     @type int    $batch_size  Rows processed this call, capped at DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE.
  *     @type bool   $resume      Default true. When false, restarts the pass from row 0.
  *     @type string $upload_path Relative wp-content/uploads path schematic binaries are expected to live under.
+ *     @type bool   $retire_uncovered Explicitly allow retirement after a reviewed full pass. Defaults false.
+ *     @type bool   $persist_state Whether resumable cursor state may be read/written. Defaults true.
+ *     @type array  $state Isolated cursor state for a non-persistent run. Defaults to a fresh pass.
+ *     @type callable|null $lease_heartbeat Owner-verified commit lease renewal callback.
  * }
  * @return array Structured result report (see dtb_schematic_reconcile_empty_report()).
  */
@@ -51,7 +55,10 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 	$dry_run     = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
 	$batch_size  = max( 1, min( DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE, (int) ( $args['batch_size'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE ) ) );
 	$resume      = array_key_exists( 'resume', $args ) ? (bool) $args['resume'] : true;
+	$retire_uncovered = ! empty( $args['retire_uncovered'] );
+	$persist_state = array_key_exists( 'persist_state', $args ) ? (bool) $args['persist_state'] : true;
 	$upload_path = trim( (string) ( $args['upload_path'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_UPLOAD_PATH ), '/' );
+	$lease_heartbeat = isset( $args['lease_heartbeat'] ) && is_callable( $args['lease_heartbeat'] ) ? $args['lease_heartbeat'] : null;
 
 	$report = dtb_schematic_reconcile_empty_report( $dry_run );
 
@@ -71,7 +78,13 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 	$resolved_all  = dtb_schematic_reconcile_resolve_all_identities( $all_rows );
 	$duplicate_keys = dtb_schematic_reconcile_find_duplicate_keys( $resolved_all );
 
-	$state = $resume ? dtb_schematic_reconcile_state_get() : dtb_schematic_reconcile_state_start_pass();
+	if ( $persist_state ) {
+		$state = $resume ? dtb_schematic_reconcile_state_get() : dtb_schematic_reconcile_state_start_pass();
+	} else {
+		// A dry-run must not read, advance, reset, or otherwise perturb the
+		// shared commit cursor. Its cursor exists only in this request/result.
+		$state = dtb_schematic_reconcile_isolated_state( $args['state'] ?? [] );
+	}
 	$cursor = min( (int) $state['cursor'], count( $all_rows ) );
 
 	$batch = array_slice( $resolved_all, $cursor, $batch_size, true );
@@ -83,6 +96,13 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 	$seen_canonical_ids = $state['seen_canonical_ids'];
 
 	foreach ( $batch as $index => $resolved ) {
+		if ( $lease_heartbeat ) {
+			$renewed = $lease_heartbeat();
+			if ( is_wp_error( $renewed ) ) {
+				$report['fatal_error'] = $renewed->get_error_message();
+				return $report;
+			}
+		}
 		$row = $all_rows[ $index ];
 		$asset_report = dtb_schematic_reconcile_process_row(
 			$row,
@@ -124,17 +144,28 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 	$report['is_last_batch'] = $is_last_batch;
 	$report['next_offset']  = $is_last_batch ? null : $new_cursor;
 
-	// Retirement sweep only runs on the batch that completes a full pass, and
-	// only in commit mode, and only when WordPress context is available.
-	if ( $is_last_batch && ! $dry_run && $wp_context ) {
+	// Retirement is opt-in only after a separately reviewed full-pass policy;
+	// ordinary reconciliation never changes lifecycle state by omission.
+	if ( $is_last_batch && ! $dry_run && $wp_context && $retire_uncovered ) {
 		$report['retired'] = dtb_schematic_reconcile_retire_uncovered( array_values( array_unique( $seen_canonical_ids ) ) );
 	}
 
 	if ( ! $dry_run && $wp_context ) {
+		if ( $lease_heartbeat ) {
+			$renewed = $lease_heartbeat();
+			if ( is_wp_error( $renewed ) ) {
+				$report['fatal_error'] = $renewed->get_error_message();
+				return $report;
+			}
+		}
 		dtb_schematics_invalidate_domain_cache();
 	}
 
-	dtb_schematic_reconcile_state_save( $state );
+	if ( $persist_state ) {
+		dtb_schematic_reconcile_state_save( $state );
+	} else {
+		$report['next_state'] = dtb_schematic_reconcile_isolated_state( $state );
+	}
 
 	return $report;
 }
@@ -249,6 +280,11 @@ function dtb_schematic_reconcile_process_row( array $row, array $resolved, array
 		'changed'         => false,
 		'skipped'         => false,
 	];
+	if ( ! dtb_schematics_source_filename_is_safe( (string) ( $row['filename'] ?? '' ) ) ) {
+		$asset['notes'][] = 'Source filenames must be a single supported image filename without path separators or control bytes.';
+		$asset['skipped'] = true;
+		return $asset;
+	}
 
 	if ( null !== $resolved['retired_reason'] ) {
 		$asset['disposition'] = DTB_Schematic_Asset_Disposition::RETIRED;
@@ -646,9 +682,9 @@ function dtb_schematic_reconcile_locate_hotspot_dataset_file( string $canonical_
  * Read-only against WooCommerce (wc_get_product_id_by_sku); never creates or
  * modifies WooCommerce products. Returns true if the stored list changed.
  */
-function dtb_schematic_reconcile_refresh_linked_products( DTB_Schematic_Record_Entity $record ): bool {
+function dtb_schematic_reconcile_linked_product_ids( DTB_Schematic_Record_Entity $record ): array {
 	if ( ! function_exists( 'wc_get_product_id_by_sku' ) ) {
-		return false;
+		return [];
 	}
 
 	$product_ids = [];
@@ -664,7 +700,33 @@ function dtb_schematic_reconcile_refresh_linked_products( DTB_Schematic_Record_E
 	$product_ids = array_values( array_unique( $product_ids ) );
 	sort( $product_ids );
 
-	$current = $record->linked_products;
+	return $product_ids;
+}
+
+/**
+ * Normalize non-persistent cursor state for a dry-run. This deliberately
+ * does not delegate to the option-backed state store.
+ */
+function dtb_schematic_reconcile_isolated_state( $state ): array {
+	$state = is_array( $state ) ? $state : [];
+	$seen  = array_slice(
+		array_values( array_unique( array_filter( array_map( 'sanitize_key', (array) ( $state['seen_canonical_ids'] ?? [] ) ) ) ) ),
+		0,
+		5000
+	);
+	return [
+		'cursor'             => max( 0, (int) ( $state['cursor'] ?? 0 ) ),
+		'pass_started_at'    => '',
+		'seen_canonical_ids' => $seen,
+		'last_run_at'        => '',
+		'last_run_mode'      => 'dry_run',
+		'totals'             => [],
+	];
+}
+
+function dtb_schematic_reconcile_refresh_linked_products( DTB_Schematic_Record_Entity $record ): bool {
+	$product_ids = dtb_schematic_reconcile_linked_product_ids( $record );
+	$current     = $record->linked_products;
 	sort( $current );
 
 	if ( $current === $product_ids ) {
@@ -687,11 +749,21 @@ function dtb_schematic_reconcile_refresh_linked_products( DTB_Schematic_Record_E
  */
 function dtb_schematic_reconcile_create_attachment_from_uploads( string $relative_file, string $canonical_id, int $page ) {
 	$uploads  = wp_upload_dir();
+	$relative_file = trim( str_replace( '\\', '/', $relative_file ), '/' );
+	if ( '' === $relative_file || false !== strpos( $relative_file, '..' ) || ! preg_match( '#^[A-Za-z0-9._/-]+$#', $relative_file ) ) {
+		return new WP_Error( 'dtb_schematic_uploads_path_invalid', 'The attachment source must be a normalized relative uploads path.' );
+	}
 	$abs_path = trailingslashit( $uploads['basedir'] ) . $relative_file;
 
 	if ( ! is_file( $abs_path ) ) {
 		return new WP_Error( 'dtb_schematic_uploads_binary_not_present', sprintf( 'No file at uploads path "%s" — cannot create an attachment without the binary already present in wp-content/uploads.', $relative_file ) );
 	}
+	$uploads_root = realpath( (string) $uploads['basedir'] );
+	$source_path  = realpath( $abs_path );
+	if ( false === $uploads_root || false === $source_path || 0 !== strpos( str_replace( '\\', '/', $source_path ), trailingslashit( str_replace( '\\', '/', $uploads_root ) ) ) ) {
+		return new WP_Error( 'dtb_schematic_uploads_path_outside_root', 'The attachment source resolved outside the WordPress uploads directory.' );
+	}
+	$abs_path = $source_path;
 
 	$filetype = wp_check_filetype( basename( $abs_path ), null );
 	if ( empty( $filetype['type'] ) || 0 !== strpos( (string) $filetype['type'], 'image/' ) ) {

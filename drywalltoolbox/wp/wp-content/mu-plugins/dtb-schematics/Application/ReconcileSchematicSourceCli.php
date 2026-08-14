@@ -2,7 +2,7 @@
 /**
  * DTB Schematics — Phase 3 reconciliation operational entry point.
  *
- * Registers a WP-CLI command over Application/ReconcileSchematicSource.php,
+ * Registers a WP-CLI command over Application/RunSchematicOperation.php,
  * following the same registration pattern already established in
  * dtb-catalog-platform/Admin/MetaBackfillTool.php (`wp dtb catalog backfill-meta`).
  *
@@ -10,14 +10,12 @@
  *   wp dtb schematics reconcile                      # dry run, one batch, resumes from cursor
  *   wp dtb schematics reconcile --commit              # writes, one batch
  *   wp dtb schematics reconcile --commit --all        # writes, runs every remaining batch to completion
- *   wp dtb schematics reconcile --restart              # ignore the saved cursor, start a fresh pass
+ *   wp dtb schematics reconcile --restart              # commit: ignore saved cursor; dry-runs are always isolated
  *   wp dtb schematics reconcile --batch=50 --upload-path=2026/schematics
  *
- * There is no admin-UI or REST entry point for this operation — it is
- * intentionally CLI-only for Phase 3. A future Pipeline Suite "Reconcile"
- * screen (spec Phase 6) may call the same
- * Application/ReconcileSchematicSource.php engine through an admin-capability
- * gated AJAX/REST action; that transport does not exist yet.
+ * CLI and wp-admin both use the same bounded operation service. That service
+ * owns commit leases, durable run results, cursor isolation for dry-runs,
+ * and the no-implicit-retirement policy.
  *
  * @package drywall-toolbox
  */
@@ -40,7 +38,7 @@ function dtb_register_cli_schematic_reconcile(): void {
  * @param array $assoc_args {
  *     @type bool   $commit       Write mode. Omitted/absent = dry run (default).
  *     @type bool   $all          Run every remaining batch to completion instead of just one.
- *     @type bool   $restart      Ignore the saved cursor and start a fresh full pass.
+ *     @type bool   $restart      Commit mode: ignore the saved cursor and start a fresh pass. Dry-runs always start isolated.
  *     @type int    $batch        Rows per batch (default DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE).
  *     @type string $upload_path  Relative wp-content/uploads path (default "2026/schematics").
  *     @type int    $max_batches  Safety cap on batches run in one invocation when --all is passed (default 50).
@@ -61,10 +59,6 @@ function dtb_schematic_reconcile_cli_command( array $args, array $assoc_args ): 
 		$restart ? 'Restarting pass from row 0.' : 'Resuming from saved cursor (if any).'
 	) );
 
-	if ( $restart ) {
-		dtb_schematic_reconcile_state_start_pass();
-	}
-
 	$totals = [
 		'examined'   => 0,
 		'unchanged'  => 0,
@@ -76,22 +70,35 @@ function dtb_schematic_reconcile_cli_command( array $args, array $assoc_args ): 
 
 	$batches_run = 0;
 	$resume      = ! $restart;
+	$isolated_state = [];
 
 	do {
-		$result = dtb_schematic_reconcile_source(
+		$run = dtb_schematic_run_operation(
 			[
+				'kind'        => DTB_SCHEMATIC_OPERATION_RECONCILE,
 				'dry_run'     => $dry_run,
+				'operator_id' => 0,
 				'batch_size'  => $batch_size,
 				'resume'      => $resume,
 				'upload_path' => $upload_path,
+				'trusted_cli' => true,
+				'state'       => $isolated_state,
 			]
 		);
+		if ( is_wp_error( $run ) ) {
+			WP_CLI::error( 'Reconciliation could not start: ' . $run->get_error_message() );
+			return;
+		}
+		$result = (array) ( $run['result'] ?? [] );
 		$resume = true; // Subsequent iterations always resume from the cursor this call just advanced.
 		$batches_run++;
 
-		if ( ! empty( $result['fatal_error'] ) ) {
-			WP_CLI::error( 'Reconciliation could not run: ' . $result['fatal_error'] );
+		if ( 'completed' !== $run['status'] || ! empty( $result['fatal_error'] ) ) {
+			WP_CLI::error( 'Reconciliation could not run: ' . ( $run['error'] ?: ( $result['fatal_error'] ?? 'Unknown operation failure.' ) ) );
 			return;
+		}
+		if ( $dry_run ) {
+			$isolated_state = (array) ( $result['next_state'] ?? [] );
 		}
 
 		foreach ( [ 'examined', 'unchanged', 'changed', 'skipped', 'unresolved', 'retired' ] as $key ) {
@@ -123,18 +130,13 @@ function dtb_schematic_reconcile_cli_command( array $args, array $assoc_args ): 
 		WP_CLI::warning( sprintf( 'Stopped after the --max-batches cap (%d) with rows remaining. Run the command again to continue.', $max_batches ) );
 	}
 
-	if ( $totals['retired'] > 0 ) {
-		WP_CLI::log( sprintf( '  Retired %d schematic record(s) with no covering source row in this pass.', $totals['retired'] ) );
-	}
-
 	WP_CLI::success( sprintf(
-		'Complete (%d batch(es)). Examined %d, unchanged %d, changed %d, skipped %d, unresolved %d, retired %d.',
+		'Complete (%d batch(es)). Examined %d, unchanged %d, changed %d, skipped %d, unresolved %d. No retirement sweep was requested.',
 		$batches_run,
 		$totals['examined'],
 		$totals['unchanged'],
 		$totals['changed'],
 		$totals['skipped'],
-		$totals['unresolved'],
-		$totals['retired']
+		$totals['unresolved']
 	) );
 }

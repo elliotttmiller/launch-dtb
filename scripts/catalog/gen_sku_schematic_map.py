@@ -87,7 +87,7 @@ for key, row in csv_sku_rows.items():
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from normalize_schematic_filenames import PREFERRED_SKU  # noqa: E402
 
-official_catalog_path = f"{REPO}/products/launch/official/dtb_woocommerce_official_catalog.csv"
+official_catalog_path = f"{REPO}/products/launch/official/dtb_official_catalog.csv"
 official_skus = set()
 with open(official_catalog_path, encoding="utf-8-sig", newline="") as f:
     for row in csv.DictReader(f):

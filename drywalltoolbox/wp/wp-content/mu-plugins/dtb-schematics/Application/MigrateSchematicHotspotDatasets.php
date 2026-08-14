@@ -129,10 +129,24 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 		return $base;
 	}
 
+	$relative_reference = str_replace( '\\', '/', trim( $relative_reference ) );
+	if ( ! preg_match( '#^frontend/public/brands/(?:[A-Za-z0-9._-]+/)+schematic_data\.json$#', $relative_reference ) ) {
+		$base['status'] = 'failed';
+		$base['detail'] = 'Hotspot dataset reference is outside the supported frontend brand dataset path.';
+		return $base;
+	}
 	$base['source_file'] = $relative_reference;
 
-	$repo_root     = dtb_schematics_repo_root();
-	$absolute_path = '' !== $repo_root ? trailingslashit( $repo_root ) . ltrim( $relative_reference, '/' ) : '';
+	$repo_root       = dtb_schematics_repo_root();
+	$source_root     = '' !== $repo_root ? realpath( trailingslashit( $repo_root ) . 'frontend/public/brands' ) : false;
+	$absolute_path   = '' !== $repo_root ? realpath( trailingslashit( $repo_root ) . $relative_reference ) : false;
+	$normalized_root = false !== $source_root ? trailingslashit( str_replace( '\\', '/', $source_root ) ) : '';
+	$normalized_path = false !== $absolute_path ? str_replace( '\\', '/', $absolute_path ) : '';
+	if ( '' === $normalized_root || '' === $normalized_path || 0 !== strpos( $normalized_path, $normalized_root ) ) {
+		$base['status'] = false === $absolute_path ? 'source_file_missing' : 'failed';
+		$base['detail'] = false === $absolute_path ? 'Hotspot dataset source file does not exist.' : 'Hotspot dataset source resolved outside the supported frontend brand directory.';
+		return $base;
+	}
 
 	$read = dtb_schematic_hotspot_read_file( $absolute_path );
 	if ( DTB_SCHEMATIC_HOTSPOT_READ_OK !== $read['status'] ) {
@@ -177,27 +191,38 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 		return $base;
 	}
 
-	dtb_schematic_hotspot_dataset_repo_save( $record->id, $dataset );
-
-	$assoc_result = dtb_schematic_associate_hotspot_dataset(
+	$record_update = dtb_schematic_update(
 		$record->id,
 		[
-			'type'           => 'frontend_json',
-			'reference'      => $relative_reference,
-			'schema_version' => $dataset['schema_version'],
-			'checksum'       => $dataset['checksum'],
+			'hotspot_dataset' => [
+				'type'           => 'frontend_json',
+				'reference'      => $relative_reference,
+				'schema_version' => $dataset['schema_version'],
+				'checksum'       => $dataset['checksum'],
+			],
+			'parts'           => $parts_resolved,
 		]
 	);
-	if ( is_wp_error( $assoc_result ) ) {
+	if ( is_wp_error( $record_update ) ) {
 		$base['status'] = 'failed';
-		$base['detail'] = $assoc_result->get_error_message();
+		$base['detail'] = $record_update->get_error_message();
 		return $base;
 	}
 
-	$update_result = dtb_schematic_update( $record->id, [ 'parts' => $parts_resolved ] );
-	if ( is_wp_error( $update_result ) ) {
+	$dataset_saved = dtb_schematic_hotspot_dataset_repo_save( $record->id, $dataset );
+	$stored_dataset = dtb_schematic_hotspot_dataset_repo_get( $record->id );
+	if ( ! $dataset_saved && ( $stored_dataset['checksum'] ?? '' ) !== $dataset['checksum'] ) {
+		$rollback = dtb_schematic_update(
+			$record->id,
+			[
+				'hotspot_dataset' => $record->hotspot_dataset,
+				'parts'           => $record->parts,
+			]
+		);
 		$base['status'] = 'failed';
-		$base['detail'] = $update_result->get_error_message();
+		$base['detail'] = is_wp_error( $rollback )
+			? 'Normalized dataset persistence failed and the record projection could not be restored: ' . $rollback->get_error_message()
+			: 'Normalized dataset persistence failed; the record projection was restored.';
 		return $base;
 	}
 

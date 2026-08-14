@@ -1,6 +1,6 @@
 {
-  "confirmed_match_rate": 0.32,
-  "confirmed_matches": 393,
+  "confirmed_match_rate": 0.316,
+  "confirmed_matches": 388,
   "contract": {
     "catalog_identifiers": [
       "SKU",
@@ -25,17 +25,17 @@
   "interpretation": "Only matched_identifier and approved_manual_match are confirmed. Name-based statuses are mappable review candidates and must not rewrite protected identifiers without review.",
   "launch_catalog": "C:\\Users\\Elliott\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.csv",
   "match_status": {
-    "ambiguous_identifier": 5,
+    "ambiguous_identifier": 7,
     "approved_manual_match": 1,
     "exact_name_review": 16,
     "likely_name_review": 3,
-    "matched_identifier": 392,
+    "matched_identifier": 387,
     "possible_name_review": 77,
-    "unmatched": 734
+    "unmatched": 737
   },
-  "review_candidates": 101,
+  "review_candidates": 103,
   "schema_version": 2,
   "supplier_catalog": "C:\\Users\\Elliott\\launch-dtb\\docs\\reference\\data\\TSW\\TSW Product Data - DTB Brands.csv",
   "supplier_rows": 1228,
-  "unmatched": 734
+  "unmatched": 737
 }

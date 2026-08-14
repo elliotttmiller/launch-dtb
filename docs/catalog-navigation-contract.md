@@ -94,6 +94,6 @@ The catalog facets and product listing endpoints remain intentional public store
 
 ## Operational requirements
 
-Catalog imports must preserve the canonical category paths in `products/launch/official/dtb_woocommerce_official_catalog.csv`. Brand names belong in the WooCommerce Brands field and must not be inserted as intermediate product-category terms.
+Catalog imports must preserve the canonical category paths in `products/launch/official/dtb_official_catalog.csv`. Brand names belong in the WooCommerce Brands field and must not be inserted as intermediate product-category terms.
 
 After catalog/category imports or taxonomy changes, invalidate any server/object cache used by the catalog platform and deploy a frontend bundle using the matching facets contract. Do not hand-maintain primary navigation labels independently of WooCommerce taxonomy.

@@ -1,6 +1,6 @@
 name = "catalog_data"
 description = "DTB canonical catalog-data specialist for products/, taxonomy, compatibility, schematics/media references, protected identifiers, and deterministic catalog generators."
-model = "gpt-5.6"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """

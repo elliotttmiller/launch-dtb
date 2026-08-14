@@ -1,11 +1,12 @@
 [CmdletBinding()]
 param(
-    [string] $OfficialCatalogPath = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
+    [string] $OfficialCatalogPath = 'products\launch\official\dtb_official_catalog.csv',
     [string] $WooExportPath = 'products\launch\official\dtb_woocommerce_official_catalog_wc_export.csv',
     [bool] $PreserveOfficialWhenExportBlank = $true
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'catalog-write-guard.ps1')
 
 function ConvertTo-MinimalCsvField {
     param([AllowNull()] [object] $Value)
@@ -18,6 +19,7 @@ function ConvertTo-MinimalCsvField {
 }
 
 $officialResolved = (Resolve-Path -LiteralPath $OfficialCatalogPath).Path
+Assert-CanonicalCatalog -CatalogPath $officialResolved
 $exportResolved = (Resolve-Path -LiteralPath $WooExportPath).Path
 
 $bytes = [System.IO.File]::ReadAllBytes($officialResolved)
@@ -95,7 +97,9 @@ $csvText = ($outputLines -join "`n") + "`n"
 if ($usesCrLf) {
     $csvText = $csvText -replace "(?<!`r)`n", "`r`n"
 }
+$backupPath = New-CatalogRollbackSnapshot -CatalogPath $officialResolved
 [System.IO.File]::WriteAllText($officialResolved, $csvText, [System.Text.UTF8Encoding]::new($hasBom))
+Assert-CanonicalCatalog -CatalogPath $officialResolved
 
 $reloaded = @(Import-Csv -LiteralPath $officialResolved)
 if ($reloaded.Count -ne $officialRows.Count) {

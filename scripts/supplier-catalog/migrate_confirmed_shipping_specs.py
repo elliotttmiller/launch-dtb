@@ -8,6 +8,7 @@ import csv
 import hashlib
 import json
 import os
+import sys
 import tempfile
 from collections import Counter
 from decimal import Decimal, InvalidOperation
@@ -15,7 +16,15 @@ from pathlib import Path
 
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent / "catalog"))
+from official_catalog_schema import (  # noqa: E402
+    CatalogValidationError,
+    create_catalog_backup,
+    validate_catalog,
+)
+
 DEFAULT_CATALOG = HERE.parents[1] / "products" / "launch" / "official" / "dtb_official_catalog.csv"
+DEFAULT_GAPS = DEFAULT_CATALOG.with_name("dtb_official_catalog.include-gaps.json")
 DEFAULT_CONFIRMED = HERE / "results" / "shipping" / "temp-tsw-launch-confirmed-products.csv"
 DEFAULT_REPORT = HERE / "results" / "shipping" / "tsw-shipping-spec-migration-report.json"
 CONFIRMED_STATUSES = {"matched_identifier", "approved_manual_match"}
@@ -164,6 +173,7 @@ def main() -> int:
     args = parser.parse_args()
 
     catalog_path = args.catalog.resolve()
+    validate_catalog(catalog_path, DEFAULT_GAPS)
     confirmed_path = args.confirmed.resolve()
     report_path = args.report.resolve()
     if catalog_path in {confirmed_path, report_path} or confirmed_path == report_path:
@@ -209,7 +219,11 @@ def main() -> int:
             changed_skus.append(sku)
 
     if args.apply:
+        backup_path = create_catalog_backup(catalog_path)
         write_csv_atomic(catalog_path, fields, rows)
+        validate_catalog(catalog_path, DEFAULT_GAPS)
+    else:
+        backup_path = None
     after_sha256 = sha256(catalog_path)
     report = {
         "schema_version": 1,
@@ -226,6 +240,7 @@ def main() -> int:
         "changed_catalog_skus": changed_skus,
         "catalog_sha256_before": before_sha256,
         "catalog_sha256_after": after_sha256,
+        "rollback_snapshot": str(backup_path) if backup_path else None,
     }
     write_report_atomic(report_path, report)
     print(
@@ -238,6 +253,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except MigrationError as exc:
+    except (MigrationError, CatalogValidationError) as exc:
         print(f"ERROR: {exc}")
         raise SystemExit(1)

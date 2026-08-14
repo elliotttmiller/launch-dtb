@@ -39,6 +39,7 @@
 defined( 'ABSPATH' ) || exit;
 
 const DTB_SCHEMATIC_SOURCE_MANIFEST_FILENAME = 'schematic_source_manifest.csv';
+const DTB_SCHEMATIC_PRIMARY_UPLOADS_YEAR      = '2026';
 
 /**
  * Extensions recognized as schematic source binaries when deriving manifest
@@ -68,18 +69,27 @@ function dtb_schematics_source_package_dir(): string {
 
 /**
  * Compute the built-in default source directory with no filter applied:
- *   1. The repo-relative canonical source package, when this runtime
- *      happens to have a git checkout of this repository present (local/dev
- *      convenience only — never true on a deployed WordPress host).
- *   2. The newest existing wp-content/uploads/{year}/schematics directory —
- *      the documented production convention. Not hardcoded to a single
- *      year: every year subdirectory under uploads is inspected.
- *   3. If neither exists on disk yet, the current-year uploads/{year}/schematics
+ *   1. wp-content/uploads/2026/schematics, the production SiteGround source.
+ *   2. Other existing uploads/{year}/schematics directories, newest first,
+ *      remain read-only fallbacks for records intentionally stored elsewhere.
+ *   3. The repo-relative canonical package, when this runtime has a local
+ *      development checkout and no uploads source exists.
+ *   4. If none exists on disk yet, the expected uploads/2026/schematics
  *      path is still returned (even though it does not yet exist) so the
  *      Configuration screen shows an actionable, self-explanatory path
  *      rather than an empty string.
  */
 function dtb_schematics_default_source_package_dir(): string {
+	$uploads_years = dtb_schematics_discover_uploads_year_directories();
+	if ( ! empty( $uploads_years ) ) {
+		foreach ( $uploads_years as $uploads_year_dir ) {
+			if ( '/' . DTB_SCHEMATIC_PRIMARY_UPLOADS_YEAR . '/schematics' === substr( str_replace( '\\', '/', $uploads_year_dir ), -16 ) ) {
+				return $uploads_year_dir;
+			}
+		}
+		return reset( $uploads_years );
+	}
+
 	if ( defined( 'ABSPATH' ) ) {
 		// ABSPATH -> .../drywalltoolbox/wp/ ; repo root is two levels up.
 		$wp_root   = untrailingslashit( ABSPATH );
@@ -90,16 +100,10 @@ function dtb_schematics_default_source_package_dir(): string {
 		}
 	}
 
-	$uploads_years = dtb_schematics_discover_uploads_year_directories();
-	if ( ! empty( $uploads_years ) ) {
-		return reset( $uploads_years ); // Newest year first.
-	}
-
 	if ( function_exists( 'wp_upload_dir' ) ) {
 		$uploads = wp_upload_dir();
 		if ( ! empty( $uploads['basedir'] ) ) {
-			$current_year = function_exists( 'current_time' ) ? current_time( 'Y' ) : gmdate( 'Y' );
-			return untrailingslashit( (string) $uploads['basedir'] ) . '/' . $current_year . '/schematics';
+			return untrailingslashit( (string) $uploads['basedir'] ) . '/' . DTB_SCHEMATIC_PRIMARY_UPLOADS_YEAR . '/schematics';
 		}
 	}
 
@@ -161,6 +165,16 @@ function dtb_schematics_source_candidate_directories(): array {
 	}
 
 	return $candidates;
+}
+
+/**
+ * Source manifests may name files only, never paths.
+ */
+function dtb_schematics_source_filename_is_safe( string $filename ): bool {
+	return '' !== $filename
+		&& $filename === basename( $filename )
+		&& ! preg_match( '/[\x00-\x1F\x7F]/', $filename )
+		&& in_array( strtolower( (string) pathinfo( $filename, PATHINFO_EXTENSION ) ), DTB_SCHEMATIC_SOURCE_IMAGE_EXTENSIONS, true );
 }
 
 /**
@@ -419,7 +433,7 @@ function dtb_schematics_read_manifest_file( string $dir, string $filename ): arr
 		return [ 'ok' => false, 'error' => 'source_manifest_unreadable', 'rows' => [] ];
 	}
 
-	$header = fgetcsv( $handle );
+	$header = fgetcsv( $handle, null, ',', '"', '\\' );
 	if ( ! is_array( $header ) ) {
 		fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
 		return [ 'ok' => false, 'error' => 'source_manifest_empty', 'rows' => [] ];
@@ -438,7 +452,7 @@ function dtb_schematics_read_manifest_file( string $dir, string $filename ): arr
 	}
 
 	$rows = [];
-	while ( false !== ( $line = fgetcsv( $handle ) ) ) {
+	while ( false !== ( $line = fgetcsv( $handle, null, ',', '"', '\\' ) ) ) {
 		if ( 1 === count( $line ) && null === $line[0] ) {
 			continue; // Blank line.
 		}
@@ -446,12 +460,17 @@ function dtb_schematics_read_manifest_file( string $dir, string $filename ): arr
 		if ( false === $row ) {
 			continue;
 		}
+		$source_filename = trim( (string) $row['filename'] );
+		if ( ! dtb_schematics_source_filename_is_safe( $source_filename ) ) {
+			fclose( $handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+			return [ 'ok' => false, 'error' => 'source_manifest_invalid_filename', 'rows' => [] ];
+		}
 		$rows[] = [
 			'schematic_id'    => trim( (string) $row['schematic_id'] ),
 			'brand'           => trim( (string) $row['brand'] ),
 			'sku_or_alias'    => trim( (string) $row['sku_or_alias'] ),
 			'page'            => (int) $row['page'],
-			'filename'        => trim( (string) $row['filename'] ),
+			'filename'        => $source_filename,
 			'checksum_sha256' => strtolower( trim( (string) $row['checksum_sha256'] ) ),
 			'size_bytes'      => (int) $row['size_bytes'],
 		];
@@ -479,6 +498,9 @@ function dtb_schematics_read_manifest_file( string $dir, string $filename ): arr
  * @return array{exists:bool, path:string, size_bytes:int, checksum_sha256:string}
  */
 function dtb_schematics_describe_source_binary( string $filename, bool $compute_checksum = true ): array {
+	if ( ! dtb_schematics_source_filename_is_safe( $filename ) ) {
+		return [ 'exists' => false, 'path' => '', 'size_bytes' => 0, 'checksum_sha256' => '' ];
+	}
 	foreach ( dtb_schematics_source_candidate_directories() as $dir ) {
 		$path = trailingslashit( $dir ) . $filename;
 		if ( is_file( $path ) ) {
@@ -504,6 +526,9 @@ function dtb_schematics_describe_source_binary( string $filename, bool $compute_
  * should fall back to their own configured/default uploads path in that case.
  */
 function dtb_schematics_relative_uploads_file_for_filename( string $filename ): ?string {
+	if ( ! dtb_schematics_source_filename_is_safe( $filename ) ) {
+		return null;
+	}
 	if ( ! function_exists( 'wp_upload_dir' ) ) {
 		return null;
 	}

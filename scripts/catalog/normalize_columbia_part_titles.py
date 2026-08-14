@@ -16,7 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGETS = (
-    ROOT / "products/launch/official/dtb_woocommerce_official_catalog.csv",
+    ROOT / "products/launch/official/dtb_official_catalog.csv",
     ROOT / "products/launch/official/dtb_woocommerce_official_catalog_wc_export.csv",
     ROOT / "products/launch/official/veeqo_inventory_import.csv",
     ROOT / "products/launch/official/dtb_pricing_research.csv",

@@ -37,7 +37,7 @@ function dtb_schematics_is_retired_upload_filename( string $filename ): bool {
 
 /**
  * Explicit denylist of catalog SKU tokens that are confirmed retired (not
- * present in products/launch/official/dtb_woocommerce_official_catalog.csv
+ * present in products/launch/official/dtb_official_catalog.csv
  * and not resolvable to any active product) but still have residual
  * schematic upload files on disk from a prior export batch. Unlike the
  * "-ad" Asgard pattern below, these SKUs don't share a structural filename
@@ -49,7 +49,7 @@ function dtb_schematics_is_retired_upload_filename( string $filename ): bool {
  *     official catalog.
  *   - TOMAHAWK: not a real active product.
  *   - TBMP-2022: not a real catalog SKU (no "TBMP-2022" row exists in
- *     dtb_woocommerce_official_catalog.csv; the active Tall Boy Mud Pump
+ *     dtb_official_catalog.csv; the active Tall Boy Mud Pump
  *     variation SKU is "TBMP", already mapped in DTB_SKU_SCHEMATIC_MAP).
  *     Confirmed 2026-08-13 with the catalog owner: columbia_tbmp-2022_sch-
  *     page-001.webp and columbia_tbmp_sch-page-001.webp are the same

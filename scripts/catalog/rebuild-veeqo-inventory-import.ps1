@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$OfficialCatalog = 'products\launch\official\dtb_woocommerce_official_catalog.csv',
+    [string]$OfficialCatalog = 'products\launch\official\dtb_official_catalog.csv',
     [string]$VeeqoImport = 'products\launch\official\veeqo_inventory_import.csv'
 )
 

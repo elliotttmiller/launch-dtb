@@ -16,7 +16,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 IMAGE_DIR = REPO / "products" / "launch" / "media" / "schematics"
-CATALOG = REPO / "products" / "launch" / "official" / "dtb_woocommerce_official_catalog.csv"
+CATALOG = REPO / "products" / "launch" / "official" / "dtb_official_catalog.csv"
 PRODUCT_LINKS = REPO / "frontend" / "src" / "data" / "productSchematicLinks.generated.js"
 SCHEMATIC_MAP = REPO / "drywalltoolbox" / "wp" / "wp-content" / "mu-plugins" / "dtb-schematics" / "Data" / "SkuSchematicMap.php"
 MANIFEST = IMAGE_DIR / "schematic_filename_migration.csv"

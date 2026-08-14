@@ -31,6 +31,11 @@ add_filter( 'admin_body_class', 'dtb_admin_assets_body_class' );
 function dtb_admin_remove_custom_styles(): void {
 	$styles = wp_styles();
 	foreach ( (array) $styles->queue as $handle ) {
+		// Schematics owns only its control-center content layout. The active
+		// admin theme continues to own global wp-admin chrome and base tokens.
+		if ( 'dtb-schematics-workspace' === $handle ) {
+			continue;
+		}
 		$registered = $styles->registered[ $handle ] ?? null;
 		$source     = is_object( $registered ) ? (string) $registered->src : '';
 		$is_dtb_css = 'dtb-fonts' === $handle
@@ -258,7 +263,6 @@ function dtb_admin_assets_enqueue(): void {
 	$legacy_tool_pages       = [
 		'dtb-parts-manager',
 		'dtb-product-mapping',
-		'dtb-schematics',
 	];
 	$legacy_tool_css_handle = null;
 	if ( in_array( $page_slug, $legacy_tool_pages, true ) ) {
