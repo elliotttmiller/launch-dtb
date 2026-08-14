@@ -166,15 +166,21 @@ with open(verbose_map_json_path, encoding="utf-8") as f:
 
 verbose_map = {}  # normalized_key -> (schematic_id, page)
 for key, (schematic_id, page) in verbose_map_source.items():
-    verbose_map[key] = (schematic_id, page)
+    verbose_map[normalize_key(key)] = (schematic_id, page)
 
-known_keys = {normalize_key(sid) for sid in csv_by_schematic_id}
+
+def _needs_verbose_resolution(sid):
+    meta = csv_by_schematic_id[sid]
+    return meta["brand"] not in ("Asgard", "Level5") and bool(meta["source_file_from_brands"])
+
+
 unresolved = [
     sid for sid in csv_by_schematic_id
-    if csv_by_schematic_id[sid]["brand"] not in ("Asgard", "Level5")
-    and csv_by_schematic_id[sid]["source_file_from_brands"]
-    and normalize_key(sid) not in verbose_map
+    if _needs_verbose_resolution(sid) and normalize_key(sid) not in verbose_map
 ]
+stale = sorted(set(verbose_map) - {normalize_key(sid) for sid in csv_by_schematic_id if _needs_verbose_resolution(sid)})
+for key in stale:
+    print(f"  STALE (in JSON, no longer in CSV): {key}", file=sys.stderr)
 
 print(f"[verbose map] loaded from JSON: {len(verbose_map)}, unresolved (new, needs manual JSON entry): {len(unresolved)}", file=sys.stderr)
 for sid in unresolved:
