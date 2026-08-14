@@ -24,3 +24,51 @@ export function decodeHtmlEntities(str) {
     // Numeric hex entities: &#x2033; → ″
     .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
 }
+
+// Small words that stay lowercase in title-cased labels unless they're the
+// first word (matches common title-case convention).
+const TITLE_CASE_MINOR_WORDS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'with',
+]);
+
+/**
+ * Title-case a raw kebab/snake-case slug/id into a human-readable label,
+ * e.g. "semi-automatic-tapers" -> "Semi-Automatic Tapers".
+ *
+ * @param {string} slug
+ * @returns {string}
+ */
+export function humanizeSlug(slug) {
+  const words = (slug || '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  return words
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index > 0 && TITLE_CASE_MINOR_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
+/**
+ * Resolve a display label for an API entity that may only provide a raw
+ * id/slug (e.g. WooCommerce term slugs surfaced as `category.id`). Prefers
+ * an already human-readable `name` from the API; otherwise falls back to a
+ * humanized version of the id. Also catches the case where the API "name"
+ * field is itself just the raw slug (no spaces, contains a hyphen) by
+ * humanizing that too, so a slug-shaped `name` never renders verbatim.
+ *
+ * @param {string} [name] - API-provided display name, if any.
+ * @param {string} [id] - Fallback raw id/slug.
+ * @returns {string}
+ */
+export function humanizeLabel(name, id) {
+  const trimmedName = (name || '').trim();
+  const looksLikeRawSlug = trimmedName && !/\s/.test(trimmedName) && /[-_]/.test(trimmedName);
+  if (trimmedName && !looksLikeRawSlug) return trimmedName;
+  return humanizeSlug(trimmedName || id || '');
+}

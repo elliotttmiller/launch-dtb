@@ -8,6 +8,7 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useSchematicDetail } from '../../hooks/useSchematicDetail';
+import { humanizeLabel } from '../../utils/string.js';
 import SchematicHeader from './SchematicHeader';
 import SchematicPageTabs from './SchematicPageTabs';
 import DiagramViewer from './DiagramViewer';
@@ -72,8 +73,8 @@ export default function SchematicViewerPage({ schematicId, initialPage, onBack, 
     <div className="dtb-schematic-viewer">
       <SchematicHeader
         title={detail.title}
-        brandName={detail.brand?.name}
-        categoryName={detail.category?.name}
+        brandName={humanizeLabel(detail.brand?.name, detail.brand?.id)}
+        categoryName={humanizeLabel(detail.category?.name, detail.category?.id)}
         onBack={() => onBack(detail.brand?.id, detail.category?.id)}
       />
 

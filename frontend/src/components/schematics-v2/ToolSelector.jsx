@@ -12,6 +12,7 @@
  * plain white card with text below the image).
  */
 import { ImageOff } from 'lucide-react';
+import { humanizeLabel } from '../../utils/string.js';
 
 function CardPreview({ preview }) {
   if (preview?.url) {
@@ -58,7 +59,7 @@ export default function ToolSelector({ categoryName, tools, onSelectTool }) {
           <span className="dtb-schematics-card__overlay dtb-schematics-card__overlay--center">
             <span className="dtb-schematics-card__title">{tool.title}</span>
             <span className="dtb-schematics-card__meta">
-              {tool.brand?.name}
+              {humanizeLabel(tool.brand?.name, tool.brand?.id)}
               {tool.page_count ? ` · ${tool.page_count} page${tool.page_count === 1 ? '' : 's'}` : ''}
             </span>
           </span>

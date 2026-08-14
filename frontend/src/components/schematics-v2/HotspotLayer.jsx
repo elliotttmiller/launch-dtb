@@ -8,15 +8,23 @@
  */
 import { useMemo } from 'react';
 
-function isFraction(value) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1;
+// The REST API serializes normalized coordinates from post meta, which can
+// come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
+// before validating so those occurrences aren't silently dropped.
+function toFraction(value) {
+  const num = typeof value === 'string' ? Number(value) : value;
+  return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 1 ? num : null;
 }
 
 function toStyle(coordinates) {
-  const { x, y, width, height } = coordinates || {};
-  if (!isFraction(x) || !isFraction(y)) return null;
+  const x = toFraction(coordinates?.x);
+  const y = toFraction(coordinates?.y);
+  if (x === null || y === null) return null;
 
-  if (isFraction(width) && isFraction(height) && width > 0 && height > 0) {
+  const width = toFraction(coordinates?.width);
+  const height = toFraction(coordinates?.height);
+
+  if (width !== null && height !== null && width > 0 && height > 0) {
     return {
       left: `${x * 100}%`,
       top: `${y * 100}%`,

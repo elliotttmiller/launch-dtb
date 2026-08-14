@@ -26,21 +26,25 @@ import surproLogo from '/brands/SurPro/surpro_logo.svg';
 import tapeTechLogo from '/brands/TapeTech/tapetech_logo.svg';
 
 // Ordered so more-specific keys ("dura-stilts") are checked before looser
-// ones; matched against a normalized (lowercased, punctuation-stripped)
-// version of the brand's REST `name`.
+// ones. Matched against a fully punctuation-stripped (lowercased,
+// alphanumeric-only) version of the brand's REST `name` — the API name can
+// vary in spacing/hyphenation/casing from the asset folder name (e.g.
+// "Tape-Tech", "Tape Tech", "TapeTech" should all resolve the same logo), so
+// the patterns below are also alphanumeric-only (no \s/- literals) to match
+// against that normalized string.
 const BRAND_LOGO_MATCHERS = [
-  { test: /dura[\s-]?stilts?/, logo: duraStiltsLogo },
-  { test: /tape\s?tech/, logo: tapeTechLogo },
+  { test: /durastilts?/, logo: duraStiltsLogo },
+  { test: /tapetech/, logo: tapeTechLogo },
   { test: /columbia/, logo: columbiaLogo },
-  { test: /sur\s?pro/, logo: surproLogo },
+  { test: /surpro/, logo: surproLogo },
   { test: /asgard/, logo: asgardLogo },
   { test: /graco/, logo: gracoLogo },
   { test: /platinum/, logo: platinumLogo },
-  { test: /level\s?5/, logo: level5Logo },
+  { test: /level5/, logo: level5Logo },
 ];
 
 function resolveBrandLogo(name) {
-  const normalized = (name || '').toLowerCase();
+  const normalized = (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const match = BRAND_LOGO_MATCHERS.find(({ test }) => test.test(normalized));
   return match?.logo || null;
 }
