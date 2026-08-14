@@ -251,7 +251,44 @@ function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $re
 		],
 		'family_id'       => $record->family_id,
 		'variant_label'   => $record->variant_label,
+		// Some WooCommerce variations intentionally share one diagram record.
+		// Project their exact catalog keys/labels/SKUs through the backend so
+		// React can reproduce the legacy selector without owning catalog truth.
+		'variant_options' => dtb_schematic_shared_variant_options( $record->canonical_id ),
 		'pages'           => $pages,
 		'parts'           => $parts,
 	];
+}
+
+/**
+ * Return the deterministic catalog variations that share one schematic.
+ *
+ * @return array<int,array{key:string,label:string,sku:string}>
+ */
+function dtb_schematic_shared_variant_options( string $canonical_id ): array {
+	if ( ! defined( 'DTB_SCHEMATIC_SHARED_VARIANT_MAP' ) ) {
+		return [];
+	}
+
+	$options = DTB_SCHEMATIC_SHARED_VARIANT_MAP[ $canonical_id ] ?? [];
+	if ( ! is_array( $options ) ) {
+		return [];
+	}
+
+	$normalized = [];
+	foreach ( $options as $option ) {
+		$key   = sanitize_key( (string) ( $option['key'] ?? '' ) );
+		$label = sanitize_text_field( (string) ( $option['label'] ?? '' ) );
+		$sku   = sanitize_text_field( (string) ( $option['sku'] ?? '' ) );
+		if ( '' === $key || '' === $label || '' === $sku ) {
+			continue;
+		}
+		$normalized[] = [
+			'key'   => $key,
+			'label' => $label,
+			'sku'   => $sku,
+		];
+	}
+
+	return $normalized;
 }

@@ -51,11 +51,10 @@ function dtb_schematic_hotspot_part_make( array $data ): array {
 /**
  * Normalize a single hotspot occurrence (a physical mark on a diagram page).
  *
- * Coordinates are always normalized (0..1 or 0..100 percentage-style,
- * whichever the source used — this function preserves the source's own
- * normalized values rather than re-deriving them, since re-deriving from
- * pixel coordinates would require the actual rendered image dimensions,
- * which this module does not independently decide).
+ * Coordinates use one canonical 0..100 percentage contract. x_pct/y_pct are
+ * the visual center of the hit region; width_pct/height_pct are its complete
+ * size. Source readers are responsible for translating shape-specific source
+ * geometry into this contract before persistence.
  *
  * @param array $data {
  *     @type string $hotspot_id Stable ID for this physical occurrence (immutable once migrated).

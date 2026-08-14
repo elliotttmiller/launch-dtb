@@ -25,6 +25,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 	$operator_id = max( 0, (int) ( $args['operator_id'] ?? get_current_user_id() ) );
 	$selected   = dtb_schematic_operation_selected_ids( $args['schematic_ids'] ?? [] );
 	$trusted_cli = ! empty( $args['trusted_cli'] ) && defined( 'WP_CLI' ) && WP_CLI;
+	$all_records = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $args['all_records'] );
 
 	$supported = [ DTB_SCHEMATIC_OPERATION_RECONCILE, DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS, DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ];
 	if ( ! in_array( $kind, $supported, true ) ) {
@@ -33,11 +34,14 @@ function dtb_schematic_run_operation( array $args = [] ) {
 	if ( $dry_run && in_array( $kind, [ DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ], true ) ) {
 		return new WP_Error( 'dtb_schematic_operation_preview_unsupported', __( 'Lifecycle and public-projection mutations do not support preview mode.', 'drywall-toolbox' ) );
 	}
-	if ( DTB_SCHEMATIC_OPERATION_RECONCILE !== $kind && empty( $selected ) ) {
+	if ( DTB_SCHEMATIC_OPERATION_RECONCILE !== $kind && empty( $selected ) && ! $all_records ) {
 		return new WP_Error( 'dtb_schematic_operation_selection_required', __( 'Select at least one schematic for this operation.', 'drywall-toolbox' ) );
 	}
 
-	$request = [ 'schematic_ids' => $selected ];
+	$request = [ 'schematic_ids' => $selected, 'all_records' => $all_records ];
+	if ( $all_records ) {
+		$request['per_page'] = max( 1, min( 100, (int) ( $args['per_page'] ?? 25 ) ) );
+	}
 	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) {
 		$request['batch_size'] = max( 1, min( DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE, (int) ( $args['batch_size'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE ) ) );
 		$request['resume'] = array_key_exists( 'resume', $args ) ? (bool) $args['resume'] : true;
@@ -103,6 +107,15 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 			'lease_heartbeat'  => $heartbeat,
 		] );
 	}
+	if ( DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
+		return dtb_schematic_migrate_hotspot_datasets(
+			[
+				'dry_run'        => $dry_run,
+				'per_page'       => $request['per_page'],
+				'lease_heartbeat' => $heartbeat,
+			]
+		);
+	}
 
 	$items = [];
 	foreach ( $request['schematic_ids'] as $schematic_id ) {
@@ -143,6 +156,9 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 
 	$changed = count( array_filter( $items, static fn( $item ) => in_array( $item['status'] ?? '', [ 'changed', 'migrated' ], true ) ) );
 	$failed  = count( array_filter( $items, static fn( $item ) => in_array( $item['status'] ?? '', [ 'failed', 'not_found' ], true ) ) );
+	if ( ! $dry_run && DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && $changed > 0 ) {
+		dtb_schematics_invalidate_domain_cache();
+	}
 	return [ 'dry_run' => $dry_run, 'examined' => count( $items ), 'changed' => $changed, 'failed' => $failed, 'results' => $items ];
 }
 

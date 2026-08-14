@@ -455,3 +455,268 @@ const DTB_SCHEMATIC_FAMILY_MAP = [
 	'tapetech-xhtt' => [ 'family_id' => 'tt-support-handle', 'variant_label' => 'Extension' ],
 ];
 
+// Canonical schematic id -> WooCommerce variations that intentionally share
+// one diagram record. This is a generated public projection used by the
+// detail API to render the legacy size/model navigator without making React
+// an authority for product or variation existence.
+const DTB_SCHEMATIC_SHARED_VARIANT_MAP = [
+	'columbia-angle-head' => [
+		[ 'key' => '2', 'label' => '2"', 'sku' => '2AH' ],
+		[ 'key' => '2-5', 'label' => '2.5"', 'sku' => '2.5AH' ],
+		[ 'key' => '3', 'label' => '3"', 'sku' => '3AH' ],
+		[ 'key' => '3-5', 'label' => '3.5"', 'sku' => '3.5AH' ],
+	],
+	'columbia-automatic-flat-box' => [
+		[ 'key' => '8', 'label' => '8"', 'sku' => '8FFBA' ],
+		[ 'key' => '10', 'label' => '10"', 'sku' => '10FFBA' ],
+		[ 'key' => '12', 'label' => '12"', 'sku' => '12FFBA' ],
+		[ 'key' => '14', 'label' => '14"', 'sku' => '14FFBA' ],
+	],
+	'columbia-flat-box' => [
+		[ 'key' => '5-5', 'label' => '5.5"', 'sku' => '5.5FFB' ],
+		[ 'key' => '7', 'label' => '7"', 'sku' => '7FFB' ],
+		[ 'key' => '8', 'label' => '8"', 'sku' => '8FFB' ],
+		[ 'key' => '10', 'label' => '10"', 'sku' => '10FFB' ],
+		[ 'key' => '12', 'label' => '12"', 'sku' => '12FFB' ],
+		[ 'key' => '14', 'label' => '14"', 'sku' => '14FFB' ],
+	],
+	'columbia-throttle-box' => [
+		[ 'key' => '7', 'label' => '7"', 'sku' => '7CFB' ],
+		[ 'key' => '8', 'label' => '8"', 'sku' => '8CFB' ],
+	],
+	'tapetech-80xxtt' => [
+		[ 'key' => '34', 'label' => '34"', 'sku' => '8034TT' ],
+		[ 'key' => '42', 'label' => '42"', 'sku' => '8042TT' ],
+		[ 'key' => '54', 'label' => '54"', 'sku' => '8054TT' ],
+		[ 'key' => '72', 'label' => '72"', 'sku' => '8072TT' ],
+	],
+	'tapetech-81xxtt' => [
+		[ 'key' => '34', 'label' => '34"', 'sku' => '8134TT' ],
+		[ 'key' => '42', 'label' => '42"', 'sku' => '8142TT' ],
+		[ 'key' => '54', 'label' => '54"', 'sku' => '8154TT' ],
+		[ 'key' => '72', 'label' => '72"', 'sku' => '8172TT' ],
+	],
+];
+
+// Canonical schematic id -> exact hotspot JSON source/page relationships,
+// sourced from all_brands_schematic_parts_master.csv and resolved through
+// DTB_VERBOSE_SCHEMATIC_ID_MAP. Runtime migration uses this deterministic
+// map before any compatibility locator.
+const DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP = [
+	'columbia-2-way-internal-corner' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Applicators/TwoWayInternalCorner/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-angle-head' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Angleheads/AngleHead/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-automatic-flat-box' => [
+		[ 'reference' => 'brands/Columbia/Schematics/FinishingBoxes/AutomaticFlatBox/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-box-filler' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Pumps/BoxFiller/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-cam-lock-tube' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CompoundTubes/CamLockTube/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-closet-monster-flat-box-handle' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/ClosetMonster/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-combo-flusher' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerFlushers/ComboFlusher/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-compound-tube' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CompoundTubes/CompoundTube/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-corner-cobra' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerRollers/CornerCobra/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-direct-corner-flusher' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerFlushers/DirectCornerFlusher/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-external-corner-applicator' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Applicators/ExternalCorner/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-fat-boy-box' => [
+		[ 'reference' => 'brands/Columbia/Schematics/FinishingBoxes/FatBoyBox/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-flat-box' => [
+		[ 'reference' => 'brands/Columbia/Schematics/FinishingBoxes/FlatBox/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-flat-box-handle' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/FlatBoxHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-gooseneck-adapter' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Pumps/GooseneckAdapter/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-inside-corner-applicator' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Applicators/InsideCornerApplicator/2Wheel/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/Columbia/Schematics/Applicators/InsideCornerApplicator/4Wheel/schematic_data.json', 'page' => 2 ],
+	],
+	'columbia-inside-corner-roller' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerRollers/InsideCornerRoller/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-long-extendable-handle' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/LongExtendableHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-matrix' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/MatrixBoxHandle/BoxHandle/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/MatrixBoxHandle/Head/schematic_data.json', 'page' => 2 ],
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/MatrixBoxHandle/Lever/schematic_data.json', 'page' => 3 ],
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/MatrixBoxHandle/Pinchbox/schematic_data.json', 'page' => 4 ],
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/MatrixBoxHandle/ExtensionHousing/schematic_data.json', 'page' => 5 ],
+	],
+	'columbia-mud-pump' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Pumps/MudPump/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-nailspotter' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Nailspotters/Nailspotter/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-one' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Handles/ColumbiaOne/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-predator-taper' => [
+		[ 'reference' => 'brands/Columbia/Schematics/AutomaticTapers/PredatorTaper/Body/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/Columbia/Schematics/AutomaticTapers/PredatorTaper/Head/schematic_data.json', 'page' => 2 ],
+	],
+	'columbia-semi-automatic-taper' => [
+		[ 'reference' => 'brands/Columbia/Schematics/SemiAutomaticTapers/SemiAutomaticTaper/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-standard-corner-flusher' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerFlushers/StandardCornerFlusher/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-standard-outside-corner-roller' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerRollers/StandardOutsideCornerRoller/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-tall-boy-mud-pump' => [
+		[ 'reference' => 'brands/Columbia/Schematics/Pumps/TallBoyMudPump/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-throttle-box' => [
+		[ 'reference' => 'brands/Columbia/Schematics/CornerBoxes/ThrottleBox/schematic_data.json', 'page' => 1 ],
+	],
+	'columbia-tomahawk-smoothing-blades' => [
+		[ 'reference' => 'brands/Columbia/Schematics/SmoothingBlades/TomahawkSmoothingBlades/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-10-inch-flat-box-4-765' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/10-inch-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-10-inch-mega-flat-box-4-768' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/10-inch-Mega-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-12-inch-flat-box-4-766' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/12-inch-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-12-inch-mega-box-4-769' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/12-inch-Mega-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-14-inch-flat-box-4-770' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/14-inch-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-4-734-3-5-corner-finisher' => [
+		[ 'reference' => 'brands/Level5/Schematics/CornerFinishers/3.5-inch-Corner-Finisher/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7-inch-flat-box-4-764' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/7-inch-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7-inch-mega-flat-box-4-767' => [
+		[ 'reference' => 'brands/Level5/Schematics/FinishingBoxes/7-inch-Mega-Flat-Box/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7097-drive-dog-assembly' => [
+		[ 'reference' => 'brands/Level5/Schematics/AutomaticTapers/Drive-Dog-Assembly/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7218-taper-wheel-assembly' => [
+		[ 'reference' => 'brands/Level5/Schematics/AutomaticTapers/Taper-Wheel-Assembly/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7293-gooser-assembly' => [
+		[ 'reference' => 'brands/Level5/Schematics/AutomaticTapers/Gooser-Assembly/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-7377-cover-plate-assembly-old-style' => [
+		[ 'reference' => 'brands/Level5/Schematics/AutomaticTapers/Cover-Plate-Assembly/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-9333-cutter-chain-assembly' => [
+		[ 'reference' => 'brands/Level5/Schematics/AutomaticTapers/Cutter-Chain-Assembly/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-compound-pump-4-771' => [
+		[ 'reference' => 'brands/Level5/Schematics/Pumps/Compound-Pump/schematic_data.json', 'page' => 1 ],
+	],
+	'level5-corner-roller-4-707' => [
+		[ 'reference' => 'brands/Level5/Schematics/CornerRollers/Corner-Roller/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-compound-pump' => [
+		[ 'reference' => 'brands/Platinum/Schematics/Pumps/CompoundPump/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-corner-applicator-handle' => [
+		[ 'reference' => 'brands/Platinum/Schematics/Handles/CornerApplicatorHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-corner-finisher' => [
+		[ 'reference' => 'brands/Platinum/Schematics/CornerFinishers/CornerFinisher/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-corner-finisher-handle' => [
+		[ 'reference' => 'brands/Platinum/Schematics/Handles/CornerFinisherHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-corner-roller-handle' => [
+		[ 'reference' => 'brands/Platinum/Schematics/Handles/CornerRollerHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-flat-box' => [
+		[ 'reference' => 'brands/Platinum/Schematics/FinishingBoxes/FlatBox/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-flat-box-handle' => [
+		[ 'reference' => 'brands/Platinum/Schematics/Handles/FlatBoxHandle/schematic_data.json', 'page' => 1 ],
+	],
+	'platinum-outside-corner-roller' => [
+		[ 'reference' => 'brands/Platinum/Schematics/CornerRollers/OutsideCornerRoller/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-07tt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/07TT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-17tt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/17TT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-42tt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/42TT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-48tt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/48TT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-76tt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/76TT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-80xxtt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/80XXTT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-81xxtt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/81XXTT/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-85t' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/85T/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-88tte' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/88TTE/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-90t' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/90T/schematic_data.json', 'page' => 1 ],
+	],
+	'tapetech-easyclean-finishing-box' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/EZ07TT/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/EZ10TT/schematic_data.json', 'page' => 2 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/EZ12TT/schematic_data.json', 'page' => 3 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/EZ15TT/schematic_data.json', 'page' => 4 ],
+	],
+	'tapetech-maxxbox-ehc' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/EHC07/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/EHC10/schematic_data.json', 'page' => 2 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/EHC12/schematic_data.json', 'page' => 3 ],
+	],
+	'tapetech-power-assist-maxxbox' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/PAHC07/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/PAHC10/schematic_data.json', 'page' => 2 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/PAHC12/schematic_data.json', 'page' => 3 ],
+	],
+	'tapetech-quickbox-qsx' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/QB06-QSX/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/TapeTech/Schematics/QB08-QSX/schematic_data.json', 'page' => 2 ],
+	],
+	'tapetech-xhtt' => [
+		[ 'reference' => 'brands/TapeTech/Schematics/XHTT/schematic_data.json', 'page' => 1 ],
+	],
+];
+

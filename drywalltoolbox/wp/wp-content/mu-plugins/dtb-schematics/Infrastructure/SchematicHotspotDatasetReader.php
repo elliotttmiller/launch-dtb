@@ -32,6 +32,7 @@ const DTB_SCHEMATIC_HOTSPOT_READ_RESOURCE_LIMIT     = 'resource_limit_exceeded';
 const DTB_SCHEMATIC_HOTSPOT_MAX_FILE_BYTES          = 5 * 1024 * 1024;
 const DTB_SCHEMATIC_HOTSPOT_MAX_PARTS               = 5000;
 const DTB_SCHEMATIC_HOTSPOT_MAX_OCCURRENCES         = 10000;
+const DTB_SCHEMATIC_HOTSPOT_NORMALIZATION_VERSION   = '2026-08-center-geometry-v1';
 
 /**
  * Resolve the repository root the same way
@@ -39,13 +40,53 @@ const DTB_SCHEMATIC_HOTSPOT_MAX_OCCURRENCES         = 10000;
  * works both under a live WordPress runtime and the static verification
  * harness pattern already established for Phase 3.
  */
-function dtb_schematics_hotspot_source_root(): string {
-	if ( defined( 'ABSPATH' ) && function_exists( 'untrailingslashit' ) ) {
-		$wp_root   = untrailingslashit( ABSPATH );
-		$repo_root = dirname( dirname( $wp_root ) );
-		return $repo_root . '/frontend/public/brands';
+function dtb_schematics_hotspot_source_roots(): array {
+	if ( ! defined( 'ABSPATH' ) || ! function_exists( 'untrailingslashit' ) ) {
+		return [];
 	}
-	return '';
+
+	$wp_root = untrailingslashit( ABSPATH );
+	$roots   = [
+		dirname( dirname( $wp_root ) ) . '/frontend/public/brands', // Repository checkout.
+		dirname( $wp_root ) . '/brands', // SiteGround: WordPress lives at /wp, public assets at site root.
+	];
+	$roots = function_exists( 'apply_filters' ) ? apply_filters( 'dtb_schematics_hotspot_source_roots', $roots ) : $roots;
+
+	$resolved = [];
+	foreach ( (array) $roots as $root ) {
+		$real = realpath( (string) $root );
+		if ( false !== $real && is_dir( $real ) ) {
+			$resolved[] = str_replace( '\\', '/', $real );
+		}
+	}
+	return array_values( array_unique( $resolved ) );
+}
+
+function dtb_schematics_hotspot_source_root(): string {
+	$roots = dtb_schematics_hotspot_source_roots();
+	return $roots[0] ?? '';
+}
+
+/** Resolve a validated logical dataset reference inside an approved source root. */
+function dtb_schematics_hotspot_resolve_reference( string $reference ) {
+	$reference = str_replace( '\\', '/', trim( $reference ) );
+	$relative  = preg_replace( '#^(?:frontend/public/)?brands/#', '', $reference );
+	if ( ! is_string( $relative ) || ! preg_match( '#^(?:[A-Za-z0-9._-]+/)+schematic_data[^/]*\.json$#', $relative ) ) {
+		return false;
+	}
+
+	foreach ( dtb_schematics_hotspot_source_roots() as $root ) {
+		$absolute = realpath( trailingslashit( $root ) . $relative );
+		if ( false === $absolute ) {
+			continue;
+		}
+		$normalized_root = trailingslashit( str_replace( '\\', '/', $root ) );
+		$normalized_path = str_replace( '\\', '/', $absolute );
+		if ( 0 === strpos( $normalized_path, $normalized_root ) ) {
+			return $absolute;
+		}
+	}
+	return false;
 }
 
 /**
@@ -93,7 +134,9 @@ function dtb_schematic_hotspot_read_file( string $absolute_path ): array {
 		return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_MALFORMED_JSON, null, 'Decoded document is not a JSON object/array.', $bom_stripped );
 	}
 
-	$checksum = hash( 'sha256', $trimmed );
+	// Include the normalizer contract in the version so a deployment that
+	// changes geometry semantics is not incorrectly treated as unchanged.
+	$checksum = hash( 'sha256', DTB_SCHEMATIC_HOTSPOT_NORMALIZATION_VERSION . "\n" . $trimmed );
 
 	if ( isset( $decoded['parts_catalog'] ) || isset( $decoded['hotspots'] ) ) {
 		return dtb_schematic_hotspot_normalize_v2( $decoded, $checksum, $bom_stripped );
@@ -154,6 +197,7 @@ function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, b
 		$shape       = is_array( $hotspot['shape'] ?? null ) ? $hotspot['shape'] : [];
 		$shape_type  = (string) ( $shape['type'] ?? 'point' );
 		$normalized  = is_array( $hotspot['normalized'] ?? null ) ? $hotspot['normalized'] : [];
+		$coordinates = dtb_schematic_hotspot_normalize_v2_coordinates( $shape_type, $normalized );
 
 		$normalized_hotspots[] = dtb_schematic_hotspot_occurrence_make(
 			[
@@ -161,7 +205,7 @@ function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, b
 				'part_ref'    => (string) ( $hotspot['part_ref'] ?? '' ),
 				'page'        => (int) ( $hotspot['page'] ?? 1 ),
 				'shape_type'  => $shape_type,
-				'coordinates' => $normalized,
+				'coordinates' => $coordinates,
 				'label'       => (string) ( $hotspot['label'] ?? '' ),
 			]
 		);
@@ -177,6 +221,71 @@ function dtb_schematic_hotspot_normalize_v2( array $decoded, string $checksum, b
 	);
 
 	return dtb_schematic_hotspot_read_result( DTB_SCHEMATIC_HOTSPOT_READ_OK, $dataset, null, $bom_stripped, 'v2' );
+}
+
+/**
+ * Convert v2 shape-specific geometry into the canonical center-anchored
+ * percentage contract used by the public viewer. Rectangles arrive as a
+ * top-left plus size, circles as a center plus radii, and polygons as points.
+ * The persisted domain always exposes x_pct/y_pct as the visual center and
+ * width_pct/height_pct as the complete hit-region size.
+ */
+function dtb_schematic_hotspot_normalize_v2_coordinates( string $shape_type, array $normalized ): array {
+	$shape_type = dtb_schematic_hotspot_normalize_shape_type( $shape_type );
+
+	if ( 'circle' === $shape_type ) {
+		$cx = $normalized['cx_pct'] ?? $normalized['x_pct'] ?? null;
+		$cy = $normalized['cy_pct'] ?? $normalized['y_pct'] ?? null;
+		$rx = $normalized['r_pct_w'] ?? null;
+		$ry = $normalized['r_pct_h'] ?? $rx;
+		if ( is_numeric( $cx ) && is_numeric( $cy ) ) {
+			$out = [ 'x_pct' => (float) $cx, 'y_pct' => (float) $cy ];
+			if ( is_numeric( $rx ) && is_numeric( $ry ) ) {
+				$out['width_pct']  = max( 0, (float) $rx * 2 );
+				$out['height_pct'] = max( 0, (float) $ry * 2 );
+			}
+			return $out;
+		}
+	}
+
+	if ( 'polygon' === $shape_type && is_array( $normalized['points_pct'] ?? null ) ) {
+		$xs = [];
+		$ys = [];
+		foreach ( $normalized['points_pct'] as $point ) {
+			if ( is_array( $point ) && isset( $point[0], $point[1] ) && is_numeric( $point[0] ) && is_numeric( $point[1] ) ) {
+				$xs[] = (float) $point[0];
+				$ys[] = (float) $point[1];
+			}
+		}
+		if ( $xs && $ys ) {
+			return [
+				'x_pct'     => ( min( $xs ) + max( $xs ) ) / 2,
+				'y_pct'     => ( min( $ys ) + max( $ys ) ) / 2,
+				'width_pct' => max( $xs ) - min( $xs ),
+				'height_pct'=> max( $ys ) - min( $ys ),
+				'points_pct'=> $normalized['points_pct'],
+			];
+		}
+	}
+
+	$x      = $normalized['x_pct'] ?? null;
+	$y      = $normalized['y_pct'] ?? null;
+	$width  = $normalized['width_pct'] ?? null;
+	$height = $normalized['height_pct'] ?? null;
+	if ( is_numeric( $x ) && is_numeric( $y ) ) {
+		$out = [ 'x_pct' => (float) $x, 'y_pct' => (float) $y ];
+		if ( is_numeric( $width ) && is_numeric( $height ) ) {
+			$out['width_pct']  = max( 0, (float) $width );
+			$out['height_pct'] = max( 0, (float) $height );
+			if ( 'rect' === $shape_type ) {
+				$out['x_pct'] += $out['width_pct'] / 2;
+				$out['y_pct'] += $out['height_pct'] / 2;
+			}
+		}
+		return $out;
+	}
+
+	return [];
 }
 
 /**
@@ -302,6 +411,9 @@ function dtb_schematic_hotspot_normalize_legacy_coordinates( array $decoded, arr
 		if ( ! is_numeric( $entry['x_pct'] ?? null ) || ! is_numeric( $entry['y_pct'] ?? null ) ) {
 			continue; // No usable spatial data for this part — skip, never default to (0,0)/center.
 		}
+		if ( 0.0 === (float) $entry['x_pct'] && 0.0 === (float) $entry['y_pct'] ) {
+			continue; // Legacy authoring placeholder: explicitly unplaced, not the diagram origin.
+		}
 
 		$coords = [
 			'x_pct' => (float) $entry['x_pct'],
@@ -337,36 +449,38 @@ function dtb_schematic_hotspot_normalize_legacy_coordinates( array $decoded, arr
  * Enumerate every schematic_data*.json file under the source root
  * (bounded — on the order of ~90 files). Used by the migration/reconciliation
  * batch operation and the static verification harness. Returns paths
- * relative to the source root (matching the existing
- * _dtb_schematic_hotspot_dataset "reference" convention of
- * "frontend/public/brands/...").
+ * as deployment-neutral `brands/...` logical references. The resolver also
+ * accepts the older `frontend/public/brands/...` stored-reference convention.
  *
  * @return string[] Relative paths (repo-root-relative, forward slashes).
  */
 function dtb_schematic_hotspot_enumerate_source_files(): array {
-	$root = dtb_schematics_hotspot_source_root();
-	if ( '' === $root || ! is_dir( $root ) ) {
+	$roots = dtb_schematics_hotspot_source_roots();
+	if ( empty( $roots ) ) {
 		return [];
 	}
 
 	$files = [];
-	$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
-	foreach ( $iterator as $file ) {
-		if ( 'json' !== strtolower( $file->getExtension() ) ) {
-			continue;
+	foreach ( $roots as $root ) {
+		$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $root, FilesystemIterator::SKIP_DOTS ) );
+		foreach ( $iterator as $file ) {
+			if ( 'json' !== strtolower( $file->getExtension() ) ) {
+				continue;
+			}
+			$name = $file->getFilename();
+			if ( 'schematic_data.schema.json' === $name || 'schematic_data_template.json' === $name ) {
+				continue; // Not a dataset — the JSON Schema definition and the authoring template.
+			}
+			if ( 0 !== strpos( $name, 'schematic_data' ) ) {
+				continue;
+			}
+			$root_prefix = trailingslashit( str_replace( '\\', '/', $root ) );
+			$path        = str_replace( '\\', '/', $file->getPathname() );
+			$files[]     = 'brands/' . substr( $path, strlen( $root_prefix ) );
 		}
-		$name = $file->getFilename();
-		if ( 'schematic_data.schema.json' === $name || 'schematic_data_template.json' === $name ) {
-			continue; // Not a dataset — the JSON Schema definition and the authoring template.
-		}
-		if ( 0 !== strpos( $name, 'schematic_data' ) ) {
-			continue;
-		}
-		$repo_root = dirname( $root, 3 ); // brands -> public -> frontend -> repo root.
-		$relative  = str_replace( '\\', '/', str_replace( $repo_root . '/', '', $file->getPathname() ) );
-		$files[]   = $relative;
 	}
 
+	$files = array_values( array_unique( $files ) );
 	sort( $files );
 	return $files;
 }

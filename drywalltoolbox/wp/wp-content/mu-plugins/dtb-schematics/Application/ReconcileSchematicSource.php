@@ -793,27 +793,34 @@ function dtb_schematic_reconcile_associate_hotspot_dataset( DTB_Schematic_Record
 }
 
 /**
+ * Deterministic multi-file source groups inherited from the legacy viewer.
+ * Each entry declares which source document owns each public schematic page;
+ * migration combines them into one normalized record-owned dataset.
+ */
+function dtb_schematic_reconcile_hotspot_source_group( string $canonical_id ): array {
+	if ( ! defined( 'DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP' ) ) {
+		return [];
+	}
+	$entries = DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP[ $canonical_id ] ?? [];
+	return is_array( $entries ) ? $entries : [];
+}
+
+/**
  * Heuristic (not authoritative) search for a frontend hotspot dataset file
  * matching a canonical schematic ID, under frontend/public/brands/**\/schematic_data.json.
  * Existence-check only — the JSON content is never parsed here.
  */
 function dtb_schematic_reconcile_locate_hotspot_dataset_file( string $canonical_id, string $brand ): ?string {
+	$group = dtb_schematic_reconcile_hotspot_source_group( $canonical_id );
+	if ( $group ) {
+		return $group[0]['reference'];
+	}
 	static $index = null;
 
 	if ( null === $index ) {
 		$index = [];
-		if ( defined( 'ABSPATH' ) ) {
-			$repo_root = dirname( dirname( untrailingslashit( ABSPATH ) ) );
-			$brands_dir = $repo_root . '/frontend/public/brands';
-			if ( is_dir( $brands_dir ) ) {
-				$iterator = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $brands_dir, FilesystemIterator::SKIP_DOTS ) );
-				foreach ( $iterator as $file ) {
-					if ( 'schematic_data.json' === $file->getFilename() ) {
-						$relative = str_replace( $repo_root . '/', '', str_replace( '\\', '/', $file->getPathname() ) );
-						$index[]  = $relative;
-					}
-				}
-			}
+		if ( function_exists( 'dtb_schematic_hotspot_enumerate_source_files' ) ) {
+			$index = dtb_schematic_hotspot_enumerate_source_files();
 		}
 	}
 

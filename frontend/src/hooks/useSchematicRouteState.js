@@ -11,6 +11,7 @@
  *   /schematics?brand=<brandId>&category=<categoryId>   category selected
  *   /schematics?schematic=<schematicId>                 viewer (any page 1)
  *   /schematics?schematic=<schematicId>&page=<n>         viewer at page n
+ *   /schematics?schematic=<schematicId>&variant=<key>    shared-diagram variant
  *
  * When a `schematic` param is present, the caller (useSchematicRouteState
  * consumer) is expected to fetch the detail record and derive brand/category
@@ -30,6 +31,7 @@ export function useSchematicRouteState() {
   const schematicId = searchParams.get('schematic') || null;
   const pageParam = searchParams.get('page');
   const page = pageParam ? Number(pageParam) : null;
+  const variant = searchParams.get('variant') || null;
 
   const view = schematicId ? 'viewer' : 'catalog';
 
@@ -65,6 +67,16 @@ export function useSchematicRouteState() {
     setSearchParams(params, { replace: true });
   }, [searchParams, setSearchParams]);
 
+  const setVariant = useCallback((nextVariant) => {
+    const params = Object.fromEntries(searchParams);
+    if (nextVariant) {
+      params.variant = String(nextVariant);
+    } else {
+      delete params.variant;
+    }
+    setSearchParams(params, { replace: true });
+  }, [searchParams, setSearchParams]);
+
   /**
    * Return to the catalog, preserving brand/category context derived from
    * the currently-open schematic (schematic -> category -> brand -> catalog).
@@ -85,12 +97,14 @@ export function useSchematicRouteState() {
     categoryId,
     schematicId,
     page,
+    variant,
     goToCatalogRoot,
     goToBrand,
     goToCategory,
     goToSchematic,
     setPage,
+    setVariant,
     backFromViewer,
     navigate,
-  }), [view, brandId, categoryId, schematicId, page, goToCatalogRoot, goToBrand, goToCategory, goToSchematic, setPage, backFromViewer, navigate]);
+  }), [view, brandId, categoryId, schematicId, page, variant, goToCatalogRoot, goToBrand, goToCategory, goToSchematic, setPage, setVariant, backFromViewer, navigate]);
 }

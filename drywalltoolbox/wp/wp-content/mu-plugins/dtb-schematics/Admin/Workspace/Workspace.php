@@ -49,6 +49,8 @@ function dtb_schematics_workspace_enqueue_assets( string $hook ): void {
 			[
 				'ajaxUrl'           => admin_url( 'admin-ajax.php' ),
 				'workingLabel'      => __( 'Working…', 'drywall-toolbox' ),
+				'previewingLabel'   => __( 'Previewing all hotspot files…', 'drywall-toolbox' ),
+				'syncingLabel'      => __( 'Synchronizing all hotspot files…', 'drywall-toolbox' ),
 				'genericErrorLabel' => __( 'Something went wrong. Please try again.', 'drywall-toolbox' ),
 			]
 		);
@@ -111,8 +113,26 @@ function dtb_schematics_workspace_notice_and_run( ?string $notice = null, string
 	$result = (array) ( $run['result'] ?? [] );
 	$ok = 'completed' === ( $run['status'] ?? '' ) && empty( $result['failed'] ) && empty( $result['unresolved'] );
 	echo '<section class="notice ' . ( $ok ? 'notice-info' : 'notice-error' ) . '" aria-label="' . esc_attr__( 'Operation result', 'drywall-toolbox' ) . '"><p><strong>' . esc_html__( 'Operation run', 'drywall-toolbox' ) . ':</strong> <code>' . esc_html( $run['id'] ) . '</code> · ' . esc_html( $run['kind'] ) . ' · ' . esc_html( ! empty( $run['dry_run'] ) ? __( 'preview', 'drywall-toolbox' ) : __( 'applied', 'drywall-toolbox' ) ) . ' · ' . esc_html( $run['status'] ) . '</p>';
-	if ( ! empty( $run['error'] ) ) { echo '<p>' . esc_html( $run['error'] ) . '</p>'; } elseif ( $ok ) { echo '<p>' . esc_html( sprintf( __( 'Examined %1$d; changed %2$d; unresolved/failed %3$d.', 'drywall-toolbox' ), (int) ( $result['examined'] ?? 0 ), (int) ( $result['changed'] ?? 0 ), (int) ( $result['unresolved'] ?? $result['failed'] ?? 0 ) ) ) . '</p>'; }
+	if ( ! empty( $run['error'] ) ) { echo '<p>' . esc_html( $run['error'] ) . '</p>'; } else { echo '<p>' . esc_html( sprintf( __( 'Examined %1$d; changed %2$d; skipped %3$d; unresolved parts %4$d; failed %5$d.', 'drywall-toolbox' ), (int) ( $result['examined'] ?? 0 ), (int) ( $result['changed'] ?? 0 ), (int) ( $result['skipped'] ?? 0 ), (int) ( $result['unresolved'] ?? 0 ), (int) ( $result['failed'] ?? 0 ) ) ) . '</p>'; }
+	if ( DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === ( $run['kind'] ?? '' ) && ! empty( $result['results'] ) ) {
+		dtb_schematics_workspace_hotspot_results_table( (array) $result['results'] );
+	}
 	echo '</section>';
+}
+
+/** Render the bounded per-record result artifact from a hotspot operation. */
+function dtb_schematics_workspace_hotspot_results_table( array $items ): void {
+	echo '<div class="dtb-schematics-workspace__results"><table class="widefat striped"><thead><tr><th>' . esc_html__( 'Schematic', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Status', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Parts', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Source and result', 'drywall-toolbox' ) . '</th></tr></thead><tbody>';
+	foreach ( array_slice( $items, 0, 500 ) as $item ) {
+		$resolved   = (int) ( $item['parts_resolved'] ?? 0 );
+		$unresolved = (int) ( $item['parts_unresolved'] ?? 0 );
+		$source     = sanitize_text_field( (string) ( $item['source_file'] ?? '' ) );
+		$detail     = sanitize_text_field( (string) ( $item['detail'] ?? '' ) );
+		echo '<tr><td><code>' . esc_html( (string) ( $item['canonical_id'] ?? $item['schematic_id'] ?? '' ) ) . '</code></td><td><strong>' . esc_html( (string) ( $item['status'] ?? 'unknown' ) ) . '</strong></td><td>' . esc_html( sprintf( __( '%1$d resolved; %2$d unresolved', 'drywall-toolbox' ), $resolved, $unresolved ) ) . '</td><td>';
+		if ( '' !== $source ) { echo '<code class="dtb-schematics-workspace__source-path">' . esc_html( $source ) . '</code><br>'; }
+		echo esc_html( $detail ) . '</td></tr>';
+	}
+	echo '</tbody></table></div>';
 }
 
 function dtb_schematics_workspace_health( DTB_Schematic_Record_Entity $record ): array {
@@ -154,6 +174,7 @@ function dtb_schematics_workspace_source_status(): array {
 		'active_pages' => $active_pages,
 		'retired_files' => $retired_files,
 		'source_schematics' => count( $source_schematics ),
+		'hotspot_files' => function_exists( 'dtb_schematic_hotspot_enumerate_source_files' ) ? count( dtb_schematic_hotspot_enumerate_source_files() ) : 0,
 	];
 }
 
@@ -202,7 +223,15 @@ function dtb_schematics_workspace_render_record(): void {
 
 function dtb_schematics_workspace_render_operations(): void {
 	$page = min( 10000, max( 1, absint( $_GET['paged'] ?? 1 ) ) ); $history = dtb_schematic_activity_query( [ 'page' => $page, 'per_page' => 25 ] ); $source = dtb_schematics_workspace_source_status();
-	echo '<section class="dtb-schematics-workspace__panel"><h2>' . esc_html__( 'Schematic synchronization', 'drywall-toolbox' ) . '</h2><p>' . esc_html__( 'Register and link a bounded batch from uploads/2026/schematics.', 'drywall-toolbox' ) . '</p>'; if ( $source['available'] ) { dtb_schematics_workspace_action_form( 'reconcile_preview', __( 'Preview schematic sync', 'drywall-toolbox' ) ); dtb_schematics_workspace_action_form( 'reconcile_commit', __( 'Register & link schematics', 'drywall-toolbox' ), 0, true ); } else { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'Synchronization is unavailable because no usable schematic source images were detected.', 'drywall-toolbox' ) . '</p></div>'; } echo '</section><section class="dtb-schematics-workspace__panel"><h2>' . esc_html__( 'Operation history', 'drywall-toolbox' ) . '</h2>'; dtb_schematics_workspace_activity_table( $history['items'] ); echo '</section>'; dtb_schematics_workspace_pagination( $page, $history['pages'], [ 'view' => 'operations' ] );
+	echo '<section class="dtb-schematics-workspace__panel"><h2>' . esc_html__( 'Schematic synchronization', 'drywall-toolbox' ) . '</h2><p>' . esc_html__( 'Register and link a bounded batch from uploads/2026/schematics.', 'drywall-toolbox' ) . '</p>'; if ( $source['available'] ) { dtb_schematics_workspace_action_form( 'reconcile_preview', __( 'Preview schematic sync', 'drywall-toolbox' ) ); dtb_schematics_workspace_action_form( 'reconcile_commit', __( 'Register & link schematics', 'drywall-toolbox' ), 0, true ); } else { echo '<div class="notice notice-error inline"><p>' . esc_html__( 'Synchronization is unavailable because no usable schematic source images were detected.', 'drywall-toolbox' ) . '</p></div>'; } echo '</section>';
+	echo '<section class="dtb-schematics-workspace__panel"><h2>' . esc_html__( 'Hotspot JSON synchronization', 'drywall-toolbox' ) . '</h2><p>' . esc_html__( 'Read every approved brands/**/schematic_data*.json source, normalize hotspot geometry, resolve exact WooCommerce parts, and project the result into its authoritative schematic record.', 'drywall-toolbox' ) . '</p><dl class="dtb-schematics-workspace__details"><dt>' . esc_html__( 'Detected source files', 'drywall-toolbox' ) . '</dt><dd>' . esc_html( (string) $source['hotspot_files'] ) . '</dd><dt>' . esc_html__( 'Workflow', 'drywall-toolbox' ) . '</dt><dd>' . esc_html__( 'Preview first. Apply only after reviewing the per-record source, status, and unresolved-part results.', 'drywall-toolbox' ) . '</dd></dl>';
+	if ( $source['hotspot_files'] > 0 ) {
+		dtb_schematics_workspace_action_form( 'migrate_hotspots_all_preview', __( 'Preview all hotspot JSON files', 'drywall-toolbox' ) );
+		dtb_schematics_workspace_action_form( 'migrate_hotspots_all_commit', __( 'Apply all hotspot JSON files', 'drywall-toolbox' ), 0, true );
+	} else {
+		echo '<div class="notice notice-error inline"><p>' . esc_html__( 'No approved hotspot JSON source files were detected. Verify the site-root brands directory before running synchronization.', 'drywall-toolbox' ) . '</p></div>';
+	}
+	echo '</section><section class="dtb-schematics-workspace__panel"><h2>' . esc_html__( 'Operation history', 'drywall-toolbox' ) . '</h2>'; dtb_schematics_workspace_activity_table( $history['items'] ); echo '</section>'; dtb_schematics_workspace_pagination( $page, $history['pages'], [ 'view' => 'operations' ] );
 }
 
 function dtb_schematics_workspace_activity_table( array $items ): void { echo '<table class="widefat striped"><thead><tr><th>' . esc_html__( 'When', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Operation', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Result', 'drywall-toolbox' ) . '</th><th>' . esc_html__( 'Summary', 'drywall-toolbox' ) . '</th></tr></thead><tbody>'; foreach ( $items as $item ) { $summary = str_ireplace( [ 'Reconcile commit', 'Reconcile dry run' ], [ 'Schematic sync applied', 'Schematic sync previewed' ], (string) $item['summary'] ); $error = sanitize_text_field( (string) ( $item['detail']['error'] ?? '' ) ); if ( 'error' === $item['result'] && '' !== $error ) { $summary .= ' — ' . $error; } echo '<tr><td>' . esc_html( $item['completed_at'] ) . '</td><td>' . esc_html( $item['operation_type'] ) . '</td><td>' . esc_html( $item['result'] ) . '</td><td>' . esc_html( $summary ) . '</td></tr>'; } if ( ! $items ) { echo '<tr><td colspan="4">' . esc_html__( 'No recorded operations.', 'drywall-toolbox' ) . '</td></tr>'; } echo '</tbody></table>'; }
@@ -217,7 +246,7 @@ function dtb_schematics_workspace_pagination( int $current, int $pages, array $a
  */
 function dtb_schematics_workspace_action_form( string $operation, string $label, int $id = 0, bool $commit = false ): void { echo '<form class="dtb-schematics-workspace__inline-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" data-dtb-schematics-operation="' . esc_attr( $operation ) . '"><input type="hidden" name="action" value="dtb_schematics_workspace_action"><input type="hidden" name="operation" value="' . esc_attr( $operation ) . '"><input type="hidden" name="schematic_id" value="' . esc_attr( (string) $id ) . '">'; wp_nonce_field( 'dtb_schematics_workspace_action', 'dtb_schematics_workspace_nonce' ); echo '<button class="button ' . ( $commit ? 'button-secondary' : 'button-primary' ) . '">' . esc_html( $label ) . '</button></form>'; }
 
-const DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS = [ 'publish', 'retire', 'refresh_projection', 'reconcile_preview', 'reconcile_commit', 'migrate_hotspots_preview', 'migrate_hotspots_commit', 'refresh_products_preview', 'refresh_products_commit' ];
+const DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS = [ 'publish', 'retire', 'refresh_projection', 'reconcile_preview', 'reconcile_commit', 'migrate_hotspots_preview', 'migrate_hotspots_commit', 'migrate_hotspots_all_preview', 'migrate_hotspots_all_commit', 'refresh_products_preview', 'refresh_products_commit' ];
 
 function dtb_schematics_workspace_handle_action(): void {
 	if ( ! dtb_schematics_can_manage() ) { wp_die( esc_html__( 'You do not have permission to perform this action.', 'drywall-toolbox' ), 403 ); }
@@ -226,7 +255,8 @@ function dtb_schematics_workspace_handle_action(): void {
 	$id        = absint( $_POST['schematic_id'] ?? 0 );
 	if ( ! in_array( $operation, DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS, true ) ) { dtb_schematics_workspace_redirect( $id, __( 'Unsupported workspace action.', 'drywall-toolbox' ), 'error' ); }
 	$commit             = str_ends_with( $operation, '_commit' );
-	$is_record_run      = str_starts_with( $operation, 'migrate_hotspots_' ) || str_starts_with( $operation, 'refresh_products_' );
+	$is_all_hotspot_run = str_starts_with( $operation, 'migrate_hotspots_all_' );
+	$is_record_run      = ( str_starts_with( $operation, 'migrate_hotspots_' ) && ! $is_all_hotspot_run ) || str_starts_with( $operation, 'refresh_products_' );
 	$is_record_mutation = in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
 	$requires_record    = $is_record_run || $is_record_mutation;
 	if ( $requires_record && ! dtb_schematic_record_repo_get( $id ) ) { dtb_schematics_workspace_redirect( $id, __( 'Schematic record not found.', 'drywall-toolbox' ), 'error' ); }
@@ -247,7 +277,8 @@ function dtb_schematics_workspace_handle_ajax_action(): void {
 	$id        = absint( $_POST['schematic_id'] ?? 0 );
 	if ( ! in_array( $operation, DTB_SCHEMATICS_WORKSPACE_ALLOWED_OPERATIONS, true ) ) { wp_send_json_error( [ 'message' => __( 'Unsupported workspace action.', 'drywall-toolbox' ) ] ); }
 	$commit             = str_ends_with( $operation, '_commit' );
-	$is_record_run      = str_starts_with( $operation, 'migrate_hotspots_' ) || str_starts_with( $operation, 'refresh_products_' );
+	$is_all_hotspot_run = str_starts_with( $operation, 'migrate_hotspots_all_' );
+	$is_record_run      = ( str_starts_with( $operation, 'migrate_hotspots_' ) && ! $is_all_hotspot_run ) || str_starts_with( $operation, 'refresh_products_' );
 	$is_record_mutation = in_array( $operation, [ 'publish', 'retire', 'refresh_projection' ], true );
 	$requires_record    = $is_record_run || $is_record_mutation;
 	if ( $requires_record && ! dtb_schematic_record_repo_get( $id ) ) { wp_send_json_error( [ 'message' => __( 'Schematic record not found.', 'drywall-toolbox' ) ] ); }
@@ -279,7 +310,7 @@ function dtb_schematics_workspace_handle_ajax_action(): void {
 function dtb_schematics_workspace_perform_operation( string $operation, int $id, bool $commit ): array {
 	if ( str_starts_with( $operation, 'reconcile_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_RECONCILE; } elseif ( str_starts_with( $operation, 'migrate_hotspots_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS; } elseif ( str_starts_with( $operation, 'refresh_products_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS; } else { $kind = [ 'publish' => DTB_SCHEMATIC_OPERATION_PUBLISH, 'retire' => DTB_SCHEMATIC_OPERATION_RETIRE, 'refresh_projection' => DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ][ $operation ]; }
 	$args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id() ];
-	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } else { $args['schematic_ids'] = [ $id ]; }
+	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } elseif ( str_starts_with( $operation, 'migrate_hotspots_all_' ) ) { $args['all_records'] = true; $args['per_page'] = 25; } else { $args['schematic_ids'] = [ $id ]; }
 	$run = dtb_schematic_run_operation( $args );
 	if ( is_wp_error( $run ) ) { return [ 'notice' => $run->get_error_message(), 'notice_type' => 'error', 'run_id' => '' ]; }
 	$result = (array) ( $run['result'] ?? [] );

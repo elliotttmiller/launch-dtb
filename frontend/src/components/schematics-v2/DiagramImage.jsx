@@ -1,30 +1,21 @@
 /**
  * frontend/src/components/schematics-v2/DiagramImage.jsx
  *
- * Renders the diagram <img> reserving real layout space via width/height
- * from the API (avoids CLS), and uses responsive `sources`/`srcset` data
- * where the API provides it.
+ * Renders the authoritative full schematic page while reserving real layout
+ * space via width/height from the API (avoids CLS). Diagram pages deliberately
+ * do not use the general WordPress attachment `srcset`: that set also contains
+ * hard-cropped card/banner derivatives whose aspect ratios do not match the
+ * source diagram. The legacy viewer likewise used the original page asset so
+ * the complete drawing and hotspot coordinate space stayed intact.
  */
-
-function buildSrcSet(sources) {
-  if (!Array.isArray(sources) || sources.length === 0) return undefined;
-  return sources
-    .filter((s) => s?.url && s?.width)
-    .map((s) => `${s.url} ${s.width}w`)
-    .join(', ') || undefined;
-}
 
 export default function DiagramImage({ page, onLoad, imgRef }) {
   if (!page?.url) return null;
-
-  const srcSet = buildSrcSet(page.sources);
 
   return (
     <img
       ref={imgRef}
       src={page.url}
-      srcSet={srcSet}
-      sizes={srcSet ? '(max-width: 768px) 100vw, 80vw' : undefined}
       width={page.width || undefined}
       height={page.height || undefined}
       alt={page.label || `Schematic diagram page ${page.page_number}`}

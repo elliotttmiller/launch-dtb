@@ -431,10 +431,8 @@
 }
 
 /* ---- Variant (size) pills -------------------------------------------------
-   Case B only: sibling schematic records sharing one family_id, each with a
-   distinct variant_label (e.g. Level5 10"/12"/14" flat boxes). Reuses the
-   page-tab pill visual language but is a distinct row above the diagram so
-   it never gets confused with page navigation. */
+   Supports both sibling schematic records and catalog variations sharing one
+   diagram. Kept distinct from page navigation, matching the legacy viewer. */
 
 .dtb-schematic-variant-pills {
   display: flex;
@@ -467,7 +465,19 @@
   font-weight: 700;
   font-size: clamp(0.72rem, 1.9vw, 0.85rem);
   cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.05;
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.dtb-schematic-variant-pill__sku {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  opacity: 0.82;
 }
 
 .dtb-schematic-variant-pill:hover {
@@ -498,12 +508,15 @@
 
 .dtb-schematic-diagram {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   border-radius: clamp(8px, 2vw, 12px);
   border: 1px solid rgba(15, 23, 42, 0.1);
   background: var(--dtb-surface);
   touch-action: pan-y;
-  min-height: clamp(300px, 60vh, 640px);
+  height: clamp(300px, 60dvh, 640px);
   -webkit-user-select: none;
   user-select: none;
 }
@@ -524,11 +537,16 @@
   position: relative;
   display: flex;
   justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .dtb-schematic-diagram__image {
+  width: 100%;
+  height: 100%;
   max-width: 100%;
-  height: auto;
+  max-height: 100%;
+  object-fit: contain;
   display: block;
   user-select: none;
   pointer-events: none;
@@ -614,6 +632,7 @@
 
 .dtb-schematic-hotspot {
   position: absolute;
+  box-sizing: border-box;
   pointer-events: auto;
   cursor: pointer;
   background: rgba(34, 85, 238, 0.12);
@@ -633,7 +652,10 @@
 
 .dtb-schematic-hotspot--region {
   border-radius: 6px;
+  transform: translate(-50%, -50%);
 }
+
+.dtb-schematic-hotspot--circle { border-radius: 50%; }
 
 .dtb-schematic-hotspot:hover {
   background: rgba(34, 85, 238, 0.22);
@@ -659,6 +681,117 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-schematic-hotspot { animation: none; }
+}
+
+/* Viewer mode owns the full storefront viewport below the global header. */
+.dtb-schematics-page--viewer,
+.dtb-schematics-page__content--viewer {
+  height: calc(100dvh - var(--header-height, 72px));
+  min-height: 32rem;
+}
+
+.dtb-schematics-page--viewer { overflow: hidden; }
+
+.dtb-schematics-page__content--viewer {
+  display: flex;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dtb-schematics-page__content--viewer .dtb-schematic-viewer {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+}
+
+.dtb-schematics-page__content--viewer .dtb-schematic-viewer__header {
+  min-height: 74px;
+  padding: var(--dtb-space-2) var(--dtb-space-4);
+  border-radius: 0;
+  flex: 0 0 auto;
+}
+
+.dtb-schematics-page__content--viewer .dtb-schematic-viewer__heading {
+  position: absolute;
+  left: 50%;
+  width: min(58vw, 36rem);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.dtb-schematic-viewer__brand-logo {
+  width: auto;
+  height: clamp(22px, 3.2vw, 34px);
+  max-width: clamp(90px, 14vw, 140px);
+  object-fit: contain;
+}
+
+.back-button.dtb-schematic-viewer__back {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1;
+  touch-action: manipulation;
+  transition: background 140ms ease, border-color 140ms ease, transform 120ms ease;
+}
+
+.back-button.dtb-schematic-viewer__back:hover {
+  border-color: rgba(15, 23, 42, 0.24);
+  background: #f1f5f9;
+  transform: none;
+}
+
+.back-button.dtb-schematic-viewer__back:active { transform: scale(0.96); }
+.back-button.dtb-schematic-viewer__back:focus-visible { outline: 2px solid var(--dtb-primary); outline-offset: 2px; }
+.back-button.dtb-schematic-viewer__back svg { width: 20px; height: 20px; flex: 0 0 20px; }
+
+.dtb-schematics-page__content--viewer .dtb-schematic-diagram-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0;
+}
+
+.dtb-schematics-page__content--viewer .dtb-schematic-diagram {
+  flex: 1 1 auto;
+  min-height: 300px;
+  height: auto;
+  border-radius: 0;
+}
+
+@media (max-width: 48rem) {
+  .dtb-schematics-page__content--viewer .dtb-schematic-viewer__header {
+    min-height: 62px;
+    padding: 8px;
+  }
+
+  .back-button.dtb-schematic-viewer__back {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    padding: 0;
+  }
+
+  .back-button.dtb-schematic-viewer__back span { display: none; }
+  .dtb-schematics-page__content--viewer .dtb-schematic-viewer__heading { width: calc(100% - 104px); }
+  .dtb-schematic-viewer__title { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dtb-schematic-viewer__brand-logo { height: 23px; max-width: 100px; }
+  .dtb-schematics-page__content--viewer .dtb-schematic-diagram { min-height: 260px; }
 }
 
 /* ---- Part dialog -----------------------------------------------------------

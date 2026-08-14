@@ -34,6 +34,7 @@ for sku, entry in catalog.items():
 csv_path = f"{REPO}/products/launch/universal_parts/references/all_brands_schematic_parts_master.csv"
 csv_sku_rows = {}
 csv_by_schematic_id = {}
+schematic_source_rows = []
 retired_schematic_ids = set()
 with open(csv_path, encoding="utf-8-sig", newline="") as f:
     reader = csv.DictReader(f)
@@ -55,6 +56,14 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
             continue
         if not sid:
             continue
+        if src_rel:
+            schematic_source_rows.append(
+                {
+                    "schematic_id": sid,
+                    "sku": sku,
+                    "source": src_rel.replace("\\", "/"),
+                }
+            )
         if sid not in csv_by_schematic_id:
             csv_by_schematic_id[sid] = {
                 "brand": brand,
@@ -300,9 +309,9 @@ print(f"[brand/category map] resolved from CSV: {len(brand_category_map) - catal
 #   unambiguously represents exactly one size/variant (case (b) above, or a
 #   product with no size variation at all). When a schematic id is shared by
 #   multiple distinct variants (case (a) above), no single label describes
-#   the record, so variant_label is left empty; the frontend groups by
-#   family_id and reads each variant's own label from the WooCommerce
-#   variation, not from the schematic record.
+#   the record, so variant_label is left empty. Those exact variation keys,
+#   labels, and SKUs are emitted separately in
+#   DTB_SCHEMATIC_SHARED_VARIANT_MAP for the public detail projection.
 #
 #   A schematic id observed under more than one distinct parent SKU (a
 #   handful of SurPro Manual/Automatic head schematic ids, shared across two
@@ -313,18 +322,28 @@ print(f"[brand/category map] resolved from CSV: {len(brand_category_map) - catal
 
 family_by_schematic = {}
 label_by_schematic = {}
+variant_options_by_schematic = {}
 with open(official_catalog_path, encoding="utf-8-sig", newline="") as f:
     for row in csv.DictReader(f):
         sid = (row.get("Meta: _dtb_schematic_id") or "").strip()
         parent = (row.get("Meta: _dtb_parent_product_sku") or "").strip()
         label = (row.get("Meta: _dtb_variation_label") or "").strip()
+        variant_key = (row.get("Meta: _dtb_schematic_variant") or "").strip()
+        sku = (row.get("SKU") or "").strip()
         if not sid or not parent:
             continue
         family_by_schematic.setdefault(sid, set()).add(parent)
         if label:
             label_by_schematic.setdefault(sid, set()).add(label)
+        if variant_key and label and sku:
+            variant_options_by_schematic.setdefault(sid, {})[variant_key] = {
+                "key": variant_key,
+                "label": label,
+                "sku": sku,
+            }
 
 family_map = {}
+shared_variant_map = {}
 family_conflicts = []
 for sid, parents in family_by_schematic.items():
     if len(parents) != 1:
@@ -339,6 +358,85 @@ for sid, parents in family_by_schematic.items():
     # letter of an all-caps string), is the correct normalization here.
     family_id = re.sub(r"[^a-z0-9]+", "-", parent.lower()).strip("-")
     family_map[sid] = (family_id, variant_label)
+    options = list(variant_options_by_schematic.get(sid, {}).values())
+    if len(options) > 1:
+        shared_variant_map[sid] = options
+
+# =====================================================================
+# Part 5: DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP
+#
+# Exact canonical-record -> source JSON/page relationships. The master parts
+# CSV is authoritative for source_file_from_brands; the same verbose-id map
+# used for diagram assets resolves those source rows to canonical IDs/pages.
+# Only files that actually exist in frontend/public/brands are emitted, so
+# stale master references cannot become runtime pointers.
+# =====================================================================
+
+known_canonical_ids = {
+    entry.get("schematicId") for entry in catalog.values() if entry.get("schematicId")
+}
+known_canonical_ids.update(brand_category_map.keys())
+hotspot_source_map = {}
+for source_row in schematic_source_rows:
+    sid = source_row["schematic_id"]
+    source = source_row["source"]
+    source_abs = os.path.join(REPO, "frontend", "public", "brands", *source.split("/"))
+    if not os.path.isfile(source_abs):
+        continue
+    canonical_id = resolve_row_canonical_id(sid, source_row["sku"])
+    if not canonical_id and sid in known_canonical_ids:
+        canonical_id = sid
+    if not canonical_id or canonical_id in retired_schematic_ids:
+        continue
+    verbose_entry = verbose_map.get(normalize_key(sid))
+    page = verbose_entry[1] if verbose_entry and verbose_entry[1] is not None else 1
+    reference = "brands/" + source
+    hotspot_source_map.setdefault(canonical_id, {})[reference] = int(page)
+
+# Preserve the legacy viewer's explicit multi-page family ownership where the
+# source export's numeric schematic IDs are blank or reused across families.
+# Directory identities are exact source contracts; they are never fuzzy title
+# matches. Removing a reference from its ID-derived owner first prevents an
+# ambiguous export ID from projecting one JSON file into two records.
+hotspot_path_overrides = {
+    "Columbia/Schematics/Handles/MatrixBoxHandle/BoxHandle/schematic_data.json": ("columbia-matrix", 1),
+    "Columbia/Schematics/Handles/MatrixBoxHandle/Head/schematic_data.json": ("columbia-matrix", 2),
+    "Columbia/Schematics/Handles/MatrixBoxHandle/Lever/schematic_data.json": ("columbia-matrix", 3),
+    "Columbia/Schematics/Handles/MatrixBoxHandle/Pinchbox/schematic_data.json": ("columbia-matrix", 4),
+    "Columbia/Schematics/Handles/MatrixBoxHandle/ExtensionHousing/schematic_data.json": ("columbia-matrix", 5),
+    "Columbia/Schematics/AutomaticTapers/PredatorTaper/Body/schematic_data.json": ("columbia-predator-taper", 1),
+    "Columbia/Schematics/AutomaticTapers/PredatorTaper/Head/schematic_data.json": ("columbia-predator-taper", 2),
+    "Columbia/Schematics/Applicators/InsideCornerApplicator/2Wheel/schematic_data.json": ("columbia-inside-corner-applicator", 1),
+    "Columbia/Schematics/Applicators/InsideCornerApplicator/4Wheel/schematic_data.json": ("columbia-inside-corner-applicator", 2),
+    "TapeTech/Schematics/EZ07TT/schematic_data.json": ("tapetech-easyclean-finishing-box", 1),
+    "TapeTech/Schematics/EZ10TT/schematic_data.json": ("tapetech-easyclean-finishing-box", 2),
+    "TapeTech/Schematics/EZ12TT/schematic_data.json": ("tapetech-easyclean-finishing-box", 3),
+    "TapeTech/Schematics/EZ15TT/schematic_data.json": ("tapetech-easyclean-finishing-box", 4),
+    "TapeTech/Schematics/EHC07/schematic_data.json": ("tapetech-maxxbox-ehc", 1),
+    "TapeTech/Schematics/EHC10/schematic_data.json": ("tapetech-maxxbox-ehc", 2),
+    "TapeTech/Schematics/EHC12/schematic_data.json": ("tapetech-maxxbox-ehc", 3),
+    "TapeTech/Schematics/PAHC07/schematic_data.json": ("tapetech-power-assist-maxxbox", 1),
+    "TapeTech/Schematics/PAHC10/schematic_data.json": ("tapetech-power-assist-maxxbox", 2),
+    "TapeTech/Schematics/PAHC12/schematic_data.json": ("tapetech-power-assist-maxxbox", 3),
+    "TapeTech/Schematics/QB06-QSX/schematic_data.json": ("tapetech-quickbox-qsx", 1),
+    "TapeTech/Schematics/QB08-QSX/schematic_data.json": ("tapetech-quickbox-qsx", 2),
+    "TapeTech/Schematics/88TTE/schematic_data.json": ("tapetech-88tte", 1),
+}
+for source, (canonical_id, page) in hotspot_path_overrides.items():
+    source_abs = os.path.join(REPO, "frontend", "public", "brands", *source.split("/"))
+    if os.path.isfile(source_abs):
+        reference = "brands/" + source
+        for mapped_id in list(hotspot_source_map):
+            hotspot_source_map[mapped_id].pop(reference, None)
+            if not hotspot_source_map[mapped_id]:
+                del hotspot_source_map[mapped_id]
+        hotspot_source_map.setdefault(canonical_id, {})[reference] = page
+
+print(
+    f"[hotspot source map] records: {len(hotspot_source_map)}, "
+    f"files: {sum(len(entries) for entries in hotspot_source_map.values())}",
+    file=sys.stderr,
+)
 
 print(f"[family map] resolved: {len(family_map)}, skipped (schematic id spans >1 parent SKU): {len(family_conflicts)}", file=sys.stderr)
 for sid, parents in family_conflicts:
@@ -427,6 +525,32 @@ lines.append("const DTB_SCHEMATIC_FAMILY_MAP = [")
 for canonical_id in sorted(family_map.keys()):
     family_id, variant_label = family_map[canonical_id]
     lines.append(f"\t'{php_str(canonical_id)}' => [ 'family_id' => '{php_str(family_id)}', 'variant_label' => '{php_str(variant_label)}' ],")
+lines.append("];")
+lines.append("")
+lines.append("// Canonical schematic id -> WooCommerce variations that intentionally share")
+lines.append("// one diagram record. This is a generated public projection used by the")
+lines.append("// detail API to render the legacy size/model navigator without making React")
+lines.append("// an authority for product or variation existence.")
+lines.append("const DTB_SCHEMATIC_SHARED_VARIANT_MAP = [")
+for canonical_id in sorted(shared_variant_map.keys()):
+    lines.append(f"\t'{php_str(canonical_id)}' => [")
+    for option in shared_variant_map[canonical_id]:
+        lines.append(
+            f"\t\t[ 'key' => '{php_str(option['key'])}', 'label' => '{php_str(option['label'])}', 'sku' => '{php_str(option['sku'])}' ],"
+        )
+    lines.append("\t],")
+lines.append("];")
+lines.append("")
+lines.append("// Canonical schematic id -> exact hotspot JSON source/page relationships,")
+lines.append("// sourced from all_brands_schematic_parts_master.csv and resolved through")
+lines.append("// DTB_VERBOSE_SCHEMATIC_ID_MAP. Runtime migration uses this deterministic")
+lines.append("// map before any compatibility locator.")
+lines.append("const DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP = [")
+for canonical_id in sorted(hotspot_source_map.keys()):
+    lines.append(f"\t'{php_str(canonical_id)}' => [")
+    for reference, page in sorted(hotspot_source_map[canonical_id].items(), key=lambda item: (item[1], item[0])):
+        lines.append(f"\t\t[ 'reference' => '{php_str(reference)}', 'page' => {int(page)} ],")
+    lines.append("\t],")
 lines.append("];")
 lines.append("")
 

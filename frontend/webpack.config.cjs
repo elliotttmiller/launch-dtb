@@ -189,10 +189,21 @@ module.exports = (envFlags, argv) => {
               for (const [filename] of Object.entries(assets)) {
                 if (filename === 'asset-manifest.json') continue;
                 const basename = path.basename(filename);
-                const key = basename.replace(/\.[a-f0-9]{8}(\.\w+)$/, '$1').replace(/^(\w+)(\.\w+)$/, '$1$2');
+                // Preserve stable logical keys for PHP consumers while the
+                // manifest value retains the content-hashed deploy URL.
+                // Handles entry assets (main.<hash>.js) and lazy chunks
+                // (917.<hash>.chunk.js) without collapsing their identities.
+                const key = basename.replace(
+                  /\.[a-f0-9]{8}(?=\.(?:chunk\.)?(?:js|css)$)/i,
+                  '',
+                );
                 files[key] = publicPath + filename;
               }
-              const manifest = { files, entrypoints: ['main.js', 'main.css'] };
+              const entrypoints = Array.from(compilation.entrypoints.values())
+                .flatMap((entrypoint) => entrypoint.getFiles())
+                .filter((filename) => /\.(?:js|css)$/i.test(filename))
+                .map((filename) => publicPath + filename);
+              const manifest = { files, entrypoints };
               compilation.emitAsset('asset-manifest.json', new webpack.sources.RawSource(JSON.stringify(manifest, null, 2)));
             } catch (err) {
               compilation.errors.push(err);
@@ -260,11 +271,13 @@ module.exports = (envFlags, argv) => {
     output: {
       path:      outputPath,
       publicPath,
-      // Use stable JS entry/chunk names in production to avoid transient
-      // GitHub Pages 404s when a stale HTML shell references a previous
-      // content-hashed filename during edge/browser cache propagation.
-      filename:  'assets/js/[name].js',
-      chunkFilename: 'assets/js/[name].chunk.js',
+      // Production assets are content-addressed. SiteGround/CDN caches JS for
+      // long periods, so reusing a route-chunk URL can otherwise leave one
+      // page running old React code after a successful deployment.
+      filename: isDev ? 'assets/js/[name].js' : 'assets/js/[name].[contenthash:8].js',
+      chunkFilename: isDev
+        ? 'assets/js/[name].chunk.js'
+        : 'assets/js/[name].[contenthash:8].chunk.js',
       assetModuleFilename: 'assets/media/[name].[hash:8][ext]',
       clean: true,
     },
@@ -418,9 +431,8 @@ module.exports = (envFlags, argv) => {
 
       ...(!isDev ? [
         new MiniCssExtractPlugin({
-          // Keep CSS entry/chunk names stable for the same reason as JS.
-          filename:      'assets/css/[name].css',
-          chunkFilename: 'assets/css/[name].chunk.css',
+          filename:      'assets/css/[name].[contenthash:8].css',
+          chunkFilename: 'assets/css/[name].[contenthash:8].chunk.css',
           // Different entry points/async chunks can require the same CSS
           // module graph in different orders (for example after code-splitting
           // a component like ProductDetail into its own chunk). Webpack cannot

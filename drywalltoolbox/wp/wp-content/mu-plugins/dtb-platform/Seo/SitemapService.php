@@ -7,14 +7,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// Use autoload=false: this file is the canonical declaration site and must
-// never trigger a class autoloader lookup while deciding whether to
-// (re)declare itself. Kept symmetric with the admin recovery guard's check
-// in 00-aaa-dtb-sitemap-admin-guard.php so both guards agree on identity.
-if ( class_exists( 'DTB_SitemapService', false ) ) {
-	return;
-}
-
+// This file is the sole declaration site. The platform bootstrap loads it
+// with require_once, so duplicate class sentinels or compatibility shadows
+// must not be introduced elsewhere in the MU-plugin root.
 final class DTB_SitemapService {
 	private const REWRITE_VERSION_OPTION = 'dtb_sitemap_rewrite_version';
 	private const GENERATION_OPTION      = 'dtb_sitemap_generation';

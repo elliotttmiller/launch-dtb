@@ -287,7 +287,10 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 	$is_not_modified = dtb_schematics_public_api_apply_cache_headers(
 		$request,
 		$response,
-		'detail:' . $record->canonical_id . ':' . $record->publication_version
+		// Include the response-contract revision so a deployment that adds a
+		// projection cannot receive a stale 304 solely because record content
+		// and publication_version did not change.
+		'detail:v2:' . $record->canonical_id . ':' . $record->publication_version . ':' . md5( wp_json_encode( $body['variant_options'] ?? [] ) )
 	);
 
 	if ( $is_not_modified ) {

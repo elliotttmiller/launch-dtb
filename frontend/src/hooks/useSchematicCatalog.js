@@ -12,6 +12,23 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchSchematicsCollection, SchematicApiError } from '../api/schematicsApi.js';
 import { humanizeLabel } from '../utils/string.js';
 
+const CATEGORY_PREVIEW_OVERRIDES = new Map([
+  [
+    'columbia::compound-tubes',
+    {
+      url: 'https://elliottm4.sg-host.com/wp/wp-content/uploads/2026/media/columbia_tools_cmt24_01.webp',
+      source: 'category_override',
+    },
+  ],
+  [
+    'columbia::pumps',
+    {
+      url: 'https://elliottm4.sg-host.com/wp/wp-content/uploads/2026/media/columbia_tools_hmp_01.webp',
+      source: 'category_override',
+    },
+  ],
+]);
+
 /**
  * @typedef {'loading'|'success'|'empty'|'error'} SchematicCatalogStatus
  */
@@ -30,9 +47,21 @@ export function useSchematicCatalog() {
     fetchSchematicsCollection({ signal: controller.signal })
       .then((body) => {
         if (controller.signal.aborted) return;
-        setItems(Array.isArray(body.items) ? body.items : []);
+        const normalizedItems = Array.isArray(body.items)
+          ? body.items.map((item) => ({
+              ...item,
+              title: humanizeLabel(item?.title, item?.id),
+              brand: item?.brand
+                ? { ...item.brand, name: humanizeLabel(item.brand.name, item.brand.id) }
+                : item?.brand,
+              category: item?.category
+                ? { ...item.category, name: humanizeLabel(item.category.name, item.category.id) }
+                : item?.category,
+            }))
+          : [];
+        setItems(normalizedItems);
         setCatalogVersion(body.catalog_version ?? null);
-        setStatus((Array.isArray(body.items) && body.items.length > 0) ? 'success' : 'empty');
+        setStatus(normalizedItems.length > 0 ? 'success' : 'empty');
         setError(null);
       })
       .catch((err) => {
@@ -68,7 +97,12 @@ export function useSchematicCatalog() {
       if (!map.has(brandId)) map.set(brandId, new Map());
       const catMap = map.get(brandId);
       if (!catMap.has(category.id)) {
-        catMap.set(category.id, { id: category.id, name: humanizeLabel(category.name, category.id), count: 0, preview: null });
+        catMap.set(category.id, {
+          id: category.id,
+          name: humanizeLabel(category.name, category.id),
+          count: 0,
+          preview: CATEGORY_PREVIEW_OVERRIDES.get(`${brandId}::${category.id}`) || null,
+        });
       }
       const entry = catMap.get(category.id);
       entry.count += 1;

@@ -42,12 +42,18 @@ function SchematicsPageInner() {
     routeState.backFromViewer(derivedBrandId, derivedCategoryId);
   }, [routeState]);
 
-  const handleSelectVariant = useCallback((nextSchematicId) => {
-    routeState.goToSchematic(nextSchematicId);
+  const handleSelectVariant = useCallback((selection) => {
+    if (selection.type === 'shared') {
+      routeState.setVariant(selection.id);
+      return;
+    }
+    routeState.goToSchematic(selection.id);
   }, [routeState]);
 
+  const isViewer = routeState.view === 'viewer';
+
   return (
-    <div className="dtb-schematics-page">
+    <div className={`dtb-schematics-page${isViewer ? ' dtb-schematics-page--viewer' : ''}`}>
       <SEOHead
         title="Tool Schematics & Diagrams"
         description="Interactive exploded-view schematics and part diagrams for professional drywall finishing tools. Find replacement parts for TapeTech, Columbia, and more."
@@ -68,11 +74,12 @@ function SchematicsPageInner() {
         />
       )}
 
-      <div className="dtb-schematics-page__content">
-        {routeState.view === 'viewer' ? (
+      <div className={`dtb-schematics-page__content${isViewer ? ' dtb-schematics-page__content--viewer' : ''}`}>
+        {isViewer ? (
           <SchematicViewerPage
             schematicId={routeState.schematicId}
             initialPage={routeState.page}
+            initialVariant={routeState.variant}
             onBack={handleBackFromViewer}
             onPageChange={handlePageChange}
             catalogItems={catalog.items}

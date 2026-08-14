@@ -18,6 +18,7 @@ import SchematicPartDialog from './SchematicPartDialog';
 export default function SchematicViewerPage({
   schematicId,
   initialPage,
+  initialVariant,
   onBack,
   onPageChange,
   catalogItems,
@@ -26,18 +27,40 @@ export default function SchematicViewerPage({
   const { status, detail, error } = useSchematicDetail(schematicId);
   const [activePartRef, setActivePartRef] = useState(null);
 
-  // Case B only: sibling schematic records sharing this record's family_id,
-  // each with its own populated variant_label. Case A (one shared record,
-  // empty variant_label) intentionally yields an empty list here — there is
-  // nothing to switch between within dtb-schematics data alone.
-  const variants = useMemo(() => {
+  const variantNavigation = useMemo(() => {
+    const shared = Array.isArray(detail?.variant_options)
+      ? detail.variant_options
+        .filter((item) => item?.key && item?.label)
+        .map((item) => ({
+          id: item.key,
+          variant_label: item.label,
+          sku: item.sku || '',
+        }))
+      : [];
+
+    if (shared.length > 1) {
+      return {
+        mode: 'shared',
+        items: sortVariants(shared),
+        activeId: shared.some((item) => item.id === initialVariant)
+          ? initialVariant
+          : shared[0].id,
+      };
+    }
+
     const familyId = detail?.family_id;
-    if (!familyId || !Array.isArray(catalogItems)) return [];
+    if (!familyId || !Array.isArray(catalogItems)) {
+      return { mode: 'schematic', items: [], activeId: schematicId };
+    }
     const siblings = catalogItems.filter(
       (item) => item.family_id === familyId && item.variant_label,
     );
-    return siblings.length > 1 ? sortVariants(siblings) : [];
-  }, [detail, catalogItems]);
+    return {
+      mode: 'schematic',
+      items: siblings.length > 1 ? sortVariants(siblings) : [],
+      activeId: schematicId,
+    };
+  }, [detail, catalogItems, initialVariant, schematicId]);
 
   const pages = useMemo(() => detail?.pages || [], [detail]);
   const activePage = useMemo(() => {
@@ -93,16 +116,16 @@ export default function SchematicViewerPage({
   return (
     <div className="dtb-schematic-viewer">
       <SchematicHeader
-        title={detail.title}
+        title={humanizeLabel(detail.title, detail.id)}
         brandName={humanizeLabel(detail.brand?.name, detail.brand?.id)}
         categoryName={humanizeLabel(detail.category?.name, detail.category?.id)}
         onBack={() => onBack(detail.brand?.id, detail.category?.id)}
       />
 
       <SchematicVariantPills
-        variants={variants}
-        activeSchematicId={schematicId}
-        onSelectVariant={onSelectVariant}
+        variants={variantNavigation.items}
+        activeVariantId={variantNavigation.activeId}
+        onSelectVariant={(id) => onSelectVariant({ type: variantNavigation.mode, id })}
       />
 
       {pages.length === 0 ? (

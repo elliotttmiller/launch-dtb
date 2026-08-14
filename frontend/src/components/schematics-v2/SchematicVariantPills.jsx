@@ -1,17 +1,9 @@
 /**
  * frontend/src/components/schematics-v2/SchematicVariantPills.jsx
  *
- * Size/variant switcher for schematic families where the underlying catalog
- * items are genuinely distinct REST records (Case B: multiple schematic ids
- * sharing one `family_id`, each with its own populated `variant_label`, e.g.
- * Level5's 10"/12"/14" flat boxes). Renders as a pill row above the diagram
- * and switches the active schematic in place (URL-driven, no full reload).
- *
- * Does NOT render anything for Case A (one shared record spanning multiple
- * physical sizes with an empty `variant_label`, e.g. Columbia's Automatic
- * Flat Box) — that grouping is a WooCommerce product-variation concern, out
- * of scope here. Callers derive the sibling list from the already-fetched
- * catalog collection (see useSchematicCatalog) — no extra network request.
+ * Size/variant switcher for both supported domain projections: distinct
+ * schematic records in one family, and WooCommerce variations that share a
+ * single diagram. Both arrive from the public schematics API.
  */
 import { useRef } from 'react';
 
@@ -29,7 +21,7 @@ export function sortVariants(items) {
   });
 }
 
-export default function SchematicVariantPills({ variants, activeSchematicId, onSelectVariant }) {
+export default function SchematicVariantPills({ variants, activeVariantId, onSelectVariant }) {
   const pillRefs = useRef(new Map());
 
   if (!variants || variants.length <= 1) return null;
@@ -71,7 +63,7 @@ export default function SchematicVariantPills({ variants, activeSchematicId, onS
     <div className="dtb-schematic-variant-pills" role="tablist" aria-label="Size">
       <span className="dtb-schematic-variant-pills__label" aria-hidden="true">Size</span>
       {variants.map((variant, index) => {
-        const selected = String(variant.id) === String(activeSchematicId);
+        const selected = String(variant.id) === String(activeVariantId);
         return (
           <button
             key={variant.id}
@@ -87,7 +79,10 @@ export default function SchematicVariantPills({ variants, activeSchematicId, onS
             onClick={() => onSelectVariant(variant.id)}
             onKeyDown={(event) => handleKeyDown(event, index)}
           >
-            {variant.variant_label}
+            <span className="dtb-schematic-variant-pill__label">{variant.variant_label}</span>
+            {variant.sku && (
+              <span className="dtb-schematic-variant-pill__sku">{variant.sku}</span>
+            )}
           </button>
         );
       })}

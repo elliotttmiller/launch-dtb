@@ -63,7 +63,7 @@ $total_hotspots = 0;
 $empty_hotspot_legacy = [];
 
 foreach ( $files as $relative ) {
-	$absolute = $repo_root . '/' . $relative;
+	$absolute = dtb_schematics_hotspot_resolve_reference( $relative );
 	$result   = dtb_schematic_hotspot_read_file( $absolute );
 
 	if ( $result['bom_stripped'] ) {
@@ -91,7 +91,7 @@ foreach ( $files as $relative ) {
 }
 
 printf( "Clean v2-native files:        %d\n", $counts['ok_v2'] );
-printf( "Legacy files normalized:      %d (parts_catalog only — no coordinate data exists in this schema)\n", $counts['ok_legacy'] );
+printf( "Legacy files normalized:      %d (including coordinate maps where present)\n", $counts['ok_legacy'] );
 printf( "Failed to read/normalize:     %d\n", $counts['failed'] );
 printf( "Files with a BOM stripped:    %d\n", count( $bom_files ) );
 printf( "Total normalized parts_catalog entries across all files: %d\n", $total_parts );

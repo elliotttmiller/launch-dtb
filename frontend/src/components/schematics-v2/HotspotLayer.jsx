@@ -3,7 +3,7 @@
  *
  * Renders EVERY hotspot occurrence for the active page (never collapsed to
  * one marker per part). Coordinates are normalized percentage-of-page values
- * (0-100, keyed x_pct/y_pct/width_pct/height_pct — see
+ * (0-100, center-anchored x_pct/y_pct/width_pct/height_pct — see
  * Domain/SchematicHotspotDataset.php's dtb_schematic_hotspot_normalize_coordinates())
  * of the diagram's intrinsic width/height. An occurrence with invalid/missing
  * coordinates is hidden — it is never defaulted to the image center.
@@ -13,32 +13,32 @@ import { useMemo } from 'react';
 // The REST API serializes normalized coordinates from post meta, which can
 // come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
 // before validating so those occurrences aren't silently dropped.
-function toFraction(value) {
+function toPercent(value) {
   const num = typeof value === 'string' ? Number(value) : value;
-  return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 1 ? num : null;
+  return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 100 ? num : null;
 }
 
 function toStyle(coordinates) {
-  const x = toFraction(coordinates?.x);
-  const y = toFraction(coordinates?.y);
+  const x = toPercent(coordinates?.x_pct);
+  const y = toPercent(coordinates?.y_pct);
   if (x === null || y === null) return null;
 
-  const width = toFraction(coordinates?.width);
-  const height = toFraction(coordinates?.height);
+  const width = toPercent(coordinates?.width_pct);
+  const height = toPercent(coordinates?.height_pct);
 
   if (width !== null && height !== null && width > 0 && height > 0) {
     return {
-      left: `${x * 100}%`,
-      top: `${y * 100}%`,
-      width: `${width * 100}%`,
-      height: `${height * 100}%`,
+      left: `${x}%`,
+      top: `${y}%`,
+      width: `${width}%`,
+      height: `${height}%`,
     };
   }
 
   // Point hotspot — render as a small centered marker.
   return {
-    left: `${x * 100}%`,
-    top: `${y * 100}%`,
+    left: `${x}%`,
+    top: `${y}%`,
     width: '0',
     height: '0',
   };
@@ -65,7 +65,7 @@ export default function HotspotLayer({ hotspotDataset, parts, onSelectPart }) {
           <button
             key={occurrence.hotspot_id}
             type="button"
-            className={`dtb-schematic-hotspot${isPoint ? ' dtb-schematic-hotspot--point' : ' dtb-schematic-hotspot--region'}`}
+            className={`dtb-schematic-hotspot${isPoint ? ' dtb-schematic-hotspot--point' : ` dtb-schematic-hotspot--region dtb-schematic-hotspot--${occurrence.shape_type || 'rect'}`}`}
             style={style}
             onClick={() => onSelectPart(occurrence.part_ref)}
             aria-label={label}

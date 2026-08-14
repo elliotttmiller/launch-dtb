@@ -32,9 +32,18 @@
 		var button = form.querySelector( 'button' );
 		if ( ! button ) { return; }
 		button.disabled = busy;
+		form.setAttribute( 'aria-busy', busy ? 'true' : 'false' );
 		if ( busy ) {
 			button.dataset.dtbLabel = button.dataset.dtbLabel || button.textContent;
-			button.textContent = ( window.dtbSchematicsWorkspace && window.dtbSchematicsWorkspace.workingLabel ) || 'Working…';
+			var operation = form.querySelector( 'input[name="operation"]' );
+			var operationName = operation ? operation.value : '';
+			if ( operationName === 'migrate_hotspots_all_preview' ) {
+				button.textContent = window.dtbSchematicsWorkspace.previewingLabel || 'Previewing all hotspot files…';
+			} else if ( operationName === 'migrate_hotspots_all_commit' ) {
+				button.textContent = window.dtbSchematicsWorkspace.syncingLabel || 'Synchronizing all hotspot files…';
+			} else {
+				button.textContent = window.dtbSchematicsWorkspace.workingLabel || 'Working…';
+			}
 		} else if ( button.dataset.dtbLabel ) {
 			button.textContent = button.dataset.dtbLabel;
 		}
@@ -56,6 +65,7 @@
 		} );
 
 		setBusy( form, true );
+		app.setAttribute( 'aria-busy', 'true' );
 
 		fetch( window.dtbSchematicsWorkspace.ajaxUrl, {
 			method: 'POST',
@@ -77,6 +87,7 @@
 			} )
 			.finally( function () {
 				setBusy( form, false );
+				app.removeAttribute( 'aria-busy' );
 			} );
 	}
 

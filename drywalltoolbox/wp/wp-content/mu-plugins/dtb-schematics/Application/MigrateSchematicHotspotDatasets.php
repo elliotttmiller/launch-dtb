@@ -33,9 +33,11 @@ const DTB_SCHEMATIC_HOTSPOT_MIGRATE_MAX_PAGES = 50; // Safety cap: at most 5,000
  *     @type bool   $dry_run           Default true. When false, eligible records are written.
  *     @type int    $per_page          Records per WP_Query page (default 50, capped at 100).
  *     @type string $only_canonical_id Optional: restrict to a single schematic.
+ *     @type callable|null $lease_heartbeat Optional commit-lease renewal callback.
  * }
  * @return array{
- *   dry_run:bool, examined:int, migrated:int, unchanged:int, skipped:int, failed:int,
+ *   dry_run:bool, examined:int, migrated:int, changed:int, unchanged:int, skipped:int,
+ *   unresolved:int, failed:int,
  *   results: array[]
  * }
  */
@@ -43,6 +45,7 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 	$dry_run   = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
 	$per_page  = max( 1, min( 100, (int) ( $args['per_page'] ?? 50 ) ) );
 	$only_id   = isset( $args['only_canonical_id'] ) ? sanitize_key( (string) $args['only_canonical_id'] ) : '';
+	$heartbeat = isset( $args['lease_heartbeat'] ) && is_callable( $args['lease_heartbeat'] ) ? $args['lease_heartbeat'] : null;
 
 	$report = [
 		'dry_run'   => $dry_run,
@@ -51,6 +54,8 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 		'unchanged' => 0,
 		'skipped'   => 0,
 		'failed'    => 0,
+		'changed'   => 0,
+		'unresolved' => 0,
 		'results'   => [],
 	];
 
@@ -63,6 +68,10 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 		}
 		$result = dtb_schematic_migrate_hotspot_dataset_for_record( $record, $dry_run );
 		dtb_schematic_migrate_hotspot_tally( $report, $result );
+		$report['changed'] = $report['migrated'];
+		if ( ! $dry_run && $report['changed'] > 0 ) {
+			dtb_schematics_invalidate_domain_cache();
+		}
 		return $report;
 	}
 
@@ -70,6 +79,14 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 	do {
 		$query_result = dtb_schematic_record_repo_query( [ 'page' => $page, 'per_page' => $per_page ] );
 		foreach ( $query_result['items'] as $record ) {
+			if ( $heartbeat ) {
+				$renewed = $heartbeat();
+				if ( is_wp_error( $renewed ) ) {
+					$report['failed']++;
+					$report['fatal_error'] = $renewed->get_error_message();
+					break 2;
+				}
+			}
 			$result = dtb_schematic_migrate_hotspot_dataset_for_record( $record, $dry_run );
 			dtb_schematic_migrate_hotspot_tally( $report, $result );
 		}
@@ -79,6 +96,7 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 	if ( ! $dry_run ) {
 		dtb_schematics_invalidate_domain_cache();
 	}
+	$report['changed'] = $report['migrated'];
 
 	return $report;
 }
@@ -86,6 +104,7 @@ function dtb_schematic_migrate_hotspot_datasets( array $args = [] ): array {
 function dtb_schematic_migrate_hotspot_tally( array &$report, array $result ): void {
 	$report['examined']++;
 	$report['results'][] = $result;
+	$report['unresolved'] += (int) ( $result['parts_unresolved'] ?? 0 );
 	switch ( $result['status'] ) {
 		case 'migrated':
 			$report['migrated']++;
@@ -118,9 +137,15 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 		'parts_unresolved' => 0,
 	];
 
+	$source_entries = function_exists( 'dtb_schematic_reconcile_hotspot_source_group' )
+		? dtb_schematic_reconcile_hotspot_source_group( $record->canonical_id )
+		: [];
 	$relative_reference = $record->hotspot_dataset['reference'] ?? '';
 	if ( '' === $relative_reference && function_exists( 'dtb_schematic_reconcile_locate_hotspot_dataset_file' ) ) {
 		$relative_reference = (string) dtb_schematic_reconcile_locate_hotspot_dataset_file( $record->canonical_id, $record->brand_name ?: $record->brand_id );
+	}
+	if ( empty( $source_entries ) && '' !== $relative_reference ) {
+		$source_entries = [ [ 'reference' => $relative_reference, 'page' => null ] ];
 	}
 
 	if ( '' === $relative_reference ) {
@@ -130,36 +155,38 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 	}
 
 	$relative_reference = str_replace( '\\', '/', trim( $relative_reference ) );
-	if ( ! preg_match( '#^frontend/public/brands/(?:[A-Za-z0-9._-]+/)+schematic_data\.json$#', $relative_reference ) ) {
+	if ( ! preg_match( '#^(?:frontend/public/)?brands/(?:[A-Za-z0-9._-]+/)+schematic_data[^/]*\.json$#', $relative_reference ) ) {
 		$base['status'] = 'failed';
-		$base['detail'] = 'Hotspot dataset reference is outside the supported frontend brand dataset path.';
+		$base['detail'] = 'Hotspot dataset reference is outside the supported brand dataset path.';
 		return $base;
 	}
-	$base['source_file'] = $relative_reference;
-
-	$repo_root       = dtb_schematics_repo_root();
-	$source_root     = '' !== $repo_root ? realpath( trailingslashit( $repo_root ) . 'frontend/public/brands' ) : false;
-	$absolute_path   = '' !== $repo_root ? realpath( trailingslashit( $repo_root ) . $relative_reference ) : false;
-	$normalized_root = false !== $source_root ? trailingslashit( str_replace( '\\', '/', $source_root ) ) : '';
-	$normalized_path = false !== $absolute_path ? str_replace( '\\', '/', $absolute_path ) : '';
-	if ( '' === $normalized_root || '' === $normalized_path || 0 !== strpos( $normalized_path, $normalized_root ) ) {
-		$base['status'] = false === $absolute_path ? 'source_file_missing' : 'failed';
-		$base['detail'] = false === $absolute_path ? 'Hotspot dataset source file does not exist.' : 'Hotspot dataset source resolved outside the supported frontend brand directory.';
-		return $base;
+	$base['source_file'] = implode( ', ', array_column( $source_entries, 'reference' ) );
+	$datasets = [];
+	foreach ( $source_entries as $source_entry ) {
+		$source_reference = str_replace( '\\', '/', trim( (string) ( $source_entry['reference'] ?? '' ) ) );
+		if ( ! preg_match( '#^(?:frontend/public/)?brands/(?:[A-Za-z0-9._-]+/)+schematic_data[^/]*\.json$#', $source_reference ) ) {
+			$base['status'] = 'failed';
+			$base['detail'] = 'Hotspot source group contains an invalid dataset reference.';
+			return $base;
+		}
+		$absolute_path = function_exists( 'dtb_schematics_hotspot_resolve_reference' )
+			? dtb_schematics_hotspot_resolve_reference( $source_reference )
+			: false;
+		if ( false === $absolute_path ) {
+			$base['status'] = 'source_file_missing';
+			$base['detail'] = 'Hotspot dataset source file does not exist in an approved runtime source root: ' . $source_reference;
+			return $base;
+		}
+		$read = dtb_schematic_hotspot_read_file( $absolute_path );
+		if ( DTB_SCHEMATIC_HOTSPOT_READ_OK !== $read['status'] ) {
+			$base['status'] = DTB_SCHEMATIC_HOTSPOT_READ_FILE_NOT_FOUND === $read['status'] ? 'source_file_missing' : 'failed';
+			$base['detail']  = $source_reference . ': ' . ( $read['error'] ?? $read['status'] ) . ( $read['bom_stripped'] ? ' (BOM stripped)' : '' );
+			return $base;
+		}
+		$datasets[] = [ 'dataset' => $read['dataset'], 'page' => $source_entry['page'] ?? null ];
 	}
 
-	$read = dtb_schematic_hotspot_read_file( $absolute_path );
-	if ( DTB_SCHEMATIC_HOTSPOT_READ_OK !== $read['status'] ) {
-		// Missing-file is a skip (nothing to migrate this pass); every other
-		// read failure (malformed JSON, BOM-only corruption beyond the strip,
-		// unrecognized shape, no parts found) is reported as a failure so it
-		// surfaces in the artifact list rather than silently disappearing.
-		$base['status'] = DTB_SCHEMATIC_HOTSPOT_READ_FILE_NOT_FOUND === $read['status'] ? 'source_file_missing' : 'failed';
-		$base['detail']  = ( $read['error'] ?? $read['status'] ) . ( $read['bom_stripped'] ? ' (BOM stripped)' : '' );
-		return $base;
-	}
-
-	$dataset = $read['dataset'];
+	$dataset = dtb_schematic_hotspot_merge_source_datasets( $record->canonical_id, $datasets );
 
 	$parts_resolved = dtb_schematic_resolve_part_occurrences_for_record( $record, $dataset );
 	$unresolved_count = count(
@@ -172,10 +199,11 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 	$existing_dataset = dtb_schematic_hotspot_dataset_repo_get( $record->id );
 	$dataset_unchanged = $existing_dataset && ( $existing_dataset['checksum'] ?? '' ) === $dataset['checksum']
 		&& ( $record->hotspot_dataset['reference'] ?? '' ) === $relative_reference;
+	$parts_unchanged = dtb_schematic_hotspot_part_projection_matches( $record->parts, $parts_resolved );
 
-	if ( $dataset_unchanged ) {
+	if ( $dataset_unchanged && $parts_unchanged ) {
 		$base['status'] = 'unchanged';
-		$base['detail'] = 'Dataset checksum and reference already match the stored state.';
+		$base['detail'] = 'Dataset checksum, reference, and resolved-part projection already match the stored state.';
 		return $base;
 	}
 
@@ -240,14 +268,78 @@ function dtb_schematic_migrate_hotspot_dataset_for_record( DTB_Schematic_Record_
 }
 
 /**
- * Repository root, resolved the same way
- * Infrastructure/SchematicSourceManifestReader.php resolves the source
- * package directory (ABSPATH is .../drywalltoolbox/wp/).
+ * Compare persisted and newly resolved part projections deterministically.
+ * Product imports and operator linking can change independently of source
+ * JSON, so a matching dataset checksum must never suppress a parts refresh.
  */
-function dtb_schematics_repo_root(): string {
-	if ( ! defined( 'ABSPATH' ) ) {
-		return '';
+function dtb_schematic_hotspot_part_projection_matches( array $stored, array $resolved ): bool {
+	$normalize = static function ( array $parts ): array {
+		$rows = array_map(
+			static function ( array $part ): array {
+				return [
+					'part_ref'          => (string) ( $part['part_ref'] ?? '' ),
+					'mpn'               => (string) ( $part['mpn'] ?? '' ),
+					'sku'               => (string) ( $part['sku'] ?? '' ),
+					'brand'             => (string) ( $part['brand'] ?? '' ),
+					'title'             => (string) ( $part['title'] ?? '' ),
+					'product_id'        => (int) ( $part['product_id'] ?? 0 ),
+					'resolution_method' => (string) ( $part['resolution_method'] ?? '' ),
+					'resolution_state'  => (string) ( $part['resolution_state'] ?? '' ),
+					'occurrence_count'  => (int) ( $part['occurrence_count'] ?? 0 ),
+				];
+			},
+			$parts
+		);
+		usort( $rows, static fn( array $a, array $b ): int => strcmp( $a['part_ref'], $b['part_ref'] ) );
+		return $rows;
+	};
+
+	return $normalize( $stored ) === $normalize( $resolved );
+}
+
+/** Merge deterministic per-page source documents without collapsing occurrences. */
+function dtb_schematic_hotspot_merge_source_datasets( string $canonical_id, array $sources ): array {
+	$parts       = [];
+	$seen_parts  = [];
+	$hotspots    = [];
+	$checksums   = [];
+	$all_legacy  = true;
+
+	foreach ( $sources as $source_index => $source ) {
+		$dataset    = (array) ( $source['dataset'] ?? [] );
+		$page       = isset( $source['page'] ) ? (int) $source['page'] : null;
+		$checksums[] = (string) ( $dataset['checksum'] ?? '' );
+		$all_legacy = $all_legacy && 'legacy' === ( $dataset['source_schema'] ?? '' );
+		foreach ( (array) ( $dataset['parts_catalog'] ?? [] ) as $part ) {
+			$part_ref = (string) ( $part['part_ref'] ?? '' );
+			if ( '' !== $part_ref && ! isset( $seen_parts[ $part_ref ] ) ) {
+				$seen_parts[ $part_ref ] = true;
+				$parts[] = $part;
+			}
+		}
+		foreach ( (array) ( $dataset['hotspots'] ?? [] ) as $hotspot_index => $hotspot ) {
+			if ( null !== $page ) {
+				$hotspot['page'] = $page;
+			}
+			if ( count( $sources ) > 1 ) {
+				$hotspot['hotspot_id'] = sprintf(
+					'%s-p%d-s%d-%s',
+					$canonical_id,
+					(int) ( $hotspot['page'] ?? 1 ),
+					$source_index + 1,
+					(string) ( $hotspot['hotspot_id'] ?? $hotspot_index )
+				);
+			}
+			$hotspots[] = $hotspot;
+		}
 	}
-	$wp_root = untrailingslashit( ABSPATH );
-	return dirname( dirname( $wp_root ) );
+
+	return dtb_schematic_hotspot_dataset_make(
+		[
+			'source_schema' => $all_legacy ? 'legacy' : 'v2',
+			'checksum'      => hash( 'sha256', implode( '|', $checksums ) ),
+			'parts_catalog' => $parts,
+			'hotspots'      => $hotspots,
+		]
+	);
 }
