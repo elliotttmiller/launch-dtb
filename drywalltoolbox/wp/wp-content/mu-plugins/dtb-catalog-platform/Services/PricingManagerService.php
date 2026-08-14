@@ -35,9 +35,9 @@ function dtb_pricing_invalidate_index(): void {
 	delete_transient( DTB_PRICING_INDEX_TRANSIENT );
 }
 
-add_action( 'woocommerce_update_product', 'dtb_pricing_invalidate_index' );
-add_action( 'woocommerce_update_product_variation', 'dtb_pricing_invalidate_index' );
-add_action( 'woocommerce_delete_product', 'dtb_pricing_invalidate_index' );
+add_action( 'woocommerce_update_product', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_update_product_variation', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_delete_product', 'dtb_pricing_invalidate_index', 10, 0 );
 
 /**
  * Resolve native WooCommerce Cost of Goods for a product.
@@ -134,6 +134,7 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 	$markup        = dtb_pricing_markup( $effective, $cost );
 	$target_price  = dtb_pricing_target_price( $cost, $target_margin );
 	$suggested     = $target_price;
+	$on_sale       = $product->is_on_sale( 'edit' );
 
 	if ( null !== $map ) {
 		$suggested = null === $suggested ? $map : max( $suggested, $map );
@@ -151,15 +152,18 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 	} elseif ( null === $cost ) {
 		$status       = 'missing_cost';
 		$status_label = __( 'Missing cost', 'drywall-toolbox' );
+	} elseif ( $on_sale ) {
+		// Sale prices are intentionally review-only in V1. The optimizer applies
+		// regular-price changes and must not imply that changing regular price
+		// replaces an active WooCommerce sale price.
+		$status       = 'sale_active';
+		$status_label = __( 'Sale active', 'drywall-toolbox' );
 	} elseif ( null !== $map && null !== $effective && $effective < $map ) {
 		$status       = 'below_map';
 		$status_label = __( 'Below MAP', 'drywall-toolbox' );
 	} elseif ( null !== $margin && $margin + 0.005 < $target_margin ) {
 		$status       = 'below_target';
 		$status_label = __( 'Below target', 'drywall-toolbox' );
-	} elseif ( $product->is_on_sale( 'edit' ) ) {
-		$status       = 'sale_active';
-		$status_label = __( 'Sale active', 'drywall-toolbox' );
 	}
 
 	$image_id  = $product->get_image_id();
@@ -187,7 +191,7 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 		'suggested_price' => $suggested,
 		'status'          => $status,
 		'status_label'    => $status_label,
-		'on_sale'         => $product->is_on_sale( 'edit' ),
+		'on_sale'         => $on_sale,
 		'image_url'       => $image_url ? esc_url_raw( $image_url ) : '',
 		'edit_url'        => esc_url_raw( get_edit_post_link( $product->get_id(), 'raw' ) ?: '' ),
 	];
@@ -265,13 +269,13 @@ function dtb_pricing_query_products( array $args = [] ): array {
 	$args = wp_parse_args(
 		$args,
 		[
-			'search'   => '',
-			'brand'    => '',
-			'status'   => '',
-			'page'     => 1,
-			'per_page' => 25,
-			'sort'     => 'name',
-			'direction'=> 'asc',
+			'search'    => '',
+			'brand'     => '',
+			'status'    => '',
+			'page'      => 1,
+			'per_page'  => 25,
+			'sort'      => 'name',
+			'direction' => 'asc',
 		]
 	);
 
@@ -306,12 +310,12 @@ function dtb_pricing_query_products( array $args = [] ): array {
 	);
 
 	$sort_map = [
-		'name'        => 'name',
-		'sku'         => 'sku',
-		'price'       => 'effective_price',
-		'cost'        => 'cost',
-		'margin'      => 'gross_margin',
-		'suggested'   => 'suggested_price',
+		'name'      => 'name',
+		'sku'       => 'sku',
+		'price'     => 'effective_price',
+		'cost'      => 'cost',
+		'margin'    => 'gross_margin',
+		'suggested' => 'suggested_price',
 	];
 	$sort_key = $sort_map[ $sort ] ?? 'name';
 
@@ -456,7 +460,8 @@ function dtb_pricing_update_product( int $product_id, array $fields ) {
 	$product->save();
 	wc_delete_product_transients( $product_id );
 	dtb_pricing_invalidate_index();
-	$after = dtb_pricing_product_snapshot( wc_get_product( $product_id ) );
+	$after_product = wc_get_product( $product_id );
+	$after         = $after_product ? dtb_pricing_product_snapshot( $after_product ) : $before;
 
 	if ( function_exists( 'dtb_admin_audit_write' ) ) {
 		dtb_admin_audit_write(
@@ -487,7 +492,7 @@ function dtb_pricing_update_product( int $product_id, array $fields ) {
  * @return array<string,mixed>
  */
 function dtb_pricing_apply_selected( array $items ): array {
-	$items = array_slice( $items, 0, 100 );
+	$items  = array_slice( $items, 0, 100 );
 	$result = [ 'updated' => [], 'conflicts' => [], 'errors' => [] ];
 
 	foreach ( $items as $item ) {
