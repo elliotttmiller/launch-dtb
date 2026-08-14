@@ -279,3 +279,38 @@ const DTB_LEGACY_SCHEMATIC_FILENAME_MAP = [
 	'tall-boy-mud-pump-sub-assemblies-2022-enhanced' => [ 'schematic_id' => 'columbia-tall-boy-mud-pump', 'page' => 1 ],
 ];
 
+// Retired-brand (Asgard) schematic ids, sourced from
+// all_brands_schematic_parts_master.csv rows with brand=Asgard. Denylisted
+// regardless of which upload filename pattern resolves to them, including
+// the {schematic-id}--page-{n} passthrough pattern that bypasses every
+// other map above.
+const DTB_RETIRED_SCHEMATIC_IDS = [
+	'1775120357961' => true,
+	'1775120854273' => true,
+	'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch' => true,
+	'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch' => true,
+	'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch' => true,
+	'asgard-angle-head-3-5-ah35-ad-sch' => true,
+	'asgard-angle-head-3-ah30-ad-sch' => true,
+	'asgard-angle-head-adapter-cfa-ad-sch' => true,
+	'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch' => true,
+	'asgard-brakeless-box-handle-34-bbh-ad-sch' => true,
+	'asgard-ca08-ad-applicator-box-head-sch' => true,
+	'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch' => true,
+	'asgard-fh-ad-fiberglass-handle-43-sch' => true,
+	'asgard-finishing-box-10-ez10-ad-sch' => true,
+	'asgard-finishing-box-12-ez12-ad-sch' => true,
+	'asgard-finishing-box-7-ez07-ad-sch' => true,
+	'asgard-hammer-automatic-taper-at01-ad-sch' => true,
+	'asgard-inside-corner-roller-cr01-ad-sch' => true,
+	'asgard-loading-pump-lp01-ad-sch' => true,
+	'asgard-maxxbox-finishing-box-12-ehc12-ad-sch' => true,
+	'asgard-maxxbox-finishing-box-7-ehc07-ad-sch' => true,
+	'asgard-mud-pumps-gn01-ad-sch' => true,
+	'asgard-nail-spotter-head-only-ns03-ad-sch' => true,
+	'asgard-power-assist-maxxbox-10-pa10-ad-sch' => true,
+	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => true,
+	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => true,
+	'asgard-xh-ad-extension-support-handle-43-76-sch' => true,
+];
+

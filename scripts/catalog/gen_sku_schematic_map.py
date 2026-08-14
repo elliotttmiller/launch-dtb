@@ -34,6 +34,7 @@ for sku, entry in catalog.items():
 csv_path = f"{REPO}/products/launch/universal_parts/references/all_brands_schematic_parts_master.csv"
 csv_sku_rows = {}
 csv_by_schematic_id = {}
+retired_schematic_ids = set()
 with open(csv_path, encoding="utf-8-sig", newline="") as f:
     reader = csv.DictReader(f)
     for row in reader:
@@ -41,8 +42,15 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         sid = (row.get("schematic_id") or "").strip()
         brand = (row.get("brand") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
-        if not sid or brand == "Asgard":
+        if sid and brand == "Asgard":
             # Asgard schematics are retired and must not enter runtime maps.
+            # Recorded (not just skipped) so DTB_RETIRED_SCHEMATIC_IDS can deny
+            # them even via the {schematic-id}--page-{n} passthrough upload
+            # pattern, which bypasses DTB_SKU_SCHEMATIC_MAP /
+            # DTB_VERBOSE_SCHEMATIC_ID_MAP entirely.
+            retired_schematic_ids.add(sid.lower())
+            continue
+        if not sid:
             continue
         if sid not in csv_by_schematic_id:
             csv_by_schematic_id[sid] = {
@@ -143,6 +151,7 @@ for alias, canonical in SKU_ALIASES.items():
 print(f"[sku map] SKU_ALIASES entries added: {alias_added}", file=sys.stderr)
 
 print(f"[sku map] catalog entries: {len(catalog)}, csv entries added: {added}, total: {len(sku_map)}", file=sys.stderr)
+print(f"[retired ids] Asgard schematic ids denylisted: {len(retired_schematic_ids)}", file=sys.stderr)
 
 # =====================================================================
 # Part 2: DTB_VERBOSE_SCHEMATIC_ID_MAP (normalized verbose schematic_id -> [id, page])
@@ -240,6 +249,16 @@ lines.append("const DTB_LEGACY_SCHEMATIC_FILENAME_MAP = [")
 for basename in sorted(legacy_filename_map.keys()):
     schematic_id, page = legacy_filename_map[basename]
     lines.append(f"\t'{php_str(basename)}' => [ 'schematic_id' => '{php_str(schematic_id)}', 'page' => {int(page)} ],")
+lines.append("];")
+lines.append("")
+lines.append("// Retired-brand (Asgard) schematic ids, sourced from")
+lines.append("// all_brands_schematic_parts_master.csv rows with brand=Asgard. Denylisted")
+lines.append("// regardless of which upload filename pattern resolves to them, including")
+lines.append("// the {schematic-id}--page-{n} passthrough pattern that bypasses every")
+lines.append("// other map above.")
+lines.append("const DTB_RETIRED_SCHEMATIC_IDS = [")
+for sid in sorted(retired_schematic_ids):
+    lines.append(f"\t'{php_str(sid)}' => true,")
 lines.append("];")
 lines.append("")
 
