@@ -707,29 +707,20 @@
 
 .hotspot-circle { border-radius: 50%; }
 
+/* Fully invisible at all times, including hover — interactive/responsive
+   only (cursor + click/tap), no visual affordance whatsoever. Keyboard
+   focus keeps a minimal outline: an invisible-and-unfocusable target would
+   be a real accessibility regression for keyboard-only users. */
 .hotspot:hover {
-  background: rgba(34, 85, 238, 0.16);
-  border-color: rgba(34, 85, 238, 0.65);
-  box-shadow: 0 4px 14px rgba(34, 85, 238, 0.28);
-  transform: translate(-50%, -50%) scale(1.14);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
 }
 
 .hotspot:focus-visible {
-  background: rgba(34, 85, 238, 0.16);
-  border-color: rgba(34, 85, 238, 0.65);
   outline: 2px solid var(--dtb-primary);
   outline-offset: 2px;
-}
-
-@media (hover: none) {
-  /* Touch devices: legacy disabled the hover scale/shadow so a tap-and-hold
-     doesn't visually jump before the part dialog opens. */
-  .hotspot:hover {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    transform: translate(-50%, -50%);
-  }
 }
 
 /* Viewer mode owns the full storefront viewport below the global header. */

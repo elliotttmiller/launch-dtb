@@ -194,6 +194,102 @@ export async function getProductBySku( sku ) {
 }
 
 /**
+ * Fetch a single variation by its parent product ID and variation ID.
+ *
+ * Backed by `GET /wp-json/drywall/v1/products/{parent_id}/variations/{id}`
+ * (see `ProxyRoutes.php` `dtb_proxy_product_variation_by_id` /
+ * `DTB_VARIATION_FIELDS`) — returns id, sku, slug, name, type, status,
+ * price, regular_price, sale_price, on_sale, purchasable, stock_status,
+ * manage_stock, stock_quantity, backorders_allowed, backordered, images,
+ * attributes, parent_id. No `permalink` field — build the SPA URL from the
+ * parent slug (`/products/{parentSlug}?variant={id}`) instead.
+ *
+ * @param {number|string} parentId
+ * @param {number|string} variationId
+ * @returns {Promise<Object|null>}
+ */
+export async function fetchProductVariationById( parentId, variationId ) {
+  if ( ! parentId || ! variationId ) return null;
+  return apiClient( `/wp-json/drywall/v1/products/${ encodeURIComponent( parentId ) }/variations/${ encodeURIComponent( variationId ) }` );
+}
+
+/**
+ * Resolve a hotspot part's SKU to a product-shaped object, covering both
+ * top-level/simple products AND WooCommerce variation SKUs (e.g. size
+ * variants like "AH7-2.5" that only exist nested under a parent variable
+ * product and are never returned by the top-level product listing search).
+ *
+ * Resolution order:
+ *   1. `getProductBySku` — fast path; covers simple/parent products.
+ *   2. `resolveProductBySku` — if that resolves as `type: 'variation'`,
+ *      fetch the variation itself (own image/price/stock_status, not the
+ *      parent's) and attach a `product_url`/`permalink` deep link
+ *      (`/products/{parentSlug}?variant={variationId}`) rather than the
+ *      parent's bare product page. If it resolves as `type: 'simple'`,
+ *      fetch that product directly (covers the rare case where the
+ *      top-level SKU search in step 1 didn't already find it).
+ *   3. Nothing resolves — return null so the caller can fall back to the
+ *      static schematic payload's own resolution_state/product_url.
+ *
+ * @param {string} sku
+ * @returns {Promise<Object|null>} A product-shaped object with at least
+ *   id, name, sku, images (array of src strings), price, stock_status, and
+ *   product_url/permalink — or null if the SKU can't be resolved at all.
+ */
+export async function getHotspotProductBySku( sku ) {
+  if ( ! sku ) return null;
+
+  const simple = await getProductBySku( sku );
+  if ( simple ) return simple;
+
+  const resolved = await resolveProductBySku( sku );
+  if ( ! resolved ) return null;
+
+  try {
+    if ( resolved.type === 'variation' && resolved.parentId && resolved.id ) {
+      const variation = await fetchProductVariationById( resolved.parentId, resolved.id );
+      if ( ! variation ) return null;
+
+      const images = ( Array.isArray( variation.images ) ? variation.images : [] )
+        .map( ( img ) => ( typeof img === 'string' ? img : img?.src ?? '' ) )
+        .filter( Boolean );
+
+      let parentSlug = resolved.parentSlug;
+      if ( ! parentSlug ) {
+        try {
+          const parent = await getProduct( resolved.parentId );
+          parentSlug = parent?.slug || '';
+        } catch {
+          parentSlug = '';
+        }
+      }
+
+      const productUrl = parentSlug ? `/products/${ parentSlug }?variant=${ variation.id }` : '';
+
+      return {
+        id: variation.id,
+        name: variation.name || '',
+        sku: variation.sku || sku,
+        images,
+        price: variation.sale_price || variation.price || variation.regular_price || '',
+        stock_status: variation.stock_status || 'unknown',
+        product_url: productUrl,
+        permalink: productUrl,
+      };
+    }
+
+    if ( resolved.type === 'simple' && resolved.id ) {
+      const product = await getProduct( resolved.id );
+      return product ? normalizeProduct( product ) : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+/**
  * Resolve a SKU (parent or variation) to its canonical product URL components.
  *
  * For simple products: returns { type: 'simple', id, slug }

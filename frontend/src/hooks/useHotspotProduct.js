@@ -15,6 +15,12 @@
  * flicker), the same 10s timeout guard against a stalled/failing bootstrap,
  * and the same three-state stock resolution.
  *
+ * Uses `getHotspotProductBySku` (not the raw `getProductBySku`) so that
+ * hotspot parts whose SKU belongs to a WooCommerce VARIATION (not its own
+ * top-level product — e.g. size variants like "AH7-2.5") still resolve: it
+ * falls back to `resolveProductBySku` + a per-variation fetch when the
+ * top-level SKU search finds nothing. See `frontend/src/api/products.js`.
+ *
  * @param {string|undefined|null} sku
  * @returns {{ product: object|null, stockStatus: 'instock'|'outofstock'|'unknown'|null, isLoading: boolean }}
  *   `stockStatus` is `null` only while the live lookup is in flight — every
@@ -22,7 +28,7 @@
  *   to a non-null string so callers never have to special-case a fourth state.
  */
 import { useEffect, useState } from 'react';
-import { getProductBySku } from '../api/products.js';
+import { getHotspotProductBySku } from '../api/products.js';
 
 // Module-level so the cache survives remounts (e.g. Strict Mode double-invoke,
 // or re-opening the same hotspot later in the session) — mirrors the legacy
@@ -63,7 +69,7 @@ export function useHotspotProduct(sku) {
       setState(fallback);
     }, LOOKUP_TIMEOUT_MS);
 
-    getProductBySku(sku)
+    getHotspotProductBySku(sku)
       .then((wcProduct) => {
         if (cancelled) return;
         clearTimeout(timeoutId);

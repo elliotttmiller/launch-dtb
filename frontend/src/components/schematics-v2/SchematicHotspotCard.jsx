@@ -122,14 +122,18 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const primaryImage = wcProduct?.images?.[0] || '';
   const parsedPrice = parseFloat(wcProduct?.price);
   const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
-  const isUnavailable = !isLoading && !canAddToCart && !part.product_url;
+  // Prefer the live-resolved product URL (correctly a variation deep link,
+  // e.g. /products/{parentSlug}?variant={id}, when the SKU belongs to a
+  // WooCommerce variation) over the static schematic payload's product_url.
+  const effectiveProductUrl = wcProduct?.product_url || part.product_url;
+  const isUnavailable = !isLoading && !canAddToCart && !effectiveProductUrl;
   const isAdding = addingToCart === part.part_ref || localAdding;
 
   const priceLabel = canAddToCart ? `$${parsedPrice.toFixed(2)}` : null;
 
-  const titleNode = part.product_url ? (
+  const titleNode = effectiveProductUrl ? (
     <Link
-      to={part.product_url}
+      to={effectiveProductUrl}
       onClick={(e) => e.stopPropagation()}
       style={{ color: 'inherit', textDecoration: 'none' }}
       className="hotspot-modal-title-link"
@@ -157,7 +161,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
         part_number: wcProduct.sku || part.mpn || part.sku,
         sku: wcProduct.sku || part.sku || part.mpn,
         image: primaryImage,
-        permalink: wcProduct.permalink || part.product_url || '',
+        permalink: wcProduct.permalink || effectiveProductUrl || '',
       }, 1);
       onClose?.();
     } finally {
@@ -226,7 +230,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
                 </>
               ) : !isUnavailable ? (
                 <Link
-                  to={part.product_url}
+                  to={effectiveProductUrl}
                   onClick={(e) => { e.stopPropagation(); onClose?.(); }}
                   className="schematic-hotspot-card__cta"
                   style={{ textDecoration: 'none', textAlign: 'center' }}
