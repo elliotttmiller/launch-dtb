@@ -5,16 +5,21 @@
  * priority is already resolved server-side (`preview.source`) — this
  * component only renders accordingly and never substitutes a generic
  * placeholder for a genuinely missing preview.
+ *
+ * Visual language ported from the richer drywall-toolbox reference: square
+ * cards with a full-bleed schematic/product photo, a bottom-heavy dark
+ * scrim, and the title anchored at the bottom of the card (rather than a
+ * plain white card with text below the image).
  */
 import { ImageOff } from 'lucide-react';
 
-function CardPreview({ preview, title }) {
+function CardPreview({ preview }) {
   if (preview?.url) {
     return (
       <img
         src={preview.url}
-        alt={title}
-        className="dtb-schematics-card__image"
+        alt=""
+        className="dtb-schematics-card__bg-image"
         loading="lazy"
         decoding="async"
       />
@@ -22,10 +27,10 @@ function CardPreview({ preview, title }) {
   }
 
   return (
-    <div className="dtb-schematics-card__image dtb-schematics-card__image--unavailable" role="img" aria-label="Preview unavailable">
+    <span className="dtb-schematics-card__bg-fallback" role="img" aria-label="Preview unavailable">
       <ImageOff size={28} aria-hidden="true" />
       <span>Preview unavailable</span>
-    </div>
+    </span>
   );
 }
 
@@ -48,8 +53,9 @@ export default function ToolSelector({ categoryName, tools, onSelectTool }) {
           className="dtb-schematics-card dtb-schematics-card--tool"
           onClick={() => onSelectTool(tool.id)}
         >
-          <CardPreview preview={tool.preview} title={tool.title} />
-          <span className="dtb-schematics-card__body">
+          <CardPreview preview={tool.preview} />
+          <span className="dtb-schematics-card__scrim" aria-hidden="true" />
+          <span className="dtb-schematics-card__overlay dtb-schematics-card__overlay--center">
             <span className="dtb-schematics-card__title">{tool.title}</span>
             <span className="dtb-schematics-card__meta">
               {tool.brand?.name}
