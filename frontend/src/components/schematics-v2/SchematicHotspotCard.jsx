@@ -1,0 +1,243 @@
+/**
+ * frontend/src/components/schematics-v2/SchematicHotspotCard.jsx
+ *
+ * Ported verbatim (markup, BEM class names, and title auto-fit logic) from
+ * the legacy `docs/_working/frontend-legacy/frontend/src/components/schematics/
+ * SchematicHotspotCard.jsx`. Styling lives in `mobile-schematic.css` /
+ * `schematic-hotspot-card-polish.css` under the `.schematic-hotspot-card*`
+ * selectors — do not rename these classes without updating both files.
+ *
+ * Data wiring: the static dtb-schematics REST payload
+ * (`GET /wp-json/dtb/v1/schematics/{id}`, see `frontend/src/api/schematicsApi.js`)
+ * only carries reference data (part_ref, title, brand, mpn, sku,
+ * resolution_method, resolution_state, product_url, occurrence_count,
+ * available) — it never includes image or price. Matching the legacy
+ * behavior, this card fires a live per-SKU WooCommerce lookup
+ * (`useHotspotProduct`, mirroring legacy's `getProductBySku` effect) the
+ * moment a part with a SKU is shown, and merges the result on top of the
+ * static part data: the static title/SKU render immediately (no blank
+ * flash), while image/price/stock come from the live product once resolved.
+ * Parts with no SKU, or SKUs the live lookup can't resolve, fall back to the
+ * static `resolution_state`/`available`/`product_url` fields.
+ */
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useCart } from '../../context/CartContext';
+import { useHotspotProduct } from '../../hooks/useHotspotProduct';
+
+const RESOLVED_STATES = new Set(['explicit_product_id', 'exact_sku', 'exact_brand_mpn']);
+
+function getTitleFitStyle(name = '') {
+  const value = String(name || '').trim();
+  const length = value.length;
+  const longestToken = value
+    .split(/[\s/|,()]+/)
+    .reduce((max, token) => Math.max(max, token.length), 0);
+
+  let fontSize = 16;
+  if (length > 34) fontSize -= Math.min(5.2, (length - 34) * 0.12);
+  if (longestToken > 14) fontSize -= Math.min(1.8, (longestToken - 14) * 0.11);
+
+  fontSize = Math.max(9.5, Math.round(fontSize * 10) / 10);
+
+  return {
+    '--hotspot-title-font-size': `${fontSize}px`,
+    '--hotspot-title-line-height': fontSize <= 10.5 ? 1.12 : fontSize <= 12 ? 1.16 : 1.2,
+    '--hotspot-title-letter-spacing': fontSize <= 11 ? '0.01em' : fontSize <= 13 ? '0.02em' : '0.035em',
+  };
+}
+
+function StockBadge({ stockStatus }) {
+  const label =
+    stockStatus === 'instock' ? '● In Stock'
+      : stockStatus === 'outofstock' ? '● Out of Stock'
+        : stockStatus == null ? '…'
+          : '● Unavailable';
+  const color =
+    stockStatus === 'instock' ? '#16a34a'
+      : stockStatus === 'outofstock' ? '#dc2626'
+        : '#6b7280';
+  return <span style={{ fontWeight: 700, color, fontSize: 'inherit' }}>{label}</span>;
+}
+
+/**
+ * Ported from the legacy `HotspotCardSkeleton` — shown in place of the
+ * stock badge / title / footer while the live SKU lookup is in flight, so
+ * the card never flashes an empty/"Unavailable" state before the real
+ * result is known.
+ */
+function HotspotCardSkeleton({ displayCode, codeLabel }) {
+  return (
+    <>
+      <div className="schematic-hotspot-card__stock" aria-hidden="true">
+        <span className="schematic-hotspot-card__stock-skeleton" />
+      </div>
+
+      <div className="schematic-hotspot-card__title-skeleton" aria-hidden="true">
+        <span />
+        <span />
+      </div>
+
+      {displayCode ? (
+        <div className="schematic-hotspot-card__sku">
+          {codeLabel}: {displayCode}
+        </div>
+      ) : null}
+
+      <div className="schematic-hotspot-card__footer schematic-hotspot-card__footer--loading" aria-hidden="true">
+        <span className="schematic-hotspot-card__price-skeleton" />
+        <span className="schematic-hotspot-card__cta-skeleton" />
+      </div>
+    </>
+  );
+}
+
+export default function SchematicHotspotCard({ part, onClose, onAddToCart, addingToCart }) {
+  const { addToCart } = useCart();
+  const [localAdding, setLocalAdding] = useState(false);
+
+  // Live per-SKU WooCommerce lookup (image/price/stock aren't in the static
+  // schematic payload) — see hook doc for the exact legacy contract ported.
+  const { product: wcProduct, stockStatus: liveStockStatus, isLoading } =
+    useHotspotProduct(part?.sku);
+
+  if (!part) return null;
+
+  const displayName = part.title || 'Part';
+  const displayCode = part.sku || part.mpn || '';
+  const codeLabel = 'SKU';
+
+  // Static fallback (no SKU, or the live lookup resolved to "not found"):
+  // fall back to the schematic payload's own resolution/availability fields
+  // rather than leaving the card stuck in a loading/broken state.
+  const isStaticResolved = RESOLVED_STATES.has(part.resolution_state);
+  const isStaticAvailable = part.available !== false;
+  const staticStockStatus = isStaticResolved && isStaticAvailable ? 'instock' : 'unknown';
+
+  const hasLiveProduct = Boolean(wcProduct?.id);
+  const stockStatus = isLoading
+    ? null
+    : hasLiveProduct ? liveStockStatus : staticStockStatus;
+
+  const primaryImage = wcProduct?.images?.[0] || '';
+  const parsedPrice = parseFloat(wcProduct?.price);
+  const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
+  const isUnavailable = !isLoading && !canAddToCart && !part.product_url;
+  const isAdding = addingToCart === part.part_ref || localAdding;
+
+  const priceLabel = canAddToCart ? `$${parsedPrice.toFixed(2)}` : null;
+
+  const titleNode = part.product_url ? (
+    <Link
+      to={part.product_url}
+      onClick={(e) => e.stopPropagation()}
+      style={{ color: 'inherit', textDecoration: 'none' }}
+      className="hotspot-modal-title-link"
+    >
+      {displayName}
+    </Link>
+  ) : displayName;
+
+  const handleAdd = async (event) => {
+    event.stopPropagation();
+    if (!canAddToCart || isAdding) return;
+
+    if (onAddToCart) {
+      onAddToCart();
+      return;
+    }
+
+    setLocalAdding(true);
+    try {
+      await addToCart({
+        id: wcProduct.id,
+        name: wcProduct.name || part.title,
+        brand: part.brand,
+        price: parsedPrice,
+        part_number: wcProduct.sku || part.mpn || part.sku,
+        sku: wcProduct.sku || part.sku || part.mpn,
+        image: primaryImage,
+        permalink: wcProduct.permalink || part.product_url || '',
+      }, 1);
+      onClose?.();
+    } finally {
+      setLocalAdding(false);
+    }
+  };
+
+  return (
+    <div
+      className={`schematic-hotspot-card${isLoading ? ' schematic-hotspot-card--resolving' : ''}`}
+      aria-busy={isLoading ? 'true' : 'false'}
+    >
+      <div className="schematic-hotspot-card__image">
+        {primaryImage ? (
+          <img src={primaryImage} alt={displayName} className="hotspot-modal-image" />
+        ) : isLoading ? (
+          <div className="hotspot-modal-image-skeleton" aria-hidden="true" />
+        ) : null}
+      </div>
+
+      <div className="schematic-hotspot-card__info">
+        {onClose && (
+          <button
+            className="schematic-hotspot-card__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        )}
+
+        {isLoading ? (
+          <HotspotCardSkeleton displayCode={displayCode} codeLabel={codeLabel} />
+        ) : (
+          <>
+            <div className="schematic-hotspot-card__stock">
+              <StockBadge stockStatus={stockStatus} />
+            </div>
+
+            <h3 className="schematic-hotspot-card__title" style={getTitleFitStyle(displayName)}>
+              {titleNode}
+            </h3>
+
+            {displayCode ? (
+              <div className="schematic-hotspot-card__sku">
+                {codeLabel}: {displayCode}
+              </div>
+            ) : null}
+
+            <div className="schematic-hotspot-card__footer">
+              {canAddToCart ? (
+                <>
+                  <span className="schematic-hotspot-card__price-group">
+                    <span className="schematic-hotspot-card__price">{priceLabel}</span>
+                  </span>
+                  <button
+                    className="schematic-hotspot-card__cta"
+                    disabled={isAdding}
+                    onClick={handleAdd}
+                    data-dtb-cart-action="add"
+                  >
+                    {isAdding ? 'Adding…' : 'Add'}
+                  </button>
+                </>
+              ) : !isUnavailable ? (
+                <Link
+                  to={part.product_url}
+                  onClick={(e) => { e.stopPropagation(); onClose?.(); }}
+                  className="schematic-hotspot-card__cta"
+                  style={{ textDecoration: 'none', textAlign: 'center' }}
+                >
+                  View
+                </Link>
+              ) : null}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}

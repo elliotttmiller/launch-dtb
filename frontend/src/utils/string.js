@@ -72,3 +72,24 @@ export function humanizeLabel(name, id) {
   if (trimmedName && !looksLikeRawSlug) return trimmedName;
   return humanizeSlug(trimmedName || id || '');
 }
+
+/**
+ * Normalize a schematic "part_ref" for cross-referencing between the
+ * resolved `parts[]` array (already normalized, e.g. "ah7-25") and the raw
+ * hotspot `occurrences[].part_ref` values sourced from legacy labels (e.g.
+ * `AH 7-2.5"`). Without this, a straight `===` comparison silently fails —
+ * every occurrence's `part_ref` looks like a raw label (whitespace,
+ * quote/inch marks, periods, mixed case) while the resolved part's
+ * `part_ref` has already been slugged by the backend. Lowercases and strips
+ * whitespace, double/single quote or inch/foot marks, and periods so both
+ * shapes collapse to the same key.
+ *
+ * @param {string} value
+ * @returns {string}
+ */
+export function normalizePartRef(value) {
+  return (value || '')
+    .toString()
+    .toLowerCase()
+    .replace(/[\s"'′″.]+/g, '');
+}

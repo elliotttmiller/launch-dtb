@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="<%= htmlWebpackPlugin.options.publicPath %>favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="<%= htmlWebpackPlugin.options.publicPath %>favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="<%= htmlWebpackPlugin.options.publicPath %>favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="<%= htmlWebpackPlugin.options.publicPath %>favicon-48x48.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="<%= htmlWebpackPlugin.options.publicPath %>apple-touch-icon.png" />
+    <link rel="manifest" href="<%= htmlWebpackPlugin.options.publicPath %>site.webmanifest" />
+    <!--
+      viewport-fit=cover: supports iPhone safe-area layout.
+      interactive-widget=resizes-content: lets mobile browsers resize visual
+      viewport height when the keyboard opens instead of overlaying fixed UI.
+      Pinch zoom remains available for accessibility; CSS prevents input-focus
+      zoom, body-level horizontal overflow, and broken mobile viewport geometry.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+
+    <!-- ── Static default SEO (overridden per-page by SEOHead / react-helmet-async) ── -->
+    <title>Drywall Toolbox</title>
+    <meta name="description" content="Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more at unbeatable prices.">
+    <meta name="robots" content="<%= htmlWebpackPlugin.options.robotsContent %>">
+    <link rel="canonical" href="<%= htmlWebpackPlugin.options.siteUrl %>/">
+
+    <!-- Open Graph defaults -->
+    <meta property="og:type"        content="website">
+    <meta property="og:site_name"   content="Drywall Toolbox">
+    <meta property="og:title"       content="Drywall Toolbox">
+    <meta property="og:description" content="Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more at unbeatable prices.">
+    <meta property="og:url"         content="<%= htmlWebpackPlugin.options.siteUrl %>/">
+    <meta property="og:image"       content="<%= htmlWebpackPlugin.options.siteUrl %>/logo-black.svg">
+    <meta property="og:image:alt"   content="Drywall Toolbox">
+
+    <!-- Twitter Card defaults -->
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="Drywall Toolbox">
+    <meta name="twitter:description" content="Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more at unbeatable prices.">
+    <meta name="twitter:image"       content="<%= htmlWebpackPlugin.options.siteUrl %>/logo-black.svg">
+    <meta name="twitter:image:alt"   content="Drywall Toolbox">
+
+    <meta name="keywords" content="drywall tools, taping tools, finishing tools, construction equipment, TapeTech, Level5">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Drywall Toolbox">
+
+    <!-- Covers an intermediate SPA document if the checkout route is rewritten before WordPress takes ownership. -->
+    <style>
+      #dtb-checkout-route-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center}
+      html.dtb-checkout-route-booting #dtb-checkout-route-loader{display:flex}
+      .dtb-checkout-route-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+      .dtb-checkout-route-loader__spinner{display:grid;width:46px;height:46px;border:1px solid #dbe3ee;border-radius:999px;background:#fff;box-shadow:0 12px 34px rgba(15,23,42,.1);place-items:center}
+      .dtb-checkout-route-loader__spinner:before{width:20px;height:20px;border:2px solid #bfdbfe;border-top-color:#1d4ed8;border-radius:999px;content:"";animation:dtb-route-spin .9s cubic-bezier(.45,0,.55,1) infinite}
+      .dtb-checkout-route-loader__content p{margin:0;color:#475569;font:650 14px/1.5 system-ui,sans-serif}
+      @keyframes dtb-route-spin{to{transform:rotate(360deg)}}
+    </style>
+    <script>
+      if (/\/checkout\/?$/.test(window.location.pathname)) {
+        document.documentElement.classList.add('dtb-checkout-route-booting');
+        window.setTimeout(function () {
+          document.documentElement.classList.remove('dtb-checkout-route-booting');
+        }, 8000);
+      }
+    </script>
+
+    <!-- Establish connections to font servers as early as possible -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Early connection to the production API / WP backend -->
+    <link rel="preconnect" href="<%= htmlWebpackPlugin.options.siteUrl %>" crossorigin>
+    <!--
+      Non-render-blocking Google Fonts load (preload + onload swap).
+      font-display=swap: browser immediately renders text in a fallback font and
+      swaps in Geist/JetBrains Mono once downloaded — eliminates FOIT (invisible
+      text) and prevents layout-blocking on slow mobile connections.
+      Geist: Vercel's modern geometric sans-serif. Full variable axis (100–900).
+      JetBrains Mono: monospace for SKUs, codes, and inline kbd hints.
+      The preload/onload pattern prevents the stylesheet from blocking the
+      initial render; the <noscript> fallback ensures fonts still load when
+      JavaScript is disabled.
+    -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=JetBrains+Mono:wght@400;700&display=swap"></noscript>
+
+    <!-- Static Organization JSON-LD (supplements per-page dynamic schemas) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Drywall Toolbox",
+      "url": "<%= htmlWebpackPlugin.options.siteUrl %>/",
+      "logo": "<%= htmlWebpackPlugin.options.siteUrl %>/logo-black.svg",
+      "description": "Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more.",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "email": "info@drywalltoolbox.com",
+        "availableLanguage": "English"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="dtb-checkout-route-loader" aria-live="polite" role="status">
+      <div class="dtb-checkout-route-loader__content">
+        <span class="dtb-checkout-route-loader__spinner" aria-hidden="true"></span>
+        <p>Preparing your secure checkout…</p>
+      </div>
+    </div>
+    <div id="root"></div>
+  </body>
+</html>

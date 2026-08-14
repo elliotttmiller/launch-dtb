@@ -4,12 +4,24 @@
  * Composes DiagramImage + ZoomControls + HotspotLayer and owns desktop
  * (wheel + drag) and touch (pinch + drag) zoom/pan state. Handles explicit
  * missing-page / missing-media / missing-hotspot-data states.
+ *
+ * Sizing/transform structure ported from the legacy `Schematics.jsx`
+ * (docs/_working/frontend-legacy/frontend/src/pages/Schematics.jsx,
+ * ~L3792-4077): the diagram is sized with pure CSS `aspect-ratio` on
+ * `.schematic-image-bounds` (the hotspot coordinate space) rather than a
+ * `ResizeObserver`-measured fixed-px stage, and zoom/pan is a single
+ * `transform: scale(...) translate(...)` on `.schematic-image-wrapper`
+ * with `transform-origin: center center`. The gesture handling itself
+ * (ctrl/cmd+scroll to zoom, pointer-based pinch/pan, not hijacking plain
+ * wheel scroll) is a prior, intentional UX fix over the legacy version and
+ * is preserved as-is — only the rendering/transform target changed.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ImageOff } from 'lucide-react';
 import DiagramImage from './DiagramImage';
 import ZoomControls from './ZoomControls';
 import HotspotLayer from './HotspotLayer';
+import SchematicPartDialog from './SchematicPartDialog';
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 4;
@@ -18,11 +30,15 @@ function clampScale(scale) {
   return Math.min(MAX_SCALE, Math.max(MIN_SCALE, scale));
 }
 
-function clampOffset(offset, scale, containerSize, stageSize) {
-  if (scale <= 1 || !containerSize || !stageSize) return { x: 0, y: 0 };
+// Legacy pan clamp used the rendered image/container box (schematicImageRef /
+// schematicContainerRef offsetWidth/offsetHeight) — here that's the
+// `.schematic-image-bounds` box (imageBoundsRef) sized via aspect-ratio, and
+// the outer `.dtb-schematic-diagram` container (containerRef).
+function clampOffset(offset, scale, containerSize, boundsSize) {
+  if (scale <= 1 || !containerSize || !boundsSize) return { x: 0, y: 0 };
   const maxOffset = {
-    x: Math.max(0, ((stageSize.width * scale) - containerSize.width) / 2),
-    y: Math.max(0, ((stageSize.height * scale) - containerSize.height) / 2),
+    x: Math.max(0, ((boundsSize.width * scale) - containerSize.width) / 2),
+    y: Math.max(0, ((boundsSize.height * scale) - containerSize.height) / 2),
   };
   return {
     x: Math.min(maxOffset.x, Math.max(-maxOffset.x, offset.x)),
@@ -30,40 +46,36 @@ function clampOffset(offset, scale, containerSize, stageSize) {
   };
 }
 
-function fitStageToContainer(containerSize, intrinsicSize) {
-  if (
-    !containerSize?.width
-    || !containerSize?.height
-    || !intrinsicSize?.width
-    || !intrinsicSize?.height
-  ) {
-    return null;
-  }
-
-  const fitScale = Math.min(
-    containerSize.width / intrinsicSize.width,
-    containerSize.height / intrinsicSize.height,
-  );
-
-  return {
-    width: Math.max(1, Math.floor(intrinsicSize.width * fitScale)),
-    height: Math.max(1, Math.floor(intrinsicSize.height * fitScale)),
-  };
-}
-
-export default function DiagramViewer({ page, parts, onSelectPart }) {
+export default function DiagramViewer({ page, parts, onSelectPart, activePart, onCloseActivePart }) {
   const containerRef = useRef(null);
+  const wrapRef = useRef(null);
   const imgRef = useRef(null);
   const pointers = useRef(new Map());
   const gesture = useRef(null);
   const lastTap = useRef({ time: 0, x: 0, y: 0 });
   const suppressHotspotUntil = useRef(0);
 
+  const imageBoundsRef = useRef(null);
+
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isGesturing, setIsGesturing] = useState(false);
-  const [stageSize, setStageSize] = useState(null);
+  // Measured box of `.schematic-image-bounds` — the aspect-ratio-sized,
+  // hotspot coordinate-space div (legacy `schematicImageRef.current.offsetWidth/Height`).
+  // Only used for pan-clamp math; the div's on-screen size is owned by CSS
+  // `aspect-ratio`, not this state.
+  const [boundsSize, setBoundsSize] = useState(null);
+  const [anchorRect, setAnchorRect] = useState(null);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth <= 768 : false,
+  );
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const reduceMotion = typeof window !== 'undefined'
     && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -77,7 +89,6 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
     setScale(1);
     setOffset({ x: 0, y: 0 });
     setImageLoaded(false);
-    setStageSize(null);
   }
 
   // Browser-cached images can complete before the React `onLoad` handler is
@@ -90,55 +101,47 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
     }
   }, [page?.page_id]);
 
-  const measureFittedStage = useCallback(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const image = imgRef.current;
-    const intrinsicSize = {
-      width: (imageLoaded && image?.naturalWidth) || Number(page?.width) || 0,
-      height: (imageLoaded && image?.naturalHeight) || Number(page?.height) || 0,
-    };
-    const containerSize = {
-      width: container.clientWidth,
-      height: container.clientHeight,
-    };
-    const nextStageSize = fitStageToContainer(containerSize, intrinsicSize);
-    if (!nextStageSize) return;
-
-    setStageSize((current) => (
-      current?.width === nextStageSize.width && current?.height === nextStageSize.height
+  // `.schematic-image-bounds` is sized purely by CSS `aspect-ratio` (no
+  // ResizeObserver-driven px stage). We still need its rendered box for the
+  // pan-clamp math (legacy used `schematicImageRef.current.offsetHeight`),
+  // so a lightweight ResizeObserver tracks it without owning layout.
+  const measureBounds = useCallback(() => {
+    const bounds = imageBoundsRef.current;
+    if (!bounds) return;
+    const nextBoundsSize = { width: bounds.offsetWidth, height: bounds.offsetHeight };
+    setBoundsSize((current) => (
+      current?.width === nextBoundsSize.width && current?.height === nextBoundsSize.height
         ? current
-        : nextStageSize
+        : nextBoundsSize
     ));
-    setOffset((current) => clampOffset(current, scale, containerSize, nextStageSize));
-  }, [imageLoaded, page?.height, page?.width, scale]);
+    const containerSize = containerRef.current
+      ? { width: containerRef.current.clientWidth, height: containerRef.current.clientHeight }
+      : null;
+    setOffset((current) => clampOffset(current, scale, containerSize, nextBoundsSize));
+  }, [scale]);
 
-  // The fitted diagram rectangle is also the hotspot coordinate space. Keep
-  // it synchronized with the real viewer dimensions before paint and across
-  // responsive/container resizes.
-  useLayoutEffect(() => {
-    measureFittedStage();
-    const container = containerRef.current;
-    if (!container) return undefined;
+  useEffect(() => {
+    measureBounds();
+    const bounds = imageBoundsRef.current;
+    if (!bounds) return undefined;
 
     if (typeof ResizeObserver !== 'undefined') {
-      const observer = new ResizeObserver(measureFittedStage);
-      observer.observe(container);
+      const observer = new ResizeObserver(measureBounds);
+      observer.observe(bounds);
       return () => observer.disconnect();
     }
 
-    window.addEventListener('resize', measureFittedStage);
-    return () => window.removeEventListener('resize', measureFittedStage);
-  }, [measureFittedStage, page?.page_id]);
+    window.addEventListener('resize', measureBounds);
+    return () => window.removeEventListener('resize', measureBounds);
+  }, [measureBounds, page?.page_id, imageLoaded]);
 
   const applyScale = useCallback((nextScale, nextOffset) => {
     const container = containerRef.current;
     const size = container ? { width: container.clientWidth, height: container.clientHeight } : null;
     const clampedScale = clampScale(nextScale);
     setScale(clampedScale);
-    setOffset(clampOffset(nextOffset ?? offset, clampedScale, size, stageSize));
-  }, [offset, stageSize]);
+    setOffset(clampOffset(nextOffset ?? offset, clampedScale, size, boundsSize));
+  }, [offset, boundsSize]);
 
   const zoomAtPoint = useCallback((nextScale, clientX, clientY, baseScale = scale, baseOffset = offset) => {
     const container = containerRef.current;
@@ -153,8 +156,13 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
     });
   }, [applyScale, offset, scale]);
 
+  // Only zoom on ctrl/cmd+wheel (the standard "trackpad pinch sends
+  // ctrl+wheel" convention, matching map-style UX). Plain wheel scroll must
+  // fall through to normal page scrolling instead of hijacking it — this
+  // container previously zoomed on any wheel delta >= 4, which is virtually
+  // every mouse-wheel tick, trapping the page under the diagram.
   const handleWheel = useCallback((event) => {
-    if (!event.ctrlKey && !event.metaKey && Math.abs(event.deltaY) < 4) return;
+    if (!event.ctrlKey && !event.metaKey) return;
     event.preventDefault();
     const delta = -event.deltaY * 0.0015;
     zoomAtPoint(scale + delta * scale, event.clientX, event.clientY);
@@ -162,16 +170,32 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
 
   const handlePointerDown = useCallback((event) => {
     if (event.pointerType === 'mouse' && scale <= 1) return;
-    containerRef.current?.setPointerCapture?.(event.pointerId);
+    // Deliberately do NOT call setPointerCapture here for the single-pointer
+    // case. Explicit pointer capture retargets the subsequent compatibility
+    // `click` event to the capturing element (this container) instead of the
+    // originally hit-tested target, which silently swallowed hotspot clicks
+    // whenever the diagram was zoomed (scale > 1) — a plain tap/click never
+    // got the chance to become a real drag, but capturing eagerly on
+    // pointerdown still stole its click. Gesture intent starts as `pending`
+    // for every 1-pointer press (mouse or touch) and is only promoted to a
+    // real `pan` — with capture acquired at that point — once movement
+    // crosses the drag threshold in handlePointerMove. A press that never
+    // crosses the threshold ends as a normal, uncaptured click on whatever
+    // element was actually pressed (e.g. a hotspot).
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointers.current.size === 1) {
       gesture.current = {
-        type: scale > 1 ? 'pan' : 'pending',
+        type: 'pending',
         startOffset: offset,
         startPoint: { x: event.clientX, y: event.clientY },
       };
       setIsGesturing(true);
     } else if (pointers.current.size === 2) {
+      // Pinch always involves two active pointers, never a click target, so
+      // capturing immediately here is safe.
+      pointers.current.forEach((_point, pointerId) => {
+        containerRef.current?.setPointerCapture?.(pointerId);
+      });
       const [a, b] = Array.from(pointers.current.values());
       gesture.current = {
         type: 'pinch',
@@ -186,6 +210,24 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
   const handlePointerMove = useCallback((event) => {
     if (!pointers.current.has(event.pointerId)) return;
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    // Promote a still-`pending` single-pointer press into a real pan once it
+    // has moved far enough to be an intentional drag rather than a tap/click.
+    // Pointer capture is acquired only now, at the moment we've committed to
+    // handling this as a drag — never on pointerdown — so it can't intercept
+    // a plain click's compatibility event.
+    if (gesture.current?.type === 'pending' && pointers.current.size === 1) {
+      const dx = event.clientX - gesture.current.startPoint.x;
+      const dy = event.clientY - gesture.current.startPoint.y;
+      if (Math.hypot(dx, dy) <= 8) return;
+      if (scale <= 1) return; // nothing to pan at scale<=1; stay pending for tap/double-tap
+      containerRef.current?.setPointerCapture?.(event.pointerId);
+      gesture.current = {
+        type: 'pan',
+        startOffset: gesture.current.startOffset,
+        startPoint: gesture.current.startPoint,
+      };
+    }
 
     if (pointers.current.size === 2) {
       suppressHotspotUntil.current = Date.now() + 250;
@@ -270,7 +312,7 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
   const hotspotDataset = page.hotspot_dataset;
 
   return (
-    <div className="dtb-schematic-diagram-wrap">
+    <div className="dtb-schematic-diagram-wrap" ref={wrapRef}>
       <div
         ref={containerRef}
         className="dtb-schematic-diagram"
@@ -285,33 +327,58 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
         onDoubleClick={(event) => zoomAtPoint(scale > 1 ? 1 : 2, event.clientX, event.clientY)}
         style={{ touchAction: 'none', cursor: scale > 1 ? (isGesturing ? 'grabbing' : 'grab') : 'default' }}
       >
+        {/* Transform wrapper — legacy `.schematic-image-wrapper`. Zoom/pan is a
+            single `transform: scale(...) translate(...)` here, center-origin,
+            with a CSS transition (suppressed during active gestures so drags
+            track the pointer 1:1). The aspect-ratio is NOT set on this div —
+            it lives on the inner bounds div so hotspot % coordinates always
+            reference that box, never this full-width wrapper. */}
         <div
-          className={`dtb-schematic-diagram__stage${stageSize ? ' is-fitted' : ''}`}
+          className={`schematic-image-wrapper${!imageLoaded ? ' schematic-image-wrapper--loading' : ''}`}
           style={{
-            width: stageSize ? `${stageSize.width}px` : undefined,
-            height: stageSize ? `${stageSize.height}px` : undefined,
-            aspectRatio: !stageSize && page.width && page.height ? `${page.width} / ${page.height}` : undefined,
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-            transition: reduceMotion || isGesturing ? 'none' : 'transform 120ms ease-out',
+            position: 'relative',
+            transform: `scale(${scale}) translate(${scale ? offset.x / scale : 0}px, ${scale ? offset.y / scale : 0}px)`,
+            transformOrigin: 'center center',
+            transition: reduceMotion || isGesturing ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            pointerEvents: 'auto',
+            willChange: scale > 1 || isGesturing ? 'transform' : 'auto',
           }}
         >
-          <DiagramImage
-            page={page}
-            onLoad={() => {
-              setImageLoaded(true);
-              measureFittedStage();
+          {/* Diagram image bounds — legacy `.schematic-image-bounds`. Sized by
+              CSS `aspect-ratio` from the page's known natural dimensions so it
+              is EXACTLY the rendered image's pixel area; every hotspot
+              top/left percentage is relative to this div. */}
+          <div
+            ref={imageBoundsRef}
+            className="schematic-image-bounds"
+            style={{
+              position: 'relative',
+              aspectRatio: page.width && page.height ? `${page.width} / ${page.height}` : undefined,
             }}
-            imgRef={imgRef}
-          />
-          {imageLoaded && (
-            <HotspotLayer
-              hotspotDataset={hotspotDataset}
-              parts={parts}
-              onSelectPart={(partRef) => {
-                if (Date.now() >= suppressHotspotUntil.current) onSelectPart(partRef);
+          >
+            <DiagramImage
+              page={page}
+              onLoad={() => {
+                setImageLoaded(true);
+                measureBounds();
               }}
+              imgRef={imgRef}
             />
-          )}
+            {imageLoaded && (
+              <HotspotLayer
+                hotspotDataset={hotspotDataset}
+                parts={parts}
+                onSelectPart={(partRef, anchor) => {
+                  if (Date.now() >= suppressHotspotUntil.current) {
+                    setAnchorRect(anchor);
+                    onSelectPart(partRef, anchor);
+                  }
+                }}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -329,6 +396,17 @@ export default function DiagramViewer({ page, parts, onSelectPart }) {
         onZoomOut={zoomOut}
         onReset={resetZoom}
       />
+
+      {activePart && (
+        <SchematicPartDialog
+          key={activePart.part_ref}
+          part={activePart}
+          anchorRect={anchorRect}
+          wrapRef={wrapRef}
+          isMobile={isMobile}
+          onClose={onCloseActivePart}
+        />
+      )}
     </div>
   );
 }

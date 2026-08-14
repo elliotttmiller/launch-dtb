@@ -8,12 +8,11 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { useSchematicDetail } from '../../hooks/useSchematicDetail';
-import { humanizeLabel } from '../../utils/string.js';
+import { humanizeLabel, normalizePartRef } from '../../utils/string.js';
 import SchematicHeader from './SchematicHeader';
 import SchematicPageTabs from './SchematicPageTabs';
 import SchematicVariantPills, { sortVariants } from './SchematicVariantPills';
 import DiagramViewer from './DiagramViewer';
-import SchematicPartDialog from './SchematicPartDialog';
 
 export default function SchematicViewerPage({
   schematicId,
@@ -26,6 +25,14 @@ export default function SchematicViewerPage({
 }) {
   const { status, detail, error } = useSchematicDetail(schematicId);
   const [activePartRef, setActivePartRef] = useState(null);
+
+  function handleSelectPart(partRef) {
+    setActivePartRef(partRef);
+  }
+
+  function handleCloseActivePart() {
+    setActivePartRef(null);
+  }
 
   const variantNavigation = useMemo(() => {
     const shared = Array.isArray(detail?.variant_options)
@@ -72,8 +79,14 @@ export default function SchematicViewerPage({
     return pages[0];
   }, [pages, initialPage]);
 
+  // Hotspot occurrences carry the raw legacy label as `part_ref` (e.g.
+  // `AH 7-2.5"`) while resolved parts carry an already-slugged `part_ref`
+  // (e.g. `ah7-25`) — compare normalized forms or every click resolves to
+  // no part and the dialog silently never opens.
   const activePart = activePartRef
-    ? (detail?.parts || []).find((p) => p.part_ref === activePartRef) || null
+    ? (detail?.parts || []).find(
+      (p) => normalizePartRef(p.part_ref) === normalizePartRef(activePartRef),
+    ) || null
     : null;
 
   function handleSelectPage(pageId) {
@@ -140,13 +153,11 @@ export default function SchematicViewerPage({
           <DiagramViewer
             page={activePage}
             parts={detail.parts}
-            onSelectPart={setActivePartRef}
+            onSelectPart={handleSelectPart}
+            activePart={activePart}
+            onCloseActivePart={handleCloseActivePart}
           />
         </>
-      )}
-
-      {activePart && (
-        <SchematicPartDialog part={activePart} onClose={() => setActivePartRef(null)} />
       )}
     </div>
   );

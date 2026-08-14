@@ -7,8 +7,18 @@
  * Domain/SchematicHotspotDataset.php's dtb_schematic_hotspot_normalize_coordinates())
  * of the diagram's intrinsic width/height. An occurrence with invalid/missing
  * coordinates is hidden — it is never defaulted to the image center.
+ *
+ * Markup/positioning ported verbatim from the legacy `Schematics.jsx`
+ * (docs/_working/frontend-legacy/frontend/src/pages/Schematics.jsx,
+ * ~L3944-4032): a plain `<div role="button" tabIndex={0}>` — not a
+ * `<button>` — with class `hotspot hotspot-{shape}`, positioned via
+ * `top`/`left` percentages plus `transform: translate(-50%, -50%)` so the
+ * coordinate is the marker's CENTER (matching x_pct/y_pct's center-anchored
+ * semantics), `aria-label`/`title` of `"Hotspot: {name} ({sku})"`, and
+ * Enter/Space keyboard activation via onKeyDown (the div-as-button pattern).
  */
 import { useMemo } from 'react';
+import { normalizePartRef } from '../../utils/string.js';
 
 // The REST API serializes normalized coordinates from post meta, which can
 // come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
@@ -18,6 +28,10 @@ function toPercent(value) {
   return typeof num === 'number' && Number.isFinite(num) && num >= 0 && num <= 100 ? num : null;
 }
 
+// Center-anchored: top/left ARE the marker's center point (x_pct/y_pct's
+// documented semantics — see SchematicHotspotDatasetReader.php's
+// "canonical center-anchored geometry"). `transform: translate(-50%, -50%)`
+// in the element itself re-centers the box on that point, matching legacy.
 function toStyle(coordinates) {
   const x = toPercent(coordinates?.x_pct);
   const y = toPercent(coordinates?.y_pct);
@@ -35,12 +49,14 @@ function toStyle(coordinates) {
     };
   }
 
-  // Point hotspot — render as a small centered marker.
+  // Point hotspot — size/shape is owned by the `.hotspot` CSS rule (fixed
+  // circle diameter per breakpoint, matching legacy). Inline styles always
+  // win over stylesheet rules regardless of specificity, so width/height
+  // must NOT be set here — doing so previously collapsed every point
+  // hotspot to a 0x0 hit area (invisible + unclickable).
   return {
     left: `${x}%`,
     top: `${y}%`,
-    width: '0',
-    height: '0',
   };
 }
 
@@ -57,19 +73,40 @@ export default function HotspotLayer({ hotspotDataset, parts, onSelectPart }) {
   return (
     <div className="dtb-schematic-hotspot-layer" aria-label="Part hotspots">
       {occurrences.map(({ occurrence, style }) => {
-        const part = parts?.find((p) => p.part_ref === occurrence.part_ref) || null;
-        const isPoint = style.width === '0';
+        const part = parts?.find(
+          (p) => normalizePartRef(p.part_ref) === normalizePartRef(occurrence.part_ref),
+        ) || null;
         const label = occurrence.label || part?.title || 'Part';
+        const sku = part?.sku || part?.mpn || '';
+        const shape = occurrence.shape_type || 'circle';
+
+        const activate = (event) => {
+          onSelectPart(occurrence.part_ref, event.currentTarget.getBoundingClientRect());
+        };
 
         return (
-          <button
+          <div
             key={occurrence.hotspot_id}
-            type="button"
-            className={`dtb-schematic-hotspot${isPoint ? ' dtb-schematic-hotspot--point' : ` dtb-schematic-hotspot--region dtb-schematic-hotspot--${occurrence.shape_type || 'rect'}`}`}
-            style={style}
-            onClick={() => onSelectPart(occurrence.part_ref)}
-            aria-label={label}
-            title={label}
+            className={`hotspot hotspot-${shape}`}
+            role="button"
+            tabIndex={0}
+            style={{
+              position: 'absolute',
+              top: style.top,
+              left: style.left,
+              transform: 'translate(-50%, -50%)',
+              zIndex: 100,
+              pointerEvents: 'auto',
+              ...(style.width !== undefined ? { width: style.width, height: style.height } : {}),
+            }}
+            onClick={activate}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              event.preventDefault();
+              activate(event);
+            }}
+            aria-label={`Hotspot: ${label}${sku ? ` (${sku})` : ''}`}
+            title={sku ? `${label} (${sku})` : label}
           />
         );
       })}
