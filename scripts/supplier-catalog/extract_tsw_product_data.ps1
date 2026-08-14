@@ -7,7 +7,7 @@ param(
     [string] $OutputPath = (Join-Path $PSScriptRoot '..\..\docs\reference\data\TSW\TSW Product Data - DTB Brands.csv'),
 
     [Parameter()]
-    [string] $ReportPath = (Join-Path $PSScriptRoot 'results\tsw-product-data-extraction-report.json')
+    [string] $ReportPath = (Join-Path $PSScriptRoot 'results\shipping\tsw-product-data-extraction-report.json')
 )
 
 $ErrorActionPreference = 'Stop'

@@ -9,6 +9,17 @@ written to source files or the CSV.
 Only use it with an account and catalog data you are authorized to access.
 Keep request rates conservative and comply with the supplier's terms.
 
+## Results layout
+
+- `results/cost/` contains supplier-cost exports and cost-migration reports.
+- `results/shipping/` contains TSW product-data extraction reports, catalog-match
+  analysis, confirmed/review/unmatched subsets, and shipping-spec migration
+  reports.
+
+The source workbook and filtered DTB-brand product data remain under
+`docs/reference/data/TSW/`; the results directories contain derived artifacts
+only.
+
 ## Set up
 
 From `D:\AMD\projects\launch-dtb`:
@@ -45,7 +56,7 @@ browser profile for this tool.
 scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\scrape_tsw_catalog.py
 ```
 
-The live CSV is written to `scripts\supplier-catalog\results\tsw-costs.csv` by
+The live CSV is written to `scripts\supplier-catalog\results\cost\tsw-costs.csv` by
 default and atomically refreshed after every processed product. It is always a
 valid, readable CSV containing all successfully included rows completed so far.
 The command exits nonzero if a session is logged out, a page fails, a duplicate
@@ -85,51 +96,20 @@ Every product is written as exactly one physical CSV line. Newlines embedded in
 supplier descriptions and description HTML are converted to spaces at export;
 the HTML elements themselves remain intact.
 
-## Normalize costs for the production catalog
+## Supplier cost evidence
 
-`scripts/supplier-catalog/results/tsw-costs.csv` is raw supplier evidence and is
+`scripts/supplier-catalog/results/cost/tsw-costs.csv` is raw supplier evidence and is
 not a WooCommerce import file. Do not rewrite its supplier SKUs or copy its TSW
 namespace prefixes into canonical product identifiers.
-
-Run the deterministic reconciliation step after a successful scrape:
-
-```powershell
-scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\normalize_tsw_costs.py
-```
-
-The normalizer reads the raw TSW export and the canonical
-`products/launch/official/dtb_woocommerce_official_catalog.csv`, then writes:
-
-- `results/tsw-costs-normalized.csv` — normalized supplier costs with explicit
-  catalog match status and the matched canonical SKU/MPN when exactly one match
-  exists.
-- `results/tsw-costs-normalization-report.json` — counts plus complete unmatched
-  and ambiguous supplier-SKU lists for review.
 
 The scraper removes TSW distributor namespace prefixes before writing the CSV.
 Prefix removal is allowlisted by exported brand, never inferred:
 `CTT` for Columbia Tools, `TTT` for current TapeTech products, `AME` for legacy
 AMES products grouped into TSW's TapeTech category, `DSS` for Dura-Stilts, and
 `SUR` for SurPro. The supplier CSV therefore stores manufacturer part numbers,
-and the catalog reconciler never mutates canonical SKU or MPN values.
-
-Catalog reconciliation checks both `SKU` and supported `MPN` columns using a
-comparison-only identifier normalization. Brand compatibility is also enforced,
-so an identifier collision across manufacturers cannot silently match. Exactly
-one compatible catalog row is required for `matched` status. Zero candidates are
-`unmatched`; multiple candidates are `ambiguous`.
-
-The command fails closed when unmatched or ambiguous rows remain. Use
-`--allow-unmatched` only for an intentional audit/export where unresolved rows
-will be reviewed manually. Overlapping TSW source catalogs are collapsed only
-when supplier SKU, cost, and currency agree; conflicting supplier records stop
-the run instead of choosing a price silently.
-
-The normalized output is a reconciliation artifact, not authority for retail
-price, product identity, inventory, fulfillment, or WooCommerce persistence.
-Supplier cost can be projected into the production catalog only after the match
-report has been reviewed and any pricing/margin policy has been applied by the
-owning catalog workflow.
+and the catalog analyzer never mutates canonical SKU or MPN values. Cost evidence
+is projected only through confirmed catalog mappings; it is not authority for
+retail price, product identity, inventory, or fulfillment.
 
 ## Launch catalog matching analysis
 
@@ -142,14 +122,14 @@ scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\analyze_l
 The analysis confirms matches only when the supplier SKU uniquely resolves to a
 brand-compatible protected catalog identifier. Exact, likely, and possible name
 matches are emitted as review candidates and never promoted to confirmed product
-identity. Results are written to `results/tsw-launch-catalog-match-analysis.csv`
-with summary counts in `results/tsw-launch-catalog-match-report.json`.
+identity. Results are written to `results/shipping/tsw-launch-catalog-match-analysis.csv`
+with summary counts in `results/shipping/tsw-launch-catalog-match-report.json`.
 Reviewed identifier exceptions are stored explicitly in
 `approved-launch-catalog-matches.json`; the analyzer validates that each mapping
 resolves to exactly one brand-compatible launch-catalog row.
 
 For focused review, every analysis run also writes three temporary subsets under
-`results/`: confirmed products, products with no match, and products requiring
+`results/shipping/`: confirmed products, products with no match, and products requiring
 review. Each subset retains the complete analysis schema and is regenerated from
 the authoritative analysis statuses.
 
@@ -164,7 +144,7 @@ The migration uses WooCommerce core's `Cost of goods` CSV field, which maps to
 the product `cogs_value` property when the Cost of Goods Sold feature is enabled.
 It updates only unique confirmed catalog SKUs, fails closed on missing or
 duplicate targets and conflicting costs, and writes an audit report under
-`results/`.
+`results/cost/`.
 
 ## TSW shipping and product specifications
 
@@ -178,6 +158,21 @@ The extractor validates the workbook schema and selects only explicit `TTT`
 (TapeTech), `CTT` (Columbia Tools), `DSS` (Dura-Stilts), and `SUR` (SurPro)
 product prefixes. It preserves every source shipping/specification field, adds a
 derived `Brand` column, rejects duplicate product identifiers, and writes the
-filtered CSV beside the source workbook with an audit report under `results/`.
+filtered CSV beside the source workbook with an audit report under `results/shipping/`.
 The output also excludes trowels, knives, kits, sanders/sanding products, and
 apparel while retaining tool-part uses of words such as `cap` and `short`.
+
+After regenerating and reviewing the confirmed launch-catalog mappings, preview
+the shipping/specification projection with:
+
+```powershell
+scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\migrate_confirmed_shipping_specs.py
+```
+
+Apply the validated projection with the explicit `--apply` flag. The migrator
+updates only the WooCommerce `Weight (lbs)`, `Length (in)`, `Width (in)`, and
+`Height (in)` fields for unique confirmed catalog SKUs. Blank supplier
+measurements never erase catalog values, and exact zero measurements are treated
+as unavailable source sentinels and counted in the report. Negative, nonnumeric,
+or nonfinite measurements, duplicate targets, or missing targets stop the run. An audit report is written to
+`results/shipping/tsw-shipping-spec-migration-report.json`.

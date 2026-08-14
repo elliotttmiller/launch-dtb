@@ -22,18 +22,18 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 DEFAULT_SUPPLIER = ROOT / "docs" / "reference" / "data" / "TSW" / "TSW Product Data - DTB Brands.csv"
 DEFAULT_CATALOG = ROOT / "products" / "launch" / "official" / "dtb_official_catalog.csv"
-DEFAULT_OUTPUT = HERE / "results" / "tsw-launch-catalog-match-analysis.csv"
-DEFAULT_REPORT = HERE / "results" / "tsw-launch-catalog-match-report.json"
+DEFAULT_OUTPUT = HERE / "results" / "shipping" / "tsw-launch-catalog-match-analysis.csv"
+DEFAULT_REPORT = HERE / "results" / "shipping" / "tsw-launch-catalog-match-report.json"
 DEFAULT_APPROVALS = HERE / "approved-launch-catalog-matches.json"
-DEFAULT_CONFIRMED = HERE / "results" / "temp-tsw-launch-confirmed-products.csv"
-DEFAULT_REVIEW = HERE / "results" / "temp-tsw-launch-review-products.csv"
-DEFAULT_UNMATCHED = HERE / "results" / "temp-tsw-launch-no-match-products.csv"
+DEFAULT_CONFIRMED = HERE / "results" / "shipping" / "temp-tsw-launch-confirmed-products.csv"
+DEFAULT_REVIEW = HERE / "results" / "shipping" / "temp-tsw-launch-review-products.csv"
+DEFAULT_UNMATCHED = HERE / "results" / "shipping" / "temp-tsw-launch-no-match-products.csv"
 
 CONFIRMED = {"matched_identifier", "approved_manual_match"}
 REVIEW = {"ambiguous_identifier", "exact_name_review", "high_confidence_name_review", "likely_name_review", "possible_name_review"}
 CATALOG_IDENTIFIER_FIELDS = (
-    "SKU", "Meta: _wc_gla_mpn", "Meta: _dtb_former_sku", "Meta: _dtb_source_ref",
-    "Meta: _dtb_variation_base_sku",
+    "SKU", "Meta: schema_mpn", "Meta: _dtb_manufacturer_sku", "Meta: _dtb_mpn",
+    "meta:model",
 )
 BRAND_ALIASES = {
     "columbia": "columbia", "columbiatools": "columbia", "columbiatapingtools": "columbia",

@@ -25,7 +25,7 @@ BASE_URL = "https://www.tswfast.com"
 CHECKPOINT_SCHEMA_VERSION = 6
 DEFAULT_PROFILE = Path(__file__).resolve().parent / ".browser-profile"
 DEFAULT_SOURCES = Path(__file__).resolve().parent / "catalog-sources.json"
-DEFAULT_OUTPUT = Path(__file__).resolve().parent / "results" / "tsw-costs.csv"
+DEFAULT_OUTPUT = Path(__file__).resolve().parent / "results" / "cost" / "tsw-costs.csv"
 PRICE_RE = re.compile(r"\$\s*([0-9,]+(?:\.[0-9]+)?)")
 FIELDNAMES = [
     "source_name",

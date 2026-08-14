@@ -16,8 +16,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 DEFAULT_CATALOG = HERE.parents[1] / "products" / "launch" / "official" / "dtb_official_catalog.csv"
-DEFAULT_CONFIRMED = HERE / "results" / "temp-tsw-launch-confirmed-products.csv"
-DEFAULT_REPORT = HERE / "results" / "tsw-supplier-cost-migration-report.json"
+DEFAULT_CONFIRMED = HERE / "results" / "shipping" / "temp-tsw-launch-confirmed-products.csv"
+DEFAULT_REPORT = HERE / "results" / "cost" / "tsw-supplier-cost-migration-report.json"
 COST_FIELD = "Cost of goods"
 CONFIRMED_STATUSES = {"matched_identifier", "approved_manual_match"}
 
