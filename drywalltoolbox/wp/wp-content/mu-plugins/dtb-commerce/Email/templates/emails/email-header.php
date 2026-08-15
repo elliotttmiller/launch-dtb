@@ -5,7 +5,7 @@
  * Traced against WooCommerce core emails/email-header.php v10.7.0.
  * Uses conservative table markup and inline styles so Gmail, Outlook, and
  * other clients render the same shell without depending on web fonts,
- * advanced CSS, or client-specific dark-mode behavior.
+ * advanced CSS, spacer columns, or client-specific dark-mode behavior.
  *
  * @package DrywalltoolboxCommerce
  */
@@ -34,14 +34,14 @@ unset( $is_email_preview );
 		<meta name="format-detection" content="telephone=no, date=no, address=no, email=no, url=no">
 		<title><?php echo esc_html( $store_name ); ?></title>
 	</head>
-	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0" style="margin:0;padding:0;background-color:#f2f3f5;">
+	<body <?php echo is_rtl() ? 'rightmargin' : 'leftmargin'; ?>="0" marginwidth="0" topmargin="0" marginheight="0" offset="0" style="margin:0;padding:0;background-color:#f2f3f5;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 		<table width="100%" id="outer_wrapper" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="#f2f3f5" style="width:100%;margin:0;padding:0;border-collapse:collapse;background-color:#f2f3f5;">
 			<tr>
-				<td align="center" valign="top" style="padding:24px 12px;">
-					<table class="dtb-email-shell-cell" border="0" cellpadding="0" cellspacing="0" width="680" role="presentation" align="center" style="width:100%;max-width:680px;border-collapse:separate;background-color:#ffffff;">
+				<td class="dtb-email-outer-cell" align="center" valign="top" style="padding:24px 12px;">
+					<table class="dtb-email-shell-cell" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" align="center" bgcolor="#ffffff" style="width:100%;max-width:680px;border-collapse:separate;background-color:#ffffff;">
 						<tr>
 							<td align="center" valign="top">
-								<div id="wrapper" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>" style="width:100%;margin:0 auto;-webkit-text-size-adjust:100%;">
+								<div id="wrapper" dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>" style="width:100%;max-width:680px;margin:0 auto;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
 									<table border="0" cellpadding="0" cellspacing="0" width="100%" id="inner_wrapper" role="presentation" bgcolor="#ffffff" style="width:100%;border-collapse:separate;background-color:#ffffff;">
 										<tr>
 											<td align="center" valign="top">
@@ -68,7 +68,7 @@ unset( $is_email_preview );
 															<!-- Body -->
 															<table border="0" cellpadding="0" cellspacing="0" width="100%" id="template_body" role="presentation" style="width:100%;border-collapse:collapse;">
 																<tr>
-																	<td valign="top" id="body_content" bgcolor="#ffffff" style="background-color:#ffffff;">
+																	<td valign="top" id="body_content" bgcolor="#ffffff" style="width:100%;background-color:#ffffff;">
 																		<!-- Content -->
 																		<table border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation" style="width:100%;border-collapse:collapse;">
 																			<tr>
