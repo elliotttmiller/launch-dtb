@@ -36,6 +36,7 @@ EXPECTED_COLUMNS = (
     "Meta: _dtb_schematic_variant", "Meta: _dtb_schematic_url", "Meta: _dtb_seo_title",
     "Meta: _dtb_seo_description", "Meta: _dtb_seo_focus_kw", "Meta: _dtb_seo_canonical",
     "Meta: _dtb_seo_noindex", "Slug", "meta:product_family", "meta:series", "meta:model",
+    "Meta: _dtb_map_price",
 )
 
 ALLOWED_TYPES = {"simple", "variable", "variation"}

@@ -158,6 +158,7 @@ function dtb_admin_assign_capabilities(): void {
 				$role->add_cap( $cap, true );
 			}
 		}
+	}
 }
 
 add_action( 'init', 'dtb_admin_assign_capabilities', 5 );
