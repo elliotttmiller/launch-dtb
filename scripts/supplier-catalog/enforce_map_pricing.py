@@ -10,17 +10,18 @@ Pricing contract for MAP-configured rows:
     gross_profit = price - cost
     gross_margin = (price - cost) / price
     target_price = cost / (1 - target_margin)
-    optimization_floor = max(MAP, target_price) when COGS exists, otherwise MAP
-    recommended_regular = max(current_regular, optimization_floor)
+    optimization_target = max(MAP, target_price) when COGS exists, otherwise MAP
+    recommended_regular = max(current_regular, optimization_target)
     recommended_sale = max(current_sale, MAP) when a sale price exists
 
 Target-price calculations round upward to the next cent so rounding can never
 place the recommendation below the requested target margin. MAP is an absolute
 floor for both regular and sale prices. Existing prices above the calculated
-floor are never lowered by this MVP operation.
+target are never lowered by this MVP operation.
 
-Preview is the default. Pass `--apply` to mutate the canonical catalog after a
-rollback snapshot is created and the full catalog validates successfully.
+Preview is the default. Pass `--apply` to mutate the canonical catalog after the
+proposed in-memory result has been verified MAP-safe, a rollback snapshot has
+been created, and the full official catalog has been validated.
 """
 
 from __future__ import annotations
@@ -76,7 +77,14 @@ def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
         raise PricingError(f"Cannot read {path}: {exc}") from exc
 
 
-def parse_positive_money(value: str, *, field: str, sku: str, allow_blank: bool = True) -> Decimal | None:
+def parse_money(
+    value: str,
+    *,
+    field: str,
+    sku: str,
+    allow_blank: bool = True,
+    allow_zero: bool = False,
+) -> Decimal | None:
     raw = value.strip()
     if not raw and allow_blank:
         return None
@@ -84,8 +92,9 @@ def parse_positive_money(value: str, *, field: str, sku: str, allow_blank: bool 
         amount = Decimal(raw)
     except InvalidOperation as exc:
         raise PricingError(f"{sku}: invalid {field} value {value!r}") from exc
-    if not amount.is_finite() or amount <= 0:
-        raise PricingError(f"{sku}: {field} must be a positive amount")
+    if not amount.is_finite() or amount < 0 or (amount == 0 and not allow_zero):
+        qualifier = "non-negative" if allow_zero else "positive"
+        raise PricingError(f"{sku}: {field} must be a {qualifier} amount")
     return amount.quantize(CENT)
 
 
@@ -170,10 +179,10 @@ def audit_rows(rows: list[dict[str, str]], target_margin: Decimal) -> tuple[list
             counts["map_not_configured"] += 1
             continue
 
-        map_price = parse_positive_money(map_raw, field="MAP", sku=sku, allow_blank=False)
-        regular = parse_positive_money(row.get(REGULAR_FIELD, ""), field="regular price", sku=sku)
-        sale = parse_positive_money(row.get(SALE_FIELD, ""), field="sale price", sku=sku)
-        cost = parse_positive_money(row.get(COST_FIELD, ""), field="cost of goods", sku=sku)
+        map_price = parse_money(map_raw, field="MAP", sku=sku, allow_blank=False)
+        regular = parse_money(row.get(REGULAR_FIELD, ""), field="regular price", sku=sku, allow_zero=True)
+        sale = parse_money(row.get(SALE_FIELD, ""), field="sale price", sku=sku, allow_zero=True)
+        cost = parse_money(row.get(COST_FIELD, ""), field="cost of goods", sku=sku)
         assert map_price is not None
 
         counts["map_configured"] += 1
@@ -183,42 +192,26 @@ def audit_rows(rows: list[dict[str, str]], target_margin: Decimal) -> tuple[list
             counts["map_missing_cost"] += 1
 
         target = target_margin_price(cost, target_margin) if cost is not None else None
-        floor = max(value for value in (map_price, target) if value is not None)
+        optimization_target = max(value for value in (map_price, target) if value is not None)
+        recommended_regular = max(regular, optimization_target) if regular is not None else None
+        recommended_sale = max(sale, map_price) if sale is not None else None
+
+        regular_below_map = regular is not None and regular < map_price
+        sale_below_map = sale is not None and sale < map_price
+        map_violation = regular_below_map or sale_below_map
+        regular_change = recommended_regular is not None and regular is not None and recommended_regular != regular
+        sale_change = recommended_sale is not None and sale is not None and recommended_sale != sale
 
         if regular is None:
             counts["map_missing_regular_price"] += 1
-            findings.append(
-                {
-                    "row": row_number,
-                    "sku": sku,
-                    "status": "blocked",
-                    "reason_code": "MISSING_PRICE",
-                    "map_price": money(map_price),
-                    "cost": money(cost),
-                    "current_regular": "",
-                    "current_sale": money(sale),
-                    "target_margin": format(target_margin, "f"),
-                    "target_price": money(target),
-                    "optimization_floor": money(floor),
-                    "recommended_regular": "",
-                    "recommended_sale": money(max(sale, map_price)) if sale is not None else "",
-                    "current_margin": None,
-                    "recommended_margin": None,
-                }
-            )
-            continue
 
-        recommended_regular = max(regular, floor)
-        recommended_sale = max(sale, map_price) if sale is not None else None
-        regular_below_map = regular < map_price
-        sale_below_map = sale is not None and sale < map_price
-        regular_change = recommended_regular != regular
-        sale_change = recommended_sale is not None and sale is not None and recommended_sale != sale
-
-        if regular_below_map or sale_below_map:
+        if map_violation:
             status = "optimize"
             reason_code = "MAP_FLOOR_VIOLATION"
             counts["map_violations"] += 1
+        elif regular is None:
+            status = "blocked"
+            reason_code = "MISSING_PRICE"
         elif regular_change:
             status = "optimize"
             reason_code = "BELOW_TARGET_MARGIN"
@@ -233,6 +226,9 @@ def audit_rows(rows: list[dict[str, str]], target_margin: Decimal) -> tuple[list
         if sale_change:
             counts["sale_prices_to_raise"] += 1
 
+        current_effective = sale if sale is not None and sale > 0 else regular
+        recommended_effective = recommended_sale if recommended_sale is not None and recommended_sale > 0 else recommended_regular
+
         findings.append(
             {
                 "row": row_number,
@@ -245,11 +241,11 @@ def audit_rows(rows: list[dict[str, str]], target_margin: Decimal) -> tuple[list
                 "current_sale": money(sale),
                 "target_margin": format(target_margin, "f"),
                 "target_price": money(target),
-                "optimization_floor": money(floor),
+                "optimization_target": money(optimization_target),
                 "recommended_regular": money(recommended_regular),
                 "recommended_sale": money(recommended_sale),
-                "current_margin": gross_margin(sale if sale is not None else regular, cost),
-                "recommended_margin": gross_margin(recommended_sale if recommended_sale is not None else recommended_regular, cost),
+                "current_margin": gross_margin(current_effective, cost),
+                "recommended_margin": gross_margin(recommended_effective, cost),
             }
         )
 
@@ -262,13 +258,14 @@ def apply_findings(rows: list[dict[str, str]], findings: list[dict[str, object]]
     by_row = {int(finding["row"]): finding for finding in findings}
     for row_number, row in enumerate(rows, start=2):
         finding = by_row.get(row_number)
-        if not finding or finding["status"] == "blocked":
+        if not finding:
             continue
+
         recommended_regular = str(finding["recommended_regular"] or "")
         recommended_sale = str(finding["recommended_sale"] or "")
-        if recommended_regular:
+        if recommended_regular and (row.get(REGULAR_FIELD) or "").strip():
             row[REGULAR_FIELD] = recommended_regular
-        if (row.get(SALE_FIELD) or "").strip() and recommended_sale:
+        if recommended_sale and (row.get(SALE_FIELD) or "").strip():
             row[SALE_FIELD] = recommended_sale
 
 
@@ -295,19 +292,27 @@ def main() -> int:
     rollback_path = None
 
     if args.apply:
-        rollback_path = create_catalog_backup(catalog_path)
         apply_findings(rows, findings)
+
+        # Verify the proposed in-memory result before any canonical file write.
+        proposed_findings, proposed_counts = audit_rows(rows, target_margin)
+        if proposed_counts.get("map_violations", 0):
+            violating = [
+                str(finding["sku"])
+                for finding in proposed_findings
+                if finding["reason_code"] == "MAP_FLOOR_VIOLATION"
+            ]
+            raise PricingError(
+                "Refusing to write catalog: proposed result still contains configured MAP violation(s): "
+                + ", ".join(violating[:25])
+            )
+
+        rollback_path = create_catalog_backup(catalog_path)
         write_csv_atomic(catalog_path, fields, rows)
         validate_catalog(catalog_path, DEFAULT_GAPS)
 
-        # Fail closed if an applied catalog still carries a configured MAP
-        # violation. The audit is recalculated from the actual written file.
         _, written_rows = read_csv(catalog_path)
         post_findings, post_counts = audit_rows(written_rows, target_margin)
-        if post_counts.get("map_violations", 0):
-            raise PricingError(
-                f"Applied catalog still contains {post_counts['map_violations']} MAP-configured violation(s)"
-            )
         post_actionable = [f for f in post_findings if f["status"] == "optimize"]
     else:
         post_counts = counts.copy()
