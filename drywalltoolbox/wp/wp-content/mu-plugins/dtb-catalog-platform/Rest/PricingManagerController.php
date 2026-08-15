@@ -24,6 +24,7 @@ function dtb_pricing_manager_register_routes(): void {
 				'search'    => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'brand'     => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'status'    => [ 'sanitize_callback' => 'sanitize_key' ],
+				'map_only'  => [ 'sanitize_callback' => 'rest_sanitize_boolean' ],
 				'page'      => [ 'sanitize_callback' => 'absint' ],
 				'per_page'  => [ 'sanitize_callback' => 'absint' ],
 				'sort'      => [ 'sanitize_callback' => 'sanitize_key' ],
@@ -87,6 +88,7 @@ function dtb_pricing_manager_rest_products( WP_REST_Request $request ): WP_REST_
 			'search'    => $request->get_param( 'search' ),
 			'brand'     => $request->get_param( 'brand' ),
 			'status'    => $request->get_param( 'status' ),
+			'map_only'  => $request->get_param( 'map_only' ),
 			'page'      => $request->get_param( 'page' ),
 			'per_page'  => $request->get_param( 'per_page' ),
 			'sort'      => $request->get_param( 'sort' ),
@@ -112,7 +114,7 @@ function dtb_pricing_manager_rest_update_product( WP_REST_Request $request ) {
 	$payload = $request->get_json_params();
 	$fields  = [];
 
-	foreach ( [ 'regular_price', 'map_price', 'map_source' ] as $field ) {
+	foreach ( [ 'regular_price', 'sale_price', 'map_price', 'map_source' ] as $field ) {
 		if ( is_array( $payload ) && array_key_exists( $field, $payload ) ) {
 			$fields[ $field ] = $payload[ $field ];
 		}
@@ -126,7 +128,7 @@ function dtb_pricing_manager_rest_update_product( WP_REST_Request $request ) {
 	return new WP_REST_Response( $updated, 200 );
 }
 
-/** Save the single V1 pricing policy setting. */
+/** Save the single MVP pricing policy setting. */
 function dtb_pricing_manager_rest_update_settings( WP_REST_Request $request ) {
 	$payload = $request->get_json_params();
 	$margin  = is_array( $payload ) ? (float) ( $payload['target_margin'] ?? 0 ) : 0;
