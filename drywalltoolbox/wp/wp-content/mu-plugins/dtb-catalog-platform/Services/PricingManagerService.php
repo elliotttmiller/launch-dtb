@@ -175,18 +175,32 @@ function dtb_pricing_markup( ?float $price, ?float $cost ): ?float {
 /**
  * Calculate the minimum currency price required to reach a target gross margin.
  *
- * The exact equation is price = cost / (1 - target margin). Because this is a
- * floor calculation, the result is rounded upward to the next currency minor
- * unit rather than conventionally rounded down through the target.
+ * The exact equation is price = cost / (1 - target margin). The implementation
+ * works in integer currency minor units and hundredths of a percentage point,
+ * then performs an integer ceiling division so the persisted currency value can
+ * never round below the requested target margin.
  */
 function dtb_pricing_target_price( ?float $cost, float $target_margin ): ?float {
 	if ( null === $cost || $cost <= 0 || $target_margin <= 0 || $target_margin >= 100 ) {
 		return null;
 	}
 
-	$raw   = $cost / ( 1 - ( $target_margin / 100 ) );
-	$scale = 10 ** max( 0, wc_get_price_decimals() );
-	return ceil( ( $raw * $scale ) - 0.0000001 ) / $scale;
+	$cost_minor = dtb_pricing_money_minor_units( $cost );
+	if ( null === $cost_minor || $cost_minor <= 0 ) {
+		return null;
+	}
+
+	$basis_points = 10000;
+	$margin_bps   = (int) round( $target_margin * 100 );
+	$denominator  = $basis_points - $margin_bps;
+	if ( $denominator <= 0 ) {
+		return null;
+	}
+
+	$target_minor = intdiv( ( $cost_minor * $basis_points ) + $denominator - 1, $denominator );
+	$scale        = 10 ** max( 0, wc_get_price_decimals() );
+
+	return $target_minor / $scale;
 }
 
 /** Return true when a configured price is below MAP at currency precision. */
@@ -223,7 +237,7 @@ function dtb_pricing_enforce_map_floor_on_product( $product ): void {
 	if ( '' !== $regular && is_numeric( $regular ) && dtb_pricing_is_below_map( $regular, $map ) ) {
 		$product->set_regular_price( $map_decimal );
 	}
-	if ( '' !== $sale && is_numeric( $sale ) && (float) $sale > 0 && dtb_pricing_is_below_map( $sale, $map ) ) {
+	if ( '' !== $sale && is_numeric( $sale ) && dtb_pricing_is_below_map( $sale, $map ) ) {
 		$product->set_sale_price( $map_decimal );
 	}
 
@@ -263,7 +277,7 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 	$has_map       = null !== $map;
 
 	$regular_map_violation   = $has_map && null !== $regular && dtb_pricing_is_below_map( $regular, $map );
-	$sale_map_violation      = $has_map && null !== $sale && $sale > 0 && dtb_pricing_is_below_map( $sale, $map );
+	$sale_map_violation      = $has_map && null !== $sale && dtb_pricing_is_below_map( $sale, $map );
 	$effective_map_violation = $has_map && null !== $effective && dtb_pricing_is_below_map( $effective, $map );
 	$map_violation           = $regular_map_violation || $sale_map_violation || $effective_map_violation;
 
@@ -271,11 +285,11 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 	// economic objective. Current prices above both are held rather than lowered.
 	$optimization_floor = $has_map ? dtb_pricing_money_max( $map, $target_price ) : $target_price;
 	$suggested_regular  = null;
-	if ( null !== $regular && $regular > 0 ) {
+	if ( null !== $regular ) {
 		$suggested_regular = dtb_pricing_money_max( $regular, $optimization_floor );
 	}
 	$suggested_sale = $sale;
-	if ( $has_map && null !== $sale && $sale > 0 ) {
+	if ( $has_map && null !== $sale ) {
 		$suggested_sale = dtb_pricing_money_max( $sale, $map );
 	}
 	$suggested_effective = $on_sale && null !== $suggested_sale ? $suggested_sale : $suggested_regular;
@@ -283,14 +297,14 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 	$status       = 'healthy';
 	$status_label = __( 'Healthy', 'drywall-toolbox' );
 
-	if ( null === $regular || $regular <= 0 ) {
-		$status       = 'missing_price';
-		$status_label = __( 'Missing price', 'drywall-toolbox' );
-	} elseif ( $map_violation ) {
-		// MAP is deliberately evaluated before COGS and sale state. Compliance
-		// cannot be hidden just because another pricing input is unavailable.
+	if ( $map_violation ) {
+		// MAP has the highest status priority. A configured advertised price that
+		// is below MAP must never be hidden by missing COGS, zero price, or sale state.
 		$status       = 'below_map';
 		$status_label = __( 'MAP violation', 'drywall-toolbox' );
+	} elseif ( null === $regular || $regular <= 0 ) {
+		$status       = 'missing_price';
+		$status_label = __( 'Missing price', 'drywall-toolbox' );
 	} elseif ( ! $has_map ) {
 		$status       = 'missing_map';
 		$status_label = __( 'MAP not configured', 'drywall-toolbox' );
@@ -305,18 +319,18 @@ function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margi
 		$status_label = __( 'Below target', 'drywall-toolbox' );
 	}
 
-	$optimizer_eligible = $has_map && null !== $regular && $regular > 0;
+	$optimizer_eligible = $has_map && null !== $regular;
 	$recommendation     = 'hold';
 	$reason_code        = 'PRICE_HEALTHY';
 	if ( ! $has_map ) {
 		$recommendation = 'not_configured';
 		$reason_code    = 'MAP_NOT_CONFIGURED';
-	} elseif ( null === $regular || $regular <= 0 ) {
-		$recommendation = 'blocked';
-		$reason_code    = 'MISSING_PRICE';
 	} elseif ( $map_violation ) {
 		$recommendation = 'optimize';
 		$reason_code    = 'MAP_FLOOR_VIOLATION';
+	} elseif ( null === $regular || $regular <= 0 ) {
+		$recommendation = 'blocked';
+		$reason_code    = 'MISSING_PRICE';
 	} elseif ( null === $cost ) {
 		$recommendation = 'hold';
 		$reason_code    = 'MISSING_COGS';
