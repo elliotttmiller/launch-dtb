@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$address  = $order->get_formatted_billing_address();
-$shipping = $order->get_formatted_shipping_address();
+$address      = $order->get_formatted_billing_address();
+$shipping     = $order->get_formatted_shipping_address();
 $has_shipping = ! wc_ship_to_billing_address_only() && $order->needs_shipping_address() && $shipping;
 $email_improvements_enabled = FeaturesUtil::feature_is_enabled( 'email_improvements' );
 unset( $email_improvements_enabled );
@@ -32,9 +32,9 @@ $card_title = $has_shipping ? __( 'Billing & shipping addresses', 'drywall-toolb
 
 echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title ) : '<div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 ?>
-<table id="addresses" cellspacing="0" cellpadding="0" style="width:100%;vertical-align:top;" border="0" role="presentation">
-	<tr>
-		<td class="font-family text-align-left dtb-address-billing" style="border:0;padding:0 18px 0 0;" valign="top" width="50%">
+<table id="addresses" cellspacing="0" cellpadding="0" width="100%" style="width:100%;table-layout:fixed;vertical-align:top;border-collapse:collapse;" border="0" role="presentation">
+	<tr class="dtb-address-row">
+		<td class="font-family text-align-left dtb-address-billing" style="width:50%;border:0;padding:0 18px 0 0;overflow-wrap:anywhere;word-break:break-word;" valign="top" width="50%">
 			<b class="address-title"><?php esc_html_e( 'Billing address', 'drywall-toolbox' ); ?></b>
 			<address class="address">
 				<?php echo wp_kses_post( $address ? $address : esc_html__( 'N/A', 'drywall-toolbox' ) ); ?>
@@ -58,7 +58,7 @@ echo function_exists( 'dtb_email_card_open' ) ? dtb_email_card_open( $card_title
 			</address>
 		</td>
 		<?php if ( $has_shipping ) : ?>
-			<td class="font-family text-align-left dtb-address-shipping" style="padding:0 0 0 18px;border-left:1px solid #e4eaf2;" valign="top" width="50%">
+			<td class="font-family text-align-left dtb-address-shipping" style="width:50%;padding:0 0 0 18px;border-left:1px solid #e4eaf2;overflow-wrap:anywhere;word-break:break-word;" valign="top" width="50%">
 				<b class="address-title"><?php esc_html_e( 'Shipping address', 'drywall-toolbox' ); ?></b>
 				<address class="address">
 					<?php echo wp_kses_post( $shipping ); ?>
