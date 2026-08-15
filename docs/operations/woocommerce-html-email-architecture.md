@@ -1,6 +1,6 @@
 # WooCommerce classic HTML email architecture
 
-Last reconciled with tracked source: 2026-08-04.
+Last reconciled with tracked source: 2026-08-15.
 
 Scope: WooCommerce's classic HTML/PHP transactional email pipeline only.
 Plain-text templates, the block email editor, and POS templates are
@@ -8,251 +8,83 @@ explicitly out of scope and are never touched by any file described here.
 
 ## Ownership model
 
-- **`dtb-platform`** owns the shared branded email presentation system and
-  reusable components: `dtb_email_palette()`, `dtb_email_button()`,
-  `dtb_email_details_table()`, `dtb_email_status_badge()`,
-  `dtb_email_next_steps_list()`, `dtb_email_note_box()`, `dtb_email_logo_url()`
-  (`Support/Email.php`), and the shared order-item thumbnail/name renderer
-  (`Support/Email/OrderItemPresentation.php`). `dtb_render_branded_email()` /
-  `Templates/branded-email.html` remain the presentation layer for DTB's
-  *non*-WooCommerce transactional email systems (support, returns, repair,
-  marketing, and the SPA's own `/auth/*` flow) — unrelated to the classic
-  WooCommerce pipeline described in this document.
+- **`dtb-platform`** owns the shared branded email presentation system,
+  reusable components, platform-wide sender identity, and the transactional
+  Reply-To alignment safeguard (`Support/Email.php`,
+  `Support/Email/Deliverability.php`, and
+  `Support/Email/OrderItemPresentation.php`). SMTP transport and DNS-based
+  authentication (SPF/DKIM/DMARC/PTR) remain infrastructure concerns and are
+  not encoded in application code.
 - **`dtb-commerce`** owns WooCommerce email registration, template
   resolution, settings integration, and commerce-specific content
   (`Email/TemplateOverride.php` and `Email/templates/emails/*.php`).
-- **`dtb-order-platform`** owns order-event identity and duplicate
-  prevention for customer-facing order emails
-  (`Email/OrderEmailIdempotency.php`, `customer_processing_order` dedupe) and
-  is the durable, queryable record of fulfillment-projection outcomes (via
-  `dtb_order_append_event()`), but is not a second source of truth for
-  fulfillment-projection idempotency itself.
+- **`dtb-order-platform`** owns order-event identity and duplicate prevention
+  for customer-facing order emails.
 - **`dtb-integrations`** remains authoritative for Veeqo fulfillment and
-  tracking projections, including the Veeqo → native WooCommerce Fulfillment
-  projector (`Veeqo/VeeqoFulfillmentProjector.php`).
+  tracking projections.
 
 ## Template-routing strategy
 
 `dtb-commerce/Email/TemplateOverride.php` hooks `woocommerce_locate_template`
-at a late priority with the explicit
-`dtb_commerce_wc_email_template_map()` allowlist (`template_name => ['file' =>
-..., 'source_version' => ...]`). It only rewrites WooCommerce's resolved
-template path when:
+at a late priority with an explicit allowlist. It only rewrites WooCommerce's
+resolved template path when WooCommerce resolved its own bundled default, the
+template is allowlisted, and the request is not for `emails/plain/*`.
 
-- WooCommerce resolved its own bundled default (no theme override already
-  won — the active `drywall-toolbox` theme ships no `woocommerce/emails/`
-  directory today, but a future theme override would still take precedence);
-- the `template_name` is in the allowlist; and
-- it is not under `emails/plain/` (plain-text templates always resolve to
-  WooCommerce core, unmodified).
+## Gmail/client rendering contract
 
-This is the standard mechanism WooCommerce itself expects a plugin/child
-theme to use to override a template without forking WooCommerce — no output
-buffering, no wrapping.
+The classic HTML shell uses a conservative table-first structure capped at
+680px. The outer shell is centered by table alignment, not by a spacer-column
+layout or CSS-only sizing. Critical dimensions, backgrounds, padding, and
+logo sizing are duplicated inline so Gmail variants still render the intended
+structure after sanitization/inlining. The mobile media query remains a
+progressive enhancement rather than a requirement for basic readability.
 
-Every override file under `Email/templates/emails/` carries a header comment
-recording the exact upstream WooCommerce template path and the `@version`
-it was traced against (10.9.4-era, individual files ranging 9.7.0–10.9.0 per
-the reference export), plus a one-line "DTB customization" note. The same
-version metadata lives in `DTB_WC_EMAIL_TEMPLATE_MAP` for code-level
-traceability. **Every override preserves the upstream runtime
-`do_action`/`apply_filters` extension points, arguments, and semantic order**;
-branch-equivalent markup may consolidate duplicate calls that are mutually
-exclusive upstream. Only surrounding markup/copy changes. This is
-required, not stylistic: `dtb-order-tracking-links.php`'s "Track Order"
-button hooks `woocommerce_email_after_order_table` with 4 args, WooCommerce's
-own structured-data output hooks `woocommerce_email_order_details`, and the
-order-item filters (`woocommerce_order_item_thumbnail`,
-`woocommerce_order_item_name`, `woocommerce_order_item_visible`, etc.) are
-all depended upon by exact identity.
+Remote web fonts are not required for layout correctness. The email shell
+must remain readable with native system/sans-serif fonts when clients strip
+`<link>` tags or external font requests. Background artwork is decorative;
+content may not depend on a CSS background image being loaded.
+
+## Sender identity and Reply-To contract
+
+`dtb-platform/Support/Email.php` defines the canonical outbound From identity.
+`dtb-platform/Support/Email/Deliverability.php` normalizes Reply-To headers at
+the `wp_mail` boundary. Same-domain Reply-To values are preserved; missing or
+cross-domain Reply-To values are replaced with the canonical DTB mailbox.
+This prevents a legitimate DTB message from intentionally presenting a
+Drywall Toolbox From address while routing replies to an unrelated domain.
+
+The application does **not** configure SMTP credentials, DKIM keys, SPF,
+DMARC, return-path/envelope sender, PTR/rDNS, or TLS. Those remain provider and
+DNS configuration. Production deployment therefore requires the configured
+SMTP provider to authenticate the same organizational domain used by the
+visible From header.
 
 ## Settings precedence
 
-WooCommerce Settings → Emails remains authoritative for: enablement,
+WooCommerce Settings → Emails remains authoritative for enablement,
 recipients, CC/BCC, email type, and any subject/heading/additional-content an
-administrator has explicitly configured (each core `WC_Email` subclass's
-`get_option()` mechanism, untouched). DTB supplies professional default
-copy only through each class's own `get_default_subject()` /
-`get_default_heading()` override points and through the template body copy —
-never by replacing or bypassing the settings system. Visual design (colors,
-typography, layout) is DTB-owned via `dtb_email_palette()` and the template
-files, not the WooCommerce admin color-picker options in
-`email-styles.php`. The upstream `woocommerce_email_footer_text` filter still
-executes, but its free-form value is not rendered: the approved visible footer
-is limited to confirmed social links, copyright, settings-backed Terms and
-Privacy links, and Contact, with no company street address.
-
-## Supported email registry
-
-| WooCommerce email ID | Audience | Notes |
-|---|---|---|
-| `new_order` | admin | |
-| `cancelled_order` | admin | |
-| `failed_order` | admin | |
-| `customer_processing_order` | customer | idempotency via `OrderEmailIdempotency.php` |
-| `customer_completed_order` | customer | copy no longer implies "completed == shipped" |
-| `customer_on_hold_order` | customer | |
-| `customer_failed_order` | customer | uses `get_checkout_payment_url()` |
-| `customer_cancelled_order` | customer | |
-| `customer_refunded_order` | customer | uses core's `$partial_refund` + concrete refund object |
-| `customer_invoice` | customer | uses `get_checkout_payment_url()` |
-| `customer_note` | customer | |
-| `customer_new_account` | customer | WooCommerce's native flow; distinct from the SPA's own `/auth/*` REST flow |
-| `customer_reset_password` | customer | WooCommerce's native flow; distinct from the SPA's own `/auth/*` REST flow |
-| `customer_fulfillment_created` | customer | native Fulfillments feature |
-| `customer_fulfillment_updated` | customer | native Fulfillments feature |
-| `customer_fulfillment_deleted` | customer | **disabled** — see below |
-
-`customer_fulfillment_deleted` is explicitly force-disabled
-(`woocommerce_email_enabled_customer_fulfillment_deleted` filtered to
-`false` in `TemplateOverride.php`) because no DTB business rule currently
-originates a customer-visible fulfillment deletion. This is intentional, not
-an oversight; lift the gate only alongside an explicit deletion rule.
+administrator has explicitly configured. DTB supplies default copy and visual
+presentation without bypassing WooCommerce's email settings system.
 
 ## Fulfillment authority
 
-```text
-Veeqo (authoritative shipment/tracking facts)
-  -> dtb-integrations/Veeqo/VeeqoOrderStatusApplier.php
-     (existing rank/tracking change-detection, unchanged)
-  -> dtb-integrations/Veeqo/VeeqoFulfillmentProjector.php
-     (identity resolution, fingerprint, per-shipment lock,
-      duplicate/replay detection, native-notification ownership)
-  -> Automattic\WooCommerce\Admin\Features\Fulfillments\Fulfillment::save()
-     (native WooCommerce data store, "order-fulfillment")
-  -> woocommerce_fulfillment_created_notification /
-     woocommerce_fulfillment_updated_notification
-  -> WC_Email_Customer_Fulfillment_Created / Updated::trigger()
-  -> dtb-commerce's customer-fulfillment-created.php / -updated.php
-```
+Veeqo remains authoritative for shipment/tracking facts. Native WooCommerce
+Fulfillment objects and their notification hooks continue to own fulfillment
+email triggering. The email rendering and deliverability changes do not alter
+order creation, payment, inventory, fulfillment, queues, or provider state.
 
-Verified against the production WooCommerce 10.9.4 vendor source export
-(`drywalltoolbox/wp/wp-content/woocommerce/dtb-woocommerce-fulfillments-source-20260731-123114/`):
-`Fulfillment.php`, `FulfillmentsDataStore.php`, `FulfillmentUtils.php`,
-`OrderFulfillmentsRestController.php`,
-`class-wc-email-customer-fulfillment-{created,updated}.php`. The projector
-never calls this site's own REST API, never writes `wc_order_fulfillments` /
-`wc_order_fulfillment_meta` directly, and never references
-`Automattic\WCShipping\Fulfillments\*` (the separately-installed WooCommerce
-Shipping plugin also registers fulfillment-related classes; the projector
-only ever uses the core `Fulfillment` domain object and the
-`order-fulfillment` `WC_Data_Store` key, and verifies at runtime that the
-key still resolves to WooCommerce core's own `FulfillmentsDataStore`).
+## Validation and production checks
 
-`FulfillmentsManager::update_order_fulfillment_status_on_fulfillment_update()`
-(native WooCommerce code, fired automatically by
-`woocommerce_fulfillment_after_create`/`_update`) recomputes and persists
-the order-level `_fulfillment_status` meta
-(`fulfilled`/`partially_fulfilled`/`unfulfilled`/`no_fulfillments`) — this is
-WooCommerce's own native partial/complete-shipment computation; the
-projector never reimplements it.
+Before shipping email changes to production:
 
-### Typed projection result
-
-`dtb_veeqo_project_fulfillment()` returns one of:
-
-```text
-created / updated / no_change
-deferred_incomplete_source
-rejected_stale / rejected_quantity_conflict / rejected_identity_conflict / rejected_locked
-failed_native_persistence
-```
-
-`created`, `updated`, and `no_change` mean the native path owns this
-shipment's customer notification (`native_notified`); every other result
-falls through to the legacy `dtb_order_send_notification` /
-`order-shipped` path (`legacy_fallback_used`), preserved unchanged in
-`VeeqoOrderStatusApplier.php::dtb_veeqo_dispatch_shipped_notification()`.
-The two paths are mutually exclusive per shipment — never both, never
-neither.
-
-### Shipment identity contract (confirmed 2026-07-31)
-
-Confirmed by inspecting two real shipped Veeqo orders (WooCommerce 5834 /
-Veeqo 1995719253 and WooCommerce 5829 / Veeqo 1994169794):
-`allocations[*].shipment.id` is the immutable native shipment identifier;
-every real shipment carries a `shipment.allocation_id` back-reference to its
-owning `allocations[*].id`, and `shipment.order_id` back-references the
-Veeqo order. `shipment.tracking_number` is itself a child object with its
-own `id` and `shipment_id` — tracking data is mutable and is never used as
-identity.
-
-`VeeqoFulfillmentProjector.php::dtb_veeqo_normalize_shipment_observations()`
-iterates every allocation in a Veeqo order payload and emits one observation
-per allocation: `valid` (all four identity checks pass — positive
-allocation id, positive shipment id, `shipment.allocation_id` matches the
-enclosing allocation, `shipment.order_id` matches the correlated Veeqo
-order), `deferred_incomplete_source` (allocation id/shipment id missing or
-malformed — e.g. shipment absent), or `rejected_identity_conflict`
-(allocation/order mismatch, or duplicate conflicting shipment records for
-the same shipment id within one payload — identical duplicates collapse
-idempotently instead). Each valid shipment is projected independently
-(`dtb_veeqo_project_order_shipments()`), one native Fulfillment record per
-shipment, so a partial shipment followed later by the remainder produces two
-independent records and two independent typed outcomes — never one
-conflated result.
-
-Persisted as **private** Fulfillment meta on each projected record:
-
-```text
-_dtb_source_system            = veeqo
-_dtb_veeqo_order_id           Veeqo order ID
-_dtb_veeqo_allocation_id      Veeqo allocation ID
-_dtb_veeqo_shipment_id        Veeqo shipment ID — the identity key
-_dtb_veeqo_source_revision    Veeqo-supplied revision/updated_at marker
-_dtb_veeqo_payload_fingerprint  Canonical customer-visible-state fingerprint
-_dtb_projected_at             UTC timestamp of the last successful projection
-```
-
-The per-shipment lock/idempotency namespace is `veeqo:shipment:{shipment_id}`
-— a Veeqo shipment ID is globally unique, so the lock is not scoped by
-order. Cross-order reuse of a shipment ID is explicitly rejected
-(`rejected_identity_conflict`) by checking whether any *other* WooCommerce
-order's Fulfillment record already claims that `_dtb_veeqo_shipment_id`.
-
-Fixtures for the full identity/idempotency/rejection matrix (one
-allocation/one shipment, multiple allocations/separate shipments, shipment
-absent, duplicate identical replay, duplicate conflicting shipment,
-mismatched allocation/order reference, tracking-only change, cross-order
-shipment ID collision, partial-then-later shipment) live in
-`scripts/tests/veeqo-fulfillment-projector-fixtures.php`.
-
-### Failure recovery
-
-Transient failures (lock contention, a temporarily incomplete Veeqo payload,
-a DB hiccup) are retry-safe by construction — the fingerprint means a retry
-can never double-create or double-notify. Permanent validation failures
-(`rejected_quantity_conflict`, `rejected_identity_conflict`) are not
-auto-retried; they need operator attention. The `dtb_veeqo_fulfillment_projection_enabled`
-filter is a kill switch: disabling it never touches a previously created
-native Fulfillment record, and because ownership is only ever recorded after
-a full commit + successful notification, disabling/re-enabling never causes
-a historical shipment to be re-notified.
-
-## Extension/back-compat notes
-
-Structured data (`WC_Structured_Data::generate_order_data()`/
-`output_structured_data()`), the WooCommerce Settings → Emails preview
-(`woocommerce_is_email_preview`), and RTL (`is_rtl()`) all continue to work
-unchanged because every override calls the same hooks in the same order as
-the traced upstream template — none of that behavior lived in DTB code
-before this change, and none of it needed to move.
-
-## Presentation and asset contract
-
-The classic HTML shell is table-based, fluid, and capped at 680px. Shared
-body components use a 636px desktop rail and stack at 600px. The primary
-color is `#2255ee`; Nunito is requested with Arial as the deterministic
-fallback. The black/navy hero uses `/logos/email-background-pattern.png`.
-Reusable transparent PNG icons are allowlisted by `dtb_email_icon()` and
-served from `/logos/email-icons/{name}.png`; templates add no icon circles,
-outlines, SVG injection, data URIs, or icon fonts.
-
-The live server therefore needs the tracked `email-icons/` directory uploaded
-under the same public `logos/` directory as the email logo and hero pattern,
-producing public HTTPS URLs such as
-`https://drywalltoolbox.com/logos/email-icons/payment.png`.
-
-`php scripts/tests/woocommerce-email-template-contract-fixtures.php` is the
-static upgrade guard for mapped files, upstream extension points, assets,
-brand tokens, responsive width, refund quantities, and preview safety.
+- render at least admin new-order and customer processing-order emails through
+  WooCommerce, not a standalone HTML fixture;
+- verify desktop Gmail web and Gmail mobile/app rendering at narrow and wide
+  widths;
+- inspect the received message's original headers and confirm SPF, DKIM, and
+  DMARC pass with an aligned `From: ...@drywalltoolbox.com` identity;
+- confirm Reply-To is a `@drywalltoolbox.com` mailbox;
+- confirm public HTTPS availability of `/logos/email-logo-white.png` and any
+  email icon assets used by the rendered template;
+- verify SMTP transport/TLS and provider-level envelope sender settings in the
+  production mailer configuration.
