@@ -48,7 +48,7 @@ function dtb_pricing_manager_render_page(): void {
 	dtb_admin_shell_open(
 		[
 			'title'    => __( 'Catalog Pricing', 'drywall-toolbox' ),
-			'subtitle' => __( 'Manage product cost visibility, MAP, margins, target pricing, and approved WooCommerce price changes from one workspace.', 'drywall-toolbox' ),
+			'subtitle' => __( 'Manage MAP compliance, product cost, margins, target pricing, and approved WooCommerce price changes from one workspace.', 'drywall-toolbox' ),
 			'section'  => 'tools',
 			'page'     => 'dtb-pricing-manager',
 			'template' => 'tool',
@@ -93,9 +93,10 @@ function dtb_pricing_manager_render_products_tab(): void {
 				<label class="screen-reader-text" for="dtb-pricing-status"><?php esc_html_e( 'Filter by pricing status', 'drywall-toolbox' ); ?></label>
 				<select id="dtb-pricing-status" data-pricing-status>
 					<option value="all"><?php esc_html_e( 'All statuses', 'drywall-toolbox' ); ?></option>
-					<option value="healthy"><?php esc_html_e( 'Healthy', 'drywall-toolbox' ); ?></option>
+					<option value="below_map"><?php esc_html_e( 'MAP violations', 'drywall-toolbox' ); ?></option>
 					<option value="below_target"><?php esc_html_e( 'Below target', 'drywall-toolbox' ); ?></option>
-					<option value="below_map"><?php esc_html_e( 'Below MAP', 'drywall-toolbox' ); ?></option>
+					<option value="healthy"><?php esc_html_e( 'Healthy', 'drywall-toolbox' ); ?></option>
+					<option value="missing_map"><?php esc_html_e( 'MAP not configured', 'drywall-toolbox' ); ?></option>
 					<option value="missing_cost"><?php esc_html_e( 'Missing cost', 'drywall-toolbox' ); ?></option>
 					<option value="missing_price"><?php esc_html_e( 'Missing price', 'drywall-toolbox' ); ?></option>
 					<option value="sale_active"><?php esc_html_e( 'Sale active', 'drywall-toolbox' ); ?></option>
@@ -112,7 +113,7 @@ function dtb_pricing_manager_render_products_tab(): void {
 					<th scope="col"><?php esc_html_e( 'MAP', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Effective', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Margin', 'drywall-toolbox' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Target price', 'drywall-toolbox' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Target / floor', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Status', 'drywall-toolbox' ); ?></th>
 					<th scope="col" class="dtb-pricing-table__actions"><span class="screen-reader-text"><?php esc_html_e( 'Actions', 'drywall-toolbox' ); ?></span></th>
 				</tr>
@@ -127,14 +128,14 @@ function dtb_pricing_manager_render_products_tab(): void {
 	<?php
 }
 
-/** Render deterministic target-margin recommendations. */
+/** Render MAP-first deterministic pricing recommendations. */
 function dtb_pricing_manager_render_optimizer_tab(): void {
 	?>
 	<section class="dtb-card dtb-pricing-optimizer-intro">
 		<div class="dtb-card__body">
 			<div>
-				<h2><?php esc_html_e( 'Target-margin optimizer', 'drywall-toolbox' ); ?></h2>
-				<p><?php esc_html_e( 'Recommendations use only known product cost, MAP when present, and your target gross margin. Nothing is changed until you select and apply it.', 'drywall-toolbox' ); ?></p>
+				<h2><?php esc_html_e( 'MAP-first pricing optimizer', 'drywall-toolbox' ); ?></h2>
+				<p><?php esc_html_e( 'MVP optimization is limited to products with configured MAP. MAP is an absolute floor; when Cost of Goods is available, the optimizer also raises prices to the configured target-margin price. It never recommends lowering a price that is already higher.', 'drywall-toolbox' ); ?></p>
 			</div>
 			<div class="dtb-pricing-policy-chip"><span><?php esc_html_e( 'Target margin', 'drywall-toolbox' ); ?></span><strong data-optimizer-target>—</strong></div>
 		</div>
@@ -144,8 +145,9 @@ function dtb_pricing_manager_render_optimizer_tab(): void {
 		<div class="dtb-pricing-toolbar">
 			<div class="dtb-pricing-toolbar__primary">
 				<select data-optimizer-filter aria-label="<?php esc_attr_e( 'Recommendation type', 'drywall-toolbox' ); ?>">
+					<option value="needs_action"><?php esc_html_e( 'Needs action', 'drywall-toolbox' ); ?></option>
+					<option value="below_map"><?php esc_html_e( 'MAP violations', 'drywall-toolbox' ); ?></option>
 					<option value="below_target"><?php esc_html_e( 'Below target margin', 'drywall-toolbox' ); ?></option>
-					<option value="below_map"><?php esc_html_e( 'Below MAP', 'drywall-toolbox' ); ?></option>
 				</select>
 			</div>
 			<div class="dtb-pricing-toolbar__actions">
@@ -162,7 +164,7 @@ function dtb_pricing_manager_render_optimizer_tab(): void {
 					<th scope="col"><?php esc_html_e( 'Cost', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Current regular', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Current margin', 'drywall-toolbox' ); ?></th>
-					<th scope="col"><?php esc_html_e( 'Suggested', 'drywall-toolbox' ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Recommended', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Resulting margin', 'drywall-toolbox' ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Reason', 'drywall-toolbox' ); ?></th>
 				</tr>
@@ -177,7 +179,7 @@ function dtb_pricing_manager_render_optimizer_tab(): void {
 	<?php
 }
 
-/** Render source coverage and the deliberately small V1 pricing policy. */
+/** Render source coverage and the deliberately small MVP pricing policy. */
 function dtb_pricing_manager_render_data_tab(): void {
 	?>
 	<section class="dtb-pricing-data-grid">
@@ -193,12 +195,12 @@ function dtb_pricing_manager_render_data_tab(): void {
 		</div>
 
 		<div class="dtb-card">
-			<div class="dtb-card__header"><div><h2 class="dtb-card__title"><?php esc_html_e( 'Pricing policy', 'drywall-toolbox' ); ?></h2><p class="dtb-card__subtitle"><?php esc_html_e( 'Keep the initial optimizer predictable and easy to operate.', 'drywall-toolbox' ); ?></p></div></div>
+			<div class="dtb-card__header"><div><h2 class="dtb-card__title"><?php esc_html_e( 'Pricing policy', 'drywall-toolbox' ); ?></h2><p class="dtb-card__subtitle"><?php esc_html_e( 'The MVP stays deterministic: MAP is the hard floor and target gross margin is the economic objective.', 'drywall-toolbox' ); ?></p></div></div>
 			<div class="dtb-card__body">
 				<form class="dtb-pricing-policy-form" data-pricing-policy-form>
 					<label for="dtb-pricing-target-margin"><?php esc_html_e( 'Default target gross margin', 'drywall-toolbox' ); ?></label>
 					<div class="dtb-pricing-percentage-input"><input id="dtb-pricing-target-margin" type="number" min="1" max="95" step="0.1" data-pricing-target-margin><span>%</span></div>
-					<p class="description"><?php esc_html_e( 'Target price = cost ÷ (1 − target margin). MAP acts as a minimum when present.', 'drywall-toolbox' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Target price = cost ÷ (1 − target margin). For MAP-configured products, the optimization floor is the greater of MAP and target price. Existing prices above that floor are held, not reduced.', 'drywall-toolbox' ); ?></p>
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Save pricing policy', 'drywall-toolbox' ); ?></button>
 				</form>
 			</div>
@@ -212,7 +214,7 @@ function dtb_pricing_manager_render_data_tab(): void {
 				<div class="dtb-pricing-summary__item"><strong data-data-total>—</strong><span><?php esc_html_e( 'Price records', 'drywall-toolbox' ); ?></span></div>
 				<div class="dtb-pricing-summary__item"><strong data-data-missing-cost>—</strong><span><?php esc_html_e( 'Missing cost', 'drywall-toolbox' ); ?></span></div>
 				<div class="dtb-pricing-summary__item"><strong data-data-below-target>—</strong><span><?php esc_html_e( 'Below target', 'drywall-toolbox' ); ?></span></div>
-				<div class="dtb-pricing-summary__item"><strong data-data-below-map>—</strong><span><?php esc_html_e( 'Below MAP', 'drywall-toolbox' ); ?></span></div>
+				<div class="dtb-pricing-summary__item"><strong data-data-below-map>—</strong><span><?php esc_html_e( 'MAP violations', 'drywall-toolbox' ); ?></span></div>
 			</div>
 		</div>
 	</section>
@@ -235,7 +237,7 @@ function dtb_pricing_manager_render_drawer(): void {
 				<div><span><?php esc_html_e( 'Cost', 'drywall-toolbox' ); ?></span><strong data-drawer-cost>—</strong></div>
 				<div><span><?php esc_html_e( 'Gross margin', 'drywall-toolbox' ); ?></span><strong data-drawer-margin>—</strong></div>
 				<div><span><?php esc_html_e( 'Markup', 'drywall-toolbox' ); ?></span><strong data-drawer-markup>—</strong></div>
-				<div><span><?php esc_html_e( 'Target price', 'drywall-toolbox' ); ?></span><strong data-drawer-target>—</strong></div>
+				<div><span><?php esc_html_e( 'Recommended floor', 'drywall-toolbox' ); ?></span><strong data-drawer-target>—</strong></div>
 			</div>
 			<form data-pricing-drawer-form>
 				<input type="hidden" data-drawer-product-id>
@@ -251,9 +253,9 @@ function dtb_pricing_manager_render_drawer(): void {
 					<label for="dtb-drawer-map-source"><?php esc_html_e( 'MAP source', 'drywall-toolbox' ); ?></label>
 					<input id="dtb-drawer-map-source" type="text" maxlength="200" placeholder="<?php esc_attr_e( 'Manufacturer MAP sheet, TSW reference…', 'drywall-toolbox' ); ?>" data-drawer-map-source>
 				</div>
-				<div class="dtb-pricing-drawer__sale-note" data-drawer-sale-note hidden><?php esc_html_e( 'This product currently has an active sale price. Updating the regular price does not remove or replace the sale price.', 'drywall-toolbox' ); ?></div>
+				<div class="dtb-pricing-drawer__sale-note" data-drawer-sale-note hidden><?php esc_html_e( 'This product has an active sale price. Sale prices are also MAP-protected; any value below configured MAP is automatically raised to MAP on save.', 'drywall-toolbox' ); ?></div>
 				<div class="dtb-pricing-drawer__actions">
-					<button type="button" class="button button-secondary" data-drawer-use-target><?php esc_html_e( 'Use target price', 'drywall-toolbox' ); ?></button>
+					<button type="button" class="button button-secondary" data-drawer-use-target><?php esc_html_e( 'Use recommendation', 'drywall-toolbox' ); ?></button>
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Save pricing', 'drywall-toolbox' ); ?></button>
 				</div>
 			</form>
