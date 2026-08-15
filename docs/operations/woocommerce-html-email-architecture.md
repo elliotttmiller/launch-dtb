@@ -34,15 +34,45 @@ template is allowlisted, and the request is not for `emails/plain/*`.
 
 The classic HTML shell uses a conservative table-first structure capped at
 680px. The outer shell is centered by table alignment, not by a spacer-column
-layout or CSS-only sizing. Critical dimensions, backgrounds, padding, and
-logo sizing are duplicated inline so Gmail variants still render the intended
-structure after sanitization/inlining. The mobile media query remains a
-progressive enhancement rather than a requirement for basic readability.
+layout or CSS-only sizing. The shell table itself is `width="100%"` with a
+680px maximum so a narrow client remains intrinsically fluid even if its
+media-query processing is incomplete. Critical dimensions, backgrounds,
+padding, and logo sizing are duplicated inline so Gmail variants still render
+the intended structure after sanitization/inlining.
+
+Shared content rails (introduction, lifecycle progress, section cards) use a
+percentage width in the base rules. Critical layout must not depend on
+`calc()`, flexbox, grid, viewport units, JavaScript, or client-side DOM
+behavior. The mobile media query is therefore a progressive enhancement for
+spacing, typography, address stacking, and compact order-item sizing—not the
+mechanism that prevents horizontal overflow.
 
 Remote web fonts are not required for layout correctness. The email shell
-must remain readable with native system/sans-serif fonts when clients strip
-`<link>` tags or external font requests. Background artwork is decorative;
-content may not depend on a CSS background image being loaded.
+must remain readable with native sans-serif fallbacks when clients strip
+`<link>` tags or external font requests.
+
+### Decorative hero artwork
+
+The desktop lifecycle hero may use the approved background artwork as a
+progressive decorative treatment. The artwork is never semantic content. On
+clients at 600px and below, DTB explicitly disables the hero background image
+and renders a deterministic solid `#030712` hero. This avoids Gmail mobile
+scaling the legacy HTML `background` attribute independently from the CSS
+`background-size` declaration, which previously allowed the decorative image
+to dominate the message viewport. The order/lifecycle eyebrow and `h1` remain
+ordinary live text.
+
+### Mobile order and address behavior
+
+The order summary remains one semantic table. On narrow clients the header row
+is hidden, while product identity remains the flexible column and quantity and
+price remain bounded columns. Product images are reduced to 50px. This avoids
+maintaining duplicate desktop/mobile order markup.
+
+Billing and shipping addresses use a fixed two-column table at desktop width
+and stack through the single mobile media query. Address, email, shipping, SKU,
+and metadata text are allowed to wrap so long values cannot force horizontal
+overflow.
 
 ## Sender identity and Reply-To contract
 
@@ -80,6 +110,11 @@ Before shipping email changes to production:
 - render at least admin new-order and customer processing-order emails through
   WooCommerce, not a standalone HTML fixture;
 - verify desktop Gmail web and Gmail mobile/app rendering at narrow and wide
+  widths;
+- confirm the mobile hero renders as a solid dark surface with live text and
+  no oversized decorative background artwork;
+- verify the order table, totals, billing/shipping addresses, progress steps,
+  CTAs, and long SKU/shipping text without horizontal overflow at narrow
   widths;
 - inspect the received message's original headers and confirm SPF, DKIM, and
   DMARC pass with an aligned `From: ...@drywalltoolbox.com` identity;
