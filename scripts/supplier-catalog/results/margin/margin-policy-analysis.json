@@ -19,7 +19,7 @@
         "primary_evidence": "configured MAP + positive COGS on price-owning rows",
         "target_margin": "P50/median of eligible MAP gross margins, rounded down"
       },
-      "minimum_sample_size": 8,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": "32.00",
       "recommended_target_margin_pct": "34.50",
       "status": "EVIDENCE_AVAILABLE"
@@ -43,7 +43,7 @@
         "primary_evidence": "configured MAP + positive COGS on price-owning rows",
         "target_margin": "P50/median of eligible MAP gross margins, rounded down"
       },
-      "minimum_sample_size": 8,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": "29.00",
       "recommended_target_margin_pct": "30.50",
       "status": "EVIDENCE_AVAILABLE"
@@ -51,29 +51,65 @@
   },
   "catalog": "D:\\AMD\\projects\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.csv",
   "category_policies": {
-    "(Uncategorized)": {
+    "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads": {
       "distribution": {
-        "count": 127,
-        "max": "57.00",
-        "mean": "33.99",
-        "median_p50": "33.78",
-        "min": "22.50",
-        "p10": "28.01",
-        "p25": "30.49",
-        "p75": "36.21",
-        "p90": "41.78"
+        "count": 8,
+        "max": "35.50",
+        "mean": "32.75",
+        "median_p50": "33.37",
+        "min": "28.53",
+        "p10": "29.22",
+        "p25": "31.44",
+        "p75": "34.69",
+        "p90": "35.21"
       },
-      "eligible_count": 127,
+      "eligible_count": 8,
       "method": {
         "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
         "policy_increment_pct": "0.50",
         "primary_evidence": "configured MAP + positive COGS on price-owning rows",
         "target_margin": "P50/median of eligible MAP gross margins, rounded down"
       },
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": "30.00",
-      "recommended_target_margin_pct": "33.50",
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "31.00",
+      "recommended_target_margin_pct": "33.00",
       "status": "EVIDENCE_AVAILABLE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers": {
+      "distribution": {
+        "count": 4,
+        "max": "29.27",
+        "mean": "28.48",
+        "median_p50": "28.93",
+        "min": "26.80",
+        "p10": "27.33",
+        "p25": "28.13",
+        "p75": "29.27",
+        "p90": "29.27"
+      },
+      "eligible_count": 4,
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": null,
+      "recommended_target_margin_pct": null,
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases": {
+      "distribution": {
+        "count": 2,
+        "max": "35.49",
+        "mean": "33.47",
+        "median_p50": "33.47",
+        "min": "31.45",
+        "p10": "31.86",
+        "p25": "32.46",
+        "p75": "34.48",
+        "p90": "35.09"
+      },
+      "eligible_count": 2,
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": null,
+      "recommended_target_margin_pct": null,
+      "status": "INSUFFICIENT_EVIDENCE"
     },
     "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets": {
       "distribution": {
@@ -88,79 +124,175 @@
         "p90": "37.96"
       },
       "eligible_count": 1,
-      "minimum_sample_size": 8,
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": null,
+      "recommended_target_margin_pct": null,
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Box Fillers": {
+      "distribution": {
+        "count": 2,
+        "max": "44.76",
+        "mean": "44.76",
+        "median_p50": "44.76",
+        "min": "44.76",
+        "p10": "44.76",
+        "p25": "44.76",
+        "p75": "44.76",
+        "p90": "44.76"
+      },
+      "eligible_count": 2,
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": null,
+      "recommended_target_margin_pct": null,
+      "status": "INSUFFICIENT_EVIDENCE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes": {
+      "distribution": {
+        "count": 2,
+        "max": "32.95",
+        "mean": "31.44",
+        "median_p50": "31.44",
+        "min": "29.92",
+        "p10": "30.22",
+        "p25": "30.68",
+        "p75": "32.19",
+        "p90": "32.65"
+      },
+      "eligible_count": 2,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": null,
       "recommended_target_margin_pct": null,
       "status": "INSUFFICIENT_EVIDENCE"
     },
     "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers": {
       "distribution": {
-        "count": 2,
-        "max": "37.70",
-        "mean": "35.45",
-        "median_p50": "35.45",
-        "min": "33.20",
-        "p10": "33.65",
-        "p25": "34.33",
-        "p75": "36.58",
-        "p90": "37.25"
+        "count": 7,
+        "max": "38.78",
+        "mean": "34.80",
+        "median_p50": "36.29",
+        "min": "28.02",
+        "p10": "31.13",
+        "p25": "33.27",
+        "p75": "37.00",
+        "p90": "38.13"
       },
-      "eligible_count": 2,
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": null,
-      "recommended_target_margin_pct": null,
-      "status": "INSUFFICIENT_EVIDENCE"
+      "eligible_count": 7,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "33.00",
+      "recommended_target_margin_pct": "36.00",
+      "status": "EVIDENCE_AVAILABLE"
     },
     "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles": {
       "distribution": {
-        "count": 1,
-        "max": "26.18",
-        "mean": "26.18",
-        "median_p50": "26.18",
+        "count": 29,
+        "max": "57.00",
+        "mean": "34.67",
+        "median_p50": "33.48",
         "min": "26.18",
-        "p10": "26.18",
-        "p25": "26.18",
-        "p75": "26.18",
-        "p90": "26.18"
+        "p10": "29.25",
+        "p25": "31.35",
+        "p75": "36.24",
+        "p90": "40.73"
       },
-      "eligible_count": 1,
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": null,
-      "recommended_target_margin_pct": null,
-      "status": "INSUFFICIENT_EVIDENCE"
+      "eligible_count": 29,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "31.00",
+      "recommended_target_margin_pct": "33.00",
+      "status": "EVIDENCE_AVAILABLE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes": {
+      "distribution": {
+        "count": 24,
+        "max": "37.40",
+        "mean": "32.46",
+        "median_p50": "33.87",
+        "min": "23.99",
+        "p10": "26.54",
+        "p25": "30.08",
+        "p75": "35.22",
+        "p90": "35.56"
+      },
+      "eligible_count": 24,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "30.00",
+      "recommended_target_margin_pct": "33.50",
+      "status": "EVIDENCE_AVAILABLE"
     },
     "Drywall Finishing Tools > Automatic Taping Tools > Goosenecks": {
       "distribution": {
-        "count": 1,
-        "max": "12.98",
-        "mean": "12.98",
-        "median_p50": "12.98",
+        "count": 2,
+        "max": "32.19",
+        "mean": "22.59",
+        "median_p50": "22.59",
         "min": "12.98",
-        "p10": "12.98",
-        "p25": "12.98",
-        "p75": "12.98",
-        "p90": "12.98"
+        "p10": "14.90",
+        "p25": "17.78",
+        "p75": "27.39",
+        "p90": "30.27"
       },
-      "eligible_count": 1,
-      "minimum_sample_size": 8,
+      "eligible_count": 2,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": null,
       "recommended_target_margin_pct": null,
       "status": "INSUFFICIENT_EVIDENCE"
     },
     "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps": {
       "distribution": {
-        "count": 2,
+        "count": 5,
         "max": "34.03",
-        "mean": "27.35",
-        "median_p50": "27.35",
+        "mean": "28.68",
+        "median_p50": "30.82",
         "min": "20.68",
-        "p10": "22.01",
-        "p25": "24.02",
-        "p75": "30.69",
-        "p90": "32.69"
+        "p10": "22.56",
+        "p25": "25.37",
+        "p75": "32.49",
+        "p90": "33.41"
       },
-      "eligible_count": 2,
-      "minimum_sample_size": 8,
+      "eligible_count": 5,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "25.00",
+      "recommended_target_margin_pct": "30.50",
+      "status": "EVIDENCE_AVAILABLE"
+    },
+    "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters": {
+      "distribution": {
+        "count": 4,
+        "max": "36.18",
+        "mean": "29.88",
+        "median_p50": "29.91",
+        "min": "23.54",
+        "p10": "23.73",
+        "p25": "24.01",
+        "p75": "35.78",
+        "p90": "36.02"
+      },
+      "eligible_count": 4,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": null,
       "recommended_target_margin_pct": null,
       "status": "INSUFFICIENT_EVIDENCE"
@@ -178,46 +310,106 @@
         "p90": "41.46"
       },
       "eligible_count": 1,
-      "minimum_sample_size": 8,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": null,
       "recommended_target_margin_pct": null,
       "status": "INSUFFICIENT_EVIDENCE"
     },
     "Drywall Finishing Tools > Predator Family": {
       "distribution": {
-        "count": 3,
-        "max": "34.06",
-        "mean": "34.05",
-        "median_p50": "34.06",
-        "min": "34.03",
-        "p10": "34.04",
-        "p25": "34.05",
-        "p75": "34.06",
-        "p90": "34.06"
+        "count": 9,
+        "max": "40.15",
+        "mean": "34.06",
+        "median_p50": "34.07",
+        "min": "28.00",
+        "p10": "32.82",
+        "p25": "34.06",
+        "p75": "34.07",
+        "p90": "35.29"
       },
-      "eligible_count": 3,
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": null,
-      "recommended_target_margin_pct": null,
-      "status": "INSUFFICIENT_EVIDENCE"
+      "eligible_count": 9,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "34.00",
+      "recommended_target_margin_pct": "34.00",
+      "status": "EVIDENCE_AVAILABLE"
+    },
+    "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators": {
+      "distribution": {
+        "count": 13,
+        "max": "47.74",
+        "mean": "36.46",
+        "median_p50": "34.64",
+        "min": "29.65",
+        "p10": "29.85",
+        "p25": "33.75",
+        "p75": "40.88",
+        "p90": "42.88"
+      },
+      "eligible_count": 13,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "33.50",
+      "recommended_target_margin_pct": "34.50",
+      "status": "EVIDENCE_AVAILABLE"
     },
     "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes": {
       "distribution": {
-        "count": 2,
-        "max": "34.06",
-        "mean": "34.06",
-        "median_p50": "34.06",
-        "min": "34.06",
-        "p10": "34.06",
-        "p25": "34.06",
+        "count": 13,
+        "max": "35.69",
+        "mean": "30.74",
+        "median_p50": "31.41",
+        "min": "22.50",
+        "p10": "25.82",
+        "p25": "27.00",
         "p75": "34.06",
-        "p90": "34.06"
+        "p90": "35.04"
       },
-      "eligible_count": 2,
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": null,
-      "recommended_target_margin_pct": null,
-      "status": "INSUFFICIENT_EVIDENCE"
+      "eligible_count": 13,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "26.50",
+      "recommended_target_margin_pct": "31.00",
+      "status": "EVIDENCE_AVAILABLE"
+    },
+    "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers": {
+      "distribution": {
+        "count": 15,
+        "max": "44.52",
+        "mean": "38.94",
+        "median_p50": "40.75",
+        "min": "28.35",
+        "p10": "29.69",
+        "p25": "38.67",
+        "p75": "42.07",
+        "p90": "43.17"
+      },
+      "eligible_count": 15,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "38.50",
+      "recommended_target_margin_pct": "40.50",
+      "status": "EVIDENCE_AVAILABLE"
     },
     "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers": {
       "distribution": {
@@ -232,32 +424,39 @@
         "p90": "31.68"
       },
       "eligible_count": 1,
-      "minimum_sample_size": 8,
+      "minimum_sample_size": 5,
       "recommended_minimum_margin_pct": null,
       "recommended_target_margin_pct": null,
       "status": "INSUFFICIENT_EVIDENCE"
     },
     "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories": {
       "distribution": {
-        "count": 2,
+        "count": 7,
         "max": "37.12",
-        "mean": "34.20",
-        "median_p50": "34.20",
-        "min": "31.29",
-        "p10": "31.87",
-        "p25": "32.75",
-        "p75": "35.66",
-        "p90": "36.54"
+        "mean": "32.68",
+        "median_p50": "31.72",
+        "min": "30.53",
+        "p10": "30.64",
+        "p25": "31.01",
+        "p75": "33.68",
+        "p90": "35.11"
       },
-      "eligible_count": 2,
-      "minimum_sample_size": 8,
-      "recommended_minimum_margin_pct": null,
-      "recommended_target_margin_pct": null,
-      "status": "INSUFFICIENT_EVIDENCE"
+      "eligible_count": 7,
+      "method": {
+        "minimum_margin": "P25 of eligible MAP gross margins, rounded down",
+        "policy_increment_pct": "0.50",
+        "primary_evidence": "configured MAP + positive COGS on price-owning rows",
+        "target_margin": "P50/median of eligible MAP gross margins, rounded down"
+      },
+      "minimum_sample_size": 5,
+      "recommended_minimum_margin_pct": "31.00",
+      "recommended_target_margin_pct": "31.50",
+      "status": "EVIDENCE_AVAILABLE"
     }
   },
   "comparison_target_margin_pct": "30.00",
   "counts": {
+    "category_inherited_from_parent": 314,
     "eligible_map_cost": 140,
     "price_owning_rows": 650,
     "variable_parents_excluded": 106,
@@ -282,7 +481,8 @@
     "current_margin": "Uses active sale price when a positive sale price exists; otherwise regular price.",
     "map_margin": "Gross margin available when selling at configured official MAP.",
     "minimum_margin": "Evidence-derived lower guardrail candidate; not a substitute for MAP.",
-    "target_margin": "Evidence-derived central margin objective candidate; not permission to lower a higher current price."
+    "target_margin": "Evidence-derived central margin objective candidate; not permission to lower a higher current price.",
+    "taxonomy": "Blank variation Brands/Categories inherit from the variable parent identified by the canonical Parent SKU."
   },
   "map_margin_distribution": {
     "count": 140,
@@ -295,7 +495,7 @@
     "p75": "36.23",
     "p90": "41.48"
   },
-  "minimum_sample_size": 8,
+  "minimum_sample_size": 5,
   "policy_increment_pct": "0.50",
   "recommended_global_policy": {
     "distribution": {
@@ -316,11 +516,11 @@
       "primary_evidence": "configured MAP + positive COGS on price-owning rows",
       "target_margin": "P50/median of eligible MAP gross margins, rounded down"
     },
-    "minimum_sample_size": 8,
+    "minimum_sample_size": 5,
     "recommended_minimum_margin_pct": "30.50",
     "recommended_target_margin_pct": "33.50",
     "status": "EVIDENCE_AVAILABLE"
   },
-  "schema_version": 1,
-  "scope": "price-owning simple products and variations; variable parents excluded"
+  "schema_version": 2,
+  "scope": "price-owning simple products and variations; variation taxonomy inherited from parent SKU; variable parents excluded as price records"
 }
