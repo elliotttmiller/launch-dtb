@@ -76,10 +76,12 @@ function dtb_pricing_manager_rest_update_settings( WP_REST_Request $request ) {
 		}
 	}
 	if ( [] === $incoming ) { return new WP_Error( 'dtb_pricing_empty_policy', __( 'No supported pricing policy settings were supplied.', 'drywall-toolbox' ), [ 'status' => 400 ] ); }
-	$policy = dtb_pricing_set_policy_settings( $incoming );
-	if ( $policy['global_minimum_margin'] <= 0 || $policy['global_target_margin'] >= 100 || $policy['global_target_margin'] < $policy['global_minimum_margin'] ) {
+	$current  = dtb_pricing_get_policy_settings();
+	$proposed = array_merge( $current, $incoming );
+	if ( $proposed['global_minimum_margin'] <= 0 || $proposed['global_target_margin'] >= 100 || $proposed['global_target_margin'] < $proposed['global_minimum_margin'] ) {
 		return new WP_Error( 'dtb_pricing_invalid_policy_range', __( 'Minimum and target margins must be valid percentages, with target margin greater than or equal to minimum margin.', 'drywall-toolbox' ), [ 'status' => 400 ] );
 	}
+	$policy = dtb_pricing_set_policy_settings( $incoming );
 	return new WP_REST_Response( [ 'policy' => $policy, 'target_margin' => $policy['global_target_margin'] ], 200 );
 }
 
