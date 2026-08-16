@@ -3,7 +3,8 @@
 
 The WooCommerce export/import shape stores taxonomy primarily on variable parent
 rows while child variations own prices. This audit therefore resolves effective
-brand/category data through the parent before evaluating price-owning rows.
+brand/category data through the canonical Parent SKU before evaluating
+price-owning rows.
 
 The script is read-only and writes deterministic JSON/CSV reports. It does not
 infer MAP or supplier cost and does not mutate the canonical catalog.
@@ -35,7 +36,6 @@ DEFAULT_CATEGORIES = RESULT_DIR / "category-coverage.csv"
 DEFAULT_CATEGORY_ISSUES = RESULT_DIR / "category-mapping-issues.csv"
 
 TYPE = "Type"
-ID = "ID"
 SKU = "SKU"
 PARENT = "Parent"
 NAME = "Name"
@@ -76,26 +76,19 @@ def effective_value(row: dict[str, str], parent: dict[str, str] | None, field: s
     return (parent.get(field) or "").strip() if parent else ""
 
 
-def build_parent_indexes(rows: list[dict[str, str]]) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
-    by_sku: dict[str, dict[str, str]] = {}
-    by_id: dict[str, dict[str, str]] = {}
-    for row in rows:
-        sku = (row.get(SKU) or "").strip()
-        row_id = (row.get(ID) or "").strip()
-        if sku:
-            by_sku[sku] = row
-        if row_id:
-            by_id[row_id] = row
-    return by_sku, by_id
+def build_parent_index(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
+    return {
+        sku: row
+        for row in rows
+        if (sku := (row.get(SKU) or "").strip())
+    }
 
 
-def resolve_parent(row: dict[str, str], by_sku: dict[str, dict[str, str]], by_id: dict[str, dict[str, str]]) -> dict[str, str] | None:
+def resolve_parent(row: dict[str, str], by_sku: dict[str, dict[str, str]]) -> dict[str, str] | None:
     if (row.get(TYPE) or "").strip() != "variation":
         return None
-    token = (row.get(PARENT) or "").strip()
-    if not token:
-        return None
-    return by_sku.get(token) or by_id.get(token)
+    parent_sku = (row.get(PARENT) or "").strip()
+    return by_sku.get(parent_sku) if parent_sku else None
 
 
 def category_issue_codes(row: dict[str, str], parent: dict[str, str] | None, effective_categories: list[str]) -> list[str]:
@@ -108,7 +101,6 @@ def category_issue_codes(row: dict[str, str], parent: dict[str, str] | None, eff
     if kind in PRICE_OWNERS and not effective_categories:
         issues.append("MISSING_EFFECTIVE_CATEGORY")
     if kind == "variation" and not raw_categories and effective_categories:
-        # Expected WooCommerce inheritance; informational, not a defect.
         issues.append("CATEGORY_INHERITED_FROM_PARENT")
 
     for path in effective_categories:
@@ -162,7 +154,7 @@ def write_json(path: Path, payload: dict[str, object]) -> None:
 
 
 def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str, object]], list[dict[str, object]], list[dict[str, object]]]:
-    by_sku, by_id = build_parent_indexes(rows)
+    by_sku = build_parent_index(rows)
     counts: Counter[str] = Counter()
     gap_rows: list[dict[str, object]] = []
     issue_rows: list[dict[str, object]] = []
@@ -174,12 +166,20 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
             continue
 
         counts["price_owning_rows"] += 1
-        parent = resolve_parent(row, by_sku, by_id)
+        parent = resolve_parent(row, by_sku)
         sku = (row.get(SKU) or "").strip()
         name = (row.get(NAME) or "").strip()
         brand = effective_value(row, parent, BRANDS)
         category_value = effective_value(row, parent, CATEGORIES)
         categories = split_paths(category_value)
+
+        if kind == "variation" and parent is not None:
+            if not (row.get(CATEGORIES) or "").strip() and categories:
+                counts["category_inherited_from_parent"] += 1
+            if not (row.get(BRANDS) or "").strip() and brand:
+                counts["brand_inherited_from_parent"] += 1
+        if kind == "variation" and parent is None:
+            counts["variation_parent_unresolved"] += 1
 
         regular = parse_decimal(row.get(REGULAR))
         sale = parse_decimal(row.get(SALE))
@@ -214,7 +214,8 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
         if map_violation:
             counts["map_violations"] += 1
 
-        if cogs is not None and regular is not None and regular < cogs:
+        below_cogs = cogs is not None and regular is not None and regular < cogs
+        if below_cogs:
             counts["regular_price_below_cogs"] += 1
 
         missing_fields: list[str] = []
@@ -229,7 +230,7 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
         if not categories:
             missing_fields.append("category")
 
-        if missing_fields or map_violation or (cogs is not None and regular is not None and regular < cogs):
+        if missing_fields or map_violation or below_cogs:
             gap_rows.append({
                 "sku": sku,
                 "name": name,
@@ -243,7 +244,7 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
                 "map_price": "" if map_price is None else str(map_price),
                 "missing_fields": "|".join(missing_fields),
                 "map_violation": int(map_violation),
-                "regular_price_below_cogs": int(cogs is not None and regular is not None and regular < cogs),
+                "regular_price_below_cogs": int(below_cogs),
             })
 
         issues = category_issue_codes(row, parent, categories)
@@ -288,8 +289,8 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
         })
 
     report = {
-        "schema_version": 1,
-        "scope": "effective WooCommerce price-owning products; variation taxonomy inherits from parent",
+        "schema_version": 2,
+        "scope": "effective WooCommerce price-owning products; variation taxonomy inherits from canonical Parent SKU",
         "counts": dict(sorted(counts.items())),
         "derived_counts": {
             "missing_both_map_and_cogs": counts["price_owning_rows"] - counts["with_cogs"] - counts["with_map"] + counts["with_map_and_cogs"],
@@ -298,6 +299,7 @@ def audit(rows: list[dict[str, str]]) -> tuple[dict[str, object], list[dict[str,
         },
         "category_count": len(category_rows),
         "notes": [
+            "The canonical catalog has no ID column; Parent is a protected parent SKU and is resolved through the SKU index.",
             "Variation rows inherit Categories and Brands from their variable parent when blank.",
             "Missing MAP is reported as launch-pricing incompleteness, not automatically treated as a catalog defect.",
             "Category coverage counts all price-owning products, while pricing-evidence coverage counts only products with both positive COGS and MAP.",
@@ -321,7 +323,7 @@ def main() -> int:
         reader = csv.DictReader(handle)
         if reader.fieldnames is None:
             raise AuditError("Catalog has no header")
-        required = {TYPE, ID, SKU, PARENT, NAME, BRANDS, CATEGORIES, REGULAR, SALE, COGS, MAP}
+        required = {TYPE, SKU, PARENT, NAME, BRANDS, CATEGORIES, REGULAR, SALE, COGS, MAP}
         missing = sorted(required - set(reader.fieldnames))
         if missing:
             raise AuditError(f"Catalog missing required fields: {', '.join(missing)}")
@@ -352,6 +354,7 @@ def main() -> int:
         f"with_cogs={counts.get('with_cogs', 0)}, "
         f"with_map={counts.get('with_map', 0)}, "
         f"map+cogs={counts.get('with_map_and_cogs', 0)}, "
+        f"category_inherited={counts.get('category_inherited_from_parent', 0)}, "
         f"missing_category={counts.get('missing_effective_category', 0)}, "
         f"category_issues={counts.get('category_mapping_issue_rows', 0)}"
     )
