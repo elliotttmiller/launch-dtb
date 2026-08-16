@@ -1,0 +1,45 @@
+name: Pricing Engine Contract
+
+on:
+  pull_request:
+    paths:
+      - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/**'
+      - 'scripts/supplier-catalog/enforce_map_pricing.py'
+      - '.github/workflows/pricing-engine-contract.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/**'
+      - 'scripts/supplier-catalog/enforce_map_pricing.py'
+      - '.github/workflows/pricing-engine-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          coverage: none
+
+      - name: Lint pricing PHP
+        run: |
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Services/PricingPolicy.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Services/PricingManagerService.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Services/PricingManagerEngine.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Rest/PricingManagerController.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Admin/PricingBulkOptimizer.php
+          php -l drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/bootstrap.php
+
+      - name: Compile pricing Python
+        run: |
+          python -m py_compile scripts/supplier-catalog/enforce_map_pricing.py
+          python -m py_compile scripts/supplier-catalog/analyze_margin_policy.py
+          python -m py_compile scripts/supplier-catalog/audit_pricing_category_integrity.py
