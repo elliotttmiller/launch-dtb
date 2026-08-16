@@ -63,6 +63,7 @@
 			healthy: 'success',
 			below_target: 'warning',
 			below_map: 'danger',
+			missing_map: 'neutral',
 			missing_cost: 'neutral',
 			missing_price: 'danger',
 			sale_active: 'info',
@@ -83,7 +84,7 @@
 		return summary;
 	};
 
-	const reviewCount = (counts) => Number(counts.below_target || 0) + Number(counts.below_map || 0) + Number(counts.missing_cost || 0) + Number(counts.missing_price || 0);
+	const reviewCount = (counts) => Number(counts.optimizer_actions || 0) + Number(counts.missing_map || 0) + Number(counts.missing_cost || 0) + Number(counts.missing_price || 0);
 
 	const renderSummary = () => {
 		if (!summary) return;
@@ -153,13 +154,13 @@
 			drawer.querySelector('[data-drawer-cost]').textContent = money(row.cost);
 			drawer.querySelector('[data-drawer-margin]').textContent = percent(row.gross_margin);
 			drawer.querySelector('[data-drawer-markup]').textContent = percent(row.markup);
-			drawer.querySelector('[data-drawer-target]').textContent = money(row.suggested_price);
-		productId.value = row.id;
-		price.value = row.regular_price ?? '';
-		map.value = row.map_price ?? '';
-		mapSource.value = row.map_source ?? '';
-		useTarget.disabled = row.suggested_price === null || row.suggested_price === undefined;
-		drawer.querySelector('[data-drawer-sale-note]').hidden = !row.on_sale;
+			drawer.querySelector('[data-drawer-target]').textContent = money(row.suggested_price ?? row.optimization_floor);
+			productId.value = row.id;
+			price.value = row.regular_price ?? '';
+			map.value = row.map_price ?? '';
+			mapSource.value = row.map_source ?? '';
+			useTarget.disabled = row.suggested_price === null || row.suggested_price === undefined;
+			drawer.querySelector('[data-drawer-sale-note]').hidden = !row.on_sale;
 		};
 
 		const openDrawer = async (id, trigger) => {
@@ -197,7 +198,7 @@
 					}),
 				});
 				populate(updated);
-				setMessage('Pricing saved to WooCommerce.', 'success');
+				setMessage(updated.map_violation ? 'Pricing saved; this product still requires MAP review.' : 'Pricing saved to WooCommerce.', updated.map_violation ? 'error' : 'success');
 				await refreshActiveView();
 			} catch (error) {
 				setMessage(error.message, 'error');
@@ -253,7 +254,7 @@
 					<td><span class="dtb-pricing-money${row.map_price === null ? ' dtb-pricing-money--muted' : ''}">${money(row.map_price)}</span></td>
 					<td><div class="dtb-pricing-margin"><strong>${money(row.effective_price)}</strong>${row.on_sale ? `<span>Regular ${money(row.regular_price)}</span>` : ''}</div></td>
 					<td><div class="dtb-pricing-margin"><strong>${percent(row.gross_margin)}</strong><span>${money(row.gross_profit)} profit</span></div></td>
-					<td><span class="dtb-pricing-money">${money(row.suggested_price)}</span></td>
+					<td><span class="dtb-pricing-money">${money(row.optimization_floor)}</span></td>
 					<td>${statusBadge(row)}</td>
 					<td class="dtb-pricing-table__actions"><button type="button" class="button button-secondary" data-edit-pricing="${Number(row.id)}">Edit</button></td>
 				</tr>`).join('');
@@ -307,25 +308,27 @@
 				page: String(page),
 				per_page: '25',
 				status: filter.value,
+				map_only: '1',
 				sort: 'margin',
 				direction: 'asc',
 			});
 			try {
 				const data = await request(`/products?${params.toString()}`);
 				if (!data.items.length) {
-					tbody.innerHTML = '<tr><td colspan="8" class="dtb-pricing-empty">No pricing recommendations in this group.</td></tr>';
+					tbody.innerHTML = '<tr><td colspan="8" class="dtb-pricing-empty">No MAP-configured pricing recommendations in this group.</td></tr>';
 				} else {
 					tbody.innerHTML = data.items.map((row) => {
-					const targetMargin = row.suggested_price && row.cost ? ((row.suggested_price - row.cost) / row.suggested_price) * 100 : null;
-					const reason = row.status === 'below_map' ? 'Current price is below MAP.' : `Current margin is below the ${Number(row.target_margin).toFixed(1)}% target.`;
+					const reason = row.status === 'below_map'
+						? 'Advertised price is below MAP. MAP is an absolute floor.'
+						: `Current margin is below the ${Number(row.target_margin).toFixed(1)}% target.`;
 					return `<tr>
-						<td class="dtb-pricing-check"><input type="checkbox" data-optimizer-row data-product-id="${Number(row.id)}" data-regular-price="${escapeHtml(row.regular_price ?? '')}" data-suggested-price="${escapeHtml(row.suggested_price ?? '')}" aria-label="Select ${escapeHtml(row.name)}"></td>
+						<td class="dtb-pricing-check"><input type="checkbox" data-optimizer-row data-product-id="${Number(row.id)}" data-regular-price="${escapeHtml(row.regular_price ?? '')}" aria-label="Select ${escapeHtml(row.name)}"></td>
 						<td>${productCell(row)}</td>
 						<td>${money(row.cost)}</td>
 						<td>${money(row.regular_price)}</td>
 						<td>${percent(row.gross_margin)}</td>
-						<td><strong>${money(row.suggested_price)}</strong></td>
-						<td>${percent(targetMargin)}</td>
+						<td><strong>${money(row.suggested_price)}</strong>${row.suggested_sale_price !== null && row.sale_map_violation ? `<span class="dtb-pricing-product__meta">Sale floor ${money(row.suggested_sale_price)}</span>` : ''}</td>
+						<td>${percent(row.suggested_gross_margin)}</td>
 						<td class="dtb-pricing-muted">${escapeHtml(reason)}</td>
 					</tr>`;
 				}).join('');
@@ -355,7 +358,6 @@
 					body: JSON.stringify({
 						items: selected.map((box) => ({
 							product_id: Number(box.dataset.productId),
-							regular_price: box.dataset.suggestedPrice,
 							expected_regular_price: box.dataset.regularPrice,
 						})),
 					}),
@@ -363,7 +365,7 @@
 				const updated = result.updated?.length || 0;
 				const conflicts = result.conflicts?.length || 0;
 				const errors = result.errors?.length || 0;
-				setMessage(`Applied ${updated} price change${updated === 1 ? '' : 's'}${conflicts ? ` · ${conflicts} changed elsewhere` : ''}${errors ? ` · ${errors} failed` : ''}.`, errors ? 'error' : 'success');
+				setMessage(`Applied ${updated} price change${updated === 1 ? '' : 's'}${conflicts ? ` · ${conflicts} changed or no longer need action` : ''}${errors ? ` · ${errors} failed` : ''}.`, errors ? 'error' : 'success');
 				await loadSummary();
 				await load(page);
 			} catch (error) {
