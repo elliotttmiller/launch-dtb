@@ -3,7 +3,7 @@
 
 The canonical WooCommerce CSV stores taxonomy primarily on variable parent rows,
 while variations own the actual prices. This analysis therefore resolves brand
-and category through the parent for variation rows before building segment
+and category through the parent SKU for variation rows before building segment
 statistics. It never infers missing MAP or COGS and never mutates the catalog.
 
 Policy evidence is restricted to price-owning rows with both positive COGS and
@@ -48,7 +48,6 @@ MAP_FIELD = "Meta: _dtb_map_price"
 BRAND_FIELD = "Brands"
 CATEGORY_FIELD = "Categories"
 TYPE_FIELD = "Type"
-ID_FIELD = "ID"
 SKU_FIELD = "SKU"
 PARENT_FIELD = "Parent"
 NAME_FIELD = "Name"
@@ -205,28 +204,22 @@ def category_labels(raw: str) -> list[str]:
     return [value.strip() for value in raw.split(",") if value.strip()]
 
 
-def build_indexes(rows: list[dict[str, str]]) -> tuple[dict[str, dict[str, str]], dict[str, dict[str, str]]]:
-    by_sku: dict[str, dict[str, str]] = {}
-    by_id: dict[str, dict[str, str]] = {}
-    for row in rows:
-        sku = (row.get(SKU_FIELD) or "").strip()
-        row_id = (row.get(ID_FIELD) or "").strip()
-        if sku:
-            by_sku[sku] = row
-        if row_id:
-            by_id[row_id] = row
-    return by_sku, by_id
+def build_index(rows: list[dict[str, str]]) -> dict[str, dict[str, str]]:
+    return {
+        sku: row
+        for row in rows
+        if (sku := (row.get(SKU_FIELD) or "").strip())
+    }
 
 
 def resolve_parent(
     row: dict[str, str],
     by_sku: dict[str, dict[str, str]],
-    by_id: dict[str, dict[str, str]],
 ) -> dict[str, str] | None:
     if (row.get(TYPE_FIELD) or "").strip() != "variation":
         return None
-    token = (row.get(PARENT_FIELD) or "").strip()
-    return by_sku.get(token) or by_id.get(token) if token else None
+    parent_sku = (row.get(PARENT_FIELD) or "").strip()
+    return by_sku.get(parent_sku) if parent_sku else None
 
 
 def effective_taxonomy(
@@ -251,7 +244,6 @@ def read_rows(path: Path) -> list[dict[str, str]]:
                 raise MarginAnalysisError(f"{path}: missing CSV header")
             required = {
                 TYPE_FIELD,
-                ID_FIELD,
                 SKU_FIELD,
                 PARENT_FIELD,
                 NAME_FIELD,
@@ -283,7 +275,7 @@ def analyze_rows(
     by_brand: defaultdict[str, list[Decimal]] = defaultdict(list)
     by_category: defaultdict[str, list[Decimal]] = defaultdict(list)
     current_margins: list[Decimal] = []
-    by_sku, by_id = build_indexes(rows)
+    by_sku = build_index(rows)
 
     for row in rows:
         kind = (row.get(TYPE_FIELD) or "").strip()
@@ -297,7 +289,7 @@ def analyze_rows(
         counts["price_owning_rows"] += 1
         sku = (row.get(SKU_FIELD) or "").strip()
         name = (row.get(NAME_FIELD) or "").strip()
-        parent = resolve_parent(row, by_sku, by_id)
+        parent = resolve_parent(row, by_sku)
         brand_raw, brand_source = effective_taxonomy(row, parent, BRAND_FIELD)
         categories_raw, category_source = effective_taxonomy(row, parent, CATEGORY_FIELD)
         brand = brand_raw or "(Unknown)"
@@ -400,7 +392,7 @@ def analyze_rows(
 
     report: dict[str, object] = {
         "schema_version": 2,
-        "scope": "price-owning simple products and variations; variation taxonomy inherited from parent; variable parents excluded as price records",
+        "scope": "price-owning simple products and variations; variation taxonomy inherited from parent SKU; variable parents excluded as price records",
         "counts": dict(sorted(counts.items())),
         "comparison_target_margin_pct": percent(comparison_target_margin),
         "current_effective_margin_distribution": describe(current_margins),
@@ -413,7 +405,7 @@ def analyze_rows(
         "brand_policies": brand_policy,
         "category_policies": category_policy,
         "interpretation": {
-            "taxonomy": "Blank variation Brands/Categories inherit from the variable parent before segment analysis.",
+            "taxonomy": "Blank variation Brands/Categories inherit from the variable parent identified by the canonical Parent SKU.",
             "map_margin": "Gross margin available when selling at configured official MAP.",
             "minimum_margin": "Evidence-derived lower guardrail candidate; not a substitute for MAP.",
             "target_margin": "Evidence-derived central margin objective candidate; not permission to lower a higher current price.",
