@@ -4,7 +4,7 @@ import sys
 import unittest
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 
 SCRIPT_DIR = Path(__file__).resolve().parents[1]
@@ -126,6 +126,7 @@ class DiscoveryTests(ProductFactoryMixin, unittest.TestCase):
         score = index.score("https://example.com/level-5-corner-applicator/")
         self.assertGreaterEqual(score.score, 30.0)
         self.assertTrue(any(reason.startswith("brand:") for reason in score.reasons))
+        self.assertTrue(any(reason.startswith("name_tokens:") for reason in score.reasons))
 
     def test_unrelated_product_has_zero_signal(self) -> None:
         index = market.CatalogDiscoveryIndex([self.product()])
@@ -134,11 +135,10 @@ class DiscoveryTests(ProductFactoryMixin, unittest.TestCase):
         self.assertEqual((), score.reasons)
 
     def test_meaningful_name_tokens_remove_generic_terms(self) -> None:
-        tokens = market.meaningful_name_tokens("TapeTech Professional 10 Inch Finishing Box", "TapeTech")
+        tokens = market.meaningful_name_tokens("TapeTech Professional Corner Applicator", "TapeTech")
         self.assertNotIn("professional", tokens)
-        self.assertNotIn("finishing", tokens)
-        self.assertNotIn("box", tokens)
-        self.assertIn("10", tokens if "10" in tokens else {"10"})
+        self.assertNotIn("tapetech", tokens)
+        self.assertEqual({"corner", "applicator"}, tokens)
 
 
 class MatchingTests(ProductFactoryMixin, unittest.TestCase):
@@ -205,7 +205,7 @@ class HttpPolicyTests(unittest.TestCase):
 
     def test_404_is_not_retried(self) -> None:
         client = self.client()
-        client.session.get = unittest.mock.Mock(return_value=FakeResponse(404))
+        client.session.get = Mock(return_value=FakeResponse(404))
         with self.assertRaises(market.CrawlError):
             client._raw_get("https://example.com/missing")
         self.assertEqual(1, client.session.get.call_count)
@@ -215,7 +215,7 @@ class HttpPolicyTests(unittest.TestCase):
     @patch("competitor_price_research.time.sleep", return_value=None)
     def test_503_is_retried_then_succeeds(self, _sleep) -> None:
         client = self.client()
-        client.session.get = unittest.mock.Mock(side_effect=[FakeResponse(503), FakeResponse(200, "ok")])
+        client.session.get = Mock(side_effect=[FakeResponse(503), FakeResponse(200, "ok")])
         response = client._raw_get("https://example.com/transient")
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, client.session.get.call_count)
