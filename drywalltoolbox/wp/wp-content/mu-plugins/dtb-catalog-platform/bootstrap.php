@@ -62,6 +62,7 @@ require_once $_dtb_cp . '/Services/UniversalPartsProjectionService.php';
 require_once $_dtb_cp . '/Services/VeeqoStockSyncService.php';
 require_once $_dtb_cp . '/Services/InventoryRollupService.php';
 require_once $_dtb_cp . '/Services/InventoryIntelligenceService.php';
+require_once $_dtb_cp . '/Services/PricingPolicy.php';
 require_once $_dtb_cp . '/Services/PricingManagerService.php';
 require_once $_dtb_cp . '/Admin/PricingBulkOptimizer.php';
 
