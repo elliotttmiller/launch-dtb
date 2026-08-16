@@ -63,6 +63,7 @@ require_once $_dtb_cp . '/Services/VeeqoStockSyncService.php';
 require_once $_dtb_cp . '/Services/InventoryRollupService.php';
 require_once $_dtb_cp . '/Services/InventoryIntelligenceService.php';
 require_once $_dtb_cp . '/Services/PricingManagerService.php';
+require_once $_dtb_cp . '/Admin/PricingBulkOptimizer.php';
 
 // REST controllers.
 require_once $_dtb_cp . '/Rest/CatalogFacetsController.php';
