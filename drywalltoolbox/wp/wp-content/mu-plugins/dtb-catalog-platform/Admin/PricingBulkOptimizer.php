@@ -4,8 +4,8 @@
  *
  * Adds a preview-first, operator-triggered "Optimize All Eligible Products"
  * workflow without introducing autonomous repricing or a second pricing engine.
- * The existing PricingManagerService remains the sole calculation/mutation
- * authority; this file only coordinates a bounded catalog-wide run.
+ * PricingManagerService remains the sole calculation and mutation authority;
+ * this file coordinates only the bounded catalog-wide run.
  *
  * @package drywall-toolbox
  */
@@ -43,15 +43,30 @@ function dtb_pricing_bulk_register_routes(): void {
 	);
 }
 
-/** Load the small page-scoped enhancement only on Catalog Pricing. */
+/** Load the page-scoped enhancement only on Catalog Pricing. */
 function dtb_pricing_bulk_enqueue_assets( string $hook_suffix ): void {
-	if ( 'admin.php' !== $hook_suffix || 'dtb-pricing-manager' !== sanitize_key( (string) ( $_GET['page'] ?? '' ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	if (
+		'admin.php' !== $hook_suffix
+		|| 'dtb-pricing-manager' !== sanitize_key( (string) ( $_GET['page'] ?? '' ) ) // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	) {
 		return;
 	}
 
 	$base = plugin_dir_url( __FILE__ ) . 'assets/';
-	wp_enqueue_style( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.css', [], '1.0.0' );
-	wp_enqueue_script( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.js', [], '1.0.0', true );
+
+	wp_enqueue_style(
+		'dtb-pricing-bulk-optimizer',
+		$base . 'dtb-pricing-bulk-optimizer.css',
+		[],
+		'1.0.1'
+	);
+	wp_enqueue_script(
+		'dtb-pricing-bulk-optimizer',
+		$base . 'dtb-pricing-bulk-optimizer.js',
+		[],
+		'1.0.1',
+		true
+	);
 }
 
 /** Convert a money value to integer WooCommerce minor units for exact totals. */
@@ -74,18 +89,22 @@ function dtb_pricing_bulk_rest_preview(): WP_REST_Response {
 		'user_id'    => get_current_user_id(),
 		'items'      => [],
 		'cursor'     => 0,
-		'result'     => [ 'updated' => 0, 'conflicts' => 0, 'errors' => 0 ],
+		'result'     => [
+			'updated'   => 0,
+			'conflicts' => 0,
+			'errors'    => 0,
+		],
 	];
 	$summary = [
-		'total'                       => count( $rows ),
-		'with_map'                    => 0,
-		'will_update'                 => 0,
-		'map_violations'              => 0,
-		'already_optimal'             => 0,
-		'missing_map'                 => 0,
-		'review_or_blocked'           => 0,
-		'estimated_regular_increase'  => 0.0,
-		'target_margin'               => dtb_pricing_get_target_margin(),
+		'total'                      => count( $rows ),
+		'with_map'                   => 0,
+		'will_update'                => 0,
+		'map_violations'             => 0,
+		'already_optimal'            => 0,
+		'missing_map'                => 0,
+		'review_or_blocked'          => 0,
+		'estimated_regular_increase' => 0.0,
+		'target_margin'              => dtb_pricing_get_target_margin(),
 	];
 	$increase_minor = 0;
 
@@ -94,25 +113,32 @@ function dtb_pricing_bulk_rest_preview(): WP_REST_Response {
 			++$summary['missing_map'];
 			continue;
 		}
+
 		++$summary['with_map'];
 
 		if ( ! empty( $row['map_violation'] ) ) {
 			++$summary['map_violations'];
 		}
 
-		if ( 'optimize' === ( $row['recommendation_action'] ?? '' ) && ! empty( $row['optimizer_eligible'] ) ) {
+		if (
+			'optimize' === ( $row['recommendation_action'] ?? '' )
+			&& ! empty( $row['optimizer_eligible'] )
+		) {
 			$current_minor   = dtb_pricing_bulk_minor_units( $row['regular_price'] ?? null );
-			suggested_minor = dtb_pricing_bulk_minor_units( $row['suggested_price'] ?? null );
+			$suggested_minor = dtb_pricing_bulk_minor_units( $row['suggested_price'] ?? null );
 			$increase_minor += max( 0, $suggested_minor - $current_minor );
 			$run['items'][]  = [
 				'product_id'             => absint( $row['id'] ?? 0 ),
-				'expected_regular_price' => $row['regular_price'],
+				'expected_regular_price' => $row['regular_price'] ?? null,
 			];
 			++$summary['will_update'];
 			continue;
 		}
 
-		if ( 'hold' === ( $row['recommendation_action'] ?? '' ) && 'PRICE_HEALTHY' === ( $row['reason_code'] ?? '' ) ) {
+		if (
+			'hold' === ( $row['recommendation_action'] ?? '' )
+			&& 'PRICE_HEALTHY' === ( $row['reason_code'] ?? '' )
+		) {
 			++$summary['already_optimal'];
 		} else {
 			++$summary['review_or_blocked'];
@@ -139,14 +165,24 @@ function dtb_pricing_bulk_rest_preview(): WP_REST_Response {
 function dtb_pricing_bulk_rest_apply( WP_REST_Request $request ) {
 	$payload = $request->get_json_params();
 	$token   = sanitize_text_field( (string) ( is_array( $payload ) ? ( $payload['run_token'] ?? '' ) : '' ) );
+
 	if ( '' === $token ) {
-		return new WP_Error( 'dtb_pricing_bulk_missing_run', __( 'Pricing optimization preview is required before applying changes.', 'drywall-toolbox' ), [ 'status' => 400 ] );
+		return new WP_Error(
+			'dtb_pricing_bulk_missing_run',
+			__( 'Pricing optimization preview is required before applying changes.', 'drywall-toolbox' ),
+			[ 'status' => 400 ]
+		);
 	}
 
 	$key = DTB_PRICING_BULK_RUN_PREFIX . $token;
 	$run = get_transient( $key );
+
 	if ( ! is_array( $run ) || absint( $run['user_id'] ?? 0 ) !== get_current_user_id() ) {
-		return new WP_Error( 'dtb_pricing_bulk_expired_run', __( 'This pricing optimization preview has expired. Generate a new preview.', 'drywall-toolbox' ), [ 'status' => 409 ] );
+		return new WP_Error(
+			'dtb_pricing_bulk_expired_run',
+			__( 'This pricing optimization preview has expired. Generate a new preview.', 'drywall-toolbox' ),
+			[ 'status' => 409 ]
+		);
 	}
 
 	$items  = is_array( $run['items'] ?? null ) ? $run['items'] : [];
