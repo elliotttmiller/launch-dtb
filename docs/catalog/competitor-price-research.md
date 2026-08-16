@@ -4,7 +4,7 @@
 
 `scripts/catalog/competitor_price_research.py` is read-only operational tooling for market-price research against the canonical DTB launch catalog.
 
-It currently targets:
+It targets:
 
 - Al's Taping Tools — `https://www.alstapingtools.com/`
 - All-Wall — `https://www.all-wall.com/`
@@ -25,7 +25,7 @@ Before a production research run, validate that file with the existing canonical
 python scripts/catalog/validate_official_catalog.py
 ```
 
-The scraper derives its product/brand scope from priced, published catalog rows. Variable parents without a price are naturally excluded; priced simple products and variations are analyzed independently.
+The scraper derives its product, identifier, brand, and pricing scope from priced, published catalog rows. Product identifiers remain catalog-owned and are used only for matching and discovery relevance.
 
 ## Installation
 
@@ -42,6 +42,7 @@ python -m pip install -r scripts/catalog/competitor_price_research.requirements.
 
 ```powershell
 python scripts/catalog/validate_official_catalog.py
+python -m unittest scripts/catalog/tests/test_competitor_price_research.py
 python scripts/catalog/competitor_price_research.py
 ```
 
@@ -49,7 +50,104 @@ Default output directory:
 
 `reports/pricing/competitor-market/`
 
-The default crawl interval is 1.25 seconds per host, with bounded retries and robots.txt enforcement.
+The default request interval is 1.25 seconds per host, with bounded retries and robots.txt enforcement.
+
+## Optimized discovery architecture
+
+The scraper does **not** blindly fetch every product URL exposed by a competitor sitemap.
+
+Collection is split into two phases:
+
+1. **Cheap sitemap discovery** — retrieve sitemap documents and collect structurally valid product URLs.
+2. **Catalog-aware prefetch scoring** — compare the URL itself with canonical DTB product evidence before issuing a product-page request.
+
+The discovery index is built from the active DTB catalog scope and includes:
+
+- normalized GTIN / UPC / EAN values;
+- normalized MPN values;
+- manufacturer SKU values;
+- DTB SKUs;
+- normalized brand aliases;
+- meaningful product-name tokens;
+- canonical product slug tokens.
+
+URL scoring uses high-recall signals:
+
+- exact protected-identifier occurrence — dominant signal;
+- in-scope brand occurrence;
+- two or more meaningful product-name/slug tokens;
+- model-like URL tokens as supporting evidence only.
+
+An unrelated root-level retailer product with no catalog signal is rejected before fetch. This is especially important for BigCommerce storefronts such as Al's Taping Tools and Wall Tools, where thousands of products can live at root-level slugs.
+
+### Bounded uncertain fallback
+
+URL prefiltering is intentionally not a hard exact-match gate. Some legitimate competitor product URLs may omit brand or manufacturer identifiers.
+
+The script therefore retains a deterministic bounded fallback pool controlled by:
+
+`--uncertain-fallback-cap`
+
+The default is 150 URLs per site. Weak-signal URLs are preferred before zero-signal URLs.
+
+This preserves recall without reverting to an unbounded full-site crawl.
+
+### Discovery telemetry
+
+Each site's run statistics expose:
+
+- `sitemaps_attempted`
+- `sitemap_failures`
+- `sitemap_product_urls`
+- `url_prefilter_matched`
+- `url_prefilter_fallback`
+- `url_prefilter_rejected`
+- `identifier_url_hits`
+- `brand_url_hits`
+- `name_url_hits`
+- `candidate_urls`
+- `fetched_urls`
+- `product_pages`
+- `listings`
+- `errors`
+- `robots_skips`
+
+Expected log shape:
+
+```text
+INFO discovery_filter site=als_taping_tools sitemap_product_urls=3247 relevant=... rejected=... fallback=... id_hits=... brand_hits=... name_hits=...
+INFO site_start key=als_taping_tools candidates=... discovered=3247 prefilter_rejected=... fallback=...
+```
+
+The important distinction is:
+
+`discovered URLs != fetched product pages != accepted listings != matched DTB SKUs`
+
+Those stages must remain independently observable.
+
+## HTTP retry policy
+
+Permanent HTTP failures are never retried.
+
+The effective policy is:
+
+- `2xx` / `3xx` — accept normal response behavior;
+- `400`, `401`, `404`, and other non-transient `4xx` — fail immediately;
+- `403`, `408`, `425`, `429` — bounded retry;
+- `500`, `502`, `503`, `504` — bounded retry;
+- network / timeout / TLS failures — bounded retry.
+
+`Retry-After` is honored when it can be parsed. Otherwise exponential delays are bounded.
+
+This means a missing fallback sitemap such as `/sitemap.xml` produces one failure and discovery immediately continues to the next advertised/configured sitemap. A permanent 404 no longer burns the full retry schedule.
+
+The final run summary includes HTTP counters:
+
+- total requests;
+- retries;
+- transient HTTP retries;
+- network retries;
+- permanent HTTP failures.
 
 ## Scoped runs
 
@@ -59,13 +157,25 @@ Limit research to specific DTB brands:
 python scripts/catalog/competitor_price_research.py --brands TapeTech "Columbia Tools" LEVEL5 SurPro
 ```
 
+Because the catalog scope now drives discovery scoring, `--brands` reduces both the matching scope **and** the URL prefetch relevance index.
+
 Limit research to selected competitor adapters:
 
 ```powershell
 python scripts/catalog/competitor_price_research.py --sites wall_tools csr_building
 ```
 
-Useful diagnostic run:
+Useful Al's diagnostic run:
+
+```powershell
+python scripts/catalog/competitor_price_research.py `
+  --sites als_taping_tools `
+  --brands TapeTech "Columbia Tools" LEVEL5 SurPro Dura-Stilt Platinum `
+  --max-urls-per-site 1000 `
+  --verbose
+```
+
+Useful CSR diagnostic run:
 
 ```powershell
 python scripts/catalog/competitor_price_research.py `
@@ -83,16 +193,18 @@ For each target storefront it:
 
 1. Loads advertised sitemaps from `robots.txt` plus platform-specific sitemap candidates.
 2. Recursively follows bounded sitemap indexes.
-3. Filters to plausible product URLs for that platform.
-4. Fetches public product pages with per-host throttling.
-5. Extracts structured product facts in this precedence order:
+3. Filters to structurally plausible product URLs for that platform.
+4. Scores those URLs against the actual DTB catalog scope.
+5. Keeps high-confidence URLs plus the bounded fallback pool.
+6. Fetches public product pages with per-host throttling.
+7. Extracts structured product facts in this precedence order:
    - Schema.org JSON-LD (`Product` / `ProductGroup` / offers)
    - Shopify embedded product/variant JSON for CSR
    - bounded DOM/meta fallbacks for BigCommerce/Magento/theme variants
-6. Rejects listings outside the DTB brand scope.
-7. Deduplicates structured evidence by site, URL, identifier, variant, and current price.
+8. Rejects listings outside the DTB brand scope.
+9. Deduplicates structured evidence by site, URL, identifier, variant, and current price.
 
-Every accepted evidence row includes `retrieved_at`, `parse_method`, the source URL, and a SHA-256 hash of the fetched HTML. Raw HTML is intentionally not persisted.
+Every accepted evidence row includes `retrieved_at`, `parse_method`, source URL, SHA-256 hash of the fetched HTML, discovery relevance score, and discovery reason summary. Raw HTML is intentionally not persisted.
 
 ## Matching contract
 
@@ -159,7 +271,7 @@ A missing match does not mean a competitor does not sell the product; it means t
 
 ### `run_summary.json`
 
-Machine-readable run configuration, crawl counts, error counts, match counts, and output paths.
+Machine-readable run configuration, discovery counts, crawl counts, HTTP retry counters, match counts, and output paths.
 
 ## Price semantics
 
@@ -181,15 +293,43 @@ Competitor prices below a DTB MAP floor are market evidence only. They must not 
 
 Important options:
 
-- `--request-interval` — minimum seconds between requests to the same host
-- `--timeout` — request timeout
-- `--retries` — bounded retries for transient HTTP errors
-- `--max-urls-per-site` — hard safety cap per competitor
-- `--max-sitemap-documents` — hard sitemap-recursion cap
-- `--fuzzy-threshold` — minimum brand-scoped fuzzy match confidence
-- `--ignore-robots` — disables robots.txt checks and should only be used after confirming permission/terms for the target
+- `--request-interval` — minimum seconds between requests to the same host;
+- `--timeout` — request timeout;
+- `--retries` — bounded retry count for transient HTTP/network failures;
+- `--max-urls-per-site` — hard cap on product pages actually fetched;
+- `--max-discovered-urls-per-site` — hard cap on sitemap product URLs considered before prefiltering;
+- `--max-sitemap-documents` — hard sitemap-recursion cap;
+- `--url-prefilter-min-score` — minimum catalog-relevance score required for the primary fetch set;
+- `--uncertain-fallback-cap` — bounded per-site fallback pool for weak/zero-signal product URLs;
+- `--fuzzy-threshold` — minimum brand-scoped post-fetch fuzzy match confidence;
+- `--ignore-robots` — disables robots.txt checks and should only be used after confirming permission/terms for the target.
 
-A target site can change markup, sitemap routes, anti-bot configuration, or pricing presentation at any time. A parser failure is therefore surfaced in run statistics rather than converted into guessed pricing.
+A target site can change markup, sitemap routes, anti-bot configuration, or pricing presentation at any time. A parser failure is surfaced in run statistics rather than converted into guessed pricing.
+
+## Validation
+
+Before using the reports for a pricing decision:
+
+```powershell
+python scripts/catalog/validate_official_catalog.py
+python -m unittest scripts/catalog/tests/test_competitor_price_research.py
+```
+
+The regression suite covers:
+
+- URL sitemap parsing;
+- sitemap-index parsing;
+- Product JSON-LD extraction;
+- Shopify variant/cents parsing;
+- GTIN match precedence;
+- conflicting-brand rejection;
+- permanent 404 no-retry behavior;
+- transient HTTP retry/recovery behavior;
+- protected-identifier URL discovery;
+- brand/name URL discovery;
+- unrelated product rejection;
+- brand normalization;
+- tracking-parameter removal.
 
 ## Ownership and downstream use
 
