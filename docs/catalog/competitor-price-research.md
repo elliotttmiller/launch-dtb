@@ -331,6 +331,8 @@ The regression suite covers:
 - brand normalization;
 - tracking-parameter removal.
 
+Because competitor HTML and HTTP behavior are external runtime dependencies, passing unit tests is necessary but not sufficient. After pulling the branch, run one scoped live adapter test first and review `discovery_filter`, `site_done`, and `run_summary.json` before launching the all-site crawl.
+
 ## Ownership and downstream use
 
 This tool belongs in `scripts/catalog/` because it performs deterministic operational market research.
