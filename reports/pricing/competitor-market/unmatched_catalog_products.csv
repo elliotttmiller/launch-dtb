@@ -1,11 +1,8 @@
 ﻿sku,name,brand,product_type,current_price,map_price,gtin,mpn,manufacturer_sku,slug
-10FBBA,"Columbia Automatic Fat Boy Box - 10""",Columbia Tools,variation,492.08,492.08,,10FBBA,,columbia-automatic-fat-boy-box-10-inch
 8FFBA,"Columbia Automatic Flat Box - 8""",Columbia Tools,variation,421.79,421.79,,8FFBA,,columbia-automatic-flat-box-8-8ffba
 10FFBA,"Columbia Automatic Flat Box - 10""",Columbia Tools,variation,427.19,427.19,,10FFBA,,columbia-automatic-flat-box-10-10ffba
 12FFBA,"Columbia Automatic Flat Box - 12""",Columbia Tools,variation,432.60,432.60,,12FFBA,,columbia-automatic-flat-box-12-12ffba
-14FFBA,"Columbia Automatic Flat Box - 14""",Columbia Tools,variation,438.01,438.01,,14FFBA,,columbia-automatic-flat-box-14-14ffba
 PTAPER,Columbia One Predator Taper,Columbia Tools,simple,1838.55,,,PTAPER,PTAPER,columbia-one-predator-carbon-fiber-taper-ptaper
-BF,Columbia Box Filler - Standard,Columbia Tools,variation,75.71,75.71,,BF,,columbia-box-filler-standard-bf
 TBBF,Columbia Box Filler - Tall Boy,Columbia Tools,variation,75.71,75.71,,TBBF,,columbia-box-filler-tall-boy-tbbf
 CLT24,"Columbia Cam Lock Tube - 24""",Columbia Tools,variation,270.95,257.40,,CLT24,,columbia-tools-cam-lock-tube-24-clt24
 2.5CSF,"Columbia Combo Flusher - 2.5""",Columbia Tools,variation,167.16,163.31,,2.5CSF,,columbia-combo-flusher-2-5-2-5csf
@@ -14,37 +11,16 @@ CLT24,"Columbia Cam Lock Tube - 24""",Columbia Tools,variation,270.95,257.40,,CL
 CMT55,"Columbia Compound Tube - 55""",Columbia Tools,variation,232.52,232.52,,CMT55,,columbia-compound-tube-55-cmt55
 4DF,"Columbia Direct Flusher - 4""",Columbia Tools,variation,151.41,151.41,,4DF,,columbia-direct-flusher-4-4df
 5.5FBB,"Columbia Fat Boy Flat Box - 5.5""",Columbia Tools,variation,189.95,,,5.5FBB,,columbia-fat-boy-flat-box-5-5
-5.5FFB,"Columbia Flat Finisher Box - 5.5""",Columbia Tools,variation,367.71,367.71,,5.5FFB,,columbia-flat-finisher-box-5-5-5-5ffb
-7FFB,"Columbia Flat Finisher Box - 7""",Columbia Tools,variation,378.53,378.53,,7FFB,,columbia-flat-finisher-box-7-7ffb
-8FFB,"Columbia Flat Finisher Box - 8""",Columbia Tools,variation,389.34,389.34,,8FFB,,columbia-8-inch-flat-finisher-box-8ffb
-10FFB,"Columbia Flat Finisher Box - 10""",Columbia Tools,variation,400.16,400.16,,10FFB,,columbia-flat-finisher-box-10-inch-10ffb
-12FFB,"Columbia Flat Finisher Box - 12""",Columbia Tools,variation,410.97,410.97,,12FFB,,columbia-12-inch-flat-finisher-box-12ffb
-14FFB,"Columbia Flat Finisher Box - 14""",Columbia Tools,variation,421.79,421.79,,14FFB,,columbia-flat-finisher-box-14-14ffb
-GN,Columbia Gooseneck - Standard,Columbia Tools,variation,86.00,,,GN,,columbia-gooseneck-standard-gn
 HMP-C,Columbia Hot Mud Pump - CDN,Columbia Tools,variation,380.00,,,HMP-C,,columbia-hot-mud-pump-cdn
-MHS,"Columbia Matrix Flat Box Handle - 29""-39""",Columbia Tools,variation,375.00,340.67,,MHS,,columbia-matrix-flat-box-handle-29-39
-MH,"Columbia Matrix Flat Box Handle - 40""-60""",Columbia Tools,variation,409.00,351.49,,MH,,columbia-matrix-flat-box-handle-40-60-mh
-MHL,"Columbia Matrix Flat Box Handle - 56""-76""",Columbia Tools,variation,495.00,373.12,,MHL,,columbia-matrix-flat-box-handle-56-76
-2NS,"Columbia Nail Spotter - 2""",Columbia Tools,variation,324.00,297.41,,2NS,,columbia-2-inch-nail-spotter-2ns
-3NS,"Columbia Nail Spotter - 3""",Columbia Tools,variation,324.00,308.23,,3NS,,columbia-nail-spotter-3-inch
-C1HEXT,Columbia One Handle - Extendable 3'-5',Columbia Tools,variation,135.19,135.19,,C1HEXT,,columbia-one-handle-extendable-3-5
 CHXL,Columbia One Handle - Long Extendable 4'-8',Columbia Tools,variation,173.04,173.04,,CHXL,,columbia-one-handle-long-extendable-4-8-chxl
 C1HS,Columbia One Handle - Stubby,Columbia Tools,variation,49.44,49.44,,C1HS,,columbia-one-handle-stubby-c1hs
-C1H,Columbia One Handle - Fixed,Columbia Tools,variation,64.89,64.89,,C1H,,columbia-one-handle-fixed-c1h
 COBCRE,Columbia Outside Corner Roller - European,Columbia Tools,variation,1.00,,,COBCRE,,columbia-outside-corner-roller-european
 PMHS,"Columbia Predator Matrix Handle - Short 29""-39""",Columbia Tools,variation,384.00,379.28,,PMHS,,columbia-predator-matrix-handle-short-29-39
 PMH,"Columbia Predator Matrix Handle - 40""-60""",Columbia Tools,variation,418.00,388.34,,PMH,,columbia-predator-matrix-handle-40-60
 PMHL,"Columbia Predator Matrix Handle - Long 56""-76""",Columbia Tools,variation,503.00,433.14,,PMHL,,columbia-predator-matrix-handle-long-56-76
 PCHXL,Columbia Predator One Handle - Long Extendable 4'-8',Columbia Tools,variation,216.15,216.15,,PCHXL,,columbia-predator-one-handle-long-extendable-4-8-pchxl
-2.5SF,"Columbia Standard Flusher - 2.5""",Columbia Tools,variation,116.80,116.80,,2.5SF,,columbia-standard-flusher-2-5-inch-2-5sf
-3SF,"Columbia Standard Flusher - 3""",Columbia Tools,variation,122.21,122.21,,3SF,,columbia-standard-flusher-3-inch-3sf
 3WTSF,"Columbia Standard Flusher - 3"" Widetrack",Columbia Tools,variation,127.62,127.62,,3WTSF,,columbia-standard-flusher-3-widetrack-3wtsf
-3.5SF,"Columbia Standard Flusher - 3.5""",Columbia Tools,variation,133.02,133.02,,3.5SF,,columbia-standard-flusher-3-5-inch-3-5sf
-4SF,"Columbia Standard Flusher - 4""",Columbia Tools,variation,140.60,140.60,,4SF,,columbia-standard-flusher-4-inch
-7CFB,"Columbia Throttle Corner Flusher Box - 7""",Columbia Tools,variation,313.64,313.64,,7CFB,,columbia-throttle-corner-flusher-box-7-7cfb
-8CFB,"Columbia Throttle Corner Flusher Box - 8""",Columbia Tools,variation,324.82,324.45,,8CFB,,columbia-throttle-corner-flusher-box-8-inch-8cfb
 TCS,Columbia Tool Case - Gun Case,Columbia Tools,variation,201.88,201.88,,TCS,,columbia-tool-case-gun-case-tcs
-RC,Columbia Tool Case - Road Case,Columbia Tools,variation,1020.16,1020.16,,RC,,columbia-tool-case-road-case
 OA90-325,Columbia UHMW Mud Applicator - Outside 90° 325,Columbia Tools,variation,91.93,91.93,,OA90-325,,columbia-uhmw-mud-applicator-outside-90-325
 SACS,Columbia Commando Set,Columbia Tools,simple,1157.93,1157.93,,SACS,SACS,columbia-commando-set-semi-auto-finishing-kit
 CPFP,Columbia PowerFill 3.5 Pro Series Cordless Loading Pump,Columbia Tools,simple,1473.00,1249.00,,CPFP,CPFP,columbia-powerfill-3-5-pro-series-cordless-loading-pump
@@ -397,9 +373,6 @@ FFB4A,Stainless Steel Washer,Columbia Tools,simple,5.00,,,FFB4A,,columbia-tools-
 CT116A,Strap,Columbia Tools,simple,28.50,,,CT116A,,columbia-tools-ct116a-strap
 AH8A,"Top Retainer Corner Clip - 3.5""",Columbia Tools,variation,9.75,,,AH8A,,columbia-tools-3-5-top-retainer-corner-clip-ah8a
 AH8,Top Retainer Corner Clip - Standard,Columbia Tools,variation,8.00,,,AH8,,columbia-tools-top-retainer-corner-clip-standard-ah8
-D14-22,Dura-III Adjustable - 14”-22”,Dura-Stilts,variation,400.00,,,D14-22,,dura-stilts-dura-iii-adjustable-14-22
-D18-30,Dura-III Adjustable - 18”-30”,Dura-Stilts,variation,415.00,,,D18-30,,dura-stilts-dura-iii-18-30
-D24-40,Dura-III Adjustable - 24”-40”,Dura-Stilts,variation,435.00,,,D24-40,,dura-stilts-dura-iii-adjustable-24-40
 D38-64,Dura-III Adjustable - 38”-64”,Dura-Stilts,variation,584.00,,,D38-64,,dura-stilts-dura-iii-adjustable-38-64
 4-701,"LEVEL5 Corner Applicator - 7""",LEVEL5,variation,285.59,,,4-701,,level5-7-inch-corner-applicator-4-701
 4-702,"LEVEL5 Corner Applicator - 8""",LEVEL5,variation,294.52,,,4-702,,level5-8-inch-corner-applicator-4-702
@@ -456,28 +429,11 @@ HNS20,Wedge,Columbia Tools,simple,22.50,,,HNS20,,columbia-hns20-wedge-hinged-nai
 4-707,LEVEL5 Corner Roller,LEVEL5,simple,152.14,,,4-707,,level5-corner-roller-4-707
 5-311,LEVEL5 Drywall Banjo,LEVEL5,simple,150.29,,,5-311,,level5-drywall-banjo-5-311
 PT-3CF,"Platinum Angle Head Corner Finisher with Wheels - 3""",Platinum Drywall Tools,variation,249.00,,,PT-3CF,PT-3CF,platinum-angle-head-corner-finisher-with-wheels-3-inch
-PT-CF3.5,"Platinum Angle Head Corner Finisher with Wheels - 3.5""",Platinum Drywall Tools,variation,259.00,,,PT-CF3.5,PT-CF3.5,platinum-angle-head-corner-finisher-wheels-3-5
-PT-CT24,"Platinum Compound Tube - 24""",Platinum Drywall Tools,variation,150.00,,,PT-CT24,PT-CT24,platinum-compound-tube-24-pt-ct24
-PT-CT36,"Platinum Compound Tube - 36""",Platinum Drywall Tools,variation,155.00,,,PT-CT36,PT-CT36,platinum-compound-tube-36-inch
-PT-CT42,"Platinum Compound Tube - 42""",Platinum Drywall Tools,variation,160.00,,,PT-CT42,PT-CT42,platinum-compound-tube-42-inch
 PT-BH34,"Platinum Flat Box Handle - 34""",Platinum Drywall Tools,variation,90.00,,,PT-BH34,PT-BH34,platinum-flat-box-handle-34-inch-pt-bh34
-PT-BH42,"Platinum Flat Box Handle - 42""",Platinum Drywall Tools,variation,95.00,,,PT-BH42,PT-BH42,platinum-flat-box-handle-42-inch
-PT-BH54,"Platinum Flat Box Handle - 54""",Platinum Drywall Tools,variation,100.00,,,PT-BH54,PT-BH54,platinum-flat-box-handle-54-inch
-PT-10FB,"Platinum Flat Finishing Box - 10""",Platinum Drywall Tools,variation,195.00,,,PT-10FB,PT-10FB,platinum-flat-finishing-box-10-inch
-PT-12FB,"Platinum Flat Finishing Box - 12""",Platinum Drywall Tools,variation,205.00,,,PT-FB12,PT-FB12,platinum-flat-finishing-box-12-inch
-PT-14FB,"Platinum Flat Finishing Box - 14""",Platinum Drywall Tools,variation,215.00,,,PT-14FB,PT-14FB,platinum-14-inch-flat-finishing-box-pt-14fb
-PT-8FB,"Platinum Flat Finishing Box - 8""",Platinum Drywall Tools,variation,185.00,,,PT-8FB,PT-8FB,platinum-flat-finishing-box-8-inch
 4-714,LEVEL5 Gooseneck,LEVEL5,simple,101.14,,,4-714,,level5-gooseneck-4-714
 4-772,LEVEL5 MiniShot,LEVEL5,simple,934.99,,,4-772,,level5-minishot-gas-powered-applicator-4-772
 4-773,LEVEL5 MiniShot Ext. Handle,LEVEL5,simple,73.94,,,4-773,,level5-minishot-ext-handle-4-773
 4-746,LEVEL5 Outside Corner Tool,LEVEL5,simple,73.94,,,4-746,,level5-outside-corner-tool-4-746
-PT-2NS,"Platinum Nail Spotter - 2""",Platinum Drywall Tools,variation,160.00,,,PT-2NS,PT-2NS,platinum-nail-spotter-2-inch-pt-2ns
-PT-3NS,"Platinum Nail Spotter - 3""",Platinum Drywall Tools,variation,160.00,,,PT-3NS,PT-3NS,platinum-nail-spotter-3-inch-pt-3ns
-PT-3.5CF,"Platinum Stainless Steel Corner Flusher - 3.5""",Platinum Drywall Tools,variation,80.00,,,PT-3.5CF,PT-3.5CF,platinum-stainless-steel-corner-flusher-3-5
-PT-2.5CF,"Platinum Stainless Steel Corner Flusher - 2.5""",Platinum Drywall Tools,variation,75.00,,,PT-2.5CF,PT-2.5CF,platinum-stainless-steel-corner-flusher-2-5
-PT-CFH50,"Platinum 50"" Corner Tool Handle - Angle Head",Platinum Drywall Tools,variation,49.00,,,PT-CFH50,PT-CFH50,platinum-50-inch-corner-tool-handle-angle-head
-PT-CAH50,"Platinum 50"" Corner Tool Handle - Corner Box",Platinum Drywall Tools,variation,49.00,,,PT-CAH50,PT-CAH50,platinum-50-corner-box-handle-pt-cah50
-PT-CRH50,"Platinum 50"" Corner Tool Handle - Corner Roller",Platinum Drywall Tools,variation,59.00,,,PT-CRH50,PT-CRH50,platinum-50-corner-tool-handle-corner-roller
 PT-CR,Platinum Corner Roller - Inside,Platinum Drywall Tools,variation,79.99,,,PT-CR,PT-CR,platinum-corner-roller-inside-pt-cr
 PT-OCR,Platinum Corner Roller - Outside 90°,Platinum Drywall Tools,variation,69.99,,,PT-OCR,PT-OCR,platinum-outside-90-corner-roller
 PT-FA,"Platinum 4"" Flat Applicator",Platinum Drywall Tools,simple,59.00,,,PT-FA,PT-FA,platinum-4-inch-flat-applicator-pt-fa
@@ -485,29 +441,18 @@ PT-CA8,"Platinum 8"" Corner Applicator",Platinum Drywall Tools,simple,159.00,,,P
 PT-BF,Platinum Box Filler Attachment,Platinum Drywall Tools,simple,49.00,,,PT-BF,PT-BF,platinum-box-filler-attachment-pt-bf
 PT-CP,Platinum Drywall Pump w/Filler,Platinum Drywall Tools,simple,269.00,,,PT-CP,PT-CP,platinum-drywall-pump-filler-pt-cp
 PT-FIN,Platinum Drywall Starter Finishing Set,Platinum Drywall Tools,simple,1399.00,,,PT-FIN,PT-FIN,platinum-drywall-starter-finishing-set-pt-fin
-PT-EXT3IN1-1,Platinum Extendable Angle Head Handle,Platinum Drywall Tools,simple,75.00,,,PT-EXT3IN1-1,PT-EXT3IN1-1,platinum-extendable-angle-head-handle-pt-ext3in1-1
-PT-EBH,"Platinum Extendable Flat Box Handle 40"" – 64""",Platinum Drywall Tools,simple,169.00,,,PT-EBH,PT-EBH,platinum-extendable-flat-box-handle-40-64-pt-ebh
 S1-A-1624,"SurPro S1 Aluminum Drywall Stilts - 16""-24""",SurPro,variation,322.00,,,S1-A-1624,,surpro-s1-aluminum-drywall-stilts-16-24
 S1-A-2030,"SurPro S1 Aluminum Drywall Stilts - 20""-30""",SurPro,variation,331.00,,,S1-A-2030,,surpro-s1-aluminum-drywall-stilts-20-30
-S1-A-2640,"SurPro S1 Aluminum Drywall Stilts - 26""-40""",SurPro,variation,340.00,,,S1-A-2640,,surpro-s1-aluminum-drywall-stilts-26-40
-S1-M-1624,"SurPro S1 Magnesium Drywall Stilts - 16""-24""",SurPro,variation,368.00,,,S1-M-1624,,surpro-s1-magnesium-drywall-stilts-16-24
-S1-M-2030,"SurPro S1 Magnesium Drywall Stilts - 20""-30""",SurPro,variation,376.50,,,S1-M-2030,,surpro-s1-magnesium-stilts-20-30
-S1-M-2640,"SurPro S1 Magnesium Drywall Stilts - 26""-40""",SurPro,variation,385.00,,,S1-M-2640,,surpro-s1-magnesium-drywall-stilts-26-40
 S1X-A-2131,"SurPro S1X Aluminum Drywall Stilts - 21""-31""",SurPro,variation,407.00,,,S1X-A-2131,,surpro-s1x-aluminum-drywall-stilts-21-31
 S1X-A-2640,"SurPro S1X Aluminum Drywall Stilts - 26""-40""",SurPro,variation,407.00,,,S1X-A-2640,,surpro-s1x-aluminum-drywall-stilts-26-40
 S2-A-1624,"SurPro S2 Aluminum Drywall Stilts - 16""-24""",SurPro,variation,356.00,,,S2-A-1624,,surpro-s2-aluminum-drywall-stilts-16-24-s2-a-1624
 S2-A-2030,"SurPro S2 Aluminum Drywall Stilts - 20""-30""",SurPro,variation,365.00,,,S2-A-2030,,surpro-s2-aluminum-drywall-stilts-20-30
 S2-A-2640,"SurPro S2 Aluminum Drywall Stilts - 26""-40""",SurPro,variation,374.00,,,S2-A-2640,,surpro-s2-aluminum-drywall-stilts-26-40
-S2-M-1624,"SurPro S2 Magnesium Drywall Stilts - 16""-24""",SurPro,variation,395.00,,,S2-M-1624,,surpro-s2-magnesium-drywall-stilts-16-24
-S2-M-2030,"SurPro S2 Magnesium Drywall Stilts - 20""-30""",SurPro,variation,403.50,,,S2-M-2030,,surpro-s2-magnesium-stilts-20-30-s2-m-2030
-S2-M-2640,"SurPro S2 Magnesium Drywall Stilts - 26""-40""",SurPro,variation,412.00,,,S2-M-2640,,surpro-s2-magnesium-drywall-stilts-26-40
 PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,simple,62.00,,,PT-MNBH,PT-MNBH,platinum-mini-box-handle-pt-mnbh
-PT-GN,Platinum Gooseneck,Platinum Drywall Tools,simple,59.00,,,GN,GN,platinum-drywall-tools-gooseneck-stainless-steel-pump-attachment
 S2X-A-3852,"SurPro S2X Aluminum Drywall Stilts - 38""-52""",SurPro,variation,486.00,,,S2X-A-3852,,surpro-s2x-aluminum-drywall-stilts-38-52
 S2X-A-2640,"SurPro S2X Aluminum Drywall Stilts - 26""-40""",SurPro,variation,457.00,,,S2X-A-2640,,surpro-s2x-aluminum-drywall-stilts-26-40
 BHE-SW,"TapeTech Brakeless Box Handle - Rotational Extendable 34""-60""",TapeTech,variation,329.00,,873876000890,BHE-SW,,tapetech-brakeless-box-handle-rotational-extendable-34-60
 BH,"TapeTech Brakeless Box Handle - Fixed 34""",TapeTech,variation,149.00,149.00,873876000906,BH,,tapetech-brakeless-box-handle-fixed-34-bh
-BHE,"TapeTech Brakeless Box Handle - Extendable 34""-60""",TapeTech,variation,305.72,299.00,873876000883,BHE,,tapetech-brakeless-box-handle-extendable-34-60-bhe
 TTPFB,TapeTech Paper Faced Bead Pro Set,TapeTech,simple,1949.00,,,TTPFB,,tapetech-paper-faced-bead-pro-set-ttpfb
 TTBTS,TapeTech Basic Taping Set,TapeTech,simple,2829.00,,,TTBTS,,tapetech-basic-taping-set-ttbts
 TTSFS-2,TapeTech Standard Full Set - With 2 Pumps,TapeTech,simple,5357.00,,,TTSFS-2,,tapetech-standard-full-set-2-pumps-ttsfs-2
@@ -516,25 +461,18 @@ TTSFS,TapeTech Standard Full Set - Standard,TapeTech,simple,4958.00,,,TTSFS,,tap
 TTPPS,TapeTech Pro Performance Set,TapeTech,simple,6625.00,,,TTPPS,,tapetech-pro-performance-set-ttpps
 TTPSS,TapeTech Professional Starter Set,TapeTech,simple,4559.00,,,TTPSS,,tapetech-professional-starter-set-ttpss
 TTBBS,TapeTech Basic Box Set,TapeTech,simple,1644.00,,,TTBBS,,tapetech-basic-box-set-ttbbs
-TTCFS-M,TapeTech MudRunner Corner Finishing Set,TapeTech,simple,1928.00,,,TTCFS-M,TTCFS-M,tapetech-mudrunner-corner-finishing-set-ttcfs-m
 CF25COMBO,"TapeTech Combo Corner Flusher - 2.5""",TapeTech,variation,179.00,,,CF25COMBO,,tapetech-combo-corner-flusher-2-5
 CF30COMBO,"TapeTech Combo Corner Flusher - 3""",TapeTech,variation,184.00,,,CF30COMBO,,tapetech-3-inch-combo-corner-flusher-cf30combo
 CF35COMBO,"TapeTech Combo Corner Flusher - 3.5""",TapeTech,variation,189.00,,,CF35COMBO,,tapetech-combo-corner-flusher-3-5-cf35combo
 CF40COMBO,"TapeTech Combo Corner Flusher - 4""",TapeTech,variation,194.00,,,CF40COMBO,,tapetech-4-inch-combo-corner-flusher-cf40combo
-CA07TT,"TapeTech Corner Applicator - 7""",TapeTech,variation,315.00,315.00,873876002788,CA07TT,,tapetech-7-inch-corner-applicator-ca07tt
-CF30TT,"TapeTech Direct Corner Flusher - 3""",TapeTech,variation,119.00,119.00,,CF30TT,,tapetech-direct-corner-flusher-3-inch-cf30tt
-CF35TT,"TapeTech Direct Corner Flusher - 3.5""",TapeTech,variation,125.00,125.00,,CF35TT,,tapetech-direct-corner-flusher-3-5-cf35tt
 EZ10TT,"TapeTech EasyClean® Finishing Box - 10""",TapeTech,variation,391.69,389.00,873876002610,EZ10TT,,tapetech-easyclean-finishing-box-10-ez10tt
 EZ12TT,"TapeTech EasyClean® Finishing Box - 12""",TapeTech,variation,405.72,399.00,873876002627,EZ12TT,,tapetech-easyclean-finishing-box-12-ez12tt
 76TT-CA,TapeTech EasyClean® Pump - Canada,TapeTech,variation,409.00,409.00,,76TT-CA,,tapetech-easyclean-pump-canada-76tt-ca
 8054TT,"TapeTech Flat Box Handle - 54""",TapeTech,variation,239.00,239.00,,8054TT,,tapetech-flat-box-handle-54-8054tt
 85T,TapeTech Gooseneck - Standard,TapeTech,variation,105.00,105.00,,85T,,tapetech-gooseneck-standard-85t
 EHC07,"TapeTech MaxxBox® High Capacity Finishing Box - 7""",TapeTech,variation,419.00,419.00,873876002115,EHC07,,tapetech-maxxbox-high-capacity-finishing-box-7-inch
-QB06-QSX,"TapeTech QuickBox® QSX Finishing Box - 6.5""",TapeTech,variation,149.00,149.00,,QB06-QSX,,tapetech-quickbox-qsx-finishing-box-6-5
-QB08-QSX,"TapeTech QuickBox® QSX Finishing Box - 8.5""",TapeTech,variation,180.19,174.00,,QB08-QSX,,tapetech-quickbox-qsx-finishing-box-8-5
 8000TT,TapeTech Wizard® Compact Finishing Box Handle - Standard,TapeTech,variation,109.00,,,8000TT,,tapetech-wizard-compact-finishing-box-handle-standard-8000tt
 14TT,TapeTech MudRunner® Compound Applicator - Standard,TapeTech,variation,900.00,,873876000371,14TT,14TT,tapetech-mudrunner-compound-applicator-standard-14tt
-MR01TT,TapeTech MudRunner® Compound Applicator - Pro,TapeTech,variation,1099.00,1099.00,,MR01TT,,tapetech-mudrunner-pro-compound-applicator-mr01tt
 MRX01TT,TapeTech Extension,TapeTech,simple,179.00,179.00,,MRX01TT,,tapetech-extension-mrx01tt-mudrunner-pro
 GSR-TT,TapeTech Gooseneck Riser,TapeTech,simple,13.99,,,GSR-TT,,tapetech-gooseneck-riser-gsr-tt
 804003F,TapeTech Grip Assembly For Box Handle,TapeTech,simple,73.91,,,804003F,,tapetech-grip-assembly-box-handle-804003f

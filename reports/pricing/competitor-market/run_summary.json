@@ -2,18 +2,18 @@
   "brand_filter": [],
   "catalog": "D:\\AMD\\projects\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.csv",
   "catalog_products_analyzed": 650,
-  "competitor_listings_collected": 147,
+  "competitor_listings_collected": 295,
   "crawl": {
     "als_taping_tools": {
       "allowed_urls": 1134,
       "brand_url_hits": 538,
       "candidate_urls": 1134,
       "errors": 0,
-      "fetched_urls": 428,
+      "fetched_urls": 628,
       "identifier_url_hits": 316,
-      "listings": 148,
+      "listings": 295,
       "name_url_hits": 964,
-      "product_pages": 148,
+      "product_pages": 295,
       "robots_skips": 0,
       "sitemap_failures": 1,
       "sitemap_product_urls": 3247,
@@ -23,8 +23,8 @@
       "url_prefilter_rejected": 2113
     }
   },
-  "matched_catalog_products": 111,
-  "matches": 118,
+  "matched_catalog_products": 173,
+  "matches": 183,
   "outputs": {
     "analysis": "D:\\AMD\\projects\\launch-dtb\\reports\\pricing\\competitor-market\\competitor_price_analysis.csv",
     "evidence": "D:\\AMD\\projects\\launch-dtb\\reports\\pricing\\competitor-market\\competitor_scrape_evidence.jsonl",
@@ -43,9 +43,9 @@
   ],
   "started_at": "2026-08-17T08:45:46.956438+00:00",
   "status": "running",
-  "successful_product_pages": 147,
-  "unmatched_catalog_products": 539,
-  "unmatched_competitor_listings": 29,
-  "updated_at": "2026-08-17T08:52:39.378767+00:00",
+  "successful_product_pages": 295,
+  "unmatched_catalog_products": 477,
+  "unmatched_competitor_listings": 112,
+  "updated_at": "2026-08-17T09:01:08.455897+00:00",
   "workers": 4
 }
