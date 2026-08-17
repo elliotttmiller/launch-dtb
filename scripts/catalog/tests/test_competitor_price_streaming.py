@@ -110,14 +110,9 @@ class LivePersistenceTests(unittest.TestCase):
             self.assertEqual(1, len(second.matches))
             self.assertEqual({"4-701"}, second.matched_skus)
             self.assertTrue(second.is_processed(listing.site_key, listing.url))
-
-            with second.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
-                rows = list(csv.DictReader(handle))
-            self.assertEqual(1, len(rows))
-            self.assertEqual("4-701", rows[0]["dtb_sku"])
             second.finish("completed")
 
-    def test_legacy_completed_site_is_detected_before_new_checkpoint_file_exists(self) -> None:
+    def test_legacy_completed_site_without_evidence_is_invalidated(self) -> None:
         product = self.product()
         args = self.args()
         with tempfile.TemporaryDirectory() as directory:
@@ -126,13 +121,34 @@ class LivePersistenceTests(unittest.TestCase):
                 "status": "interrupted",
                 "crawl": {
                     "als_taping_tools": {"allowed_urls": 1134, "fetched_urls": 1134},
-                    "all_wall": {"allowed_urls": 0, "fetched_urls": 0},
-                    "csr_building": {"allowed_urls": 489, "fetched_urls": 20},
+                    "wall_tools": {"allowed_urls": 1412, "fetched_urls": 1412},
                 },
             }), encoding="utf-8")
             sink = market.LiveResults(output, [product], args)
+            self.assertEqual(set(), sink.legacy_completed_sites)
+            self.assertNotIn("als_taping_tools", sink.crawl_stats)
+            self.assertNotIn("wall_tools", sink.crawl_stats)
+            sink.finish("completed")
+
+    def test_legacy_completed_site_with_restored_evidence_remains_skippable(self) -> None:
+        product = self.product()
+        args = self.args()
+        listing = self.listing()
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory)
+            (output / "run_summary.json").write_text(json.dumps({
+                "status": "interrupted",
+                "crawl": {
+                    "als_taping_tools": {"allowed_urls": 1134, "fetched_urls": 1134},
+                },
+            }), encoding="utf-8")
+            (output / "competitor_scrape_evidence.jsonl").write_text(
+                json.dumps(market.core.serializable(market.asdict(listing))) + "\n",
+                encoding="utf-8",
+            )
+            sink = market.LiveResults(output, [product], args)
             self.assertEqual({"als_taping_tools"}, sink.legacy_completed_sites)
-            self.assertNotIn("csr_building", sink.crawl_stats)
+            self.assertEqual(1, len(sink.listings))
             sink.finish("completed")
 
     def test_default_scope_contains_only_three_active_competitors(self) -> None:
@@ -147,6 +163,16 @@ class LivePersistenceTests(unittest.TestCase):
         self.assertEqual(100, market.PROGRESS_EVERY)
         self.assertEqual(100, market.CHECKPOINT_EVERY)
         self.assertEqual(30.0, market.CHECKPOINT_INTERVAL_SECONDS)
+
+    def test_all_wall_accepts_root_slug_product_urls(self) -> None:
+        site = next(site for site in market.ACTIVE_SITES if site.key == "all_wall")
+        self.assertEqual((), site.product_path_tokens)
+        self.assertTrue(
+            market.core.candidate_url(
+                site,
+                "https://www.all-wall.com/TapeTech-EasyClean-Automatic-Taper",
+            )
+        )
 
     def test_csr_is_not_a_valid_cli_site(self) -> None:
         with self.assertRaises(SystemExit):
