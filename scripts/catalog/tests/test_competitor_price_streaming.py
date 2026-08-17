@@ -54,43 +54,69 @@ class LivePersistenceTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             sink = market.LiveResults(Path(directory), [product], args)
-            try:
-                for path in sink.paths.values():
-                    self.assertTrue(path.exists(), path)
+            for path in sink.paths.values():
+                self.assertTrue(path.exists(), path)
 
-                sink.record([listing])
+            sink.record([listing])
+            sink.checkpoint("running")
 
-                evidence = sink.paths["evidence"].read_text(encoding="utf-8")
-                self.assertIn("815966023815", evidence)
+            evidence = sink.paths["evidence"].read_text(encoding="utf-8")
+            self.assertIn("815966023815", evidence)
 
-                with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
-                    rows = list(csv.DictReader(handle))
-                self.assertEqual(market.PRIMARY_MATCH_FIELDS, list(rows[0].keys()))
-                self.assertEqual("4-701", rows[0]["dtb_sku"])
-                self.assertEqual("299.00", rows[0]["dtb_price"])
-                self.assertEqual("084-701", rows[0]["competitor_sku"])
-                self.assertEqual("302.00", rows[0]["competitor_price"])
-                self.assertEqual("-3.00", rows[0]["price_delta"])
-                self.assertEqual(listing.url, rows[0]["competitor_url"])
+            with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(market.PRIMARY_MATCH_FIELDS, list(rows[0].keys()))
+            self.assertEqual("4-701", rows[0]["dtb_sku"])
+            self.assertEqual("299.00", rows[0]["dtb_price"])
+            self.assertEqual("084-701", rows[0]["competitor_sku"])
+            self.assertEqual("302.00", rows[0]["competitor_price"])
+            self.assertEqual("-3.00", rows[0]["price_delta"])
+            self.assertEqual(listing.url, rows[0]["competitor_url"])
 
-                # Summary/aggregate reports are intentionally checkpointed rather
-                # than rewritten on every product; evidence and matches remain live.
-                sink.checkpoint("running")
-                summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
-                self.assertEqual("running", summary["status"])
-                self.assertEqual(1, summary["successful_product_pages"])
-                self.assertEqual(1, summary["matched_catalog_products"])
-            finally:
-                sink.finish("completed")
+            summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
+            self.assertEqual("running", summary["status"])
+            self.assertEqual(1, summary["successful_product_pages"])
+            self.assertEqual(1, summary["matched_catalog_products"])
+            sink.finish("completed")
 
-    def test_default_runtime_is_bounded_but_faster(self) -> None:
+    def test_default_runtime_is_bounded_but_fast(self) -> None:
         args = market.parse_args([])
         self.assertEqual(10, args.workers)
         self.assertEqual(0.20, args.request_interval)
+        self.assertLessEqual(args.workers, 16)
         self.assertEqual(100, market.PROGRESS_EVERY)
         self.assertEqual(100, market.CHECKPOINT_EVERY)
         self.assertEqual(30.0, market.CHECKPOINT_INTERVAL_SECONDS)
-        self.assertLessEqual(args.workers, 16)
+
+    def test_csr_collection_alias_collapses_to_us_product_url(self) -> None:
+        source = "https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr?variant=123"
+        self.assertEqual(
+            "https://csrbuilding.com/en-us/products/columbia-corner-roller-cr",
+            market.canonical_csr_us_product_url(source),
+        )
+
+    def test_csr_direct_us_product_url_is_canonical(self) -> None:
+        source = "https://csrbuilding.com/en-us/products/columbia-corner-roller-cr"
+        self.assertEqual(source, market.canonical_csr_us_product_url(source))
+
+    def test_csr_rejects_non_us_and_root_cad_product_urls(self) -> None:
+        rejected = (
+            "https://csrbuilding.com/products/columbia-corner-roller-cr",
+            "https://csrbuilding.com/en-au/products/columbia-corner-roller-cr",
+            "https://csrbuilding.com/en-gb/products/columbia-corner-roller-cr",
+            "https://csrbuilding.com/fr/products/columbia-corner-roller-cr",
+            "https://csrbuilding.com/es-us/products/columbia-corner-roller-cr",
+        )
+        for url in rejected:
+            with self.subTest(url=url):
+                self.assertIsNone(market.canonical_csr_us_product_url(url))
+
+    def test_csr_runtime_has_site_specific_rate_limit(self) -> None:
+        site = next(site for site in market.core.SITES if site.key == market.CSR_SITE_KEY)
+        workers, interval, retries = market.FastMarketScraper._site_runtime(site, 10, 0.20, 2)
+        self.assertEqual(4, workers)
+        self.assertEqual(0.75, interval)
+        self.assertEqual(1, retries)
 
 
 if __name__ == "__main__":
