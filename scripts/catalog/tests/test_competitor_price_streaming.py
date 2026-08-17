@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import tempfile
 import unittest
@@ -16,7 +17,7 @@ import competitor_price_research as market  # noqa: E402
 
 
 class LivePersistenceTests(unittest.TestCase):
-    def test_outputs_exist_at_start_and_update_after_one_product(self) -> None:
+    def test_primary_match_is_streamed_immediately_with_compact_schema(self) -> None:
         product = market.CatalogProduct(
             sku="4-701",
             name="Level 5 Corner Applicator",
@@ -34,8 +35,8 @@ class LivePersistenceTests(unittest.TestCase):
             catalog=Path("catalog.csv"),
             sites=["csr_building"],
             brands=["LEVEL5"],
-            workers=4,
-            request_interval=0.35,
+            workers=8,
+            request_interval=0.20,
             fuzzy_threshold=91.0,
         )
         listing = market.Listing(
@@ -60,12 +61,27 @@ class LivePersistenceTests(unittest.TestCase):
 
             evidence = sink.paths["evidence"].read_text(encoding="utf-8")
             self.assertIn("815966023815", evidence)
-            matches = sink.paths["matches"].read_text(encoding="utf-8-sig")
-            self.assertIn("gtin_exact", matches)
+
+            with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(market.PRIMARY_MATCH_FIELDS, list(rows[0].keys()))
+            self.assertEqual("4-701", rows[0]["dtb_sku"])
+            self.assertEqual("299.00", rows[0]["dtb_price"])
+            self.assertEqual("084-701", rows[0]["competitor_sku"])
+            self.assertEqual("302.00", rows[0]["competitor_price"])
+            self.assertEqual("-3.00", rows[0]["price_delta"])
+            self.assertEqual(listing.url, rows[0]["competitor_url"])
+
             summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
             self.assertEqual("running", summary["status"])
             self.assertEqual(1, summary["successful_product_pages"])
             self.assertEqual(1, summary["matched_catalog_products"])
+
+    def test_default_runtime_is_bounded_but_faster(self) -> None:
+        args = market.parse_args([])
+        self.assertEqual(8, args.workers)
+        self.assertEqual(0.20, args.request_interval)
+        self.assertLessEqual(args.workers, 16)
 
 
 if __name__ == "__main__":
