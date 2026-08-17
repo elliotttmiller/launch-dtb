@@ -1,8 +1,10 @@
 /*
  * frontend/src/styles/schematic-hotspot-card-polish.css
  *
- * Polished loading/transition states for schematic hotspot part cards.
- * Scoped to .schematic-hotspot-card to avoid leaking into product pages.
+ * Presentation-only polish for the schematics-v2 hotspot card. This file
+ * intentionally keeps the compact horizontal card geometry used by the
+ * mobile schematic viewer and makes the loading state occupy that same
+ * footprint so SKU resolution never causes a skinny-card -> full-card jump.
  */
 
 .schematic-hotspot-card {
@@ -13,10 +15,14 @@
   cursor: progress;
 }
 
+/* Keep the loading content in exactly the same right-column geometry as the
+ * resolved product content. The footer is pinned to the bottom without
+ * increasing the card height. */
 .schematic-hotspot-card__skeleton {
-  min-height: 100%;
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
   flex-direction: column;
   justify-content: flex-start;
 }
@@ -28,32 +34,55 @@
   display: block;
   position: relative;
   overflow: hidden;
+  background: #e2e8f0;
+}
+
+.schematic-hotspot-card__stock-skeleton,
+.schematic-hotspot-card__title-skeleton span,
+.schematic-hotspot-card__price-skeleton {
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(226, 232, 240, 0.72), rgba(248, 250, 252, 0.94), rgba(226, 232, 240, 0.72));
-  background-size: 220% 100%;
-  animation: schematicHotspotSoftShimmer 1.15s ease-in-out infinite;
+}
+
+.schematic-hotspot-card__stock-skeleton::after,
+.schematic-hotspot-card__title-skeleton span::after,
+.schematic-hotspot-card__price-skeleton::after,
+.schematic-hotspot-card__cta-skeleton::after,
+.schematic-hotspot-card--resolving .hotspot-modal-image-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-105%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.16) 34%,
+    rgba(255, 255, 255, 0.62) 50%,
+    rgba(255, 255, 255, 0.16) 66%,
+    transparent 100%
+  );
+  animation: schematicHotspotSkeletonSweep 1.45s cubic-bezier(.4, 0, .2, 1) infinite;
 }
 
 .schematic-hotspot-card__stock-skeleton {
-  width: 74px;
-  height: 12px;
+  width: 70px;
+  height: 10px;
   margin: 1px 0 5px;
 }
 
 .schematic-hotspot-card__title-skeleton {
   display: grid;
-  gap: 6px;
-  margin: 1px 38px 6px 0;
+  gap: 5px;
+  margin: 1px 36px 6px 0;
 }
 
 .schematic-hotspot-card__title-skeleton span:first-child {
-  width: min(96%, 210px);
-  height: 14px;
+  width: min(94%, 205px);
+  height: 13px;
 }
 
 .schematic-hotspot-card__title-skeleton span:last-child {
-  width: min(68%, 148px);
-  height: 14px;
+  width: min(66%, 142px);
+  height: 13px;
 }
 
 .schematic-hotspot-card__sku--loading {
@@ -62,143 +91,198 @@
 
 .schematic-hotspot-card__footer--loading {
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .schematic-hotspot-card__price-skeleton {
-  width: 72px;
-  height: 18px;
+  width: 68px;
+  height: 17px;
 }
 
 .schematic-hotspot-card__cta-skeleton {
-  width: 66px;
-  height: 40px;
+  width: 58px;
+  height: 36px;
   border-radius: 8px;
 }
 
+/* The image placeholder is structural rather than decorative: it always
+ * occupies the complete left media column. */
 .schematic-hotspot-card--resolving .schematic-hotspot-card__image {
-  background:
-    radial-gradient(circle at 50% 42%, rgba(34, 85, 238, 0.09), transparent 44%),
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: #f8fafc;
 }
 
 .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton {
-  background:
-    linear-gradient(90deg, rgba(226, 232, 240, 0.64), rgba(255, 255, 255, 0.94), rgba(226, 232, 240, 0.64));
-  background-size: 220% 100%;
-  animation: schematicHotspotSoftShimmer 1.15s ease-in-out infinite;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: #eef2f7;
+  animation: none;
 }
 
 .schematic-hotspot-card--resolving .schematic-hotspot-card__sku {
   color: #64748b;
-  font-weight: 650;
+  font-weight: 600;
 }
 
-@keyframes schematicHotspotSoftShimmer {
-  0% { background-position: 140% 0; }
-  100% { background-position: -140% 0; }
+/* Resolved content enters with a very small opacity/translate transition.
+ * This avoids a hard flash while keeping the interaction immediate. */
+.schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__image img {
+  animation: schematicHotspotImageResolve 180ms ease-out both;
+}
+
+.schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__stock,
+.schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__title,
+.schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__sku,
+.schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__footer {
+  animation: schematicHotspotContentResolve 170ms ease-out both;
+}
+
+@keyframes schematicHotspotSkeletonSweep {
+  100% { transform: translateX(105%); }
+}
+
+@keyframes schematicHotspotImageResolve {
+  from { opacity: .72; transform: scale(.985); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes schematicHotspotContentResolve {
+  from { opacity: .72; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /*
- * Mobile compact horizontal card authority.
- * Keep the hotspot detail card as the original slim landscape component;
- * never allow loading geometry or product content to turn it into a tall card.
+ * Mobile reference geometry
+ * -------------------------
+ * Preserve the compact horizontal card shown in the product reference:
+ * left square-ish image well, information stack on the right, price + ADD
+ * aligned on the bottom row. Never turn this into a sheet/full-height card.
  */
 @media (max-width: 768px) {
-  .mobile-part-modal-overlay .schematic-hotspot-card.schematic-hotspot-card {
-    width: 100%;
-    min-height: 128px;
-    height: auto;
-    flex-direction: row;
-    align-items: stretch;
-    border-radius: 13px;
+  .mobile-part-modal-overlay .schematic-hotspot-card {
+    min-height: 0;
+    height: clamp(116px, 31vw, 128px);
+    max-height: 128px;
+    border-radius: 11px;
+    overflow: hidden;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__image.schematic-hotspot-card__image {
-    flex: 0 0 29%;
-    min-width: 0;
+  .mobile-part-modal-overlay .schematic-hotspot-card__image {
+    flex: 0 0 clamp(116px, 31vw, 128px);
+    width: clamp(116px, 31vw, 128px);
+    min-width: clamp(116px, 31vw, 128px);
+    height: 100%;
     align-self: stretch;
+    background: #ffffff;
   }
 
   .mobile-part-modal-overlay .schematic-hotspot-card__image img,
   .mobile-part-modal-overlay .schematic-hotspot-card__image .hotspot-modal-image {
     width: 100%;
     height: 100%;
-    min-width: 0;
-    min-height: 0;
-    max-width: 100%;
+    max-width: none;
     max-height: none;
-    object-fit: contain;
-    object-position: center;
-    padding: clamp(6px, 2vw, 9px);
     margin: 0;
+    padding: clamp(9px, 2.5vw, 12px);
+    box-sizing: border-box;
+    object-fit: contain;
+    object-position: center center;
+    border-radius: 0;
+    background: #ffffff;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__info.schematic-hotspot-card__info {
+  .mobile-part-modal-overlay .schematic-hotspot-card__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
     padding: 10px 11px 9px;
-    justify-content: flex-start;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__stock.schematic-hotspot-card__stock {
-    margin-bottom: 2px;
-    padding-right: 32px;
+  .mobile-part-modal-overlay .schematic-hotspot-card__stock {
+    order: -1;
+    margin: 0 0 3px;
+    padding-right: 31px;
+    line-height: 1.15;
+    font-size: 11px;
+  }
+
+  .mobile-part-modal-overlay .schematic-hotspot-card__title {
+    margin: 0 0 3px;
+    padding-right: 31px;
+    font-size: clamp(9.5px, calc(var(--hotspot-title-font-size, 16px) * .88), 13px);
+    line-height: 1.08;
+    letter-spacing: clamp(.01em, var(--hotspot-title-letter-spacing, .025em), .03em);
+    text-wrap: balance;
+  }
+
+  .mobile-part-modal-overlay .schematic-hotspot-card__sku {
+    margin: 0;
+    font-size: 10.5px;
     line-height: 1.15;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__title.schematic-hotspot-card__title {
-    margin-bottom: 2px;
-    padding-right: 32px;
-    line-height: 1.14;
-  }
-
-  .mobile-part-modal-overlay .schematic-hotspot-card__sku.schematic-hotspot-card__sku {
-    line-height: 1.15;
-    margin-bottom: 0;
-  }
-
-  .mobile-part-modal-overlay .schematic-hotspot-card__footer.schematic-hotspot-card__footer {
-    margin-top: 5px;
-    padding-top: 0;
+  .mobile-part-modal-overlay .schematic-hotspot-card__footer {
+    margin-top: auto;
+    padding-top: 4px;
     gap: 8px;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__cta.schematic-hotspot-card__cta {
-    min-height: 34px;
-    padding: 6px 12px;
-    border-radius: 7px;
+  .mobile-part-modal-overlay .schematic-hotspot-card__price {
+    font-size: clamp(14px, 4vw, 16px);
+    line-height: 1;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__close.schematic-hotspot-card__close {
+  .mobile-part-modal-overlay .schematic-hotspot-card__cta {
+    min-width: 54px;
+    min-height: 36px;
+    padding: 7px 11px;
+    border-radius: 8px;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .mobile-part-modal-overlay .schematic-hotspot-card__close {
     top: 7px;
     right: 7px;
     width: 27px;
     height: 27px;
     min-width: 27px;
     min-height: 27px;
+    border-radius: 7px;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__skeleton {
-    min-height: 108px;
-  }
-
-  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton {
-    gap: 5px;
-    margin: 0 32px 5px 0;
-  }
-
-  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton span:first-child,
-  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton span:last-child {
-    height: 12px;
+  .mobile-part-modal-overlay .schematic-hotspot-card__close svg {
+    width: 13px;
+    height: 13px;
   }
 
   .mobile-part-modal-overlay .schematic-hotspot-card__stock-skeleton {
-    height: 10px;
+    width: 64px;
+    height: 9px;
     margin-bottom: 4px;
   }
 
+  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton {
+    gap: 4px;
+    margin: 0 31px 5px 0;
+  }
+
+  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton span:first-child {
+    width: 93%;
+    height: 12px;
+  }
+
+  .mobile-part-modal-overlay .schematic-hotspot-card__title-skeleton span:last-child {
+    width: 68%;
+    height: 12px;
+  }
+
   .mobile-part-modal-overlay .schematic-hotspot-card__footer--loading {
-    margin-top: auto;
-    padding-top: 5px;
+    padding-top: 4px;
   }
 
   .mobile-part-modal-overlay .schematic-hotspot-card__price-skeleton {
@@ -207,27 +291,30 @@
   }
 
   .mobile-part-modal-overlay .schematic-hotspot-card__cta-skeleton {
-    width: 58px;
-    height: 34px;
-    border-radius: 7px;
+    width: 54px;
+    height: 36px;
+    border-radius: 8px;
   }
 }
 
-@media (max-width: 380px) {
-  .mobile-part-modal-overlay .schematic-hotspot-card.schematic-hotspot-card {
-    min-height: 122px;
+@media (max-width: 360px) {
+  .mobile-part-modal-overlay .schematic-hotspot-card {
+    height: 114px;
+    max-height: 114px;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__image.schematic-hotspot-card__image {
-    flex-basis: 28%;
+  .mobile-part-modal-overlay .schematic-hotspot-card__image {
+    flex-basis: 114px;
+    width: 114px;
+    min-width: 114px;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__info.schematic-hotspot-card__info {
-    padding: 9px 10px 8px;
+  .mobile-part-modal-overlay .schematic-hotspot-card__info {
+    padding: 8px 9px 8px;
   }
 
-  .mobile-part-modal-overlay .schematic-hotspot-card__skeleton {
-    min-height: 104px;
+  .mobile-part-modal-overlay .schematic-hotspot-card__title {
+    font-size: clamp(9px, calc(var(--hotspot-title-font-size, 16px) * .82), 12px);
   }
 }
 
@@ -236,24 +323,26 @@
   .schematic-hotspot-card__title-skeleton span,
   .schematic-hotspot-card__price-skeleton,
   .schematic-hotspot-card__cta-skeleton {
-    background: linear-gradient(90deg, rgba(51, 65, 85, 0.78), rgba(71, 85, 105, 0.9), rgba(51, 65, 85, 0.78));
-    background-size: 220% 100%;
+    background: #334155;
   }
 
-  .schematic-hotspot-card--resolving .schematic-hotspot-card__image {
-    background:
-      radial-gradient(circle at 50% 42%, rgba(96, 165, 250, 0.14), transparent 44%),
-      linear-gradient(180deg, #1e293b 0%, #172033 100%);
+  .schematic-hotspot-card--resolving .schematic-hotspot-card__image,
+  .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton {
+    background: #293548;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .schematic-hotspot-card__stock-skeleton,
-  .schematic-hotspot-card__title-skeleton span,
-  .schematic-hotspot-card__price-skeleton,
-  .schematic-hotspot-card__cta-skeleton,
-  .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
+  .schematic-hotspot-card__stock-skeleton::after,
+  .schematic-hotspot-card__title-skeleton span::after,
+  .schematic-hotspot-card__price-skeleton::after,
+  .schematic-hotspot-card__cta-skeleton::after,
+  .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton::after,
+  .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__image img,
+  .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__stock,
+  .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__title,
+  .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__sku,
+  .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__footer {
+    animation: none !important;
   }
 }
