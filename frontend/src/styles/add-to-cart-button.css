@@ -239,13 +239,29 @@
   box-shadow: 0 4px 10px rgba(15, 48, 108, 0.17);
 }
 
+/*
+ * Product-card add-to-cart: icon-only, compact circular button. The visible
+ * text label is intentionally hidden — the accessible name comes from the
+ * required `aria-label` prop (see StorefrontProductTile.jsx), so screen
+ * readers still announce "Add {product} to cart".
+ */
 .dtb-add-to-cart--card {
   --dtb-atc-height: 36px;
-  --dtb-atc-padding: 0 12px;
-  --dtb-atc-radius: 9px;
+  --dtb-atc-padding: 0;
+  --dtb-atc-radius: 50%;
   --dtb-atc-font-size: 0.76rem;
-  --dtb-atc-icon-size: 14px;
+  --dtb-atc-icon-size: 16px;
+  width: var(--dtb-atc-height);
+  min-width: var(--dtb-atc-height);
   box-shadow: 0 6px 14px rgba(15, 48, 108, 0.17);
+}
+
+.dtb-add-to-cart--card .dtb-add-to-cart__content {
+  gap: 0;
+}
+
+.dtb-add-to-cart--card .dtb-add-to-cart__label {
+  display: none;
 }
 
 .dtb-add-to-cart--wide {

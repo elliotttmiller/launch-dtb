@@ -1,7 +1,7 @@
 /* Product-card geometry and responsive presentation. */
 :root {
   --dtb-rail-tile-w: clamp(162px, 44vw, 188px);
-  --dtb-rail-tile-w-desktop: clamp(210px, 22vw, 248px);
+  --dtb-rail-tile-w-desktop: clamp(210px, 22vw, 240px);
 }
 
 .dtb-product-grid,.product-skeleton-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-items:stretch; gap:clamp(.625rem,2.8vw,.875rem); }
@@ -115,13 +115,13 @@
   .dtb-product-card--rail .dtb-product-card__divider { grid-row:4;margin:0;background:rgba(15,23,42,.1); }
   .dtb-product-card__footer { display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:.75rem;min-height:40px; }
   .dtb-product-card--grid .dtb-product-card__footer,
-  .dtb-product-card--rail .dtb-product-card__footer { grid-row:5;grid-template-columns:minmax(0,1fr) minmax(72px,auto);align-items:center;align-self:stretch;gap:.5rem;height:44px;min-height:44px;margin-top:0;padding-top:.45rem; }
+  .dtb-product-card--rail .dtb-product-card__footer { grid-row:5;grid-template-columns:minmax(0,1fr) auto;align-items:center;align-self:stretch;gap:.5rem;height:44px;min-height:44px;margin-top:0;padding-top:.45rem; }
   .dtb-product-card__price-group { display:grid;grid-template-columns:max-content minmax(0,1fr);min-width:0;max-width:100%;align-items:baseline;gap:.42rem;overflow:hidden; }
   .dtb-product-card__price,.dtb-product-card__compare-price { line-height:1.12;white-space:nowrap; }
   .dtb-product-card__price { font-size:clamp(.94rem,.78vw,1.05rem);letter-spacing:0; }
   .dtb-product-card__compare-price { min-width:0;max-width:100%;font-size:clamp(.7rem,.62vw,.78rem);overflow:hidden;text-overflow:ellipsis; }
-  .dtb-product-card__action { flex:0 0 auto;min-width:76px;min-height:38px;padding:0 12px; }
-  .dtb-product-card--grid .dtb-product-card__action { min-width:76px;min-height:36px; }
+  .dtb-product-card__action { flex:0 0 auto; }
+  .dtb-product-card--grid .dtb-product-card__action { min-width:36px;min-height:36px; }
   .dtb-product-card--list .dtb-product-card__footer { grid-template-columns:minmax(0,max-content) auto;justify-content:space-between; }
   .dtb-product-card--list { grid-template-columns:clamp(168px,18vw,220px) minmax(0,1fr);min-height:146px;transform:none; }
   .dtb-product-card--list:hover { transform:translateY(-1px); }

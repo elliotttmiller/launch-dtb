@@ -1,0 +1,74 @@
+/*
+ * Utility bar above the main navbar. Desktop-only (the mobile header is
+ * already dense — this stays out of it, matching the mobile-first pattern
+ * of hiding by default and revealing at the desktop breakpoint used by the
+ * rest of the header, see storefront-desktop-navigation.css).
+ * Content: "Expert Support" link + tel: phone number, both left-aligned,
+ * each with a small leading icon (Lucide, same icon set/size convention as
+ * StorefrontDesktopNavigation.jsx). Low visual weight, but a bit taller
+ * than a single line of small text so it doesn't read as cramped.
+ */
+.dtb-header-utility-bar {
+  display: none;
+}
+
+@media (min-width: 1025px) {
+  .dtb-header-utility-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--dtb-space-4);
+    width: 100%;
+    min-height: 40px;
+    padding: 10px clamp(var(--dtb-space-6), 3.4vw, 64px);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    background: var(--dtb-shell, #0a1020);
+  }
+
+  .dtb-header-utility-bar__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: rgba(203, 213, 225, 0.7);
+    font-family: var(--dtb-font-body, "Nunito", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: color 140ms ease;
+  }
+
+  .dtb-header-utility-bar__item svg {
+    flex: 0 0 auto;
+    color: rgba(147, 197, 253, 0.85);
+    transition: color 140ms ease;
+  }
+
+  .dtb-header-utility-bar__phone {
+    padding-left: var(--dtb-space-4);
+    border-left: 1px solid rgba(148, 163, 184, 0.22);
+  }
+
+  .dtb-header-utility-bar__item:hover,
+  .dtb-header-utility-bar__item:focus-visible {
+    color: #fff;
+    outline: none;
+  }
+
+  .dtb-header-utility-bar__item:hover svg,
+  .dtb-header-utility-bar__item:focus-visible svg {
+    color: #fff;
+  }
+
+  .dtb-header-utility-bar__item:focus-visible {
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+    border-radius: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-header-utility-bar__item,
+  .dtb-header-utility-bar__item svg {
+    transition: none;
+  }
+}

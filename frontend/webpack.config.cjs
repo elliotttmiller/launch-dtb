@@ -578,6 +578,26 @@ module.exports = (envFlags, argv) => {
           changeOrigin: true,
           secure: true,
         },
+        {
+          // WordPress media library (category thumbnails, product photos,
+          // etc). These are referenced throughout the app as root-relative
+          // URLs (e.g. utils/categoryThumbnailImages.js's
+          // `/wp-content/uploads/...`) that resolve correctly once the
+          // production build is deployed to the same origin as WordPress —
+          // but in local dev, localhost:5173 has no such path, so every
+          // WP-media <img> (ShopByToolType's tool-type tiles, the desktop
+          // mega menu's category thumbnails, etc.) 404s and shows the
+          // browser's broken-image glyph. Proxying it the same way as the
+          // REST endpoints above fixes it for every consumer, not just one
+          // component — confirmed the underlying live URLs are valid
+          // (e.g. https://elliottm4.sg-host.com/wp-content/uploads/2026/categories/thumbnails/automatic-tapers.webp
+          // returns real WebP image data), so this is purely a missing
+          // dev-proxy route, not a wrong asset path.
+          context: ['/wp-content'],
+          target: DEV_PROXY_TARGET,
+          changeOrigin: true,
+          secure: true,
+        },
       ],
       client: {
         overlay: { errors: true, warnings: false },

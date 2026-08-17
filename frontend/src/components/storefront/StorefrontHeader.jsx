@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { startTransition, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
-import { ShoppingCart, X, ChevronRight, User } from 'lucide-react';
+import { ShoppingCart, X, ChevronRight, User, Headset, Phone } from 'lucide-react';
 import LogoWhite from '/logo-white.svg';
 import StorefrontSearchOverlay from './StorefrontSearchOverlay';
 import StorefrontMobileDrawer from './StorefrontMobileDrawer';
@@ -14,9 +14,13 @@ import StorefrontCatalogAutocomplete from './StorefrontCatalogAutocomplete.jsx';
 import { useCatalogFacets } from '../../hooks/useCatalogFacets.js';
 import { getRepairPackageGroups } from '../../data/repairPackages.js';
 import { SCHEMATIC_BRANDS } from '../../data/schematicBrands.js';
+import { getBrandLogo } from '../../utils/brandAssets.js';
+import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import '../../styles/mobile-hamburger.css';
 import '../../styles/mobile-header-actions.css';
+import '../../styles/storefront-header-utility-bar.css';
 import {
+  buildCategoryPageUrl,
   buildDisplayCategoryUrl,
   mapCatalogBrands,
   mergeCatalogDisplayCategories,
@@ -27,6 +31,40 @@ import {
 const SEARCH_OVERLAY_EXIT_MS = 360;
 const MOBILE_SEARCH_DELAY_MS = 220;
 const MAX_SEARCH_PRODUCTS = 6;
+
+// The desktop "All Products" mega menu is a deliberately curated, fixed
+// top-level menu (two groups, five items each) matching the approved
+// mockup — it intentionally does NOT render the full live product-category
+// taxonomy (that full list still powers the mobile drawer's "All Products"
+// section via `drawerProductNavigation` below). Slugs must match real
+// WooCommerce category slugs so links/thumbnails resolve correctly; see
+// frontend/src/utils/categoryThumbnailImages.js for the canonical slug list.
+const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
+  {
+    slug: 'automatic-taping-tools',
+    label: 'Automatic Taping Tools',
+    viewAllLabel: 'View all Automatic Tools',
+    items: [
+      { slug: 'automatic-tapers', label: 'Automatic Tapers', description: 'High-speed taping with consistent results' },
+      { slug: 'automatic-taping-tool-cases', label: 'Automatic Taping Tool Cases', description: 'Durable cases for every taper' },
+      { slug: 'corner-boxes', label: 'Corner Boxes', description: 'Inside & outside corner solutions' },
+      { slug: 'flat-boxes', label: 'Flat Boxes', description: 'Finishing flat joints with precision' },
+      { slug: 'nail-spotters', label: 'Nail Spotters', description: 'Quick nail & screw head coverage' },
+    ],
+  },
+  {
+    slug: 'semi-automatic-taping-tools',
+    label: 'Semi-Automatic Taping Tools',
+    viewAllLabel: 'View all Semi-Automatic Tools',
+    items: [
+      { slug: 'semi-automatic-tapers', label: 'Semi-Automatic Tapers', description: 'Manual control. Maximum accuracy.' },
+      { slug: 'corner-flushers', label: 'Corner Finishers', description: 'Professional inside corner finishers' },
+      { slug: 'compound-tubes', label: 'Compound Tubes', description: 'Apply compound with ease' },
+      { slug: 'extendable-handles', label: 'Handles & Extensions', description: 'Reach farther, work smarter' },
+      { slug: 'semi-automatic-accessories', label: 'Accessories', description: 'Parts & add-ons for tapers' },
+    ],
+  },
+];
 
 const DRAWER_NAV_ROWS = [
   { to: '/products?sort=newest', label: 'New Arrivals' },
@@ -208,17 +246,33 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       label: 'All Products',
       landingTo: '/products',
       landingLabel: 'View all products',
+      landingDescription: 'Browse our complete collection of professional finishing tools.',
       description: 'Browse professional finishing tools by system and function.',
+      heading: 'Shop tools built for every phase of the job.',
       size: 'wide',
       columns: 2,
       activePrefixes: ['/products'],
-      items: drawerProductNavigation.map(({ label, to, slug, children }) => ({
-        label,
-        to,
-        slug,
-        children: Array.isArray(children)
-          ? children.map((child) => ({ label: child.label, to: child.to, slug: child.slug }))
-          : [],
+      // Curated fixed menu (see CURATED_DESKTOP_PRODUCT_TAXONOMY) — not the
+      // full live taxonomy, and no shared "View all products" footer card;
+      // each column gets its own "View all {Group}" link instead. The
+      // intro eyebrow/heading/subheading block is also removed for this
+      // panel specifically — not part of the approved mockup, which starts
+      // directly with the column headers.
+      hideFooter: true,
+      hideHeader: true,
+      items: CURATED_DESKTOP_PRODUCT_TAXONOMY.map((group) => ({
+        label: group.label,
+        to: buildCategoryPageUrl(group.slug),
+        slug: group.slug,
+        viewAllLabel: group.viewAllLabel,
+        viewAllTo: buildCategoryPageUrl(group.slug),
+        children: group.items.map((child) => ({
+          label: child.label,
+          to: buildCategoryPageUrl(child.slug),
+          slug: child.slug,
+          description: child.description,
+          thumbnail: resolveCategoryThumbnail({ slug: child.slug, key: child.slug }),
+        })),
       })),
     },
     {
@@ -226,21 +280,36 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       label: 'Brands',
       landingTo: '/products/brands',
       landingLabel: 'View all brands',
+      landingDescription: 'Browse our complete collection of professional tool brands.',
       description: 'Shop every professional brand in the catalog.',
+      heading: 'Shop professional brands you trust.',
       size: 'wide',
       columns: 2,
       activePrefixes: ['/products/brands'],
-      items: drawerBrands.map(({ name, slug }) => ({ label: name, to: buildProductsBrandRoute(slug) })),
+      items: drawerBrands.map(({ name, slug }) => ({
+        label: name,
+        to: buildProductsBrandRoute(slug),
+        description: `View ${name}`,
+        logo: getBrandLogo(slug) || getBrandLogo(name),
+      })),
     },
     {
       id: 'parts',
       label: 'Parts',
       landingTo: '/parts',
       landingLabel: 'View all replacement parts',
+      landingDescription: 'Browse our complete collection of replacement parts.',
       description: 'Choose a brand with available replacement parts.',
+      heading: 'Find OEM parts for your tools.',
+      size: 'wide',
       columns: 2,
       activePrefixes: ['/parts'],
-      items: partsBrands.map(({ name, slug }) => ({ label: name, to: buildPartsBrandRoute(slug) })),
+      items: partsBrands.map(({ name, slug }) => ({
+        label: name,
+        to: buildPartsBrandRoute(slug),
+        description: `Parts for ${name}`,
+        logo: getBrandLogo(slug) || getBrandLogo(name),
+      })),
     },
     {
       id: 'new-arrivals',
@@ -254,13 +323,22 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       label: 'Repair Services',
       landingTo: '/repairs',
       landingLabel: 'View all repair services',
+      landingDescription: 'Browse our complete collection of repair packages.',
       description: 'Compare repair packages for your tool type.',
+      heading: 'Get your tools back in the field, fast.',
+      size: 'wide',
+      columns: 2,
+      // Repair Services rows show only bold title + description + chevron,
+      // no icon box — explicitly requested, distinct from every other
+      // dropdown (All Products/Brands/Parts/Schematics all keep icons).
+      hideIcon: true,
       activePrefixes: ['/repairs'],
       items: getRepairPackageGroups()
         .filter(({ id }) => id !== 'diagnostic')
         .map(({ id, label }) => ({
           label,
           to: `/repairs/packages?tool=${encodeURIComponent(id)}`,
+          description: `View ${label} repair packages`,
         })),
     },
     {
@@ -268,11 +346,17 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       label: 'Schematics',
       landingTo: '/schematics',
       landingLabel: 'Open schematic selector',
+      landingDescription: 'Browse exploded-view schematics for every supported brand.',
       description: 'Open the schematic selector for a supported brand.',
+      heading: 'Find the right part with an exploded view.',
+      size: 'wide',
+      columns: 2,
       activePrefixes: ['/schematics'],
       items: SCHEMATIC_BRANDS.map(({ name, slug }) => ({
         label: name,
         to: buildSchematicsBrandRoute(slug),
+        description: `View ${name} schematics`,
+        logo: getBrandLogo(slug) || getBrandLogo(name),
       })),
     },
     {
@@ -289,7 +373,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       activePrefixes: ['/contact'],
       items: [],
     },
-  ], [drawerBrands, drawerProductNavigation, partsBrands]);
+  ], [drawerBrands, partsBrands]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeMenus = () => {
@@ -617,6 +701,16 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   return (
     <>
       <header className="site-header site-header--no-ticker" role="banner">
+        <div className="dtb-header-utility-bar">
+          <Link to="/contact" className="dtb-header-utility-bar__item">
+            <Headset size={15} strokeWidth={2} aria-hidden="true" />
+            Expert Support
+          </Link>
+          <a href="tel:+16098665269" className="dtb-header-utility-bar__item dtb-header-utility-bar__phone">
+            <Phone size={15} strokeWidth={2} aria-hidden="true" />
+            (609) 866-5269
+          </a>
+        </div>
         <div className="site-header-inner">
           <div className="header-mobile-layout" style={{ display: isTablet ? 'flex' : undefined }}>
             <div className="header-mobile-slot header-mobile-slot--left">
