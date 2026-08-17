@@ -2,22 +2,26 @@
 
 ## Purpose
 
-`scripts/catalog/competitor_endpoint_probe.py` is read-only diagnostic tooling that inventories the public JSON, JavaScript product endpoints, fetch/XHR requests, and API-like network structures used by the configured competitor storefronts.
+`scripts/catalog/competitor_endpoint_probe.py` is the final read-only diagnostic used before integrating structured competitor fetching into `competitor_price_research.py`.
 
-It does not rank endpoints, recommend a preferred extraction method, modify the production price scraper, or update the canonical catalog, WooCommerce, Veeqo, QuickBooks, pricing, MAP, inventory, or protected identifiers.
+It inventories public commerce JSON, JavaScript product payloads, fetch/XHR requests, storefront APIs, and reusable endpoint structures. It does not rank endpoints or choose a preferred production adapter.
 
-The probe answers:
+The probe is intentionally complete enough that the next step after one clean run is implementation in the production research scraper, not another probe redesign.
 
-1. What network requests does a real public product page make in Chromium?
-2. Which responses are fetch/XHR, JSON, parseable JavaScript product payloads, or API-like routes?
-3. What reusable endpoint structures/templates exist on each storefront?
-4. Do safe product-derived `.js` or `.json` GET endpoints exist?
+## Scope
 
-## Why Chromium is used
+The probe:
 
-A normal HTTP client cannot see requests initiated by storefront JavaScript after page load. Playwright is isolated to this diagnostic so Chromium can observe the real public browser response stream. The production competitor price-research script remains cloudscraper-based.
+1. opens representative public product pages in Chromium;
+2. records the full browser response stream for auditability;
+3. isolates commerce-relevant structured endpoints from analytics/static noise;
+4. performs bounded GET-only product-derived probes;
+5. detects Shopify, BigCommerce, SuiteCommerce/NetSuite, Magento, and WooCommerce hints;
+6. performs safe platform-aware probes where a public product identifier is already rendered;
+7. replays a bounded set of observed public GET fetch/XHR endpoints to confirm they are directly fetchable;
+8. exports reusable endpoint templates and observed JSON schema keys.
 
-The probe does not execute authenticated workflows or attempt to bypass access controls.
+It never updates the DTB catalog, WooCommerce, Veeqo, QuickBooks, pricing, inventory, MAP, or protected identifiers.
 
 ## Install
 
@@ -43,61 +47,66 @@ Selected sites:
 python scripts/catalog/competitor_endpoint_probe.py --sites csr_building all_wall
 ```
 
-Override a representative public product page:
+Add one or more representative pages for the same site by repeating `--url`:
 
 ```powershell
 python scripts/catalog/competitor_endpoint_probe.py `
-  --url csr_building=https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr
+  --sites csr_building `
+  --url csr_building=https://csrbuilding.com/en-us/products/product-a `
+  --url csr_building=https://csrbuilding.com/en-us/products/product-b
 ```
+
+When any `--url` values are supplied for a site, those pages replace that site's built-in representative page for the run.
 
 Use `--headed` to watch Chromium.
 
-## Output
+## Outputs
 
 Default directory:
 
 `reports/pricing/competitor-endpoint-probe/`
 
-The probe intentionally exports inventory rather than recommendations.
-
 ### `network_observations.csv`
 
-All observed browser responses plus the small direct-probe set. This is the raw network metadata audit.
+Raw response metadata for every observed browser response plus explicit product/platform probes and direct replays.
+
+This is the audit trail. It intentionally includes static assets and unrelated third-party traffic so nothing observed by Chromium is hidden.
 
 Fields include:
 
-- site key
-- source (`browser` or `direct_probe`)
-- method
-- resource type
-- status
-- redacted URL
-- content type
-- response length when known
-- same-origin flag
-- whether the body parsed as JSON-compatible structured data
-- platform hint
-- detected product-related JSON field names
-- observed JSON keys
-- direct-probe elapsed time
+- site key and representative page;
+- source (`browser`, `direct_product_probe`, `platform_probe`, or `direct_replay`);
+- method and resource type;
+- status;
+- redacted URL;
+- content type and size;
+- same-origin status;
+- structured JSON status;
+- platform hint;
+- detected product/catalog fields;
+- observed JSON keys;
+- direct-request elapsed time where applicable.
 
 ### `structured_endpoints.csv`
 
-A filtered endpoint inventory containing responses that meet at least one of these structural conditions:
+This is the actionable endpoint inventory.
 
-- browser `fetch`
-- browser `xhr`
-- parseable JSON/structured response
-- direct `.js` / `.json` product probe
-- `.json` URL
-- product/API/service/search/recommendation-like route
-- structured product `.js` response
+Unlike `network_observations.csv`, it excludes known analytics/tracking traffic and static CSS/image/font/script assets unless the response itself is a parseable structured payload relevant to storefront data.
 
-This file does **not** imply that any endpoint is authoritative or preferred. It is simply the complete candidate inventory produced by the scan.
+A finding must be an actual successful response and satisfy a commerce/structured condition such as:
+
+- parseable JSON from fetch/XHR;
+- product/catalog fields such as SKU, MPN, price, barcode, variants, currency, vendor, or title;
+- a same-origin commerce API/service route;
+- a successful explicit product `.js` / `.json` probe;
+- a successful platform probe;
+- a successful direct replay of a structured public GET endpoint.
+
+Third-party search/recommendation APIs remain visible when they return structured product data. They are inventory findings, not endorsements.
 
 ### `endpoint_patterns.csv`
 
-Deduplicated reusable endpoint structures. Dynamic product handles, long numeric IDs, UUID-like path segments, and query values are generalized where possible.
+Deduplicated reusable endpoint contracts derived from the successful structured findings.
 
 Examples:
 
@@ -106,101 +115,132 @@ https://csrbuilding.com/en-us/products/{handle}.js
 ```
 
 ```text
-https://www.all-wall.com/api/cacheable/items?country={value}&currency={value}&url={value}
+https://www.all-wall.com/api/cacheable/items?c={site_id}&country={country}&currency={currency}&fieldset={fieldset}&url={product_slug}&pricelevel={price_level}
 ```
 
-Each pattern also reports:
+Common query values use semantic placeholders where possible:
 
-- endpoint kind
-- HTTP method
-- same-origin status
-- observed content types
-- observed status codes
-- observation sources
-- platform hints
-- number of observations
-- one concrete redacted example URL
-- product-related fields seen in structured payloads
+- `{product_slug}`
+- `{handle}`
+- `{product_id}`
+- `{variant_id}`
+- `{sku}`
+- `{country}`
+- `{currency}`
+- `{locale}`
+- `{fieldset}`
+- `{price_level}`
+- `{site_id}`
 
-There is no ranking or confidence field.
+Long numeric path IDs and UUIDs are generalized as `{id}` and `{uuid}`.
+
+Pattern metadata includes:
+
+- endpoint kind;
+- HTTP method;
+- endpoint template;
+- same-origin flag;
+- content types and status codes;
+- observation sources/resource types;
+- platform hints;
+- observed/successful/structured counts;
+- whether a direct GET was confirmed;
+- one concrete redacted example URL;
+- detected product fields;
+- observed JSON keys.
+
+There is no ranking, score, confidence, or recommendation field.
 
 ### `endpoint_probe.json`
 
-Machine-readable run summary containing counts and the full endpoint-pattern inventory grouped by site.
+Schema version 3 is a machine-readable integration inventory. It includes:
 
-It contains no recommendation section.
+- detected platforms by competitor;
+- final pages observed;
+- raw and filtered counts;
+- detected product/catalog fields by site;
+- the complete endpoint-pattern inventory;
+- output paths;
+- explicit security assertions.
 
-## Direct product probes
+## Platform-aware behavior
 
-The diagnostic performs only a small bounded set of GET-only product-derived probes.
+### Shopify / CSR
 
-For a URL containing `/products/<handle>`, it tests:
-
-```text
-/products/<handle>.js
-/products/<handle>.json
-```
-
-For a non-`/products/` page it tests the page URL with `.js` and `.json` suffixes.
-
-These probes are diagnostic only; failures are recorded rather than treated as errors for the overall scan.
-
-## CSR US market rule
-
-CSR research is US/USD scoped. For a page such as:
+CSR is US/USD scoped. Explicit product probes are always constrained to:
 
 ```text
-https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr
+https://csrbuilding.com/en-us/products/{handle}.js
+https://csrbuilding.com/en-us/products/{handle}.json
 ```
 
-the explicit direct probes are constrained to:
+The browser may independently request other CSR locales. Those remain only in the raw observation stream unless they independently satisfy the filtered endpoint rules.
+
+### BigCommerce / Al's and Wall Tools
+
+The browser network remains the primary source of truth. If the public product page renders a numeric product ID, the probe also safely tests public GET-only storefront product forms:
 
 ```text
-https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.js
-https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.json
+/api/storefront/products/{product_id}
+/api/storefront/products/{product_id}/attributes
 ```
 
-The browser observation file may still show other requests made by CSR's own page JavaScript. Those are observations, not endorsements. The diagnostic does not rank them or substitute them for the US endpoint.
+Failures simply remain raw probe observations; they do not fail the run.
 
-## Endpoint pattern interpretation
+Observed structured BigCommerce fetch/XHR endpoints are also replayed once, subject to the replay cap, so the report records whether the GET structure is directly fetchable in the public browser context.
 
-The probe deliberately separates discovery from architectural decisions.
+### SuiteCommerce / All-Wall
 
-A finding such as:
+The probe does not invent NetSuite endpoints. It records the actual public SuiteCommerce requests emitted by the product page, including `/api/cacheable/items` and `/scs/services/...` structures when observed.
 
-```text
-/api/cacheable/items?... 
-```
+Relevant public GET fetch/XHR endpoints are replayed once to confirm their response structure and schema independently of the page's original request event.
 
-means only that the public storefront used or exposed that network structure during the observed page load.
+## Noise filtering
 
-A finding such as:
+Only `structured_endpoints.csv` and `endpoint_patterns.csv` are filtered. `network_observations.csv` remains complete.
 
-```text
-/recommend/...
-```
+The filtered inventory excludes known analytics/telemetry hosts and routes, including common Google Analytics/DoubleClick, Facebook, Pinterest, Bing, TikTok, Hotjar, New Relic, Sentry, and similar tracking traffic.
 
-is still retained because it is a real endpoint, even if it belongs to a recommendation/search provider rather than the authoritative product catalog.
+It also excludes normal stylesheets, images, fonts, and media. JavaScript bundles are excluded unless they parse as structured JSON and meet the commerce finding rules.
 
-This is intentional. The purpose of the diagnostic is to expose **all relevant JSON/JS/API/fetch structures**, not decide which one should be used by production code.
+This prevents paths such as `webfont.js`, analytics `/collect`, marketing pixels, and static Searchspring bundles from polluting the API inventory while preserving genuine structured Searchspring/Findify product responses.
 
-## Security and data handling
+## Direct replay safety
 
-The probe operates against public storefront pages and uses GET requests for direct endpoint tests.
+The scanner only replays observed `GET` fetch/XHR endpoints. It does not replay POST requests or URLs containing redacted sensitive query values.
+
+A maximum of 12 observed endpoints per representative page are replayed. This keeps the diagnostic bounded and prevents the probe from turning into a high-volume crawler.
+
+## Security
+
+The tool operates only against public storefront pages.
 
 It does not persist:
 
-- cookies
-- authorization headers
-- request bodies
-- response bodies
-- browser storage
-- tokens or secrets
+- cookies;
+- authorization headers;
+- request bodies;
+- response bodies;
+- browser storage;
+- tokens or secrets.
 
-Potentially sensitive query values are redacted before URLs are written to disk.
+Sensitive query values are redacted before persistence. Explicit probes and replays are GET-only.
 
-Do not extend this tool to authenticate into competitor accounts, bypass access controls, solve CAPTCHAs, or replay private customer/session APIs.
+Do not extend the tool to authenticate into competitor accounts, bypass access controls, solve CAPTCHAs, or replay private customer/session APIs.
 
-## Ownership
+## Integration handoff
 
-This tool belongs in `scripts/catalog/` as deterministic operational research tooling. It discovers public endpoint structures only. Any subsequent production scraper change must be separately validated for identity, currency, pricing semantics, variants, availability, rate limits, and fallback behavior before becoming an extraction contract.
+After the final probe run, use `endpoint_patterns.csv`, `structured_endpoints.csv`, and `endpoint_probe.json` to implement dedicated site adapters in `competitor_price_research.py`.
+
+The production adapter must still validate, per site:
+
+- product identity;
+- US/USD market scope where required;
+- SKU/MPN/GTIN semantics;
+- current vs regular/sale price semantics;
+- variants;
+- availability where used;
+- response/rate-limit behavior;
+- HTML fallback behavior.
+
+The endpoint probe is discovery tooling only. Once this final schema is generated, the next task is the production research-script integration.
