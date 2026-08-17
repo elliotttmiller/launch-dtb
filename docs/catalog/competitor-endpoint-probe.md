@@ -2,25 +2,24 @@
 
 ## Purpose
 
-`scripts/catalog/competitor_endpoint_probe.py` is read-only diagnostic tooling used to determine the most efficient public product-data extraction path for each competitor storefront before changing the production price-research scraper.
+`scripts/catalog/competitor_endpoint_probe.py` is read-only diagnostic tooling that inventories the public JSON, JavaScript product endpoints, fetch/XHR requests, and API-like network structures used by the configured competitor storefronts.
 
-It does not update the canonical catalog, WooCommerce, Veeqo, QuickBooks, pricing, MAP, inventory, or protected identifiers.
+It does not rank endpoints, recommend a preferred extraction method, modify the production price scraper, or update the canonical catalog, WooCommerce, Veeqo, QuickBooks, pricing, MAP, inventory, or protected identifiers.
 
-The probe answers three questions per competitor:
+The probe answers:
 
-1. What network requests does a real product page make in Chromium?
-2. Does the storefront expose a smaller structured product endpoint such as Shopify `.js`, JSON, fetch/XHR, or another public API response?
-3. Which observed/probed endpoint contains enough product identity and price fields to replace full HTML scraping safely?
+1. What network requests does a real public product page make in Chromium?
+2. Which responses are fetch/XHR, JSON, parseable JavaScript product payloads, or API-like routes?
+3. What reusable endpoint structures/templates exist on each storefront?
+4. Do safe product-derived `.js` or `.json` GET endpoints exist?
 
-## Why a browser observer is used
+## Why Chromium is used
 
-A normal HTTP client can inspect HTML and static assets, but it cannot see requests initiated by storefront JavaScript after page load. Playwright is used only for this diagnostic because Chromium exposes the actual response stream for document, script, fetch, XHR, JSON, image, and third-party requests.
+A normal HTTP client cannot see requests initiated by storefront JavaScript after page load. Playwright is isolated to this diagnostic so Chromium can observe the real public browser response stream. The production competitor price-research script remains cloudscraper-based.
 
-The production price scraper remains cloudscraper-based. Playwright is not added to its runtime path.
+The probe does not execute authenticated workflows or attempt to bypass access controls.
 
 ## Install
-
-Use an isolated environment:
 
 ```powershell
 python -m venv .venv-endpoint-probe
@@ -30,33 +29,28 @@ python -m pip install -r scripts/catalog/competitor_endpoint_probe.requirements.
 python -m playwright install chromium
 ```
 
-## Standard run
+## Run
+
+All configured competitors:
 
 ```powershell
 python scripts/catalog/competitor_endpoint_probe.py
 ```
 
-The default representative pages cover:
-
-- Al's Taping Tools
-- All-Wall
-- Wall Tools
-- CSR Building Supplies US
-
-Probe only selected sites:
+Selected sites:
 
 ```powershell
 python scripts/catalog/competitor_endpoint_probe.py --sites csr_building all_wall
 ```
 
-Override a representative product page without editing the script:
+Override a representative public product page:
 
 ```powershell
 python scripts/catalog/competitor_endpoint_probe.py `
   --url csr_building=https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr
 ```
 
-Use `--headed` when you want to watch Chromium during diagnosis.
+Use `--headed` to watch Chromium.
 
 ## Output
 
@@ -64,91 +58,137 @@ Default directory:
 
 `reports/pricing/competitor-endpoint-probe/`
 
+The probe intentionally exports inventory rather than recommendations.
+
 ### `network_observations.csv`
 
-One row per observed browser response plus the small set of direct GET probes. Fields include:
+All observed browser responses plus the small direct-probe set. This is the raw network metadata audit.
+
+Fields include:
 
 - site key
-- observation source (`browser` or `direct_probe`)
-- HTTP method
-- browser resource type
+- source (`browser` or `direct_probe`)
+- method
+- resource type
 - status
 - redacted URL
 - content type
-- content length when known
+- response length when known
 - same-origin flag
-- whether the response parsed as structured JSON
-- product-data score
-- storefront/platform hint
-- direct-probe elapsed time when available
+- whether the body parsed as JSON-compatible structured data
+- platform hint
+- detected product-related JSON field names
+- observed JSON keys
+- direct-probe elapsed time
 
-The CSV is intentionally metadata-only. Request bodies and response bodies are not persisted.
+### `structured_endpoints.csv`
 
-### `site_recommendations.csv`
+A filtered endpoint inventory containing responses that meet at least one of these structural conditions:
 
-One concise row per competitor with:
+- browser `fetch`
+- browser `xhr`
+- parseable JSON/structured response
+- direct `.js` / `.json` product probe
+- `.json` URL
+- product/API/service/search/recommendation-like route
+- structured product `.js` response
 
-- recommended extraction method
-- concrete successful endpoint
-- reusable endpoint template where identifiable
-- product-data score
-- content type and response size
-- status
-- confidence
-- fallback recommendation
+This file does **not** imply that any endpoint is authoritative or preferred. It is simply the complete candidate inventory produced by the scan.
+
+### `endpoint_patterns.csv`
+
+Deduplicated reusable endpoint structures. Dynamic product handles, long numeric IDs, UUID-like path segments, and query values are generalized where possible.
+
+Examples:
+
+```text
+https://csrbuilding.com/en-us/products/{handle}.js
+```
+
+```text
+https://www.all-wall.com/api/cacheable/items?country={value}&currency={value}&url={value}
+```
+
+Each pattern also reports:
+
+- endpoint kind
+- HTTP method
+- same-origin status
+- observed content types
+- observed status codes
+- observation sources
+- platform hints
+- number of observations
+- one concrete redacted example URL
+- product-related fields seen in structured payloads
+
+There is no ranking or confidence field.
 
 ### `endpoint_probe.json`
 
-Machine-readable summary of the same recommendations plus artifact locations and explicit security assertions.
+Machine-readable run summary containing counts and the full endpoint-pattern inventory grouped by site.
 
-## Ranking
+It contains no recommendation section.
 
-The probe scores structured payloads by the presence of product-research fields such as:
+## Direct product probes
 
-- title/name
-- handle
-- vendor/brand
-- SKU
-- MPN
-- barcode/GTIN
-- price
-- compare-at price
-- variants
-- availability
+The diagnostic performs only a small bounded set of GET-only product-derived probes.
 
-Preference order is intentionally simple:
+For a URL containing `/products/<handle>`, it tests:
 
-1. Shopify product `.js` when it returns strong product data;
-2. observed same-page fetch/XHR structured responses;
-3. other successful structured JSON GET responses;
-4. existing HTML/JSON-LD extraction as fallback.
+```text
+/products/<handle>.js
+/products/<handle>.json
+```
 
-A structured endpoint recommendation does not automatically modify `competitor_price_research.py`. It should first be validated across several products from that competitor so endpoint behavior, currency, variants, identifiers, and rate limits are understood.
+For a non-`/products/` page it tests the page URL with `.js` and `.json` suffixes.
 
-## CSR market rule
+These probes are diagnostic only; failures are recorded rather than treated as errors for the overall scan.
 
-CSR is researched as a US/USD competitor. The probe therefore derives CSR product API candidates only from the `/en-us/products/<handle>` storefront and does not intentionally probe the root Canadian `/products/<handle>` endpoint.
+## CSR US market rule
 
-For a CSR collection URL such as:
+CSR research is US/USD scoped. For a page such as:
 
 ```text
 https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr
 ```
 
-the direct candidates are based on:
+the explicit direct probes are constrained to:
 
 ```text
 https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.js
 https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.json
 ```
 
-This protects the research workflow from mixing CAD and USD product pricing.
+The browser observation file may still show other requests made by CSR's own page JavaScript. Those are observations, not endorsements. The diagnostic does not rank them or substitute them for the US endpoint.
+
+## Endpoint pattern interpretation
+
+The probe deliberately separates discovery from architectural decisions.
+
+A finding such as:
+
+```text
+/api/cacheable/items?... 
+```
+
+means only that the public storefront used or exposed that network structure during the observed page load.
+
+A finding such as:
+
+```text
+/recommend/...
+```
+
+is still retained because it is a real endpoint, even if it belongs to a recommendation/search provider rather than the authoritative product catalog.
+
+This is intentional. The purpose of the diagnostic is to expose **all relevant JSON/JS/API/fetch structures**, not decide which one should be used by production code.
 
 ## Security and data handling
 
-The probe operates only against public storefront pages and uses GET requests for its direct endpoint tests.
+The probe operates against public storefront pages and uses GET requests for direct endpoint tests.
 
-It does **not** persist:
+It does not persist:
 
 - cookies
 - authorization headers
@@ -157,21 +197,10 @@ It does **not** persist:
 - browser storage
 - tokens or secrets
 
-Common token/signature/key query values are redacted before URLs are written to disk.
+Potentially sensitive query values are redacted before URLs are written to disk.
 
-Do not extend this tool to authenticate into competitor accounts, bypass access controls, solve CAPTCHAs, or replay private customer/session APIs. The objective is only to identify public product-data interfaces already used by the storefront.
+Do not extend this tool to authenticate into competitor accounts, bypass access controls, solve CAPTCHAs, or replay private customer/session APIs.
 
-## Interpreting results
+## Ownership
 
-A high-confidence structured endpoint is a candidate for a dedicated site adapter in `competitor_price_research.py`. The preferred production pattern is:
-
-```text
-site adapter
-  -> lightweight structured product GET
-  -> validate market/currency + identity + price
-  -> normalize Listing
-  -> existing catalog matcher
-  -> HTML/JSON-LD fallback on endpoint failure
-```
-
-Do not force all competitors through one endpoint convention. Shopify `.js` is appropriate where available, while other storefront platforms may expose different public JSON/fetch interfaces or may still be best handled by HTML/JSON-LD.
+This tool belongs in `scripts/catalog/` as deterministic operational research tooling. It discovers public endpoint structures only. Any subsequent production scraper change must be separately validated for identity, currency, pricing semantics, variants, availability, rate limits, and fallback behavior before becoming an extraction contract.

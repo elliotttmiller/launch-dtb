@@ -9,8 +9,7 @@ SCRIPT_DIR = Path(__file__).resolve().parents[1]
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-# Helper tests do not launch Chromium. Provide a minimal import shim so this regression
-# suite can validate URL/candidate/ranking behavior without installing browser binaries.
+# Helper tests do not launch Chromium.
 if "playwright.sync_api" not in sys.modules:
     playwright_module = types.ModuleType("playwright")
     sync_api_module = types.ModuleType("playwright.sync_api")
@@ -43,50 +42,76 @@ class CompetitorEndpointProbeTests(unittest.TestCase):
         self.assertIn("token=%5BREDACTED%5D", value)
         self.assertNotIn("secret", value)
 
-    def test_shopify_js_with_product_fields_wins_recommendation(self) -> None:
-        observations = [
-            probe.NetworkObservation(
-                site_key="csr_building",
-                source="direct_probe",
-                method="GET",
-                resource_type="probe",
-                status=200,
-                url="https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.js",
-                content_type="application/json",
-                content_length=1200,
-                same_origin=True,
-                structured=True,
-                product_score=22,
-                platform_hint="shopify",
-                elapsed_ms=80,
-            ),
-            probe.NetworkObservation(
-                site_key="csr_building",
-                source="browser",
-                method="GET",
-                resource_type="document",
-                status=200,
-                url="https://csrbuilding.com/en-us/products/columbia-corner-roller-cr",
-                content_type="text/html",
-                content_length=150000,
-                same_origin=True,
-                structured=False,
-                product_score=0,
-                platform_hint="shopify",
-            ),
-        ]
-        result = probe.choose_recommendation(
-            "csr_building",
-            "https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr",
-            "https://csrbuilding.com/en-us/products/columbia-corner-roller-cr",
-            observations,
-        )
-        self.assertEqual("shopify_product_js", result.recommended_method)
-        self.assertEqual("high", result.confidence)
+    def test_endpoint_template_preserves_shopify_locale_and_suffix(self) -> None:
         self.assertEqual(
             "https://csrbuilding.com/en-us/products/{handle}.js",
-            result.endpoint_template,
+            probe.endpoint_template("https://csrbuilding.com/en-us/products/columbia-corner-roller-cr.js"),
         )
+
+    def test_endpoint_template_generalizes_query_values(self) -> None:
+        value = probe.endpoint_template(
+            "https://www.all-wall.com/api/cacheable/items?country=US&currency=USD&url=TapeTech-Taper"
+        )
+        self.assertEqual(
+            "https://www.all-wall.com/api/cacheable/items?country=%7Bvalue%7D&currency=%7Bvalue%7D&url=%7Bvalue%7D",
+            value,
+        )
+
+    def test_fetch_and_structured_responses_are_inventory_findings(self) -> None:
+        fetch = probe.NetworkObservation(
+            site_key="all_wall",
+            source="browser",
+            method="GET",
+            resource_type="fetch",
+            status=200,
+            url="https://www.all-wall.com/api/cacheable/items?url=Example",
+            content_type="application/json",
+            content_length=1000,
+            same_origin=True,
+            structured=True,
+            platform_hint="suitecommerce",
+            detected_fields="price|sku|title",
+            json_keys="items|price|sku|title",
+        )
+        self.assertTrue(probe.is_endpoint_finding(fetch))
+        self.assertEqual("browser_fetch", probe.endpoint_kind(fetch))
+
+    def test_patterns_group_duplicate_endpoint_structures_without_ranking(self) -> None:
+        observations = [
+            probe.NetworkObservation(
+                site_key="all_wall",
+                source="browser",
+                method="GET",
+                resource_type="xhr",
+                status=200,
+                url="https://www.all-wall.com/api/cacheable/items?country=US&url=Product-A",
+                content_type="application/json",
+                content_length=1000,
+                same_origin=True,
+                structured=True,
+                platform_hint="suitecommerce",
+                detected_fields="price|sku",
+            ),
+            probe.NetworkObservation(
+                site_key="all_wall",
+                source="browser",
+                method="GET",
+                resource_type="xhr",
+                status=200,
+                url="https://www.all-wall.com/api/cacheable/items?country=US&url=Product-B",
+                content_type="application/json",
+                content_length=1100,
+                same_origin=True,
+                structured=True,
+                platform_hint="suitecommerce",
+                detected_fields="price|title",
+            ),
+        ]
+        patterns = probe.build_patterns(observations)
+        self.assertEqual(1, len(patterns))
+        self.assertEqual(2, patterns[0].observed_count)
+        self.assertEqual("price|sku|title", patterns[0].detected_fields)
+        self.assertNotIn("rank", patterns[0].__dataclass_fields__)
 
 
 if __name__ == "__main__":
