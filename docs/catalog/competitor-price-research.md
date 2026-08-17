@@ -55,51 +55,51 @@ Default output directory:
 
 ## Throughput model
 
-The scraper is network-I/O bound, so it uses a small bounded `ThreadPoolExecutor` rather than multiprocessing.
+The scraper is network-I/O bound, so it uses a bounded `ThreadPoolExecutor` rather than multiprocessing.
 
 Production defaults:
 
-- 8 concurrent product-page workers per competitor;
+- 10 concurrent product-page workers for the active competitor;
 - one persistent `cloudscraper` session per worker thread;
 - minimum 0.20 seconds between request starts to the same host;
 - 20 second request timeout;
 - 2 bounded retries for transient HTTP/network failures;
 - maximum 16 workers accepted by the CLI.
 
-The shared host gate means additional workers overlap network latency but do not create an uncontrolled burst of requests. The default 0.20-second interval caps request starts at approximately five per second per competitor host.
+The shared host gate lets workers overlap network latency without creating an uncontrolled burst. The default 0.20-second interval caps request starts at approximately five per second to one competitor host.
 
-If a target becomes unstable or starts returning 403/429 responses, reduce concurrency or increase the interval rather than increasing retries.
+Competitor sites are processed sequentially. Multi-site parallel crawling is intentionally not enabled because the current simpler single-site executor already provides bounded concurrency and keeps persistence/state ownership straightforward.
 
-Example conservative run:
+If a target becomes unstable or starts returning 403/429 responses, reduce concurrency or increase the interval instead of increasing retries.
 
-```powershell
-python scripts/catalog/competitor_price_research.py --workers 4 --request-interval 0.35
-```
+## Hot-path persistence
 
-Example faster local diagnostic run:
-
-```powershell
-python scripts/catalog/competitor_price_research.py --workers 10 --request-interval 0.20
-```
-
-Do not exceed 16 workers through this script.
-
-## Live persistence
-
-The scraper does not wait for the complete crawl before saving results.
+The scraper does not wait for the complete crawl before saving important research data.
 
 After every successful in-scope product extraction it immediately:
 
 1. appends normalized scrape evidence to `competitor_scrape_evidence.jsonl`;
 2. matches only the newly scraped listing(s) against the DTB catalog;
-3. appends new accepted product-vs-product matches to `competitor_price_matches.csv`;
-4. updates `run_summary.json`.
+3. appends new accepted product-vs-product matches to `competitor_price_matches.csv`.
 
-The expensive aggregate reports are rebuilt only at lightweight checkpoints: every 50 successful product pages, after roughly 10 seconds when results are flowing more slowly, at the end of each competitor, and on normal/interrupted exit.
+The evidence and primary match files stay open for the lifetime of the run and are flushed after successful writes. This avoids repeated Windows open/close overhead while preserving live durability.
 
-This avoids the previous performance problem where every successful page rematched all accumulated listings and rewrote every report from scratch.
+`run_summary.json` and the aggregate CSV reports are not rewritten after every product. They are checkpointed:
 
-If the process is interrupted with `Ctrl+C`, evidence and primary matches already written remain usable and the aggregate reports are checkpointed before exit.
+- every 100 successful product pages; or
+- after approximately 30 seconds when successful results are arriving more slowly;
+- at the end of each competitor;
+- on normal completion or interruption.
+
+Progress telemetry is emitted every 100 processed candidate URLs and includes both total accepted match observations and unique matched DTB SKUs.
+
+This is deliberately less frequent than the previous 50-page / 10-second checkpoint behavior. Fewer aggregate rewrites reduce disk and CPU overhead; they do not affect immediate evidence and primary-match persistence.
+
+### Windows file locks
+
+Diagnostic/aggregate report locks must not terminate the crawl. If Windows temporarily locks `run_summary.json`, replacement is retried briefly and then skipped with a warning. Aggregate CSV checkpoint writes that are locked are also skipped with a warning. The scraper continues collecting evidence and primary matches.
+
+Avoid opening live output files in applications that take exclusive write locks during a run.
 
 ## Discovery
 
@@ -110,7 +110,7 @@ The scraper does not blindly fetch every storefront URL. It:
 3. keeps structurally plausible product URLs;
 4. scores URLs against the active DTB catalog using protected identifiers, brand aliases, and meaningful product-name/model tokens;
 5. keeps high-confidence candidates plus a small deterministic fallback pool;
-6. fetches only the selected product pages.
+6. fetches only selected product pages.
 
 Default discovery controls:
 
@@ -130,6 +130,8 @@ For each fetched product page extraction prefers:
 
 Rich internal listing evidence includes identifiers, regular/sale/current price, currency, availability, variant, parser source, retrieval timestamp, discovery score/reasons, source URL, and an HTML SHA-256 hash. Raw HTML is not persisted.
 
+The current BeautifulSoup parser remains unchanged. Parser replacement with `lxml` should be benchmarked before adding another runtime dependency because network latency and filesystem churn are currently the larger measured architectural bottlenecks.
+
 ## Matching
 
 Competitor listings are matched conservatively:
@@ -142,13 +144,13 @@ Competitor listings are matched conservatively:
 
 Cross-brand conflicts and ambiguous fuzzy results remain unmatched.
 
+`matches` means accepted competitor observation rows. One DTB SKU may have multiple observations from different competitor pages/sites. `matched_skus` / `matched_catalog_products` is the unique DTB SKU count.
+
 ## Primary output
 
 ### `competitor_price_matches.csv`
 
-This is the concise human-facing product-vs-product pricing report.
-
-Exact columns:
+Concise product-vs-product pricing report:
 
 ```text
 dtb_sku,dtb_name,price_delta,dtb_price,competitor_sku,competitor_title,competitor_price,competitor_url
@@ -180,7 +182,7 @@ This is analysis only and never reprices the catalog automatically.
 
 ### `competitor_scrape_evidence.jsonl`
 
-Normalized scraped facts and provenance before/alongside catalog matching. This is the detailed audit trail when a match or price needs investigation.
+Normalized scraped facts and provenance before/alongside catalog matching.
 
 ### `unmatched_competitor_listings.csv`
 
@@ -192,7 +194,7 @@ DTB catalog products with no accepted competitor match in the current run.
 
 ### `run_summary.json`
 
-Live run status, configuration, product/listing/match counts, crawl statistics, and artifact paths.
+Checkpointed run status, configuration, product/listing/match counts, crawl statistics, and artifact paths.
 
 ## HTTP behavior
 
@@ -200,7 +202,7 @@ Permanent HTTP failures such as ordinary 404 responses fail immediately. Transie
 
 robots.txt is honored by default. `--ignore-robots` exists only for cases where permission/terms have been independently verified.
 
-## Useful scoped runs
+## Useful runs
 
 Al's only:
 
@@ -214,11 +216,13 @@ Selected brands:
 python scripts/catalog/competitor_price_research.py --brands TapeTech "Columbia Tools" LEVEL5 SurPro Dura-Stilt Platinum --verbose
 ```
 
-Selected competitors:
+If a local machine and target site remain stable, a bounded diagnostic can test 12 workers:
 
 ```powershell
-python scripts/catalog/competitor_price_research.py --sites wall_tools csr_building --verbose
+python scripts/catalog/competitor_price_research.py --workers 12 --request-interval 0.20 --verbose
 ```
+
+Do not exceed 16 workers through this script.
 
 ## Ownership
 
