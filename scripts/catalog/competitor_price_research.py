@@ -26,11 +26,12 @@ from competitor_price_research_core import *  # noqa: F403,F401
 import competitor_price_research_core as core
 
 
-DEFAULT_WORKERS = 8
+DEFAULT_WORKERS = 10
 DEFAULT_REQUEST_INTERVAL = 0.20
-PROGRESS_EVERY = 25
-CHECKPOINT_EVERY = 50
-CHECKPOINT_INTERVAL_SECONDS = 10.0
+PROGRESS_EVERY = 100
+CHECKPOINT_EVERY = 100
+CHECKPOINT_INTERVAL_SECONDS = 30.0
+SUMMARY_REPLACE_ATTEMPTS = 3
 PRIMARY_MATCH_FIELDS = [
     "dtb_sku",
     "dtb_name",
@@ -89,7 +90,6 @@ def primary_match_row(match: core.Match) -> dict[str, str]:
     """Project a rich internal match into the concise pricing-research report."""
     delta: Decimal | None = None
     if match.dtb_price is not None and match.competitor_price is not None:
-        # Positive means DTB is more expensive; negative means DTB is cheaper.
         delta = match.dtb_price - match.competitor_price
     return {
         "dtb_sku": match.dtb_sku,
@@ -103,26 +103,8 @@ def primary_match_row(match: core.Match) -> dict[str, str]:
     }
 
 
-def write_primary_matches(path: Path, matches: Sequence[core.Match]) -> None:
-    with path.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=PRIMARY_MATCH_FIELDS)
-        writer.writeheader()
-        for match in matches:
-            writer.writerow(primary_match_row(match))
-
-
-def append_primary_matches(path: Path, matches: Sequence[core.Match]) -> None:
-    if not matches:
-        return
-    with path.open("a", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=PRIMARY_MATCH_FIELDS)
-        for match in matches:
-            writer.writerow(primary_match_row(match))
-        handle.flush()
-
-
 class LiveResults:
-    """Persist each successful scrape immediately without full-report rewrites."""
+    """Persist scrape evidence and accepted matches without hot-path file reopen churn."""
 
     def __init__(self, output_dir: Path, products: Sequence[core.CatalogProduct], args: argparse.Namespace) -> None:
         self.output_dir = output_dir
@@ -148,9 +130,14 @@ class LiveResults:
         self.successful_pages = 0
         self._last_checkpoint_pages = 0
         self._last_checkpoint_time = time.monotonic()
+        self._closed = False
 
-        self.paths["evidence"].write_text("", encoding="utf-8")
-        write_primary_matches(self.paths["matches"], [])
+        self._evidence_handle = self.paths["evidence"].open("w", encoding="utf-8", newline="\n", buffering=1)
+        self._matches_handle = self.paths["matches"].open("w", encoding="utf-8-sig", newline="", buffering=1)
+        self._matches_writer = csv.DictWriter(self._matches_handle, fieldnames=PRIMARY_MATCH_FIELDS)
+        self._matches_writer.writeheader()
+        self._matches_handle.flush()
+
         self._write_aggregate_reports()
         self._write_summary("running")
         logging.info("live_outputs_ready dir=%s", self.output_dir)
@@ -185,10 +172,11 @@ class LiveResults:
             fresh.append(item)
 
         if fresh:
-            with self.paths["evidence"].open("a", encoding="utf-8", newline="\n") as handle:
-                for item in fresh:
-                    handle.write(json.dumps(core.serializable(asdict(item)), ensure_ascii=False, sort_keys=True) + "\n")
-                handle.flush()
+            for item in fresh:
+                self._evidence_handle.write(
+                    json.dumps(core.serializable(asdict(item)), ensure_ascii=False, sort_keys=True) + "\n"
+                )
+            self._evidence_handle.flush()
             self.listings.extend(fresh)
 
             new_matches, new_unmatched, _ = core.match_listings(
@@ -196,7 +184,7 @@ class LiveResults:
                 fresh,
                 self.args.fuzzy_threshold,
             )
-            unique_matches: list[core.Match] = []
+            wrote_match = False
             for match in new_matches:
                 key = self._match_key(match)
                 if key in self._match_keys:
@@ -204,12 +192,13 @@ class LiveResults:
                 self._match_keys.add(key)
                 self.matches.append(match)
                 self.matched_skus.add(match.dtb_sku)
-                unique_matches.append(match)
-            append_primary_matches(self.paths["matches"], unique_matches)
+                self._matches_writer.writerow(primary_match_row(match))
+                wrote_match = True
+            if wrote_match:
+                self._matches_handle.flush()
             self.unmatched_listings.extend(new_unmatched)
 
         self.successful_pages += 1
-        self._write_summary("running")
         if self._checkpoint_due():
             self.checkpoint("running")
 
@@ -220,7 +209,6 @@ class LiveResults:
 
     def update_site_stats(self, site_key: str, stats: dict[str, Any]) -> None:
         self.crawl_stats[site_key] = dict(stats)
-        self._write_summary("running")
 
     def checkpoint(self, status: str = "running") -> None:
         self._write_aggregate_reports()
@@ -229,18 +217,34 @@ class LiveResults:
         self._last_checkpoint_time = time.monotonic()
 
     def finish(self, status: str) -> None:
-        self.checkpoint(status)
+        if self._closed:
+            return
+        try:
+            self.checkpoint(status)
+        finally:
+            self._evidence_handle.flush()
+            self._matches_handle.flush()
+            self._evidence_handle.close()
+            self._matches_handle.close()
+            self._closed = True
 
     def _unmatched_products(self) -> list[core.CatalogProduct]:
         return [product for product in self.products if product.sku not in self.matched_skus]
 
     def _write_aggregate_reports(self) -> None:
-        core.write_analysis(self.paths["analysis"], self.products, self.matches)
-        core.write_unmatched_listings(self.paths["unmatched_listings"], self.unmatched_listings)
-        core.write_unmatched_catalog(self.paths["unmatched_catalog"], self._unmatched_products())
+        writers = (
+            ("analysis", core.write_analysis, (self.paths["analysis"], self.products, self.matches)),
+            ("unmatched_listings", core.write_unmatched_listings, (self.paths["unmatched_listings"], self.unmatched_listings)),
+            ("unmatched_catalog", core.write_unmatched_catalog, (self.paths["unmatched_catalog"], self._unmatched_products())),
+        )
+        for name, writer, values in writers:
+            try:
+                writer(*values)
+            except PermissionError as exc:
+                logging.warning("report_checkpoint_skipped report=%s error=%s", name, exc)
 
-    def _write_summary(self, status: str) -> None:
-        payload = {
+    def _summary_payload(self, status: str) -> dict[str, Any]:
+        return {
             "schema_version": 4,
             "status": status,
             "started_at": self.started_at,
@@ -260,9 +264,20 @@ class LiveResults:
             "crawl": self.crawl_stats,
             "outputs": {key: str(value) for key, value in self.paths.items()},
         }
+
+    def _write_summary(self, status: str) -> None:
+        payload = json.dumps(self._summary_payload(status), indent=2, sort_keys=True) + "\n"
         temp = self.paths["summary"].with_suffix(".json.tmp")
-        temp.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-        temp.replace(self.paths["summary"])
+        for attempt in range(SUMMARY_REPLACE_ATTEMPTS):
+            try:
+                temp.write_text(payload, encoding="utf-8")
+                temp.replace(self.paths["summary"])
+                return
+            except PermissionError as exc:
+                if attempt + 1 >= SUMMARY_REPLACE_ATTEMPTS:
+                    logging.warning("summary_checkpoint_skipped error=%s", exc)
+                    return
+                time.sleep(0.10 * (attempt + 1))
 
 
 class FastMarketScraper(core.MarketScraper):
@@ -274,7 +289,12 @@ class FastMarketScraper(core.MarketScraper):
         self.sink = sink
         self.worker_clients = WorkerClients(self.client, SharedHostGate(self.client.interval))
 
-    def _fetch_one(self, site: core.SiteConfig, url: str, discovery_meta: dict[str, Any]) -> tuple[str, list[core.Listing], str | None]:
+    def _fetch_one(
+        self,
+        site: core.SiteConfig,
+        url: str,
+        discovery_meta: dict[str, Any],
+    ) -> tuple[str, list[core.Listing], str | None]:
         try:
             response = self.worker_clients.get().get(url)
             parsed = core.parse_product_page(site, response.url, response.text)
@@ -349,13 +369,14 @@ class FastMarketScraper(core.MarketScraper):
                     if processed % PROGRESS_EVERY == 0 or processed == len(allowed_urls):
                         self.sink.update_site_stats(site.key, site_stats)
                         logging.info(
-                            "site_progress key=%s processed=%s/%s product_pages=%s listings=%s matches=%s errors=%s",
+                            "site_progress key=%s processed=%s/%s product_pages=%s listings=%s matches=%s matched_skus=%s errors=%s",
                             site.key,
                             processed,
                             len(allowed_urls),
                             site_stats["product_pages"],
                             site_stats["listings"],
                             len(self.sink.matches),
+                            len(self.sink.matched_skus),
                             site_stats["errors"],
                         )
             except KeyboardInterrupt:
@@ -382,7 +403,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=core.DEFAULT_OUTPUT_DIR)
     parser.add_argument("--sites", nargs="*", choices=[site.key for site in core.SITES])
     parser.add_argument("--brands", nargs="*")
-    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers per competitor (default: 8)")
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers per competitor (default: 10)")
     parser.add_argument("--request-interval", type=float, default=DEFAULT_REQUEST_INTERVAL, help="Minimum seconds between request starts per host (default: 0.20)")
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--retries", type=int, default=2)
@@ -392,7 +413,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--url-prefilter-min-score", type=float, default=38.0)
     parser.add_argument("--uncertain-fallback-cap", type=int, default=50)
     parser.add_argument("--fuzzy-threshold", type=float, default=91.0)
-    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.0"))
+    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.1"))
     parser.add_argument("--ignore-robots", action="store_false", dest="respect_robots")
     parser.set_defaults(respect_robots=True)
     parser.add_argument("--verbose", action="store_true")
