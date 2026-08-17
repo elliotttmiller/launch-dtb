@@ -60,35 +60,29 @@ function StockBadge({ stockStatus }) {
   return <span style={{ fontWeight: 700, color, fontSize: 'inherit' }}>{label}</span>;
 }
 
-/**
- * Ported from the legacy `HotspotCardSkeleton` — shown in place of the
- * stock badge / title / footer while the live SKU lookup is in flight, so
- * the card never flashes an empty/"Unavailable" state before the real
- * result is known.
- */
 function HotspotCardSkeleton({ displayCode, codeLabel }) {
   return (
-    <>
-      <div className="schematic-hotspot-card__stock" aria-hidden="true">
+    <div className="schematic-hotspot-card__skeleton" aria-hidden="true">
+      <div className="schematic-hotspot-card__stock">
         <span className="schematic-hotspot-card__stock-skeleton" />
       </div>
 
-      <div className="schematic-hotspot-card__title-skeleton" aria-hidden="true">
+      <div className="schematic-hotspot-card__title-skeleton">
         <span />
         <span />
       </div>
 
       {displayCode ? (
-        <div className="schematic-hotspot-card__sku">
+        <div className="schematic-hotspot-card__sku schematic-hotspot-card__sku--loading">
           {codeLabel}: {displayCode}
         </div>
       ) : null}
 
-      <div className="schematic-hotspot-card__footer schematic-hotspot-card__footer--loading" aria-hidden="true">
+      <div className="schematic-hotspot-card__footer schematic-hotspot-card__footer--loading">
         <span className="schematic-hotspot-card__price-skeleton" />
         <span className="schematic-hotspot-card__cta-skeleton" />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -96,8 +90,6 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const { addToCart } = useCart();
   const [localAdding, setLocalAdding] = useState(false);
 
-  // Live per-SKU WooCommerce lookup (image/price/stock aren't in the static
-  // schematic payload) — see hook doc for the exact legacy contract ported.
   const { product: wcProduct, stockStatus: liveStockStatus, isLoading } =
     useHotspotProduct(part?.sku);
 
@@ -107,9 +99,6 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const displayCode = part.sku || part.mpn || '';
   const codeLabel = 'SKU';
 
-  // Static fallback (no SKU, or the live lookup resolved to "not found"):
-  // fall back to the schematic payload's own resolution/availability fields
-  // rather than leaving the card stuck in a loading/broken state.
   const isStaticResolved = RESOLVED_STATES.has(part.resolution_state);
   const isStaticAvailable = part.available !== false;
   const staticStockStatus = isStaticResolved && isStaticAvailable ? 'instock' : 'unknown';
@@ -122,9 +111,6 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const primaryImage = wcProduct?.images?.[0] || '';
   const parsedPrice = parseFloat(wcProduct?.price);
   const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
-  // Prefer the live-resolved product URL (correctly a variation deep link,
-  // e.g. /products/{parentSlug}?variant={id}, when the SKU belongs to a
-  // WooCommerce variation) over the static schematic payload's product_url.
   const effectiveProductUrl = wcProduct?.product_url || part.product_url;
   const isUnavailable = !isLoading && !canAddToCart && !effectiveProductUrl;
   const isAdding = addingToCart === part.part_ref || localAdding;
