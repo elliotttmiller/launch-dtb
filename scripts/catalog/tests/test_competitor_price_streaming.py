@@ -35,7 +35,7 @@ class LivePersistenceTests(unittest.TestCase):
             catalog=Path("catalog.csv"),
             sites=["csr_building"],
             brands=["LEVEL5"],
-            workers=8,
+            workers=10,
             request_interval=0.20,
             fuzzy_threshold=91.0,
         )
@@ -54,33 +54,42 @@ class LivePersistenceTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as directory:
             sink = market.LiveResults(Path(directory), [product], args)
-            for path in sink.paths.values():
-                self.assertTrue(path.exists(), path)
+            try:
+                for path in sink.paths.values():
+                    self.assertTrue(path.exists(), path)
 
-            sink.record([listing])
+                sink.record([listing])
 
-            evidence = sink.paths["evidence"].read_text(encoding="utf-8")
-            self.assertIn("815966023815", evidence)
+                evidence = sink.paths["evidence"].read_text(encoding="utf-8")
+                self.assertIn("815966023815", evidence)
 
-            with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
-                rows = list(csv.DictReader(handle))
-            self.assertEqual(market.PRIMARY_MATCH_FIELDS, list(rows[0].keys()))
-            self.assertEqual("4-701", rows[0]["dtb_sku"])
-            self.assertEqual("299.00", rows[0]["dtb_price"])
-            self.assertEqual("084-701", rows[0]["competitor_sku"])
-            self.assertEqual("302.00", rows[0]["competitor_price"])
-            self.assertEqual("-3.00", rows[0]["price_delta"])
-            self.assertEqual(listing.url, rows[0]["competitor_url"])
+                with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
+                    rows = list(csv.DictReader(handle))
+                self.assertEqual(market.PRIMARY_MATCH_FIELDS, list(rows[0].keys()))
+                self.assertEqual("4-701", rows[0]["dtb_sku"])
+                self.assertEqual("299.00", rows[0]["dtb_price"])
+                self.assertEqual("084-701", rows[0]["competitor_sku"])
+                self.assertEqual("302.00", rows[0]["competitor_price"])
+                self.assertEqual("-3.00", rows[0]["price_delta"])
+                self.assertEqual(listing.url, rows[0]["competitor_url"])
 
-            summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
-            self.assertEqual("running", summary["status"])
-            self.assertEqual(1, summary["successful_product_pages"])
-            self.assertEqual(1, summary["matched_catalog_products"])
+                # Summary/aggregate reports are intentionally checkpointed rather
+                # than rewritten on every product; evidence and matches remain live.
+                sink.checkpoint("running")
+                summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
+                self.assertEqual("running", summary["status"])
+                self.assertEqual(1, summary["successful_product_pages"])
+                self.assertEqual(1, summary["matched_catalog_products"])
+            finally:
+                sink.finish("completed")
 
     def test_default_runtime_is_bounded_but_faster(self) -> None:
         args = market.parse_args([])
-        self.assertEqual(8, args.workers)
+        self.assertEqual(10, args.workers)
         self.assertEqual(0.20, args.request_interval)
+        self.assertEqual(100, market.PROGRESS_EVERY)
+        self.assertEqual(100, market.CHECKPOINT_EVERY)
+        self.assertEqual(30.0, market.CHECKPOINT_INTERVAL_SECONDS)
         self.assertLessEqual(args.workers, 16)
 
 
