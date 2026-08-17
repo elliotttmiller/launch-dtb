@@ -5,7 +5,7 @@
  * outgoing and incoming route content overlap, so navigation feels continuous
  * without delaying data rendering or hiding component loading states.
  */
-import { motion as Motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { m as Motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { routeVariants, reducedRouteVariants } from '../../motion/dtbMotion.js';
 
 export default function PageTransition({ children, locationKey }) {

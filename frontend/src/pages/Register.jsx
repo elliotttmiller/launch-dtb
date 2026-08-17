@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion as Motion } from 'framer-motion';
+import { AnimatePresence, m as Motion } from 'framer-motion';
 import { AlertCircle, Eye, EyeOff, LockKeyhole, Mail, Ticket, UserRound } from 'lucide-react';
 
 import { useAuthContext } from '../auth/AuthContext.js';

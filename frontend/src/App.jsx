@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useLayoutEffect, lazy, Suspense, useCallback, useRef } from 'react';
+import { LazyMotion } from 'framer-motion';
+import loadMotionFeatures from './motion/asyncFeatures.js';
 import PageTransition from './components/routing/PageTransition';
 import { CartProvider } from './context/CartContext';
 import { WooCommerceProvider } from './context/WooCommerceContext';
@@ -305,12 +307,14 @@ function App() {
         <DesignConfigProvider>
           <WooCommerceProvider>
             <CartProvider>
-              <WorkflowTransitionProvider>
-                <Router basename={basename}>
-                  <ScrollToTop />
-                  <AppShell cartOpen={cartOpen} toggleCart={toggleCart} closeCart={closeCart} />
-                </Router>
-              </WorkflowTransitionProvider>
+              <LazyMotion features={loadMotionFeatures}>
+                <WorkflowTransitionProvider>
+                  <Router basename={basename}>
+                    <ScrollToTop />
+                    <AppShell cartOpen={cartOpen} toggleCart={toggleCart} closeCart={closeCart} />
+                  </Router>
+                </WorkflowTransitionProvider>
+              </LazyMotion>
             </CartProvider>
           </WooCommerceProvider>
         </DesignConfigProvider>

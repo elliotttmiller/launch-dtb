@@ -15,7 +15,7 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
 
 const DROPDOWN_OPTION_IDENTITY_ALIASES = {

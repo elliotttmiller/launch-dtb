@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion';
 import { Search, AlertTriangle, SearchX, RefreshCw } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead.jsx';
 import useRepairStatus from '../hooks/useRepairStatus.js';

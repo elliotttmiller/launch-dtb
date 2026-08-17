@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { ArrowRight, Loader, Package, RotateCcw } from 'lucide-react';
 import { getCustomerReturns } from '../../api/returns.js';
 import { buildAccountActivity, normalizeReturns } from '../../utils/accountActivity.js';

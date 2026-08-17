@@ -1,4 +1,4 @@
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion, AnimatePresence } from 'framer-motion';
 import { normalizeAttributeKey } from '../../utils/variationSelection.js';
 
 function attributeLabel(attr) {

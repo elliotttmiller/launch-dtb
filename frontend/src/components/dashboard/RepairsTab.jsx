@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { Wrench, Loader, ArrowRight, Package } from 'lucide-react';
 import { getCustomerRepairs, REPAIR_STATUS_LABELS } from '../../api/repairs.js';
 

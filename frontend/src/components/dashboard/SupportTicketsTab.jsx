@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { ArrowRight, Headphones, Loader, MessageSquare } from 'lucide-react';
 import { getCustomerSupportTickets } from '../../api/support.js';
 import { buildAccountActivity, normalizeSupportTickets } from '../../utils/accountActivity.js';

@@ -5,7 +5,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import {
   Package, Wrench, ShoppingCart, Headphones,
   ChevronRight, Loader, CreditCard, RotateCcw,

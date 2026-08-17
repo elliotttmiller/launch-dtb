@@ -492,16 +492,24 @@ module.exports = (envFlags, argv) => {
             priority: 50,
             reuseExistingChunk: true,
           },
-          // framer-motion (~280 kB min) — used by PageTransition (sync) and
-          // animated page components (async). 'all' puts it in one named chunk
-          // shared by both initial and async consumers; avoids duplication.
-          framerMotion: {
-            test:     /[\\/]node_modules[\\/]framer-motion[\\/]/,
-            name:     'vendor-framer-motion',
-            chunks:   'all',
-            priority: 45,
-            reuseExistingChunk: true,
-          },
+          // framer-motion: the app renders framer-motion's lightweight `m`
+          // component everywhere (never the full `motion` component), and a
+          // single <LazyMotion features={loadMotionFeatures}> provider in
+          // App.jsx loads the actual animation engine (domMax) via a dynamic
+          // import() (see src/motion/asyncFeatures.js). Deliberately no
+          // dedicated cache group here: giving this a fixed `name` would
+          // force every framer-motion module — including the heavy engine
+          // only reachable through the async import() — into one physical
+          // chunk, and since `LazyMotion` itself is imported synchronously,
+          // that merged chunk would be classified as part of the initial
+          // entrypoint again (this is what caused the ~110 KB
+          // vendor-framer-motion chunk to load eagerly on every page even
+          // after the LazyMotion migration — verified by inspecting the
+          // production build output). Leaving this ungrouped lets webpack's
+          // default async chunking put the dynamically-imported engine in
+          // its own on-demand chunk, while the small sync-only LazyMotion
+          // import falls into the general `vendor` group below.
+
           // lucide-react is tree-shaken per icon, but its shared runtime is
           // used by both the initial shell (Header/Footer) and async pages.
           // 'all' canonicalises it into one chunk.
@@ -613,10 +621,24 @@ module.exports = (envFlags, argv) => {
 
     performance: {
       hints:             isDev ? false : 'warning',
-      // Keep budgets close to the measured split-bundle baseline so warnings
-      // flag real growth instead of the expected React/vendor storefront shell.
-      maxEntrypointSize: 1_300_000,
-      maxAssetSize:      1_000_000,
+      // Measured against a real production build (`npx webpack --mode
+      // production`) after removing framer-motion from the initial
+      // entrypoint (see the `m`/<LazyMotion> migration and the
+      // splitChunks comment above): runtime + vendor-react + vendor-lucide
+      // + vendor + main.css + main.js totalled ~1.16 MiB (1,213,547 B).
+      // Previously this budget was raised to 1,300,000/1,000,000 to match
+      // an inflated bundle that shipped the full framer-motion engine
+      // (~110 KB) eagerly on every route — that is the anti-pattern this
+      // budget exists to catch, not something to hide by raising the
+      // ceiling again. maxEntrypointSize below has ~3% headroom over the
+      // measured baseline so routine dependency bumps don't flap, while
+      // still failing if a change re-inflates the initial bundle.
+      // maxAssetSize covers the largest legitimate single asset today
+      // (the shared `common` async route chunk, ~561 KB, loaded on demand
+      // by multiple lazy pages — not part of the initial entrypoint) with
+      // similar headroom.
+      maxEntrypointSize: 1_250_000,
+      maxAssetSize:      600_000,
       // Only warn on JS and CSS — images/fonts/media are expected to be large
       assetFilter: (assetFilename) =>
         /\.(js|css)$/.test(assetFilename) && !assetFilename.endsWith('.map'),

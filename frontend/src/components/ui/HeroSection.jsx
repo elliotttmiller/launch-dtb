@@ -3,7 +3,7 @@
  */
 
 import { Link } from 'react-router-dom';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import TrustedBrands from './TrustedBrands';
 import HeroQuickLinks from './HeroQuickLinks';

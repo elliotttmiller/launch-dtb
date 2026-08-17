@@ -14,7 +14,7 @@
  */
 
 import { useState } from 'react';
-import { AnimatePresence, motion as Motion } from 'framer-motion';
+import { AnimatePresence, m as Motion } from 'framer-motion';
 
 /* ── AccordionItem ─────────────────────────────────────────────────────────── */
 function AccordionItem({ item, isOpen, onToggle, isMobile = false }) {

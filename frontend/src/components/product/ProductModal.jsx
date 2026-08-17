@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion as Motion, useReducedMotion } from 'framer-motion';
+import { m as Motion, useReducedMotion } from 'framer-motion';
 import MotionBackdrop from '../motion/MotionBackdrop.jsx';
 import MotionDialog from '../motion/MotionDialog.jsx';
 import MotionDrawer from '../motion/MotionDrawer.jsx';

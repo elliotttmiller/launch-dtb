@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion';
 import { Camera, ImagePlus, MessageSquare, Send, X } from 'lucide-react';
 import { submitRepairComment, uploadRepairMedia } from '../../api/repairs.js';
 

@@ -15,7 +15,7 @@
 
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion, AnimatePresence } from 'framer-motion';
 import { KeyRound, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { useAuthContext } from '../auth/AuthContext.js';

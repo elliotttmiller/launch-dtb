@@ -18,7 +18,7 @@
  */
 
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 
 const DRAG_THRESHOLD_PX = 10;
 

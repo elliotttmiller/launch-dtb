@@ -4,7 +4,7 @@
  * Visual repair status tracker with integrated customer progress updates.
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion';
 import { REPAIR_STATUS_PROGRESS } from '../../api/repairs.js';
 
 const MILESTONES = [

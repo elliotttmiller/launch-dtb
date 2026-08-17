@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, motion as Motion } from 'framer-motion';
+import { AnimatePresence, m as Motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Mail } from 'lucide-react';
 
 import { useAuthContext } from '../auth/AuthContext.js';

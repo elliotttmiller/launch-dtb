@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { motion as Motion, AnimatePresence } from 'framer-motion'
+import { m as Motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 import SheetCalculator from './SheetCalculator'
 import MudCalculator from './MudCalculator'

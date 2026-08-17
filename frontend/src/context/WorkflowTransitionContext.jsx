@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
-import { AnimatePresence, motion as Motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, m as Motion, useReducedMotion } from 'framer-motion';
 import {
   dtbDuration,
   dtbEase,

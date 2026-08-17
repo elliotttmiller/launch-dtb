@@ -1,4 +1,4 @@
-import { motion as Motion, useReducedMotion } from 'framer-motion';
+import { m as Motion, useReducedMotion } from 'framer-motion';
 import { dtbDuration, dtbEase } from '../../motion/dtbMotion.js';
 
 /**

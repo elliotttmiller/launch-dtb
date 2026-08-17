@@ -10,7 +10,7 @@
  *                                (content is always sanitised — never raw errors)
  */
 
-import { motion } from 'framer-motion';
+import { m as motion } from 'framer-motion';
 
 // ─── Per-status customer messaging ───────────────────────────────────────────
 

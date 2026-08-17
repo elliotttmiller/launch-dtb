@@ -4,7 +4,7 @@
  * Dashboard Addresses tab — billing and shipping address cards.
  */
 
-import { motion as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { Home, Truck, MapPin, Plus, Edit3 } from 'lucide-react';
 
 const fadeUp = {
