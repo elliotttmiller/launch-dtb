@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Sequence
+from urllib.parse import unquote, urlparse, urlunparse
 
 from competitor_price_research_core import *  # noqa: F403,F401
 import competitor_price_research_core as core
@@ -32,6 +33,13 @@ PROGRESS_EVERY = 100
 CHECKPOINT_EVERY = 100
 CHECKPOINT_INTERVAL_SECONDS = 30.0
 SUMMARY_REPLACE_ATTEMPTS = 3
+
+CSR_SITE_KEY = "csr_building"
+CSR_US_PRODUCT_PREFIX = "/en-us/products/"
+CSR_MAX_WORKERS = 4
+CSR_MIN_REQUEST_INTERVAL = 0.75
+CSR_MAX_RETRIES = 1
+
 PRIMARY_MATCH_FIELDS = [
     "dtb_sku",
     "dtb_name",
@@ -44,6 +52,32 @@ PRIMARY_MATCH_FIELDS = [
 ]
 
 
+def canonical_csr_us_product_url(url: str) -> str | None:
+    """Return one canonical CSR US product URL or reject non-US locale mirrors.
+
+    CSR's root storefront is CAD while /en-us is USD. Collection-product aliases
+    such as /en-us/collections/columbia/products/<handle> resolve to the canonical
+    /en-us/products/<handle> form and are collapsed before any product fetch.
+    """
+    parsed = urlparse(url)
+    path = unquote(parsed.path or "")
+    handle = ""
+
+    if path.startswith(CSR_US_PRODUCT_PREFIX):
+        handle = path[len(CSR_US_PRODUCT_PREFIX):].strip("/").split("/", 1)[0]
+    elif path.startswith("/en-us/collections/") and "/products/" in path:
+        handle = path.split("/products/", 1)[1].strip("/").split("/", 1)[0]
+    else:
+        return None
+
+    if not handle:
+        return None
+
+    scheme = parsed.scheme or "https"
+    netloc = parsed.netloc or "csrbuilding.com"
+    return urlunparse((scheme, netloc, f"{CSR_US_PRODUCT_PREFIX}{handle}", "", "", ""))
+
+
 class SharedHostGate:
     """Bound request starts per host while allowing network I/O to overlap."""
 
@@ -53,7 +87,7 @@ class SharedHostGate:
         self._last_by_host: dict[str, float] = {}
 
     def wait(self, url: str) -> None:
-        host = (urlparse(url).hostname or "").lower()  # noqa: F405
+        host = (urlparse(url).hostname or "").lower()
         with self._lock:
             previous = self._last_by_host.get(host)
             if previous is not None:
@@ -66,9 +100,16 @@ class SharedHostGate:
 class WorkerClients:
     """Use one keep-alive cloudscraper session per worker thread."""
 
-    def __init__(self, template: core.HttpClient, gate: SharedHostGate) -> None:
+    def __init__(
+        self,
+        template: core.HttpClient,
+        gate: SharedHostGate,
+        *,
+        retries: int | None = None,
+    ) -> None:
         self.template = template
         self.gate = gate
+        self.retries = template.retries if retries is None else max(0, retries)
         self.local = threading.local()
 
     def get(self) -> core.HttpClient:
@@ -76,7 +117,7 @@ class WorkerClients:
         if client is None:
             client = core.HttpClient(
                 timeout=self.template.timeout,
-                retries=self.template.retries,
+                retries=self.retries,
                 interval=0.0,
                 user_agent=self.template.user_agent,
                 respect_robots=False,
@@ -245,7 +286,7 @@ class LiveResults:
 
     def _summary_payload(self, status: str) -> dict[str, Any]:
         return {
-            "schema_version": 4,
+            "schema_version": 5,
             "status": status,
             "started_at": self.started_at,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -287,16 +328,82 @@ class FastMarketScraper(core.MarketScraper):
         super().__init__(**kwargs)
         self.workers = max(1, workers)
         self.sink = sink
-        self.worker_clients = WorkerClients(self.client, SharedHostGate(self.client.interval))
+        self._configured_max_urls = self.max_urls
+
+    def discover(self, site: core.SiteConfig) -> tuple[list[str], dict[str, Any]]:
+        if site.key != CSR_SITE_KEY:
+            return super().discover(site)
+
+        # CSR's Shopify sitemap exposes many locale mirrors. Temporarily allow
+        # discovery to see the complete bounded candidate set, then collapse it
+        # to the US/USD storefront before the fetch cap is applied.
+        original_max_urls = self.max_urls
+        self.max_urls = self.max_discovered_urls
+        try:
+            _urls, discovery = super().discover(site)
+        finally:
+            self.max_urls = original_max_urls
+
+        selected_scores = discovery.get("selected_url_scores", [])
+        canonical_scores: dict[str, dict[str, Any]] = {}
+        rejected_locale_urls = 0
+        collapsed_aliases = 0
+
+        for meta in selected_scores:
+            source_url = str(meta.get("url", "") or "")
+            canonical = canonical_csr_us_product_url(source_url)
+            if canonical is None:
+                rejected_locale_urls += 1
+                continue
+            if canonical != source_url:
+                collapsed_aliases += 1
+
+            normalized_meta = dict(meta)
+            normalized_meta["url"] = canonical
+            previous = canonical_scores.get(canonical)
+            if previous is None or float(normalized_meta.get("score", 0.0)) > float(previous.get("score", 0.0)):
+                canonical_scores[canonical] = normalized_meta
+
+        ordered_meta = sorted(
+            canonical_scores.values(),
+            key=lambda item: (-float(item.get("score", 0.0)), str(item.get("url", ""))),
+        )
+        ordered_meta = ordered_meta[: self._configured_max_urls]
+        urls = [str(item["url"]) for item in ordered_meta]
+
+        discovery["selected_url_scores"] = ordered_meta
+        discovery["csr_locale_urls_rejected"] = rejected_locale_urls
+        discovery["csr_alias_urls_collapsed"] = collapsed_aliases
+        discovery["csr_us_product_urls"] = len(urls)
+
+        logging.info(
+            "csr_us_scope discovered_selected=%s us_products=%s locale_rejected=%s aliases_collapsed=%s",
+            len(selected_scores),
+            len(urls),
+            rejected_locale_urls,
+            collapsed_aliases,
+        )
+        return urls, discovery
+
+    @staticmethod
+    def _site_runtime(site: core.SiteConfig, workers: int, interval: float, retries: int) -> tuple[int, float, int]:
+        if site.key == CSR_SITE_KEY:
+            return (
+                min(workers, CSR_MAX_WORKERS),
+                max(interval, CSR_MIN_REQUEST_INTERVAL),
+                min(retries, CSR_MAX_RETRIES),
+            )
+        return workers, interval, retries
 
     def _fetch_one(
         self,
+        worker_clients: WorkerClients,
         site: core.SiteConfig,
         url: str,
         discovery_meta: dict[str, Any],
     ) -> tuple[str, list[core.Listing], str | None]:
         try:
-            response = self.worker_clients.get().get(url)
+            response = worker_clients.get().get(url)
             parsed = core.parse_product_page(site, response.url, response.text)
             accepted: list[core.Listing] = []
             for item in parsed:
@@ -323,34 +430,53 @@ class FastMarketScraper(core.MarketScraper):
                 else:
                     robots_skips += 1
 
+            site_workers, site_interval, site_retries = self._site_runtime(
+                site,
+                self.workers,
+                self.client.interval,
+                self.client.retries,
+            )
+            worker_clients = WorkerClients(
+                self.client,
+                SharedHostGate(site_interval),
+                retries=site_retries,
+            )
+            start_matches = len(self.sink.matches)
+            start_matched_skus = set(self.sink.matched_skus)
+
             site_stats: dict[str, Any] = {
                 **discovery,
                 "candidate_urls": len(urls),
                 "allowed_urls": len(allowed_urls),
+                "workers": site_workers,
+                "request_interval_seconds": site_interval,
+                "retries": site_retries,
                 "fetched_urls": 0,
                 "product_pages": 0,
                 "listings": 0,
                 "errors": 0,
+                "rate_limit_errors": 0,
                 "robots_skips": robots_skips,
             }
             self.sink.update_site_stats(site.key, site_stats)
             logging.info(
-                "site_start key=%s candidates=%s allowed=%s workers=%s interval=%.2fs discovered=%s rejected=%s fallback=%s",
+                "site_start key=%s candidates=%s allowed=%s workers=%s interval=%.2fs retries=%s discovered=%s rejected=%s fallback=%s",
                 site.key,
                 len(urls),
                 len(allowed_urls),
-                self.workers,
-                self.client.interval,
+                site_workers,
+                site_interval,
+                site_retries,
                 site_stats.get("sitemap_product_urls", 0),
                 site_stats.get("url_prefilter_rejected", 0),
                 site_stats.get("url_prefilter_fallback", 0),
             )
 
-            executor = ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=f"dtb-{site.key}")
+            executor = ThreadPoolExecutor(max_workers=site_workers, thread_name_prefix=f"dtb-{site.key}")
             futures: dict[Any, str] = {}
             try:
                 futures = {
-                    executor.submit(self._fetch_one, site, url, score_by_url.get(url, {})): url
+                    executor.submit(self._fetch_one, worker_clients, site, url, score_by_url.get(url, {})): url
                     for url in allowed_urls
                 }
                 processed = 0
@@ -360,6 +486,8 @@ class FastMarketScraper(core.MarketScraper):
                     site_stats["fetched_urls"] += 1
                     if error:
                         site_stats["errors"] += 1
+                        if "HTTP 429" in error:
+                            site_stats["rate_limit_errors"] += 1
                         logging.warning("page_fetch_failed site=%s url=%s error=%s", site.key, url, error)
                     elif accepted:
                         site_stats["product_pages"] += 1
@@ -367,17 +495,22 @@ class FastMarketScraper(core.MarketScraper):
                         self.sink.record(accepted)
 
                     if processed % PROGRESS_EVERY == 0 or processed == len(allowed_urls):
+                        site_matches = len(self.sink.matches) - start_matches
+                        site_matched_skus = len(self.sink.matched_skus - start_matched_skus)
                         self.sink.update_site_stats(site.key, site_stats)
                         logging.info(
-                            "site_progress key=%s processed=%s/%s product_pages=%s listings=%s matches=%s matched_skus=%s errors=%s",
+                            "site_progress key=%s processed=%s/%s product_pages=%s listings=%s site_matches=%s site_matched_skus=%s total_matches=%s total_matched_skus=%s errors=%s rate_limits=%s",
                             site.key,
                             processed,
                             len(allowed_urls),
                             site_stats["product_pages"],
                             site_stats["listings"],
+                            site_matches,
+                            site_matched_skus,
                             len(self.sink.matches),
                             len(self.sink.matched_skus),
                             site_stats["errors"],
+                            site_stats["rate_limit_errors"],
                         )
             except KeyboardInterrupt:
                 for future in futures:
@@ -388,6 +521,8 @@ class FastMarketScraper(core.MarketScraper):
             else:
                 executor.shutdown(wait=True)
 
+            site_stats["site_matches"] = len(self.sink.matches) - start_matches
+            site_stats["site_matched_skus"] = len(self.sink.matched_skus - start_matched_skus)
             stats[site.key] = dict(site_stats)
             self.sink.update_site_stats(site.key, site_stats)
             self.sink.checkpoint("running")
@@ -403,8 +538,8 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--output-dir", type=Path, default=core.DEFAULT_OUTPUT_DIR)
     parser.add_argument("--sites", nargs="*", choices=[site.key for site in core.SITES])
     parser.add_argument("--brands", nargs="*")
-    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers per competitor (default: 10)")
-    parser.add_argument("--request-interval", type=float, default=DEFAULT_REQUEST_INTERVAL, help="Minimum seconds between request starts per host (default: 0.20)")
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers for normal competitors (default: 10; CSR is capped lower)")
+    parser.add_argument("--request-interval", type=float, default=DEFAULT_REQUEST_INTERVAL, help="Minimum seconds between request starts per host (default: 0.20; CSR enforces a safer floor)")
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--retries", type=int, default=2)
     parser.add_argument("--max-urls-per-site", type=int, default=5000)
@@ -413,7 +548,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--url-prefilter-min-score", type=float, default=38.0)
     parser.add_argument("--uncertain-fallback-cap", type=int, default=50)
     parser.add_argument("--fuzzy-threshold", type=float, default=91.0)
-    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.1"))
+    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.2"))
     parser.add_argument("--ignore-robots", action="store_false", dest="respect_robots")
     parser.set_defaults(respect_robots=True)
     parser.add_argument("--verbose", action="store_true")
