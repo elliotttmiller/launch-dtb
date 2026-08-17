@@ -27,6 +27,16 @@ import competitor_price_research_core as core
 DEFAULT_WORKERS = 4
 DEFAULT_REQUEST_INTERVAL = 0.35
 PROGRESS_EVERY = 25
+COMPACT_MATCH_FIELDS = [
+    "dtb_sku",
+    "dtb_name",
+    "dtb_price",
+    "competitor_site",
+    "competitor_sku",
+    "competitor_mpn",
+    "competitor_title",
+    "competitor_price",
+]
 
 
 class SharedHostGate:
@@ -71,6 +81,38 @@ class WorkerClients:
         return client
 
 
+def write_compact_matches(path: Path, matches: Sequence[core.Match]) -> None:
+    """Write the operator-facing price comparison report with only useful fields."""
+    with path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=COMPACT_MATCH_FIELDS)
+        writer.writeheader()
+        for match in matches:
+            writer.writerow({
+                "dtb_sku": match.dtb_sku,
+                "dtb_name": match.dtb_name,
+                "dtb_price": core.decimal_text(match.dtb_price),
+                "competitor_site": match.competitor_site,
+                "competitor_sku": match.competitor_sku,
+                "competitor_mpn": match.competitor_mpn,
+                "competitor_title": match.competitor_title,
+                "competitor_price": core.decimal_text(match.competitor_price),
+            })
+
+
+def price_identity_stats(matches: Sequence[core.Match]) -> tuple[int, int, float]:
+    """Return comparable count, exact-equality count, and equality ratio."""
+    comparable = [
+        match for match in matches
+        if match.dtb_price is not None and match.competitor_price is not None
+    ]
+    identical = [
+        match for match in comparable
+        if match.dtb_price == match.competitor_price
+    ]
+    ratio = (len(identical) / len(comparable)) if comparable else 0.0
+    return len(comparable), len(identical), ratio
+
+
 class LiveResults:
     """Persist usable evidence and reports after every successful product page."""
 
@@ -92,6 +134,7 @@ class LiveResults:
         self.crawl_stats: dict[str, Any] = {}
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.successful_pages = 0
+        self._price_identity_warning_emitted = False
 
         self.paths["evidence"].write_text("", encoding="utf-8")
         self._refresh_reports(status="running")
@@ -139,10 +182,21 @@ class LiveResults:
             self.listings,
             self.args.fuzzy_threshold,
         )
-        core.write_matches(self.paths["matches"], matches)
+        write_compact_matches(self.paths["matches"], matches)
         core.write_analysis(self.paths["analysis"], self.products, matches)
         core.write_unmatched_listings(self.paths["unmatched_listings"], unmatched_listings)
         core.write_unmatched_catalog(self.paths["unmatched_catalog"], unmatched_products)
+
+        comparable, identical, identity_ratio = price_identity_stats(matches)
+        if comparable >= 10 and identity_ratio >= 0.90 and not self._price_identity_warning_emitted:
+            logging.warning(
+                "price_identity_suspicious comparable=%s identical=%s ratio=%.1f%%; inspect scrape evidence before trusting competitor prices",
+                comparable,
+                identical,
+                identity_ratio * 100.0,
+            )
+            self._price_identity_warning_emitted = True
+
         self._write_summary(status, matches, unmatched_listings, unmatched_products)
 
     def _write_summary(
@@ -158,8 +212,9 @@ class LiveResults:
                 self.listings,
                 self.args.fuzzy_threshold,
             )
+        comparable, identical, identity_ratio = price_identity_stats(matches)
         payload = {
-            "schema_version": 3,
+            "schema_version": 4,
             "status": status,
             "started_at": self.started_at,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -173,6 +228,10 @@ class LiveResults:
             "competitor_listings_collected": len(self.listings),
             "matches": len(matches),
             "matched_catalog_products": len({match.dtb_sku for match in matches}),
+            "price_comparisons": comparable,
+            "identical_dtb_competitor_prices": identical,
+            "identical_price_ratio": round(identity_ratio, 4),
+            "price_identity_suspicious": comparable >= 10 and identity_ratio >= 0.90,
             "unmatched_competitor_listings": len(unmatched_listings),
             "unmatched_catalog_products": len(unmatched_products),
             "crawl": self.crawl_stats,
@@ -354,12 +413,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise
 
     matches, _, _ = core.match_listings(products, sink.listings, args.fuzzy_threshold)
+    comparable, identical, identity_ratio = price_identity_stats(matches)
     print(json.dumps({
         "status": "completed",
         "catalog_products": len(products),
         "listings": len(sink.listings),
         "matches": len(matches),
         "matched_skus": len({match.dtb_sku for match in matches}),
+        "price_comparisons": comparable,
+        "identical_price_ratio": round(identity_ratio, 4),
+        "price_identity_suspicious": comparable >= 10 and identity_ratio >= 0.90,
         "outputs": {key: str(value) for key, value in sink.paths.items()},
     }, sort_keys=True))
     return 0
