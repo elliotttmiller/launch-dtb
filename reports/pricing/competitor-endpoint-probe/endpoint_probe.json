@@ -1,0 +1,82 @@
+{
+  "generated_at_epoch": 1786961146,
+  "network_observation_count": 844,
+  "outputs": {
+    "network_observations": "D:\\AMD\\projects\\launch-dtb\\reports\\pricing\\competitor-endpoint-probe\\network_observations.csv",
+    "site_recommendations": "D:\\AMD\\projects\\launch-dtb\\reports\\pricing\\competitor-endpoint-probe\\site_recommendations.csv"
+  },
+  "recommendations": [
+    {
+      "confidence": "low",
+      "content_length": null,
+      "content_type": "text/html",
+      "endpoint_template": "https://www.alstapingtools.com/columbia-10-fat-boy-drywall-flat-finishing-box/",
+      "final_page_url": "https://www.alstapingtools.com/columbia-10-fat-boy-drywall-flat-finishing-box/",
+      "html_fallback": true,
+      "notes": "No high-confidence structured product endpoint observed or safely probed.",
+      "platform_hint": "unknown",
+      "product_score": 0,
+      "recommended_method": "html_jsonld_fallback",
+      "recommended_url": "https://www.alstapingtools.com/columbia-10-fat-boy-drywall-flat-finishing-box/",
+      "sample_url": "https://www.alstapingtools.com/columbia-10-fat-boy-drywall-flat-finishing-box/",
+      "site_key": "als_taping_tools",
+      "status": 200
+    },
+    {
+      "confidence": "medium",
+      "content_length": 3531,
+      "content_type": "application/json",
+      "endpoint_template": "https://www.all-wall.com/api/cacheable/items",
+      "final_page_url": "https://www.all-wall.com/TapeTech-EasyClean-Automatic-Taper",
+      "html_fallback": true,
+      "notes": "Structured endpoint preferred; retain existing HTML/JSON-LD parser as fallback until multi-product validation passes.",
+      "platform_hint": "unknown",
+      "product_score": 6,
+      "recommended_method": "observed_fetch_xhr",
+      "recommended_url": "https://www.all-wall.com/api/cacheable/items?c=590358&country=US&currency=USD&custitem60=false&facet.exclude=custitem60&fieldset=details&include=facets&language=en&n=6&pricelevel=5&url=TapeTech-EasyClean-Automatic-Taper&use_pcv=F",
+      "sample_url": "https://www.all-wall.com/TapeTech-EasyClean-Automatic-Taper",
+      "site_key": "all_wall",
+      "status": 200
+    },
+    {
+      "confidence": "high",
+      "content_length": 13756,
+      "content_type": "application/json",
+      "endpoint_template": "https://api.findify.io/v4/f701e626-1fc2-4ccd-a04d-fe3dad4311e6/recommend/product-findify-rec-1",
+      "final_page_url": "https://walltools.com/columbia-taping-tools-12-in-quick-clean-flat-box-COLM-12ffb/",
+      "html_fallback": true,
+      "notes": "Structured endpoint preferred; retain existing HTML/JSON-LD parser as fallback until multi-product validation passes.",
+      "platform_hint": "bigcommerce",
+      "product_score": 14,
+      "recommended_method": "observed_fetch_xhr",
+      "recommended_url": "https://api.findify.io/v4/f701e626-1fc2-4ccd-a04d-fe3dad4311e6/recommend/product-findify-rec-1",
+      "sample_url": "https://walltools.com/columbia-taping-tools-12-in-quick-clean-flat-box-COLM-12ffb/",
+      "site_key": "wall_tools",
+      "status": 200
+    },
+    {
+      "confidence": "high",
+      "content_length": 1077,
+      "content_type": "text/javascript",
+      "endpoint_template": "https://csrbuilding.com/products/{handle}",
+      "final_page_url": "https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr",
+      "html_fallback": true,
+      "notes": "Structured endpoint preferred; retain existing HTML/JSON-LD parser as fallback until multi-product validation passes.",
+      "platform_hint": "shopify",
+      "product_score": 29,
+      "recommended_method": "shopify_product_js",
+      "recommended_url": "https://csrbuilding.com/products/columbia-corner-roller-cr.js",
+      "sample_url": "https://csrbuilding.com/en-us/collections/columbia/products/columbia-corner-roller-cr",
+      "site_key": "csr_building",
+      "status": 200
+    }
+  ],
+  "schema_version": 1,
+  "security": {
+    "authorization_headers_persisted": false,
+    "cookies_persisted": false,
+    "request_bodies_persisted": false,
+    "response_bodies_persisted": false,
+    "sensitive_query_values_redacted": true
+  }
+}
