@@ -43,21 +43,13 @@ python scripts/catalog/competitor_price_research.py --verbose
 
 Default output directory: `reports/pricing/competitor-market/`.
 
-## Active site selection
-
 All three active competitors run by default. A subset can be selected explicitly:
 
 ```powershell
 python scripts/catalog/competitor_price_research.py --sites als_taping_tools wall_tools --verbose
 ```
 
-Valid site keys are only:
-
-```text
-als_taping_tools
-all_wall
-wall_tools
-```
+Valid site keys are only `als_taping_tools`, `all_wall`, and `wall_tools`.
 
 ## Throughput model
 
@@ -76,72 +68,50 @@ Competitor sites are processed sequentially. Multi-site parallel crawling is int
 
 ## Streaming persistence
 
-Important research data is written while the crawl is running.
+After each successful in-scope product extraction the scraper immediately appends normalized evidence to `competitor_scrape_evidence.jsonl`, matches only the new listing(s), and appends accepted rows to `competitor_price_matches.csv`.
 
-After each successful in-scope product extraction the scraper immediately:
+Every attempted product URL is also appended to `competitor_processed_urls.jsonl` and flushed immediately. Successful products, non-product pages, and failed requests are all checkpointed so a restart does not repeat work unnecessarily.
 
-1. appends normalized evidence to `competitor_scrape_evidence.jsonl`;
-2. matches only the new listing(s) against the DTB catalog;
-3. appends accepted rows to `competitor_price_matches.csv`.
-
-Evidence and match files remain open during the run and are flushed after writes.
-
-Aggregate reports and `run_summary.json` are checkpointed:
-
-- every 100 successful product pages; or
-- approximately every 30 seconds while results are arriving;
-- at the end of each competitor;
-- on normal completion or interruption.
-
-Progress telemetry is emitted every 100 processed candidate URLs.
+Aggregate reports and `run_summary.json` are checkpointed every 100 successful product pages, approximately every 30 seconds while results are arriving, at the end of each competitor, and on normal completion or interruption. Progress telemetry is emitted every 100 processed candidate URLs.
 
 ## Durable resume
 
-Interrupted runs are resumable. Stopping the process with `Ctrl+C` writes the current reports and preserves enough state for the next invocation to continue rather than start over.
+On startup the scraper loads resume state before opening any research artifact for writing. It:
 
-Resume state is built from:
+1. reads the previous `run_summary.json`;
+2. reloads valid evidence for the three active competitors;
+3. reloads processed URL identities;
+4. reconstructs internal matches from restored evidence;
+5. rewrites the concise match CSV from that deduplicated state;
+6. skips already attempted URLs and continues remaining work.
 
-- `competitor_scrape_evidence.jsonl` — previously collected normalized listings;
-- `competitor_processed_urls.jsonl` — every attempted product URL and its completion state;
-- `run_summary.json` — run/site completion metadata and migration support for older checkpoints.
+### Legacy checkpoint safety
 
-On startup the scraper:
+Older checkpoints created before `competitor_processed_urls.jsonl` can identify a site whose crawl reached `fetched_urls >= allowed_urls`. That summary metadata is not sufficient by itself to restore pricing data.
 
-1. reloads prior evidence for the three active competitors;
-2. reconstructs rich internal matches from that evidence;
-3. rewrites the concise match CSV from the reconstructed deduplicated match set;
-4. reloads processed URL identities;
-5. skips URLs already attempted;
-6. continues with remaining candidate URLs.
+A legacy completed-site marker is therefore honored only when evidence for that site was also successfully restored from `competitor_scrape_evidence.jsonl`. If the summary says a site completed but its evidence is missing or empty, the marker is invalidated and the site is rerun. The log reports:
 
-`competitor_processed_urls.jsonl` is append-only during a run and is flushed after each processed URL, including unsuccessful requests. This prevents a restart from repeatedly spending time on known 404/499/other failed candidates.
+```text
+legacy_resume_invalidated site=<site> reason=completed_summary_without_restored_evidence rerun_required=true
+```
 
-### Compatibility with checkpoints created before processed-URL tracking
+This prevents a completed-site flag from producing a false zero-listing/zero-match result after evidence was lost or truncated.
 
-Older interrupted runs do not contain `competitor_processed_urls.jsonl`. For those runs, the scraper reads the previous `run_summary.json` and treats a non-empty site as completed when `fetched_urls >= allowed_urls`.
+For runs created by the current implementation, `competitor_processed_urls.jsonl` provides URL-level resume and does not depend on legacy site-completion inference.
 
-This allows a run that already completed Al's and Wall Tools before interruption to resume without crawling those sites again. Zero-candidate sites are not automatically treated as completed because future discovery changes may make them productive.
-
-Prior evidence from sites outside the active three-site scope is ignored during resume.
+Prior evidence from sites outside the active three-site scope is ignored.
 
 To intentionally start a completely fresh research dataset, archive or remove the contents of `reports/pricing/competitor-market/` before running the scraper.
 
 ## Windows file locks
 
-A temporary Windows lock on `run_summary.json` or an aggregate CSV must not terminate the crawl. Summary replacement is retried briefly and then skipped with a warning. Locked aggregate report checkpoints are also skipped with a warning while evidence, processed-URL checkpoints, and primary matches continue to be collected.
+A temporary Windows lock on `run_summary.json` or an aggregate CSV must not terminate the crawl. Summary replacement is retried briefly and then skipped with a warning. Locked aggregate checkpoints are also skipped while evidence, processed-URL checkpoints, and primary matches continue to be collected.
 
 Avoid opening live output files in applications that take exclusive write locks.
 
 ## Discovery
 
-The scraper does not blindly fetch every storefront URL. It:
-
-1. reads configured and advertised sitemaps;
-2. recursively follows bounded sitemap indexes;
-3. keeps structurally plausible product URLs;
-4. scores URLs against the active DTB catalog using identifiers, brand aliases, product-name tokens, and model tokens;
-5. keeps relevant candidates plus a small deterministic fallback pool;
-6. fetches only selected candidate product pages.
+The scraper reads configured and advertised sitemaps, follows bounded sitemap indexes, keeps structurally plausible product URLs, scores URLs against the active DTB catalog, retains relevant candidates plus a small deterministic fallback pool, and fetches only selected candidates.
 
 Default discovery controls:
 
@@ -151,18 +121,25 @@ Default discovery controls:
 - maximum discovered product URLs considered: 50,000;
 - maximum sitemap documents: 100.
 
+### All-Wall product URLs
+
+All-Wall's current sitemap publishes product pages as root-level slugs such as:
+
+```text
+https://www.all-wall.com/TapeTech-EasyClean-Automatic-Taper
+```
+
+They do not require a `.html` suffix. The production entrypoint therefore removes the stale `.html` product-path constraint for All-Wall while retaining the shared catalog-aware relevance scoring and bounded fallback behavior.
+
 ## Extraction
 
-For fetched product pages extraction currently prefers:
-
-1. Schema.org JSON-LD `Product` / `ProductGroup` data;
-2. conservative storefront DOM/meta selectors.
+For fetched product pages extraction currently prefers Schema.org JSON-LD `Product` / `ProductGroup` data and then conservative storefront DOM/meta selectors.
 
 Rich internal evidence contains identifiers, regular/sale/current price, currency, availability, variant, parser source, retrieval timestamp, discovery score/reasons, source URL, and source SHA-256. Raw HTML is not persisted.
 
 ## Matching
 
-Competitor listings are matched conservatively:
+Competitor listings are matched conservatively in this order:
 
 1. exact normalized GTIN / UPC / EAN;
 2. exact normalized MPN / manufacturer SKU;
@@ -174,7 +151,7 @@ Cross-brand conflicts and ambiguous fuzzy results remain unmatched.
 
 `matches` means accepted competitor observation rows. One DTB SKU may have multiple observations. `matched_skus` / `matched_catalog_products` is the unique DTB SKU count.
 
-## Primary output
+## Outputs
 
 `competitor_price_matches.csv` contains:
 
@@ -182,15 +159,9 @@ Cross-brand conflicts and ambiguous fuzzy results remain unmatched.
 dtb_sku,dtb_name,price_delta,dtb_price,competitor_sku,competitor_title,competitor_price,competitor_url
 ```
 
-`price_delta` is `DTB price - competitor price`:
+`price_delta` is `DTB price - competitor price`: positive means DTB is more expensive, negative means DTB is cheaper, and `0.00` means the observed prices are equal.
 
-- positive: DTB is more expensive;
-- negative: DTB is cheaper;
-- `0.00`: same observed price.
-
-Rich fields such as GTIN, MPN, parser source, match method/score, discovery reasons, timestamps, hashes, availability, and variants remain in internal/evidence data rather than the primary report.
-
-## Other outputs
+Other artifacts are:
 
 - `competitor_price_analysis.csv` — aggregate market statistics per DTB SKU;
 - `competitor_scrape_evidence.jsonl` — normalized competitor evidence;
