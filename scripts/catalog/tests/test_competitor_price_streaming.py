@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import tempfile
 import unittest
@@ -60,12 +61,54 @@ class LivePersistenceTests(unittest.TestCase):
 
             evidence = sink.paths["evidence"].read_text(encoding="utf-8")
             self.assertIn("815966023815", evidence)
-            matches = sink.paths["matches"].read_text(encoding="utf-8-sig")
-            self.assertIn("gtin_exact", matches)
+
+            with sink.paths["matches"].open("r", encoding="utf-8-sig", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            self.assertEqual(market.COMPACT_MATCH_FIELDS, list(rows[0].keys()))
+            self.assertEqual("299.00", rows[0]["dtb_price"])
+            self.assertEqual("302.00", rows[0]["competitor_price"])
+            self.assertEqual("084-701", rows[0]["competitor_sku"])
+            self.assertEqual("4-701", rows[0]["competitor_mpn"])
+            self.assertNotIn("competitor_url", rows[0])
+            self.assertNotIn("match_score", rows[0])
+
             summary = json.loads(sink.paths["summary"].read_text(encoding="utf-8"))
             self.assertEqual("running", summary["status"])
             self.assertEqual(1, summary["successful_product_pages"])
             self.assertEqual(1, summary["matched_catalog_products"])
+            self.assertEqual(0, summary["identical_dtb_competitor_prices"])
+            self.assertEqual(0.0, summary["identical_price_ratio"])
+
+    def test_price_identity_stats_detect_suspicious_equality(self) -> None:
+        matches = [
+            market.Match(
+                dtb_sku=str(index),
+                dtb_name="Product",
+                dtb_brand="TapeTech",
+                dtb_price=Decimal("100.00"),
+                dtb_map_price=None,
+                competitor_site="Competitor",
+                competitor_title="Product",
+                competitor_brand="TapeTech",
+                competitor_sku=str(index),
+                competitor_mpn=str(index),
+                competitor_gtin="",
+                competitor_url="https://example.com/product",
+                competitor_price=Decimal("100.00"),
+                competitor_regular_price=Decimal("100.00"),
+                competitor_sale_price=None,
+                currency="USD",
+                availability="InStock",
+                variant="",
+                match_method="sku_exact",
+                match_score=97.0,
+            )
+            for index in range(10)
+        ]
+        comparable, identical, ratio = market.price_identity_stats(matches)
+        self.assertEqual(10, comparable)
+        self.assertEqual(10, identical)
+        self.assertEqual(1.0, ratio)
 
 
 if __name__ == "__main__":
