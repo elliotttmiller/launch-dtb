@@ -1,5 +1,4 @@
 ﻿sku,name,brand,product_type,current_price,map_price,gtin,mpn,manufacturer_sku,slug
-8FFBA,"Columbia Automatic Flat Box - 8""",Columbia Tools,variation,421.79,421.79,,8FFBA,,columbia-automatic-flat-box-8-8ffba
 10FFBA,"Columbia Automatic Flat Box - 10""",Columbia Tools,variation,427.19,427.19,,10FFBA,,columbia-automatic-flat-box-10-10ffba
 12FFBA,"Columbia Automatic Flat Box - 12""",Columbia Tools,variation,432.60,432.60,,12FFBA,,columbia-automatic-flat-box-12-12ffba
 PTAPER,Columbia One Predator Taper,Columbia Tools,simple,1838.55,,,PTAPER,PTAPER,columbia-one-predator-carbon-fiber-taper-ptaper
@@ -412,8 +411,6 @@ HNS20,Wedge,Columbia Tools,simple,22.50,,,HNS20,,columbia-hns20-wedge-hinged-nai
 4-711,"LEVEL5 Flat Box Handle (Fixed Length) - 34""",LEVEL5,variation,175.09,,,4-711,,level5-flat-box-handle-fixed-34-inch
 4-712,"LEVEL5 Flat Box Handle (Fixed Length) - 42""",LEVEL5,variation,184.02,,,4-712,,level5-flat-box-handle-fixed-42-inch
 4-740,"LEVEL5 Flat Box Handle (Fixed Length) - 54""",LEVEL5,variation,202.72,,,4-740,,level5-flat-box-handle-fixed-54-4-740
-4-754,"LEVEL5 Nail Spotter - 2""",LEVEL5,variation,271.14,,,4-754,,level5-nail-spotter-2-inch-4-754
-4-755,"LEVEL5 Nail Spotter - 3""",LEVEL5,variation,289.84,,,4-755,,level5-nail-spotter-3-inch-4-755
 4-630,LEVEL5 The Starter Taping Set,LEVEL5,simple,2111.16,,,4-630,,level5-starter-taping-set-4-630
 4-602,LEVEL5 Entry to Automatic Finishing Set - Tools Only,LEVEL5,variation,2395.52,,,4-602,,level5-entry-automatic-finishing-set-tools-only-4-602
 4-600P,LEVEL5 Entry to Automatic Finishing Set - With Automatic Taper,LEVEL5,variation,3850.70,,,4-600P,,level5-entry-automatic-finishing-set-with-taper-4-600p
@@ -423,14 +420,11 @@ HNS20,Wedge,Columbia Tools,simple,22.50,,,HNS20,,columbia-hns20-wedge-hinged-nai
 4-779,"LEVEL5 50"" Fixed Handle - Corner Finisher",LEVEL5,variation,92.22,,,4-779,,level5-50-fixed-handle-corner-finisher
 4-792,"LEVEL5 31""- 50"" Corner Roller/Nail Spotter Handle",LEVEL5,simple,179.33,,,4-792,,level5-31-50-corner-roller-nail-spotter-handle-4-792
 4-760,LEVEL5 Automatic Taper,LEVEL5,simple,1444.99,,,4-760,,level5-automatic-taper-4-760
-4-715,LEVEL5 Box Filler,LEVEL5,simple,67.57,,,4-715,,level5-box-filler-4-715
 4-771,LEVEL5 Compound Pump,LEVEL5,simple,452.62,,,4-771,,level5-compound-pump-4-771
 4-741,LEVEL5 Compound Tube,LEVEL5,simple,203.84,,,4-741,,level5-compound-tube-4-741
-4-707,LEVEL5 Corner Roller,LEVEL5,simple,152.14,,,4-707,,level5-corner-roller-4-707
 5-311,LEVEL5 Drywall Banjo,LEVEL5,simple,150.29,,,5-311,,level5-drywall-banjo-5-311
 PT-3CF,"Platinum Angle Head Corner Finisher with Wheels - 3""",Platinum Drywall Tools,variation,249.00,,,PT-3CF,PT-3CF,platinum-angle-head-corner-finisher-with-wheels-3-inch
 PT-BH34,"Platinum Flat Box Handle - 34""",Platinum Drywall Tools,variation,90.00,,,PT-BH34,PT-BH34,platinum-flat-box-handle-34-inch-pt-bh34
-4-714,LEVEL5 Gooseneck,LEVEL5,simple,101.14,,,4-714,,level5-gooseneck-4-714
 4-772,LEVEL5 MiniShot,LEVEL5,simple,934.99,,,4-772,,level5-minishot-gas-powered-applicator-4-772
 4-773,LEVEL5 MiniShot Ext. Handle,LEVEL5,simple,73.94,,,4-773,,level5-minishot-ext-handle-4-773
 4-746,LEVEL5 Outside Corner Tool,LEVEL5,simple,73.94,,,4-746,,level5-outside-corner-tool-4-746
@@ -448,7 +442,6 @@ S1X-A-2640,"SurPro S1X Aluminum Drywall Stilts - 26""-40""",SurPro,variation,407
 S2-A-1624,"SurPro S2 Aluminum Drywall Stilts - 16""-24""",SurPro,variation,356.00,,,S2-A-1624,,surpro-s2-aluminum-drywall-stilts-16-24-s2-a-1624
 S2-A-2030,"SurPro S2 Aluminum Drywall Stilts - 20""-30""",SurPro,variation,365.00,,,S2-A-2030,,surpro-s2-aluminum-drywall-stilts-20-30
 S2-A-2640,"SurPro S2 Aluminum Drywall Stilts - 26""-40""",SurPro,variation,374.00,,,S2-A-2640,,surpro-s2-aluminum-drywall-stilts-26-40
-PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,simple,62.00,,,PT-MNBH,PT-MNBH,platinum-mini-box-handle-pt-mnbh
 S2X-A-3852,"SurPro S2X Aluminum Drywall Stilts - 38""-52""",SurPro,variation,486.00,,,S2X-A-3852,,surpro-s2x-aluminum-drywall-stilts-38-52
 S2X-A-2640,"SurPro S2X Aluminum Drywall Stilts - 26""-40""",SurPro,variation,457.00,,,S2X-A-2640,,surpro-s2x-aluminum-drywall-stilts-26-40
 BHE-SW,"TapeTech Brakeless Box Handle - Rotational Extendable 34""-60""",TapeTech,variation,329.00,,873876000890,BHE-SW,,tapetech-brakeless-box-handle-rotational-extendable-34-60
@@ -456,7 +449,6 @@ BH,"TapeTech Brakeless Box Handle - Fixed 34""",TapeTech,variation,149.00,149.00
 TTPFB,TapeTech Paper Faced Bead Pro Set,TapeTech,simple,1949.00,,,TTPFB,,tapetech-paper-faced-bead-pro-set-ttpfb
 TTBTS,TapeTech Basic Taping Set,TapeTech,simple,2829.00,,,TTBTS,,tapetech-basic-taping-set-ttbts
 TTSFS-2,TapeTech Standard Full Set - With 2 Pumps,TapeTech,simple,5357.00,,,TTSFS-2,,tapetech-standard-full-set-2-pumps-ttsfs-2
-TTCFS,TapeTech Corner Finishing Set,TapeTech,simple,1416.00,,,TTCFS,,tapetech-corner-finishing-set-ttcfs
 TTSFS,TapeTech Standard Full Set - Standard,TapeTech,simple,4958.00,,,TTSFS,,tapetech-standard-full-set-standard
 TTPPS,TapeTech Pro Performance Set,TapeTech,simple,6625.00,,,TTPPS,,tapetech-pro-performance-set-ttpps
 TTPSS,TapeTech Professional Starter Set,TapeTech,simple,4559.00,,,TTPSS,,tapetech-professional-starter-set-ttpss
@@ -465,14 +457,6 @@ CF25COMBO,"TapeTech Combo Corner Flusher - 2.5""",TapeTech,variation,179.00,,,CF
 CF30COMBO,"TapeTech Combo Corner Flusher - 3""",TapeTech,variation,184.00,,,CF30COMBO,,tapetech-3-inch-combo-corner-flusher-cf30combo
 CF35COMBO,"TapeTech Combo Corner Flusher - 3.5""",TapeTech,variation,189.00,,,CF35COMBO,,tapetech-combo-corner-flusher-3-5-cf35combo
 CF40COMBO,"TapeTech Combo Corner Flusher - 4""",TapeTech,variation,194.00,,,CF40COMBO,,tapetech-4-inch-combo-corner-flusher-cf40combo
-EZ10TT,"TapeTech EasyClean® Finishing Box - 10""",TapeTech,variation,391.69,389.00,873876002610,EZ10TT,,tapetech-easyclean-finishing-box-10-ez10tt
-EZ12TT,"TapeTech EasyClean® Finishing Box - 12""",TapeTech,variation,405.72,399.00,873876002627,EZ12TT,,tapetech-easyclean-finishing-box-12-ez12tt
 76TT-CA,TapeTech EasyClean® Pump - Canada,TapeTech,variation,409.00,409.00,,76TT-CA,,tapetech-easyclean-pump-canada-76tt-ca
-8054TT,"TapeTech Flat Box Handle - 54""",TapeTech,variation,239.00,239.00,,8054TT,,tapetech-flat-box-handle-54-8054tt
-85T,TapeTech Gooseneck - Standard,TapeTech,variation,105.00,105.00,,85T,,tapetech-gooseneck-standard-85t
-EHC07,"TapeTech MaxxBox® High Capacity Finishing Box - 7""",TapeTech,variation,419.00,419.00,873876002115,EHC07,,tapetech-maxxbox-high-capacity-finishing-box-7-inch
-8000TT,TapeTech Wizard® Compact Finishing Box Handle - Standard,TapeTech,variation,109.00,,,8000TT,,tapetech-wizard-compact-finishing-box-handle-standard-8000tt
 14TT,TapeTech MudRunner® Compound Applicator - Standard,TapeTech,variation,900.00,,873876000371,14TT,14TT,tapetech-mudrunner-compound-applicator-standard-14tt
-MRX01TT,TapeTech Extension,TapeTech,simple,179.00,179.00,,MRX01TT,,tapetech-extension-mrx01tt-mudrunner-pro
-GSR-TT,TapeTech Gooseneck Riser,TapeTech,simple,13.99,,,GSR-TT,,tapetech-gooseneck-riser-gsr-tt
 804003F,TapeTech Grip Assembly For Box Handle,TapeTech,simple,73.91,,,804003F,,tapetech-grip-assembly-box-handle-804003f

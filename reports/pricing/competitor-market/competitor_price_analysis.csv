@@ -1,6 +1,6 @@
 ﻿sku,name,brand,dtb_price,map_price,competitor_count,site_count,market_low,market_high,market_mean,market_median,market_spread_pct,dtb_vs_market_median,dtb_vs_market_median_pct,market_position,map_floor_status,lowest_competitor,lowest_competitor_url
 10FBB,"Columbia Fat Boy Flat Box - 10""",Columbia Tools,454.23,454.23,1,1,454.23,454.23,454.23,454.23,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-10-fat-boy-drywall-flat-finishing-box/
-10FBBA,"Columbia Automatic Fat Boy Box - 10""",Columbia Tools,492.08,492.08,1,1,492.08,492.08,492.08,492.08,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-10-automatic-assist-drywall-tool-flat-box/
+10FBBA,"Columbia Automatic Fat Boy Box - 10""",Columbia Tools,492.08,492.08,2,2,492.08,492.08,492.08,492.08,0.00,0.00,0.00,market_aligned,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-10-automatic-assist-drywall-tool-flat-box/
 10FFB,"Columbia Flat Finisher Box - 10""",Columbia Tools,400.16,400.16,1,1,400.16,400.16,400.16,400.16,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-10-drywall-flat-finishing-box/
 10FFBA,"Columbia Automatic Flat Box - 10""",Columbia Tools,427.19,427.19,0,0,,,,,,,,no_market_data,at_or_above_map,,
 12FBB,"Columbia Fat Boy Flat Box - 12""",Columbia Tools,465.05,465.05,1,1,465.05,465.05,465.05,465.05,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-12-fat-boy-drywall-flat-finishing-box/
@@ -42,7 +42,7 @@
 8FBB,"Columbia Fat Boy Flat Box - 8""",Columbia Tools,443.42,443.42,1,1,443.42,443.42,443.42,443.42,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-8-fat-boy-drywall-flat-finishing-box/
 8FBBA,"Columbia Automatic Fat Boy Box - 8""",Columbia Tools,481.27,481.27,1,1,481.27,481.27,481.27,481.27,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-8-fat-boy-automatic-assist-drywall-flat-box/
 8FFB,"Columbia Flat Finisher Box - 8""",Columbia Tools,389.34,389.34,1,1,389.34,389.34,389.34,389.34,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-8-drywall-flat-finisher-box/
-8FFBA,"Columbia Automatic Flat Box - 8""",Columbia Tools,421.79,421.79,0,0,,,,,,,,no_market_data,at_or_above_map,,
+8FFBA,"Columbia Automatic Flat Box - 8""",Columbia Tools,421.79,421.79,1,1,431.93,431.93,431.93,431.93,0.00,-10.14,-2.35,single_source_only,at_or_above_map,Wall Tools,https://walltools.com/columbia-8-in-automatic-assist-flat-box/
 AH1-2,"Head Casting - 2""",Columbia Tools,153.00,,0,0,,,,,,,,no_market_data,no_map,,
 AH1-2.5,"Head Casting - 2.5""",Columbia Tools,173.85,,0,0,,,,,,,,no_market_data,no_map,,
 AH1-3,"Head Casting - 3""",Columbia Tools,153.00,,0,0,,,,,,,,no_market_data,no_map,,
@@ -65,7 +65,7 @@ AH8,Top Retainer Corner Clip - Standard,Columbia Tools,8.00,,0,0,,,,,,,,no_marke
 AH8A,"Top Retainer Corner Clip - 3.5""",Columbia Tools,9.75,,0,0,,,,,,,,no_market_data,no_map,,
 AH9,Bottom Retainer Corner Clip - Standard,Columbia Tools,10.00,,0,0,,,,,,,,no_market_data,no_map,,
 AH9A,"Bottom Retainer Corner Clip - 3.5""",Columbia Tools,11.50,,0,0,,,,,,,,no_market_data,no_map,,
-AHA,Angle Head Adapter,Columbia Tools,24.87,24.87,1,1,24.87,24.87,24.87,24.87,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-angle-head-ball-adapter/
+AHA,Angle Head Adapter,Columbia Tools,24.87,24.87,2,2,24.87,24.88,24.88,24.88,0.04,-0.00,-0.02,market_aligned,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-angle-head-ball-adapter/
 BF,Columbia Box Filler - Standard,Columbia Tools,75.71,75.71,1,1,75.71,75.71,75.71,75.71,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-box-filler/
 BH1,Mounting Plate,Columbia Tools,30.00,,0,0,,,,,,,,no_market_data,no_map,,
 BH11,Strap Connecting Pin,Columbia Tools,7.95,,0,0,,,,,,,,no_market_data,no_map,,
@@ -86,7 +86,7 @@ C1H,Columbia One Handle - Fixed,Columbia Tools,64.89,64.89,1,1,64.89,64.89,64.89
 C1HEXT,Columbia One Handle - Extendable 3'-5',Columbia Tools,135.19,135.19,1,1,135.19,135.19,135.19,135.19,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-one-extendable-handle-3-5/
 C1HS,Columbia One Handle - Stubby,Columbia Tools,49.44,49.44,0,0,,,,,,,,no_market_data,at_or_above_map,,
 CBNCR,Columbia Outside Corner Roller - Bullnose,Columbia Tools,86.52,86.52,1,1,86.52,86.52,86.52,86.52,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-outside-bullnose-corner-roller/
-CC,Columbia Corner Cobra,Columbia Tools,401.00,367.71,1,1,367.71,367.71,367.71,367.71,0.00,33.29,9.05,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-corner-cobra-adjustable-inside-outside-corner-roller/
+CC,Columbia Corner Cobra,Columbia Tools,401.00,367.71,2,2,367.70,367.71,367.70,367.70,0.00,33.30,9.05,above_market_median,at_or_above_map,Wall Tools,https://walltools.com/columbia-taping-tools-corner-cobra-COLM-cc/
 CEXT90,Columbia Billet Mud Applicator - External 90,Columbia Tools,127.62,127.62,1,1,127.62,127.62,127.62,127.62,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-outside-90-corner-applicator-head/
 CFB10,"5/16-18 x 3/4"" Thumb Screw",Columbia Tools,6.00,,0,0,,,,,,,,no_market_data,no_map,,
 CFB11A,Door Stop,Columbia Tools,3.00,,0,0,,,,,,,,no_market_data,no_map,,
@@ -108,7 +108,7 @@ CLT24,"Columbia Cam Lock Tube - 24""",Columbia Tools,270.95,257.40,0,0,,,,,,,,no
 CLT32,"Columbia Cam Lock Tube - 32""",Columbia Tools,279.72,268.21,1,1,268.21,268.21,268.21,268.21,0.00,11.51,4.29,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-32-cam-lock-compound-mud-tube/
 CLT42,"Columbia Cam Lock Tube - 42""",Columbia Tools,297.33,280.11,1,1,280.11,280.11,280.11,280.11,0.00,17.22,6.15,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-42-cam-lock-compound-mud-tube/
 CLT55,"Columbia Cam Lock Tube - 55""",Columbia Tools,307.89,278.10,1,1,278.10,278.10,278.10,278.10,0.00,29.79,10.71,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-55-cam-lock-compound-mud-tube/
-CMH,Columbia Closet Monster Handle,Columbia Tools,119.76,113.56,1,1,113.56,113.56,113.56,113.56,0.00,6.20,5.46,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-closet-monster-18-flat-box-handle/
+CMH,Columbia Closet Monster Handle,Columbia Tools,119.76,113.56,2,2,113.56,113.56,113.56,113.56,0.00,6.20,5.46,above_market_median,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-closet-monster-18-flat-box-handle/
 CMT24,"Columbia Compound Tube - 24""",Columbia Tools,197.91,197.91,1,1,197.91,197.91,197.91,197.91,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-24-drywall-corner-finishing-compound-mud-tube/
 CMT32,"Columbia Compound Tube - 32""",Columbia Tools,208.73,208.73,1,1,208.73,208.73,208.73,208.73,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-32-drywall-corner-finishing-compound-mud-tube/
 CMT42,"Columbia Compound Tube - 42""",Columbia Tools,221.71,221.71,1,1,221.71,221.71,221.71,221.71,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-42-drywall-corner-finishing-compound-mud-tube/
@@ -451,9 +451,9 @@ PMHS,"Columbia Predator Matrix Handle - Short 29""-39""",Columbia Tools,384.00,3
 PTAPER,Columbia One Predator Taper,Columbia Tools,1838.55,,0,0,,,,,,,,no_market_data,no_map,,
 RC,Columbia Tool Case - Road Case,Columbia Tools,1020.16,1020.16,1,1,1020.16,1020.16,1020.16,1020.16,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-road-case/
 SACS,Columbia Commando Set,Columbia Tools,1157.93,1157.93,0,0,,,,,,,,no_market_data,at_or_above_map,,
-SAT,Columbia Semi Automatic Taper,Columbia Tools,243.34,243.34,1,1,243.34,243.34,243.34,243.34,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-semi-auto-taper-drywall-taping-tool/
+SAT,Columbia Semi Automatic Taper,Columbia Tools,243.34,243.34,2,2,243.32,243.34,243.33,243.33,0.01,0.01,0.00,market_aligned,at_or_above_map,Wall Tools,https://walltools.com/columbia-semi-automatic-taper-COLM-sat/
 STAPER,Columbia Automatic Taper - Sawed Off 39 in.,Columbia Tools,1683.00,1649.29,1,1,1649.29,1649.29,1649.29,1649.29,0.00,33.71,2.04,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-sawed-off-mini-automatic-taper/
-TAPER,Columbia Automatic Taper - Standard 53 in.,Columbia Tools,1683.00,1649.29,7,1,115.76,3895.00,1463.67,1649.29,3264.72,33.71,2.04,market_aligned,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-taper-cutter-block-assembly/
+TAPER,Columbia Automatic Taper - Standard 53 in.,Columbia Tools,1683.00,1649.29,10,2,115.76,3895.00,1557.21,1743.92,3264.72,-60.92,-3.49,market_aligned,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-taper-cutter-block-assembly/
 TBBF,Columbia Box Filler - Tall Boy,Columbia Tools,75.71,75.71,0,0,,,,,,,,no_market_data,at_or_above_map,,
 TBGN,Columbia Gooseneck - Tall Boy,Columbia Tools,146.00,146.00,1,1,146.00,146.00,146.00,146.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-tall-boy-gooseneck/
 TBMP,Columbia Hot Mud Pump - Tall Boy,Columbia Tools,524.60,492.08,1,1,492.08,492.08,492.08,492.08,0.00,32.52,6.61,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/columbia-tall-boy-loading-pump/
@@ -468,11 +468,11 @@ D38-64,Dura-III Adjustable - 38”-64”,Dura-Stilts,584.00,,0,0,,,,,,,,no_marke
 4-677P,LEVEL5 The Ultimate Taping & Finishing Set,LEVEL5,6342.64,,0,0,,,,,,,,no_market_data,no_map,,
 4-701,"LEVEL5 Corner Applicator - 7""",LEVEL5,285.59,,0,0,,,,,,,,no_market_data,no_map,,
 4-702,"LEVEL5 Corner Applicator - 8""",LEVEL5,294.52,,0,0,,,,,,,,no_market_data,no_map,,
-4-707,LEVEL5 Corner Roller,LEVEL5,152.14,,0,0,,,,,,,,no_market_data,no_map,,
+4-707,LEVEL5 Corner Roller,LEVEL5,152.14,,1,1,161.09,161.09,161.09,161.09,0.00,-8.95,-5.56,single_source_only,no_map,Wall Tools,https://walltools.com/level-5-corner-roller-LEV5-4707/
 4-711,"LEVEL5 Flat Box Handle (Fixed Length) - 34""",LEVEL5,175.09,,0,0,,,,,,,,no_market_data,no_map,,
 4-712,"LEVEL5 Flat Box Handle (Fixed Length) - 42""",LEVEL5,184.02,,0,0,,,,,,,,no_market_data,no_map,,
-4-714,LEVEL5 Gooseneck,LEVEL5,101.14,,0,0,,,,,,,,no_market_data,no_map,,
-4-715,LEVEL5 Box Filler,LEVEL5,67.57,,0,0,,,,,,,,no_market_data,no_map,,
+4-714,LEVEL5 Gooseneck,LEVEL5,101.14,,1,1,107.09,107.09,107.09,107.09,0.00,-5.95,-5.56,single_source_only,no_map,Wall Tools,https://walltools.com/level-5-gooseneck-LEV5-4714/
+4-715,LEVEL5 Box Filler,LEVEL5,67.57,,1,1,71.54,71.54,71.54,71.54,0.00,-3.97,-5.55,single_source_only,no_map,Wall Tools,https://walltools.com/level-5-box-filler-LEV5-4715/
 4-732,"LEVEL5 Corner Finisher - 2.5""",LEVEL5,397.37,,0,0,,,,,,,,no_market_data,no_map,,
 4-733,"LEVEL5 Corner Finisher - 3""",LEVEL5,406.72,,0,0,,,,,,,,no_market_data,no_map,,
 4-734,"LEVEL5 Corner Finisher - 3.5""",LEVEL5,416.07,,0,0,,,,,,,,no_market_data,no_map,,
@@ -482,8 +482,8 @@ D38-64,Dura-III Adjustable - 38”-64”,Dura-Stilts,584.00,,0,0,,,,,,,,no_marke
 4-743,"LEVEL5 Corner Flusher - 3""",LEVEL5,128.69,,0,0,,,,,,,,no_market_data,no_map,,
 4-744,"LEVEL5 Corner Flusher - 3.5""",LEVEL5,132.74,,0,0,,,,,,,,no_market_data,no_map,,
 4-746,LEVEL5 Outside Corner Tool,LEVEL5,73.94,,0,0,,,,,,,,no_market_data,no_map,,
-4-754,"LEVEL5 Nail Spotter - 2""",LEVEL5,271.14,,0,0,,,,,,,,no_market_data,no_map,,
-4-755,"LEVEL5 Nail Spotter - 3""",LEVEL5,289.84,,0,0,,,,,,,,no_market_data,no_map,,
+4-754,"LEVEL5 Nail Spotter - 2""",LEVEL5,271.14,,1,1,287.09,287.09,287.09,287.09,0.00,-15.95,-5.56,single_source_only,no_map,Wall Tools,https://walltools.com/level-5-2-in-nail-spotter-LEV5-4754/
+4-755,"LEVEL5 Nail Spotter - 3""",LEVEL5,289.84,,1,1,306.89,306.89,306.89,306.89,0.00,-17.05,-5.56,single_source_only,no_map,Wall Tools,https://walltools.com/level-5-3-in-nail-spotter-LEV5-4755/
 4-759,"LEVEL5 Flat Box Handle (Extendable) - 48""-78""",LEVEL5,313.22,,0,0,,,,,,,,no_market_data,no_map,,
 4-760,LEVEL5 Automatic Taper,LEVEL5,1444.99,,0,0,,,,,,,,no_market_data,no_map,,
 4-764,"LEVEL5 Flat Box (Standard) - 7""",LEVEL5,379.52,,0,0,,,,,,,,no_market_data,no_map,,
@@ -541,7 +541,7 @@ PT-FA,"Platinum 4"" Flat Applicator",Platinum Drywall Tools,59.00,,0,0,,,,,,,,no
 PT-FIN,Platinum Drywall Starter Finishing Set,Platinum Drywall Tools,1399.00,,0,0,,,,,,,,no_market_data,no_map,,
 PT-GN,Platinum Gooseneck,Platinum Drywall Tools,59.00,,1,1,45.00,45.00,45.00,45.00,0.00,14.00,31.11,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/platinum-drywall-tools-gooseneck/
 PT-ICA,Platinum 90° Corner Applicator - Inside,Platinum Drywall Tools,59.00,,1,1,40.00,40.00,40.00,40.00,0.00,19.00,47.50,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/platinum-drywall-tools-inside-90-degree-applicator-mud-head/
-PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,62.00,,0,0,,,,,,,,no_market_data,no_map,,
+PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,62.00,,1,1,45.00,45.00,45.00,45.00,0.00,17.00,37.78,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/platinum-drywall-tools-mini-flat-box-handle/
 PT-OCA,Platinum 90° Corner Applicator - Outside,Platinum Drywall Tools,59.00,,1,1,45.00,45.00,45.00,45.00,0.00,14.00,31.11,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/platinum-drywall-tools-outside-90-degree-applicator-mud-head/
 PT-OCR,Platinum Corner Roller - Outside 90°,Platinum Drywall Tools,69.99,,0,0,,,,,,,,no_market_data,no_map,,
 PT-TP,Platinum Semi Automatic Drywall Taper,Platinum Drywall Tools,145.00,,1,1,85.00,85.00,85.00,85.00,0.00,60.00,70.59,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/platinum-drywall-tools-semi-automatic-super-taper/
@@ -575,24 +575,24 @@ S2X-M-2640,"SurPro S2X Magnesium Drywall Stilts - 26""-40""",SurPro,490.00,,1,1,
 17TT,TapeTech Corner Roller - Outside Corner,TapeTech,170.00,170.00,1,1,170.00,170.00,170.00,170.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-outside-corner-bead-roller-17tt/
 17TTE,TapeTech Corner Roller - Flex Tape Outside Corner,TapeTech,184.06,179.00,1,1,179.00,179.00,179.00,179.00,0.00,5.06,2.83,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-outside-corner-roller-for-flex-tape-17tte/
 40XTT,"TapeTech Corner Finisher - 2""",TapeTech,389.00,389.00,1,1,389.00,389.00,389.00,389.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-2-angle-head-drywall-corner-finisher-40xtt/
-42TT,"TapeTech Corner Finisher - 2.5""",TapeTech,399.00,399.00,1,1,399.00,399.00,399.00,399.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-2-5-easyroll-angle-head-drywall-finishing-tool-42tt/
+42TT,"TapeTech Corner Finisher - 2.5""",TapeTech,399.00,399.00,2,2,389.00,399.00,394.00,394.00,2.57,5.00,1.27,market_aligned,at_or_above_map,Wall Tools,https://walltools.com/tapetech-angle-head-corner-finisher-tape-40tt-42tt-45tt/
 48TT,"TapeTech Corner Finisher - 3"" EasyRoll® Adjustable",TapeTech,429.00,429.00,1,1,429.00,429.00,429.00,429.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-3-easyroll-angle-head-drywall-finishing-tool-48tt/
-48XTT,"TapeTech Corner Finisher - 3.5"" EasyRoll® Adjustable",TapeTech,448.22,439.00,1,1,439.00,439.00,439.00,439.00,0.00,9.22,2.10,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-3-5-easyroll-angle-head-corner-finisher-48xtt/
+48XTT,"TapeTech Corner Finisher - 3.5"" EasyRoll® Adjustable",TapeTech,448.22,439.00,2,2,429.00,439.00,434.00,434.00,2.33,14.22,3.28,market_aligned,at_or_above_map,Wall Tools,https://walltools.com/tapetech-easy-roll-adjustable-angle-head-corner-finisher-tape-48tt-48xtt/
 76TT,TapeTech EasyClean® Pump - Standard,TapeTech,399.00,,1,1,399.00,399.00,399.00,399.00,0.00,0.00,0.00,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-easyclean-loading-pump-76tt/
 76TT-CA,TapeTech EasyClean® Pump - Canada,TapeTech,409.00,409.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
 76XLTT,TapeTech EasyClean® Pump - Extra Long,TapeTech,659.00,659.00,1,1,665.00,665.00,665.00,665.00,0.00,-6.00,-0.90,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-extra-long-easyclean-tall-loading-pump-76xltt/
-8000TT,TapeTech Wizard® Compact Finishing Box Handle - Standard,TapeTech,109.00,,0,0,,,,,,,,no_market_data,no_map,,
+8000TT,TapeTech Wizard® Compact Finishing Box Handle - Standard,TapeTech,109.00,,1,1,109.00,109.00,109.00,109.00,0.00,0.00,0.00,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-wizard-flat-box-handle/
 8000TT-PA,TapeTech Wizard® Compact Finishing Box Handle - Power Assist,TapeTech,109.00,109.00,1,1,109.00,109.00,109.00,109.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-wizard-compact-handle-for-power-assist-boxes/
 8034TT,"TapeTech Flat Box Handle - 34""",TapeTech,229.00,229.00,1,1,229.00,229.00,229.00,229.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-34-drywall-flat-finishing-box-handle-8034tt/
 804003F,TapeTech Grip Assembly For Box Handle,TapeTech,73.91,,0,0,,,,,,,,no_market_data,no_map,,
 8042TT,"TapeTech Flat Box Handle - 42""",TapeTech,234.00,234.00,1,1,234.00,234.00,234.00,234.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-42-drywall-flat-finisher-box-handle-8042tt/
-8054TT,"TapeTech Flat Box Handle - 54""",TapeTech,239.00,239.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
+8054TT,"TapeTech Flat Box Handle - 54""",TapeTech,239.00,239.00,1,1,239.00,239.00,239.00,239.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-54-drywall-flat-finisher-box-handle/
 8072TT,"TapeTech Flat Box Handle - 72""",TapeTech,249.00,249.00,1,1,249.00,249.00,249.00,249.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-72-drywall-flat-finisher-box-handle-8072tt/
 8134TT,"TapeTech EasyFinish™ Box Handle - 34""",TapeTech,259.76,259.00,1,1,259.00,259.00,259.00,259.00,0.00,0.76,0.29,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-34-easyfinish-flat-box-handle-8134tt/
 8142TT,"TapeTech EasyFinish™ Box Handle - 42""",TapeTech,269.00,269.00,1,1,269.00,269.00,269.00,269.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-42-easyfinish-flat-box-handle-8142tt/
 8154TT,"TapeTech EasyFinish™ Box Handle - 54""",TapeTech,279.00,279.00,1,1,279.00,279.00,279.00,279.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-54-easyfinish-flat-box-handle-8154tt/
 8172TT,"TapeTech EasyFinish™ Box Handle - 72""",TapeTech,291.28,289.00,1,1,289.00,289.00,289.00,289.00,0.00,2.28,0.79,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-72-easyfinish-flat-box-handle-8172tt/
-85T,TapeTech Gooseneck - Standard,TapeTech,105.00,105.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
+85T,TapeTech Gooseneck - Standard,TapeTech,105.00,105.00,1,1,105.00,105.00,105.00,105.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-gooseneck-adapter/
 85XLTT,TapeTech Gooseneck - Extra Long,TapeTech,199.00,,1,1,199.00,199.00,199.00,199.00,0.00,0.00,0.00,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-extra-long-gooseneck-adapter/
 90T,TapeTech Filler Adapter,TapeTech,79.00,79.00,1,1,79.00,79.00,79.00,79.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-drywall-box-filler-attachment-90t/
 BH,"TapeTech Brakeless Box Handle - Fixed 34""",TapeTech,149.00,149.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
@@ -618,18 +618,18 @@ CT24TT,"TapeTech Compound Tube - 24""",TapeTech,189.00,189.00,1,1,189.00,189.00,
 CT36TT,"TapeTech Compound Tube - 36""",TapeTech,199.00,199.00,1,1,199.00,199.00,199.00,199.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-36-drywall-compound-tube-ct36tt/
 CT42TT,"TapeTech Compound Tube - 42""",TapeTech,211.09,209.00,1,1,209.00,209.00,209.00,209.00,0.00,2.09,1.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-42-drywall-compound-tube-ct42tt/
 CTA01TT,TapeTech Compound Tube Filler Adapter,TapeTech,19.99,19.99,1,1,19.99,19.99,19.99,19.99,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-compound-tube-filler-adapter-cta01tt/
-EHC07,"TapeTech MaxxBox® High Capacity Finishing Box - 7""",TapeTech,419.00,419.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
+EHC07,"TapeTech MaxxBox® High Capacity Finishing Box - 7""",TapeTech,419.00,419.00,1,1,419.00,419.00,419.00,419.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-7-maxxbox-w-easy-roll-wheels/
 EHC10,"TapeTech MaxxBox® High Capacity Finishing Box - 10""",TapeTech,419.00,419.00,1,1,419.00,419.00,419.00,419.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-10-maxxbox-w-easy-roll-wheels-ehc10/
 EHC12,"TapeTech MaxxBox® High Capacity Finishing Box - 12""",TapeTech,444.00,444.00,1,1,444.00,444.00,444.00,444.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-12-maxxbox-w-easy-roll-wheels-ehc12/
 EZ07TT,"TapeTech EasyClean® Finishing Box - 7""",TapeTech,379.00,379.00,1,1,379.00,379.00,379.00,379.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-7-easyclean-drywall-flat-box-ez07tt/
-EZ10TT,"TapeTech EasyClean® Finishing Box - 10""",TapeTech,391.69,389.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
-EZ12TT,"TapeTech EasyClean® Finishing Box - 12""",TapeTech,405.72,399.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
+EZ10TT,"TapeTech EasyClean® Finishing Box - 10""",TapeTech,391.69,389.00,1,1,389.00,389.00,389.00,389.00,0.00,2.69,0.69,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-10-easyclean-drywall-flat-box/
+EZ12TT,"TapeTech EasyClean® Finishing Box - 12""",TapeTech,405.72,399.00,1,1,399.00,399.00,399.00,399.00,0.00,6.72,1.68,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-12-easyclean-drywall-flat-box/
 EZ15TT,"TapeTech EasyClean® Finishing Box - 15""",TapeTech,429.00,429.00,1,1,429.00,429.00,429.00,429.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-15-easyclean-drywall-flat-box-ez15tt/
 FHTT,TapeTech Support Handle - Fiberglass,TapeTech,59.00,59.00,1,1,59.00,59.00,59.00,59.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-interchangeable-fiberglass-handle-fhtt/
 FHTT-CC,TapeTech Support Handle - Closet Crusher Fiberglass,TapeTech,50.00,50.00,1,1,50.00,50.00,50.00,50.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-closet-crusher-18-support-handle/
-GSR-TT,TapeTech Gooseneck Riser,TapeTech,13.99,,0,0,,,,,,,,no_market_data,no_map,,
+GSR-TT,TapeTech Gooseneck Riser,TapeTech,13.99,,1,1,105.00,105.00,105.00,105.00,0.00,-91.01,-86.68,single_source_only,no_map,Wall Tools,https://walltools.com/tapetech-gooseneck/
 MR01TT,TapeTech MudRunner® Compound Applicator - Pro,TapeTech,1099.00,1099.00,1,1,1099.00,1099.00,1099.00,1099.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-mudrunner-compound-applicator-tube/
-MRX01TT,TapeTech Extension,TapeTech,179.00,179.00,0,0,,,,,,,,no_market_data,at_or_above_map,,
+MRX01TT,TapeTech Extension,TapeTech,179.00,179.00,1,1,179.00,179.00,179.00,179.00,0.00,0.00,0.00,single_source_only,at_or_above_map,Wall Tools,https://walltools.com/tapetech-extension-handle/
 NS02TT,"TapeTech Nail Spotter - 2""",TapeTech,303.66,278.00,1,1,278.00,278.00,278.00,278.00,0.00,25.66,9.23,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-2-easyclean-nail-screw-spotter-head/
 NS03TT,"TapeTech Nail Spotter - 3""",TapeTech,313.10,289.00,1,1,289.00,289.00,289.00,289.00,0.00,24.10,8.34,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-3-easyclean-nail-screw-spotter/
 NSA-TT,TapeTech Support Handle Adapter - Nail Spotter,TapeTech,40.00,,1,1,45.00,45.00,45.00,45.00,0.00,-5.00,-11.11,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-nail-spotter-adapter-nsa-tt/
@@ -640,7 +640,7 @@ QB06-QSX,"TapeTech QuickBox® QSX Finishing Box - 6.5""",TapeTech,149.00,149.00,
 QB08-QSX,"TapeTech QuickBox® QSX Finishing Box - 8.5""",TapeTech,180.19,174.00,1,1,174.00,174.00,174.00,174.00,0.00,6.19,3.56,single_source_only,at_or_above_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-quickbox-qsx-8-finishing-box/
 TTBBS,TapeTech Basic Box Set,TapeTech,1644.00,,0,0,,,,,,,,no_market_data,no_map,,
 TTBTS,TapeTech Basic Taping Set,TapeTech,2829.00,,0,0,,,,,,,,no_market_data,no_map,,
-TTCFS,TapeTech Corner Finishing Set,TapeTech,1416.00,,0,0,,,,,,,,no_market_data,no_map,,
+TTCFS,TapeTech Corner Finishing Set,TapeTech,1416.00,,1,1,1392.00,1392.00,1392.00,1392.00,0.00,24.00,1.72,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-corner-finishing-set/
 TTCFS-M,TapeTech MudRunner Corner Finishing Set,TapeTech,1928.00,,1,1,1906.00,1906.00,1906.00,1906.00,0.00,22.00,1.15,single_source_only,no_map,Al's Taping Tools,https://www.alstapingtools.com/tapetech-mudrunner-corner-finishing-set/
 TTPFB,TapeTech Paper Faced Bead Pro Set,TapeTech,1949.00,,0,0,,,,,,,,no_market_data,no_map,,
 TTPPS,TapeTech Pro Performance Set,TapeTech,6625.00,,0,0,,,,,,,,no_market_data,no_map,,
