@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Fast, streaming competitor price research for the DTB catalog.
+"""Fast, resumable competitor price research for the DTB catalog.
 
-The extraction, normalization, matching, and market-analysis logic remains in
-competitor_price_research_core. This operator entrypoint adds bounded concurrent
-fetching plus lightweight live persistence so network throughput is not blocked
-by repeatedly rebuilding every report after each scraped product.
+Production scope is intentionally limited to Al's Taping Tools, All-Wall, and
+Wall Tools. The extraction, normalization, matching, and market-analysis logic
+remains in competitor_price_research_core. This entrypoint owns bounded
+concurrency, streaming persistence, durable resume checkpoints, and operator
+telemetry.
 """
 
 from __future__ import annotations
@@ -20,8 +21,8 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Sequence
-from urllib.parse import unquote, urlparse, urlunparse
+from typing import Any, Mapping, Sequence
+from urllib.parse import urlparse
 
 from competitor_price_research_core import *  # noqa: F403,F401
 import competitor_price_research_core as core
@@ -33,12 +34,8 @@ PROGRESS_EVERY = 100
 CHECKPOINT_EVERY = 100
 CHECKPOINT_INTERVAL_SECONDS = 30.0
 SUMMARY_REPLACE_ATTEMPTS = 3
-
-CSR_SITE_KEY = "csr_building"
-CSR_US_PRODUCT_PREFIX = "/en-us/products/"
-CSR_MAX_WORKERS = 4
-CSR_MIN_REQUEST_INTERVAL = 0.75
-CSR_MAX_RETRIES = 1
+ACTIVE_SITE_KEYS = ("als_taping_tools", "all_wall", "wall_tools")
+ACTIVE_SITES = tuple(site for site in core.SITES if site.key in ACTIVE_SITE_KEYS)
 
 PRIMARY_MATCH_FIELDS = [
     "dtb_sku",
@@ -52,30 +49,11 @@ PRIMARY_MATCH_FIELDS = [
 ]
 
 
-def canonical_csr_us_product_url(url: str) -> str | None:
-    """Return one canonical CSR US product URL or reject non-US locale mirrors.
-
-    CSR's root storefront is CAD while /en-us is USD. Collection-product aliases
-    such as /en-us/collections/columbia/products/<handle> resolve to the canonical
-    /en-us/products/<handle> form and are collapsed before any product fetch.
-    """
-    parsed = urlparse(url)
-    path = unquote(parsed.path or "")
-    handle = ""
-
-    if path.startswith(CSR_US_PRODUCT_PREFIX):
-        handle = path[len(CSR_US_PRODUCT_PREFIX):].strip("/").split("/", 1)[0]
-    elif path.startswith("/en-us/collections/") and "/products/" in path:
-        handle = path.split("/products/", 1)[1].strip("/").split("/", 1)[0]
-    else:
-        return None
-
-    if not handle:
-        return None
-
-    scheme = parsed.scheme or "https"
-    netloc = parsed.netloc or "csrbuilding.com"
-    return urlunparse((scheme, netloc, f"{CSR_US_PRODUCT_PREFIX}{handle}", "", "", ""))
+def selected_active_sites(keys: Sequence[str] | None) -> list[core.SiteConfig]:
+    if not keys:
+        return list(ACTIVE_SITES)
+    requested = {item.strip().lower() for item in keys if item.strip()}
+    return [site for site in ACTIVE_SITES if site.key in requested]
 
 
 class SharedHostGate:
@@ -100,16 +78,9 @@ class SharedHostGate:
 class WorkerClients:
     """Use one keep-alive cloudscraper session per worker thread."""
 
-    def __init__(
-        self,
-        template: core.HttpClient,
-        gate: SharedHostGate,
-        *,
-        retries: int | None = None,
-    ) -> None:
+    def __init__(self, template: core.HttpClient, gate: SharedHostGate) -> None:
         self.template = template
         self.gate = gate
-        self.retries = template.retries if retries is None else max(0, retries)
         self.local = threading.local()
 
     def get(self) -> core.HttpClient:
@@ -117,7 +88,7 @@ class WorkerClients:
         if client is None:
             client = core.HttpClient(
                 timeout=self.template.timeout,
-                retries=self.retries,
+                retries=self.template.retries,
                 interval=0.0,
                 user_agent=self.template.user_agent,
                 respect_robots=False,
@@ -144,8 +115,26 @@ def primary_match_row(match: core.Match) -> dict[str, str]:
     }
 
 
+def listing_from_checkpoint(payload: Mapping[str, Any]) -> core.Listing | None:
+    """Rehydrate one previously persisted Listing without trusting extra fields."""
+    fields = core.Listing.__dataclass_fields__
+    values = {key: payload.get(key) for key in fields if key in payload}
+    if not values.get("site_key") or not values.get("url") or not values.get("title"):
+        return None
+    for key in ("price", "regular_price", "sale_price"):
+        values[key] = core.decimal_value(values.get(key))
+    try:
+        values["discovery_score"] = float(values.get("discovery_score") or 0.0)
+    except (TypeError, ValueError):
+        values["discovery_score"] = 0.0
+    try:
+        return core.Listing(**values)
+    except TypeError:
+        return None
+
+
 class LiveResults:
-    """Persist scrape evidence and accepted matches without hot-path file reopen churn."""
+    """Persist evidence, matches, and processed URLs with durable resume support."""
 
     def __init__(self, output_dir: Path, products: Sequence[core.CatalogProduct], args: argparse.Namespace) -> None:
         self.output_dir = output_dir
@@ -156,6 +145,7 @@ class LiveResults:
             "analysis": output_dir / "competitor_price_analysis.csv",
             "matches": output_dir / "competitor_price_matches.csv",
             "evidence": output_dir / "competitor_scrape_evidence.jsonl",
+            "processed": output_dir / "competitor_processed_urls.jsonl",
             "unmatched_listings": output_dir / "unmatched_competitor_listings.csv",
             "unmatched_catalog": output_dir / "unmatched_catalog_products.csv",
             "summary": output_dir / "run_summary.json",
@@ -164,24 +154,128 @@ class LiveResults:
         self.matches: list[core.Match] = []
         self.unmatched_listings: list[core.Listing] = []
         self.matched_skus: set[str] = set()
+        self.processed_urls: set[tuple[str, str]] = set()
         self._evidence_keys: set[tuple[str, str, str, str, str]] = set()
         self._match_keys: set[tuple[str, str, str, str, str]] = set()
         self.crawl_stats: dict[str, Any] = {}
+        self.legacy_completed_sites: set[str] = set()
         self.started_at = datetime.now(timezone.utc).isoformat()
         self.successful_pages = 0
         self._last_checkpoint_pages = 0
         self._last_checkpoint_time = time.monotonic()
         self._closed = False
 
-        self._evidence_handle = self.paths["evidence"].open("w", encoding="utf-8", newline="\n", buffering=1)
+        self._load_previous_summary()
+        self._load_previous_evidence()
+        self._load_processed_urls()
+        self._rebuild_matches_from_evidence()
+
+        self._evidence_handle = self.paths["evidence"].open("a", encoding="utf-8", newline="\n", buffering=1)
+        self._processed_handle = self.paths["processed"].open("a", encoding="utf-8", newline="\n", buffering=1)
         self._matches_handle = self.paths["matches"].open("w", encoding="utf-8-sig", newline="", buffering=1)
         self._matches_writer = csv.DictWriter(self._matches_handle, fieldnames=PRIMARY_MATCH_FIELDS)
         self._matches_writer.writeheader()
+        for match in self.matches:
+            self._matches_writer.writerow(primary_match_row(match))
         self._matches_handle.flush()
 
         self._write_aggregate_reports()
         self._write_summary("running")
-        logging.info("live_outputs_ready dir=%s", self.output_dir)
+        logging.info(
+            "live_outputs_ready dir=%s resumed_listings=%s resumed_matches=%s processed_urls=%s legacy_completed_sites=%s",
+            self.output_dir,
+            len(self.listings),
+            len(self.matches),
+            len(self.processed_urls),
+            ",".join(sorted(self.legacy_completed_sites)) or "none",
+        )
+
+    def _load_previous_summary(self) -> None:
+        path = self.paths["summary"]
+        if not path.exists():
+            return
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8-sig"))
+        except (OSError, json.JSONDecodeError):
+            return
+        crawl = payload.get("crawl")
+        if not isinstance(crawl, Mapping):
+            return
+        for site_key, raw_stats in crawl.items():
+            if site_key not in ACTIVE_SITE_KEYS or not isinstance(raw_stats, Mapping):
+                continue
+            try:
+                allowed = int(raw_stats.get("allowed_urls") or 0)
+                fetched = int(raw_stats.get("fetched_urls") or 0)
+            except (TypeError, ValueError):
+                continue
+            # Migration support for runs created before processed-URL checkpointing.
+            # Only non-empty, fully completed sites are trusted as complete.
+            if allowed > 0 and fetched >= allowed:
+                self.legacy_completed_sites.add(site_key)
+                self.crawl_stats[site_key] = dict(raw_stats)
+
+    def _load_previous_evidence(self) -> None:
+        path = self.paths["evidence"]
+        if not path.exists():
+            return
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as handle:
+                for line in handle:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if not isinstance(payload, Mapping) or payload.get("site_key") not in ACTIVE_SITE_KEYS:
+                        continue
+                    item = listing_from_checkpoint(payload)
+                    if item is None:
+                        continue
+                    key = self._evidence_key(item)
+                    if key in self._evidence_keys:
+                        continue
+                    self._evidence_keys.add(key)
+                    self.listings.append(item)
+        except OSError as exc:
+            logging.warning("resume_evidence_unavailable error=%s", exc)
+
+    def _load_processed_urls(self) -> None:
+        path = self.paths["processed"]
+        if not path.exists():
+            return
+        try:
+            with path.open("r", encoding="utf-8", errors="replace") as handle:
+                for line in handle:
+                    try:
+                        payload = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if not isinstance(payload, Mapping):
+                        continue
+                    site_key = str(payload.get("site_key") or "")
+                    url = core.canonicalize_url(str(payload.get("url") or ""))
+                    if site_key in ACTIVE_SITE_KEYS and url:
+                        self.processed_urls.add((site_key, url))
+        except OSError as exc:
+            logging.warning("resume_processed_urls_unavailable error=%s", exc)
+
+    def _rebuild_matches_from_evidence(self) -> None:
+        if not self.listings:
+            return
+        matches, unmatched, _ = core.match_listings(self.products, self.listings, self.args.fuzzy_threshold)
+        for match in matches:
+            key = self._match_key(match)
+            if key in self._match_keys:
+                continue
+            self._match_keys.add(key)
+            self.matches.append(match)
+            self.matched_skus.add(match.dtb_sku)
+        self.unmatched_listings = list(unmatched)
+        self.successful_pages = len(self.listings)
+        self._last_checkpoint_pages = self.successful_pages
 
     @staticmethod
     def _evidence_key(item: core.Listing) -> tuple[str, str, str, str, str]:
@@ -203,6 +297,22 @@ class LiveResults:
             core.decimal_text(item.competitor_price),
         )
 
+    def is_processed(self, site_key: str, url: str) -> bool:
+        return (site_key, core.canonicalize_url(url)) in self.processed_urls
+
+    def mark_processed(self, site_key: str, url: str, status: str) -> None:
+        key = (site_key, core.canonicalize_url(url))
+        if key in self.processed_urls:
+            return
+        self.processed_urls.add(key)
+        self._processed_handle.write(json.dumps({
+            "site_key": site_key,
+            "url": key[1],
+            "status": status,
+            "processed_at": datetime.now(timezone.utc).isoformat(),
+        }, ensure_ascii=False, sort_keys=True) + "\n")
+        self._processed_handle.flush()
+
     def record(self, extracted: Sequence[core.Listing]) -> None:
         fresh: list[core.Listing] = []
         for item in core.dedupe_listings(extracted):
@@ -220,11 +330,7 @@ class LiveResults:
             self._evidence_handle.flush()
             self.listings.extend(fresh)
 
-            new_matches, new_unmatched, _ = core.match_listings(
-                self.products,
-                fresh,
-                self.args.fuzzy_threshold,
-            )
+            new_matches, new_unmatched, _ = core.match_listings(self.products, fresh, self.args.fuzzy_threshold)
             wrote_match = False
             for match in new_matches:
                 key = self._match_key(match)
@@ -263,10 +369,9 @@ class LiveResults:
         try:
             self.checkpoint(status)
         finally:
-            self._evidence_handle.flush()
-            self._matches_handle.flush()
-            self._evidence_handle.close()
-            self._matches_handle.close()
+            for handle in (self._evidence_handle, self._processed_handle, self._matches_handle):
+                handle.flush()
+                handle.close()
             self._closed = True
 
     def _unmatched_products(self) -> list[core.CatalogProduct]:
@@ -286,15 +391,17 @@ class LiveResults:
 
     def _summary_payload(self, status: str) -> dict[str, Any]:
         return {
-            "schema_version": 5,
+            "schema_version": 6,
             "status": status,
             "started_at": self.started_at,
             "updated_at": datetime.now(timezone.utc).isoformat(),
             "catalog": str(self.args.catalog),
-            "sites": [site.key for site in core.selected_sites(self.args.sites)],
+            "sites": [site.key for site in selected_active_sites(self.args.sites)],
             "brand_filter": self.args.brands or [],
             "workers": self.args.workers,
             "request_interval_seconds": self.args.request_interval,
+            "resume_enabled": True,
+            "processed_url_count": len(self.processed_urls),
             "catalog_products_analyzed": len(self.products),
             "successful_product_pages": self.successful_pages,
             "competitor_listings_collected": len(self.listings),
@@ -328,72 +435,6 @@ class FastMarketScraper(core.MarketScraper):
         super().__init__(**kwargs)
         self.workers = max(1, workers)
         self.sink = sink
-        self._configured_max_urls = self.max_urls
-
-    def discover(self, site: core.SiteConfig) -> tuple[list[str], dict[str, Any]]:
-        if site.key != CSR_SITE_KEY:
-            return super().discover(site)
-
-        # CSR's Shopify sitemap exposes many locale mirrors. Temporarily allow
-        # discovery to see the complete bounded candidate set, then collapse it
-        # to the US/USD storefront before the fetch cap is applied.
-        original_max_urls = self.max_urls
-        self.max_urls = self.max_discovered_urls
-        try:
-            _urls, discovery = super().discover(site)
-        finally:
-            self.max_urls = original_max_urls
-
-        selected_scores = discovery.get("selected_url_scores", [])
-        canonical_scores: dict[str, dict[str, Any]] = {}
-        rejected_locale_urls = 0
-        collapsed_aliases = 0
-
-        for meta in selected_scores:
-            source_url = str(meta.get("url", "") or "")
-            canonical = canonical_csr_us_product_url(source_url)
-            if canonical is None:
-                rejected_locale_urls += 1
-                continue
-            if canonical != source_url:
-                collapsed_aliases += 1
-
-            normalized_meta = dict(meta)
-            normalized_meta["url"] = canonical
-            previous = canonical_scores.get(canonical)
-            if previous is None or float(normalized_meta.get("score", 0.0)) > float(previous.get("score", 0.0)):
-                canonical_scores[canonical] = normalized_meta
-
-        ordered_meta = sorted(
-            canonical_scores.values(),
-            key=lambda item: (-float(item.get("score", 0.0)), str(item.get("url", ""))),
-        )
-        ordered_meta = ordered_meta[: self._configured_max_urls]
-        urls = [str(item["url"]) for item in ordered_meta]
-
-        discovery["selected_url_scores"] = ordered_meta
-        discovery["csr_locale_urls_rejected"] = rejected_locale_urls
-        discovery["csr_alias_urls_collapsed"] = collapsed_aliases
-        discovery["csr_us_product_urls"] = len(urls)
-
-        logging.info(
-            "csr_us_scope discovered_selected=%s us_products=%s locale_rejected=%s aliases_collapsed=%s",
-            len(selected_scores),
-            len(urls),
-            rejected_locale_urls,
-            collapsed_aliases,
-        )
-        return urls, discovery
-
-    @staticmethod
-    def _site_runtime(site: core.SiteConfig, workers: int, interval: float, retries: int) -> tuple[int, float, int]:
-        if site.key == CSR_SITE_KEY:
-            return (
-                min(workers, CSR_MAX_WORKERS),
-                max(interval, CSR_MIN_REQUEST_INTERVAL),
-                min(retries, CSR_MAX_RETRIES),
-            )
-        return workers, interval, retries
 
     def _fetch_one(
         self,
@@ -419,38 +460,46 @@ class FastMarketScraper(core.MarketScraper):
     def run(self) -> tuple[list[core.Listing], dict[str, Any]]:
         stats: dict[str, Any] = {}
         for site in self.sites:
+            if site.key in self.sink.legacy_completed_sites:
+                previous = dict(self.sink.crawl_stats.get(site.key, {}))
+                previous["resumed_site_complete"] = True
+                stats[site.key] = previous
+                self.sink.update_site_stats(site.key, previous)
+                logging.info(
+                    "site_resume_skip key=%s reason=completed_previous_run fetched=%s allowed=%s",
+                    site.key,
+                    previous.get("fetched_urls", 0),
+                    previous.get("allowed_urls", 0),
+                )
+                continue
+
             urls, discovery = self.discover(site)
             selected_scores = discovery.pop("selected_url_scores", [])
             score_by_url = {item["url"]: item for item in selected_scores}
             allowed_urls: list[str] = []
             robots_skips = 0
             for url in urls:
+                if self.sink.is_processed(site.key, url):
+                    continue
                 if self.client.allowed(url):
                     allowed_urls.append(url)
                 else:
                     robots_skips += 1
 
-            site_workers, site_interval, site_retries = self._site_runtime(
-                site,
-                self.workers,
-                self.client.interval,
-                self.client.retries,
-            )
-            worker_clients = WorkerClients(
-                self.client,
-                SharedHostGate(site_interval),
-                retries=site_retries,
-            )
+            worker_clients = WorkerClients(self.client, SharedHostGate(self.client.interval))
             start_matches = len(self.sink.matches)
             start_matched_skus = set(self.sink.matched_skus)
+            previously_processed = sum(1 for url in urls if self.sink.is_processed(site.key, url))
 
             site_stats: dict[str, Any] = {
                 **discovery,
                 "candidate_urls": len(urls),
+                "resume_skipped_urls": previously_processed,
+                "remaining_urls": len(allowed_urls),
                 "allowed_urls": len(allowed_urls),
-                "workers": site_workers,
-                "request_interval_seconds": site_interval,
-                "retries": site_retries,
+                "workers": self.workers,
+                "request_interval_seconds": self.client.interval,
+                "retries": self.client.retries,
                 "fetched_urls": 0,
                 "product_pages": 0,
                 "listings": 0,
@@ -460,19 +509,20 @@ class FastMarketScraper(core.MarketScraper):
             }
             self.sink.update_site_stats(site.key, site_stats)
             logging.info(
-                "site_start key=%s candidates=%s allowed=%s workers=%s interval=%.2fs retries=%s discovered=%s rejected=%s fallback=%s",
+                "site_start key=%s candidates=%s remaining=%s resume_skipped=%s workers=%s interval=%.2fs retries=%s discovered=%s rejected=%s fallback=%s",
                 site.key,
                 len(urls),
                 len(allowed_urls),
-                site_workers,
-                site_interval,
-                site_retries,
+                previously_processed,
+                self.workers,
+                self.client.interval,
+                self.client.retries,
                 site_stats.get("sitemap_product_urls", 0),
                 site_stats.get("url_prefilter_rejected", 0),
                 site_stats.get("url_prefilter_fallback", 0),
             )
 
-            executor = ThreadPoolExecutor(max_workers=site_workers, thread_name_prefix=f"dtb-{site.key}")
+            executor = ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix=f"dtb-{site.key}")
             futures: dict[Any, str] = {}
             try:
                 futures = {
@@ -488,11 +538,14 @@ class FastMarketScraper(core.MarketScraper):
                         site_stats["errors"] += 1
                         if "HTTP 429" in error:
                             site_stats["rate_limit_errors"] += 1
+                        self.sink.mark_processed(site.key, url, "error")
                         logging.warning("page_fetch_failed site=%s url=%s error=%s", site.key, url, error)
-                    elif accepted:
-                        site_stats["product_pages"] += 1
-                        site_stats["listings"] += len(accepted)
-                        self.sink.record(accepted)
+                    else:
+                        self.sink.mark_processed(site.key, url, "product" if accepted else "non_product")
+                        if accepted:
+                            site_stats["product_pages"] += 1
+                            site_stats["listings"] += len(accepted)
+                            self.sink.record(accepted)
 
                     if processed % PROGRESS_EVERY == 0 or processed == len(allowed_urls):
                         site_matches = len(self.sink.matches) - start_matches
@@ -536,10 +589,10 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", type=Path, default=core.DEFAULT_CATALOG)
     parser.add_argument("--output-dir", type=Path, default=core.DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--sites", nargs="*", choices=[site.key for site in core.SITES])
+    parser.add_argument("--sites", nargs="*", choices=[site.key for site in ACTIVE_SITES])
     parser.add_argument("--brands", nargs="*")
-    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers for normal competitors (default: 10; CSR is capped lower)")
-    parser.add_argument("--request-interval", type=float, default=DEFAULT_REQUEST_INTERVAL, help="Minimum seconds between request starts per host (default: 0.20; CSR enforces a safer floor)")
+    parser.add_argument("--workers", type=int, default=DEFAULT_WORKERS, help="Concurrent product-page workers (default: 10)")
+    parser.add_argument("--request-interval", type=float, default=DEFAULT_REQUEST_INTERVAL, help="Minimum seconds between request starts per host (default: 0.20)")
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--retries", type=int, default=2)
     parser.add_argument("--max-urls-per-site", type=int, default=5000)
@@ -548,7 +601,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--url-prefilter-min-score", type=float, default=38.0)
     parser.add_argument("--uncertain-fallback-cap", type=int, default=50)
     parser.add_argument("--fuzzy-threshold", type=float, default=91.0)
-    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.2"))
+    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.3"))
     parser.add_argument("--ignore-robots", action="store_false", dest="respect_robots")
     parser.set_defaults(respect_robots=True)
     parser.add_argument("--verbose", action="store_true")
@@ -584,7 +637,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     scraper = FastMarketScraper(
         client=client,
-        sites=core.selected_sites(args.sites),
+        sites=selected_active_sites(args.sites),
         products=products,
         max_urls=args.max_urls_per_site,
         max_sitemaps=args.max_sitemap_documents,
@@ -613,6 +666,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "listings": len(sink.listings),
         "matches": len(sink.matches),
         "matched_skus": len(sink.matched_skus),
+        "processed_urls": len(sink.processed_urls),
         "outputs": {key: str(value) for key, value in sink.paths.items()},
     }, sort_keys=True))
     return 0
