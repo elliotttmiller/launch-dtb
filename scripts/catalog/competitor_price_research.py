@@ -17,7 +17,7 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
@@ -35,7 +35,15 @@ CHECKPOINT_EVERY = 100
 CHECKPOINT_INTERVAL_SECONDS = 30.0
 SUMMARY_REPLACE_ATTEMPTS = 3
 ACTIVE_SITE_KEYS = ("als_taping_tools", "all_wall", "wall_tools")
-ACTIVE_SITES = tuple(site for site in core.SITES if site.key in ACTIVE_SITE_KEYS)
+
+# All-Wall serves real product pages as root-level slugs without a .html suffix.
+# Override only that stale discovery constraint while leaving the shared core
+# configuration unchanged for other tooling that imports it.
+ACTIVE_SITES = tuple(
+    replace(site, product_path_tokens=()) if site.key == "all_wall" else site
+    for site in core.SITES
+    if site.key in ACTIVE_SITE_KEYS
+)
 
 PRIMARY_MATCH_FIELDS = [
     "dtb_sku",
@@ -99,7 +107,6 @@ class WorkerClients:
 
 
 def primary_match_row(match: core.Match) -> dict[str, str]:
-    """Project a rich internal match into the concise pricing-research report."""
     delta: Decimal | None = None
     if match.dtb_price is not None and match.competitor_price is not None:
         delta = match.dtb_price - match.competitor_price
@@ -116,7 +123,6 @@ def primary_match_row(match: core.Match) -> dict[str, str]:
 
 
 def listing_from_checkpoint(payload: Mapping[str, Any]) -> core.Listing | None:
-    """Rehydrate one previously persisted Listing without trusting extra fields."""
     fields = core.Listing.__dataclass_fields__
     values = {key: payload.get(key) for key in fields if key in payload}
     if not values.get("site_key") or not values.get("url") or not values.get("title"):
@@ -165,9 +171,11 @@ class LiveResults:
         self._last_checkpoint_time = time.monotonic()
         self._closed = False
 
+        # Resume state must be loaded before any output file is opened for write.
         self._load_previous_summary()
         self._load_previous_evidence()
         self._load_processed_urls()
+        self._validate_legacy_completion()
         self._rebuild_matches_from_evidence()
 
         self._evidence_handle = self.paths["evidence"].open("a", encoding="utf-8", newline="\n", buffering=1)
@@ -209,8 +217,6 @@ class LiveResults:
                 fetched = int(raw_stats.get("fetched_urls") or 0)
             except (TypeError, ValueError):
                 continue
-            # Migration support for runs created before processed-URL checkpointing.
-            # Only non-empty, fully completed sites are trusted as complete.
             if allowed > 0 and fetched >= allowed:
                 self.legacy_completed_sites.add(site_key)
                 self.crawl_stats[site_key] = dict(raw_stats)
@@ -261,6 +267,24 @@ class LiveResults:
                         self.processed_urls.add((site_key, url))
         except OSError as exc:
             logging.warning("resume_processed_urls_unavailable error=%s", exc)
+
+    def _validate_legacy_completion(self) -> None:
+        """Never skip a legacy completed site unless its evidence was restored.
+
+        Older checkpoints did not persist attempted URLs. A summary can prove a
+        crawl finished, but it cannot reconstruct pricing evidence after that
+        evidence file was lost or truncated. In that case rerunning is the only
+        data-safe option.
+        """
+        evidence_sites = {item.site_key for item in self.listings}
+        invalid = sorted(site_key for site_key in self.legacy_completed_sites if site_key not in evidence_sites)
+        for site_key in invalid:
+            self.legacy_completed_sites.discard(site_key)
+            self.crawl_stats.pop(site_key, None)
+            logging.warning(
+                "legacy_resume_invalidated site=%s reason=completed_summary_without_restored_evidence rerun_required=true",
+                site_key,
+            )
 
     def _rebuild_matches_from_evidence(self) -> None:
         if not self.listings:
@@ -391,7 +415,7 @@ class LiveResults:
 
     def _summary_payload(self, status: str) -> dict[str, Any]:
         return {
-            "schema_version": 6,
+            "schema_version": 7,
             "status": status,
             "started_at": self.started_at,
             "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -476,6 +500,7 @@ class FastMarketScraper(core.MarketScraper):
             urls, discovery = self.discover(site)
             selected_scores = discovery.pop("selected_url_scores", [])
             score_by_url = {item["url"]: item for item in selected_scores}
+            previously_processed = sum(1 for url in urls if self.sink.is_processed(site.key, url))
             allowed_urls: list[str] = []
             robots_skips = 0
             for url in urls:
@@ -489,8 +514,6 @@ class FastMarketScraper(core.MarketScraper):
             worker_clients = WorkerClients(self.client, SharedHostGate(self.client.interval))
             start_matches = len(self.sink.matches)
             start_matched_skus = set(self.sink.matched_skus)
-            previously_processed = sum(1 for url in urls if self.sink.is_processed(site.key, url))
-
             site_stats: dict[str, Any] = {
                 **discovery,
                 "candidate_urls": len(urls),
@@ -541,11 +564,11 @@ class FastMarketScraper(core.MarketScraper):
                         self.sink.mark_processed(site.key, url, "error")
                         logging.warning("page_fetch_failed site=%s url=%s error=%s", site.key, url, error)
                     else:
-                        self.sink.mark_processed(site.key, url, "product" if accepted else "non_product")
                         if accepted:
                             site_stats["product_pages"] += 1
                             site_stats["listings"] += len(accepted)
                             self.sink.record(accepted)
+                        self.sink.mark_processed(site.key, url, "product" if accepted else "non_product")
 
                     if processed % PROGRESS_EVERY == 0 or processed == len(allowed_urls):
                         site_matches = len(self.sink.matches) - start_matches
@@ -601,7 +624,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--url-prefilter-min-score", type=float, default=38.0)
     parser.add_argument("--uncertain-fallback-cap", type=int, default=50)
     parser.add_argument("--fuzzy-threshold", type=float, default=91.0)
-    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.3"))
+    parser.add_argument("--user-agent", default=core.DEFAULT_USER_AGENT.replace("2.0", "4.4"))
     parser.add_argument("--ignore-robots", action="store_false", dest="respect_robots")
     parser.set_defaults(respect_robots=True)
     parser.add_argument("--verbose", action="store_true")
