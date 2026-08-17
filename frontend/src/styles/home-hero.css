@@ -873,10 +873,17 @@
   .home-hero-nav__description,
   .home-hero-brands__link { transition: none; }
 
+  /* Pause, don't offer manual scroll: the previous fallback here set
+     `overflow-x: auto` on the track, which — combined with `animation:
+     none` — is exactly the "static row with a native horizontal
+     scrollbar" symptom this file's own base rules are designed to
+     prevent. A reduced-motion user should see a single, still frame of
+     the brand row, not a scrollable strip they have to drag themselves;
+     `overflow: hidden` (matching the parent `__viewport`'s own clipping)
+     removes that scroll affordance entirely. */
   .home-hero-brands__track {
     animation: none;
-    width: 100%;
-    overflow-x: auto;
+    overflow: hidden;
   }
   .home-hero-brands__link--clone { display: none; }
 }

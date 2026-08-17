@@ -17,6 +17,7 @@ const DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS = 'refresh_products';
 const DTB_SCHEMATIC_OPERATION_PUBLISH          = 'publish';
 const DTB_SCHEMATIC_OPERATION_RETIRE           = 'retire';
 const DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   = 'refresh_public_projection';
+const DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED = 'regenerate_oversized';
 const DTB_SCHEMATIC_OPERATION_MAX_SELECTED     = 50;
 
 function dtb_schematic_run_operation( array $args = [] ) {
@@ -27,14 +28,14 @@ function dtb_schematic_run_operation( array $args = [] ) {
 	$trusted_cli = ! empty( $args['trusted_cli'] ) && defined( 'WP_CLI' ) && WP_CLI;
 	$all_records = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $args['all_records'] );
 
-	$supported = [ DTB_SCHEMATIC_OPERATION_RECONCILE, DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS, DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ];
+	$supported = [ DTB_SCHEMATIC_OPERATION_RECONCILE, DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS, DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC, DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED ];
 	if ( ! in_array( $kind, $supported, true ) ) {
 		return new WP_Error( 'dtb_schematic_operation_kind_invalid', __( 'The requested schematic operation is not supported.', 'drywall-toolbox' ) );
 	}
 	if ( $dry_run && in_array( $kind, [ DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ], true ) ) {
 		return new WP_Error( 'dtb_schematic_operation_preview_unsupported', __( 'Lifecycle and public-projection mutations do not support preview mode.', 'drywall-toolbox' ) );
 	}
-	if ( DTB_SCHEMATIC_OPERATION_RECONCILE !== $kind && empty( $selected ) && ! $all_records ) {
+	if ( ! in_array( $kind, [ DTB_SCHEMATIC_OPERATION_RECONCILE, DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED ], true ) && empty( $selected ) && ! $all_records ) {
 		return new WP_Error( 'dtb_schematic_operation_selection_required', __( 'Select at least one schematic for this operation.', 'drywall-toolbox' ) );
 	}
 
@@ -107,6 +108,20 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 			'lease_heartbeat'  => $heartbeat,
 		] );
 	}
+	if ( DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED === $kind ) {
+		$report = dtb_schematic_regenerate_oversized_run( $dry_run, $heartbeat );
+		return [
+			'dry_run'     => $dry_run,
+			'examined'    => $report['examined'],
+			'changed'     => $dry_run ? 0 : $report['regenerated'],
+			'skipped'     => $report['examined'] - $report['candidates'],
+			'unresolved'  => 0,
+			'failed'      => $report['failed'],
+			'candidates'  => $report['candidates'],
+			'results'     => $report['errors'],
+			'fatal_error' => $report['fatal_error'],
+		];
+	}
 	if ( DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
 		return dtb_schematic_migrate_hotspot_datasets(
 			[
@@ -173,6 +188,7 @@ function dtb_schematic_operation_log_activity( string $kind, array $run ): void 
 		DTB_SCHEMATIC_OPERATION_PUBLISH          => 'publish',
 		DTB_SCHEMATIC_OPERATION_RETIRE           => 'retire',
 		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'update_published_projection',
+		DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED => 'regenerate_oversized_images',
 	];
 	$labels = [
 		DTB_SCHEMATIC_OPERATION_RECONCILE        => 'Schematic sync',
@@ -181,6 +197,7 @@ function dtb_schematic_operation_log_activity( string $kind, array $run ): void 
 		DTB_SCHEMATIC_OPERATION_PUBLISH          => 'Publish',
 		DTB_SCHEMATIC_OPERATION_RETIRE           => 'Retire',
 		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'Public projection refresh',
+		DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED => 'Regenerate oversized schematic images',
 	];
 	$result = (array) ( $run['result'] ?? [] );
 	dtb_schematic_activity_log( [

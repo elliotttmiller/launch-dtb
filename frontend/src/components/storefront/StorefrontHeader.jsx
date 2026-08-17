@@ -703,11 +703,11 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       <header className="site-header site-header--no-ticker" role="banner">
         <div className="dtb-header-utility-bar">
           <Link to="/contact" className="dtb-header-utility-bar__item">
-            <Headset size={15} strokeWidth={2} aria-hidden="true" />
+            <Headset size={17} strokeWidth={2} aria-hidden="true" />
             Expert Support
           </Link>
           <a href="tel:+16098665269" className="dtb-header-utility-bar__item dtb-header-utility-bar__phone">
-            <Phone size={15} strokeWidth={2} aria-hidden="true" />
+            <Phone size={17} strokeWidth={2} aria-hidden="true" />
             (609) 866-5269
           </a>
         </div>

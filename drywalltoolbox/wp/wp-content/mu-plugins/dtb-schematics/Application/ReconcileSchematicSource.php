@@ -957,12 +957,155 @@ function dtb_schematic_reconcile_create_attachment_from_uploads( string $relativ
 
 	update_post_meta( $attachment_id, '_wp_attached_file', $relative_file );
 	require_once ABSPATH . 'wp-admin/includes/image.php';
-	$metadata = wp_generate_attachment_metadata( $attachment_id, $abs_path );
+	$metadata = dtb_schematic_generate_attachment_metadata_full_resolution( $attachment_id, $abs_path );
 	if ( is_array( $metadata ) ) {
 		wp_update_attachment_metadata( $attachment_id, $metadata );
 	}
 
 	return (int) $attachment_id;
+}
+
+/**
+ * Exploded-view schematic diagrams are viewed at deep zoom (200-400%) in the
+ * frontend viewer, so they need their true uploaded resolution to stay
+ * crisp — unlike ordinary content images, WordPress's default "big image"
+ * downscale (`big_image_size_threshold`, 2560px on the long edge) is actively
+ * harmful here: it silently replaces the attachment's main file/dimensions
+ * with a capped `-scaled` derivative and there is no larger derivative left
+ * in `sources` for the frontend to request. Disabled only for the single
+ * wp_generate_attachment_metadata() call this wraps — every other attachment
+ * type on the site (product photos, etc.) keeps WordPress's default
+ * threshold via dtb-media, which is unaffected by this filter's add/remove
+ * pairing.
+ */
+function dtb_schematic_generate_attachment_metadata_full_resolution( int $attachment_id, string $abs_path ) {
+	add_filter( 'big_image_size_threshold', 'dtb_schematic_disable_big_image_size_threshold' );
+	try {
+		return wp_generate_attachment_metadata( $attachment_id, $abs_path );
+	} finally {
+		remove_filter( 'big_image_size_threshold', 'dtb_schematic_disable_big_image_size_threshold' );
+	}
+}
+
+/**
+ * @see dtb_schematic_generate_attachment_metadata_full_resolution()
+ */
+function dtb_schematic_disable_big_image_size_threshold() {
+	return false;
+}
+
+/**
+ * Regenerate attachment metadata for a schematic page attachment that was
+ * previously downscaled by WordPress's default big-image behavior (i.e. its
+ * metadata still carries an `original_image` pointer — WordPress's marker
+ * that the main file/dimensions are a scaled derivative, not the true
+ * uploaded source). Re-derives metadata from the true original file on disk
+ * (kept in the same directory by WordPress at scale time; never deleted)
+ * with the threshold disabled, so already-uploaded schematics can be
+ * repaired without a re-upload. No-op (returns false, no error) if the
+ * attachment was never scaled or the true original file is missing.
+ *
+ * @return true|WP_Error|false True if metadata changed, false if nothing to do.
+ */
+function dtb_schematic_regenerate_oversized_attachment_metadata( int $attachment_id ) {
+	$meta = wp_get_attachment_metadata( $attachment_id );
+	if ( ! is_array( $meta ) || empty( $meta['original_image'] ) ) {
+		return false; // Never scaled — nothing to regenerate.
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	$original_path = wp_get_original_image_path( $attachment_id );
+	if ( ! $original_path || ! is_file( $original_path ) ) {
+		return new WP_Error( 'dtb_schematic_original_missing', sprintf( 'Attachment #%d has no recoverable original file on disk.', $attachment_id ) );
+	}
+
+	$regenerated = dtb_schematic_generate_attachment_metadata_full_resolution( $attachment_id, $original_path );
+	if ( ! is_array( $regenerated ) ) {
+		return new WP_Error( 'dtb_schematic_regenerate_failed', sprintf( 'Metadata regeneration failed for attachment #%d.', $attachment_id ) );
+	}
+
+	wp_update_attachment_metadata( $attachment_id, $regenerated );
+	return true;
+}
+
+/**
+ * Enumerate every schematic page attachment and repair the ones WordPress
+ * previously downscaled via `big_image_size_threshold` before that behavior
+ * was disabled for schematic uploads (see
+ * dtb_schematic_generate_attachment_metadata_full_resolution() above). This
+ * is the single shared implementation used by both
+ * `wp dtb schematics regenerate-oversized` (Application/ReconcileSchematicSourceCli.php)
+ * and the one-time wp-admin "Regenerate Oversized Schematic Images" action
+ * (Admin/Workspace/Workspace.php) — neither caller re-walks records or
+ * re-implements the repair itself.
+ *
+ * Idempotent: an attachment with no `original_image` metadata marker (never
+ * scaled, or already repaired by a prior run) is left untouched and is not
+ * counted as a candidate.
+ *
+ * @param bool          $dry_run   When true, only counts candidates; performs no writes.
+ * @param callable|null $heartbeat Optional commit-lease renewal callback, called before each repair.
+ * @return array{examined:int,candidates:int,regenerated:int,failed:int,errors:array<int,string>,fatal_error:?string}
+ */
+function dtb_schematic_regenerate_oversized_run( bool $dry_run = true, ?callable $heartbeat = null ): array {
+	$report = [
+		'examined'    => 0,
+		'candidates'  => 0,
+		'regenerated' => 0,
+		'failed'      => 0,
+		'errors'      => [],
+		'fatal_error' => null,
+	];
+
+	$attachment_ids = [];
+	$page = 1;
+	do {
+		$results = dtb_schematic_record_repo_query( [ 'page' => $page, 'per_page' => 100 ] );
+		foreach ( $results['items'] as $record ) {
+			foreach ( $record->pages as $record_page ) {
+				$attachment_id = (int) ( $record_page['attachment_id'] ?? 0 );
+				if ( $attachment_id > 0 ) {
+					$attachment_ids[ $attachment_id ] = true;
+				}
+			}
+		}
+		$page++;
+	} while ( $page <= $results['pages'] );
+
+	$attachment_ids = array_keys( $attachment_ids );
+	$report['examined'] = count( $attachment_ids );
+
+	foreach ( $attachment_ids as $attachment_id ) {
+		$meta = wp_get_attachment_metadata( $attachment_id );
+		if ( ! is_array( $meta ) || empty( $meta['original_image'] ) ) {
+			continue; // Never scaled, or already repaired — nothing to do.
+		}
+		$report['candidates']++;
+
+		if ( $dry_run ) {
+			continue;
+		}
+
+		if ( $heartbeat ) {
+			$renewed = $heartbeat();
+			if ( is_wp_error( $renewed ) ) {
+				$report['fatal_error'] = $renewed->get_error_message();
+				return $report;
+			}
+		}
+
+		$result = dtb_schematic_regenerate_oversized_attachment_metadata( $attachment_id );
+		if ( is_wp_error( $result ) ) {
+			$report['failed']++;
+			$report['errors'][] = sprintf( 'Attachment #%d: %s', $attachment_id, $result->get_error_message() );
+			continue;
+		}
+		if ( true === $result ) {
+			$report['regenerated']++;
+		}
+	}
+
+	return $report;
 }
 
 /**
