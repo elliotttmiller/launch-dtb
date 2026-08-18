@@ -157,7 +157,7 @@ function dtb_schematic_hotspot_source_audit_record( DTB_Schematic_Record_Entity 
 		return $base;
 	}
 
-	$dataset = count( $sources ) > 1 && function_exists( 'dtb_schematic_hotspot_merge_source_datasets' )
+	$dataset = function_exists( 'dtb_schematic_hotspot_merge_source_datasets' )
 		? dtb_schematic_hotspot_merge_source_datasets( $record->canonical_id, $sources )
 		: (array) $sources[0]['dataset'];
 
