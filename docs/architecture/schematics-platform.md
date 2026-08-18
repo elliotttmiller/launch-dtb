@@ -30,9 +30,11 @@ SiteGround wp-content/uploads/2026/schematics/
 
 The live public API is limited to the collection and detail routes above. The private CPT is not public REST storage, and the frontend does not decide availability or publication.
 
+Hotspot source JSON is read from the approved `frontend/public/brands/**/schematic_data*.json` repository source or its deployment-equivalent `/brands` root. The hotspot reader validates references against those fixed roots, enforces file/part/occurrence bounds, understands legacy and v2 source schemas, normalizes geometry, and never fabricates missing coordinates.
+
 ## 3. Schematics and Hotspots control center
 
-The wp-admin interface is `Admin/Workspace/Workspace.php`. It is intentionally a small control center, not a diagram editor or hotspot-authoring studio.
+The primary wp-admin interface is `Admin/Workspace/Workspace.php`. It is intentionally a small control center, not a diagram editor or hotspot-authoring studio.
 
 Its primary surfaces are:
 
@@ -40,6 +42,12 @@ Its primary surfaces are:
 - Catalog: searchable, paginated authoritative records with lifecycle and readiness.
 - Record: pages/attachments, normalized hotspot state, exact product-link state, publication requirements, preview, and record-scoped operations.
 - Operations and history: global reconciliation preview/commit and append-only operational results.
+
+A temporary `Admin/Diagnostics/HotspotResolver.php` surface is available for hotspot/part diagnosis while source data is being reconciled. It does not introduce a second source of truth. `Application/DiagnoseSchematicHotspots.php` operates against authoritative schematic relationships and delegates all writes through `Application/ManageSchematicRecord.php`. Automatic repair is limited to the existing deterministic resolution contract: explicit preserved override, exact SKU, exact brand plus protected MPN, and explicit compatibility relationship. Fuzzy/title candidates are review-only and require an explicit operator decision.
+
+The resolver also includes a read-only source-truth audit implemented by `Application/AuditSchematicHotspotSources.php`. It reads current `frontend/public/brands` hotspot files through the same approved source locator, reader, normalization, source grouping, and dataset-merge semantics used by `MigrateSchematicHotspotDatasets.php`. It compares current source interpretation to the persisted normalized projection and reports source drift, source-only/stored-only parts, dangling hotspot part references, invalid coordinates, duplicate hotspot identities, page mismatches, source read failures, and exact-resolution potential. Source audit findings never mutate the source files, WooCommerce products, protected identifiers, or schematic records.
+
+When source drift is present, operators are instructed to preview hotspot synchronization before applying part-relationship repairs. This intentionally keeps source synchronization and relationship mutation as separate explicit operations rather than silently syncing data as a side effect of diagnostics.
 
 The dashboard reports whether the SiteGround 2026 directory is detected, its bounded image count, the effective source mode, and direct links to the public catalog endpoint and `/schematics` storefront route. It never exposes an absolute server path.
 
@@ -68,16 +76,20 @@ Reconciliation never retires records by default. Retirement by source omission r
 - Commit and lifecycle transitions require explicit server-validated confirmation.
 - Record-scoped operations validate that the requested authoritative record exists.
 - Operation names are allowlisted; selected IDs and batches are capped.
-- Product relationships use exact WooCommerce identifiers. No fuzzy matching runs in public requests.
+- Product relationships use exact WooCommerce identifiers. No fuzzy matching runs in public requests or automatic resolver writes.
+- Review-only resolver candidates never modify protected product SKU, MPN, brand, or other catalog identity fields.
 - Public REST behavior and response shapes are unchanged by the control-center rebuild.
 - Run results are readable only by the initiating operator.
 - Errors and activity data are bounded; no credentials, payment data, or arbitrary browser-supplied paths are stored.
-- Source manifest entries must be plain supported image filenames, attachment sources must remain inside WordPress uploads, and hotspot JSON references must resolve under `frontend/public/brands/`.
+- Source manifest entries must be plain supported image filenames, attachment sources must remain inside WordPress uploads, and hotspot JSON references must resolve under approved `frontend/public/brands/` or deployment-equivalent `/brands` roots.
 - Hotspot files and normalized part/hotspot counts have explicit resource limits. Failed normalized-dataset persistence compensates by restoring the prior record projection.
+- The source-truth diagnostic is read-only and bounded; resolver mutations still pass through application services and the canonical schematic capability/nonce boundary.
 
 ## 6. Persistence and data impact
 
 The rebuild introduces no new public schema and no catalog identifier migration. It adds non-autoloaded WordPress options for bounded operation-run results, a completed-run index, and the active commit lease. Existing schematic records, page definitions, hotspot datasets, activity rows, WooCommerce products, and public API shapes are preserved.
+
+The temporary source audit adds no persistence. It derives its report from current approved hotspot source files, persisted normalized schematic data, authoritative record page/part relationships, and read-only WooCommerce resolution lookups.
 
 No live reconciliation or migration is implied by repository changes. A commit action in wp-admin or WP-CLI is still an explicit runtime operation.
 
