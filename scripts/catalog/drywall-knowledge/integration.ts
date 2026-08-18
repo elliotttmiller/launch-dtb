@@ -15,6 +15,10 @@ export function buildCatalogEditorKnowledge(
   options: { relationshipType?: RelationshipType; evidenceRichness?: EvidenceRichness; featureSystems?: string[] } = {}
 ): CatalogEditorKnowledgeResult {
   const classification = classifyDrywallDomain(packet);
+  if (!classification.domainId) {
+    return { classification, reviewRequired: true, context: null };
+  }
+
   const facts = objectValue(packet.authoritative_facts);
   const identity = objectValue(facts.identity);
   const brandValue = text(facts.brand || identity.brand);
@@ -34,5 +38,5 @@ export function buildCatalogEditorKnowledge(
     brandId: resolveBrandId(brandValue)
   });
 
-  return { classification, context };
+  return { classification, reviewRequired: false, context };
 }
