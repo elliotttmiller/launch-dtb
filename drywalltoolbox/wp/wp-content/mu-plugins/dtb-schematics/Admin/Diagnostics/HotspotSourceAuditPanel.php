@@ -7,7 +7,23 @@
 
 defined( 'ABSPATH' ) || exit;
 
+add_action( 'admin_enqueue_scripts', 'dtb_schematic_hotspot_source_audit_enqueue_assets' );
 add_action( 'admin_notices', 'dtb_schematic_hotspot_source_audit_render_panel' );
+
+function dtb_schematic_hotspot_source_audit_enqueue_assets( string $hook ): void {
+	if ( false === strpos( $hook, DTB_SCHEMATIC_HOTSPOT_RESOLVER_SLUG ) ) {
+		return;
+	}
+	$css_path = __DIR__ . '/../assets/hotspot-source-audit.css';
+	if ( is_file( $css_path ) ) {
+		wp_enqueue_style(
+			'dtb-schematic-hotspot-source-audit',
+			content_url( '/mu-plugins/dtb-schematics/Admin/assets/hotspot-source-audit.css' ),
+			[],
+			(string) filemtime( $css_path )
+		);
+	}
+}
 
 function dtb_schematic_hotspot_source_audit_render_panel(): void {
 	if ( ! dtb_schematics_can_manage() ) {
