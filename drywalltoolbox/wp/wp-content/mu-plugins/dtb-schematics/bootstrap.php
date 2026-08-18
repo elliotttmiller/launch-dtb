@@ -50,6 +50,7 @@ dtb_module_require( 'dtb-schematics/Application/GenerateSchematicResponse.php' )
 dtb_module_require( 'dtb-schematics/Application/ReconcileSchematicSource.php' );
 dtb_module_require( 'dtb-schematics/Application/ReconcileSchematicSourceCli.php' );
 dtb_module_require( 'dtb-schematics/Application/ResolveSchematicPartOccurrences.php' );
+dtb_module_require( 'dtb-schematics/Application/DiagnoseSchematicHotspots.php' );
 dtb_module_require( 'dtb-schematics/Application/MigrateSchematicHotspotDatasets.php' );
 dtb_module_require( 'dtb-schematics/Application/MigrateSchematicHotspotDatasetsCli.php' );
 dtb_module_require( 'dtb-schematics/Application/RecordSchematicActivity.php' );
@@ -63,4 +64,5 @@ dtb_module_require( 'dtb-schematics/Rest/SchematicPublicApiController.php' );
 if ( dtb_is_admin_or_ajax_request() ) {
 	dtb_module_require( 'dtb-schematics/Admin/SchematicAdminMenu.php' );
 	dtb_module_require( 'dtb-schematics/Admin/Workspace/Workspace.php' );
+	dtb_module_require( 'dtb-schematics/Admin/Diagnostics/HotspotResolver.php' );
 }
