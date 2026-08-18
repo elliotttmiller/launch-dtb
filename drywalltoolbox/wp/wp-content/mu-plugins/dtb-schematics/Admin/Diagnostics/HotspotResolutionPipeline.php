@@ -61,23 +61,13 @@ function dtb_schematic_hotspot_pipeline_apply(): void {
 		dtb_schematic_hotspot_pipeline_redirect_error( 'Review and explicitly approve the complete plan before Apply.', $run_id );
 	}
 
-	$approved_result = (array) ( $run['result'] ?? [] );
-	$approved_plan   = dtb_schematic_hotspot_build_resolution_plan( $approved_result );
+	$approved_plan = dtb_schematic_hotspot_build_resolution_plan( (array) ( $run['result'] ?? [] ) );
 	if ( empty( $approved_plan['can_apply'] ) ) {
 		dtb_schematic_hotspot_pipeline_redirect_error( 'Apply is blocked because the reviewed plan contains no complete deterministic mutation set or has integrity failures.', $run_id );
 	}
-
-	// Rebuild from authoritative source + live WooCommerce immediately before
-	// commit. The browser never supplies product mappings to the mutation path.
-	$fresh_result = dtb_schematic_hotspot_optimizer_run( [
-		'dry_run' => true,
-		'per_page' => DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE,
-	] );
-	$fresh_plan  = dtb_schematic_hotspot_build_resolution_plan( $fresh_result );
-	$approved_fp = (string) ( $approved_plan['fingerprint'] ?? '' );
-	$fresh_fp    = (string) ( $fresh_plan['fingerprint'] ?? '' );
-	if ( '' === $approved_fp || '' === $fresh_fp || ! hash_equals( $approved_fp, $fresh_fp ) || empty( $fresh_plan['can_apply'] ) ) {
-		dtb_schematic_hotspot_pipeline_redirect_error( 'Authoritative source/catalog state changed after review, or the fresh plan is no longer safely applicable. No writes were made. Build and review a new plan.', '' );
+	$approved_fp = strtolower( trim( (string) ( $approved_plan['fingerprint'] ?? '' ) ) );
+	if ( ! preg_match( '/^[a-f0-9]{64}$/', $approved_fp ) ) {
+		dtb_schematic_hotspot_pipeline_redirect_error( 'The reviewed plan does not contain a valid approval fingerprint. Build one new plan.', $run_id );
 	}
 
 	$apply = dtb_schematic_run_operation( [
@@ -86,6 +76,7 @@ function dtb_schematic_hotspot_pipeline_apply(): void {
 		'all_records' => true,
 		'per_page' => DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE,
 		'operator_id' => get_current_user_id(),
+		'approved_fingerprint' => $approved_fp,
 	] );
 	if ( is_wp_error( $apply ) ) {
 		dtb_schematic_hotspot_pipeline_redirect_error( $apply->get_error_message(), $run_id );
@@ -161,7 +152,7 @@ function dtb_schematic_hotspot_pipeline_render(): void {
 	echo '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '" data-optimizer-mode="preview"><input type="hidden" name="action" value="dtb_hotspot_pipeline_build">';
 	wp_nonce_field( DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE . ':build', '_dtb_pipeline_nonce' );
 	echo '<button class="button button-primary" type="submit">' . esc_html__( 'Build full resolution plan', 'drywall-toolbox' ) . '</button></form></div>';
-	echo '<div class="dtb-hotspot-optimizer__contract"><strong>' . esc_html__( 'Authority boundary', 'drywall-toolbox' ) . '</strong><span>' . esc_html__( 'The pipeline may synchronize schematic projections and persist deterministic part relationships. It never creates products or rewrites SKU, MPN, GTIN, brand, source JSON, or repository catalog files.', 'drywall-toolbox' ) . '</span></div></section>';
+	echo '<div class="dtb-hotspot-optimizer__contract"><strong>' . esc_html__( 'Authority boundary', 'drywall-toolbox' ) . '</strong><span>' . esc_html__( 'The pipeline may persist approved deterministic part relationships. It never creates products or rewrites SKU, MPN, GTIN, brand, source JSON, or repository catalog files.', 'drywall-toolbox' ) . '</span></div></section>';
 
 	if ( ! $plan_run ) {
 		echo '<div class="dtb-hotspot-resolver__empty"><p>' . esc_html__( 'Build the plan to generate the complete audit, deterministic mapping set, source/catalog correction manifests, and bounded manual-review queue.', 'drywall-toolbox' ) . '</p></div></main>';
@@ -172,7 +163,7 @@ function dtb_schematic_hotspot_pipeline_render(): void {
 	dtb_schematic_hotspot_pipeline_render_plan( $plan_run, $plan, true );
 	if ( $apply_run ) {
 		$post = dtb_schematic_hotspot_build_resolution_plan( (array) ( $apply_run['result'] ?? [] ) );
-		echo '<hr><h2>' . esc_html__( '4. Post-apply verification', 'drywall-toolbox' ) . '</h2>';
+		echo '<hr><h2>' . esc_html__( '4. Post-apply result', 'drywall-toolbox' ) . '</h2>';
 		dtb_schematic_hotspot_pipeline_render_plan( $apply_run, $post, false );
 	}
 	echo '</main>';
@@ -190,14 +181,14 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 		'Catalog-only unresolved' => 'catalog_only_unresolved',
 		'Resolution groups' => 'resolution_groups',
 	];
-	echo '<section class="dtb-hotspot-optimizer"><h2>' . esc_html( $pre_apply ? '2. Review complete pre-apply plan' : 'Verified result' ) . '</h2><div class="dtb-hotspot-optimizer__metrics">';
+	echo '<section class="dtb-hotspot-optimizer"><h2>' . esc_html( $pre_apply ? '2. Review complete pre-apply plan' : 'Committed result' ) . '</h2><div class="dtb-hotspot-optimizer__metrics">';
 	foreach ( $cards as $label => $key ) {
 		echo '<div class="dtb-hotspot-optimizer__metric"><strong>' . esc_html( number_format_i18n( (int) ( $s[ $key ] ?? 0 ) ) ) . '</strong><span>' . esc_html( $label ) . '</span></div>';
 	}
 	echo '</div>';
 
 	if ( ! empty( $plan['blockers'] ) ) {
-		echo '<div class="notice notice-error inline"><p><strong>' . esc_html__( 'Apply blocked.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'Resolve the integrity failures and rebuild the plan.', 'drywall-toolbox' ) . '</p><ul>';
+		echo '<div class="notice notice-error inline"><p><strong>' . esc_html__( 'Apply is intentionally unavailable.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'Correct the listed authoritative source/integrity condition and rebuild this same plan.', 'drywall-toolbox' ) . '</p><ul>';
 		foreach ( $plan['blockers'] as $blocker ) {
 			echo '<li>' . esc_html( (string) ( $blocker['message'] ?? '' ) ) . '</li>';
 		}
@@ -214,12 +205,12 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 		echo '<table class="widefat striped"><thead><tr><th>Schematic</th><th>Source part</th><th>Target product</th><th>Method</th><th>Hotspots</th></tr></thead><tbody>';
 		foreach ( array_slice( $repairs, 0, 250 ) as $repair ) {
 			$product = (array) ( $repair['product'] ?? [] );
-			echo '<tr><td>' . esc_html( (string) ( $repair['canonical_id'] ?? $repair['schematic_id'] ?? '' ) ) . '</td><td>' . esc_html( trim( (string) ( $repair['source_sku'] ?? '' ) . ' ' . (string) ( $repair['title'] ?? '' ) ) ) . '</td><td>' . esc_html( trim( '#' . (int) ( $repair['product_id'] ?? 0 ) . ' ' . (string) ( $product['sku'] ?? '' ) . ' ' . (string) ( $product['name'] ?? '' ) ) ) . '</td><td>' . esc_html( (string) ( $repair['resolution_method'] ?? '' ) ) . '</td><td>' . esc_html( number_format_i18n( (int) ( $repair['occurrences'] ?? 0 ) ) ) . '</td></tr>';
+			echo '<tr><td>' . esc_html( (string) ( $repair['canonical_id'] ?? $repair['schematic_id'] ?? '' ) ) . '</td><td>' . esc_html( trim( (string) ( $repair['source_sku'] ?? '' ) . ' ' . (string) ( $repair['title'] ?? '' ) ) ) . '</td><td>' . esc_html( trim( '#' . (int) ( $repair['product_id'] ?? 0 ) . ' ' . (string) ( $product['sku'] ?? '' ) . ' ' . (string) ( $product['name'] ?? '' ) ) ) . '</td><td>' . esc_html( (string) ( $repair['resolution_method'] ?? '' ) ) . '</td><td>' . esc_html( number_format_i18n( (int) ( $repair['occurrences'] ?? 0 ) ) . '</td></tr>';
 		}
 		echo '</tbody></table>';
 	}
 
-	echo '<h3>' . esc_html__( 'Generated remediation artifacts', 'drywall-toolbox' ) . '</h3><p>' . esc_html__( 'Every unresolved group has a terminal disposition and non-empty required action. These files are correction manifests, not parallel authorities.', 'drywall-toolbox' ) . '</p><div class="dtb-hotspot-optimizer__actions">';
+	echo '<h3>' . esc_html__( 'Generated remediation artifacts', 'drywall-toolbox' ) . '</h3><p>' . esc_html__( 'Every unresolved group has a terminal disposition and required action. These files are correction manifests, not parallel authorities.', 'drywall-toolbox' ) . '</p><div class="dtb-hotspot-optimizer__actions">';
 	dtb_schematic_hotspot_pipeline_export_link( $run, 'report_json', 'Complete JSON report' );
 	dtb_schematic_hotspot_pipeline_export_link( $run, 'catalog_csv', 'Catalog corrections CSV' );
 	dtb_schematic_hotspot_pipeline_export_link( $run, 'source_csv', 'Source corrections CSV' );
@@ -228,11 +219,11 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 
 	if ( $pre_apply ) {
 		if ( ! empty( $plan['can_apply'] ) ) {
-			echo '<section class="dtb-hotspot-resolver__bulk"><h2>' . esc_html__( '3. Approve & apply', 'drywall-toolbox' ) . '</h2><p>' . esc_html__( 'Apply first rebuilds the complete authoritative plan and aborts without writes unless the material fingerprint still matches exactly.', 'drywall-toolbox' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="dtb_hotspot_pipeline_apply"><input type="hidden" name="plan_run_id" value="' . esc_attr( (string) ( $run['id'] ?? '' ) ) . '">';
+			echo '<section class="dtb-hotspot-resolver__bulk"><h2>' . esc_html__( '3. Approve & apply', 'drywall-toolbox' ) . '</h2><p>' . esc_html__( 'The shared operation runner acquires its commit lease, rebuilds the current authoritative plan, and aborts without writes unless the reviewed material fingerprint still matches exactly.', 'drywall-toolbox' ) . '</p><form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '"><input type="hidden" name="action" value="dtb_hotspot_pipeline_apply"><input type="hidden" name="plan_run_id" value="' . esc_attr( (string) ( $run['id'] ?? '' ) ) . '">';
 			wp_nonce_field( DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE . ':apply:' . (string) ( $run['id'] ?? '' ), '_dtb_pipeline_nonce' );
 			echo '<label><input type="checkbox" name="approve_plan" value="1" required> ' . esc_html__( 'I reviewed the complete mapping plan and remediation dispositions.', 'drywall-toolbox' ) . '</label><p><button class="button button-primary" type="submit">' . esc_html__( 'Approve & apply resolution plan', 'drywall-toolbox' ) . '</button></p></form></section>';
-		} else {
-			echo '<div class="notice notice-info inline"><p><strong>' . esc_html__( 'Apply unavailable.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'There is no complete safe mutation set yet. Work the generated source/catalog/manual manifests, update the owning data, then rebuild this same plan.', 'drywall-toolbox' ) . '</p></div>';
+		} elseif ( empty( $plan['blockers'] ) ) {
+			echo '<div class="notice notice-info inline"><p><strong>' . esc_html__( 'No Apply action is necessary for this plan.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'The engine found no new DTB-owned deterministic mapping mutation. Use the generated source/catalog/manual manifests when upstream owning data requires correction.', 'drywall-toolbox' ) . '</p></div>';
 		}
 	}
 	echo '</section>';
