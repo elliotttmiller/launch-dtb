@@ -1,10 +1,10 @@
 /*
  * frontend/src/styles/schematic-hotspot-card-polish.css
  *
- * Presentation-only polish for the schematics-v2 hotspot card. This file
- * intentionally keeps the compact horizontal card geometry used by the
- * mobile schematic viewer and makes the loading state occupy that same
- * footprint so SKU resolution never causes a skinny-card -> full-card jump.
+ * Presentation-only polish for the schematics-v2 hotspot card. Geometry is
+ * local to the card; loading color, timing, easing, shimmer cadence, and
+ * reduced-motion behavior inherit the storefront-wide system in
+ * loading-transitions.css.
  */
 
 .schematic-hotspot-card {
@@ -15,9 +15,6 @@
   cursor: progress;
 }
 
-/* Keep the loading content in exactly the same right-column geometry as the
- * resolved product content. The footer is pinned to the bottom without
- * increasing the card height. */
 .schematic-hotspot-card__skeleton {
   display: flex;
   flex: 1 1 auto;
@@ -34,33 +31,22 @@
   display: block;
   position: relative;
   overflow: hidden;
-  background: #e2e8f0;
+  background: linear-gradient(
+    90deg,
+    var(--dtb-loading-base, #e8edf5) 0%,
+    var(--dtb-loading-mid, #dce4ef) 38%,
+    var(--dtb-loading-highlight, #f8fafc) 50%,
+    var(--dtb-loading-mid, #dce4ef) 62%,
+    var(--dtb-loading-base, #e8edf5) 100%
+  );
+  background-size: 220% 100%;
+  animation: dtb-loading-pulse 1.6s ease-in-out infinite;
 }
 
 .schematic-hotspot-card__stock-skeleton,
 .schematic-hotspot-card__title-skeleton span,
 .schematic-hotspot-card__price-skeleton {
   border-radius: 999px;
-}
-
-.schematic-hotspot-card__stock-skeleton::after,
-.schematic-hotspot-card__title-skeleton span::after,
-.schematic-hotspot-card__price-skeleton::after,
-.schematic-hotspot-card__cta-skeleton::after,
-.schematic-hotspot-card--resolving .hotspot-modal-image-skeleton::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-105%);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.16) 34%,
-    rgba(255, 255, 255, 0.62) 50%,
-    rgba(255, 255, 255, 0.16) 66%,
-    transparent 100%
-  );
-  animation: schematicHotspotSkeletonSweep 1.45s cubic-bezier(.4, 0, .2, 1) infinite;
 }
 
 .schematic-hotspot-card__stock-skeleton {
@@ -105,10 +91,8 @@
   border-radius: 8px;
 }
 
-/* The image placeholder is structural rather than decorative: it always
- * occupies the complete left media column. */
 .schematic-hotspot-card--resolving .schematic-hotspot-card__image {
-  background: #f8fafc;
+  background: var(--dtb-loading-highlight, #f8fafc);
 }
 
 .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton {
@@ -119,8 +103,16 @@
   margin: 0;
   border-radius: 0;
   overflow: hidden;
-  background: #eef2f7;
-  animation: none;
+  background: linear-gradient(
+    90deg,
+    var(--dtb-loading-base, #e8edf5) 0%,
+    var(--dtb-loading-mid, #dce4ef) 38%,
+    var(--dtb-loading-highlight, #f8fafc) 50%,
+    var(--dtb-loading-mid, #dce4ef) 62%,
+    var(--dtb-loading-base, #e8edf5) 100%
+  );
+  background-size: 220% 100%;
+  animation: dtb-loading-pulse 1.6s ease-in-out infinite;
 }
 
 .schematic-hotspot-card--resolving .schematic-hotspot-card__sku {
@@ -128,21 +120,15 @@
   font-weight: 600;
 }
 
-/* Resolved content enters with a very small opacity/translate transition.
- * This avoids a hard flash while keeping the interaction immediate. */
 .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__image img {
-  animation: schematicHotspotImageResolve 180ms ease-out both;
+  animation: schematicHotspotImageResolve var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, cubic-bezier(.22, 1, .36, 1)) both;
 }
 
 .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__stock,
 .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__title,
 .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__sku,
 .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__footer {
-  animation: schematicHotspotContentResolve 170ms ease-out both;
-}
-
-@keyframes schematicHotspotSkeletonSweep {
-  100% { transform: translateX(105%); }
+  animation: schematicHotspotContentResolve var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, cubic-bezier(.22, 1, .36, 1)) both;
 }
 
 @keyframes schematicHotspotImageResolve {
@@ -155,13 +141,6 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/*
- * Mobile reference geometry
- * -------------------------
- * Preserve the compact horizontal card shown in the product reference:
- * left square-ish image well, information stack on the right, price + ADD
- * aligned on the bottom row. Never turn this into a sheet/full-height card.
- */
 @media (max-width: 768px) {
   .mobile-part-modal-overlay .schematic-hotspot-card {
     min-height: 0;
@@ -323,21 +302,25 @@
   .schematic-hotspot-card__title-skeleton span,
   .schematic-hotspot-card__price-skeleton,
   .schematic-hotspot-card__cta-skeleton {
-    background: #334155;
+    --dtb-loading-base: #334155;
+    --dtb-loading-mid: #3f4d61;
+    --dtb-loading-highlight: #526174;
   }
 
   .schematic-hotspot-card--resolving .schematic-hotspot-card__image,
   .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton {
-    background: #293548;
+    --dtb-loading-base: #293548;
+    --dtb-loading-mid: #334155;
+    --dtb-loading-highlight: #475569;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .schematic-hotspot-card__stock-skeleton::after,
-  .schematic-hotspot-card__title-skeleton span::after,
-  .schematic-hotspot-card__price-skeleton::after,
-  .schematic-hotspot-card__cta-skeleton::after,
-  .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton::after,
+  .schematic-hotspot-card__stock-skeleton,
+  .schematic-hotspot-card__title-skeleton span,
+  .schematic-hotspot-card__price-skeleton,
+  .schematic-hotspot-card__cta-skeleton,
+  .schematic-hotspot-card--resolving .hotspot-modal-image-skeleton,
   .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__image img,
   .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__stock,
   .schematic-hotspot-card:not(.schematic-hotspot-card--resolving) .schematic-hotspot-card__title,
