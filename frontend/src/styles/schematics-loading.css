@@ -1,0 +1,128 @@
+/*
+ * Schematics loading/render integration.
+ *
+ * This file does not define a separate motion language. It consumes the
+ * global visual authorities from storefront-tokens.css and
+ * loading-transitions.css so schematic catalog, diagram, hotspot, and modal
+ * rendering follow the same timing, easing, shimmer, and reduced-motion
+ * behavior as the rest of the storefront.
+ */
+
+.dtb-schematic-viewer[aria-busy='true'],
+.dtb-schematics-catalog[aria-busy='true'] {
+  min-width: 0;
+}
+
+.dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status,
+.dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status {
+  position: relative;
+  flex-direction: column;
+  align-items: flex-start;
+  width: min(100%, 18rem);
+  gap: var(--dtb-space-2);
+  animation: dtb-schematics-content-enter var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, var(--dtb-ease-exit)) both;
+}
+
+.dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status::after,
+.dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status::after {
+  content: '';
+  display: block;
+  width: min(100%, 12rem);
+  height: 8px;
+  border-radius: var(--dtb-radius-pill, 999px);
+  background: linear-gradient(
+    90deg,
+    var(--dtb-loading-base, #e8edf5) 0%,
+    var(--dtb-loading-mid, #dce4ef) 38%,
+    var(--dtb-loading-highlight, #f8fafc) 50%,
+    var(--dtb-loading-mid, #dce4ef) 62%,
+    var(--dtb-loading-base, #e8edf5) 100%
+  );
+  background-size: 220% 100%;
+  animation: dtb-loading-pulse 1.6s ease-in-out infinite;
+}
+
+/* Reserve the final diagram geometry while the authoritative image decodes.
+   The pseudo-element lives inside the same aspect-ratio bounds as the image,
+   preventing a separate loader from changing layout or hotspot coordinates. */
+.schematic-image-wrapper--loading .schematic-image-bounds::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--dtb-loading-base, #e8edf5) 0%,
+    var(--dtb-loading-mid, #dce4ef) 38%,
+    var(--dtb-loading-highlight, #f8fafc) 50%,
+    var(--dtb-loading-mid, #dce4ef) 62%,
+    var(--dtb-loading-base, #e8edf5) 100%
+  );
+  background-size: 220% 100%;
+  animation: dtb-loading-pulse 1.6s ease-in-out infinite;
+}
+
+.dtb-schematic-diagram__image {
+  opacity: 1;
+  transition:
+    opacity var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, var(--dtb-ease-exit)),
+    filter var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, var(--dtb-ease-exit));
+}
+
+.schematic-image-wrapper--loading .dtb-schematic-diagram__image {
+  opacity: 0;
+  filter: blur(1px);
+}
+
+.dtb-schematic-hotspot-layer {
+  animation: dtb-schematics-hotspots-enter var(--dtb-fast, 160ms) var(--dtb-ease-emphasized, var(--dtb-ease)) both;
+}
+
+/* Dialog/backdrop motion inherits the same global timing curve rather than
+   maintaining a schematics-only animation cadence. */
+.mobile-modal-backdrop {
+  animation-duration: var(--dtb-fast, 160ms) !important;
+  animation-timing-function: var(--dtb-loading-ease, var(--dtb-ease-exit)) !important;
+}
+
+.mobile-part-modal-overlay,
+.schematic-hotspot-card {
+  animation-duration: var(--dtb-normal, 280ms) !important;
+  animation-timing-function: var(--dtb-ease-emphasized, var(--dtb-ease)) !important;
+}
+
+@keyframes dtb-schematics-content-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 3px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dtb-schematics-hotspots-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status,
+  .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status,
+  .dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status::after,
+  .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status::after,
+  .schematic-image-wrapper--loading .schematic-image-bounds::before,
+  .dtb-schematic-hotspot-layer,
+  .mobile-modal-backdrop,
+  .mobile-part-modal-overlay,
+  .schematic-hotspot-card {
+    animation: none !important;
+  }
+
+  .dtb-schematic-diagram__image {
+    transition: none !important;
+  }
+}
