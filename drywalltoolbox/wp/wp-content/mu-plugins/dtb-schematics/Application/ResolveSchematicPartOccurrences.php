@@ -10,16 +10,15 @@
  *   1. preserve an existing explicit product/variation override;
  *   2. preserve an operator-set intentionally-not-sold state;
  *   3. exact WooCommerce SKU;
- *   4. exact brand + protected manufacturer part number;
+ *   4. exact brand + strong manufacturer part number;
  *   5. unique same-brand normalized SKU where the only difference is
  *      formatting punctuation/spacing;
- *   6. explicit compatibility relationship by exact SKU/MPN;
+ *   6. explicit compatibility relationship by exact strong SKU/MPN;
  *   7. unresolved.
  *
- * The normalized-SKU step is intentionally narrow. It never uses title
- * similarity, never crosses brands, rejects weak numeric callout identifiers,
- * and resolves only when all generated formatting aliases identify one and
- * only one WooCommerce product/variation.
+ * Legacy schematic display IDs are frequently diagram callout numbers. A
+ * weak numeric display ID is therefore never promoted to an MPN relationship.
+ * The source SKU is the primary product identifier whenever it exists.
  *
  * @package drywall-toolbox
  */
@@ -60,9 +59,6 @@ function dtb_schematic_resolve_part_occurrences_for_record( DTB_Schematic_Record
 		$resolved[] = dtb_schematic_part_relationship_make(
 			[
 				'part_ref'          => $part_ref,
-				// Legacy datasets may use display_id as a diagram callout rather
-				// than a manufacturer number. It remains preserved for display /
-				// provenance; source SKU is the stronger identity when present.
 				'mpn'               => (string) ( $catalog_part['display_id'] ?? $part_ref ),
 				'sku'               => (string) ( $catalog_part['sku'] ?? '' ),
 				'brand'             => $record->brand_name ?: $record->brand_id,
@@ -98,7 +94,7 @@ function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record,
 
 	$mpn   = trim( (string) ( $catalog_part['display_id'] ?? '' ) );
 	$brand = (string) ( $record->brand_name ?: $record->brand_id );
-	if ( '' !== $mpn && '' !== $brand && function_exists( 'get_posts' ) && class_exists( 'DTB_ProductMeta' ) ) {
+	if ( dtb_schematic_mpn_is_strong( $mpn ) && '' !== $brand && function_exists( 'get_posts' ) && class_exists( 'DTB_ProductMeta' ) ) {
 		$product_id = dtb_schematic_find_product_by_exact_brand_and_mpn( $brand, $mpn );
 		if ( $product_id > 0 ) {
 			return [
@@ -109,9 +105,6 @@ function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record,
 		}
 	}
 
-	// Formatting-only SKU reconciliation. The source SKU remains unchanged;
-	// this only establishes a relationship when one same-brand Woo product is
-	// uniquely identified by punctuation/spacing variants of that SKU.
 	$normalized_product_id = dtb_schematic_find_product_by_unique_normalized_sku( $brand, $sku );
 	if ( $normalized_product_id > 0 ) {
 		return [
@@ -136,7 +129,7 @@ function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record,
 				];
 			}
 			$candidate_mpn = class_exists( 'DTB_ProductMeta' ) ? trim( (string) get_post_meta( $compatible_id, DTB_ProductMeta::MPN, true ) ) : '';
-			if ( '' !== $mpn && '' !== $candidate_mpn && 0 === strcasecmp( $candidate_mpn, $mpn ) ) {
+			if ( dtb_schematic_mpn_is_strong( $mpn ) && '' !== $candidate_mpn && 0 === strcasecmp( $candidate_mpn, $mpn ) ) {
 				return [
 					'product_id' => $compatible_id,
 					'method'     => DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY,
@@ -155,6 +148,9 @@ function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record,
 
 /** Exact brand + protected MPN lookup. Ambiguous matches remain unresolved. */
 function dtb_schematic_find_product_by_exact_brand_and_mpn( string $brand, string $mpn ): int {
+	if ( ! dtb_schematic_mpn_is_strong( $mpn ) ) {
+		return 0;
+	}
 	$ids = get_posts(
 		[
 			'post_type'      => 'product',
@@ -184,24 +180,16 @@ function dtb_schematic_find_product_by_exact_brand_and_mpn( string $brand, strin
 			],
 		]
 	);
-
 	$ids = array_values( array_map( 'intval', (array) $ids ) );
 	return 1 === count( $ids ) ? $ids[0] : 0;
 }
 
 /**
  * Find exactly one same-brand product whose SKU differs from the source SKU
- * only by punctuation/spacing.
- *
- * This does not scan the product catalog and does not perform fuzzy matching.
- * It generates a small bounded set of deterministic aliases and asks the
- * WooCommerce SKU lookup for each one.
+ * only by punctuation/spacing. No catalog scan and no fuzzy/title matching.
  */
 function dtb_schematic_find_product_by_unique_normalized_sku( string $brand, string $source_sku ): int {
-	if ( ! function_exists( 'wc_get_product_id_by_sku' ) || ! function_exists( 'wc_get_product' ) ) {
-		return 0;
-	}
-	if ( ! dtb_schematic_normalized_sku_is_strong( $source_sku ) ) {
+	if ( ! function_exists( 'wc_get_product_id_by_sku' ) || ! function_exists( 'wc_get_product' ) || ! dtb_schematic_normalized_sku_is_strong( $source_sku ) ) {
 		return 0;
 	}
 
@@ -242,7 +230,7 @@ function dtb_schematic_normalize_product_identifier( string $value ): string {
 	return preg_replace( '/[^a-z0-9]+/', '', $value ) ?: '';
 }
 
-/** Reject diagram callout numbers and other weak identifiers. */
+/** Strong source SKU: at least four digits, or a mixed alpha/numeric key. */
 function dtb_schematic_normalized_sku_is_strong( string $sku ): bool {
 	$normalized = dtb_schematic_normalize_product_identifier( $sku );
 	if ( strlen( $normalized ) < 4 ) {
@@ -254,34 +242,50 @@ function dtb_schematic_normalized_sku_is_strong( string $sku ): bool {
 	return (bool) preg_match( '/[a-z]/', $normalized ) && (bool) preg_match( '/[0-9]/', $normalized );
 }
 
-/** Generate a bounded set of punctuation/spacing aliases for a strong SKU. */
+/** Strong MPN guard rejects common legacy diagram callout numbers. */
+function dtb_schematic_mpn_is_strong( string $mpn ): bool {
+	$normalized = dtb_schematic_normalize_product_identifier( $mpn );
+	if ( strlen( $normalized ) < 4 ) {
+		return false;
+	}
+	if ( ctype_digit( $normalized ) ) {
+		return strlen( $normalized ) >= 5;
+	}
+	return (bool) preg_match( '/[a-z]/', $normalized ) && (bool) preg_match( '/[0-9]/', $normalized );
+}
+
+/** Generate at most 64 deterministic punctuation/spacing aliases. */
 function dtb_schematic_normalized_sku_aliases( string $sku ): array {
 	$sku = trim( $sku );
 	if ( '' === $sku ) {
 		return [];
 	}
 
-	$aliases = [ $sku => true ];
-	$clean   = trim( preg_replace( '/[\x{2018}\x{2019}\x{201C}\x{201D}\'\"]+/u', '', $sku ) ?: $sku );
-	$aliases[ $clean ] = true;
-
+	$clean = str_replace( [ '"', "'", '“', '”', '‘', '’' ], '', $sku );
+	$aliases = [ $sku => true, $clean => true ];
 	preg_match_all( '/[A-Za-z]+|\d+(?:\.\d+)?/', $clean, $matches );
 	$tokens = array_values( array_filter( (array) ( $matches[0] ?? [] ), static fn( $token ) => '' !== $token ) );
+
 	if ( count( $tokens ) >= 2 && count( $tokens ) <= 5 ) {
-		$separators = [ '', '-', ' ' ];
-		$build = static function ( array $parts, int $index, string $current ) use ( &$build, $tokens, $separators, &$aliases ): void {
+		$built = [ $tokens[0] ];
+		for ( $index = 1; $index < count( $tokens ); $index++ ) {
+			$next = [];
+			foreach ( $built as $prefix ) {
+				foreach ( [ '', '-', ' ' ] as $separator ) {
+					$next[] = $prefix . $separator . $tokens[ $index ];
+					if ( count( $next ) >= 64 ) {
+						break 2;
+					}
+				}
+			}
+			$built = $next;
+		}
+		foreach ( $built as $alias ) {
+			$aliases[ $alias ] = true;
 			if ( count( $aliases ) >= 64 ) {
-				return;
+				break;
 			}
-			if ( $index >= count( $tokens ) ) {
-				$aliases[ $current ] = true;
-				return;
-			}
-			foreach ( $separators as $separator ) {
-				$build( $parts, $index + 1, $current . $separator . $tokens[ $index ] );
-			}
-		};
-		$build( $tokens, 1, $tokens[0] );
+		}
 	}
 
 	$normalized = dtb_schematic_normalize_product_identifier( $clean );
@@ -289,7 +293,6 @@ function dtb_schematic_normalized_sku_aliases( string $sku ): array {
 		$aliases[ $normalized ] = true;
 		$aliases[ strtoupper( $normalized ) ] = true;
 	}
-
 	return array_slice( array_keys( $aliases ), 0, 64 );
 }
 
@@ -317,21 +320,21 @@ function dtb_schematic_product_brand_matches( int $product_id, string $expected_
 	return false;
 }
 
-/** Canonical comparison key for known brand-label formatting differences. */
+/** Canonical comparison key for supported brand-label formatting differences. */
 function dtb_schematic_resolution_brand_key( string $brand ): string {
 	$key = strtolower( preg_replace( '/[^a-z0-9]+/', '', trim( $brand ) ) ?: '' );
 	$aliases = [
-		'columbiatools'         => 'columbia',
-		'columbia'              => 'columbia',
-		'platinumdrywalltools'  => 'platinum',
-		'platinumtools'         => 'platinum',
-		'platinum'              => 'platinum',
-		'level5tools'           => 'level5',
-		'level5'                => 'level5',
-		'tapetech'              => 'tapetech',
-		'durastilts'            => 'durastilts',
-		'durastilt'             => 'durastilts',
-		'surpro'                => 'surpro',
+		'columbiatools'        => 'columbia',
+		'columbia'             => 'columbia',
+		'platinumdrywalltools' => 'platinum',
+		'platinumtools'        => 'platinum',
+		'platinum'             => 'platinum',
+		'level5tools'          => 'level5',
+		'level5'               => 'level5',
+		'tapetech'             => 'tapetech',
+		'durastilts'           => 'durastilts',
+		'durastilt'            => 'durastilts',
+		'surpro'               => 'surpro',
 	];
 	return $aliases[ $key ] ?? $key;
 }
@@ -351,6 +354,5 @@ function dtb_schematic_resolve_compatible_part_product_ids( array $linked_produc
 			}
 		}
 	}
-
 	return array_values( array_unique( $ids ) );
 }
