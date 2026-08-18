@@ -23,6 +23,7 @@ const DTB_SCHEMATIC_ACTIVITY_TYPES = [
 	'attachment_registration',
 	'hotspot_dataset_association',
 	'hotspot_dataset_migration',
+	'hotspot_one_time_optimizer',
 	'product_projection_refresh',
 	'publish',
 	'update_published_projection',
@@ -218,16 +219,12 @@ function dtb_schematic_activity_log_reconciliation( array $report, string $start
 			'unresolved'      => $report['unresolved'] ?? 0,
 			'catalog_version' => function_exists( 'dtb_schematics_public_catalog_version' ) ? dtb_schematics_public_catalog_version() : 0,
 			'summary'         => ! empty( $report['fatal_error'] )
-				? sprintf( 'Reconciliation failed: %s', (string) $report['fatal_error'] )
-				: sprintf(
-					'%s batch: rows %d-%d of %d — %s',
-					! empty( $report['dry_run'] ) ? 'Preview' : 'Applied sync',
-					$report['batch_start'] ?? 0,
-					$report['batch_end'] ?? 0,
-					$report['source_row_count'] ?? 0,
-					implode( ', ', $summary_bits )
-				),
-			'detail'          => $report,
+				? 'Reconciliation failed: ' . $report['fatal_error']
+				: implode( '; ', $summary_bits ),
+			'detail'          => [
+				'dispositions' => $dispositions,
+				'assets'       => $report['assets'] ?? [],
+			],
 			'started_at'      => $started_at,
 		]
 	);
