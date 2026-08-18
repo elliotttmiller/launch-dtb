@@ -22,10 +22,14 @@ export function buildDrywallDomainContext(request: DrywallContextRequest): Compi
   const editorial = [...EDITORIAL_STANDARDS];
   const workflow = [
     ...family.workflowPrinciples,
+    ...family.sharedBuyerPriorities.map(value => `Shared buyer priority: ${value}`),
+    ...family.commonConfusions.map(value => `Family distinction: ${value}`),
     ...WORKFLOW_GUARDRAILS,
     `Trade role: ${domain.tradeRole}`,
     `Workflow stages: ${domain.workflow.stages.join(', ') || 'not assigned'}`,
-    ...(domain.systemRelationships.map(value => `System relationship: ${value}`))
+    `Typical upstream domains: ${domain.workflow.upstreamDomains.join(', ') || 'none'}`,
+    `Typical downstream domains: ${domain.workflow.downstreamDomains.join(', ') || 'none'}`,
+    ...domain.systemRelationships.map(value => `System relationship: ${value}`)
   ];
   const domainLines = [
     `Primary buyer questions: ${domain.buyerQuestions.primary.join(' | ')}`,
