@@ -7,33 +7,35 @@
  * product itself; this module only owns the relationship and its
  * resolution provenance.
  *
- * Resolution order (see spec "PRODUCT AND PART RESOLUTION"):
+ * Resolution order (see Application/ResolveSchematicPartOccurrences.php):
  *   1. explicit WooCommerce product/variation ID;
  *   2. exact SKU;
  *   3. exact brand + protected manufacturer part number;
- *   4. explicit compatibility relationship;
- *   5. unresolved.
+ *   4. unique same-brand normalized SKU (formatting-only alias);
+ *   5. explicit compatibility relationship;
+ *   6. unresolved.
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const DTB_SCHEMATIC_PART_RESOLUTION_EXPLICIT_ID   = 'explicit_id';
-const DTB_SCHEMATIC_PART_RESOLUTION_EXACT_SKU     = 'exact_sku';
-const DTB_SCHEMATIC_PART_RESOLUTION_BRAND_MPN     = 'brand_and_mpn';
-const DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY = 'compatibility';
-const DTB_SCHEMATIC_PART_RESOLUTION_UNRESOLVED    = 'unresolved';
+const DTB_SCHEMATIC_PART_RESOLUTION_EXPLICIT_ID    = 'explicit_id';
+const DTB_SCHEMATIC_PART_RESOLUTION_EXACT_SKU      = 'exact_sku';
+const DTB_SCHEMATIC_PART_RESOLUTION_BRAND_MPN      = 'brand_and_mpn';
+const DTB_SCHEMATIC_PART_RESOLUTION_NORMALIZED_SKU = 'normalized_sku';
+const DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY  = 'compatibility';
+const DTB_SCHEMATIC_PART_RESOLUTION_UNRESOLVED     = 'unresolved';
 
-const DTB_SCHEMATIC_PART_STATE_RESOLVED             = 'resolved';
-const DTB_SCHEMATIC_PART_STATE_UNRESOLVED           = 'unresolved';
-const DTB_SCHEMATIC_PART_STATE_NOT_SOLD             = 'not_sold';
+const DTB_SCHEMATIC_PART_STATE_RESOLVED   = 'resolved';
+const DTB_SCHEMATIC_PART_STATE_UNRESOLVED = 'unresolved';
+const DTB_SCHEMATIC_PART_STATE_NOT_SOLD   = 'not_sold';
 
 /**
  * @param array $data {
  *     @type string $part_ref           Canonical part reference (stable within the schematic).
- *     @type string $mpn                Manufacturer part number.
- *     @type string $sku                Exact WooCommerce SKU, if known.
+ *     @type string $mpn                Manufacturer part number/display identifier from source.
+ *     @type string $sku                Source/WooCommerce SKU, if known.
  *     @type string $brand              Brand name.
  *     @type string $title              Customer-facing title.
  *     @type int    $product_id         Resolved WooCommerce product/variation ID, 0 if unresolved.
@@ -47,6 +49,7 @@ function dtb_schematic_part_relationship_make( array $data ): array {
 		DTB_SCHEMATIC_PART_RESOLUTION_EXPLICIT_ID,
 		DTB_SCHEMATIC_PART_RESOLUTION_EXACT_SKU,
 		DTB_SCHEMATIC_PART_RESOLUTION_BRAND_MPN,
+		DTB_SCHEMATIC_PART_RESOLUTION_NORMALIZED_SKU,
 		DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY,
 		DTB_SCHEMATIC_PART_RESOLUTION_UNRESOLVED,
 	];
