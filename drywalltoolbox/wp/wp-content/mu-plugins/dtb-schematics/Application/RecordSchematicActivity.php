@@ -219,12 +219,16 @@ function dtb_schematic_activity_log_reconciliation( array $report, string $start
 			'unresolved'      => $report['unresolved'] ?? 0,
 			'catalog_version' => function_exists( 'dtb_schematics_public_catalog_version' ) ? dtb_schematics_public_catalog_version() : 0,
 			'summary'         => ! empty( $report['fatal_error'] )
-				? 'Reconciliation failed: ' . $report['fatal_error']
-				: implode( '; ', $summary_bits ),
-			'detail'          => [
-				'dispositions' => $dispositions,
-				'assets'       => $report['assets'] ?? [],
-			],
+				? sprintf( 'Reconciliation failed: %s', (string) $report['fatal_error'] )
+				: sprintf(
+					'%s batch: rows %d-%d of %d — %s',
+					! empty( $report['dry_run'] ) ? 'Preview' : 'Applied sync',
+					$report['batch_start'] ?? 0,
+					$report['batch_end'] ?? 0,
+					$report['source_row_count'] ?? 0,
+					implode( ', ', $summary_bits )
+				),
+			'detail'          => $report,
 			'started_at'      => $started_at,
 		]
 	);
