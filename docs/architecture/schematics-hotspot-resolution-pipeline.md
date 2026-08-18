@@ -2,67 +2,125 @@
 
 ## Authority
 
-The Hotspot Resolver is one bounded launch-remediation pipeline. `frontend/public/brands/**/schematic_data*.json` remains schematic hotspot source truth, live WooCommerce remains product/variation identity authority, and DTB Schematics owns normalized hotspot projections and schematic-part relationships. The pipeline never rewrites protected SKU, MPN, GTIN, or brand identity and never creates a parallel runtime catalog.
+The Hotspot Resolver is one bounded launch-remediation pipeline. `frontend/public/brands/**/schematic_data*.json` remains schematic hotspot source truth, live WooCommerce remains product/variation identity authority, and DTB Schematics owns normalized hotspot projections plus schematic-part relationships. The pipeline never creates a parallel runtime catalog and never rewrites protected SKU, MPN, GTIN, or brand identity.
 
-## Operator workflow
+The repository `products/` tree remains canonical catalog source data. A deployed WordPress host is not assumed to contain a Git checkout, so production does not invent product identity from unavailable repository files. Catalog/source correction manifests identify upstream ownership without turning wp-admin into a second catalog editor.
 
-The supported wp-admin workflow is:
+## Single operator workflow
 
-1. **Build full resolution plan**: read-only analysis of all authoritative schematic sources and live WooCommerce identity state.
-2. **Review complete pre-apply plan**: inspect source integrity, exact proposed mappings, active unresolved hotspots, catalog-only gaps, terminal dispositions, source failures, and remediation manifests.
-3. **Export artifacts**: complete JSON report plus catalog-corrections, source-corrections, and manual-review CSV files generated from the same plan.
-4. **Approve**: explicit operator approval is available only when the plan has a complete deterministic write set and no fatal, failed, or truncated-plan blocker.
-5. **Freshness verification**: immediately before Apply, the server rebuilds the plan from authoritative state and requires its material fingerprint and applicability to equal the reviewed plan.
-6. **Apply**: the existing schematic operation runner acquires the shared commit lease and reruns the established hotspot synchronization/resolution pipeline. Browser-supplied mappings are never replayed.
-7. **Post-apply verification**: the same plan builder reports actual writes and remaining remediation work and can export post-apply artifacts.
+The supported wp-admin workflow is deliberately small:
 
-`Application/BuildHotspotResolutionPlan.php` is the plan/report composition layer. It consumes the existing optimizer result and does not introduce another resolver. `Admin/Diagnostics/HotspotResolutionPipeline.php` is the single operator-facing workflow while the existing reader, audit, migration, resolver, optimizer, operation-run, and lease services remain internal dependencies.
+1. **Build full resolution plan** — one read-only pass across authoritative schematic sources, persisted schematic state, and live WooCommerce identity.
+2. **Review complete pre-apply plan** — inspect source integrity, deterministic proposed mappings, active unresolved hotspots, catalog-only gaps, terminal dispositions, source failures, and generated remediation artifacts.
+3. **Approve & Apply** — available only for a complete deterministic mapping set with no integrity blocker. The shared operation runner requires the approved plan fingerprint, acquires the schematic commit lease, rebuilds authoritative state while the lease is held, and aborts before writes unless the fresh material fingerprint still matches.
+4. **Review committed result** — inspect the operation result and export it from the same pipeline surface.
 
-## Resolution contract
+Exports are artifacts of this workflow, not separate resolver workflows.
 
-Automatic relationship writes remain limited to the established deterministic resolver contract: preserved explicit mappings/not-sold states, exact WooCommerce SKU, exact brand plus strong MPN, unique same-brand formatting-only SKU identity, and explicit compatibility relationships. Fuzzy/title evidence, cross-brand guesses, weak numeric diagram callouts, and ambiguous candidates remain unresolved.
+`Application/BuildHotspotResolutionPlan.php` is the plan/report composition layer. `Admin/Diagnostics/HotspotResolutionPipeline.php` is the consolidated operator transport. Source readers, migration/resolution services, operation-run persistence, and the process-wide commit lease remain application dependencies.
 
-The planning layer may classify and explain unresolved evidence, but it may not broaden this automatic write contract.
+## Deterministic resolution contract
 
-## Semantic source classification
+Automatic part relationships remain limited to the established resolver contract:
 
-Legacy schematic datasets sometimes place diagram notes, equivalence lists, quantities, adhesive instructions, or cross-references in fields historically interpreted as SKU-like values. The plan builder therefore performs a non-mutating semantic classification before generating remediation artifacts.
+1. preserve explicit product/variation mappings and intentionally-not-sold states;
+2. exact WooCommerce SKU;
+3. exact protected MPN plus same-brand identity;
+4. unique same-brand formatting-only SKU identity;
+5. explicit compatibility relationships by exact protected identity;
+6. otherwise unresolved.
 
-Examples include `SEE ... DETAIL` navigation rows, multiple part numbers joined by `=`, quantity expressions such as `X 2`, and notes containing terms such as `LOCTITE`, `SECURED WITH`, or `INSTALL WITH`. These are routed to source correction/reference dispositions rather than being represented as missing WooCommerce products.
+Fuzzy/title evidence, cross-brand guesses, weak numeric diagram callouts, and ambiguous candidates do not auto-apply. Review evidence may explain an unresolved identity but cannot become mutation authority.
 
-This classification changes only the remediation plan. It does not rewrite source JSON and does not create product identity.
+## Source integrity contract
 
-## Terminal dispositions
+The source audit reads only approved schematic-data references through the established source resolver, reader, normalization, grouping, and merge path.
 
-Every unresolved resolution group receives exactly one terminal planning disposition and a non-empty required action:
+Each authoritative source group is classified independently:
 
-- `catalog_identity_correction`: strong source product identity exists, but WooCommerce/catalog identity cannot be deterministically resolved;
-- `source_identifier_correction`: source identity is missing or too weak to map safely;
-- `source_instruction_not_product`: the source SKU-like value is actually a note, quantity, equivalence list, or assembly instruction;
-- `reference_only`: schematic navigation/reference data rather than a product identity;
-- `source_unavailable`: approved schematic source is missing/unreadable;
-- `source_projection_sync`: source projection drift requires review/synchronization;
-- `manual_review_required`: bounded evidence exists but is not sufficient for an automatic write.
+- `ok` — complete readable source with no drift or structural issue;
+- `attention` — readable source with projection/source relationship drift but no structural hotspot corruption;
+- `partial` — at least one source member/read failed while other data was available;
+- `invalid` — source contains dangling hotspot references, invalid hotspot coordinates, duplicate hotspot IDs, or page mismatches;
+- `missing` — no approved source can be associated with the schematic;
+- `error` — approved source references exist but none can be read into a usable dataset.
 
-The plan also retains the optimizer's raw reason counts so diagnosis provenance is not lost.
+`partial` and `invalid` are fail-closed Apply blockers. A partial multi-file source must never be interpreted as authoritative because omitted source members can make legitimate persisted relationships appear absent. Structural hotspot defects must be corrected at the schematic source before mapping mutations are approved.
 
-## Plan and artifacts
+When requested internally, the audit can expose the deterministic `projected_parts` relationship projection generated from the same normalized source dataset used by the migration/resolution path. The normal bounded audit does not carry this larger projection unnecessarily.
 
-Plan schema version 2 contains mode, reviewability, material fingerprint, coverage metrics, exactly-resolvable audit signal, projected/applied new mapping counts, active and catalog-only unresolved counts, proposed/applied mappings, blockers, raw reason counts, terminal disposition counts, normalized resolution groups, source errors, per-record results, and remediation artifacts.
+## Terminal unresolved dispositions
 
-`can_apply` is true only when there are no blocking integrity failures, the projected deterministic write count is greater than zero, and the retained explicit repair rows exactly equal that projected count. A partial/truncated write plan cannot be approved.
+Every unresolved group receives one terminal planning disposition and a non-empty required action:
 
-Generated artifacts are review outputs rather than application state:
+- `catalog_identity_correction` — usable manufacturer identity exists but live WooCommerce does not satisfy the deterministic contract;
+- `source_identifier_correction` — source identity is missing or too weak;
+- `source_instruction_not_product` — a legacy SKU-like field contains an instruction, quantity, equivalence list, or assembly note;
+- `reference_only` — schematic navigation/reference data rather than product identity;
+- `source_unavailable` — approved schematic source is missing or unreadable;
+- `source_projection_sync` — readable source differs from the persisted projection and requires review;
+- `manual_review_required` — bounded evidence exists but is insufficient for an automatic relationship.
 
-- `report_json`: complete machine-readable plan/run report;
-- `catalog_csv`: catalog identity corrections that must be handled by the owning catalog/WooCommerce workflow;
-- `source_csv`: source identity, source semantic, source availability, reference, or projection corrections that must be handled in the authoritative schematic source;
-- `manual_csv`: ambiguous evidence requiring explicit human review.
+These dispositions explain ownership. They do not broaden the automatic resolver and do not mutate repository-controlled source/catalog data from production wp-admin.
 
-CSV artifacts include terminal disposition, issue provenance, source identity, impact, affected schematics, bounded candidate evidence, and a required action. `required_action` is never intentionally emitted blank.
+## Plan schema and completeness
 
-The pipeline does not mutate repository-controlled source JSON or canonical catalog files from production wp-admin.
+`Application/BuildHotspotResolutionPlan.php` currently emits plan schema version 3 on the rebased production branch.
+
+The plan contains:
+
+- schematic/source/hotspot coverage metrics;
+- exactly-resolvable audit signal;
+- projected and applied deterministic mapping counts;
+- explicit proposed mapping rows;
+- active and catalog-only unresolved counts;
+- source unavailable, partial, invalid, and drift state;
+- raw optimizer reason counts;
+- terminal disposition counts and normalized resolution groups;
+- source errors and per-record source status;
+- JSON and CSV remediation artifacts;
+- a material approval fingerprint.
+
+`can_apply` is true only when:
+
+- there is no fatal or failed-record blocker;
+- no source group is `partial` or `invalid`;
+- no bounded plan output was truncated;
+- the projected deterministic mapping count is greater than zero; and
+- the retained explicit mapping rows exactly equal the projected mapping count.
+
+The current production optimizer exposes deterministic mapping mutations as its explicit safe write set. The plan therefore does not claim broader relationship-removal/remap coverage that the active implementation does not currently expose.
+
+## Approval fingerprint and commit-time freshness
+
+The material plan fingerprint covers the reviewed mapping targets, terminal unresolved dispositions and impact, per-schematic source status/drift, aggregate source read/unavailable state, and failed-record state.
+
+Every committing `optimize_hotspots` operation requires a valid approved fingerprint. This requirement is enforced in `Application/RunSchematicOperation.php`, not merely in the admin transport.
+
+For a commit, the shared operation runner:
+
+1. creates the operator run;
+2. acquires the process-wide schematic commit lease;
+3. renews the lease heartbeat;
+4. rebuilds a complete fresh dry-run plan from current authoritative source and live WooCommerce while the lease is held;
+5. requires the fresh plan to remain applicable;
+6. compares the fresh fingerprint to the operator-reviewed fingerprint with `hash_equals`;
+7. aborts with zero hotspot-domain writes on any mismatch;
+8. invokes the established optimizer/migration path only after the check succeeds.
+
+This closes the review-to-commit race and also prevents another internal caller from bypassing operator-approved plan freshness for a committing hotspot optimizer run.
+
+## Generated artifacts
+
+The pipeline exports:
+
+- complete JSON run/plan report;
+- catalog-corrections CSV;
+- source-corrections CSV;
+- manual-review CSV.
+
+Artifacts are diagnostic/remediation manifests rather than application state. They do not create WooCommerce products, rewrite protected product identifiers, or edit `frontend/public/brands` or repository catalog files.
 
 ## Security and failure behavior
 
-Build, export, approval, and Apply require `dtb_manage_schematics`. Mutating actions use WordPress nonces. Run access is operator scoped. Apply requires a completed operator-owned dry-run, explicit approval, a complete non-empty deterministic mutation set, no blocking integrity condition, and an exact freshly recomputed plan fingerprint. Mutation continues to use the process-wide schematic commit lease and heartbeat. A stale, failed, incomplete, or truncated plan fails closed before writes.
+Build, export, approval, and Apply require `dtb_manage_schematics`. Mutating requests use WordPress nonces. Operation-run access is scoped to the initiating operator. Committing hotspot optimizer operations require a valid reviewed fingerprint and the shared commit lease. Stale, failed, partial-source, structurally invalid, mismatched, or truncated plans fail closed before hotspot-domain writes.
