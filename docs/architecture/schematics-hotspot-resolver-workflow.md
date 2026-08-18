@@ -2,61 +2,113 @@
 
 ## Purpose
 
-The temporary Hotspot Resolver is one end-to-end operator workflow for auditing and repairing schematic hotspot-to-product relationships. It is not a catalog authority, does not create a parallel schematic persistence model, and is intentionally limited to the launch remediation task.
+The temporary Hotspot Resolver is one end-to-end operator workflow for auditing and repairing schematic hotspot-to-product relationships. It is intentionally limited to launch remediation. It is not a catalog authority and does not create a parallel schematic persistence model.
 
 ## Authorities
 
 - `frontend/public/brands/**/schematic_data*.json` is schematic hotspot source truth and is read only through the approved dataset reader, normalization, source-grouping, and merge pipeline.
-- WooCommerce is authoritative for product identity and commerce persistence.
-- DTB Schematics owns hotspot normalization, deterministic relationship resolution, diagnostics, explicit operator overrides, and schematic persistence.
+- Live WooCommerce is authoritative for product/variation identity.
+- DTB Schematics owns hotspot normalization, relationship resolution, diagnostics, explicit operator overrides, and schematic persistence.
 - SKU, MPN, GTIN, brand identity, and other protected catalog identifiers are never rewritten by this workflow.
+
+Repository catalog files under `products/` may be used by catalog tooling and engineering review, but the wp-admin resolver does not copy them into a second runtime catalog or use them to invent WooCommerce product IDs.
 
 ## Single operator workflow
 
-The Hotspot Resolver exposes one gated sequence rather than separate audit, diagnostic, synchronization, and optimizer tools:
+The Hotspot Resolver exposes one gated sequence:
 
-1. **Generate full pre-apply report** — mandatory read-only execution of the complete resolver pipeline. It audits every authoritative schematic record, current source-file integrity, normalized projection drift, deterministic mapping potential, unresolved relationships, source errors, root causes, and bounded review evidence. It writes nothing.
-2. **Review and approve** — the completed pre-apply report is rendered in wp-admin with explicit projected mapping counts, source integrity metrics, root-cause counts, and a prioritized remediation queue. Apply is unavailable until a successful preview exists. The operator must explicitly check the approval control for that preview run.
-3. **Approve & apply full resolver** — commit mode of the same application pipeline. It acquires the shared schematic commit lease, synchronizes hotspot projections through the existing migration service, and persists only deterministic exact SKU, exact brand+MPN, or explicit compatibility relationships. Existing explicit overrides and intentionally-not-sold states remain protected.
-4. **Post-apply review / export** — the same page reports actual new mappings written and remaining unresolved work. Either pre-apply or post-apply state can be exported as a complete JSON report.
+1. **Generate full pre-apply report** — mandatory read-only execution across the complete authoritative schematic population.
+2. **Audit the proposed plan** — the report lists every deterministic relationship write with source schematic/part identity, target WooCommerce product, resolution method, and hotspot occurrence impact. Remaining source/catalog problems are shown separately.
+3. **Approve the exact plan** — Apply is not offered when the report projects zero writes. The operator must explicitly approve the successful pre-apply run.
+4. **Freshness verification** — immediately before mutation, the resolver regenerates the material read-only plan and compares its SHA-256 plan fingerprint with the approved report. If source/catalog state changed, Apply is aborted without writes and a new report is required.
+5. **Apply** — the existing application operation runner acquires the shared schematic commit lease, synchronizes current hotspot projections, and persists only deterministic relationships.
+6. **Post-apply review/export** — the workflow reports actual writes and remaining remediation work and can export the complete post-apply result.
 
-The workflow deliberately does not expose separate source-audit and optimizer panels. Their existing application services remain implementation dependencies rather than independent operator workflows.
+The former source-audit, diagnostic, and optimizer presentation panels remain implementation dependencies only; they are not separate operator workflows.
+
+## Product identity semantics
+
+Legacy schematic datasets do not have one universal meaning for `display_id`. Some datasets use it as a manufacturer part number while others use a diagram callout/index. Source `sku` is therefore the primary product identity when present.
+
+Automatic resolution order is:
+
+1. preserve an explicit operator-set WooCommerce product/variation ID;
+2. preserve an intentionally-not-sold state;
+3. exact WooCommerce SKU;
+4. exact brand + **strong** manufacturer part number;
+5. unique same-brand formatting-only SKU alias;
+6. explicit compatibility relationship using exact strong SKU/MPN evidence;
+7. unresolved.
+
+A strong MPN must not be a short numeric diagram callout. Purely numeric MPN evidence is accepted only at five or more digits; mixed alpha/numeric manufacturer identifiers remain eligible. This prevents legacy callout numbers such as `1`, `9`, or `14` from being promoted into product identity.
+
+### Formatting-only SKU reconciliation
+
+The formatting-only rule exists for protected identifiers that differ only in punctuation/spacing, for example `CF4L` versus `CF 4L` or `FA324` versus `FA-324`.
+
+It is deliberately narrow:
+
+- source SKU must be strong;
+- only a bounded set of punctuation/spacing aliases is generated;
+- aliases are resolved through WooCommerce SKU lookup, not a fuzzy catalog scan;
+- the candidate's normalized SKU must equal the source normalized SKU;
+- candidate brand must equal the schematic brand after known label canonicalization;
+- all matching aliases must identify one and only one WooCommerce product/variation;
+- multiple product IDs, missing brand evidence, weak numeric identifiers, title similarity, or cross-brand evidence remain unresolved.
+
+The relationship records `resolution_method = normalized_sku`; neither source nor WooCommerce identifiers are changed.
 
 ## Pre-apply report contract
 
-The pre-apply report must distinguish facts from projections:
+The report distinguishes source facts, proposed writes, and remaining remediation:
 
-- `exactly_resolvable` is a source/catalog audit signal and may include relationships already resolved before the run.
-- `projected_exact_repairs` is the number of currently unresolved relationships that the read-only run predicts can become resolved through the deterministic contract.
-- source drift, read failures, unavailable source files, structural hotspot findings, unresolved relationships, and root-cause groups are reported separately.
-- review candidates are evidence only. Candidate display suppresses similarity-only cross-brand noise; it does not expand the automatic resolver contract.
+- `repairs` is the explicit proposed mutation set in Preview and actual applied set after Apply.
+- `projected_repairs` / `applied_repairs` are the authoritative new relationship-write counts.
+- `projected_normalized_sku_repairs` / `applied_normalized_sku_repairs` identify the formatting-only subset.
+- legacy `projected_exact_repairs` / `applied_exact_repairs` remain for report compatibility and represent all deterministic relationship repairs, not only the `exact_sku` method.
+- `active_hotspot_unresolved` counts unresolved relationship groups that currently have hotspot occurrences.
+- `inactive_catalog_unresolved` separates source/catalog part rows with zero hotspot occurrences so they do not obscure the active hotspot workload.
+- `source_reference_only` separates obvious `SEE ... DETAIL` navigation/reference rows from sellable product identity gaps.
+- `source_identifier_gap` identifies missing/weak source identifiers such as diagram callout numbers.
+- `catalog_identity_gap` means a strong source SKU exists but live WooCommerce cannot deterministically resolve it.
+- `sku_format_ambiguous` and strong review candidates are evidence only and are never automatically linked.
+- source drift, source read failures, unavailable sources, and structural hotspot findings remain separately visible.
 
-A successful pre-apply report is required before Apply, and the approval POST is capability protected, nonce protected, and tied to the operator-owned preview run ID.
+The previous `exactly_resolvable` metric remains an audit signal only and must never be interpreted as a new-write count.
 
 ## Apply contract
 
-Apply reruns the authoritative pipeline against current runtime state; it does not replay arbitrary browser-supplied mappings from the preview. This preserves source/WooCommerce ownership and avoids treating the report as a mutation payload.
+Apply is unavailable when the approved report projects zero deterministic writes. When writes exist, Apply requires:
 
-Apply may only:
+- `dtb_manage_schematics`;
+- a run-specific WordPress nonce;
+- an operator-owned, successful, completed dry-run;
+- explicit operator approval;
+- a non-empty proposed write set; and
+- a fresh runtime plan whose fingerprint exactly matches the approved report.
 
-- synchronize the normalized schematic hotspot projection through the existing migration service; and
-- persist part relationships produced by the existing deterministic resolver contract.
+Apply does not replay browser-supplied product mappings. After the freshness check it reruns the authoritative application pipeline under the shared schematic commit lease.
 
-Apply may not create or delete products, rewrite SKU/MPN/GTIN/brand identifiers, auto-link fuzzy/title candidates, or bypass explicit operator/not-sold states.
+Apply may only synchronize normalized hotspot projections and persist relationships generated by the deterministic resolver contract. It may not create/delete products, rewrite protected catalog identifiers, cross brands, auto-link fuzzy/title candidates, or override explicit/not-sold operator decisions.
 
-## Report export
+## Export contract
 
-The JSON export is capability protected, nonce protected, and restricted to the operator that owns the selected resolver run. Schema version 2 identifies whether the export is `pre_apply` or `apply` and includes:
+Report schema version 3 identifies `pre_apply` versus `apply` and contains:
 
-- run identity, mode, status, timestamps, and errors;
-- authority and safe-write contract;
-- projected or actual new exact mappings;
-- exact-source signal and remaining unresolved relationship count;
-- resolver metrics, per-record outcomes, source errors, normalized root-cause counts, and the complete remediation queue retained by the resolver;
-- a fresh full-scope source-truth audit across the same authoritative schematic population.
+- run identity, status, timestamps and errors;
+- authority/safe-write contract;
+- projected or applied mapping counts;
+- formatting-only mapping counts;
+- active hotspot versus catalog-only unresolved counts;
+- the material plan fingerprint;
+- the complete proposed/applied `repairs` set;
+- resolver metrics and per-record outcomes;
+- source errors and normalized root-cause counts;
+- the complete retained remediation queue; and
+- a fresh full-scope source-truth audit.
 
-Export is read-only.
+Export is capability/nonce protected, operator scoped, and read-only.
 
 ## Security and failure behavior
 
-The page, preview, approval/apply, and export require `dtb_manage_schematics`. Mutating Apply continues to use the shared process-wide schematic commit lease. Arbitrary filesystem paths are not accepted. If source data is unavailable, unreadable, structurally invalid, or drifted, the workflow reports the condition instead of fabricating a mapping. If the commit lease is lost, the operation runner stops further mutations.
+The page, Preview, approval/Apply, and export require `dtb_manage_schematics`. Mutating Apply uses the process-wide schematic commit lease. Arbitrary filesystem paths are not accepted. Source/catalog ambiguity remains unresolved rather than being guessed. If the approved plan is stale, the freshness check fails closed and makes no write. If the commit lease is lost, the existing operation runner stops subsequent mutations.
