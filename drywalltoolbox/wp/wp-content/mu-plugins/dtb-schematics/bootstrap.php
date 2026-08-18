@@ -56,6 +56,7 @@ dtb_module_require( 'dtb-schematics/Application/AuditSchematicHotspotSources.php
 dtb_module_require( 'dtb-schematics/Application/MigrateSchematicHotspotDatasetsCli.php' );
 dtb_module_require( 'dtb-schematics/Application/OptimizeSchematicHotspots.php' );
 dtb_module_require( 'dtb-schematics/Application/BuildHotspotResolutionPlan.php' );
+dtb_module_require( 'dtb-schematics/Application/ExportHotspotResolutionWorkbook.php' );
 dtb_module_require( 'dtb-schematics/Application/RecordSchematicActivity.php' );
 dtb_module_require( 'dtb-schematics/Application/RunSchematicOperation.php' );
 
