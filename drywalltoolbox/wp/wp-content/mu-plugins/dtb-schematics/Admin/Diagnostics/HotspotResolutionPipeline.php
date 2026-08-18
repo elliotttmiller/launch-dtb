@@ -94,14 +94,32 @@ function dtb_schematic_hotspot_pipeline_export(): void {
 		wp_die( esc_html__( 'You do not have permission to manage schematics.', 'drywall-toolbox' ), 403 );
 	}
 	$run_id = sanitize_text_field( wp_unslash( $_GET['run_id'] ?? '' ) );
-	$type   = sanitize_key( (string) ( $_GET['artifact'] ?? 'report_json' ) );
+	$type   = sanitize_key( (string) ( $_GET['artifact'] ?? 'audit_xlsx' ) );
 	check_admin_referer( DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE . ':export:' . $run_id, '_dtb_pipeline_nonce' );
 	$run = dtb_schematic_operation_run_get_for_operator( $run_id, get_current_user_id() );
 	if ( ! is_array( $run ) ) {
 		wp_die( esc_html__( 'The requested resolver run is unavailable.', 'drywall-toolbox' ), 404 );
 	}
 	$payload = dtb_schematic_hotspot_plan_export_payload( $run );
-	$plan    = (array) ( $payload['plan'] ?? [] );
+
+	if ( 'audit_xlsx' === $type ) {
+		$workbook = dtb_schematic_hotspot_resolution_workbook_create( $payload );
+		if ( is_wp_error( $workbook ) ) {
+			wp_die( esc_html( $workbook->get_error_message() ), 500 );
+		}
+		$path = (string) ( $workbook['path'] ?? '' );
+		$filename = sanitize_file_name( (string) ( $workbook['filename'] ?? 'dtb-hotspot-resolution-audit.xlsx' ) );
+		if ( '' === $path || ! is_readable( $path ) ) {
+			wp_die( esc_html__( 'The hotspot audit workbook could not be read after generation.', 'drywall-toolbox' ), 500 );
+		}
+		nocache_headers();
+		header( 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
+		header( 'Content-Disposition: attachment; filename="' . $filename . '"' );
+		header( 'Content-Length: ' . (string) filesize( $path ) );
+		readfile( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile
+		@unlink( $path );
+		exit;
+	}
 
 	if ( 'report_json' === $type ) {
 		nocache_headers();
@@ -111,25 +129,7 @@ function dtb_schematic_hotspot_pipeline_export(): void {
 		exit;
 	}
 
-	$map = [ 'catalog_csv' => 'catalog_corrections', 'source_csv' => 'source_corrections', 'manual_csv' => 'manual_review' ];
-	if ( ! isset( $map[ $type ] ) ) {
-		wp_die( esc_html__( 'Unsupported resolver artifact.', 'drywall-toolbox' ), 400 );
-	}
-	$rows = (array) ( $plan['artifacts'][ $map[ $type ] ] ?? [] );
-	nocache_headers();
-	header( 'Content-Type: text/csv; charset=utf-8' );
-	header( 'Content-Disposition: attachment; filename="dtb-hotspot-' . sanitize_file_name( $map[ $type ] ) . '-' . sanitize_file_name( $run_id ) . '.csv"' );
-	$out = fopen( 'php://output', 'w' );
-	if ( false === $out ) {
-		wp_die( esc_html__( 'Unable to open the report output stream.', 'drywall-toolbox' ), 500 );
-	}
-	$columns = [ 'disposition','issue_code','issue_label','brand','part_ref','source_sku','source_display_id','part_name','relationship_count','hotspot_occurrences','schematics','candidate_evidence','required_action' ];
-	fputcsv( $out, $columns );
-	foreach ( $rows as $row ) {
-		fputcsv( $out, array_map( static fn( $key ) => (string) ( $row[ $key ] ?? '' ), $columns ) );
-	}
-	fclose( $out );
-	exit;
+	wp_die( esc_html__( 'Unsupported resolver artifact.', 'drywall-toolbox' ), 400 );
 }
 
 function dtb_schematic_hotspot_pipeline_render(): void {
@@ -143,7 +143,7 @@ function dtb_schematic_hotspot_pipeline_render(): void {
 	$apply_run = '' !== $apply_id ? dtb_schematic_operation_run_get_for_operator( $apply_id, get_current_user_id() ) : null;
 
 	echo '<main class="wrap dtb-hotspot-resolver" id="dtb-hotspot-pipeline">';
-	echo '<header class="dtb-hotspot-resolver__hero"><div><span class="dtb-hotspot-resolver__eyebrow">' . esc_html__( 'Single controlled workflow', 'drywall-toolbox' ) . '</span><h1>' . esc_html__( 'Schematic Hotspot Resolution Pipeline', 'drywall-toolbox' ) . '</h1><p>' . esc_html__( 'Analyze authoritative schematic sources against live WooCommerce, classify every unresolved identity, generate every correction manifest, review the exact safe write set, approve once, then apply and verify.', 'drywall-toolbox' ) . '</p></div></header>';
+	echo '<header class="dtb-hotspot-resolver__hero"><div><span class="dtb-hotspot-resolver__eyebrow">' . esc_html__( 'Single controlled workflow', 'drywall-toolbox' ) . '</span><h1>' . esc_html__( 'Schematic Hotspot Resolution Pipeline', 'drywall-toolbox' ) . '</h1><p>' . esc_html__( 'Analyze authoritative schematic sources against live WooCommerce, classify every unresolved identity, generate one consolidated audit workbook, review the exact safe write set, approve once, then apply and verify.', 'drywall-toolbox' ) . '</p></div></header>';
 	if ( '' !== $error ) {
 		echo '<div class="notice notice-error inline"><p>' . esc_html( $error ) . '</p></div>';
 	}
@@ -155,7 +155,7 @@ function dtb_schematic_hotspot_pipeline_render(): void {
 	echo '<div class="dtb-hotspot-optimizer__contract"><strong>' . esc_html__( 'Authority boundary', 'drywall-toolbox' ) . '</strong><span>' . esc_html__( 'The pipeline may persist approved deterministic part relationships. It never creates products or rewrites SKU, MPN, GTIN, brand, source JSON, or repository catalog files.', 'drywall-toolbox' ) . '</span></div></section>';
 
 	if ( ! $plan_run ) {
-		echo '<div class="dtb-hotspot-resolver__empty"><p>' . esc_html__( 'Build the plan to generate the complete audit, deterministic mapping set, source/catalog correction manifests, and bounded manual-review queue.', 'drywall-toolbox' ) . '</p></div></main>';
+		echo '<div class="dtb-hotspot-resolver__empty"><p>' . esc_html__( 'Build the plan to generate the complete audit, deterministic mapping set, consolidated correction workbook, and bounded manual-review queue.', 'drywall-toolbox' ) . '</p></div></main>';
 		return;
 	}
 
@@ -200,7 +200,7 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 	$repairs = (array) ( $plan['proposed_mappings'] ?? [] );
 	echo '<h3>' . esc_html__( 'Deterministic mapping plan', 'drywall-toolbox' ) . '</h3>';
 	if ( empty( $repairs ) ) {
-		echo '<p>' . esc_html__( 'No new deterministic relationship writes are currently available. The manifests below are the authoritative next work for this run.', 'drywall-toolbox' ) . '</p>';
+		echo '<p>' . esc_html__( 'No new deterministic relationship writes are currently available. The consolidated audit workbook below contains the authoritative next work for this run.', 'drywall-toolbox' ) . '</p>';
 	} else {
 		echo '<table class="widefat striped"><thead><tr><th>Schematic</th><th>Source part</th><th>Target product</th><th>Method</th><th>Hotspots</th></tr></thead><tbody>';
 		foreach ( array_slice( $repairs, 0, 250 ) as $repair ) {
@@ -210,11 +210,9 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 		echo '</tbody></table>';
 	}
 
-	echo '<h3>' . esc_html__( 'Generated remediation artifacts', 'drywall-toolbox' ) . '</h3><p>' . esc_html__( 'Every unresolved group has a terminal disposition and required action. These files are correction manifests, not parallel authorities.', 'drywall-toolbox' ) . '</p><div class="dtb-hotspot-optimizer__actions">';
-	dtb_schematic_hotspot_pipeline_export_link( $run, 'report_json', 'Complete JSON report' );
-	dtb_schematic_hotspot_pipeline_export_link( $run, 'catalog_csv', 'Catalog corrections CSV' );
-	dtb_schematic_hotspot_pipeline_export_link( $run, 'source_csv', 'Source corrections CSV' );
-	dtb_schematic_hotspot_pipeline_export_link( $run, 'manual_csv', 'Manual review CSV' );
+	echo '<h3>' . esc_html__( 'Consolidated audit export', 'drywall-toolbox' ) . '</h3><p>' . esc_html__( 'One workbook contains the summary, full resolution plan, catalog corrections, source corrections, manual review, deterministic mappings, source audit, and run metadata. JSON remains available only as the lossless machine-readable representation of the same run.', 'drywall-toolbox' ) . '</p><div class="dtb-hotspot-optimizer__actions">';
+	dtb_schematic_hotspot_pipeline_export_link( $run, 'audit_xlsx', 'Export audit workbook (.xlsx)', true );
+	dtb_schematic_hotspot_pipeline_export_link( $run, 'report_json', 'Machine-readable JSON', false );
 	echo '</div>';
 
 	if ( $pre_apply ) {
@@ -223,7 +221,7 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 			wp_nonce_field( DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE . ':apply:' . (string) ( $run['id'] ?? '' ), '_dtb_pipeline_nonce' );
 			echo '<label><input type="checkbox" name="approve_plan" value="1" required> ' . esc_html__( 'I reviewed the complete mapping plan and remediation dispositions.', 'drywall-toolbox' ) . '</label><p><button class="button button-primary" type="submit">' . esc_html__( 'Approve & apply resolution plan', 'drywall-toolbox' ) . '</button></p></form></section>';
 		} elseif ( empty( $plan['blockers'] ) ) {
-			echo '<div class="notice notice-info inline"><p><strong>' . esc_html__( 'No Apply action is necessary for this plan.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'The engine found no new DTB-owned deterministic mapping mutation. Use the generated source/catalog/manual manifests when upstream owning data requires correction.', 'drywall-toolbox' ) . '</p></div>';
+			echo '<div class="notice notice-info inline"><p><strong>' . esc_html__( 'No Apply action is necessary for this plan.', 'drywall-toolbox' ) . '</strong> ' . esc_html__( 'The engine found no new DTB-owned deterministic mapping mutation. Use the consolidated workbook when upstream owning data requires correction.', 'drywall-toolbox' ) . '</p></div>';
 		}
 	}
 	echo '</section>';
@@ -254,13 +252,14 @@ function dtb_schematic_hotspot_pipeline_render_dispositions( array $plan ): void
 	echo '</tbody></table></details>';
 }
 
-function dtb_schematic_hotspot_pipeline_export_link( array $run, string $artifact, string $label ): void {
+function dtb_schematic_hotspot_pipeline_export_link( array $run, string $artifact, string $label, bool $primary = false ): void {
 	$url = wp_nonce_url( add_query_arg( [
 		'action' => 'dtb_hotspot_pipeline_export',
 		'run_id' => (string) ( $run['id'] ?? '' ),
 		'artifact' => $artifact,
 	], admin_url( 'admin-post.php' ) ), DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE . ':export:' . (string) ( $run['id'] ?? '' ), '_dtb_pipeline_nonce' );
-	echo '<a class="button" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a> ';
+	$class = $primary ? 'button button-primary' : 'button';
+	echo '<a class="' . esc_attr( $class ) . '" href="' . esc_url( $url ) . '">' . esc_html( $label ) . '</a> ';
 }
 
 function dtb_schematic_hotspot_pipeline_redirect_run( $run, string $arg ): void {
