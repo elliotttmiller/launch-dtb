@@ -15,12 +15,7 @@ defined( 'ABSPATH' ) || exit;
 const DTB_SCHEMATIC_SOURCE_AUDIT_MAX_RECORDS = 25;
 const DTB_SCHEMATIC_SOURCE_AUDIT_MAX_ISSUES  = 100;
 
-/**
- * Audit a bounded record scope against the current frontend/public/brands data.
- *
- * @param array $args Same bounded record filters used by the hotspot resolver.
- * @return array
- */
+/** Audit a bounded record scope against the current frontend/public/brands data. */
 function dtb_schematic_hotspot_source_audit_scan( array $args = [] ): array {
 	$schematic_id = max( 0, (int) ( $args['schematic_id'] ?? 0 ) );
 	$page         = max( 1, (int) ( $args['page'] ?? 1 ) );
@@ -32,13 +27,7 @@ function dtb_schematic_hotspot_source_audit_scan( array $args = [] ): array {
 		$record = dtb_schematic_record_repo_get( $schematic_id );
 		$records = $record ? [ $record ] : [];
 	} else {
-		$query   = dtb_schematic_record_repo_query(
-			[
-				'page'     => $page,
-				'per_page' => $per_page,
-				'search'   => $search,
-			]
-		);
+		$query   = dtb_schematic_record_repo_query( [ 'page' => $page, 'per_page' => $per_page, 'search' => $search ] );
 		$records = $query['items'];
 	}
 
@@ -47,6 +36,8 @@ function dtb_schematic_hotspot_source_audit_scan( array $args = [] ): array {
 		'source_files_examined'  => 0,
 		'source_read_errors'     => 0,
 		'source_missing'         => 0,
+		'source_invalid_records' => 0,
+		'source_partial_records' => 0,
 		'source_drift_records'   => 0,
 		'source_parts'           => 0,
 		'source_hotspots'        => 0,
@@ -65,27 +56,36 @@ function dtb_schematic_hotspot_source_audit_scan( array $args = [] ): array {
 		$report['records_examined']++;
 		$item = dtb_schematic_hotspot_source_audit_record( $record );
 		$report['items'][] = $item;
-		$report['source_files_examined'] += count( $item['source_files'] );
-		$report['source_read_errors']    += count( $item['read_errors'] );
-		$report['source_missing']        += 'missing' === $item['status'] ? 1 : 0;
-		$report['source_drift_records']  += ! empty( $item['drift'] ) ? 1 : 0;
-		$report['source_parts']          += (int) $item['parts_count'];
-		$report['source_hotspots']       += (int) $item['hotspot_count'];
-		$report['source_only_parts']     += count( $item['source_only_parts'] );
-		$report['stored_only_parts']     += count( $item['stored_only_parts'] );
-		$report['dangling_hotspots']     += count( $item['dangling_hotspots'] );
-		$report['invalid_hotspots']      += count( $item['invalid_hotspots'] );
-		$report['duplicate_hotspot_ids'] += count( $item['duplicate_hotspot_ids'] );
-		$report['page_mismatches']       += count( $item['page_mismatches'] );
-		$report['exactly_resolvable']    += (int) $item['exactly_resolvable'];
-		$report['unresolved_at_source']  += (int) $item['unresolved_at_source'];
+		$report['source_files_examined']  += count( $item['source_files'] );
+		$report['source_read_errors']     += count( $item['read_errors'] );
+		$report['source_missing']         += 'missing' === $item['status'] ? 1 : 0;
+		$report['source_invalid_records'] += 'invalid' === $item['status'] ? 1 : 0;
+		$report['source_partial_records'] += 'partial' === $item['status'] ? 1 : 0;
+		$report['source_drift_records']   += ! empty( $item['drift'] ) ? 1 : 0;
+		$report['source_parts']           += (int) $item['parts_count'];
+		$report['source_hotspots']        += (int) $item['hotspot_count'];
+		$report['source_only_parts']      += count( $item['source_only_parts'] );
+		$report['stored_only_parts']      += count( $item['stored_only_parts'] );
+		$report['dangling_hotspots']      += count( $item['dangling_hotspots'] );
+		$report['invalid_hotspots']       += count( $item['invalid_hotspots'] );
+		$report['duplicate_hotspot_ids']  += count( $item['duplicate_hotspot_ids'] );
+		$report['page_mismatches']        += count( $item['page_mismatches'] );
+		$report['exactly_resolvable']     += (int) $item['exactly_resolvable'];
+		$report['unresolved_at_source']   += (int) $item['unresolved_at_source'];
 	}
 
 	return $report;
 }
 
-/** Audit one authoritative record against its current brand source JSON. */
-function dtb_schematic_hotspot_source_audit_record( DTB_Schematic_Record_Entity $record ): array {
+/**
+ * Audit one authoritative record against its current brand source JSON.
+ *
+ * When `$include_projection` is true, the returned `projected_parts` value is
+ * the exact deterministic relationship projection the migration service would
+ * persist from the source dataset. The normal audit UI leaves it disabled so
+ * the bounded report does not carry full relationship arrays unnecessarily.
+ */
+function dtb_schematic_hotspot_source_audit_record( DTB_Schematic_Record_Entity $record, bool $include_projection = false ): array {
 	$source_entries = function_exists( 'dtb_schematic_reconcile_hotspot_source_group' )
 		? dtb_schematic_reconcile_hotspot_source_group( $record->canonical_id )
 		: [];
@@ -227,9 +227,20 @@ function dtb_schematic_hotspot_source_audit_record( DTB_Schematic_Record_Entity 
 		}
 	}
 
+	if ( $include_projection ) {
+		$base['projected_parts'] = dtb_schematic_resolve_part_occurrences_for_record( $record, $dataset );
+	}
+
+	$structural_invalid = ! empty( $base['dangling_hotspots'] )
+		|| ! empty( $base['invalid_hotspots'] )
+		|| ! empty( $base['duplicate_hotspot_ids'] )
+		|| ! empty( $base['page_mismatches'] );
+
 	if ( ! empty( $base['read_errors'] ) ) {
 		$base['status'] = 'partial';
-	} elseif ( $base['drift'] || $base['source_only_parts'] || $base['stored_only_parts'] || $base['dangling_hotspots'] || $base['invalid_hotspots'] || $base['duplicate_hotspot_ids'] || $base['page_mismatches'] ) {
+	} elseif ( $structural_invalid ) {
+		$base['status'] = 'invalid';
+	} elseif ( $base['drift'] || $base['source_only_parts'] || $base['stored_only_parts'] ) {
 		$base['status'] = 'attention';
 	}
 
