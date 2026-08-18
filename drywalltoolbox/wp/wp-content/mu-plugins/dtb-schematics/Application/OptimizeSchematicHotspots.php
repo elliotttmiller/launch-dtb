@@ -1,69 +1,70 @@
 <?php
 /**
- * DTB Schematics — one-time hotspot synchronization optimizer.
+ * DTB Schematics — one-time hotspot synchronization and identity optimizer.
  *
- * This is an operator-triggered, bounded orchestration service used by the
- * temporary Hotspot Resolver. It performs an end-to-end source audit, runs
- * the existing hotspot migration/resolution pipeline, and classifies every
- * remaining unresolved source identity into an actionable resolution group.
+ * One bounded operator-triggered service audits authoritative schematic
+ * sources, runs the existing hotspot migration/resolution pipeline, records
+ * every deterministic repair that Preview would apply / Apply did apply, and
+ * classifies every remaining unresolved identity into an actionable group.
  *
- * WooCommerce remains authoritative for products. The optimizer never creates
- * products, rewrites SKU/MPN/brand identifiers, or auto-applies fuzzy matches.
- * Commit mode only applies the existing deterministic migration and exact
- * resolver contract through the established schematic application services.
+ * WooCommerce remains authoritative for products. This service never creates
+ * products or rewrites protected SKU/MPN/GTIN/brand identifiers. Automatic
+ * relationship writes are limited to the resolver contract in
+ * ResolveSchematicPartOccurrences.php; title/fuzzy evidence is review-only.
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_PAGES  = 50;
-const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_GROUPS = 1500;
-const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE   = 25;
+const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_PAGES   = 50;
+const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_GROUPS  = 1500;
+const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_REPAIRS = 1500;
+const DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE    = 25;
 
-/**
- * Run a full one-time optimizer pass across authoritative schematic records.
- *
- * @param array $args {
- *     @type bool          $dry_run          Preview only when true.
- *     @type int           $per_page         Records per page, capped at 50.
- *     @type callable|null $lease_heartbeat  Commit lease renewal callback.
- * }
- * @return array
- */
+/** Run a full optimizer pass across authoritative schematic records. */
 function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 	$dry_run   = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
 	$per_page  = max( 1, min( 50, (int) ( $args['per_page'] ?? DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE ) ) );
 	$heartbeat = isset( $args['lease_heartbeat'] ) && is_callable( $args['lease_heartbeat'] ) ? $args['lease_heartbeat'] : null;
 
 	$report = [
-		'dry_run'        => $dry_run,
-		'examined'       => 0,
-		'changed'        => 0,
-		'would_change'   => 0,
-		'skipped'        => 0,
-		'failed'         => 0,
-		'unresolved'     => 0,
-		'fatal_error'    => '',
-		'metrics'        => [
-			'source_files'             => 0,
-			'source_parts'             => 0,
-			'source_hotspots'          => 0,
-			'source_drift_before'      => 0,
-			'source_read_errors'       => 0,
-			'source_unavailable'       => 0,
-			'exactly_resolvable'       => 0,
-			'unresolved_at_source'     => 0,
-			'projected_exact_repairs'  => 0,
-			'applied_exact_repairs'    => 0,
-			'remaining_unresolved'     => 0,
-			'resolution_groups'        => 0,
+		'dry_run'      => $dry_run,
+		'examined'     => 0,
+		'changed'      => 0,
+		'would_change' => 0,
+		'skipped'      => 0,
+		'failed'       => 0,
+		'unresolved'   => 0,
+		'fatal_error'  => '',
+		'metrics'      => [
+			'source_files'                    => 0,
+			'source_parts'                    => 0,
+			'source_hotspots'                 => 0,
+			'source_drift_before'             => 0,
+			'source_read_errors'              => 0,
+			'source_unavailable'              => 0,
+			'exactly_resolvable'              => 0,
+			'unresolved_at_source'            => 0,
+			'projected_exact_repairs'         => 0, // Back-compat: all deterministic projected relationship repairs.
+			'applied_exact_repairs'           => 0, // Back-compat: all deterministic applied relationship repairs.
+			'projected_repairs'               => 0,
+			'applied_repairs'                 => 0,
+			'projected_normalized_sku_repairs'=> 0,
+			'applied_normalized_sku_repairs'  => 0,
+			'remaining_unresolved'            => 0,
+			'active_hotspot_unresolved'       => 0,
+			'inactive_catalog_unresolved'     => 0,
+			'resolution_groups'               => 0,
 		],
-		'reason_counts'  => [],
+		'reason_counts'     => [],
 		'resolution_groups' => [],
-		'source_errors'  => [],
-		'results'        => [],
-		'groups_truncated' => false,
+		'repairs'           => [],
+		'source_errors'     => [],
+		'results'           => [],
+		'groups_truncated'  => false,
+		'repairs_truncated' => false,
+		'plan_fingerprint'  => '',
 	];
 
 	$groups = [];
@@ -140,16 +141,11 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 				dtb_schematic_hotspot_optimizer_add_group(
 					$groups,
 					$record,
-					[
-						'part_ref'   => '',
-						'display_id' => '',
-						'name'       => __( 'Hotspot source unavailable', 'drywall-toolbox' ),
-						'sku'        => '',
-					],
+					[ 'part_ref' => '', 'display_id' => '', 'name' => __( 'Hotspot source unavailable', 'drywall-toolbox' ), 'sku' => '' ],
 					[
 						'code'       => 'source_unavailable',
 						'label'      => __( 'Source unavailable', 'drywall-toolbox' ),
-						'resolution' => __( 'Restore or associate the authoritative schematic_data JSON under the approved brand source root, then rerun the optimizer.', 'drywall-toolbox' ),
+						'resolution' => __( 'Restore or associate the authoritative schematic_data JSON under the approved brand source root, then rerun Preview.', 'drywall-toolbox' ),
 						'candidates' => [],
 					],
 					0
@@ -157,23 +153,15 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 				continue;
 			}
 
-			// A preview never diagnoses stale persisted rows as if they were current
-			// source truth. Commit mode synchronizes first, then classifies the new
-			// authoritative projection.
 			if ( $dry_run && ! empty( $audit['drift'] ) ) {
 				dtb_schematic_hotspot_optimizer_add_group(
 					$groups,
 					$record,
-					[
-						'part_ref'   => '',
-						'display_id' => '',
-						'name'       => __( 'Source projection drift', 'drywall-toolbox' ),
-						'sku'        => '',
-					],
+					[ 'part_ref' => '', 'display_id' => '', 'name' => __( 'Source projection drift', 'drywall-toolbox' ), 'sku' => '' ],
 					[
 						'code'       => 'source_sync_required',
 						'label'      => __( 'Source synchronization required', 'drywall-toolbox' ),
-						'resolution' => __( 'Run the one-time optimizer to synchronize the normalized hotspot dataset before applying part-level resolution decisions.', 'drywall-toolbox' ),
+						'resolution' => __( 'Apply will synchronize the normalized hotspot projection before resolving part relationships.', 'drywall-toolbox' ),
 						'candidates' => [],
 					],
 					0
@@ -187,7 +175,7 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 				continue;
 			}
 
-			$projection = dtb_schematic_resolve_part_occurrences_for_record( $fresh_record, $dataset );
+			$projection    = dtb_schematic_resolve_part_occurrences_for_record( $fresh_record, $dataset );
 			$source_by_ref = [];
 			foreach ( (array) ( $dataset['parts_catalog'] ?? [] ) as $source_part ) {
 				$source_by_ref[ (string) ( $source_part['part_ref'] ?? '' ) ] = $source_part;
@@ -195,34 +183,36 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 
 			$repairs = 0;
 			foreach ( $projection as $part ) {
-				$ref = (string) ( $part['part_ref'] ?? '' );
-				if ( isset( $before_unresolved[ $ref ] ) && (int) ( $part['product_id'] ?? 0 ) > 0 ) {
-					$repairs++;
-				}
-				if ( ! dtb_schematic_hotspot_part_is_unresolved( $part ) ) {
-					continue;
-				}
-
+				$ref         = (string) ( $part['part_ref'] ?? '' );
+				$product_id  = (int) ( $part['product_id'] ?? 0 );
+				$method      = sanitize_key( (string) ( $part['resolution_method'] ?? '' ) );
+				$occurrences = max( 0, (int) ( $part['occurrence_count'] ?? 0 ) );
 				$source_part = (array) ( $source_by_ref[ $ref ] ?? [
 					'part_ref'   => $ref,
 					'display_id' => (string) ( $part['mpn'] ?? '' ),
 					'name'       => (string) ( $part['title'] ?? '' ),
 					'sku'        => (string) ( $part['sku'] ?? '' ),
 				] );
+
+				if ( isset( $before_unresolved[ $ref ] ) && $product_id > 0 ) {
+					$repairs++;
+					dtb_schematic_hotspot_optimizer_add_repair( $report, $fresh_record, $source_part, $part, $dry_run );
+				}
+
+				if ( ! dtb_schematic_hotspot_part_is_unresolved( $part ) ) {
+					continue;
+				}
+
 				$classification = dtb_schematic_hotspot_optimizer_classify_unresolved( $fresh_record, $source_part );
-				dtb_schematic_hotspot_optimizer_add_group(
-					$groups,
-					$fresh_record,
-					$source_part,
-					$classification,
-					max( 0, (int) ( $part['occurrence_count'] ?? 0 ) )
-				);
+				dtb_schematic_hotspot_optimizer_add_group( $groups, $fresh_record, $source_part, $classification, $occurrences );
 			}
 
 			if ( $dry_run ) {
 				$report['metrics']['projected_exact_repairs'] += $repairs;
+				$report['metrics']['projected_repairs']       += $repairs;
 			} else {
 				$report['metrics']['applied_exact_repairs'] += $repairs;
+				$report['metrics']['applied_repairs']       += $repairs;
 			}
 		}
 
@@ -233,6 +223,11 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 	usort(
 		$groups,
 		static function ( array $a, array $b ): int {
+			$active_a = (int) ( $a['occurrences'] ?? 0 ) > 0 ? 1 : 0;
+			$active_b = (int) ( $b['occurrences'] ?? 0 ) > 0 ? 1 : 0;
+			if ( $active_a !== $active_b ) {
+				return $active_b <=> $active_a;
+			}
 			$impact_a = (int) ( $a['occurrences'] ?? 0 ) + (int) ( $a['relationship_count'] ?? 0 );
 			$impact_b = (int) ( $b['occurrences'] ?? 0 ) + (int) ( $b['relationship_count'] ?? 0 );
 			return $impact_b <=> $impact_a;
@@ -244,8 +239,14 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 	}
 
 	foreach ( $groups as $group ) {
-		$code = sanitize_key( (string) ( $group['issue_code'] ?? 'unclassified' ) );
-		$report['reason_counts'][ $code ] = (int) ( $report['reason_counts'][ $code ] ?? 0 ) + (int) ( $group['relationship_count'] ?? 1 );
+		$relationships = max( 1, (int) ( $group['relationship_count'] ?? 1 ) );
+		$code          = sanitize_key( (string) ( $group['issue_code'] ?? 'unclassified' ) );
+		$report['reason_counts'][ $code ] = (int) ( $report['reason_counts'][ $code ] ?? 0 ) + $relationships;
+		if ( (int) ( $group['occurrences'] ?? 0 ) > 0 ) {
+			$report['metrics']['active_hotspot_unresolved'] += $relationships;
+		} else {
+			$report['metrics']['inactive_catalog_unresolved'] += $relationships;
+		}
 	}
 	ksort( $report['reason_counts'] );
 
@@ -253,6 +254,7 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 	$report['metrics']['resolution_groups']    = count( $groups );
 	$report['metrics']['remaining_unresolved'] = array_sum( array_map( static fn( $group ) => (int) ( $group['relationship_count'] ?? 0 ), $groups ) );
 	$report['unresolved'] = $report['metrics']['remaining_unresolved'];
+	$report['plan_fingerprint'] = dtb_schematic_hotspot_optimizer_plan_fingerprint( $report );
 
 	if ( ! $dry_run && $report['changed'] > 0 ) {
 		dtb_schematics_invalidate_domain_cache();
@@ -261,82 +263,116 @@ function dtb_schematic_hotspot_optimizer_run( array $args = [] ): array {
 	return $report;
 }
 
+/** Record a newly resolvable relationship so Preview truthfully shows Apply's plan. */
+function dtb_schematic_hotspot_optimizer_add_repair( array &$report, DTB_Schematic_Record_Entity $record, array $source_part, array $relationship, bool $dry_run ): void {
+	$method = sanitize_key( (string) ( $relationship['resolution_method'] ?? '' ) );
+	if ( DTB_SCHEMATIC_PART_RESOLUTION_NORMALIZED_SKU === $method ) {
+		$key = $dry_run ? 'projected_normalized_sku_repairs' : 'applied_normalized_sku_repairs';
+		$report['metrics'][ $key ]++;
+	}
+	if ( count( $report['repairs'] ) >= DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_MAX_REPAIRS ) {
+		$report['repairs_truncated'] = true;
+		return;
+	}
+
+	$product_id = (int) ( $relationship['product_id'] ?? 0 );
+	$product    = function_exists( 'dtb_schematic_hotspot_describe_product' ) ? dtb_schematic_hotspot_describe_product( $product_id ) : null;
+	$report['repairs'][] = [
+		'action'        => $dry_run ? 'would_link' : 'linked',
+		'schematic_id'  => $record->id,
+		'canonical_id'  => sanitize_text_field( $record->canonical_id ),
+		'brand'         => sanitize_text_field( (string) ( $record->brand_name ?: $record->brand_id ) ),
+		'part_ref'      => sanitize_text_field( (string) ( $source_part['part_ref'] ?? $relationship['part_ref'] ?? '' ) ),
+		'title'         => sanitize_text_field( (string) ( $source_part['name'] ?? $relationship['title'] ?? '' ) ),
+		'source_sku'    => sanitize_text_field( (string) ( $source_part['sku'] ?? $relationship['sku'] ?? '' ) ),
+		'display_id'    => sanitize_text_field( (string) ( $source_part['display_id'] ?? $relationship['mpn'] ?? '' ) ),
+		'occurrences'   => max( 0, (int) ( $relationship['occurrence_count'] ?? 0 ) ),
+		'product_id'    => $product_id,
+		'resolution_method' => $method,
+		'product'       => $product ? [
+			'id'     => (int) ( $product['id'] ?? $product_id ),
+			'name'   => sanitize_text_field( (string) ( $product['name'] ?? '' ) ),
+			'sku'    => sanitize_text_field( (string) ( $product['sku'] ?? '' ) ),
+			'mpn'    => sanitize_text_field( (string) ( $product['mpn'] ?? '' ) ),
+			'brand'  => sanitize_text_field( (string) ( $product['brand'] ?? '' ) ),
+			'type'   => sanitize_key( (string) ( $product['type'] ?? '' ) ),
+			'status' => sanitize_key( (string) ( $product['status'] ?? '' ) ),
+		] : null,
+	];
+}
+
 /** Classify one unresolved current-source identity without mutating catalog data. */
 function dtb_schematic_hotspot_optimizer_classify_unresolved( DTB_Schematic_Record_Entity $record, array $source_part ): array {
 	$sku      = trim( (string) ( $source_part['sku'] ?? '' ) );
 	$mpn      = trim( (string) ( $source_part['display_id'] ?? '' ) );
 	$part_ref = trim( (string) ( $source_part['part_ref'] ?? '' ) );
-	$candidates = dtb_schematic_hotspot_review_candidates( $record, $source_part );
+	$title    = trim( (string) ( $source_part['name'] ?? '' ) );
 
-	foreach ( $candidates as $candidate ) {
-		$candidate_mpn = trim( (string) ( $candidate['mpn'] ?? '' ) );
-		if ( '' !== $mpn && '' !== $candidate_mpn && 0 === strcasecmp( $mpn, $candidate_mpn ) ) {
-			if ( empty( $candidate['brand_matches'] ) ) {
-				return [
-					'code'       => 'mpn_brand_mismatch',
-					'label'      => __( 'Exact MPN, brand mismatch', 'drywall-toolbox' ),
-					'resolution' => __( 'Inspect the candidate. If it is the same manufacturer part, correct the authoritative WooCommerce brand metadata; otherwise link explicitly only after operator verification.', 'drywall-toolbox' ),
-					'candidates' => array_slice( $candidates, 0, 3 ),
-				];
-			}
-			return [
-				'code'       => 'catalog_eligibility_mismatch',
-				'label'      => __( 'Exact MPN candidate is not eligible for automatic resolution', 'drywall-toolbox' ),
-				'resolution' => __( 'Inspect product type/status and identifier placement. Correct the authoritative catalog record if the candidate is valid, then rerun exact resolution.', 'drywall-toolbox' ),
-				'candidates' => array_slice( $candidates, 0, 3 ),
-			];
-		}
+	if ( dtb_schematic_hotspot_optimizer_is_reference_only( $sku, $title ) ) {
+		return [
+			'code'       => 'source_reference_only',
+			'label'      => __( 'Diagram reference, not a product identity', 'drywall-toolbox' ),
+			'resolution' => __( 'Treat this source row as schematic navigation/reference data. Do not create or link a WooCommerce product unless the source is corrected to a real manufacturer part identity.', 'drywall-toolbox' ),
+			'candidates' => [],
+		];
 	}
 
+	// Weak legacy numeric values are commonly diagram callout numbers. They
+	// must not be promoted to MPN/product identity merely because they exist.
+	$strong_sku = dtb_schematic_normalized_sku_is_strong( $sku );
+	if ( ! $strong_sku ) {
+		return [
+			'code'       => 'source_identifier_gap',
+			'label'      => __( 'Source identifier is missing or too weak', 'drywall-toolbox' ),
+			'resolution' => __( 'Verify the manufacturer/source part identity. A diagram callout number alone is not a safe SKU/MPN mapping key.', 'drywall-toolbox' ),
+			'candidates' => [],
+		];
+	}
+
+	$candidates = dtb_schematic_hotspot_review_candidates( $record, $source_part );
 	$normalized_sku = dtb_schematic_hotspot_optimizer_normalize_identifier( $sku );
-	if ( '' !== $normalized_sku ) {
-		foreach ( $candidates as $candidate ) {
-			$candidate_sku = trim( (string) ( $candidate['sku'] ?? '' ) );
-			if ( '' !== $candidate_sku
-				&& 0 !== strcasecmp( $sku, $candidate_sku )
-				&& $normalized_sku === dtb_schematic_hotspot_optimizer_normalize_identifier( $candidate_sku ) ) {
-				return [
-					'code'       => 'sku_format_mismatch',
-					'label'      => __( 'Probable SKU formatting mismatch', 'drywall-toolbox' ),
-					'resolution' => __( 'Verify the manufacturer identifier. Correct the authoritative source or WooCommerce SKU only if the normalized values represent the same protected identifier; do not auto-rewrite either value.', 'drywall-toolbox' ),
-					'candidates' => array_slice( $candidates, 0, 3 ),
-				];
-			}
+	foreach ( $candidates as $candidate ) {
+		$candidate_sku = trim( (string) ( $candidate['sku'] ?? '' ) );
+		if ( '' !== $candidate_sku
+			&& 0 !== strcasecmp( $sku, $candidate_sku )
+			&& $normalized_sku === dtb_schematic_hotspot_optimizer_normalize_identifier( $candidate_sku ) ) {
+			return [
+				'code'       => 'sku_format_ambiguous',
+				'label'      => __( 'SKU formatting evidence is ambiguous', 'drywall-toolbox' ),
+				'resolution' => __( 'A formatting-similar product exists but did not satisfy the unique same-brand automatic resolver. Inspect the candidate identities before making an explicit mapping.', 'drywall-toolbox' ),
+				'candidates' => array_slice( $candidates, 0, 3 ),
+			];
 		}
 	}
 
 	if ( ! empty( $candidates ) ) {
 		return [
 			'code'       => 'operator_review_candidate',
-			'label'      => __( 'Review candidate available', 'drywall-toolbox' ),
-			'resolution' => __( 'Compare the source name, SKU/MPN, brand, and product record. Use an explicit link only when the identity is confirmed; otherwise correct the authoritative catalog/source data and rerun.', 'drywall-toolbox' ),
+			'label'      => __( 'Review evidence available', 'drywall-toolbox' ),
+			'resolution' => __( 'The evidence is insufficient for an automatic mapping. Compare source SKU, brand and product identity; explicitly link only after verification.', 'drywall-toolbox' ),
 			'candidates' => array_slice( $candidates, 0, 3 ),
-		];
-	}
-
-	if ( '' === $sku ) {
-		return [
-			'code'       => 'source_sku_missing_or_catalog_gap',
-			'label'      => __( 'No source SKU and no catalog candidate', 'drywall-toolbox' ),
-			'resolution' => ( '' === $mpn || 0 === strcasecmp( $mpn, $part_ref ) )
-				? __( 'The source does not provide a strong secondary identifier. Verify the manufacturer part number and add/correct it in the authoritative source or catalog before rerunning.', 'drywall-toolbox' )
-				: __( 'Verify that the source MPN exists on the authoritative WooCommerce part product with the correct brand metadata, then rerun.', 'drywall-toolbox' ),
-			'candidates' => [],
 		];
 	}
 
 	return [
 		'code'       => 'catalog_product_missing_or_identifier_mismatch',
-		'label'      => __( 'No exact catalog identity found', 'drywall-toolbox' ),
-		'resolution' => __( 'Verify the source SKU/MPN against the authoritative WooCommerce catalog. Create the product only if it is genuinely sold, or correct the protected identifier at its authoritative source, then rerun.', 'drywall-toolbox' ),
+		'label'      => __( 'Catalog identity gap', 'drywall-toolbox' ),
+		'resolution' => __( 'The source provides a strong SKU but no deterministic WooCommerce identity exists. Verify catalog completeness and protected product metadata, then rerun Preview.', 'drywall-toolbox' ),
 		'candidates' => [],
 	];
 }
 
+/** True for obvious schematic-detail navigation rows rather than sellable parts. */
+function dtb_schematic_hotspot_optimizer_is_reference_only( string $sku, string $title ): bool {
+	$value = strtoupper( trim( $sku . ' ' . $title ) );
+	return (bool) preg_match( '/\bSEE[- _]?[A-Z0-9 -]*DETAIL\b/', $value );
+}
+
 /** Normalize identifier punctuation only for diagnostic comparison, never writes. */
 function dtb_schematic_hotspot_optimizer_normalize_identifier( string $value ): string {
-	$value = strtolower( trim( $value ) );
-	return preg_replace( '/[^a-z0-9]+/', '', $value ) ?: '';
+	return function_exists( 'dtb_schematic_normalize_product_identifier' )
+		? dtb_schematic_normalize_product_identifier( $value )
+		: ( preg_replace( '/[^a-z0-9]+/', '', strtolower( trim( $value ) ) ) ?: '' );
 }
 
 /** Aggregate repeated unresolved identities across schematics into one work item. */
@@ -387,4 +423,27 @@ function dtb_schematic_hotspot_optimizer_add_group( array &$groups, DTB_Schemati
 	if ( ! in_array( $schematic_label, $groups[ $key ]['schematics'], true ) && count( $groups[ $key ]['schematics'] ) < 20 ) {
 		$groups[ $key ]['schematics'][] = $schematic_label;
 	}
+}
+
+/** Stable approval fingerprint for the material Preview plan. */
+function dtb_schematic_hotspot_optimizer_plan_fingerprint( array $report ): string {
+	$repairs = [];
+	foreach ( (array) ( $report['repairs'] ?? [] ) as $repair ) {
+		$repairs[] = [
+			'canonical_id' => (string) ( $repair['canonical_id'] ?? '' ),
+			'part_ref'     => (string) ( $repair['part_ref'] ?? '' ),
+			'product_id'   => (int) ( $repair['product_id'] ?? 0 ),
+			'method'       => (string) ( $repair['resolution_method'] ?? '' ),
+		];
+	}
+	usort( $repairs, static fn( $a, $b ) => strcmp( implode( '|', $a ), implode( '|', $b ) ) );
+
+	$material = [
+		'repairs'             => $repairs,
+		'source_drift_before' => (int) ( $report['metrics']['source_drift_before'] ?? 0 ),
+		'source_read_errors'  => (int) ( $report['metrics']['source_read_errors'] ?? 0 ),
+		'source_unavailable'  => (int) ( $report['metrics']['source_unavailable'] ?? 0 ),
+		'failed'              => (int) ( $report['failed'] ?? 0 ),
+	];
+	return hash( 'sha256', (string) wp_json_encode( $material ) );
 }
