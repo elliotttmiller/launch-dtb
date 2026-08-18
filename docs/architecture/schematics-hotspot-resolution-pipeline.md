@@ -4,20 +4,20 @@
 
 The Hotspot Resolver is one bounded launch-remediation pipeline. `frontend/public/brands/**/schematic_data*.json` remains schematic hotspot source truth, live WooCommerce remains product/variation identity authority, and DTB Schematics owns normalized hotspot projections plus schematic-part relationships. The pipeline never creates a parallel runtime catalog and never rewrites protected SKU, MPN, GTIN, or brand identity.
 
-The repository `products/` tree remains canonical catalog source data. A deployed WordPress host is not assumed to contain a Git checkout, so production does not invent product identity from unavailable repository files. Catalog/source correction manifests identify upstream ownership without turning wp-admin into a second catalog editor.
+The repository `products/` tree remains canonical catalog source data. A deployed WordPress host is not assumed to contain a Git checkout, so production does not invent product identity from unavailable repository files. Catalog/source correction outputs identify upstream ownership without turning wp-admin into a second catalog editor.
 
 ## Single operator workflow
 
 The supported wp-admin workflow is deliberately small:
 
 1. **Build full resolution plan** — one read-only pass across authoritative schematic sources, persisted schematic state, and live WooCommerce identity.
-2. **Review complete pre-apply plan** — inspect source integrity, deterministic proposed mappings, active unresolved hotspots, catalog-only gaps, terminal dispositions, source failures, and generated remediation artifacts.
+2. **Review complete pre-apply plan** — inspect source integrity, deterministic proposed mappings, active unresolved hotspots, catalog-only gaps, terminal dispositions, source failures, and the consolidated audit export.
 3. **Approve & Apply** — available only for a complete deterministic mapping set with no integrity blocker. The shared operation runner requires the approved plan fingerprint, acquires the schematic commit lease, rebuilds authoritative state while the lease is held, and aborts before writes unless the fresh material fingerprint still matches.
 4. **Review committed result** — inspect the operation result and export it from the same pipeline surface.
 
 Exports are artifacts of this workflow, not separate resolver workflows.
 
-`Application/BuildHotspotResolutionPlan.php` is the plan/report composition layer. `Admin/Diagnostics/HotspotResolutionPipeline.php` is the consolidated operator transport. Source readers, migration/resolution services, operation-run persistence, and the process-wide commit lease remain application dependencies.
+`Application/BuildHotspotResolutionPlan.php` is the plan/report composition layer. `Application/ExportHotspotResolutionWorkbook.php` projects that same plan into the consolidated operator workbook. `Admin/Diagnostics/HotspotResolutionPipeline.php` is the consolidated operator transport. Source readers, migration/resolution services, operation-run persistence, and the process-wide commit lease remain application dependencies.
 
 ## Deterministic resolution contract
 
@@ -78,7 +78,7 @@ The plan contains:
 - raw optimizer reason counts;
 - terminal disposition counts and normalized resolution groups;
 - source errors and per-record source status;
-- JSON and CSV remediation artifacts;
+- normalized catalog/source/manual remediation projections;
 - a material approval fingerprint.
 
 `can_apply` is true only when:
@@ -110,17 +110,25 @@ For a commit, the shared operation runner:
 
 This closes the review-to-commit race and also prevents another internal caller from bypassing operator-approved plan freshness for a committing hotspot optimizer run.
 
-## Generated artifacts
+## Consolidated audit export
 
-The pipeline exports:
+The operator-facing export is one XLSX workbook generated from the same run payload and plan used by wp-admin. It contains these worksheets:
 
-- complete JSON run/plan report;
-- catalog-corrections CSV;
-- source-corrections CSV;
-- manual-review CSV.
+- **Summary** — run identity, applicability, coverage, source integrity, disposition counts, reason counts, and blockers;
+- **Resolution Plan** — the complete normalized unresolved plan with disposition, identity, impact, evidence, and required action;
+- **Catalog Corrections** — catalog/WooCommerce-owned corrections;
+- **Source Corrections** — authoritative schematic-source corrections;
+- **Manual Review** — ambiguous identities that require explicit review;
+- **Deterministic Mappings** — exact proposed product relationships eligible for Apply;
+- **Source Audit** — per-schematic source status and interpreted source metrics;
+- **Run Metadata** — lossless run and optimizer metadata suitable for technical audit.
 
-Artifacts are diagnostic/remediation manifests rather than application state. They do not create WooCommerce products, rewrite protected product identifiers, or edit `frontend/public/brands` or repository catalog files.
+The workbook is generated on demand with a native bounded OOXML writer. It requires PHP `ZipArchive`; no new Composer package or parallel spreadsheet dependency is introduced. The temporary workbook is deleted immediately after the authenticated download is streamed.
+
+The complete JSON report remains available as the optional lossless machine-readable representation of the same run. The former three separate CSV download actions are no longer exposed by the consolidated admin workflow.
+
+Workbook/JSON exports are diagnostic and remediation artifacts rather than application state. They do not create WooCommerce products, rewrite protected product identifiers, or edit `frontend/public/brands` or repository catalog files.
 
 ## Security and failure behavior
 
-Build, export, approval, and Apply require `dtb_manage_schematics`. Mutating requests use WordPress nonces. Operation-run access is scoped to the initiating operator. Committing hotspot optimizer operations require a valid reviewed fingerprint and the shared commit lease. Stale, failed, partial-source, structurally invalid, mismatched, or truncated plans fail closed before hotspot-domain writes.
+Build, export, approval, and Apply require `dtb_manage_schematics`. Mutating requests use WordPress nonces. Operation-run access is scoped to the initiating operator. Export access uses the same operator-owned run lookup and nonce boundary as the pipeline. Committing hotspot optimizer operations require a valid reviewed fingerprint and the shared commit lease. Stale, failed, partial-source, structurally invalid, mismatched, or truncated plans fail closed before hotspot-domain writes.
