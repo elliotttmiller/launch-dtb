@@ -83,6 +83,14 @@ function dtb_schematic_hotspot_source_audit_render_panel(): void {
 		if ( ! empty( $item['read_errors'] ) ) { $findings[] = sprintf( __( '%d source read error(s)', 'drywall-toolbox' ), count( $item['read_errors'] ) ); }
 		if ( empty( $findings ) ) { $findings[] = __( 'No structural source issues detected.', 'drywall-toolbox' ); }
 
+		$source_evaluable = ! in_array( (string) ( $item['status'] ?? '' ), [ 'missing', 'error' ], true ) && ! empty( $item['source_files'] );
+		$projection_label = ! $source_evaluable
+			? __( 'Not evaluable', 'drywall-toolbox' )
+			: ( ! empty( $item['drift'] ) ? __( 'Out of sync', 'drywall-toolbox' ) : __( 'Aligned', 'drywall-toolbox' ) );
+		$resolution_signal = $source_evaluable
+			? sprintf( __( '%1$d exact · %2$d unresolved', 'drywall-toolbox' ), (int) $item['exactly_resolvable'], (int) $item['unresolved_at_source'] )
+			: __( 'Unavailable until source is restored', 'drywall-toolbox' );
+
 		echo '<tr>';
 		echo '<td><strong>' . esc_html( $item['title'] ) . '</strong><br><code>' . esc_html( $item['canonical_id'] ) . '</code></td>';
 		echo '<td>';
@@ -92,9 +100,9 @@ function dtb_schematic_hotspot_source_audit_render_panel(): void {
 		if ( empty( $item['source_files'] ) ) { echo '—'; }
 		echo '</td>';
 		echo '<td>' . esc_html( strtoupper( (string) $item['source_schema'] ) ?: '—' ) . '<br>' . esc_html( sprintf( __( '%1$d parts · %2$d hotspots', 'drywall-toolbox' ), (int) $item['parts_count'], (int) $item['hotspot_count'] ) ) . '</td>';
-		echo '<td><strong>' . esc_html( ! empty( $item['drift'] ) ? __( 'Out of sync', 'drywall-toolbox' ) : __( 'Aligned', 'drywall-toolbox' ) ) . '</strong></td>';
+		echo '<td><strong>' . esc_html( $projection_label ) . '</strong></td>';
 		echo '<td>' . esc_html( implode( '; ', $findings ) ) . '</td>';
-		echo '<td>' . esc_html( sprintf( __( '%1$d exact · %2$d unresolved', 'drywall-toolbox' ), (int) $item['exactly_resolvable'], (int) $item['unresolved_at_source'] ) ) . '</td>';
+		echo '<td>' . esc_html( $resolution_signal ) . '</td>';
 		echo '</tr>';
 	}
 	if ( empty( $report['items'] ) ) {
