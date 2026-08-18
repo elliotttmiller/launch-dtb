@@ -12,13 +12,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const DTB_SCHEMATIC_HOTSPOT_PLAN_SCHEMA_VERSION = 2;
+const DTB_SCHEMATIC_HOTSPOT_PLAN_SCHEMA_VERSION = 3;
 
 /** Build the complete operator plan from an optimizer result. */
 function dtb_schematic_hotspot_build_resolution_plan( array $result ): array {
-	$metrics = (array) ( $result['metrics'] ?? [] );
-	$groups  = array_values( (array) ( $result['resolution_groups'] ?? [] ) );
-	$repairs = array_values( (array) ( $result['repairs'] ?? [] ) );
+	$metrics        = (array) ( $result['metrics'] ?? [] );
+	$groups         = array_values( (array) ( $result['resolution_groups'] ?? [] ) );
+	$repairs        = array_values( (array) ( $result['repairs'] ?? [] ) );
+	$record_results = array_values( (array) ( $result['results'] ?? [] ) );
 
 	$artifacts = [
 		'catalog_corrections' => [],
@@ -44,6 +45,17 @@ function dtb_schematic_hotspot_build_resolution_plan( array $result ): array {
 	}
 	ksort( $disposition_counts );
 
+	$source_partial_records = 0;
+	$source_invalid_records = 0;
+	foreach ( $record_results as $record_result ) {
+		$source_status = sanitize_key( (string) ( $record_result['source_status'] ?? '' ) );
+		if ( 'partial' === $source_status ) {
+			$source_partial_records++;
+		} elseif ( 'invalid' === $source_status ) {
+			$source_invalid_records++;
+		}
+	}
+
 	$blockers = [];
 	if ( ! empty( $result['fatal_error'] ) ) {
 		$blockers[] = [ 'code' => 'fatal_error', 'message' => sanitize_text_field( (string) $result['fatal_error'] ) ];
@@ -51,18 +63,38 @@ function dtb_schematic_hotspot_build_resolution_plan( array $result ): array {
 	if ( (int) ( $result['failed'] ?? 0 ) > 0 ) {
 		$blockers[] = [ 'code' => 'failed_records', 'message' => sprintf( '%d schematic record(s) failed analysis.', (int) $result['failed'] ) ];
 	}
+	if ( $source_partial_records > 0 ) {
+		$blockers[] = [
+			'code'    => 'partial_source_reads',
+			'message' => sprintf( '%d schematic source group(s) were only partially readable. Apply is blocked because an incomplete multi-file source cannot be treated as authoritative.', $source_partial_records ),
+		];
+	}
+	if ( $source_invalid_records > 0 ) {
+		$blockers[] = [
+			'code'    => 'invalid_source_integrity',
+			'message' => sprintf( '%d schematic source group(s) contain dangling, invalid, duplicate, or page-mismatched hotspots. Correct source integrity before Apply.', $source_invalid_records ),
+		];
+	}
 	if ( ! empty( $result['groups_truncated'] ) || ! empty( $result['repairs_truncated'] ) ) {
 		$blockers[] = [ 'code' => 'truncated_plan', 'message' => 'The generated plan exceeded a bounded reporting limit and must not be approved.' ];
 	}
 
 	$projected = (int) ( $metrics['projected_repairs'] ?? $metrics['projected_exact_repairs'] ?? 0 );
+	if ( ! empty( $result['dry_run'] ) && count( $repairs ) !== $projected ) {
+		$blockers[] = [
+			'code'    => 'mapping_plan_count_mismatch',
+			'message' => sprintf( 'The optimizer projected %1$d deterministic mapping mutation(s), but the explicit mapping plan contains %2$d.', $projected, count( $repairs ) ),
+		];
+	}
+
+	$fingerprint = dtb_schematic_hotspot_plan_material_fingerprint( $result, $repairs, $normalized_groups, $record_results );
 	$plan = [
 		'schema_version' => DTB_SCHEMATIC_HOTSPOT_PLAN_SCHEMA_VERSION,
 		'generated_at'   => gmdate( 'c' ),
 		'mode'           => ! empty( $result['dry_run'] ) ? 'pre_apply' : 'post_apply',
 		'status'         => empty( $blockers ) ? 'reviewable' : 'blocked',
 		'can_apply'      => empty( $blockers ) && $projected > 0 && count( $repairs ) === $projected,
-		'fingerprint'    => sanitize_text_field( (string) ( $result['plan_fingerprint'] ?? '' ) ),
+		'fingerprint'    => $fingerprint,
 		'summary'        => [
 			'schematics_examined'        => (int) ( $result['examined'] ?? 0 ),
 			'source_files'               => (int) ( $metrics['source_files'] ?? 0 ),
@@ -75,6 +107,9 @@ function dtb_schematic_hotspot_build_resolution_plan( array $result ): array {
 			'catalog_only_unresolved'    => (int) ( $metrics['inactive_catalog_unresolved'] ?? 0 ),
 			'resolution_groups'          => (int) ( $metrics['resolution_groups'] ?? count( $groups ) ),
 			'source_read_errors'         => (int) ( $metrics['source_read_errors'] ?? 0 ),
+			'source_unavailable'         => (int) ( $metrics['source_unavailable'] ?? 0 ),
+			'source_partial_records'     => $source_partial_records,
+			'source_invalid_records'     => $source_invalid_records,
 			'source_drift'               => (int) ( $metrics['source_drift_before'] ?? 0 ),
 			'catalog_correction_groups'  => count( $artifacts['catalog_corrections'] ),
 			'source_correction_groups'   => count( $artifacts['source_corrections'] ),
@@ -87,18 +122,13 @@ function dtb_schematic_hotspot_build_resolution_plan( array $result ): array {
 		'resolution_groups'  => $normalized_groups,
 		'artifacts'          => $artifacts,
 		'source_errors'      => array_values( (array) ( $result['source_errors'] ?? [] ) ),
-		'record_results'     => array_values( (array) ( $result['results'] ?? [] ) ),
+		'record_results'     => $record_results,
 	];
 
 	return $plan;
 }
 
-/**
- * Normalize one unresolved group into an explicit terminal disposition.
- *
- * This is diagnostic/planning logic only. It deliberately does not broaden the
- * automatic relationship resolver.
- */
+/** Normalize one unresolved group into an explicit terminal disposition. */
 function dtb_schematic_hotspot_plan_normalize_group( array $group ): array {
 	$code = sanitize_key( (string) ( $group['issue_code'] ?? 'unclassified' ) );
 	$sku  = trim( (string) ( $group['sku'] ?? $group['source_sku'] ?? '' ) );
@@ -113,7 +143,7 @@ function dtb_schematic_hotspot_plan_normalize_group( array $group ): array {
 		return dtb_schematic_hotspot_plan_set_disposition( $group, 'source_unavailable', 'source_corrections', 'Restore or associate the approved schematic_data JSON source, then rebuild the resolution plan.' );
 	}
 	if ( 'source_sync_required' === $code ) {
-		return dtb_schematic_hotspot_plan_set_disposition( $group, 'source_projection_sync', 'source_corrections', 'Review the reported source drift. If expected, Apply may synchronize the normalized schematic projection; otherwise correct the source before approval.' );
+		return dtb_schematic_hotspot_plan_set_disposition( $group, 'source_projection_sync', 'source_corrections', 'Review the reported source drift. Correct unexpected source state before approval.' );
 	}
 	if ( 'source_reference_only' === $code || dtb_schematic_hotspot_plan_is_reference_only( $sku, $name ) ) {
 		return dtb_schematic_hotspot_plan_set_disposition( $group, 'reference_only', 'source_corrections', 'Keep this row as schematic navigation/reference data. Do not create or link a WooCommerce product.' );
@@ -135,7 +165,7 @@ function dtb_schematic_hotspot_plan_normalize_group( array $group ): array {
 }
 
 function dtb_schematic_hotspot_plan_set_disposition( array $group, string $disposition, string $bucket, string $action ): array {
-	$group['disposition']    = sanitize_key( $disposition );
+	$group['disposition']     = sanitize_key( $disposition );
 	$group['artifact_bucket'] = sanitize_key( $bucket );
 	$group['required_action'] = sanitize_text_field( $action );
 	return $group;
@@ -147,10 +177,7 @@ function dtb_schematic_hotspot_plan_is_reference_only( string $sku, string $name
 	return (bool) preg_match( '/\bSEE[- _]?[A-Z0-9 ()\/.-]*DETAIL\b/', $value );
 }
 
-/**
- * Detect legacy SKU fields that actually contain instructions, quantities,
- * equivalence lists, or assembly notes rather than one protected identifier.
- */
+/** Detect legacy SKU fields that contain notes/instructions rather than one identifier. */
 function dtb_schematic_hotspot_plan_is_instruction_or_composite( string $sku, string $name ): bool {
 	$value = strtoupper( trim( $sku ) );
 	if ( '' === $value ) {
@@ -168,8 +195,6 @@ function dtb_schematic_hotspot_plan_is_instruction_or_composite( string $sku, st
 	if ( substr_count( $value, '=' ) >= 1 || substr_count( $value, ',' ) >= 2 || substr_count( $value, ';' ) >= 1 ) {
 		return true;
 	}
-	// A SKU field containing several long numeric tokens separated by spaces is
-	// almost certainly a note/equivalence list, not one manufacturer identifier.
 	if ( preg_match_all( '/\b\d{5,}\b/', $value, $matches ) && count( $matches[0] ) >= 2 ) {
 		return true;
 	}
@@ -197,20 +222,68 @@ function dtb_schematic_hotspot_plan_artifact_row( array $group ): array {
 	}
 
 	return [
-		'disposition'        => sanitize_key( (string) ( $group['disposition'] ?? 'manual_review_required' ) ),
-		'issue_code'         => sanitize_key( (string) ( $group['issue_code'] ?? 'unclassified' ) ),
-		'issue_label'        => sanitize_text_field( (string) ( $group['issue_label'] ?? '' ) ),
-		'brand'              => sanitize_text_field( (string) ( $group['brand'] ?? '' ) ),
-		'part_ref'           => sanitize_text_field( (string) ( $group['part_ref'] ?? '' ) ),
-		'source_sku'         => sanitize_text_field( (string) ( $group['source_sku'] ?? $group['sku'] ?? '' ) ),
-		'source_display_id'  => sanitize_text_field( (string) ( $group['source_display_id'] ?? $group['display_id'] ?? $group['mpn'] ?? '' ) ),
-		'part_name'          => sanitize_text_field( (string) ( $group['part_name'] ?? $group['name'] ?? $group['title'] ?? '' ) ),
-		'relationship_count' => max( 0, (int) ( $group['relationship_count'] ?? 0 ) ),
-		'hotspot_occurrences'=> max( 0, (int) ( $group['occurrences'] ?? 0 ) ),
-		'schematics'         => implode( '|', $schematics ),
-		'candidate_evidence' => implode( '|', $candidates ),
-		'required_action'    => sanitize_text_field( $required_action ),
+		'disposition'         => sanitize_key( (string) ( $group['disposition'] ?? 'manual_review_required' ) ),
+		'issue_code'          => sanitize_key( (string) ( $group['issue_code'] ?? 'unclassified' ) ),
+		'issue_label'         => sanitize_text_field( (string) ( $group['issue_label'] ?? '' ) ),
+		'brand'               => sanitize_text_field( (string) ( $group['brand'] ?? '' ) ),
+		'part_ref'            => sanitize_text_field( (string) ( $group['part_ref'] ?? '' ) ),
+		'source_sku'          => sanitize_text_field( (string) ( $group['source_sku'] ?? $group['sku'] ?? '' ) ),
+		'source_display_id'   => sanitize_text_field( (string) ( $group['source_display_id'] ?? $group['display_id'] ?? $group['mpn'] ?? '' ) ),
+		'part_name'           => sanitize_text_field( (string) ( $group['part_name'] ?? $group['name'] ?? $group['title'] ?? '' ) ),
+		'relationship_count'  => max( 0, (int) ( $group['relationship_count'] ?? 0 ) ),
+		'hotspot_occurrences' => max( 0, (int) ( $group['occurrences'] ?? 0 ) ),
+		'schematics'          => implode( '|', $schematics ),
+		'candidate_evidence'  => implode( '|', $candidates ),
+		'required_action'     => sanitize_text_field( $required_action ),
 	];
+}
+
+/** Fingerprint the material reviewed plan, including source-integrity state. */
+function dtb_schematic_hotspot_plan_material_fingerprint( array $result, array $repairs, array $groups, array $record_results ): string {
+	$repair_material = [];
+	foreach ( $repairs as $repair ) {
+		$repair_material[] = [
+			'canonical_id' => (string) ( $repair['canonical_id'] ?? '' ),
+			'part_ref'     => (string) ( $repair['part_ref'] ?? '' ),
+			'product_id'   => (int) ( $repair['product_id'] ?? 0 ),
+			'method'       => (string) ( $repair['resolution_method'] ?? '' ),
+		];
+	}
+	usort( $repair_material, static fn( $a, $b ) => strcmp( (string) wp_json_encode( $a ), (string) wp_json_encode( $b ) ) );
+
+	$group_material = [];
+	foreach ( $groups as $group ) {
+		$group_material[] = [
+			'group_key'     => (string) ( $group['group_key'] ?? '' ),
+			'disposition'   => (string) ( $group['disposition'] ?? '' ),
+			'identity'      => (string) ( $group['source_sku'] ?? '' ) . '|' . (string) ( $group['source_display_id'] ?? '' ),
+			'relationships' => (int) ( $group['relationship_count'] ?? 0 ),
+			'occurrences'   => (int) ( $group['occurrences'] ?? 0 ),
+		];
+	}
+	usort( $group_material, static fn( $a, $b ) => strcmp( (string) wp_json_encode( $a ), (string) wp_json_encode( $b ) ) );
+
+	$source_material = [];
+	foreach ( $record_results as $record_result ) {
+		$source_material[] = [
+			'canonical_id' => (string) ( $record_result['canonical_id'] ?? '' ),
+			'status'       => (string) ( $record_result['source_status'] ?? '' ),
+			'drift'        => ! empty( $record_result['source_drift'] ),
+		];
+	}
+	usort( $source_material, static fn( $a, $b ) => strcmp( (string) wp_json_encode( $a ), (string) wp_json_encode( $b ) ) );
+
+	$metrics = (array) ( $result['metrics'] ?? [] );
+	$material = [
+		'repairs'            => $repair_material,
+		'groups'             => $group_material,
+		'sources'            => $source_material,
+		'source_drift'       => (int) ( $metrics['source_drift_before'] ?? 0 ),
+		'source_read_errors' => (int) ( $metrics['source_read_errors'] ?? 0 ),
+		'source_unavailable' => (int) ( $metrics['source_unavailable'] ?? 0 ),
+		'failed'             => (int) ( $result['failed'] ?? 0 ),
+	];
+	return hash( 'sha256', (string) wp_json_encode( $material ) );
 }
 
 /** Stable export payload for the complete plan. */
@@ -225,7 +298,7 @@ function dtb_schematic_hotspot_plan_export_payload( array $run ): array {
 			'created_at' => sanitize_text_field( (string) ( $run['created_at'] ?? '' ) ),
 			'error'      => sanitize_text_field( (string) ( $run['error'] ?? '' ) ),
 		],
-		'plan' => dtb_schematic_hotspot_build_resolution_plan( $result ),
+		'plan'                  => dtb_schematic_hotspot_build_resolution_plan( $result ),
 		'raw_optimizer_metrics' => (array) ( $result['metrics'] ?? [] ),
 	];
 }
