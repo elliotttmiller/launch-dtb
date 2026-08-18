@@ -11,24 +11,34 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const DTB_SCHEMATIC_OPERATION_RECONCILE       = 'reconcile';
-const DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS = 'migrate_hotspots';
-const DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS = 'refresh_products';
-const DTB_SCHEMATIC_OPERATION_PUBLISH          = 'publish';
-const DTB_SCHEMATIC_OPERATION_RETIRE           = 'retire';
-const DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   = 'refresh_public_projection';
+const DTB_SCHEMATIC_OPERATION_RECONCILE          = 'reconcile';
+const DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS   = 'migrate_hotspots';
+const DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS   = 'refresh_products';
+const DTB_SCHEMATIC_OPERATION_PUBLISH            = 'publish';
+const DTB_SCHEMATIC_OPERATION_RETIRE             = 'retire';
+const DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC     = 'refresh_public_projection';
 const DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED = 'regenerate_oversized';
-const DTB_SCHEMATIC_OPERATION_MAX_SELECTED     = 50;
+const DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS  = 'optimize_hotspots';
+const DTB_SCHEMATIC_OPERATION_MAX_SELECTED       = 50;
 
 function dtb_schematic_run_operation( array $args = [] ) {
-	$kind       = sanitize_key( (string) ( $args['kind'] ?? '' ) );
-	$dry_run    = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
+	$kind        = sanitize_key( (string) ( $args['kind'] ?? '' ) );
+	$dry_run     = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
 	$operator_id = max( 0, (int) ( $args['operator_id'] ?? get_current_user_id() ) );
-	$selected   = dtb_schematic_operation_selected_ids( $args['schematic_ids'] ?? [] );
+	$selected    = dtb_schematic_operation_selected_ids( $args['schematic_ids'] ?? [] );
 	$trusted_cli = ! empty( $args['trusted_cli'] ) && defined( 'WP_CLI' ) && WP_CLI;
-	$all_records = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $args['all_records'] );
+	$all_records = in_array( $kind, [ DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS ], true ) && ! empty( $args['all_records'] );
 
-	$supported = [ DTB_SCHEMATIC_OPERATION_RECONCILE, DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS, DTB_SCHEMATIC_OPERATION_PUBLISH, DTB_SCHEMATIC_OPERATION_RETIRE, DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC, DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED ];
+	$supported = [
+		DTB_SCHEMATIC_OPERATION_RECONCILE,
+		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS,
+		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS,
+		DTB_SCHEMATIC_OPERATION_PUBLISH,
+		DTB_SCHEMATIC_OPERATION_RETIRE,
+		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC,
+		DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED,
+		DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS,
+	];
 	if ( ! in_array( $kind, $supported, true ) ) {
 		return new WP_Error( 'dtb_schematic_operation_kind_invalid', __( 'The requested schematic operation is not supported.', 'drywall-toolbox' ) );
 	}
@@ -58,6 +68,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 			$request['state'] = $args['state'];
 		}
 	}
+
 	$run = dtb_schematic_operation_run_create( $kind, $dry_run, $operator_id, $request );
 
 	$lease = false;
@@ -96,18 +107,22 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 	$heartbeat = ! $dry_run && '' !== $run_id
 		? static fn() => dtb_schematic_operation_commit_lease_renew( $run_id )
 		: null;
+
 	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) {
-		return dtb_schematic_reconcile_source( [
-			'dry_run'          => $dry_run,
-			'batch_size'       => $request['batch_size'],
-			'resume'           => $request['resume'],
-			'persist_state'    => $request['persist_state'],
-			'retire_uncovered' => false,
-			'upload_path'      => $request['upload_path'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_UPLOAD_PATH,
-			'state'            => $request['state'] ?? [],
-			'lease_heartbeat'  => $heartbeat,
-		] );
+		return dtb_schematic_reconcile_source(
+			[
+				'dry_run'          => $dry_run,
+				'batch_size'       => $request['batch_size'],
+				'resume'           => $request['resume'],
+				'persist_state'    => $request['persist_state'],
+				'retire_uncovered' => false,
+				'upload_path'      => $request['upload_path'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_UPLOAD_PATH,
+				'state'            => $request['state'] ?? [],
+				'lease_heartbeat'  => $heartbeat,
+			]
+		);
 	}
+
 	if ( DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED === $kind ) {
 		$report = dtb_schematic_regenerate_oversized_run( $dry_run, $heartbeat );
 		return [
@@ -122,11 +137,22 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 			'fatal_error' => $report['fatal_error'],
 		];
 	}
+
+	if ( DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
+		return dtb_schematic_hotspot_optimizer_run(
+			[
+				'dry_run'         => $dry_run,
+				'per_page'        => $request['per_page'] ?? DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE,
+				'lease_heartbeat' => $heartbeat,
+			]
+		);
+	}
+
 	if ( DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
 		return dtb_schematic_migrate_hotspot_datasets(
 			[
-				'dry_run'        => $dry_run,
-				'per_page'       => $request['per_page'],
+				'dry_run'         => $dry_run,
+				'per_page'        => $request['per_page'],
 				'lease_heartbeat' => $heartbeat,
 			]
 		);
@@ -182,33 +208,37 @@ function dtb_schematic_operation_log_activity( string $kind, array $run ): void 
 		return;
 	}
 	$types = [
-		DTB_SCHEMATIC_OPERATION_RECONCILE       => 'reconciliation',
-		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS => 'hotspot_dataset_migration',
-		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS => 'product_projection_refresh',
-		DTB_SCHEMATIC_OPERATION_PUBLISH          => 'publish',
-		DTB_SCHEMATIC_OPERATION_RETIRE           => 'retire',
-		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'update_published_projection',
+		DTB_SCHEMATIC_OPERATION_RECONCILE            => 'reconciliation',
+		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS     => 'hotspot_dataset_migration',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS     => 'product_projection_refresh',
+		DTB_SCHEMATIC_OPERATION_PUBLISH              => 'publish',
+		DTB_SCHEMATIC_OPERATION_RETIRE               => 'retire',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC       => 'update_published_projection',
 		DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED => 'regenerate_oversized_images',
+		DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS    => 'hotspot_one_time_optimizer',
 	];
 	$labels = [
-		DTB_SCHEMATIC_OPERATION_RECONCILE        => 'Schematic sync',
-		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS => 'Hotspot synchronization',
-		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS => 'Product linking',
-		DTB_SCHEMATIC_OPERATION_PUBLISH          => 'Publish',
-		DTB_SCHEMATIC_OPERATION_RETIRE           => 'Retire',
-		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC   => 'Public projection refresh',
+		DTB_SCHEMATIC_OPERATION_RECONCILE            => 'Schematic sync',
+		DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS     => 'Hotspot synchronization',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS     => 'Product linking',
+		DTB_SCHEMATIC_OPERATION_PUBLISH              => 'Publish',
+		DTB_SCHEMATIC_OPERATION_RETIRE               => 'Retire',
+		DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC       => 'Public projection refresh',
 		DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED => 'Regenerate oversized schematic images',
+		DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS    => 'One-time hotspot optimizer',
 	];
 	$result = (array) ( $run['result'] ?? [] );
-	dtb_schematic_activity_log( [
-		'operation_type' => $types[ $kind ],
-		'dry_run'        => ! empty( $run['dry_run'] ),
-		'result'         => 'completed' === $run['status'] ? ( ! empty( $result['failed'] ) || ! empty( $result['unresolved'] ) ? 'partial' : 'ok' ) : 'error',
-		'examined'       => (int) ( $result['examined'] ?? 0 ),
-		'changed'        => (int) ( $result['changed'] ?? 0 ),
-		'skipped'        => (int) ( $result['skipped'] ?? 0 ),
-		'unresolved'     => (int) ( $result['unresolved'] ?? 0 ),
-		'summary'        => sprintf( '%s %s (%s).', $labels[ $kind ], ! empty( $run['dry_run'] ) ? 'previewed' : 'applied', $run['id'] ),
-		'detail'         => [ 'run_id' => $run['id'], 'status' => $run['status'], 'error' => $run['error'] ?? '' ],
-	] );
+	dtb_schematic_activity_log(
+		[
+			'operation_type' => $types[ $kind ],
+			'dry_run'        => ! empty( $run['dry_run'] ),
+			'result'         => 'completed' === $run['status'] ? ( ! empty( $result['failed'] ) || ! empty( $result['unresolved'] ) ? 'partial' : 'ok' ) : 'error',
+			'examined'       => (int) ( $result['examined'] ?? 0 ),
+			'changed'        => (int) ( $result['changed'] ?? 0 ),
+			'skipped'        => (int) ( $result['skipped'] ?? 0 ),
+			'unresolved'     => (int) ( $result['unresolved'] ?? 0 ),
+			'summary'        => sprintf( '%s %s (%s).', $labels[ $kind ], ! empty( $run['dry_run'] ) ? 'previewed' : 'applied', $run['id'] ),
+			'detail'         => [ 'run_id' => $run['id'], 'status' => $run['status'], 'error' => $run['error'] ?? '' ],
+		]
+	);
 }
