@@ -58,5 +58,5 @@ export function classifyDrywallDomain(packet: CatalogEvidencePacket | Record<str
   if (/\bhandle\b/i.test(lower)) return { domainId:'handle_system', confidence:'medium', reasons:['matched handle terminology'] };
   if (/\bcase\b/i.test(lower)) return { domainId:'storage_case', confidence:'medium', reasons:['matched case terminology'] };
 
-  return { domainId:'replacement_component', confidence:'low', reasons:['no production tool-domain signal matched; requires operator/domain-map review'] };
+  return { domainId:null, confidence:'low', reasons:['no production drywall domain signal matched; explicit domain-map review is required before generation'] };
 }
