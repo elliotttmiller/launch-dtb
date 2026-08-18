@@ -69,4 +69,5 @@ if ( dtb_is_admin_or_ajax_request() ) {
 	dtb_module_require( 'dtb-schematics/Admin/Diagnostics/HotspotResolver.php' );
 	dtb_module_require( 'dtb-schematics/Admin/Diagnostics/HotspotSourceAuditPanel.php' );
 	dtb_module_require( 'dtb-schematics/Admin/Diagnostics/HotspotOptimizerPanel.php' );
+	dtb_module_require( 'dtb-schematics/Admin/Diagnostics/HotspotWorkflow.php' );
 }
