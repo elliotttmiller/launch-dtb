@@ -1,64 +1,32 @@
 <?php
 /**
- * DTB Schematics — ResolveSchematicPartOccurrences (Phase 5 application service).
+ * DTB Schematics — specific hotspot-part to WooCommerce resolution.
  *
- * The single backend part-resolution service for schematic hotspot parts
- * (Domain/SchematicPartRelationship.php). This is distinct from
- * Application/ResolveSchematicParts.php / Services/SchematicPartResolver.php,
- * which resolve the schematic's *linked tool products* (the whole tool a
- * schematic belongs to) — a different relationship. See this file's
- * docblock section "RELATION TO EXISTING RESOLVERS" below.
+ * WooCommerce remains authoritative for product identity. This service owns
+ * only the schematic-part relationship and never creates products or rewrites
+ * SKU, MPN, GTIN, brand, or other catalog identifiers.
  *
- * WooCommerce remains authoritative for the products themselves. This
- * service only decides which WooCommerce product/variation ID a schematic
- * part relationship should point at, using exact-match resolution only:
+ * Resolution order:
+ *   1. preserve an existing explicit product/variation override;
+ *   2. preserve an operator-set intentionally-not-sold state;
+ *   3. exact WooCommerce SKU;
+ *   4. exact brand + protected manufacturer part number;
+ *   5. unique same-brand normalized SKU where the only difference is
+ *      formatting punctuation/spacing;
+ *   6. explicit compatibility relationship by exact SKU/MPN;
+ *   7. unresolved.
  *
- *   1. explicit WooCommerce product/variation ID already recorded for this
- *      part_ref (an operator-set override — never re-resolved/clobbered);
- *   2. exact SKU match (wc_get_product_id_by_sku);
- *   3. exact brand + protected manufacturer part number
- *      (DTB_ProductMeta::BRAND_KEY + DTB_ProductMeta::MPN, dtb-catalog-platform);
- *   4. explicit compatibility relationship already recorded against one of
- *      the schematic's linked tool products (dtb-catalog-platform
- *      Infrastructure/ProductRelationshipRepository.php — exact product IDs
- *      only, never fuzzy text matching);
- *   5. unresolved.
- *
- * An operator-set "intentionally not sold" state is likewise preserved
- * verbatim across batch runs, never re-resolved.
- *
- * Resolution runs in bounded backend batches (see
- * dtb_schematic_resolve_part_occurrences_for_record() — bounded by the
- * dataset's own parts_catalog size, itself bounded to one schematic) as part
- * of Application/MigrateSchematicHotspotDatasets.php. Nothing here is called
- * per-hotspot-click or per-request; the public API only reads the result
- * stored by Infrastructure/SchematicRecordRepository.php's `parts` field.
- *
- * RELATION TO EXISTING RESOLVERS: Application/ResolveSchematicParts.php and
- * Services/SchematicPartResolver.php answer "which WooCommerce products does
- * this whole schematic represent" (used for `linked_products` /
- * cross-linking, e.g. via `_dtb_schematic_id` product meta). This service
- * answers "which WooCommerce product does this specific hotspot part
- * reference." Both may legitimately coexist; they resolve different
- * relationships. See this phase's report for what, if anything, should be
- * retired in Phase 9.
+ * The normalized-SKU step is intentionally narrow. It never uses title
+ * similarity, never crosses brands, rejects weak numeric callout identifiers,
+ * and resolves only when all generated formatting aliases identify one and
+ * only one WooCommerce product/variation.
  *
  * @package drywall-toolbox
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Resolve every parts_catalog entry in a normalized hotspot dataset against
- * WooCommerce, producing a full replacement `parts` array (SchematicPartRelationship
- * shape) for the schematic record. Existing operator overrides
- * (explicit_id / not_sold) for a given part_ref are preserved verbatim.
- *
- * @param DTB_Schematic_Record_Entity $record  The schematic record (read for its
- *                                              existing `parts`, `brand_id`/`brand_name`, and `linked_products`).
- * @param array                       $dataset Normalized hotspot dataset, see dtb_schematic_hotspot_dataset_make().
- * @return array[] List of dtb_schematic_part_relationship_make() entries.
- */
+/** Resolve every normalized parts_catalog entry for one schematic record. */
 function dtb_schematic_resolve_part_occurrences_for_record( DTB_Schematic_Record_Entity $record, array $dataset ): array {
 	$existing_by_ref = [];
 	foreach ( $record->parts as $existing ) {
@@ -66,8 +34,8 @@ function dtb_schematic_resolve_part_occurrences_for_record( DTB_Schematic_Record
 	}
 
 	$compatible_part_ids = dtb_schematic_resolve_compatible_part_product_ids( $record->linked_products );
+	$resolved            = [];
 
-	$resolved = [];
 	foreach ( (array) ( $dataset['parts_catalog'] ?? [] ) as $catalog_part ) {
 		$part_ref = (string) ( $catalog_part['part_ref'] ?? '' );
 		if ( '' === $part_ref ) {
@@ -77,21 +45,24 @@ function dtb_schematic_resolve_part_occurrences_for_record( DTB_Schematic_Record
 		$occurrence_count = dtb_schematic_hotspot_dataset_occurrence_count_for_part( $dataset, $part_ref );
 		$existing          = $existing_by_ref[ $part_ref ] ?? null;
 
-		// Preserve operator overrides verbatim — never re-resolved by the batch pipeline.
-		if ( $existing && in_array( $existing['resolution_method'], [ DTB_SCHEMATIC_PART_RESOLUTION_EXPLICIT_ID ], true ) && $existing['product_id'] > 0 ) {
+		if ( $existing
+			&& DTB_SCHEMATIC_PART_RESOLUTION_EXPLICIT_ID === (string) ( $existing['resolution_method'] ?? '' )
+			&& (int) ( $existing['product_id'] ?? 0 ) > 0 ) {
 			$resolved[] = dtb_schematic_part_relationship_make( array_merge( $existing, [ 'occurrence_count' => $occurrence_count ] ) );
 			continue;
 		}
-		if ( $existing && DTB_SCHEMATIC_PART_STATE_NOT_SOLD === $existing['resolution_state'] ) {
+		if ( $existing && DTB_SCHEMATIC_PART_STATE_NOT_SOLD === (string) ( $existing['resolution_state'] ?? '' ) ) {
 			$resolved[] = dtb_schematic_part_relationship_make( array_merge( $existing, [ 'occurrence_count' => $occurrence_count ] ) );
 			continue;
 		}
 
 		$resolution = dtb_schematic_resolve_single_part( $record, $catalog_part, $compatible_part_ids );
-
 		$resolved[] = dtb_schematic_part_relationship_make(
 			[
 				'part_ref'          => $part_ref,
+				// Legacy datasets may use display_id as a diagram callout rather
+				// than a manufacturer number. It remains preserved for display /
+				// provenance; source SKU is the stronger identity when present.
 				'mpn'               => (string) ( $catalog_part['display_id'] ?? $part_ref ),
 				'sku'               => (string) ( $catalog_part['sku'] ?? '' ),
 				'brand'             => $record->brand_name ?: $record->brand_id,
@@ -108,32 +79,48 @@ function dtb_schematic_resolve_part_occurrences_for_record( DTB_Schematic_Record
 }
 
 /**
- * Apply the exact-match resolution order (steps 2-4; step 1/5 are handled by
- * the caller via existing-override preservation / default-unresolved).
+ * Resolve one source part using deterministic product-identity evidence only.
  *
- * @return array{product_id:int, method:string, state:string}
+ * @return array{product_id:int,method:string,state:string}
  */
 function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record, array $catalog_part, array $compatible_part_ids ): array {
 	$sku = trim( (string) ( $catalog_part['sku'] ?? '' ) );
 	if ( '' !== $sku && function_exists( 'wc_get_product_id_by_sku' ) ) {
 		$product_id = (int) wc_get_product_id_by_sku( $sku );
 		if ( $product_id > 0 ) {
-			return [ 'product_id' => $product_id, 'method' => DTB_SCHEMATIC_PART_RESOLUTION_EXACT_SKU, 'state' => DTB_SCHEMATIC_PART_STATE_RESOLVED ];
+			return [
+				'product_id' => $product_id,
+				'method'     => DTB_SCHEMATIC_PART_RESOLUTION_EXACT_SKU,
+				'state'      => DTB_SCHEMATIC_PART_STATE_RESOLVED,
+			];
 		}
 	}
 
-	$mpn = trim( (string) ( $catalog_part['display_id'] ?? '' ) );
-	$brand = $record->brand_name ?: $record->brand_id;
+	$mpn   = trim( (string) ( $catalog_part['display_id'] ?? '' ) );
+	$brand = (string) ( $record->brand_name ?: $record->brand_id );
 	if ( '' !== $mpn && '' !== $brand && function_exists( 'get_posts' ) && class_exists( 'DTB_ProductMeta' ) ) {
 		$product_id = dtb_schematic_find_product_by_exact_brand_and_mpn( $brand, $mpn );
 		if ( $product_id > 0 ) {
-			return [ 'product_id' => $product_id, 'method' => DTB_SCHEMATIC_PART_RESOLUTION_BRAND_MPN, 'state' => DTB_SCHEMATIC_PART_STATE_RESOLVED ];
+			return [
+				'product_id' => $product_id,
+				'method'     => DTB_SCHEMATIC_PART_RESOLUTION_BRAND_MPN,
+				'state'      => DTB_SCHEMATIC_PART_STATE_RESOLVED,
+			];
 		}
 	}
 
-	// Explicit compatibility relationship: exact SKU/MPN cross-referenced
-	// against products already recorded as compatible with one of this
-	// schematic's linked tool products. Never a text/fuzzy match.
+	// Formatting-only SKU reconciliation. The source SKU remains unchanged;
+	// this only establishes a relationship when one same-brand Woo product is
+	// uniquely identified by punctuation/spacing variants of that SKU.
+	$normalized_product_id = dtb_schematic_find_product_by_unique_normalized_sku( $brand, $sku );
+	if ( $normalized_product_id > 0 ) {
+		return [
+			'product_id' => $normalized_product_id,
+			'method'     => DTB_SCHEMATIC_PART_RESOLUTION_NORMALIZED_SKU,
+			'state'      => DTB_SCHEMATIC_PART_STATE_RESOLVED,
+		];
+	}
+
 	if ( ! empty( $compatible_part_ids ) && function_exists( 'wc_get_product' ) ) {
 		foreach ( $compatible_part_ids as $compatible_id ) {
 			$product = wc_get_product( $compatible_id );
@@ -142,31 +129,37 @@ function dtb_schematic_resolve_single_part( DTB_Schematic_Record_Entity $record,
 			}
 			$candidate_sku = trim( (string) $product->get_sku() );
 			if ( '' !== $sku && '' !== $candidate_sku && 0 === strcasecmp( $candidate_sku, $sku ) ) {
-				return [ 'product_id' => $compatible_id, 'method' => DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY, 'state' => DTB_SCHEMATIC_PART_STATE_RESOLVED ];
+				return [
+					'product_id' => $compatible_id,
+					'method'     => DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY,
+					'state'      => DTB_SCHEMATIC_PART_STATE_RESOLVED,
+				];
 			}
-			$candidate_mpn = trim( (string) get_post_meta( $compatible_id, DTB_ProductMeta::MPN, true ) );
+			$candidate_mpn = class_exists( 'DTB_ProductMeta' ) ? trim( (string) get_post_meta( $compatible_id, DTB_ProductMeta::MPN, true ) ) : '';
 			if ( '' !== $mpn && '' !== $candidate_mpn && 0 === strcasecmp( $candidate_mpn, $mpn ) ) {
-				return [ 'product_id' => $compatible_id, 'method' => DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY, 'state' => DTB_SCHEMATIC_PART_STATE_RESOLVED ];
+				return [
+					'product_id' => $compatible_id,
+					'method'     => DTB_SCHEMATIC_PART_RESOLUTION_COMPATIBILITY,
+					'state'      => DTB_SCHEMATIC_PART_STATE_RESOLVED,
+				];
 			}
 		}
 	}
 
-	return [ 'product_id' => 0, 'method' => DTB_SCHEMATIC_PART_RESOLUTION_UNRESOLVED, 'state' => DTB_SCHEMATIC_PART_STATE_UNRESOLVED ];
+	return [
+		'product_id' => 0,
+		'method'     => DTB_SCHEMATIC_PART_RESOLUTION_UNRESOLVED,
+		'state'      => DTB_SCHEMATIC_PART_STATE_UNRESOLVED,
+	];
 }
 
-/**
- * Exact brand + protected MPN lookup against dtb-catalog-platform's product
- * meta contract (DTB_ProductMeta::BRAND_KEY / DTB_ProductMeta::MPN). No
- * fuzzy/partial matching — both fields must match exactly (case-insensitive
- * on the MPN only, since manufacturer part numbers are frequently
- * transcribed with inconsistent casing; brand comparison is exact).
- */
+/** Exact brand + protected MPN lookup. Ambiguous matches remain unresolved. */
 function dtb_schematic_find_product_by_exact_brand_and_mpn( string $brand, string $mpn ): int {
 	$ids = get_posts(
 		[
 			'post_type'      => 'product',
 			'post_status'    => 'publish',
-			'posts_per_page' => 2, // Only need to know if exactly one match exists; >1 is ambiguous and treated as unresolved.
+			'posts_per_page' => 2,
 			'fields'         => 'ids',
 			'meta_query'     => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 				'relation' => 'AND',
@@ -197,13 +190,153 @@ function dtb_schematic_find_product_by_exact_brand_and_mpn( string $brand, strin
 }
 
 /**
- * Products explicitly recorded (via dtb-catalog-platform's
- * `_dtb_compatible_parts` relationship) as compatible with any of the
- * schematic's linked tool products. Exact relationship data only.
+ * Find exactly one same-brand product whose SKU differs from the source SKU
+ * only by punctuation/spacing.
  *
- * @param int[] $linked_product_ids
- * @return int[]
+ * This does not scan the product catalog and does not perform fuzzy matching.
+ * It generates a small bounded set of deterministic aliases and asks the
+ * WooCommerce SKU lookup for each one.
  */
+function dtb_schematic_find_product_by_unique_normalized_sku( string $brand, string $source_sku ): int {
+	if ( ! function_exists( 'wc_get_product_id_by_sku' ) || ! function_exists( 'wc_get_product' ) ) {
+		return 0;
+	}
+	if ( ! dtb_schematic_normalized_sku_is_strong( $source_sku ) ) {
+		return 0;
+	}
+
+	$source_normalized = dtb_schematic_normalize_product_identifier( $source_sku );
+	$product_ids       = [];
+	foreach ( dtb_schematic_normalized_sku_aliases( $source_sku ) as $alias ) {
+		if ( 0 === strcasecmp( trim( $source_sku ), $alias ) ) {
+			continue;
+		}
+		$product_id = (int) wc_get_product_id_by_sku( $alias );
+		if ( $product_id <= 0 ) {
+			continue;
+		}
+		$product = wc_get_product( $product_id );
+		if ( ! $product ) {
+			continue;
+		}
+		$candidate_sku = trim( (string) $product->get_sku() );
+		if ( $source_normalized !== dtb_schematic_normalize_product_identifier( $candidate_sku ) ) {
+			continue;
+		}
+		if ( ! dtb_schematic_product_brand_matches( $product_id, $brand ) ) {
+			continue;
+		}
+		$product_ids[ $product_id ] = true;
+		if ( count( $product_ids ) > 1 ) {
+			return 0;
+		}
+	}
+
+	$ids = array_keys( $product_ids );
+	return 1 === count( $ids ) ? (int) $ids[0] : 0;
+}
+
+/** Normalize identifier punctuation for comparison only. */
+function dtb_schematic_normalize_product_identifier( string $value ): string {
+	$value = strtolower( trim( $value ) );
+	return preg_replace( '/[^a-z0-9]+/', '', $value ) ?: '';
+}
+
+/** Reject diagram callout numbers and other weak identifiers. */
+function dtb_schematic_normalized_sku_is_strong( string $sku ): bool {
+	$normalized = dtb_schematic_normalize_product_identifier( $sku );
+	if ( strlen( $normalized ) < 4 ) {
+		return false;
+	}
+	if ( ctype_digit( $normalized ) ) {
+		return strlen( $normalized ) >= 4;
+	}
+	return (bool) preg_match( '/[a-z]/', $normalized ) && (bool) preg_match( '/[0-9]/', $normalized );
+}
+
+/** Generate a bounded set of punctuation/spacing aliases for a strong SKU. */
+function dtb_schematic_normalized_sku_aliases( string $sku ): array {
+	$sku = trim( $sku );
+	if ( '' === $sku ) {
+		return [];
+	}
+
+	$aliases = [ $sku => true ];
+	$clean   = trim( preg_replace( '/[\x{2018}\x{2019}\x{201C}\x{201D}\'\"]+/u', '', $sku ) ?: $sku );
+	$aliases[ $clean ] = true;
+
+	preg_match_all( '/[A-Za-z]+|\d+(?:\.\d+)?/', $clean, $matches );
+	$tokens = array_values( array_filter( (array) ( $matches[0] ?? [] ), static fn( $token ) => '' !== $token ) );
+	if ( count( $tokens ) >= 2 && count( $tokens ) <= 5 ) {
+		$separators = [ '', '-', ' ' ];
+		$build = static function ( array $parts, int $index, string $current ) use ( &$build, $tokens, $separators, &$aliases ): void {
+			if ( count( $aliases ) >= 64 ) {
+				return;
+			}
+			if ( $index >= count( $tokens ) ) {
+				$aliases[ $current ] = true;
+				return;
+			}
+			foreach ( $separators as $separator ) {
+				$build( $parts, $index + 1, $current . $separator . $tokens[ $index ] );
+			}
+		};
+		$build( $tokens, 1, $tokens[0] );
+	}
+
+	$normalized = dtb_schematic_normalize_product_identifier( $clean );
+	if ( '' !== $normalized ) {
+		$aliases[ $normalized ] = true;
+		$aliases[ strtoupper( $normalized ) ] = true;
+	}
+
+	return array_slice( array_keys( $aliases ), 0, 64 );
+}
+
+/** Same-brand guard for normalized-SKU resolution, including variations. */
+function dtb_schematic_product_brand_matches( int $product_id, string $expected_brand ): bool {
+	if ( $product_id <= 0 || '' === trim( $expected_brand ) || ! class_exists( 'DTB_ProductMeta' ) ) {
+		return false;
+	}
+
+	$product = function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+	$ids     = [ $product_id ];
+	if ( $product && $product->is_type( 'variation' ) && $product->get_parent_id() > 0 ) {
+		$ids[] = $product->get_parent_id();
+	}
+
+	$expected_key = dtb_schematic_resolution_brand_key( $expected_brand );
+	foreach ( array_values( array_unique( $ids ) ) as $id ) {
+		foreach ( [ DTB_ProductMeta::BRAND_KEY, DTB_ProductMeta::BRAND_LABEL ] as $meta_key ) {
+			$actual = trim( (string) get_post_meta( $id, $meta_key, true ) );
+			if ( '' !== $actual && $expected_key === dtb_schematic_resolution_brand_key( $actual ) ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/** Canonical comparison key for known brand-label formatting differences. */
+function dtb_schematic_resolution_brand_key( string $brand ): string {
+	$key = strtolower( preg_replace( '/[^a-z0-9]+/', '', trim( $brand ) ) ?: '' );
+	$aliases = [
+		'columbiatools'         => 'columbia',
+		'columbia'              => 'columbia',
+		'platinumdrywalltools'  => 'platinum',
+		'platinumtools'         => 'platinum',
+		'platinum'              => 'platinum',
+		'level5tools'           => 'level5',
+		'level5'                => 'level5',
+		'tapetech'              => 'tapetech',
+		'durastilts'            => 'durastilts',
+		'durastilt'             => 'durastilts',
+		'surpro'                => 'surpro',
+	];
+	return $aliases[ $key ] ?? $key;
+}
+
+/** Products explicitly recorded as compatible with linked tool products. */
 function dtb_schematic_resolve_compatible_part_product_ids( array $linked_product_ids ): array {
 	if ( empty( $linked_product_ids ) || ! function_exists( 'dtb_product_mapping_repo_get_compatibility' ) ) {
 		return [];
