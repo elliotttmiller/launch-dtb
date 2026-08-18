@@ -117,7 +117,7 @@ export interface CatalogEvidencePacket {
 }
 
 export interface DomainClassification {
-  domainId: DrywallProductDomain;
+  domainId: DrywallProductDomain | null;
   confidence: 'high' | 'medium' | 'low';
   reasons: string[];
 }
@@ -152,5 +152,6 @@ export interface CompiledDrywallContext {
 
 export interface CatalogEditorKnowledgeResult {
   classification: DomainClassification;
-  context: CompiledDrywallContext;
+  reviewRequired: boolean;
+  context: CompiledDrywallContext | null;
 }
