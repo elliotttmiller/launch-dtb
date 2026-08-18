@@ -22,10 +22,10 @@ const DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS = 'optimize_hotspots';
 const DTB_SCHEMATIC_OPERATION_MAX_SELECTED     = 50;
 
 function dtb_schematic_run_operation( array $args = [] ) {
-	$kind       = sanitize_key( (string) ( $args['kind'] ?? '' ) );
-	$dry_run    = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
+	$kind        = sanitize_key( (string) ( $args['kind'] ?? '' ) );
+	$dry_run     = array_key_exists( 'dry_run', $args ) ? (bool) $args['dry_run'] : true;
 	$operator_id = max( 0, (int) ( $args['operator_id'] ?? get_current_user_id() ) );
-	$selected   = dtb_schematic_operation_selected_ids( $args['schematic_ids'] ?? [] );
+	$selected    = dtb_schematic_operation_selected_ids( $args['schematic_ids'] ?? [] );
 	$trusted_cli = ! empty( $args['trusted_cli'] ) && defined( 'WP_CLI' ) && WP_CLI;
 	$all_records = in_array( $kind, [ DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS, DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS ], true ) && ! empty( $args['all_records'] );
 
@@ -43,6 +43,13 @@ function dtb_schematic_run_operation( array $args = [] ) {
 	$request = [ 'schematic_ids' => $selected, 'all_records' => $all_records ];
 	if ( $all_records ) {
 		$request['per_page'] = max( 1, min( 100, (int) ( $args['per_page'] ?? 25 ) ) );
+	}
+	if ( DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS === $kind && ! $dry_run ) {
+		$approved_fingerprint = strtolower( trim( (string) ( $args['approved_fingerprint'] ?? '' ) ) );
+		if ( ! preg_match( '/^[a-f0-9]{64}$/', $approved_fingerprint ) ) {
+			return new WP_Error( 'dtb_schematic_hotspot_approval_required', __( 'A valid operator-reviewed hotspot resolution plan is required before any hotspot optimizer commit.', 'drywall-toolbox' ) );
+		}
+		$request['approved_fingerprint'] = $approved_fingerprint;
 	}
 	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) {
 		$request['batch_size'] = max( 1, min( DTB_SCHEMATIC_RECONCILE_MAX_BATCH_SIZE, (int) ( $args['batch_size'] ?? DTB_SCHEMATIC_RECONCILE_DEFAULT_BATCH_SIZE ) ) );
@@ -124,6 +131,31 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 		];
 	}
 	if ( DTB_SCHEMATIC_OPERATION_OPTIMIZE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
+		if ( ! $dry_run ) {
+			if ( $heartbeat ) {
+				$renewed = $heartbeat();
+				if ( is_wp_error( $renewed ) ) {
+					return [ 'dry_run' => false, 'examined' => 0, 'changed' => 0, 'failed' => 1, 'unresolved' => 0, 'results' => [], 'fatal_error' => $renewed->get_error_message() ];
+				}
+			}
+			$preview = dtb_schematic_hotspot_optimizer_run( [
+				'dry_run'  => true,
+				'per_page' => $request['per_page'] ?? DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE,
+			] );
+			$plan = dtb_schematic_hotspot_build_resolution_plan( $preview );
+			$actual_fingerprint = (string) ( $plan['fingerprint'] ?? '' );
+			if ( empty( $plan['can_apply'] ) || '' === $actual_fingerprint || ! hash_equals( (string) $request['approved_fingerprint'], $actual_fingerprint ) ) {
+				return [
+					'dry_run'     => false,
+					'examined'    => (int) ( $preview['examined'] ?? 0 ),
+					'changed'     => 0,
+					'failed'      => 1,
+					'unresolved'  => (int) ( $preview['unresolved'] ?? 0 ),
+					'results'     => [],
+					'fatal_error' => 'The approved hotspot resolution plan changed or is no longer eligible before commit. No writes were made.',
+				];
+			}
+		}
 		return dtb_schematic_hotspot_optimizer_run( [
 			'dry_run'         => $dry_run,
 			'per_page'        => $request['per_page'] ?? DTB_SCHEMATIC_HOTSPOT_OPTIMIZER_PER_PAGE,
@@ -133,8 +165,8 @@ function dtb_schematic_operation_execute( string $kind, bool $dry_run, array $re
 	if ( DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS === $kind && ! empty( $request['all_records'] ) ) {
 		return dtb_schematic_migrate_hotspot_datasets(
 			[
-				'dry_run'        => $dry_run,
-				'per_page'       => $request['per_page'],
+				'dry_run'         => $dry_run,
+				'per_page'        => $request['per_page'],
 				'lease_heartbeat' => $heartbeat,
 			]
 		);
