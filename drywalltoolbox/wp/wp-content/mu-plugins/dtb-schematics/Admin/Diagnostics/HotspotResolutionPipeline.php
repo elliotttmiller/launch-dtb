@@ -205,7 +205,7 @@ function dtb_schematic_hotspot_pipeline_render_plan( array $run, array $plan, bo
 		echo '<table class="widefat striped"><thead><tr><th>Schematic</th><th>Source part</th><th>Target product</th><th>Method</th><th>Hotspots</th></tr></thead><tbody>';
 		foreach ( array_slice( $repairs, 0, 250 ) as $repair ) {
 			$product = (array) ( $repair['product'] ?? [] );
-			echo '<tr><td>' . esc_html( (string) ( $repair['canonical_id'] ?? $repair['schematic_id'] ?? '' ) ) . '</td><td>' . esc_html( trim( (string) ( $repair['source_sku'] ?? '' ) . ' ' . (string) ( $repair['title'] ?? '' ) ) ) . '</td><td>' . esc_html( trim( '#' . (int) ( $repair['product_id'] ?? 0 ) . ' ' . (string) ( $product['sku'] ?? '' ) . ' ' . (string) ( $product['name'] ?? '' ) ) ) . '</td><td>' . esc_html( (string) ( $repair['resolution_method'] ?? '' ) ) . '</td><td>' . esc_html( number_format_i18n( (int) ( $repair['occurrences'] ?? 0 ) ) . '</td></tr>';
+			echo '<tr><td>' . esc_html( (string) ( $repair['canonical_id'] ?? $repair['schematic_id'] ?? '' ) ) . '</td><td>' . esc_html( trim( (string) ( $repair['source_sku'] ?? '' ) . ' ' . (string) ( $repair['title'] ?? '' ) ) ) . '</td><td>' . esc_html( trim( '#' . (int) ( $repair['product_id'] ?? 0 ) . ' ' . (string) ( $product['sku'] ?? '' ) . ' ' . (string) ( $product['name'] ?? '' ) ) ) . '</td><td>' . esc_html( (string) ( $repair['resolution_method'] ?? '' ) ) . '</td><td>' . esc_html( number_format_i18n( (int) ( $repair['occurrences'] ?? 0 ) ) ) . '</td></tr>';
 		}
 		echo '</tbody></table>';
 	}
