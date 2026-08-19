@@ -180,8 +180,10 @@ def _taxonomy_consistency(row: dict[str, str]) -> tuple[bool, str]:
     if not state["known"] or state["consistent"]:
         return True, ""
     return False, (
-        f"category_key={state['category_key'] or '(blank)'}; "
-        f"display_category_key={state['display_category_key'] or '(blank)'}; "
+        f"raw_category_key={state['raw_category_key'] or '(blank)'}; "
+        f"raw_display_category_key={state['raw_display_category_key'] or '(blank)'}; "
+        f"normalized_category_key={state['category_key'] or '(blank)'}; "
+        f"normalized_display_category_key={state['display_category_key'] or '(blank)'}; "
         f"expected_category_key={state['expected_category_key']}; "
         f"expected_display_category_key={state['expected_display_category_key']}; "
         f"policy={state['reason']}"
