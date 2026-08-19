@@ -32,16 +32,34 @@ def value(row: dict[str, str], field: str) -> str:
 
 
 def strip_brand_from_categories(raw: str, brand: str) -> str:
-    """Remove the current row's brand from Woo category paths without a brand list."""
+    """Remove a legacy brand segment only from the expected hierarchy position.
+
+    Brand identity belongs in the dedicated Brands field. To avoid deleting a
+    legitimate functional category that happens to equal a manufacturer name,
+    only strip the brand when it is the second path segment beneath a recognized
+    catalog root, matching the legacy `Root > Brand > ...` structure.
+    """
+
     if not raw.strip() or not brand.strip():
         return raw.strip()
+
+    recognized_roots = {"drywall finishing tools", "stilts & accessories"}
     normalized_paths: list[str] = []
+    brand_folded = brand.strip().casefold()
+
     for path in raw.split(","):
         segments = [segment.strip() for segment in path.split(">") if segment.strip()]
-        segments = [segment for segment in segments if segment.casefold() != brand.strip().casefold()]
+        if (
+            len(segments) >= 2
+            and segments[0].casefold() in recognized_roots
+            and segments[1].casefold() == brand_folded
+        ):
+            segments = [segments[0], *segments[2:]]
+
         cleaned = " > ".join(segments)
         if cleaned and cleaned not in normalized_paths:
             normalized_paths.append(cleaned)
+
     return ", ".join(normalized_paths)
 
 
@@ -60,13 +78,12 @@ def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
                     "field": "Categories",
                     "current": current_categories,
                     "expected": normalized_categories,
-                    "reason": "brand identity belongs in Brands, not product-category paths",
+                    "reason": "legacy brand segment removed from root-level product taxonomy path",
                 }
             )
 
         expectation = expected_taxonomy(
             product_kind=value(row, PRODUCT_KIND_FIELD),
-            category_key=value(row, CATEGORY_FIELD),
             display_category_key=value(row, DISPLAY_FIELD),
         )
         if expectation is None:
