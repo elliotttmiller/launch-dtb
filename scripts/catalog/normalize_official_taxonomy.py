@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Normalize canonical catalog taxonomy with one brand-independent policy.
 
-Preview is the default. --apply mutates only Categories, Meta: _dtb_category_key,
-and Meta: _dtb_display_category_key, creates the standard sibling rollback
-snapshot, and re-validates the complete canonical catalog.
+Preview is the default. --apply may remove recognized legacy brand path segments
+and may mutate taxonomy fields only for deterministic broad-category mismatches.
+Ambiguous and display-only taxonomy findings remain review-only. Mutations create
+the standard sibling rollback snapshot and re-validate the complete catalog.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from catalog_taxonomy_policy import expected_taxonomy
+from catalog_taxonomy_policy import taxonomy_state
 from official_catalog_schema import CatalogValidationError, create_catalog_backup, validate_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -32,13 +33,7 @@ def value(row: dict[str, str], field: str) -> str:
 
 
 def strip_brand_from_categories(raw: str, brand: str) -> str:
-    """Remove a legacy brand segment only from the expected hierarchy position.
-
-    Brand identity belongs in the dedicated Brands field. To avoid deleting a
-    legitimate functional category that happens to equal a manufacturer name,
-    only strip the brand when it is the second path segment beneath a recognized
-    catalog root, matching the legacy `Root > Brand > ...` structure.
-    """
+    """Remove a legacy brand segment only from the expected hierarchy position."""
 
     if not raw.strip() or not brand.strip():
         return raw.strip()
@@ -64,6 +59,8 @@ def strip_brand_from_categories(raw: str, brand: str) -> str:
 
 
 def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    """Return only mutation-safe changes; review-only taxonomy is excluded."""
+
     changes: list[dict[str, str]] = []
     for row in rows:
         sku = value(row, "SKU")
@@ -79,38 +76,60 @@ def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
                     "current": current_categories,
                     "expected": normalized_categories,
                     "reason": "legacy brand segment removed from root-level product taxonomy path",
+                    "finding": "taxonomy_deterministic_mismatch",
                 }
             )
 
-        expectation = expected_taxonomy(
+        state = taxonomy_state(
             product_kind=value(row, PRODUCT_KIND_FIELD),
+            category_key=value(row, CATEGORY_FIELD),
             display_category_key=value(row, DISPLAY_FIELD),
         )
-        if expectation is None:
+        if state["disposition"] != "deterministic_mismatch":
             continue
-        if value(row, CATEGORY_FIELD).lower() != expectation.category_key:
+
+        expected_category = str(state["expected_category_key"] or "")
+        expected_display = str(state["expected_display_category_key"] or "")
+        if value(row, CATEGORY_FIELD).lower().replace("-", "_").replace(" ", "_") != expected_category:
             changes.append(
                 {
                     "sku": sku,
                     "brand": brand,
                     "field": CATEGORY_FIELD,
                     "current": value(row, CATEGORY_FIELD),
-                    "expected": expectation.category_key,
-                    "reason": expectation.reason,
+                    "expected": expected_category,
+                    "reason": str(state["reason"] or "deterministic taxonomy policy"),
+                    "finding": "taxonomy_deterministic_mismatch",
                 }
             )
-        if value(row, DISPLAY_FIELD).lower() != expectation.display_category_key:
+        if expected_display and value(row, DISPLAY_FIELD).lower().replace("-", "_").replace(" ", "_") != expected_display:
             changes.append(
                 {
                     "sku": sku,
                     "brand": brand,
                     "field": DISPLAY_FIELD,
                     "current": value(row, DISPLAY_FIELD),
-                    "expected": expectation.display_category_key,
-                    "reason": expectation.reason,
+                    "expected": expected_display,
+                    "reason": str(state["reason"] or "deterministic taxonomy policy"),
+                    "finding": "taxonomy_deterministic_mismatch",
                 }
             )
     return changes
+
+
+def review_counts(rows: list[dict[str, str]]) -> dict[str, int]:
+    counts = {"taxonomy_ambiguous_review": 0, "display_taxonomy_mismatch": 0}
+    for row in rows:
+        state = taxonomy_state(
+            product_kind=value(row, PRODUCT_KIND_FIELD),
+            category_key=value(row, CATEGORY_FIELD),
+            display_category_key=value(row, DISPLAY_FIELD),
+        )
+        if state["disposition"] == "ambiguous_review":
+            counts["taxonomy_ambiguous_review"] += 1
+        elif state["disposition"] == "display_mismatch":
+            counts["display_taxonomy_mismatch"] += 1
+    return counts
 
 
 def apply_changes(rows: list[dict[str, str]], changes: list[dict[str, str]]) -> None:
@@ -146,7 +165,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--report", type=Path)
-    parser.add_argument("--apply", action="store_true", help="Apply reviewed universal taxonomy fixes. Default is preview-only.")
+    parser.add_argument("--apply", action="store_true", help="Apply deterministic taxonomy fixes only. Default is preview-only.")
     args = parser.parse_args()
 
     catalog = args.catalog.resolve()
@@ -158,12 +177,15 @@ def main() -> int:
         rows = list(reader)
 
     changes = build_changes(rows)
+    reviews = review_counts(rows)
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog": catalog.relative_to(ROOT).as_posix() if catalog.is_relative_to(ROOT) else str(catalog),
         "applied": False,
+        "safe_fix_finding": "taxonomy_deterministic_mismatch",
         "change_count": len(changes),
         "changed_skus": len({change["sku"] for change in changes}),
+        "review_only": reviews,
         "by_field": {
             field: sum(1 for change in changes if change["field"] == field)
             for field in ("Categories", CATEGORY_FIELD, DISPLAY_FIELD)

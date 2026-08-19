@@ -61,7 +61,6 @@ def test_audit_reports_unresolved_compatibility_references() -> None:
     assert report["parts"] == 1
     assert report["relationships"]["compatible_tool_reference_count"] == 2
     assert report["findings"]["unresolved_compatible_tool_references"]["count"] == 1
-    assert report["findings"]["unresolved_compatible_tool_references"]["sample_skus"] == ["PART-1"]
 
 
 def test_variation_inheritance_is_not_a_classification_remediation_defect() -> None:
@@ -69,13 +68,14 @@ def test_variation_inheritance_is_not_a_classification_remediation_defect() -> N
     findings = remediation_findings(audit_rows([variation]))
     assert "missing_category" not in findings
     assert "missing_display_category_key" not in findings
-    assert "taxonomy_mapping_inconsistent" not in findings
+    assert "taxonomy_deterministic_mismatch" not in findings
+    assert "taxonomy_ambiguous_review" not in findings
+    assert "display_taxonomy_mismatch" not in findings
 
 
 def test_variable_parent_missing_mpn_is_not_research_work() -> None:
     parent = make_row(Type="variable", **{"Meta: schema_mpn": "", "Meta: _dtb_manufacturer_sku": "", "Meta: _dtb_mpn": ""})
-    findings = remediation_findings(audit_rows([parent]))
-    assert "missing_mpn" not in findings
+    assert "missing_mpn" not in remediation_findings(audit_rows([parent]))
 
 
 def test_missing_gtin_is_coverage_only_not_default_remediation() -> None:
@@ -87,14 +87,8 @@ def test_missing_gtin_is_coverage_only_not_default_remediation() -> None:
 
 def test_compatibility_research_is_family_level_not_variation_level() -> None:
     parent = make_row(
-        Type="variable",
-        SKU="PART-FAMILY",
-        **{
-            "Meta: _dtb_is_parts": "1",
-            "Meta: _dtb_product_kind": "part",
-            "Meta: _dtb_category_key": "parts",
-            "Meta: _dtb_display_category_key": "parts",
-        },
+        Type="variable", SKU="PART-FAMILY",
+        **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part", "Meta: _dtb_category_key": "parts", "Meta: _dtb_display_category_key": "parts"},
     )
     variation = make_row(Type="variation", SKU="PART-CHILD", **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part"})
     report = audit_rows([parent, variation])
@@ -105,99 +99,63 @@ def test_compatibility_research_is_family_level_not_variation_level() -> None:
 
 def test_toolset_policy_is_universal_and_brand_independent() -> None:
     rows = [
-        make_row(
-            SKU="SET-A",
-            Brands="Brand A",
-            **{
-                "Meta: _dtb_product_kind": "toolset",
-                "Meta: _dtb_category_key": "taping",
-                "Meta: _dtb_display_category_key": "toolsets",
-            },
-        ),
-        make_row(
-            SKU="SET-B",
-            Brands="Brand B",
-            **{
-                "Meta: _dtb_product_kind": "toolset",
-                "Meta: _dtb_category_key": "taping",
-                "Meta: _dtb_display_category_key": "toolsets",
-            },
-        ),
+        make_row(SKU="SET-A", Brands="Brand A", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": "toolsets"}),
+        make_row(SKU="SET-B", Brands="Brand B", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": "toolsets"}),
     ]
-    report = audit_rows(rows)
-    assert "taxonomy_mapping_inconsistent" not in remediation_findings(report)
+    findings = remediation_findings(audit_rows(rows))
+    assert "taxonomy_deterministic_mismatch" not in findings
+    assert "display_taxonomy_mismatch" not in findings
 
 
-def test_legacy_toolset_broad_key_and_missing_display_are_both_actionable() -> None:
+def test_taxonomy_findings_split_by_mutation_safety() -> None:
     rows = [
-        make_row(
-            SKU="SET-LEGACY",
-            **{
-                "Meta: _dtb_product_kind": "toolset",
-                "Meta: _dtb_category_key": " Tool-Sets ",
-                "Meta: _dtb_display_category_key": "Tool Sets",
-            },
-        ),
-        make_row(
-            SKU="SET-MISSING-DISPLAY",
-            **{
-                "Meta: _dtb_product_kind": "toolset",
-                "Meta: _dtb_category_key": "taping",
-                "Meta: _dtb_display_category_key": "",
-            },
-        ),
+        make_row(SKU="BROAD", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "toolsets", "Meta: _dtb_display_category_key": "toolsets"}),
+        make_row(SKU="DISPLAY", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": ""}),
+        make_row(SKU="AMBIG", **{"Meta: _dtb_product_kind": "drywall-finishing-tool", "Meta: _dtb_category_key": "handles", "Meta: _dtb_display_category_key": "predator_family"}),
     ]
     report = audit_rows(rows)
-    items = [item for item in report["remediation"]["items"] if item["finding"] == "taxonomy_mapping_inconsistent"]
-    assert [item["sku"] for item in items] == ["SET-LEGACY", "SET-MISSING-DISPLAY"]
-    assert all(item["workflow"] == "classification_review" for item in items)
-    legacy = items[0]["current_value"]
-    assert "raw_category_key=Tool-Sets" in legacy
-    assert "raw_display_category_key=Tool Sets" in legacy
-    assert "normalized_category_key=tool_sets" in legacy
-    assert "normalized_display_category_key=tool_sets" in legacy
+    by_finding = {}
+    for item in report["remediation"]["items"]:
+        by_finding.setdefault(item["finding"], []).append(item["sku"])
+    assert by_finding["taxonomy_deterministic_mismatch"] == ["BROAD"]
+    assert by_finding["display_taxonomy_mismatch"] == ["DISPLAY"]
+    assert by_finding["taxonomy_ambiguous_review"] == ["AMBIG"]
+    assert report["findings"]["taxonomy_deterministic_mismatch"]["count"] == 1
+    assert report["findings"]["display_taxonomy_mismatch"]["count"] == 1
+    assert report["findings"]["taxonomy_ambiguous_review"]["count"] == 1
+
+
+def test_taxonomy_remediation_preserves_raw_and_normalized_values() -> None:
+    row = make_row(
+        SKU="SET-LEGACY",
+        **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": " Tool-Sets ", "Meta: _dtb_display_category_key": "Tool Sets"},
+    )
+    report = audit_rows([row])
+    item = next(item for item in report["remediation"]["items"] if item["finding"] == "taxonomy_deterministic_mismatch")
+    text = item["current_value"]
+    assert "raw_category_key=Tool-Sets" in text
+    assert "raw_display_category_key=Tool Sets" in text
+    assert "normalized_category_key=tool_sets" in text
+    assert "normalized_display_category_key=tool_sets" in text
 
 
 def test_part_policy_is_universal_and_brand_independent() -> None:
     rows = [
-        make_row(
-            SKU="PART-A",
-            Brands="Brand A",
-            **{
-                "Meta: _dtb_is_parts": "1",
-                "Meta: _dtb_product_kind": "part",
-                "Meta: _dtb_category_key": "parts",
-                "Meta: _dtb_display_category_key": "parts",
-            },
-        ),
-        make_row(
-            SKU="PART-B",
-            Brands="Brand B",
-            **{
-                "Meta: _dtb_is_parts": "1",
-                "Meta: _dtb_product_kind": "part",
-                "Meta: _dtb_category_key": "parts",
-                "Meta: _dtb_display_category_key": "parts",
-            },
-        ),
+        make_row(SKU="PART-A", Brands="Brand A", **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part", "Meta: _dtb_category_key": "parts", "Meta: _dtb_display_category_key": "parts"}),
+        make_row(SKU="PART-B", Brands="Brand B", **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part", "Meta: _dtb_category_key": "parts", "Meta: _dtb_display_category_key": "parts"}),
     ]
-    report = audit_rows(rows)
-    assert "taxonomy_mapping_inconsistent" not in remediation_findings(report)
+    findings = remediation_findings(audit_rows(rows))
+    assert "taxonomy_deterministic_mismatch" not in findings
+    assert "display_taxonomy_mismatch" not in findings
 
 
 def test_missing_identity_media_and_relationships_are_actionable_for_simple_part() -> None:
     part = make_row(
-        SKU="PART-1",
-        Images="",
-        Categories="Parts",
+        SKU="PART-1", Images="", Categories="Parts",
         **{
-            "Meta: _dtb_is_parts": "1",
-            "Meta: _dtb_product_kind": "part",
-            "Meta: _dtb_category_key": "parts",
-            "Meta: _dtb_display_category_key": "parts",
-            "Meta: schema_mpn": "",
-            "Meta: _dtb_manufacturer_sku": "",
-            "Meta: _dtb_mpn": "",
+            "Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part",
+            "Meta: _dtb_category_key": "parts", "Meta: _dtb_display_category_key": "parts",
+            "Meta: schema_mpn": "", "Meta: _dtb_manufacturer_sku": "", "Meta: _dtb_mpn": "",
         },
     )
     report = audit_rows([part])

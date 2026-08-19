@@ -169,23 +169,29 @@ def _segmented_coverage(rows: list[dict[str, str]]) -> dict[str, object]:
     return result
 
 
-def _taxonomy_consistency(row: dict[str, str]) -> tuple[bool, str]:
+def _taxonomy_finding(row: dict[str, str]) -> tuple[str | None, str]:
     if _is_variation(row):
-        return True, ""
+        return None, ""
     state = taxonomy_state(
         product_kind=_value(row, "Meta: _dtb_product_kind"),
         category_key=_value(row, "Meta: _dtb_category_key"),
         display_category_key=_value(row, "Meta: _dtb_display_category_key"),
     )
-    if not state["known"] or state["consistent"]:
-        return True, ""
-    return False, (
+    disposition = str(state["disposition"])
+    if disposition in {"consistent", "unknown"}:
+        return None, ""
+    finding = {
+        "deterministic_mismatch": "taxonomy_deterministic_mismatch",
+        "ambiguous_review": "taxonomy_ambiguous_review",
+        "display_mismatch": "display_taxonomy_mismatch",
+    }[disposition]
+    return finding, (
         f"raw_category_key={state['raw_category_key'] or '(blank)'}; "
         f"raw_display_category_key={state['raw_display_category_key'] or '(blank)'}; "
         f"normalized_category_key={state['category_key'] or '(blank)'}; "
         f"normalized_display_category_key={state['display_category_key'] or '(blank)'}; "
-        f"expected_category_key={state['expected_category_key']}; "
-        f"expected_display_category_key={state['expected_display_category_key']}; "
+        f"expected_category_key={state['expected_category_key'] or '(review)'}; "
+        f"expected_display_category_key={state['expected_display_category_key'] or '(review)'}; "
         f"policy={state['reason']}"
     )
 
@@ -214,7 +220,11 @@ def audit_rows(rows: list[dict[str, str]], *, reference_skus: set[str] | None = 
 
     malformed_specs: list[str] = []
     duplicate_spec_labels: list[str] = []
-    taxonomy_inconsistent: list[str] = []
+    taxonomy_findings: dict[str, list[str]] = {
+        "taxonomy_deterministic_mismatch": [],
+        "taxonomy_ambiguous_review": [],
+        "display_taxonomy_mismatch": [],
+    }
     total_spec_entries = 0
     remediation: list[dict[str, str]] = []
 
@@ -240,12 +250,12 @@ def audit_rows(rows: list[dict[str, str]], *, reference_skus: set[str] | None = 
             if len(labels) != len(set(labels)):
                 duplicate_spec_labels.append(sku)
 
-        taxonomy_ok, taxonomy_state_text = _taxonomy_consistency(row)
-        if not taxonomy_ok:
-            taxonomy_inconsistent.append(sku)
+        taxonomy_finding, taxonomy_state_text = _taxonomy_finding(row)
+        if taxonomy_finding:
+            taxonomy_findings[taxonomy_finding].append(sku)
             remediation.append(_remediation(
                 row,
-                finding="taxonomy_mapping_inconsistent",
+                finding=taxonomy_finding,
                 workflow="classification_review",
                 field="Meta: _dtb_category_key / Meta: _dtb_display_category_key",
                 current_value=taxonomy_state_text,
@@ -309,7 +319,9 @@ def audit_rows(rows: list[dict[str, str]], *, reference_skus: set[str] | None = 
         "findings": {
             "malformed_spec_entries": _sample_findings(malformed_specs),
             "duplicate_spec_labels": _sample_findings(duplicate_spec_labels),
-            "taxonomy_inconsistent": _sample_findings(taxonomy_inconsistent),
+            "taxonomy_deterministic_mismatch": _sample_findings(taxonomy_findings["taxonomy_deterministic_mismatch"]),
+            "taxonomy_ambiguous_review": _sample_findings(taxonomy_findings["taxonomy_ambiguous_review"]),
+            "display_taxonomy_mismatch": _sample_findings(taxonomy_findings["display_taxonomy_mismatch"]),
             "unresolved_compatible_tool_references": _sample_findings(unresolved_compatible_refs),
             "unresolved_replacement_references": _sample_findings(unresolved_replacement_refs),
         },
