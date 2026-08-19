@@ -72,7 +72,7 @@ try {
         Write-Host 'Apply reviewed canonical URL safe fixes'
         Invoke-CatalogStage -Name 'seo_canonical_safe_fixes' -Script $seoCanonicalFixes -Arguments @('--catalog', $catalog, '--report', $seoCanonicalFixPath, '--apply') -DiscardOutput | Out-Null
 
-        Write-Host 'Apply universal cross-brand taxonomy safe fixes'
+        Write-Host 'Apply deterministic taxonomy safe fixes'
         Invoke-CatalogStage -Name 'taxonomy_safe_fixes' -Script $taxonomyFixes -Arguments @('--catalog', $catalog, '--report', $taxonomyFixPath, '--apply') -DiscardOutput | Out-Null
 
         Write-Host 'Revalidate canonical catalog after safe fixes'
@@ -107,7 +107,7 @@ finally {
     if ($LASTEXITCODE -ne 0) { $gitCommit = '' }
 
     $summary = [ordered]@{
-        schema_version = 4
+        schema_version = 5
         status = $runStatus
         started_at = $runStarted
         completed_at = Get-UtcTimestamp
@@ -136,9 +136,11 @@ finally {
             taxonomy = if ($taxonomyFixSummary) {
                 [ordered]@{
                     applied = $taxonomyFixSummary.applied
+                    safe_fix_finding = $taxonomyFixSummary.safe_fix_finding
                     change_count = $taxonomyFixSummary.change_count
                     changed_skus = $taxonomyFixSummary.changed_skus
                     by_field = $taxonomyFixSummary.by_field
+                    review_only = $taxonomyFixSummary.review_only
                 }
             } else { $null }
         }
