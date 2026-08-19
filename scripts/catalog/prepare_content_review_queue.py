@@ -38,6 +38,10 @@ def clean_code(code: str) -> str:
     return code.split(":", 1)[1] if ":" in code else code
 
 
+def bool_text(value: object) -> str:
+    return "true" if bool(value) else "false"
+
+
 def build_queue(
     findings_path: Path,
     packets_path: Path,
@@ -67,6 +71,9 @@ def build_queue(
                     "brand": str(facts.get("brand") or identity.get("Brands") or ""),
                     "name": str(facts.get("name") or identity.get("Name") or ""),
                     "product_class": str(packet.get("product_class") or "") if isinstance(packet, dict) else "",
+                    "product_type": str(facts.get("product_type") or ""),
+                    "parent_sku": str(facts.get("parent_sku") or ""),
+                    "generation_eligible": bool_text(packet.get("generation_eligible")) if isinstance(packet, dict) else "false",
                     "workflow": workflow,
                     "severity": (finding.get("severity") or "").strip(),
                     "finding_code": (finding.get("code") or "").strip(),
@@ -90,11 +97,11 @@ def build_queue(
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = (
-        "sku", "brand", "name", "product_class", "workflow", "severity",
-        "finding_code", "review_topic", "field", "message", "mpn", "gtin",
-        "schematic_id", "compatible_tool_skus", "specification_count",
-        "source_description", "source_short_description", "source_seo_description",
-        "protected_identity_sha256",
+        "sku", "brand", "name", "product_class", "product_type", "parent_sku",
+        "generation_eligible", "workflow", "severity", "finding_code", "review_topic",
+        "field", "message", "mpn", "gtin", "schematic_id", "compatible_tool_skus",
+        "specification_count", "source_description", "source_short_description",
+        "source_seo_description", "protected_identity_sha256",
     )
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -122,12 +129,23 @@ def main() -> int:
     summary_path = output_dir / f"{stem}-summary.json"
     write_csv(queue_path, queue)
 
+    eligible_rows = [row for row in queue if row["generation_eligible"] == "true"]
+    noneligible_rows = [row for row in queue if row["generation_eligible"] != "true"]
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "workflow": args.workflow,
         "mutates_catalog": False,
         "rows": len(queue),
         "unique_skus": len({row["sku"] for row in queue}),
+        "generation_eligible": {
+            "rows": len(eligible_rows),
+            "unique_skus": len({row["sku"] for row in eligible_rows}),
+        },
+        "non_generation_eligible": {
+            "rows": len(noneligible_rows),
+            "unique_skus": len({row["sku"] for row in noneligible_rows}),
+        },
+        "by_product_type": dict(sorted(Counter(row["product_type"] or "(blank)" for row in queue).items())),
         "by_brand": dict(sorted(Counter(row["brand"] or "(blank)" for row in queue).items())),
         "by_topic": dict(Counter(row["review_topic"] for row in queue).most_common()),
         "output": queue_path.relative_to(ROOT).as_posix() if queue_path.is_relative_to(ROOT) else str(queue_path),
