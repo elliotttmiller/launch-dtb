@@ -53,7 +53,6 @@ def normalize_key(value: str | None) -> str:
 def expected_taxonomy(
     *,
     product_kind: str | None,
-    category_key: str | None,
     display_category_key: str | None,
 ) -> TaxonomyExpectation | None:
     """Return the universal taxonomy expectation when policy is deterministic.
@@ -83,17 +82,22 @@ def taxonomy_state(
     category_key: str | None,
     display_category_key: str | None,
 ) -> dict[str, str | bool | None]:
+    """Return raw and normalized taxonomy state for validation/reporting."""
+
     expected = expected_taxonomy(
         product_kind=product_kind,
-        category_key=category_key,
         display_category_key=display_category_key,
     )
+    raw_category = (category_key or "").strip()
+    raw_display = (display_category_key or "").strip()
     current_category = normalize_key(category_key)
     current_display = normalize_key(display_category_key)
     if expected is None:
         return {
             "known": False,
             "consistent": True,
+            "raw_category_key": raw_category,
+            "raw_display_category_key": raw_display,
             "category_key": current_category,
             "display_category_key": current_display,
             "expected_category_key": None,
@@ -106,6 +110,8 @@ def taxonomy_state(
             current_category == expected.category_key
             and current_display == expected.display_category_key
         ),
+        "raw_category_key": raw_category,
+        "raw_display_category_key": raw_display,
         "category_key": current_category,
         "display_category_key": current_display,
         "expected_category_key": expected.category_key,
