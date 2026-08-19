@@ -79,17 +79,25 @@ class CanonicalTests(unittest.TestCase):
         result = pre.canonical_recommendation(row(**{"Meta: _dtb_seo_canonical": "/products/columbia-tools-6-32-hex-nut-fa232"}))
         self.assertEqual("clear_redundant_override", result["action"])
 
+    def test_only_canonical_conflict_is_blocking(self):
+        _, findings = pre.build_packet(row())
+        canonical = next(f for f in findings if f.code == "canonical_conflict")
+        self.assertEqual("blocking", pre.finding_workflow(canonical))
+
 
 class EvidenceTests(unittest.TestCase):
-    def test_marketing_claim_is_flagged_not_rewritten(self):
+    def test_marketing_claim_is_accuracy_review_not_blocking(self):
         packet, findings = pre.build_packet(row(Description="Precision-machined for peak performance and maximum durability."))
-        codes = {finding.code for finding in findings}
-        self.assertIn("claim_needs_evidence:precision_manufacturing", codes)
-        self.assertIn("claim_needs_evidence:performance_superlative", codes)
+        by_code = {finding.code: finding for finding in findings}
+        self.assertEqual("accuracy_review", pre.finding_workflow(by_code["claim_needs_evidence:precision_manufacturing"]))
         self.assertEqual("Precision-machined for peak performance and maximum durability.", packet["source_copy"]["description"])
 
     def test_identity_digest_changes_when_protected_identifier_changes(self):
         self.assertNotEqual(pre.protected_identity_digest(row()), pre.protected_identity_digest(row(SKU="FA233")))
+
+    def test_evidence_grade_does_not_double_count_mpn_aliases(self):
+        grade = pre.evidence_coverage_grade(row(), [], [])
+        self.assertEqual("B", grade)
 
 
 class GenerationScopeTests(unittest.TestCase):

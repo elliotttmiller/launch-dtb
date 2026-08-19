@@ -16,6 +16,7 @@ It performs only deterministic, local, non-mutating stages:
 dtb_official_catalog.csv
   -> structural validation
   -> enrichment-quality audit
+  -> SKU-level remediation manifest
   -> evidence-bounded content/SEO preparation
   -> reviewable derived artifacts
 ```
@@ -46,15 +47,24 @@ Retain. This is the first gate for every full-catalog workflow.
 
 #### `audit_official_catalog_enrichment.py`
 
-Role: read-only completeness and relationship-quality report.
+Role: read-only completeness, segmentation, relationship-quality, and SKU-level remediation report.
 
-Retain. It identifies missing or malformed enrichment without guessing replacement values.
+Retain. It identifies missing or malformed enrichment without guessing replacement values. The audit emits both aggregate coverage and a `catalog-remediation.csv` work queue. Missing WooCommerce `Categories` or display-category values on variation rows are not treated as independent defects merely because variations inherit parent context.
 
 #### `catalog_seo_pre_generation.py`
 
 Role: deterministic normalization and evidence-packet preparation for editorial/SEO work.
 
 Retain. It protects identity, separates product facts from domain knowledge, and emits review findings without generating or applying copy.
+
+The pre-generation report separates workflows:
+
+- `blocking` — deterministic routing/canonical conflicts that must be fixed before downstream generation/application;
+- `accuracy_review` — existing claims that require authoritative evidence before reuse;
+- `evidence_review` — insufficient structured evidence;
+- `editorial_review` — length, repetition, metadata and copy-quality observations.
+
+Editorial guidance does not become a catalog blocker. The former `confidence` label is `evidence_coverage_grade`; it measures evidence-field coverage, not truth probability.
 
 ### External evidence acquisition
 
@@ -96,6 +106,24 @@ Role: deterministic media cleanup, conversion and product-media synchronization.
 
 Keep separate from semantic catalog enrichment. Media processing can be run after identity/mapping is stable, but it should not gate description/specification enrichment and must not become a product-fact authority.
 
+## Canonical URL cleanup
+
+The React storefront owns canonical product-detail URLs at `/products/:slug`. Explicit `Meta: _dtb_seo_canonical` values are unnecessary for ordinary published/indexable PDPs and can become stale.
+
+Preview the deterministic cleanup:
+
+```powershell
+.\scripts\catalog\clear-legacy-seo-canonicals.ps1
+```
+
+Apply after reviewing the report:
+
+```powershell
+.\scripts\catalog\clear-legacy-seo-canonicals.ps1 -Apply
+```
+
+The apply workflow creates a rollback snapshot, clears only `Meta: _dtb_seo_canonical` for published/indexable non-variation rows with an explicit override, and validates the canonical catalog afterward. It does not alter slugs, protected identifiers, taxonomy, copy, prices, or compatibility.
+
 ## AI/editorial boundary
 
 Generated product copy is a proposal, not product evidence.
@@ -118,26 +146,33 @@ The repository currently has a deterministic preparation boundary; a single cano
 A. PREPARE (always)
    validate official CSV
    -> enrichment-quality audit
+   -> SKU-level remediation manifest
    -> content/SEO evidence packets
 
-B. ACQUIRE EVIDENCE (only as needed)
+B. FIX DETERMINISTIC CATALOG DEFECTS
+   preview narrow field-specific migration
+   -> rollback snapshot
+   -> explicit apply
+   -> structural validation
+
+C. ACQUIRE EVIDENCE (only as needed)
    supplier evidence -> confirmed cost/shipping/spec candidates
    competitor research -> price observations only
    official manufacturer research -> product-fact candidates
 
-C. REVIEW
+D. REVIEW
    exact identifier match first
    -> provenance retained
    -> ambiguous/fuzzy candidates remain review-only
    -> no missing field is filled merely for completeness
 
-D. APPLY
+E. APPLY
    field-specific migrator
    -> rollback snapshot
    -> allowlisted writable fields
    -> fail closed on stale/missing/duplicate identity
 
-E. VERIFY
+F. VERIFY
    rerun structural validator
    -> rerun enrichment audit
    -> regenerate downstream evidence packets when protected identity/content changed
@@ -166,12 +201,15 @@ products/dev/catalog-enrichment/
 Expected outputs:
 
 - `catalog-enrichment-audit.json`
+- `catalog-remediation.csv`
 - `seo-pre-generation/generation-packets.jsonl`
 - `seo-pre-generation/pre-generation-findings.csv`
 - `seo-pre-generation/pre-generation-summary.json`
 - `run-summary.json`
 
-These files are operational artifacts, not canonical product truth.
+The directory is intentionally ignored by Git except for its local `.gitignore`. These files are reproducible operational artifacts, not canonical product truth, and must not be committed with machine-specific run paths.
+
+`run-summary.json` is the run manifest. It records the repository commit, input catalog SHA-256, timestamps, scope, per-stage results, remediation count, blocking finding count, evidence-coverage distribution, and relative artifact paths.
 
 ## Mutation rule
 
