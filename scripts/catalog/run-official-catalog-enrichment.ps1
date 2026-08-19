@@ -48,11 +48,13 @@ $output = Join-Path $root $OutputDir
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 
 $validator = Join-Path $PSScriptRoot 'validate_official_catalog.py'
-$safeFixes = Join-Path $PSScriptRoot 'clear_legacy_seo_canonicals.py'
+$seoCanonicalFixes = Join-Path $PSScriptRoot 'clear_legacy_seo_canonicals.py'
+$taxonomyFixes = Join-Path $PSScriptRoot 'normalize_official_taxonomy.py'
 $audit = Join-Path $PSScriptRoot 'audit_official_catalog_enrichment.py'
 $seo = Join-Path $PSScriptRoot 'catalog_seo_pre_generation.py'
 
-$safeFixPath = Join-Path $output 'safe-fixes.json'
+$seoCanonicalFixPath = Join-Path $output 'seo-canonical-safe-fixes.json'
+$taxonomyFixPath = Join-Path $output 'taxonomy-safe-fixes.json'
 $auditPath = Join-Path $output 'catalog-enrichment-audit.json'
 $remediationPath = Join-Path $output 'catalog-remediation.csv'
 $seoOutput = Join-Path $output 'seo-pre-generation'
@@ -67,8 +69,14 @@ try {
     Invoke-CatalogStage -Name 'validate' -Script $validator -Arguments @('--catalog', $catalog) -DiscardOutput | Out-Null
 
     if ($ApplySafeFixes) {
-        Write-Host 'Apply reviewed deterministic safe fixes'
-        Invoke-CatalogStage -Name 'safe_fixes' -Script $safeFixes -Arguments @('--catalog', $catalog, '--report', $safeFixPath, '--apply') -DiscardOutput | Out-Null
+        Write-Host 'Apply reviewed canonical URL safe fixes'
+        Invoke-CatalogStage -Name 'seo_canonical_safe_fixes' -Script $seoCanonicalFixes -Arguments @('--catalog', $catalog, '--report', $seoCanonicalFixPath, '--apply') -DiscardOutput | Out-Null
+
+        Write-Host 'Apply universal cross-brand taxonomy safe fixes'
+        Invoke-CatalogStage -Name 'taxonomy_safe_fixes' -Script $taxonomyFixes -Arguments @('--catalog', $catalog, '--report', $taxonomyFixPath, '--apply') -DiscardOutput | Out-Null
+
+        Write-Host 'Revalidate canonical catalog after safe fixes'
+        Invoke-CatalogStage -Name 'post_fix_validate' -Script $validator -Arguments @('--catalog', $catalog) -DiscardOutput | Out-Null
     }
 
     Write-Host 'Audit actionable enrichment quality'
@@ -91,14 +99,15 @@ catch {
     $failureMessage = $_.Exception.Message
 }
 finally {
-    $safeFixSummary = if (Test-Path -LiteralPath $safeFixPath) { Get-Content -LiteralPath $safeFixPath -Raw | ConvertFrom-Json } else { $null }
+    $seoCanonicalFixSummary = if (Test-Path -LiteralPath $seoCanonicalFixPath) { Get-Content -LiteralPath $seoCanonicalFixPath -Raw | ConvertFrom-Json } else { $null }
+    $taxonomyFixSummary = if (Test-Path -LiteralPath $taxonomyFixPath) { Get-Content -LiteralPath $taxonomyFixPath -Raw | ConvertFrom-Json } else { $null }
     $auditSummary = if (Test-Path -LiteralPath $auditPath) { Get-Content -LiteralPath $auditPath -Raw | ConvertFrom-Json } else { $null }
     $seoSummary = if (Test-Path -LiteralPath $seoSummaryPath) { Get-Content -LiteralPath $seoSummaryPath -Raw | ConvertFrom-Json } else { $null }
     $gitCommit = (& git -C $root rev-parse HEAD 2>$null)
     if ($LASTEXITCODE -ne 0) { $gitCommit = '' }
 
     $summary = [ordered]@{
-        schema_version = 3
+        schema_version = 4
         status = $runStatus
         started_at = $runStarted
         completed_at = Get-UtcTimestamp
@@ -109,19 +118,30 @@ finally {
         mutates_catalog = [bool]$ApplySafeFixes
         stages = $stageResults
         outputs = [ordered]@{
-            safe_fixes = if ($ApplySafeFixes) { Get-RelativePath -Root $root -Path $safeFixPath } else { $null }
+            seo_canonical_safe_fixes = if ($ApplySafeFixes) { Get-RelativePath -Root $root -Path $seoCanonicalFixPath } else { $null }
+            taxonomy_safe_fixes = if ($ApplySafeFixes) { Get-RelativePath -Root $root -Path $taxonomyFixPath } else { $null }
             audit = Get-RelativePath -Root $root -Path $auditPath
             remediation = Get-RelativePath -Root $root -Path $remediationPath
             seo_pre_generation = Get-RelativePath -Root $root -Path $seoOutput
         }
-        safe_fixes = if ($safeFixSummary) {
-            [ordered]@{
-                applied = $safeFixSummary.applied
-                eligible_overrides = $safeFixSummary.eligible_overrides
-                conflicting = $safeFixSummary.conflicting
-                redundant = $safeFixSummary.redundant
-            }
-        } else { $null }
+        safe_fixes = [ordered]@{
+            seo_canonical = if ($seoCanonicalFixSummary) {
+                [ordered]@{
+                    applied = $seoCanonicalFixSummary.applied
+                    eligible_overrides = $seoCanonicalFixSummary.eligible_overrides
+                    conflicting = $seoCanonicalFixSummary.conflicting
+                    redundant = $seoCanonicalFixSummary.redundant
+                }
+            } else { $null }
+            taxonomy = if ($taxonomyFixSummary) {
+                [ordered]@{
+                    applied = $taxonomyFixSummary.applied
+                    change_count = $taxonomyFixSummary.change_count
+                    changed_skus = $taxonomyFixSummary.changed_skus
+                    by_field = $taxonomyFixSummary.by_field
+                }
+            } else { $null }
+        }
         catalog_quality = if ($auditSummary) {
             [ordered]@{
                 rows = $auditSummary.quality.rows
