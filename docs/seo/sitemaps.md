@@ -30,11 +30,18 @@ The service maps records to the active React route contract:
 - Brands: `/products/brands/{term-slug}`
 - Static routes: the explicit public allowlist in `DTB_SitemapUrlRepository::static_routes()`
 
-Customer, checkout, cart, order, account, tracking, preview, and operator routes are intentionally excluded.
+Customer, checkout, cart, order, account, tracking, preview, operator, redirect-alias, and variation-specific routes are intentionally excluded.
 
 ## Product eligibility
 
-Only published WooCommerce products are included. Products assigned the WooCommerce `exclude-from-search` visibility term are excluded. Variations are not emitted as independent URLs; the canonical parent product route remains authoritative.
+Only published WooCommerce products intended for indexing are included. Products are excluded when either of these conditions applies:
+
+- the product is assigned the WooCommerce `exclude-from-search` visibility term;
+- the DTB product SEO flag `_dtb_seo_noindex` is enabled.
+
+Variations are not emitted as independent URLs; the canonical parent product route remains authoritative. Legacy `/product/{partNumber}` routes and variation-specific path/query forms are not sitemap authorities.
+
+Product sitemap cache invalidation is already tied to `save_post_product`, so changes to the DTB noindex field advance the sitemap generation with the rest of the product mutation.
 
 ## Brand taxonomy detection
 
@@ -84,18 +91,59 @@ The WordPress virtual `robots.txt` filter removes duplicate `Sitemap:` declarati
 
 The React build also contains `frontend/public/robots.txt` with the `__DTB_SITE_URL__` placeholder. The build/deployment process must replace that placeholder with the active environment URL. A physical `robots.txt` takes precedence over WordPress virtual robots output.
 
+## Admin diagnostics
+
+The DTB SEO Tools sitemap status view checks the same canonical `/sitemap.xml` entry point exposed to crawlers. Admin diagnostics must not introduce alternate sitemap authorities such as `/sitemap_index.xml` or `/wp-sitemap.xml`.
+
+## Route audit contract
+
+The sitemap is an allowlist, not a mirror of every React Router route. The current indexable route families are:
+
+- `/`
+- `/products`
+- `/products/brands`
+- `/products/brands/{brand-slug}`
+- `/products/{product-slug}`
+- `/parts`
+- `/category/{term-slug}`
+- `/schematics`
+- `/repairs`
+- `/repairs/start`
+- `/repairs/packages`
+- `/faq`
+- `/calculators`
+- `/shipping-policy`
+- `/returns`
+- `/return-policy`
+- `/policies`
+- `/contact`
+
+The following route families are deliberately outside the sitemap contract even when they exist in React Router:
+
+- brand/category faceted intersections such as `/products/brands/{brand}/categories/{category}` until they have an explicit canonical/indexability contract;
+- variation routes and `?variant=` states;
+- `/product/{partNumber}` legacy aliases;
+- repair, return, support, order, and tracking status URLs;
+- cart and checkout routes;
+- login, registration, password reset, dashboard, account, settings, rewards, and redirect aliases;
+- preview, error, and catch-all routes.
+
 ## Deployment validation
 
 After deploying:
 
 1. Visit `/sitemap.xml` and confirm HTTP 200 with a `<sitemapindex>` document.
 2. Open every child listed by the index and confirm HTTP 200 with `<urlset>`.
-3. Confirm private routes are absent.
+3. Confirm private and utility routes are absent.
 4. Confirm product URLs use `/products/{slug}` and resolve through the storefront.
-5. Confirm `/robots.txt` advertises exactly one environment-correct sitemap URL.
-6. Run a product update and verify a subsequent sitemap request reflects the change.
-7. Submit only `/sitemap.xml` to Google Search Console.
+5. Confirm products carrying `_dtb_seo_noindex = 1` are absent from product sitemaps.
+6. Confirm WooCommerce `exclude-from-search` products are absent.
+7. Confirm variation URLs and legacy `/product/{partNumber}` aliases are absent.
+8. Confirm `/robots.txt` advertises exactly one environment-correct sitemap URL.
+9. Run a product update and verify a subsequent sitemap request reflects the change.
+10. Confirm the DTB SEO Tools sitemap status view checks `/sitemap.xml`.
+11. Submit only `/sitemap.xml` to Google Search Console.
 
 ## Operational limits
 
-The service does not generate image, video, news, multilingual, or alternate-language sitemap extensions. Those should be added only when their canonical data ownership and frontend rendering contracts are established.
+The service does not generate image, video, news, multilingual, alternate-language, or faceted-navigation sitemap extensions. Those should be added only when their canonical data ownership and frontend rendering contracts are established.
