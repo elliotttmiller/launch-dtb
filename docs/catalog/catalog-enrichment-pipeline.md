@@ -19,13 +19,24 @@ dtb_official_catalog.csv
   -> run-summary.json
 ```
 
-When a reviewed deterministic safe fix is required, use the same entrypoint explicitly:
+When reviewed deterministic safe fixes are required, use the same entrypoint explicitly:
 
 ```powershell
 .\scripts\catalog\run-official-catalog-enrichment.ps1 -ApplySafeFixes
 ```
 
-`-ApplySafeFixes` is opt-in because it may mutate the canonical CSV. The current safe fix clears stale explicit PDP canonical overrides, validates the catalog afterward, and writes `safe-fixes.json`.
+`-ApplySafeFixes` is opt-in because it may mutate the canonical CSV. The safe-fix sequence is bounded and explicit:
+
+```text
+structural validation
+  -> stale SEO canonical cleanup
+  -> universal cross-brand taxonomy normalization
+  -> structural revalidation
+  -> enrichment audit
+  -> SEO/content preparation
+```
+
+The two mutation stages write separate reports: `seo-canonical-safe-fixes.json` and `taxonomy-safe-fixes.json`.
 
 ## Ownership
 
@@ -34,6 +45,34 @@ When a reviewed deterministic safe fix is required, use the same entrypoint expl
 - Veeqo owns inventory, allocation, fulfillment, shipping, and tracking.
 - Pricing, competitor research, media processing, schematics, and supplier acquisition remain separate workflows.
 - `scripts/catalog/` contains deterministic catalog tooling only; generated run artifacts live under `products/dev/catalog-enrichment/` and are ignored by Git.
+
+## Universal taxonomy contract
+
+Taxonomy is universal across manufacturers. Brand identity is not a classification input.
+
+- `Brands` owns manufacturer identity.
+- Brand names must not create per-manufacturer category namespaces.
+- `Meta: _dtb_category_key` is the broad DTB functional category.
+- `Meta: _dtb_display_category_key` is the customer-facing functional class used for catalog discovery and filtering.
+- A given product semantic maps to the same broad/display pair for Columbia Tools, TapeTech, LEVEL5, Platinum, SurPro, Dura-Stilts, and future brands.
+- Brand-specific and SKU-specific taxonomy mapping rules are prohibited.
+- Unknown classifications remain unchanged and enter review instead of being guessed.
+
+Examples:
+
+| Semantic | Broad category | Display category |
+| --- | --- | --- |
+| toolset | `taping` | `toolsets` |
+| automatic taper | `taping` | `automatic_tapers` |
+| finishing box | `finishing` | `finishing_boxes` |
+| handle | `handles` | `handles` |
+| pump | `mudboxes` | `pumps` |
+| corner tool | `corner` | `corner_tools` |
+| compound tube | `corner` | `compound_tubes` |
+| replacement part | `parts` | `parts` |
+| stilts | `stilts` | `stilts` |
+
+`scripts/catalog/catalog_taxonomy_policy.py` owns the deterministic catalog-tooling policy. `scripts/catalog/normalize_official_taxonomy.py` previews/applies it. The runtime `DTB_CategoryNormalizer` remains the application-side resolver and must stay semantically aligned. The React storefront consumes backend category/display-category DTOs; it does not own classification truth.
 
 ## Core stages
 
@@ -49,7 +88,7 @@ The default remediation queue includes only actionable work:
 
 - missing item-level MPN where the row owns an item identifier;
 - missing customer-facing image;
-- classification/taxonomy inconsistency on classification-owning rows;
+- universal taxonomy-mapping inconsistency on classification-owning rows;
 - compatibility/replacement research once per simple part or variable part family.
 
 The audit intentionally does **not** create default work items for:
@@ -63,7 +102,7 @@ GTIN remains a coverage metric and may be researched separately when authoritati
 
 Headline classification coverage is calculated against category-owning rows, not variations. Item-MPN coverage excludes variable family parents.
 
-For `product_kind=toolset`, the canonical taxonomy policy is `category_key=toolsets` and `display_category_key=toolsets`; inconsistent rows are emitted for classification review.
+Taxonomy consistency is evaluated through the same brand-independent policy used by the deterministic normalizer. For example, every `product_kind=toolset` expects broad `category_key=taping` and `display_category_key=toolsets`, regardless of manufacturer.
 
 ### SEO/content preparation
 
@@ -82,13 +121,14 @@ Editorial findings do not block the catalog pipeline.
 
 - `catalog-enrichment-audit.json`
 - `catalog-remediation.csv`
-- `safe-fixes.json` when `-ApplySafeFixes` is used
+- `seo-canonical-safe-fixes.json` when `-ApplySafeFixes` is used
+- `taxonomy-safe-fixes.json` when `-ApplySafeFixes` is used
 - `seo-pre-generation/generation-packets.jsonl`
 - `seo-pre-generation/pre-generation-findings.csv`
 - `seo-pre-generation/pre-generation-summary.json`
 - `run-summary.json`
 
-`run-summary.json` is the operational manifest. It records the input catalog SHA-256, repository commit, timestamps, stage results, actionable remediation counts, operational coverage dimensions, GTIN/media/spec coverage, compatibility relationship counts, and SEO workflow counts. It does not expose an opaque A/B catalog-readiness grade.
+`run-summary.json` is the operational manifest. It records the input catalog SHA-256, repository commit, timestamps, stage results, separate canonical/taxonomy safe-fix outcomes, actionable remediation counts, operational coverage dimensions, GTIN/media/spec coverage, compatibility relationship counts, and SEO workflow counts. It does not expose an opaque A/B catalog-readiness grade.
 
 ## External evidence
 
@@ -128,7 +168,6 @@ The following concerns deliberately remain separate because they have different 
 - supplier/Veeqo shipping projections;
 - competitor price research and endpoint diagnostics;
 - media cleanup/conversion/gallery synchronization;
-- category normalization migrations;
 - schematic reconciliation/mapping;
 - WooCommerce export normalization.
 
