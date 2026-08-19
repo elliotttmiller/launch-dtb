@@ -12,7 +12,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-from collections import Counter
 from pathlib import Path
 from typing import Iterable
 
@@ -99,9 +98,15 @@ def _has_structured_specs(row: dict[str, str]) -> bool:
     return isinstance(specs, list) and len(specs) > 0
 
 
-def audit_rows(rows: list[dict[str, str]]) -> dict[str, object]:
+def audit_rows(
+    rows: list[dict[str, str]],
+    *,
+    reference_skus: set[str] | None = None,
+) -> dict[str, object]:
     """Return deterministic, non-blocking enrichment metrics for catalog rows."""
-    sku_set = {_value(row, "SKU") for row in rows if _value(row, "SKU")}
+    sku_set = reference_skus or {
+        _value(row, "SKU") for row in rows if _value(row, "SKU")
+    }
 
     coverage = {
         "name": _coverage(rows, lambda row: bool(_value(row, "Name"))),
@@ -224,11 +229,12 @@ def main() -> int:
     structural = validate_catalog(catalog_path, gap_path)
     all_rows = _load_rows(catalog_path)
     scoped_rows = all_rows if args.all else [row for row in all_rows if _is_published(row)]
+    all_skus = {_value(row, "SKU") for row in all_rows if _value(row, "SKU")}
 
     report = {
         "scope": "all" if args.all else "published",
         "structural_validation": structural,
-        "quality": audit_rows(scoped_rows),
+        "quality": audit_rows(scoped_rows, reference_skus=all_skus),
     }
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0
