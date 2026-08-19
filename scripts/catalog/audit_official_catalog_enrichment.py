@@ -15,6 +15,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
 
+from catalog_taxonomy_policy import taxonomy_state
 from official_catalog_schema import CatalogValidationError, validate_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -171,13 +172,20 @@ def _segmented_coverage(rows: list[dict[str, str]]) -> dict[str, object]:
 def _taxonomy_consistency(row: dict[str, str]) -> tuple[bool, str]:
     if _is_variation(row):
         return True, ""
-    product_kind = _value(row, "Meta: _dtb_product_kind").lower()
-    if product_kind != "toolset":
+    state = taxonomy_state(
+        product_kind=_value(row, "Meta: _dtb_product_kind"),
+        category_key=_value(row, "Meta: _dtb_category_key"),
+        display_category_key=_value(row, "Meta: _dtb_display_category_key"),
+    )
+    if not state["known"] or state["consistent"]:
         return True, ""
-    category_key = _value(row, "Meta: _dtb_category_key")
-    display_key = _value(row, "Meta: _dtb_display_category_key")
-    valid = category_key == "toolsets" and display_key == "toolsets"
-    return valid, f"category_key={category_key or '(blank)'}; display_category_key={display_key or '(blank)'}"
+    return False, (
+        f"category_key={state['category_key'] or '(blank)'}; "
+        f"display_category_key={state['display_category_key'] or '(blank)'}; "
+        f"expected_category_key={state['expected_category_key']}; "
+        f"expected_display_category_key={state['expected_display_category_key']}; "
+        f"policy={state['reason']}"
+    )
 
 
 def audit_rows(rows: list[dict[str, str]], *, reference_skus: set[str] | None = None) -> dict[str, object]:
@@ -230,15 +238,15 @@ def audit_rows(rows: list[dict[str, str]], *, reference_skus: set[str] | None = 
             if len(labels) != len(set(labels)):
                 duplicate_spec_labels.append(sku)
 
-        taxonomy_ok, taxonomy_state = _taxonomy_consistency(row)
+        taxonomy_ok, taxonomy_state_text = _taxonomy_consistency(row)
         if not taxonomy_ok:
             taxonomy_inconsistent.append(sku)
             remediation.append(_remediation(
                 row,
-                finding="toolset_taxonomy_inconsistent",
+                finding="taxonomy_mapping_inconsistent",
                 workflow="classification_review",
                 field="Meta: _dtb_category_key / Meta: _dtb_display_category_key",
-                current_value=taxonomy_state,
+                current_value=taxonomy_state_text,
             ))
         elif _owns_classification(row):
             if not _value(row, "Categories"):
