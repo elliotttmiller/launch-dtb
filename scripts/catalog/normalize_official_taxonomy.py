@@ -12,6 +12,7 @@ import argparse
 import csv
 import json
 import os
+import tempfile
 from pathlib import Path
 
 from catalog_taxonomy_policy import expected_taxonomy
@@ -103,16 +104,24 @@ def apply_changes(rows: list[dict[str, str]], changes: list[dict[str, str]]) -> 
 
 
 def write_catalog(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
-    temporary = path.with_name(path.name + ".tmp")
+    """Atomically replace the CSV using the canonical writer convention."""
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    os.close(fd)
+    temp_path = Path(temp_name)
     try:
-        with temporary.open("w", encoding="utf-8-sig", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        with temp_path.open("w", encoding="utf-8-sig", newline="") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=fieldnames,
+                extrasaction="raise",
+                lineterminator="\n",
+            )
             writer.writeheader()
             writer.writerows(rows)
-        os.replace(temporary, path)
-    except OSError:
-        temporary.unlink(missing_ok=True)
-        raise
+        os.replace(temp_path, path)
+    finally:
+        if temp_path.exists():
+            temp_path.unlink()
 
 
 def main() -> int:
@@ -120,7 +129,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--report", type=Path)
-    parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--apply", action="store_true", help="Apply reviewed universal taxonomy fixes. Default is preview-only.")
     args = parser.parse_args()
 
     catalog = args.catalog.resolve()
@@ -134,7 +143,7 @@ def main() -> int:
     changes = build_changes(rows)
     report = {
         "schema_version": 1,
-        "catalog": str(catalog),
+        "catalog": catalog.relative_to(ROOT).as_posix() if catalog.is_relative_to(ROOT) else str(catalog),
         "applied": False,
         "change_count": len(changes),
         "changed_skus": len({change["sku"] for change in changes}),
@@ -166,6 +175,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         raise SystemExit(main())
-    except CatalogValidationError as exc:
+    except (CatalogValidationError, OSError, csv.Error) as exc:
         print(f"ERROR: {exc}")
         raise SystemExit(1)
