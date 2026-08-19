@@ -38,10 +38,13 @@ def write_inputs(root: Path) -> tuple[Path, Path]:
         })
     packet = {
         "sku": "SKU-1",
+        "generation_eligible": True,
         "product_class": "primary_finishing_tool",
         "protected_identity": {"Brands": "Columbia Tools", "Meta: _dtb_schematic_id": "columbia-tool"},
         "protected_identity_sha256": "abc123",
         "authoritative_facts": {
+            "product_type": "simple",
+            "parent_sku": "",
             "brand": "Columbia Tools",
             "name": "Test Tool",
             "mpn": "MPN-1",
@@ -65,6 +68,9 @@ def test_accuracy_queue_reuses_existing_finding_authority(tmp_path: Path) -> Non
     assert rows[0]["mpn"] == "MPN-1"
     assert rows[0]["specification_count"] == "1"
     assert rows[0]["protected_identity_sha256"] == "abc123"
+    assert rows[0]["generation_eligible"] == "true"
+    assert rows[0]["product_type"] == "simple"
+    assert rows[0]["parent_sku"] == ""
 
 
 def test_editorial_queue_is_separate_from_accuracy_queue(tmp_path: Path) -> None:
