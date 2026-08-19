@@ -139,6 +139,18 @@ final class DTB_SitemapUrlRepository {
 			'ignore_sticky_posts'    => true,
 			'update_post_meta_cache' => false,
 			'update_post_term_cache' => false,
+			'meta_query'             => [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				'relation' => 'OR',
+				[
+					'key'     => '_dtb_seo_noindex',
+					'compare' => 'NOT EXISTS',
+				],
+				[
+					'key'     => '_dtb_seo_noindex',
+					'value'   => '1',
+					'compare' => '!=',
+				],
+			],
 		];
 		if ( ! empty( $tax_query ) ) {
 			$args['tax_query'] = $tax_query; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
