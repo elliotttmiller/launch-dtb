@@ -9,38 +9,73 @@ WooCommerce owns the runtime product and variation records imported from this so
 - SKU, MPN/manufacturer SKU, GTIN, brand identity, taxonomy identity, compatibility relationships, and external IDs are protected business data. Do not infer or rewrite them as incidental cleanup.
 - Veeqo remains authoritative for inventory, allocation, fulfillment, shipping, and tracking. Files in this directory that project Veeqo data do not make the catalog authoritative for inventory.
 - Pricing artifacts must follow the repository's pricing/commerce ownership. Do not treat catalog enrichment as permission to create an alternate price authority.
-- Derived, research, deduplicated, or comparison files are not automatically canonical merely because they live beside the official catalog.
+- Derived, research, deduplicated, comparison, or run-report files are not automatically canonical.
 
 ## Catalog quality workflow
 
-Catalog quality is evaluated in two separate layers.
+Run the deterministic full preparation workflow with:
 
-### 1. Structural validation
+```powershell
+.\scripts\catalog\run-official-catalog-enrichment.ps1
+```
 
-Run:
+The command is non-mutating and performs:
 
-`python scripts/catalog/validate_official_catalog.py`
+1. structural validation;
+2. enrichment-quality audit;
+3. SKU-level remediation manifest generation;
+4. evidence-bounded content/SEO preparation.
 
-This is the blocking contract. It validates the canonical ordered schema, SKU uniqueness, synchronized brand fields, protected manufacturer identifiers, structured-spec JSON shape, variation/parent integrity, and reviewed include-name gaps. It does not enrich or mutate the catalog.
+Generated outputs live under `products/dev/catalog-enrichment/` and are ignored by Git. `run-summary.json` records the repository commit, source catalog SHA-256, timestamps, stage outcomes, remediation counts, blocking findings, and relative artifact paths.
 
-### 2. Enrichment-quality audit
+### Structural validation
 
-Run:
+Run independently with:
 
-`python scripts/catalog/audit_official_catalog_enrichment.py`
+```powershell
+python scripts/catalog/validate_official_catalog.py
+```
+
+This is the blocking catalog contract. It validates the canonical ordered schema, SKU uniqueness, synchronized brand fields, protected manufacturer identifiers, structured-spec JSON shape, variation/parent integrity, and reviewed include-name gaps. It does not enrich or mutate the catalog.
+
+### Enrichment-quality audit
+
+Run independently with:
+
+```powershell
+python scripts/catalog/audit_official_catalog_enrichment.py
+```
 
 The default scope is published B2C storefront products. Use `--all` to include unpublished rows.
 
-This audit is intentionally non-blocking. It reports coverage and relationship quality without inventing values or converting a completeness percentage into product truth. Current checks cover:
+The audit is non-blocking. It reports aggregate and segmented coverage plus SKU-level work items for:
 
 - product identity and classification coverage;
-- MPN and GTIN coverage;
-- customer-facing descriptions and images;
-- structured specification coverage and malformed/duplicate spec entries;
+- MPN and optional GTIN research;
+- customer-facing media gaps;
+- structured specification shape;
 - replacement-part/compatible-tool relationship coverage;
 - compatibility references that do not resolve to a canonical catalog SKU.
 
-The audit first runs the structural validator. Structural contract failures remain errors; enrichment gaps remain findings until a separate, evidence-backed catalog change resolves them.
+Variation rows are segmented separately so inherited parent taxonomy/display context is not automatically mislabeled as a product-level defect.
+
+## Canonical PDP URL policy
+
+The React storefront owns product-detail canonical URLs at `/products/:slug`. Normal published/indexable PDPs should use the runtime-derived canonical rather than an explicit `Meta: _dtb_seo_canonical` override.
+
+Preview stale/redundant canonical cleanup with:
+
+```powershell
+.\scripts\catalog\clear-legacy-seo-canonicals.ps1
+```
+
+Apply only after reviewing the report:
+
+```powershell
+.\scripts\catalog\clear-legacy-seo-canonicals.ps1 -Apply
+```
+
+The apply workflow creates a rollback snapshot and clears only the explicit canonical override for eligible PDP rows. It does not modify slugs, identifiers, taxonomy, product copy, prices, or compatibility.
 
 ## Enrichment rules
 
