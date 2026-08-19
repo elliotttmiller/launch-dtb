@@ -59,7 +59,6 @@ FILLER_PATTERNS = {
     "peak_performance": re.compile(r"\bpeak performance\b", re.I),
     "demanding_environment": re.compile(r"\bdemanding (?:environments?|conditions?|job[ -]?sites?)\b", re.I),
 }
-
 PATTERNS = {
     "kit_set": re.compile(r"\b(?:kit|set|bundle|combo)\b", re.I),
     "automatic_equipment": re.compile(r"\b(?:automatic taper|cordless|powerfill|pump|mudrunner|power assist)\b", re.I),
@@ -106,6 +105,16 @@ class Finding:
     code: str
     field: str
     message: str
+
+
+def finding_workflow(finding: Finding) -> str:
+    if finding.code == "canonical_conflict":
+        return "blocking"
+    if finding.category == "content-accuracy":
+        return "accuracy_review"
+    if finding.category == "evidence":
+        return "evidence_review"
+    return "editorial_review"
 
 
 def clean_cell(value: object) -> str:
@@ -219,12 +228,21 @@ def protected_identity_digest(row: dict[str, str]) -> str:
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
-def confidence_grade(row: dict[str, str], specs: list[dict[str, object]], compatibility: list[str]) -> str:
+def evidence_coverage_grade(row: dict[str, str], specs: list[dict[str, object]], compatibility: list[str]) -> str:
     if not all(clean_cell(row.get(f)) for f in ("SKU", "Name", "Brands")):
         return "R"
-    dimensions = sum(bool(clean_cell(row.get(f))) for f in ("Meta: schema_mpn", "Meta: _dtb_manufacturer_sku", "GTIN, UPC, EAN, or ISBN"))
-    dimensions += bool(specs) + bool(compatibility)
-    return "A" if dimensions >= 3 else "B" if dimensions >= 1 else "C"
+    dimensions = {
+        "manufacturer_identifier": bool(
+            clean_cell(row.get("Meta: _dtb_mpn"))
+            or clean_cell(row.get("Meta: schema_mpn"))
+            or clean_cell(row.get("Meta: _dtb_manufacturer_sku"))
+        ),
+        "gtin": bool(clean_cell(row.get("GTIN, UPC, EAN, or ISBN"))),
+        "structured_specs": bool(specs),
+        "compatibility": bool(compatibility),
+    }
+    count = sum(dimensions.values())
+    return "A" if count >= 3 else "B" if count >= 1 else "C"
 
 
 def authoritative_facts(row: dict[str, str], specs: list[dict[str, object]]) -> dict[str, object]:
@@ -264,7 +282,7 @@ def row_findings(row: dict[str, str], product_class: str, specs: list[dict[str, 
     low, high = WORD_TARGETS[product_class]
     count = word_count(description)
     if count > high:
-        findings.append(Finding(sku, "medium", "content", "description_overwritten", "Description", f"{count} words exceeds {product_class} guidance of {high}; shorten only after product-specific review."))
+        findings.append(Finding(sku, "medium", "content", "description_long_for_class", "Description", f"{count} words exceeds the {product_class} editorial guidance of {high}; shorten only when product-specific review shows the extra prose is not useful."))
     elif eligible and count and count < max(12, low // 2):
         findings.append(Finding(sku, "low", "content", "description_thin", "Description", f"{count} words is sparse for {product_class}; do not expand without evidence."))
 
@@ -277,11 +295,11 @@ def row_findings(row: dict[str, str], product_class: str, specs: list[dict[str, 
             findings.append(Finding(sku, "medium", "content-accuracy", f"claim_needs_evidence:{label}", "Description/SEO", f"Claim class '{label}' requires authoritative evidence before reuse."))
 
     if eligible and not seo_title:
-        findings.append(Finding(sku, "high", "metadata", "missing_seo_title", "Meta: _dtb_seo_title", "SEO title is missing."))
+        findings.append(Finding(sku, "high", "metadata", "missing_seo_title", "Meta: _dtb_seo_title", "SEO title is missing and should be produced by the editorial stage."))
     if len(seo_title) > 60:
         findings.append(Finding(sku, "medium", "metadata", "seo_title_long", "Meta: _dtb_seo_title", f"SEO title is {len(seo_title)} characters; editorial review recommended."))
     if eligible and not seo_desc:
-        findings.append(Finding(sku, "high", "metadata", "missing_seo_description", "Meta: _dtb_seo_description", "SEO description is missing."))
+        findings.append(Finding(sku, "high", "metadata", "missing_seo_description", "Meta: _dtb_seo_description", "SEO description is missing and should be produced by the editorial stage."))
     if len(seo_desc) > 160:
         findings.append(Finding(sku, "medium", "metadata", "seo_description_long", "Meta: _dtb_seo_description", f"SEO description is {len(seo_desc)} characters and will be truncated by SEOHead."))
     if eligible and not focus:
@@ -328,11 +346,11 @@ def build_packet(row: dict[str, str]) -> tuple[dict[str, object], list[Finding]]
     product_class = classify_product(row)
     findings = row_findings(row, product_class, specs)
     packet = {
-        "schema_version": 1,
+        "schema_version": 2,
         "sku": clean_cell(row.get("SKU")),
         "generation_eligible": generation_eligible(row),
         "product_class": product_class,
-        "confidence": confidence_grade(row, specs, split_values(row.get("Meta: _dtb_compatible_tool_skus"))),
+        "evidence_coverage_grade": evidence_coverage_grade(row, specs, split_values(row.get("Meta: _dtb_compatible_tool_skus"))),
         "editorial_word_guidance": {"min": WORD_TARGETS[product_class][0], "max": WORD_TARGETS[product_class][1], "hard_limit": False},
         "recommended_sections": list(SECTION_POLICY[product_class]),
         "protected_identity": protected_identity(row),
@@ -350,7 +368,7 @@ def build_packet(row: dict[str, str]) -> tuple[dict[str, object], list[Finding]]
             "research_instead_of_guessing_when_evidence_is_insufficient": True,
             "variation_copy_must_not_create_parallel_indexable_authority": True,
         },
-        "pre_generation_findings": [asdict(f) for f in findings],
+        "pre_generation_findings": [dict(asdict(f), workflow=finding_workflow(f)) for f in findings],
     }
     return packet, findings
 
@@ -361,6 +379,13 @@ def source_digest(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def display_path(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(ROOT.resolve()).as_posix()
+    except ValueError:
+        return str(path.resolve())
 
 
 def read_catalog(path: Path) -> list[dict[str, str]]:
@@ -381,9 +406,12 @@ def prepare(catalog_path: Path, gap_path: Path, output_dir: Path) -> dict[str, o
 
     by_sku: dict[str, list[dict[str, object]]] = defaultdict(list)
     for finding in findings:
-        by_sku[finding.sku].append(asdict(finding))
+        by_sku[finding.sku].append(dict(asdict(finding), workflow=finding_workflow(finding)))
     for packet in packets:
-        packet["pre_generation_findings"] = sorted(by_sku.get(str(packet["sku"]), []), key=lambda item: (str(item["severity"]), str(item["code"]), str(item["field"])))
+        packet["pre_generation_findings"] = sorted(
+            by_sku.get(str(packet["sku"]), []),
+            key=lambda item: (str(item["workflow"]), str(item["severity"]), str(item["code"]), str(item["field"])),
+        )
 
     output_dir.mkdir(parents=True, exist_ok=True)
     packets_path = output_dir / "generation-packets.jsonl"
@@ -393,24 +421,31 @@ def prepare(catalog_path: Path, gap_path: Path, output_dir: Path) -> dict[str, o
         for packet in packets:
             handle.write(json.dumps(packet, sort_keys=True, ensure_ascii=False) + "\n")
     with findings_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=["sku", "severity", "category", "code", "field", "message"])
+        fieldnames = ["sku", "workflow", "severity", "category", "code", "field", "message"]
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
-        for finding in sorted(findings, key=lambda item: (item.sku, item.severity, item.code, item.field)):
-            writer.writerow(asdict(finding))
+        for finding in sorted(findings, key=lambda item: (item.sku, finding_workflow(item), item.severity, item.code, item.field)):
+            writer.writerow(dict(asdict(finding), workflow=finding_workflow(finding)))
 
+    workflows = Counter(finding_workflow(f) for f in findings)
     summary = {
-        "schema_version": 1,
-        "source_catalog": str(catalog_path),
+        "schema_version": 2,
+        "source_catalog": display_path(catalog_path),
         "source_sha256": source_digest(catalog_path),
         "rows": len(rows),
         "generation_eligible": sum(bool(packet["generation_eligible"]) for packet in packets),
         "product_classes": dict(sorted(Counter(str(packet["product_class"]) for packet in packets).items())),
-        "confidence": dict(sorted(Counter(str(packet["confidence"]) for packet in packets).items())),
+        "evidence_coverage": dict(sorted(Counter(str(packet["evidence_coverage_grade"]) for packet in packets).items())),
+        "findings_by_workflow": dict(sorted(workflows.items())),
         "findings_by_severity": dict(sorted(Counter(f.severity for f in findings).items())),
         "top_finding_codes": dict(Counter(f.code for f in findings).most_common(20)),
-        "blocking_findings": sum(f.severity in {"critical", "high"} for f in findings),
+        "blocking_findings": workflows.get("blocking", 0),
         "source_mutated": False,
-        "outputs": {"generation_packets": str(packets_path), "findings": str(findings_path), "summary": str(summary_path)},
+        "outputs": {
+            "generation_packets": display_path(packets_path),
+            "findings": display_path(findings_path),
+            "summary": display_path(summary_path),
+        },
     }
     summary_path.write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
@@ -421,7 +456,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--fail-on-blocking", action="store_true", help="Return exit 2 when high/critical pre-generation findings exist after artifacts are written.")
+    parser.add_argument("--fail-on-blocking", action="store_true", help="Return exit 2 when blocking route/data findings remain after artifacts are written.")
     args = parser.parse_args(argv)
     summary = prepare(args.catalog.resolve(), args.include_gap_audit.resolve(), args.output_dir.resolve())
     print(json.dumps(summary, sort_keys=True))
