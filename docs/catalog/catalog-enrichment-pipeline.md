@@ -1,227 +1,135 @@
 # Official Catalog Enrichment Pipeline
 
-## Decision
+## Production command
 
-The production catalog-enrichment workflow is intentionally small. The canonical CSV is validated and analyzed first; external systems acquire evidence; only explicit evidence-backed migrators may change canonical fields.
-
-The routine full-catalog preparation command is:
+Use one command for the routine official-catalog run:
 
 ```powershell
 .\scripts\catalog\run-official-catalog-enrichment.ps1
 ```
 
-It performs only deterministic, local, non-mutating stages:
+Default mode is deterministic and non-mutating:
 
 ```text
 dtb_official_catalog.csv
   -> structural validation
-  -> enrichment-quality audit
-  -> SKU-level remediation manifest
-  -> evidence-bounded content/SEO preparation
-  -> reviewable derived artifacts
+  -> actionable enrichment audit
+  -> catalog-remediation.csv
+  -> SEO/content evidence preparation
+  -> run-summary.json
 ```
 
-This command does not scrape external sites, call an AI model, alter prices, mutate WooCommerce, or rewrite the official CSV.
+When a reviewed deterministic safe fix is required, use the same entrypoint explicitly:
 
-## Why the workflow is separated
+```powershell
+.\scripts\catalog\run-official-catalog-enrichment.ps1 -ApplySafeFixes
+```
 
-Not every catalog integration has the same authority or operational cost. Combining authenticated supplier scraping, competitor crawling, media conversion, pricing optimization, editorial generation, and CSV mutation into one unattended command would obscure provenance and make failures difficult to isolate.
+`-ApplySafeFixes` is opt-in because it may mutate the canonical CSV. The current safe fix clears stale explicit PDP canonical overrides, validates the catalog afterward, and writes `safe-fixes.json`.
 
-The production boundary is therefore:
+## Ownership
 
-1. **Core preparation** — deterministic and safe to run against the whole official catalog.
-2. **Evidence acquisition** — external/read-only integrations run only when their evidence domain is needed.
-3. **Proposal/review** — candidate facts or generated copy remain derived data until validated.
-4. **Apply** — only field-specific, fail-closed migrators may update canonical catalog fields.
-5. **Revalidate** — every applied change must pass the canonical validator again.
+- `products/launch/official/dtb_official_catalog.csv` is the canonical launch catalog.
+- WooCommerce owns runtime commerce product/variation records.
+- Veeqo owns inventory, allocation, fulfillment, shipping, and tracking.
+- Pricing, competitor research, media processing, schematics, and supplier acquisition remain separate workflows.
+- `scripts/catalog/` contains deterministic catalog tooling only; generated run artifacts live under `products/dev/catalog-enrichment/` and are ignored by Git.
 
-## Integration classification
+## Core stages
 
-### Mandatory core stages
+### Structural validation
 
-#### `validate_official_catalog.py`
+`scripts/catalog/validate_official_catalog.py` and `official_catalog_schema.py` enforce the blocking schema and identity contract.
 
-Role: blocking structural contract.
+### Actionable enrichment audit
 
-Retain. This is the first gate for every full-catalog workflow.
+`scripts/catalog/audit_official_catalog_enrichment.py` reports quality without manufacturing missing data.
 
-#### `audit_official_catalog_enrichment.py`
+The default remediation queue includes only actionable work:
 
-Role: read-only completeness, segmentation, relationship-quality, and SKU-level remediation report.
+- missing item-level MPN where the row owns an item identifier;
+- missing customer-facing image;
+- classification/taxonomy inconsistency on classification-owning rows;
+- compatibility/replacement research once per simple part or variable part family.
 
-Retain. It identifies missing or malformed enrichment without guessing replacement values. The audit emits both aggregate coverage and a `catalog-remediation.csv` work queue. Missing WooCommerce `Categories` or display-category values on variation rows are not treated as independent defects merely because variations inherit parent context.
+The audit intentionally does **not** create default work items for:
 
-#### `catalog_seo_pre_generation.py`
+- variable-family parents without an MPN when their child items own the manufacturer identifiers;
+- missing GTIN where no catalog policy requires it;
+- variation category/display-category blanks inherited from the parent;
+- child part variations when compatibility can first be researched at the family level.
 
-Role: deterministic normalization and evidence-packet preparation for editorial/SEO work.
+GTIN remains a coverage metric and may be researched separately when authoritative data is available.
 
-Retain. It protects identity, separates product facts from domain knowledge, and emits review findings without generating or applying copy.
+Headline classification coverage is calculated against category-owning rows, not variations. Item-MPN coverage excludes variable family parents.
 
-The pre-generation report separates workflows:
+For `product_kind=toolset`, the canonical taxonomy policy is `category_key=toolsets` and `display_category_key=toolsets`; inconsistent rows are emitted for classification review.
 
-- `blocking` — deterministic routing/canonical conflicts that must be fixed before downstream generation/application;
-- `accuracy_review` — existing claims that require authoritative evidence before reuse;
+### SEO/content preparation
+
+`scripts/catalog/catalog_seo_pre_generation.py` remains non-generative and non-mutating. It prepares evidence packets and separates findings into:
+
+- `blocking` — deterministic routing/canonical conflicts;
+- `accuracy_review` — claims requiring authoritative evidence;
 - `evidence_review` — insufficient structured evidence;
-- `editorial_review` — length, repetition, metadata and copy-quality observations.
+- `editorial_review` — length, repetition, metadata, and copy-quality observations.
 
-Editorial guidance does not become a catalog blocker. The former `confidence` label is `evidence_coverage_grade`; it measures evidence-field coverage, not truth probability.
+Editorial findings do not block the catalog pipeline.
 
-### External evidence acquisition
+## Outputs
 
-#### TSW supplier catalog workflow (`scripts/supplier-catalog/`)
-
-Role: authorized supplier evidence for cost and shipping/specification fields.
-
-Retain, but keep outside the routine core runner because it requires authenticated external access and its evidence applies only to specific fields. Matching must remain identifier-first and review-gated. Confirmed field-specific migrators are the only permitted write path.
-
-#### `competitor_price_research.py`
-
-Role: read-only market-price evidence from the approved competitor set.
-
-Retain as optional research. It must not write DTB price, MAP, identifiers, descriptions, taxonomy, compatibility, or catalog facts. Competitor observations inform operator decisions only.
-
-#### `competitor_endpoint_probe.py`
-
-Role: diagnostic discovery of public structured competitor endpoints.
-
-Do not include in normal catalog runs. It is engineering diagnostic tooling used when a production competitor adapter must be investigated or repaired. Once an adapter is stable, repeatedly running the probe adds complexity without enriching the catalog.
-
-### Runtime systems outside CSV enrichment
-
-#### Catalog Pricing Manager
-
-Role: WooCommerce runtime pricing economics, hard-floor enforcement, recommendations, and operator-controlled application.
-
-Keep separate. It is not a CSV enrichment stage and should never be chained into the offline catalog-preparation runner. Competitor research may inform policy review, but the pricing manager recomputes from WooCommerce-owned runtime values and code-owned policy.
-
-#### Veeqo
-
-Role: inventory, allocation, fulfillment, shipping and tracking authority.
-
-Do not treat Veeqo inventory as catalog enrichment. Shipping dimensions may be projected into canonical product fields only through an explicit evidence-backed migration when that contract is supported; live inventory remains Veeqo-owned.
-
-#### Media tooling
-
-Role: deterministic media cleanup, conversion and product-media synchronization.
-
-Keep separate from semantic catalog enrichment. Media processing can be run after identity/mapping is stable, but it should not gate description/specification enrichment and must not become a product-fact authority.
-
-## Canonical URL cleanup
-
-The React storefront owns canonical product-detail URLs at `/products/:slug`. Explicit `Meta: _dtb_seo_canonical` values are unnecessary for ordinary published/indexable PDPs and can become stale.
-
-Preview the deterministic cleanup:
-
-```powershell
-.\scripts\catalog\clear-legacy-seo-canonicals.ps1
-```
-
-Apply after reviewing the report:
-
-```powershell
-.\scripts\catalog\clear-legacy-seo-canonicals.ps1 -Apply
-```
-
-The apply workflow creates a rollback snapshot, clears only `Meta: _dtb_seo_canonical` for published/indexable non-variation rows with an explicit override, and validates the canonical catalog afterward. It does not alter slugs, protected identifiers, taxonomy, copy, prices, or compatibility.
-
-## AI/editorial boundary
-
-Generated product copy is a proposal, not product evidence.
-
-The existing pre-generation contract correctly separates:
-
-- protected identity;
-- authoritative product facts;
-- existing reference copy;
-- reusable drywall-domain knowledge;
-- untrusted competitor context.
-
-A production generation/application stage must consume only eligible packets, preserve the protected-identity digest, and write only approved editorial fields. It must not generate SKU, MPN, GTIN, brand identity, taxonomy identity, compatibility, parent/variation identity, price, or canonical routing policy.
-
-The repository currently has a deterministic preparation boundary; a single canonical generation/apply entrypoint should be preferred over multiple independent AI writers if/when the generation service is committed to this repository.
-
-## Approved full process
-
-```text
-A. PREPARE (always)
-   validate official CSV
-   -> enrichment-quality audit
-   -> SKU-level remediation manifest
-   -> content/SEO evidence packets
-
-B. FIX DETERMINISTIC CATALOG DEFECTS
-   preview narrow field-specific migration
-   -> rollback snapshot
-   -> explicit apply
-   -> structural validation
-
-C. ACQUIRE EVIDENCE (only as needed)
-   supplier evidence -> confirmed cost/shipping/spec candidates
-   competitor research -> price observations only
-   official manufacturer research -> product-fact candidates
-
-D. REVIEW
-   exact identifier match first
-   -> provenance retained
-   -> ambiguous/fuzzy candidates remain review-only
-   -> no missing field is filled merely for completeness
-
-E. APPLY
-   field-specific migrator
-   -> rollback snapshot
-   -> allowlisted writable fields
-   -> fail closed on stale/missing/duplicate identity
-
-F. VERIFY
-   rerun structural validator
-   -> rerun enrichment audit
-   -> regenerate downstream evidence packets when protected identity/content changed
-```
-
-## What should not be built
-
-Do not add:
-
-- a second product database or generic enrichment store;
-- a universal autonomous scraper that directly edits the CSV;
-- an AI stage that decides protected identifiers or compatibility;
-- automatic competitor-price undercutting;
-- one giant script that logs into suppliers, crawls competitors, generates content, reprices products and writes the catalog in a single transaction;
-- duplicate normalization logic in every integration;
-- fuzzy matching as an automatic mutation authority.
-
-## Output locations
-
-The core runner writes disposable derived artifacts under:
-
-```text
-products/dev/catalog-enrichment/
-```
-
-Expected outputs:
+`products/dev/catalog-enrichment/` contains disposable run artifacts:
 
 - `catalog-enrichment-audit.json`
 - `catalog-remediation.csv`
+- `safe-fixes.json` when `-ApplySafeFixes` is used
 - `seo-pre-generation/generation-packets.jsonl`
 - `seo-pre-generation/pre-generation-findings.csv`
 - `seo-pre-generation/pre-generation-summary.json`
 - `run-summary.json`
 
-The directory is intentionally ignored by Git except for its local `.gitignore`. These files are reproducible operational artifacts, not canonical product truth, and must not be committed with machine-specific run paths.
+`run-summary.json` is the operational manifest. It records the input catalog SHA-256, repository commit, timestamps, stage results, actionable remediation counts, operational coverage dimensions, GTIN/media/spec coverage, compatibility relationship counts, and SEO workflow counts. It does not expose an opaque A/B catalog-readiness grade.
 
-`run-summary.json` is the run manifest. It records the repository commit, input catalog SHA-256, timestamps, scope, per-stage results, remediation count, blocking finding count, evidence-coverage distribution, and relative artifact paths.
+## External evidence
+
+Run external integrations only when the remediation queue requires their evidence domain:
+
+```text
+supplier/manufacturer source
+  -> evidence
+  -> deterministic identity match
+  -> review if ambiguous
+  -> field-specific apply
+  -> structural validation
+  -> rerun unified enrichment pipeline
+```
+
+Competitor pricing remains research evidence only. Supplier access remains field-scoped. Media processing remains a media workflow. Veeqo live inventory remains Veeqo-owned.
 
 ## Mutation rule
 
-A catalog integration may mutate `dtb_official_catalog.csv` only when all of the following are true:
+A catalog mutation is allowed only when:
 
 1. the field belongs in the canonical catalog;
 2. the source is authoritative for that field;
-3. the target product resolves deterministically;
-4. the writable columns are explicitly allowlisted;
-5. blank/unavailable evidence cannot erase a known value unintentionally;
-6. a rollback snapshot is created;
-7. the canonical validator passes after the mutation;
-8. the migration emits a durable audit report.
+3. the target SKU/product resolves deterministically;
+4. writable fields are allowlisted;
+5. missing source values cannot erase known values accidentally;
+6. a rollback path exists for destructive/bulk changes;
+7. the canonical validator passes afterward; and
+8. the operation emits an auditable result.
 
-If any condition is not satisfied, the integration must remain read-only and emit a proposal/review artifact instead.
+Fuzzy matching, OCR, extraction, competitor copy, and generated text may produce candidates; none may silently become protected product truth.
+
+## Specialized tools retained outside the core run
+
+The following concerns deliberately remain separate because they have different authorities and failure modes:
+
+- supplier/Veeqo shipping projections;
+- competitor price research and endpoint diagnostics;
+- media cleanup/conversion/gallery synchronization;
+- category normalization migrations;
+- schematic reconciliation/mapping;
+- WooCommerce export normalization.
+
+Do not fold these into one unattended enrichment command.
