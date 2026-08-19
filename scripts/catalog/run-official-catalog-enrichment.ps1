@@ -3,14 +3,13 @@ param(
     [string] $CatalogPath = 'products\launch\official\dtb_official_catalog.csv',
     [string] $OutputDir = 'products\dev\catalog-enrichment',
     [switch] $AllRows,
+    [switch] $ApplySafeFixes,
     [switch] $FailOnSeoBlocking
 )
 
 $ErrorActionPreference = 'Stop'
 
-function Get-UtcTimestamp {
-    return (Get-Date).ToUniversalTime().ToString('o')
-}
+function Get-UtcTimestamp { return (Get-Date).ToUniversalTime().ToString('o') }
 
 function Get-RelativePath {
     param([Parameter(Mandatory)] [string] $Root, [Parameter(Mandatory)] [string] $Path)
@@ -27,21 +26,15 @@ function Invoke-CatalogStage {
     )
 
     $started = Get-UtcTimestamp
-    if ($DiscardOutput) {
-        & python $Script @Arguments | Out-Null
-    }
-    else {
-        & python $Script @Arguments
-    }
+    if ($DiscardOutput) { & python $Script @Arguments | Out-Null } else { & python $Script @Arguments }
     $exitCode = $LASTEXITCODE
-    $result = [ordered]@{
+    $script:stageResults += [ordered]@{
         name = $Name
         status = if ($AllowedExitCodes -contains $exitCode) { 'passed' } else { 'failed' }
         exit_code = $exitCode
         started_at = $started
         completed_at = Get-UtcTimestamp
     }
-    $script:stageResults += $result
     if ($AllowedExitCodes -notcontains $exitCode) {
         throw "Catalog enrichment stage failed: $Name ($Script, exit $exitCode)."
     }
@@ -55,8 +48,11 @@ $output = Join-Path $root $OutputDir
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 
 $validator = Join-Path $PSScriptRoot 'validate_official_catalog.py'
+$safeFixes = Join-Path $PSScriptRoot 'clear_legacy_seo_canonicals.py'
 $audit = Join-Path $PSScriptRoot 'audit_official_catalog_enrichment.py'
 $seo = Join-Path $PSScriptRoot 'catalog_seo_pre_generation.py'
+
+$safeFixPath = Join-Path $output 'safe-fixes.json'
 $auditPath = Join-Path $output 'catalog-enrichment-audit.json'
 $remediationPath = Join-Path $output 'catalog-remediation.csv'
 $seoOutput = Join-Path $output 'seo-pre-generation'
@@ -67,15 +63,20 @@ $runStatus = 'passed'
 $failureMessage = $null
 
 try {
-    Write-Host '1/3 Validate canonical catalog'
+    Write-Host 'Validate canonical catalog'
     Invoke-CatalogStage -Name 'validate' -Script $validator -Arguments @('--catalog', $catalog) -DiscardOutput | Out-Null
 
-    Write-Host '2/3 Audit enrichment quality'
+    if ($ApplySafeFixes) {
+        Write-Host 'Apply reviewed deterministic safe fixes'
+        Invoke-CatalogStage -Name 'safe_fixes' -Script $safeFixes -Arguments @('--catalog', $catalog, '--report', $safeFixPath, '--apply') -DiscardOutput | Out-Null
+    }
+
+    Write-Host 'Audit actionable enrichment quality'
     $auditArgs = @('--catalog', $catalog, '--report-json', $auditPath, '--remediation-csv', $remediationPath)
     if ($AllRows) { $auditArgs += '--all' }
     Invoke-CatalogStage -Name 'enrichment_audit' -Script $audit -Arguments $auditArgs -DiscardOutput | Out-Null
 
-    Write-Host '3/3 Prepare evidence-bounded content/SEO packets'
+    Write-Host 'Prepare evidence-bounded content/SEO packets'
     $seoArgs = @('--catalog', $catalog, '--output-dir', $seoOutput)
     if ($FailOnSeoBlocking) { $seoArgs += '--fail-on-blocking' }
     $allowedSeoExitCodes = if ($FailOnSeoBlocking) { @(0, 2) } else { @(0) }
@@ -90,13 +91,14 @@ catch {
     $failureMessage = $_.Exception.Message
 }
 finally {
+    $safeFixSummary = if (Test-Path -LiteralPath $safeFixPath) { Get-Content -LiteralPath $safeFixPath -Raw | ConvertFrom-Json } else { $null }
     $auditSummary = if (Test-Path -LiteralPath $auditPath) { Get-Content -LiteralPath $auditPath -Raw | ConvertFrom-Json } else { $null }
     $seoSummary = if (Test-Path -LiteralPath $seoSummaryPath) { Get-Content -LiteralPath $seoSummaryPath -Raw | ConvertFrom-Json } else { $null }
     $gitCommit = (& git -C $root rev-parse HEAD 2>$null)
     if ($LASTEXITCODE -ne 0) { $gitCommit = '' }
 
     $summary = [ordered]@{
-        schema_version = 2
+        schema_version = 3
         status = $runStatus
         started_at = $runStarted
         completed_at = Get-UtcTimestamp
@@ -104,19 +106,35 @@ finally {
         catalog = Get-RelativePath -Root $root -Path $catalog
         catalog_sha256 = (Get-FileHash -LiteralPath $catalog -Algorithm SHA256).Hash.ToLowerInvariant()
         scope = if ($AllRows) { 'all' } else { 'published' }
-        mutates_catalog = $false
+        mutates_catalog = [bool]$ApplySafeFixes
         stages = $stageResults
         outputs = [ordered]@{
+            safe_fixes = if ($ApplySafeFixes) { Get-RelativePath -Root $root -Path $safeFixPath } else { $null }
             audit = Get-RelativePath -Root $root -Path $auditPath
             remediation = Get-RelativePath -Root $root -Path $remediationPath
             seo_pre_generation = Get-RelativePath -Root $root -Path $seoOutput
         }
-        audit = if ($auditSummary) {
+        safe_fixes = if ($safeFixSummary) {
+            [ordered]@{
+                applied = $safeFixSummary.applied
+                eligible_overrides = $safeFixSummary.eligible_overrides
+                conflicting = $safeFixSummary.conflicting
+                redundant = $safeFixSummary.redundant
+            }
+        } else { $null }
+        catalog_quality = if ($auditSummary) {
             [ordered]@{
                 rows = $auditSummary.quality.rows
                 parts = $auditSummary.quality.parts
-                remediation_count = $auditSummary.quality.remediation.count
+                actionable_remediation = $auditSummary.quality.remediation.count
                 remediation_by_finding = $auditSummary.quality.remediation.by_finding
+                operational_coverage = $auditSummary.quality.operational_coverage
+                gtin_coverage = $auditSummary.quality.coverage.gtin
+                image_coverage = $auditSummary.quality.coverage.images
+                structured_spec_coverage = $auditSummary.quality.coverage.structured_specs
+                compatibility_research_rows = $auditSummary.quality.relationships.primary_part_research_rows
+                compatible_tool_references = $auditSummary.quality.relationships.compatible_tool_reference_count
+                replacement_references = $auditSummary.quality.relationships.replacement_reference_count
             }
         } else { $null }
         seo = if ($seoSummary) {
@@ -124,7 +142,6 @@ finally {
                 generation_eligible = $seoSummary.generation_eligible
                 blocking_findings = $seoSummary.blocking_findings
                 findings_by_workflow = $seoSummary.findings_by_workflow
-                evidence_coverage = $seoSummary.evidence_coverage
             }
         } else { $null }
         failure = $failureMessage
@@ -132,8 +149,5 @@ finally {
     $summary | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $summaryPath -Encoding utf8
 }
 
-if ($runStatus -ne 'passed') {
-    throw $failureMessage
-}
-
-Write-Host "Catalog enrichment preparation complete: $summaryPath"
+if ($runStatus -ne 'passed') { throw $failureMessage }
+Write-Host "Catalog enrichment run complete: $summaryPath"
