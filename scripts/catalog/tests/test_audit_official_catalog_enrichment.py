@@ -78,3 +78,36 @@ def test_audit_reports_unresolved_compatibility_references() -> None:
     assert report["relationships"]["compatible_tool_reference_count"] == 2
     assert report["findings"]["unresolved_compatible_tool_references"]["count"] == 1
     assert report["findings"]["unresolved_compatible_tool_references"]["sample_skus"] == ["PART-1"]
+
+
+def test_variation_category_gap_is_not_a_remediation_defect() -> None:
+    variation = make_row(Type="variation", Categories="", **{"Meta: _dtb_display_category_key": ""})
+    report = audit_rows([variation])
+    findings = {item["finding"] for item in report["remediation"]["items"]}
+
+    assert "missing_category" not in findings
+    assert "missing_display_category_key" not in findings
+
+
+def test_missing_identity_media_and_relationships_are_sku_actionable() -> None:
+    part = make_row(
+        SKU="PART-1",
+        Images="",
+        Categories="Parts",
+        **{
+            "Meta: _dtb_is_parts": "1",
+            "Meta: _dtb_product_kind": "part",
+            "Meta: schema_mpn": "",
+            "Meta: _dtb_manufacturer_sku": "",
+            "Meta: _dtb_mpn": "",
+            "GTIN, UPC, EAN, or ISBN": "",
+        },
+    )
+    report = audit_rows([part])
+    items = report["remediation"]["items"]
+    by_finding = {item["finding"]: item for item in items}
+
+    assert by_finding["missing_mpn"]["sku"] == "PART-1"
+    assert by_finding["missing_image"]["workflow"] == "media_research"
+    assert by_finding["part_without_compatibility_or_replacement"]["workflow"] == "compatibility_research"
+    assert report["segmented_coverage"]["type"]["simple"]["rows"] == 1
