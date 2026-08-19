@@ -63,6 +63,8 @@ The script is read-only and combines:
 2. exact part-to-schematic occurrences from `products/launch/universal_parts/references/all_brands_schematic_parts_master.csv`;
 3. purchasable product-to-schematic identity from `frontend/src/data/productSchematicLinks.generated.js`.
 
+Canonical part identity follows the same semantic contract as the enrichment audit: `Meta: _dtb_product_kind=part` is authoritative, while `Meta: _dtb_is_parts` remains supported as a legacy/import signal. The workflow never infers part identity from names or fuzzy taxonomy.
+
 It never fuzzy-matches part names. Tool variations collapse to a valid non-part family parent where possible. Proposals are classified as:
 
 - `proposal_exact` — exact canonical part SKU plus one canonical tool family share a schematic identity;
@@ -95,6 +97,8 @@ python .\scripts\catalog\prepare_content_review_queue.py --workflow editorial_re
 ```
 
 The queue generator joins each finding to the existing generation packet so reviewers receive brand, product identity, MPN, schematic identity, compatibility state, specification count, protected-identity digest, and the current source copy. It does not research, rewrite, or mutate the catalog.
+
+Review queues preserve all findings but explicitly segment `generation_eligible` rows from variations/non-indexable rows. Summary workload metrics must use that segmentation so a variation finding is not misreported as an independent customer-facing PDP remediation target. Queue rows also retain product type and parent SKU for family-level review.
 
 Generated artifacts live under:
 
