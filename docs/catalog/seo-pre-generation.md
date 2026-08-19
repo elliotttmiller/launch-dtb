@@ -26,9 +26,10 @@ Generated pre-generation artifacts are disposable derived data. They are not an 
 5. Extract structured evidence: brand, SKU, MPN, GTIN, category, family, model, specs, compatibility, includes, variation ownership.
 6. Determine whether the row is an independent generation target. Variations are not independent indexable content authorities.
 7. Evaluate existing description and SEO metadata for length, repetitive filler, claims requiring evidence, duplicate metadata, and canonical conflicts.
-8. Emit a generation packet plus findings. Do not rewrite the source catalog.
-9. In the downstream TypeScript generation boundary, pass the packet through `buildCatalogEditorKnowledge()` to classify the drywall domain and compile only the relevant core + family + domain context.
-10. Keep compiled domain knowledge and the exact product evidence packet separate in the model request. Domain knowledge explains evidence; it never becomes evidence.
+8. Route findings into blocking, accuracy-review, evidence-review, or editorial-review workflows.
+9. Emit a generation packet plus findings. Do not rewrite the source catalog.
+10. In the downstream TypeScript generation boundary, pass the packet through `buildCatalogEditorKnowledge()` to classify the drywall domain and compile only the relevant core + family + domain context.
+11. Keep compiled domain knowledge and the exact product evidence packet separate in the model request. Domain knowledge explains evidence; it never becomes evidence.
 
 ## Protected identity
 
@@ -52,7 +53,15 @@ Classification controls information depth and allowed section shape, not wording
 
 Broad product class is intentionally independent from the drywall domain taxonomy. For example, multiple product classes can map into a `finishing_box`, `tool_set`, or parts domain depending on exact catalog evidence.
 
-Word ranges are editorial guidance only. They are not minimum-content targets or hard limits. The downstream writer must stop when additional prose stops adding product-specific purchasing information.
+Word ranges are editorial guidance only. They are not minimum-content targets or hard limits. The downstream writer must stop when additional prose stops adding product-specific purchasing information. Descriptions above guidance are reported as `description_long_for_class`; the finding is editorial review, not proof that the source copy is incorrect.
+
+## Evidence coverage
+
+Each packet exposes `evidence_coverage_grade`, not a probability/confidence score.
+
+The grade summarizes whether a record has independent evidence dimensions such as a manufacturer identifier, GTIN, structured specifications, and compatibility. MPN aliases (`schema_mpn`, `_dtb_mpn`, `_dtb_manufacturer_sku`) count as one manufacturer-identifier dimension rather than three separate confidence signals.
+
+The grade is useful for work prioritization only. It must never be interpreted as a probability that a product fact is true.
 
 ## Drywall-domain knowledge stage
 
@@ -76,9 +85,20 @@ The knowledge library contains reusable trade workflow, terminology, buyer prior
 
 The stage preserves current copy as source evidence but flags language classes that require authoritative support before reuse, including precision-manufacturing claims, industrial/professional-grade claims, performance superlatives, fit guarantees, undocumented material-quality claims, and productivity/downtime claims.
 
-A finding does not automatically declare a claim false. It means the downstream writer must either verify it against authoritative evidence or omit it.
+A finding does not automatically declare a claim false. It means the downstream writer must either verify it against authoritative evidence or omit it. These findings are routed to `accuracy_review`; they do not block pre-generation by themselves.
 
 The drywall-domain knowledge layer may explain the ordinary function of a documented mechanism, but it may not establish that the exact SKU contains that mechanism or possesses a specific performance outcome.
+
+## Finding workflows
+
+Pre-generation findings are separated by action rather than treating every high-severity editorial observation as a pipeline blocker:
+
+- `blocking` — deterministic routing/canonical conflicts that must be resolved before generation/application;
+- `accuracy_review` — claims requiring authoritative evidence before reuse;
+- `evidence_review` — insufficient structured evidence for confident editorial expansion;
+- `editorial_review` — content length, repeated phrasing, metadata length, duplicate copy and similar editorial quality observations.
+
+`blocking_findings` counts only the blocking workflow. `--fail-on-blocking` returns exit code 2 only when blocking findings remain.
 
 ## SEO normalization
 
@@ -90,7 +110,7 @@ The stage evaluates:
 - focus-keyword gaps;
 - explicit canonical overrides against the React storefront authority `/products/:slug`.
 
-An empty canonical override is preferred when the deterministic storefront route is correct. A redundant matching override is flagged for cleanup. A conflicting override is a high-severity pre-generation finding.
+An empty canonical override is preferred when the deterministic storefront route is correct. A redundant matching override is flagged for cleanup. A conflicting override is a blocking pre-generation finding.
 
 ## Variation policy
 
@@ -100,13 +120,13 @@ The knowledge compiler may receive verified variation context so it can explain 
 
 ## Outputs
 
-Default output directory: `products/dev/seo-pre-generation/`
+Default output directory: `products/dev/seo-pre-generation/` when the script is run directly. The full enrichment runner places the same artifacts under `products/dev/catalog-enrichment/seo-pre-generation/`.
 
 - `generation-packets.jsonl` — one immutable evidence/guardrail packet per catalog row.
-- `pre-generation-findings.csv` — deterministic QA findings for review and prioritization.
-- `pre-generation-summary.json` — source SHA-256, row counts, classifications, confidence distribution, finding counts, and output paths.
+- `pre-generation-findings.csv` — deterministic QA findings with explicit workflow routing.
+- `pre-generation-summary.json` — source SHA-256, row counts, classifications, evidence-coverage distribution, workflow/severity counts, and output paths.
 
-The output directory is ignored by Git because it is derived and reproducible.
+The output directories are derived and reproducible and should remain ignored by Git.
 
 ## Commands
 
@@ -116,7 +136,7 @@ PowerShell:
 .\scripts\catalog\prepare-catalog-seo.ps1
 ```
 
-Fail a controlled workflow when high/critical findings remain:
+Fail a controlled workflow only when blocking findings remain:
 
 ```powershell
 .\scripts\catalog\prepare-catalog-seo.ps1 -FailOnBlocking
@@ -148,5 +168,5 @@ A later content-generation/application stage must:
 8. never expand copy to satisfy a minimum word count;
 9. independently optimize description, short description, SEO title, and meta description;
 10. avoid templated sentence scaffolding across products;
-11. require research/manual review when confidence or evidence is insufficient;
+11. require research/manual review when evidence is insufficient;
 12. re-run canonical catalog validation and protected-identity verification before applying approved content.
