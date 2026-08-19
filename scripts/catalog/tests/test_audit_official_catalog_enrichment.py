@@ -134,8 +134,8 @@ def test_legacy_toolset_broad_key_and_missing_display_are_both_actionable() -> N
             SKU="SET-LEGACY",
             **{
                 "Meta: _dtb_product_kind": "toolset",
-                "Meta: _dtb_category_key": "toolsets",
-                "Meta: _dtb_display_category_key": "toolsets",
+                "Meta: _dtb_category_key": " Tool-Sets ",
+                "Meta: _dtb_display_category_key": "Tool Sets",
             },
         ),
         make_row(
@@ -151,6 +151,11 @@ def test_legacy_toolset_broad_key_and_missing_display_are_both_actionable() -> N
     items = [item for item in report["remediation"]["items"] if item["finding"] == "taxonomy_mapping_inconsistent"]
     assert [item["sku"] for item in items] == ["SET-LEGACY", "SET-MISSING-DISPLAY"]
     assert all(item["workflow"] == "classification_review" for item in items)
+    legacy = items[0]["current_value"]
+    assert "raw_category_key=Tool-Sets" in legacy
+    assert "raw_display_category_key=Tool Sets" in legacy
+    assert "normalized_category_key=tool_sets" in legacy
+    assert "normalized_display_category_key=tool_sets" in legacy
 
 
 def test_part_policy_is_universal_and_brand_independent() -> None:
