@@ -43,7 +43,7 @@ These files implement the unified run and are not separate product-data authorit
 - `catalog_taxonomy_policy.py` — universal brand-independent taxonomy validation/mutation policy.
 - `normalize_official_taxonomy.py` — preview/apply deterministic taxonomy normalizer used by the unified runner.
 - `audit_official_catalog_enrichment.py` — actionable quality audit and taxonomy review classification.
-- `catalog_seo_pre_generation.py` — evidence-bounded SEO/content preparation.
+- `catalog_seo_pre_generation.py` — evidence-bounded SEO/content preparation and finding authority.
 - `clear_legacy_seo_canonicals.py` — narrow deterministic canonical safe-fix implementation used by the unified runner.
 - `catalog-write-guard.ps1` — reusable validation/rollback guard for explicit catalog mutations.
 
@@ -80,11 +80,40 @@ products/dev/catalog-enrichment/compatibility/
 
 These are proposals only. A separate reviewed apply step must validate the target tool SKUs and allowlist only `Meta: _dtb_compatible_tool_skus` / `Meta: _dtb_replacement_part_for` before catalog mutation.
 
+## Content review queues
+
+`catalog_seo_pre_generation.py` remains the sole finding classifier. Do not duplicate its claim or editorial detection rules. After a unified catalog run, convert its artifacts into review queues with:
+
+```powershell
+python .\scripts\catalog\prepare_content_review_queue.py --workflow accuracy_review
+```
+
+Only after accuracy/evidence review has been resolved should the editorial queue be processed:
+
+```powershell
+python .\scripts\catalog\prepare_content_review_queue.py --workflow editorial_review
+```
+
+The queue generator joins each finding to the existing generation packet so reviewers receive brand, product identity, MPN, schematic identity, compatibility state, specification count, protected-identity digest, and the current source copy. It does not research, rewrite, or mutate the catalog.
+
+Generated artifacts live under:
+
+```text
+products/dev/catalog-enrichment/content-review/
+├── accuracy-review-queue.csv
+├── accuracy-review-summary.json
+├── editorial-review-queue.csv
+└── editorial-review-summary.json
+```
+
+Manufacturer research may validate or reject a claim, but generated/researched text must never modify SKU, MPN, GTIN, brand, taxonomy, variation identity, schematic identity, or other protected fields.
+
 ## Specialized operational tools
 
 Keep specialized tools separate when they have distinct authorities or failure modes, including:
 
 - schematic compatibility proposal/reconciliation;
+- evidence-backed content accuracy/editorial review;
 - Veeqo shipping/inventory projection tooling;
 - competitor price research and endpoint diagnostics;
 - media cleanup/conversion/gallery synchronization;
