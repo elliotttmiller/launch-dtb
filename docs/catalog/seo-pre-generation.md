@@ -2,44 +2,57 @@
 
 ## Purpose
 
-`scripts/catalog/catalog_seo_pre_generation.py` is the deterministic preparation stage for DTB product-description and SEO enrichment. It does **not** generate product copy and it does **not** mutate `products/launch/official/dtb_official_catalog.csv`.
+`scripts/catalog/catalog_seo_pre_generation.py` is an internal deterministic stage of the official catalog-enrichment run. It does not generate copy and does not mutate `products/launch/official/dtb_official_catalog.csv`.
 
-The canonical catalog remains the source of truth. The pre-generation stage converts each catalog row into a derived, reviewable evidence packet so a later editorial/generation pass can write product-specific copy without inventing facts, mutating protected identifiers, or applying a single prose template to the catalog.
+Use the unified production command rather than a separate SEO wrapper:
+
+```powershell
+.\scripts\catalog\run-official-catalog-enrichment.ps1
+```
 
 ## Ownership
 
 - `products/launch/official/dtb_official_catalog.csv` owns canonical catalog facts and protected identifiers.
-- `scripts/catalog/official_catalog_schema.py` owns canonical catalog structural validation.
-- `scripts/catalog/catalog_seo_pre_generation.py` owns deterministic normalization, evidence extraction, editorial classification, and pre-generation QA only.
-- `scripts/catalog/drywall-knowledge/` owns reusable drywall-tool domain intelligence, deterministic domain classification, and selective prompt-context compilation. It is not a product-fact authority.
+- `scripts/catalog/official_catalog_schema.py` owns structural validation.
+- `scripts/catalog/catalog_seo_pre_generation.py` owns evidence extraction, editorial classification, and pre-generation QA only.
+- `scripts/catalog/drywall-knowledge/` provides reusable domain context, not SKU-specific product truth.
 - WooCommerce remains commerce persistence authority.
 - Frontend SEO rendering remains owned by `frontend/src/components/shared/SEOHead.jsx` and `frontend/src/utils/schema.js`.
 
-Generated pre-generation artifacts are disposable derived data. They are not an alternate catalog.
+## Stage contract
 
-## Required execution order
+The stage:
 
-1. Validate the canonical catalog with `official_catalog_schema.validate_catalog()`.
-2. Normalize whitespace/HTML into read-only generation text.
-3. Snapshot and hash protected identity fields.
-4. Classify product complexity from canonical product-kind and product identity data.
-5. Extract structured evidence: brand, SKU, MPN, GTIN, category, family, model, specs, compatibility, includes, variation ownership.
-6. Determine whether the row is an independent generation target. Variations are not independent indexable content authorities.
-7. Evaluate existing description and SEO metadata for length, repetitive filler, claims requiring evidence, duplicate metadata, and canonical conflicts.
-8. Route findings into blocking, accuracy-review, evidence-review, or editorial-review workflows.
-9. Emit a generation packet plus findings. Do not rewrite the source catalog.
-10. In the downstream TypeScript generation boundary, pass the packet through `buildCatalogEditorKnowledge()` to classify the drywall domain and compile only the relevant core + family + domain context.
-11. Keep compiled domain knowledge and the exact product evidence packet separate in the model request. Domain knowledge explains evidence; it never becomes evidence.
+1. validates the canonical catalog;
+2. normalizes read-only text;
+3. snapshots and hashes protected identity;
+4. classifies product complexity;
+5. extracts structured product evidence;
+6. excludes variations from independent indexable-content authority;
+7. evaluates existing description/SEO metadata;
+8. routes findings by workflow;
+9. emits derived evidence packets and review artifacts.
+
+Generated artifacts are disposable and are not an alternate catalog.
+
+## Finding workflows
+
+- `blocking` — deterministic routing/canonical conflicts;
+- `accuracy_review` — claims requiring authoritative evidence;
+- `evidence_review` — insufficient structured evidence;
+- `editorial_review` — content length, repetition, duplicate copy, and metadata observations.
+
+Only `blocking` findings affect `--fail-on-blocking`. Editorial length guidance never becomes a catalog correctness rule.
 
 ## Protected identity
 
-The pre-generation packet captures and hashes the fields that a later generation stage must never modify implicitly, including SKU, GTIN, brand identity, MPN/manufacturer SKU, product-kind/category identity, parent/variation identity, schematic identity, and slug.
+Packets capture and hash protected fields including SKU, GTIN, brand identity, manufacturer identifiers, product-kind/category identity, parent/variation identity, schematic identity, and slug.
 
-Any later application stage must compare the packet's `protected_identity_sha256` against the current source row before applying generated content. A mismatch means the source changed and the proposal must be regenerated or manually reconciled.
+Any future generation/application stage must verify `protected_identity_sha256` against the current canonical row before applying generated editorial fields.
 
 ## Product classes
 
-Classification controls information depth and allowed section shape, not wording. Current classes are:
+Current editorial classes are:
 
 - `commodity_hardware`
 - `replacement_component`
@@ -51,54 +64,15 @@ Classification controls information depth and allowed section shape, not wording
 - `kit_set`
 - `general_product`
 
-Broad product class is intentionally independent from the drywall domain taxonomy. For example, multiple product classes can map into a `finishing_box`, `tool_set`, or parts domain depending on exact catalog evidence.
+Word ranges are editorial guidance only. `description_long_for_class` means review the extra prose; it does not declare the description incorrect.
 
-Word ranges are editorial guidance only. They are not minimum-content targets or hard limits. The downstream writer must stop when additional prose stops adding product-specific purchasing information. Descriptions above guidance are reported as `description_long_for_class`; the finding is editorial review, not proof that the source copy is incorrect.
+## Evidence handling
 
-## Evidence coverage
+The packet may retain an internal `evidence_coverage_grade` for downstream packet prioritization, but the official operational run summary does not expose or treat that A/B value as catalog readiness. Operational reporting uses explicit dimensions such as item-MPN, GTIN, structured-spec, media, and compatibility coverage.
 
-Each packet exposes `evidence_coverage_grade`, not a probability/confidence score.
+Existing copy is reference material, not proof. Precision-manufacturing claims, industrial/professional-grade claims, performance superlatives, fit guarantees, material-quality claims, and productivity/downtime claims require authoritative support before reuse.
 
-The grade summarizes whether a record has independent evidence dimensions such as a manufacturer identifier, GTIN, structured specifications, and compatibility. MPN aliases (`schema_mpn`, `_dtb_mpn`, `_dtb_manufacturer_sku`) count as one manufacturer-identifier dimension rather than three separate confidence signals.
-
-The grade is useful for work prioritization only. It must never be interpreted as a probability that a product fact is true.
-
-## Drywall-domain knowledge stage
-
-The production drywall-domain library lives at `scripts/catalog/drywall-knowledge/` and is documented in `docs/catalog/drywall-ai-knowledge-base.md`.
-
-Its deterministic runtime contract is:
-
-```text
-generation packet
-  -> classifyDrywallDomain()
-  -> buildCatalogEditorKnowledge()
-  -> buildDrywallDomainContext()
-  -> compact core + family + domain context
-```
-
-A low-confidence unresolved domain returns `reviewRequired: true` and no compiled context. The caller must not silently substitute another domain or invoke generation as though the product identity were resolved.
-
-The knowledge library contains reusable trade workflow, terminology, buyer priorities, mechanisms, configuration dimensions, generic system relationships, evidence rules, claim discipline, and search-intent guidance. SKU-specific specifications, exact compatibility, package contents, prices, availability, warranty, and generated copy remain outside it.
-
-## Evidence and claim handling
-
-The stage preserves current copy as source evidence but flags language classes that require authoritative support before reuse, including precision-manufacturing claims, industrial/professional-grade claims, performance superlatives, fit guarantees, undocumented material-quality claims, and productivity/downtime claims.
-
-A finding does not automatically declare a claim false. It means the downstream writer must either verify it against authoritative evidence or omit it. These findings are routed to `accuracy_review`; they do not block pre-generation by themselves.
-
-The drywall-domain knowledge layer may explain the ordinary function of a documented mechanism, but it may not establish that the exact SKU contains that mechanism or possesses a specific performance outcome.
-
-## Finding workflows
-
-Pre-generation findings are separated by action rather than treating every high-severity editorial observation as a pipeline blocker:
-
-- `blocking` — deterministic routing/canonical conflicts that must be resolved before generation/application;
-- `accuracy_review` — claims requiring authoritative evidence before reuse;
-- `evidence_review` — insufficient structured evidence for confident editorial expansion;
-- `editorial_review` — content length, repeated phrasing, metadata length, duplicate copy and similar editorial quality observations.
-
-`blocking_findings` counts only the blocking workflow. `--fail-on-blocking` returns exit code 2 only when blocking findings remain.
+Reusable drywall-domain knowledge may explain a verified mechanism; it cannot prove that a particular SKU contains that mechanism.
 
 ## SEO normalization
 
@@ -106,67 +80,57 @@ The stage evaluates:
 
 - missing/oversized SEO titles;
 - missing/oversized meta descriptions;
-- duplicate and highly similar meta descriptions;
+- duplicate/near-duplicate metadata;
 - focus-keyword gaps;
-- explicit canonical overrides against the React storefront authority `/products/:slug`.
+- canonical overrides against `/products/:slug`.
 
-An empty canonical override is preferred when the deterministic storefront route is correct. A redundant matching override is flagged for cleanup. A conflicting override is a blocking pre-generation finding.
+Normal PDPs should use the deterministic runtime canonical. The unified runner can apply the reviewed safe canonical cleanup with:
+
+```powershell
+.\scripts\catalog\run-official-catalog-enrichment.ps1 -ApplySafeFixes
+```
 
 ## Variation policy
 
-Variation rows are included in derived packets for context, but `generation_eligible` is false. Product SEO authority stays with the parent unless a future product-family contract explicitly introduces independently indexable variation routes.
-
-The knowledge compiler may receive verified variation context so it can explain configuration dimensions, but variation relationship remains independent from product domain.
+Variation packets exist only for context. `generation_eligible` remains false for variations, so product SEO authority stays with the parent.
 
 ## Outputs
 
-Default output directory: `products/dev/seo-pre-generation/` when the script is run directly. The full enrichment runner places the same artifacts under `products/dev/catalog-enrichment/seo-pre-generation/`.
+The unified run writes:
 
-- `generation-packets.jsonl` — one immutable evidence/guardrail packet per catalog row.
-- `pre-generation-findings.csv` — deterministic QA findings with explicit workflow routing.
-- `pre-generation-summary.json` — source SHA-256, row counts, classifications, evidence-coverage distribution, workflow/severity counts, and output paths.
-
-The output directories are derived and reproducible and should remain ignored by Git.
-
-## Commands
-
-PowerShell:
-
-```powershell
-.\scripts\catalog\prepare-catalog-seo.ps1
+```text
+products/dev/catalog-enrichment/seo-pre-generation/
+  generation-packets.jsonl
+  pre-generation-findings.csv
+  pre-generation-summary.json
 ```
 
-Fail a controlled workflow only when blocking findings remain:
+These files are ignored by Git.
 
-```powershell
-.\scripts\catalog\prepare-catalog-seo.ps1 -FailOnBlocking
-```
+## Direct developer invocation
 
-Python:
+The Python stage may still be executed directly for focused development/testing:
 
 ```text
 python scripts/catalog/catalog_seo_pre_generation.py
-```
-
-Tests:
-
-```text
 python -m unittest scripts.catalog.tests.test_catalog_seo_pre_generation
 ```
 
+Direct invocation is not a second production workflow.
+
 ## Downstream generation contract
 
-A later content-generation/application stage must:
+A future generation/application stage must:
 
-1. consume only packets whose `generation_eligible` is true;
-2. preserve every protected identity field;
-3. use `authoritative_facts` as the fact boundary;
-4. treat source descriptions as reference copy, not proof of unsupported claims;
-5. resolve a supported drywall domain or stop for review before injecting domain context;
-6. keep domain knowledge separate from product evidence in the model request;
-7. omit sections without useful supported content;
-8. never expand copy to satisfy a minimum word count;
-9. independently optimize description, short description, SEO title, and meta description;
-10. avoid templated sentence scaffolding across products;
-11. require research/manual review when evidence is insufficient;
-12. re-run canonical catalog validation and protected-identity verification before applying approved content.
+1. consume only `generation_eligible` packets;
+2. preserve protected identity;
+3. treat `authoritative_facts` as the fact boundary;
+4. treat existing descriptions as reference copy rather than proof;
+5. resolve domain context or stop for review;
+6. keep domain knowledge separate from product evidence;
+7. omit unsupported sections;
+8. never expand content to satisfy a minimum word count;
+9. independently optimize description, short description, title, and meta description;
+10. avoid catalog-wide sentence templates;
+11. require research/review when evidence is insufficient; and
+12. revalidate canonical identity before applying approved copy.
