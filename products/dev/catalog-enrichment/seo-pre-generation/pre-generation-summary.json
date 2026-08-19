@@ -1,0 +1,54 @@
+{
+  "blocking_findings": 442,
+  "confidence": {
+    "A": 88,
+    "B": 667
+  },
+  "findings_by_severity": {
+    "high": 442,
+    "low": 1145,
+    "medium": 2010
+  },
+  "generation_eligible": 442,
+  "outputs": {
+    "findings": "C:\\Users\\Elliott\\launch-dtb\\products\\dev\\catalog-enrichment\\seo-pre-generation\\pre-generation-findings.csv",
+    "generation_packets": "C:\\Users\\Elliott\\launch-dtb\\products\\dev\\catalog-enrichment\\seo-pre-generation\\generation-packets.jsonl",
+    "summary": "C:\\Users\\Elliott\\launch-dtb\\products\\dev\\catalog-enrichment\\seo-pre-generation\\pre-generation-summary.json"
+  },
+  "product_classes": {
+    "automatic_equipment": 30,
+    "commodity_hardware": 145,
+    "general_product": 68,
+    "kit_set": 17,
+    "primary_finishing_tool": 174,
+    "replacement_assembly": 11,
+    "replacement_component": 212,
+    "stilts": 29,
+    "tool_accessory": 69
+  },
+  "rows": 755,
+  "schema_version": 1,
+  "source_catalog": "C:\\Users\\Elliott\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.csv",
+  "source_mutated": false,
+  "source_sha256": "e3983dd11265733955d63e74c2669747b04a5f30d64ca36fddfaa25c8e416556",
+  "top_finding_codes": {
+    "canonical_conflict": 442,
+    "claim_needs_evidence:guarantee": 221,
+    "claim_needs_evidence:industrial_grade": 304,
+    "claim_needs_evidence:material_quality": 263,
+    "claim_needs_evidence:performance_superlative": 69,
+    "claim_needs_evidence:precision_manufacturing": 267,
+    "claim_needs_evidence:productivity_claim": 68,
+    "description_overwritten": 703,
+    "duplicate_seo_description": 6,
+    "near_duplicate_seo_description": 10,
+    "repetitive_language:demanding_environment": 42,
+    "repetitive_language:downtime": 275,
+    "repetitive_language:job_site": 429,
+    "repetitive_language:peak_performance": 23,
+    "repetitive_language:professional_drywall": 218,
+    "repetitive_language:vital": 148,
+    "seo_description_long": 22,
+    "seo_title_long": 87
+  }
+}
