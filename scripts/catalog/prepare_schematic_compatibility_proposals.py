@@ -34,6 +34,7 @@ DEFAULT_MASTER = ROOT / "products" / "launch" / "universal_parts" / "references"
 DEFAULT_LINKS = ROOT / "frontend" / "src" / "data" / "productSchematicLinks.generated.js"
 DEFAULT_OUTPUT = ROOT / "products" / "dev" / "catalog-enrichment" / "compatibility"
 
+PRODUCT_KIND_FIELD = "Meta: _dtb_product_kind"
 IS_PART_FIELD = "Meta: _dtb_is_parts"
 PARENT_SKU_FIELD = "Meta: _dtb_parent_product_sku"
 COMPATIBLE_FIELD = "Meta: _dtb_compatible_tool_skus"
@@ -46,7 +47,17 @@ def value(row: dict[str, str], field: str) -> str:
 
 
 def is_part(row: dict[str, str]) -> bool:
-    return value(row, IS_PART_FIELD).lower() in TRUTHY
+    """Use the same canonical part contract as the enrichment audit.
+
+    `_dtb_product_kind=part` is the primary semantic signal in the current
+    canonical catalog. `_dtb_is_parts` remains a supported legacy/import flag.
+    Either signal is sufficient; neither is inferred from names or taxonomy.
+    """
+
+    return (
+        value(row, PRODUCT_KIND_FIELD).casefold() == "part"
+        or value(row, IS_PART_FIELD).casefold() in TRUTHY
+    )
 
 
 def load_catalog(path: Path) -> tuple[list[dict[str, str]], dict[str, dict[str, str]]]:
