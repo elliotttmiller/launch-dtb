@@ -21,6 +21,7 @@ def row(
     *,
     name: str = "Product",
     type_: str = "simple",
+    product_kind: str = "",
     is_part: str = "0",
     parent: str = "",
     compatible: str = "",
@@ -30,6 +31,7 @@ def row(
         "SKU": sku,
         "Name": name,
         "Type": type_,
+        "Meta: _dtb_product_kind": product_kind,
         "Meta: _dtb_is_parts": is_part,
         "Meta: _dtb_parent_product_sku": parent,
         "Meta: _dtb_compatible_tool_skus": compatible,
@@ -53,8 +55,13 @@ def test_variation_tool_collapses_to_non_part_parent() -> None:
     assert canonical_tool_sku("TOOL-10", catalog) == "TOOL-PARENT"
 
 
-def test_part_sku_is_never_a_tool_target() -> None:
+def test_legacy_part_flag_is_never_a_tool_target() -> None:
     catalog = {"PART-1": row("PART-1", is_part="1")}
+    assert canonical_tool_sku("PART-1", catalog) is None
+
+
+def test_product_kind_part_is_never_a_tool_target() -> None:
+    catalog = {"PART-1": row("PART-1", product_kind="part")}
     assert canonical_tool_sku("PART-1", catalog) is None
 
 
@@ -71,7 +78,7 @@ def test_tool_index_deduplicates_variations_to_parent() -> None:
     assert build_tool_index(links, catalog) == {"schematic-a": ["TOOL-PARENT"]}
 
 
-def test_exact_shared_schematic_produces_single_tool_proposal(tmp_path: Path) -> None:
+def test_exact_shared_schematic_produces_single_tool_proposal_from_product_kind(tmp_path: Path) -> None:
     master = tmp_path / "master.csv"
     write_master(
         master,
@@ -85,8 +92,8 @@ def test_exact_shared_schematic_produces_single_tool_proposal(tmp_path: Path) ->
         ],
     )
     catalog = {
-        "HH19": row("HH19", name="Cap", is_part="1"),
-        "HYDRA": row("HYDRA", name="Hydra-Reach Handle"),
+        "HH19": row("HH19", name="Cap", product_kind="part"),
+        "HYDRA": row("HYDRA", name="Hydra-Reach Handle", product_kind="drywall-finishing-tool"),
     }
     proposals = prepare_proposals(
         catalog=catalog,
@@ -113,7 +120,7 @@ def test_multi_tool_schematic_is_review_only(tmp_path: Path) -> None:
             }
         ],
     )
-    catalog = {"PART-1": row("PART-1", is_part="1")}
+    catalog = {"PART-1": row("PART-1", product_kind="part")}
     proposals = prepare_proposals(
         catalog=catalog,
         master_path=master,
@@ -137,7 +144,7 @@ def test_existing_relationship_is_not_reproposed(tmp_path: Path) -> None:
             }
         ],
     )
-    catalog = {"PART-1": row("PART-1", is_part="1", compatible="TOOL-A")}
+    catalog = {"PART-1": row("PART-1", product_kind="part", compatible="TOOL-A")}
     proposals = prepare_proposals(
         catalog=catalog,
         master_path=master,
