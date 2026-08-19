@@ -69,6 +69,7 @@ def test_variation_inheritance_is_not_a_classification_remediation_defect() -> N
     findings = remediation_findings(audit_rows([variation]))
     assert "missing_category" not in findings
     assert "missing_display_category_key" not in findings
+    assert "taxonomy_mapping_inconsistent" not in findings
 
 
 def test_variable_parent_missing_mpn_is_not_research_work() -> None:
@@ -85,7 +86,16 @@ def test_missing_gtin_is_coverage_only_not_default_remediation() -> None:
 
 
 def test_compatibility_research_is_family_level_not_variation_level() -> None:
-    parent = make_row(Type="variable", SKU="PART-FAMILY", **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part"})
+    parent = make_row(
+        Type="variable",
+        SKU="PART-FAMILY",
+        **{
+            "Meta: _dtb_is_parts": "1",
+            "Meta: _dtb_product_kind": "part",
+            "Meta: _dtb_category_key": "parts",
+            "Meta: _dtb_display_category_key": "parts",
+        },
+    )
     variation = make_row(Type="variation", SKU="PART-CHILD", **{"Meta: _dtb_is_parts": "1", "Meta: _dtb_product_kind": "part"})
     report = audit_rows([parent, variation])
     compatibility_items = [item for item in report["remediation"]["items"] if item["workflow"] == "compatibility_research"]
@@ -93,20 +103,81 @@ def test_compatibility_research_is_family_level_not_variation_level() -> None:
     assert report["relationships"]["primary_part_research_rows"] == 1
 
 
-def test_toolset_taxonomy_policy_is_actionable_once_per_product() -> None:
-    row = make_row(
-        SKU="SET-1",
-        **{
-            "Meta: _dtb_product_kind": "toolset",
-            "Meta: _dtb_category_key": "taping",
-            "Meta: _dtb_display_category_key": "",
-        },
-    )
-    report = audit_rows([row])
-    items = [item for item in report["remediation"]["items"] if item["finding"] == "toolset_taxonomy_inconsistent"]
-    assert len(items) == 1
-    assert items[0]["workflow"] == "classification_review"
-    assert report["findings"]["taxonomy_inconsistent"]["sample_skus"] == ["SET-1"]
+def test_toolset_policy_is_universal_and_brand_independent() -> None:
+    rows = [
+        make_row(
+            SKU="SET-A",
+            Brands="Brand A",
+            **{
+                "Meta: _dtb_product_kind": "toolset",
+                "Meta: _dtb_category_key": "taping",
+                "Meta: _dtb_display_category_key": "toolsets",
+            },
+        ),
+        make_row(
+            SKU="SET-B",
+            Brands="Brand B",
+            **{
+                "Meta: _dtb_product_kind": "toolset",
+                "Meta: _dtb_category_key": "taping",
+                "Meta: _dtb_display_category_key": "toolsets",
+            },
+        ),
+    ]
+    report = audit_rows(rows)
+    assert "taxonomy_mapping_inconsistent" not in remediation_findings(report)
+
+
+def test_legacy_toolset_broad_key_and_missing_display_are_both_actionable() -> None:
+    rows = [
+        make_row(
+            SKU="SET-LEGACY",
+            **{
+                "Meta: _dtb_product_kind": "toolset",
+                "Meta: _dtb_category_key": "toolsets",
+                "Meta: _dtb_display_category_key": "toolsets",
+            },
+        ),
+        make_row(
+            SKU="SET-MISSING-DISPLAY",
+            **{
+                "Meta: _dtb_product_kind": "toolset",
+                "Meta: _dtb_category_key": "taping",
+                "Meta: _dtb_display_category_key": "",
+            },
+        ),
+    ]
+    report = audit_rows(rows)
+    items = [item for item in report["remediation"]["items"] if item["finding"] == "taxonomy_mapping_inconsistent"]
+    assert [item["sku"] for item in items] == ["SET-LEGACY", "SET-MISSING-DISPLAY"]
+    assert all(item["workflow"] == "classification_review" for item in items)
+
+
+def test_part_policy_is_universal_and_brand_independent() -> None:
+    rows = [
+        make_row(
+            SKU="PART-A",
+            Brands="Brand A",
+            **{
+                "Meta: _dtb_is_parts": "1",
+                "Meta: _dtb_product_kind": "part",
+                "Meta: _dtb_category_key": "parts",
+                "Meta: _dtb_display_category_key": "parts",
+            },
+        ),
+        make_row(
+            SKU="PART-B",
+            Brands="Brand B",
+            **{
+                "Meta: _dtb_is_parts": "1",
+                "Meta: _dtb_product_kind": "part",
+                "Meta: _dtb_category_key": "parts",
+                "Meta: _dtb_display_category_key": "parts",
+            },
+        ),
+    ]
+    report = audit_rows(rows)
+    assert "taxonomy_mapping_inconsistent" not in remediation_findings(report)
 
 
 def test_missing_identity_media_and_relationships_are_actionable_for_simple_part() -> None:
@@ -117,6 +188,8 @@ def test_missing_identity_media_and_relationships_are_actionable_for_simple_part
         **{
             "Meta: _dtb_is_parts": "1",
             "Meta: _dtb_product_kind": "part",
+            "Meta: _dtb_category_key": "parts",
+            "Meta: _dtb_display_category_key": "parts",
             "Meta: schema_mpn": "",
             "Meta: _dtb_manufacturer_sku": "",
             "Meta: _dtb_mpn": "",
