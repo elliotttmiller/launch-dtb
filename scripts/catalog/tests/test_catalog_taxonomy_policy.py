@@ -14,7 +14,6 @@ from normalize_official_taxonomy import build_changes, strip_brand_from_categori
 def test_toolset_policy_is_identical_for_every_brand() -> None:
     expected = expected_taxonomy(
         product_kind="toolset",
-        category_key="toolsets",
         display_category_key="toolsets",
     )
     assert expected is not None
@@ -25,7 +24,6 @@ def test_toolset_policy_is_identical_for_every_brand() -> None:
 def test_part_policy_is_identical_for_every_brand() -> None:
     expected = expected_taxonomy(
         product_kind="part",
-        category_key="taping",
         display_category_key="parts",
     )
     assert expected is not None
@@ -48,7 +46,6 @@ def test_display_category_derives_one_broad_category() -> None:
     for display, broad in cases.items():
         expected = expected_taxonomy(
             product_kind="drywall-finishing-tool",
-            category_key="legacy",
             display_category_key=display,
         )
         assert expected is not None
@@ -59,7 +56,6 @@ def test_display_category_derives_one_broad_category() -> None:
 def test_unknown_display_category_does_not_invent_taxonomy() -> None:
     assert expected_taxonomy(
         product_kind="drywall-finishing-tool",
-        category_key="custom",
         display_category_key="unknown_future_class",
     ) is None
 
@@ -69,6 +65,16 @@ def test_brand_segment_removal_uses_row_brand_not_brand_allowlist() -> None:
         "Drywall Finishing Tools > New Future Brand > Automatic Taping Tools > Automatic Tapers",
         "New Future Brand",
     ) == "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers"
+
+
+def test_brand_segment_removal_only_applies_to_legacy_root_position() -> None:
+    raw = "Drywall Finishing Tools > Automatic Taping Tools > Acme > Specialty Tools"
+    assert strip_brand_from_categories(raw, "Acme") == raw
+
+
+def test_brand_named_root_is_not_removed() -> None:
+    raw = "Acme > Specialty Tools"
+    assert strip_brand_from_categories(raw, "Acme") == raw
 
 
 def test_normalizer_applies_same_toolset_policy_across_brands() -> None:
@@ -98,13 +104,17 @@ def test_normalizer_applies_same_toolset_policy_across_brands() -> None:
     assert by_sku["B"]["Meta: _dtb_display_category_key"] == "toolsets"
 
 
-def test_taxonomy_state_reports_expected_pair_not_brand() -> None:
+def test_taxonomy_state_reports_raw_and_normalized_values() -> None:
     state = taxonomy_state(
-        product_kind="toolset",
-        category_key="toolsets",
-        display_category_key="toolsets",
+        product_kind="Toolset",
+        category_key=" Tool-Sets ",
+        display_category_key="Tool Sets",
     )
     assert state["consistent"] is False
+    assert state["raw_category_key"] == "Tool-Sets"
+    assert state["raw_display_category_key"] == "Tool Sets"
+    assert state["category_key"] == "tool_sets"
+    assert state["display_category_key"] == "tool_sets"
     assert state["expected_category_key"] == "taping"
     assert state["expected_display_category_key"] == "toolsets"
     assert "brand" not in state
