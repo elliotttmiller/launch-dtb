@@ -30,7 +30,7 @@ When reviewed deterministic safe fixes are required, use the same entrypoint exp
 ```text
 structural validation
   -> stale SEO canonical cleanup
-  -> universal cross-brand taxonomy normalization
+  -> deterministic taxonomy safe fixes only
   -> structural revalidation
   -> enrichment audit
   -> SEO/content preparation
@@ -51,28 +51,40 @@ The two mutation stages write separate reports: `seo-canonical-safe-fixes.json` 
 Taxonomy is universal across manufacturers. Brand identity is not a classification input.
 
 - `Brands` owns manufacturer identity.
-- Brand names must not create per-manufacturer category namespaces.
 - `Meta: _dtb_category_key` is the broad DTB functional category.
-- `Meta: _dtb_display_category_key` is the customer-facing functional class used for catalog discovery and filtering.
-- A given product semantic maps to the same broad/display pair for Columbia Tools, TapeTech, LEVEL5, Platinum, SurPro, Dura-Stilts, and future brands.
+- `Meta: _dtb_display_category_key` is a customer-facing discovery/filtering class and may also represent a cross-cutting merchandising or product-family grouping.
+- Broad category, display category, product family, and manufacturer are separate dimensions.
+- A deterministic product semantic maps identically across Columbia Tools, TapeTech, LEVEL5, Platinum, SurPro, Dura-Stilts, and future brands.
 - Brand-specific and SKU-specific taxonomy mapping rules are prohibited.
-- Unknown classifications remain unchanged and enter review instead of being guessed.
+- Unknown or ambiguous classifications remain unchanged and enter review instead of being guessed.
 
-Examples:
+Deterministic examples:
 
 | Semantic | Broad category | Display category |
 | --- | --- | --- |
-| toolset | `taping` | `toolsets` |
+| `product_kind=toolset` | `taping` | `toolsets` |
 | automatic taper | `taping` | `automatic_tapers` |
 | finishing box | `finishing` | `finishing_boxes` |
 | handle | `handles` | `handles` |
 | pump | `mudboxes` | `pumps` |
 | corner tool | `corner` | `corner_tools` |
 | compound tube | `corner` | `compound_tubes` |
-| replacement part | `parts` | `parts` |
+| `product_kind=part` | `parts` | `parts` |
 | stilts | `stilts` | `stilts` |
 
-`scripts/catalog/catalog_taxonomy_policy.py` owns the deterministic catalog-tooling policy. `scripts/catalog/normalize_official_taxonomy.py` previews/applies it. The runtime `DTB_CategoryNormalizer` remains the application-side resolver and must stay semantically aligned. The React storefront consumes backend category/display-category DTOs; it does not own classification truth.
+Cross-cutting display values such as `predator_family`, `toolsets` without `product_kind=toolset`, and `accessories` do **not** independently determine the broad functional category.
+
+`scripts/catalog/catalog_taxonomy_policy.py` owns the deterministic catalog-tooling policy. `scripts/catalog/normalize_official_taxonomy.py` previews/applies only mutation-safe results. The runtime `DTB_CategoryNormalizer` remains the application-side resolver and must stay semantically aligned. The React storefront consumes backend category/display-category DTOs; it does not own classification truth.
+
+## Taxonomy finding classes
+
+The audit separates taxonomy findings by mutation safety:
+
+- `taxonomy_deterministic_mismatch` — a stronger semantic policy establishes the broad category and the current broad category disagrees. This is the **only taxonomy finding class writable by `-ApplySafeFixes`**.
+- `taxonomy_ambiguous_review` — the display/family grouping is cross-cutting and cannot establish the broad category. Review only.
+- `display_taxonomy_mismatch` — the broad category already matches deterministic policy but the display value differs or is missing. Review only; the safe-fix runner does not write it.
+
+This distinction prevents customer-facing groupings from silently becoming a second authority for functional taxonomy.
 
 ## Core stages
 
@@ -88,7 +100,7 @@ The default remediation queue includes only actionable work:
 
 - missing item-level MPN where the row owns an item identifier;
 - missing customer-facing image;
-- universal taxonomy-mapping inconsistency on classification-owning rows;
+- taxonomy findings classified by mutation safety;
 - compatibility/replacement research once per simple part or variable part family.
 
 The audit intentionally does **not** create default work items for:
@@ -101,8 +113,6 @@ The audit intentionally does **not** create default work items for:
 GTIN remains a coverage metric and may be researched separately when authoritative data is available.
 
 Headline classification coverage is calculated against category-owning rows, not variations. Item-MPN coverage excludes variable family parents.
-
-Taxonomy consistency is evaluated through the same brand-independent policy used by the deterministic normalizer. For example, every `product_kind=toolset` expects broad `category_key=taping` and `display_category_key=toolsets`, regardless of manufacturer.
 
 ### SEO/content preparation
 
@@ -128,6 +138,8 @@ Editorial findings do not block the catalog pipeline.
 - `seo-pre-generation/pre-generation-summary.json`
 - `run-summary.json`
 
+`taxonomy-safe-fixes.json` records the writable deterministic changes plus counts for review-only `taxonomy_ambiguous_review` and `display_taxonomy_mismatch` rows that were intentionally not mutated.
+
 `run-summary.json` is the operational manifest. It records the input catalog SHA-256, repository commit, timestamps, stage results, separate canonical/taxonomy safe-fix outcomes, actionable remediation counts, operational coverage dimensions, GTIN/media/spec coverage, compatibility relationship counts, and SEO workflow counts. It does not expose an opaque A/B catalog-readiness grade.
 
 ## External evidence
@@ -151,15 +163,16 @@ Competitor pricing remains research evidence only. Supplier access remains field
 A catalog mutation is allowed only when:
 
 1. the field belongs in the canonical catalog;
-2. the source is authoritative for that field;
+2. the source/policy is authoritative for that field;
 3. the target SKU/product resolves deterministically;
-4. writable fields are allowlisted;
-5. missing source values cannot erase known values accidentally;
-6. a rollback path exists for destructive/bulk changes;
-7. the canonical validator passes afterward; and
-8. the operation emits an auditable result.
+4. the classification is not ambiguous;
+5. writable fields are allowlisted;
+6. missing source values cannot erase known values accidentally;
+7. a rollback path exists for destructive/bulk changes;
+8. the canonical validator passes afterward; and
+9. the operation emits an auditable result.
 
-Fuzzy matching, OCR, extraction, competitor copy, and generated text may produce candidates; none may silently become protected product truth.
+Fuzzy matching, OCR, extraction, competitor copy, generated text, and cross-cutting display groupings may produce candidates; none may silently become protected product truth.
 
 ## Specialized tools retained outside the core run
 
