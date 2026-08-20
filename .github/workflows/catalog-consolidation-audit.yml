@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -22,6 +22,18 @@ jobs:
 
       - name: Audit official catalog consolidation
         run: python scripts/catalog/audit_catalog_consolidation.py
+
+      - name: Persist consolidation audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f products/dev/catalog-consolidation/
+          if git diff --cached --quiet; then
+            echo "Audit artifacts unchanged"
+          else
+            git commit -m "Record catalog consolidation audit"
+            git push origin HEAD:main
+          fi
 
       - name: Upload consolidation audit
         uses: actions/upload-artifact@v4
