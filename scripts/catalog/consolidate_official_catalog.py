@@ -98,6 +98,41 @@ def identity_conflicts(main: dict[str, str], seo: dict[str, str]) -> list[dict[s
     return conflicts
 
 
+def validate_for_consolidation(catalog: Path, gap_audit: Path) -> tuple[dict[str, object], dict[str, object]]:
+    """Validate the catalog without requiring a derived include-gap artifact.
+
+    When the reviewed gap audit exists it remains authoritative. When it is
+    absent, validate against a temporary *empty* approval set. This preserves
+    every structural check and makes any observed include-name-without-SKU gap
+    fail as unreviewed instead of silently approving or skipping it.
+    """
+
+    if gap_audit.is_file():
+        return validate_catalog(catalog, gap_audit), {
+            "path": str(gap_audit),
+            "present": True,
+            "mode": "reviewed_gap_audit",
+        }
+
+    fd, temporary_name = tempfile.mkstemp(prefix="dtb-include-gap-empty-", suffix=".json")
+    os.close(fd)
+    temporary = Path(temporary_name)
+    try:
+        temporary.write_text(
+            json.dumps({"schema_version": 1, "entries": []}, separators=(",", ":")) + "\n",
+            encoding="utf-8",
+        )
+        validation = validate_catalog(catalog, temporary)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+    return validation, {
+        "path": str(gap_audit),
+        "present": False,
+        "mode": "strict_no_approved_gaps",
+    }
+
+
 def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) -> dict[str, object]:
     main_by_sku = index_by_sku(main_rows, "canonical catalog")
     seo_by_sku = index_by_sku(seo_rows, "content/SEO catalog")
@@ -232,12 +267,18 @@ def atomic_write(path: Path, fields: list[str], rows: list[dict[str, str]]) -> N
             temp.unlink()
 
 
-def write_report(output: Path, plan: dict[str, object], applied: bool) -> None:
+def write_report(
+    output: Path,
+    plan: dict[str, object],
+    applied: bool,
+    validation: dict[str, object],
+    gap_audit_status: dict[str, object],
+) -> None:
     output.mkdir(parents=True, exist_ok=True)
     taxonomy = plan["taxonomy_changes"]  # type: ignore[index]
     content = plan["content_changes"]  # type: ignore[index]
     summary = {
-        "schema_version": 1,
+        "schema_version": 2,
         "mutates_catalog": applied,
         "main_rows": plan["main_rows"],
         "seo_rows": plan["seo_rows"],
@@ -252,6 +293,8 @@ def write_report(output: Path, plan: dict[str, object], applied: bool) -> None:
         "taxonomy_by_field": dict(Counter(item["field"] for item in taxonomy)),
         "unresolved_taxonomy": len(plan["unresolved_taxonomy"]),  # type: ignore[arg-type]
         "seo_source_retirement_ready": not plan["unresolved_taxonomy"],
+        "structural_validation": validation,
+        "include_gap_audit": gap_audit_status,
     }
     (output / "consolidation-summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     (output / "consolidation-plan.json").write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -271,13 +314,13 @@ def main() -> int:
     catalog = args.catalog.resolve()
     seo = args.seo_catalog.resolve()
     gaps = args.include_gap_audit.resolve()
-    validate_catalog(catalog, gaps)
+    validation, gap_audit_status = validate_for_consolidation(catalog, gaps)
     fields, rows = read_csv(catalog)
     _seo_fields, seo_rows = read_csv(seo)
     plan = build_plan(rows, seo_rows)
 
     if args.apply and plan["unresolved_taxonomy"]:
-        write_report(args.output_dir.resolve(), plan, False)
+        write_report(args.output_dir.resolve(), plan, False, validation, gap_audit_status)
         raise ValueError(f"Refusing apply: {len(plan['unresolved_taxonomy'])} taxonomy row(s) remain unresolved")
 
     applied = False
@@ -285,7 +328,7 @@ def main() -> int:
         create_catalog_backup(catalog)
         apply_plan(rows, plan)
         atomic_write(catalog, fields, rows)
-        validate_catalog(catalog, gaps)
+        validation, gap_audit_status = validate_for_consolidation(catalog, gaps)
         # Re-plan against the resulting file. Taxonomy must converge to zero.
         _fields, applied_rows = read_csv(catalog)
         post = build_plan(applied_rows, seo_rows)
@@ -295,7 +338,7 @@ def main() -> int:
         if args.retire_seo_source:
             seo.unlink()
 
-    write_report(args.output_dir.resolve(), plan, applied)
+    write_report(args.output_dir.resolve(), plan, applied, validation, gap_audit_status)
     return 0
 
 
