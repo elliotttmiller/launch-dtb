@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -7,7 +8,8 @@ CATALOG_DIR = Path(__file__).resolve().parents[1]
 if str(CATALOG_DIR) not in sys.path:
     sys.path.insert(0, str(CATALOG_DIR))
 
-from consolidate_official_catalog import build_plan
+import consolidate_official_catalog as consolidation
+from consolidate_official_catalog import build_plan, validate_for_consolidation
 
 
 def product(sku: str, *, name="Tool", type_="simple", brand="Columbia Tools", categories="Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes", category="finishing", display="finishing_boxes", parent="", description="old", seo_title="old title"):
@@ -74,3 +76,55 @@ def test_unknown_navigation_is_reported_not_guessed():
     plan = build_plan([main], [])
     assert len(plan["unresolved_taxonomy"]) == 1
     assert plan["unresolved_taxonomy"][0]["sku"] == "UNKNOWN"
+
+
+def test_missing_gap_audit_uses_strict_empty_approval(monkeypatch, tmp_path):
+    catalog = tmp_path / "catalog.csv"
+    catalog.write_text("fixture", encoding="utf-8")
+    missing_gap_audit = tmp_path / "missing.include-gaps.json"
+    observed: dict[str, object] = {}
+
+    def fake_validate(catalog_path: Path, gap_path: Path) -> dict[str, object]:
+        observed["catalog"] = catalog_path
+        observed["gap_path"] = gap_path
+        observed["gap_payload"] = json.loads(gap_path.read_text(encoding="utf-8"))
+        assert gap_path.exists()
+        return {"columns": 127, "rows": 1, "include_name_without_sku_reviewed": 0}
+
+    monkeypatch.setattr(consolidation, "validate_catalog", fake_validate)
+    validation, status = validate_for_consolidation(catalog, missing_gap_audit)
+
+    assert validation["rows"] == 1
+    assert status == {
+        "path": str(missing_gap_audit),
+        "present": False,
+        "mode": "strict_no_approved_gaps",
+    }
+    assert observed["catalog"] == catalog
+    assert observed["gap_payload"] == {"schema_version": 1, "entries": []}
+    assert not Path(observed["gap_path"]).exists()
+
+
+def test_present_gap_audit_remains_authoritative(monkeypatch, tmp_path):
+    catalog = tmp_path / "catalog.csv"
+    catalog.write_text("fixture", encoding="utf-8")
+    gap_audit = tmp_path / "reviewed.include-gaps.json"
+    gap_audit.write_text('{"schema_version":1,"entries":[]}\n', encoding="utf-8")
+    observed: dict[str, object] = {}
+
+    def fake_validate(catalog_path: Path, gap_path: Path) -> dict[str, object]:
+        observed["catalog"] = catalog_path
+        observed["gap_path"] = gap_path
+        return {"columns": 127, "rows": 1, "include_name_without_sku_reviewed": 0}
+
+    monkeypatch.setattr(consolidation, "validate_catalog", fake_validate)
+    validation, status = validate_for_consolidation(catalog, gap_audit)
+
+    assert validation["rows"] == 1
+    assert observed["catalog"] == catalog
+    assert observed["gap_path"] == gap_audit
+    assert status == {
+        "path": str(gap_audit),
+        "present": True,
+        "mode": "reviewed_gap_audit",
+    }
