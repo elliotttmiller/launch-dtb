@@ -1,0 +1,31 @@
+name: Catalog Consolidation Audit
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/catalog/audit_catalog_consolidation.py"
+      - ".github/workflows/catalog-consolidation-audit.yml"
+      - "products/launch/official/dtb_official_catalog.csv"
+      - "products/launch/official/dtb_official_catalog_content_seo.csv"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Audit official catalog consolidation
+        run: python scripts/catalog/audit_catalog_consolidation.py
+
+      - name: Upload consolidation audit
+        uses: actions/upload-artifact@v4
+        with:
+          name: catalog-consolidation-audit
+          path: products/dev/catalog-consolidation/
+          if-no-files-found: error
