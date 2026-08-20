@@ -1,17 +1,50 @@
 #!/usr/bin/env python3
-"""Universal DTB catalog taxonomy policy.
+"""Universal DTB catalog navigation/taxonomy policy.
 
-This module defines brand-independent semantic mappings between the broad DTB
-category key and the customer-facing display-category key. Brand identity is
-never part of classification. Broad functional taxonomy, display grouping, and
-product family are distinct concerns. The canonical catalog remains the data
-source of truth; this module only defines deterministic validation/mutation
-policy.
+WooCommerce product_cat paths (`Categories` in the official import CSV) are the
+primary storefront navigation authority. DTB category/display metadata are
+compatibility facets derived from that navigation identity. Brand and product
+family are orthogonal and must never create navigation branches.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
+
+CATEGORY_FIELD = "Meta: _dtb_category_key"
+DISPLAY_FIELD = "Meta: _dtb_display_category_key"
+KIND_FIELD = "Meta: _dtb_product_kind"
+PARENT_FIELD = "Meta: _dtb_parent_product_sku"
+
+
+def normalize_key(value: object) -> str:
+    return re.sub(r"_+", "_", re.sub(r"[^a-z0-9]+", "_", str(value or "").strip().lower())).strip("_")
+
+
+def split_category_paths(raw: object) -> list[list[str]]:
+    text = str(raw or "").strip()
+    if not text:
+        return []
+    paths: list[list[str]] = []
+    for candidate in text.split(","):
+        parts = [part.strip() for part in candidate.split(">") if part.strip()]
+        if parts:
+            paths.append(parts)
+    return paths
+
+
+@dataclass(frozen=True)
+class NavigationTaxon:
+    root: str
+    group: str
+    leaf: str
+    category_key: str
+    display_key: str
+
+    @property
+    def path(self) -> str:
+        return " > ".join(part for part in (self.root, self.group, self.leaf) if part)
 
 
 @dataclass(frozen=True)
@@ -21,10 +54,79 @@ class TaxonomyExpectation:
     reason: str
 
 
-# Display categories that are functionally specific enough to determine one
-# broad DTB category across manufacturers. Keep cross-cutting merchandising or
-# family groupings out of this map.
-DETERMINISTIC_DISPLAY_TO_CATEGORY_KEY: dict[str, str] = {
+DRYWALL_ROOT = "Drywall Finishing Tools"
+STILT_ROOT = "Stilts & Accessories"
+AUTOMATIC = "Automatic Taping Tools"
+SEMI_AUTOMATIC = "Semi-Automatic Taping Tools"
+
+
+def _t(root: str, group: str, leaf: str, category: str, display: str) -> NavigationTaxon:
+    return NavigationTaxon(root, group, leaf, category, display)
+
+
+NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
+    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Tapers", "taping", "automatic_tapers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "finishing", "finishing_boxes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Box Handles", "handles", "handles"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "taping", "nail_spotters"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "mudboxes", "pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Box Fillers", "mudboxes", "pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks", "mudboxes", "pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Taping Tool Sets", "taping", "toolsets"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Extendable Handles", "handles", "handles"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Fixed Handles", "handles", "handles"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Tool Cases", "accessories", "accessories"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Smoothing Blades", "finishing", "smoothing_blades"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Accessories & Adapters", "accessories", "accessories"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "taping", "semi_automatic_tapers"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Applicators", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Corner Flushers", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
+    _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
+    _t(STILT_ROOT, "Accessories", "", "accessories", "accessories"),
+    _t(STILT_ROOT, "Parts", "", "parts", "parts"),
+    _t(STILT_ROOT, "Accessories", "Extension Tubes & Clamps", "accessories", "accessories"),
+    _t(STILT_ROOT, "Accessories", "Legs & Brackets", "accessories", "accessories"),
+    _t(STILT_ROOT, "Accessories", "Hardware", "accessories", "accessories"),
+    _t(STILT_ROOT, "Accessories", "Springs & Bearings", "accessories", "accessories"),
+    _t(STILT_ROOT, "Accessories", "Straps & Buckles", "accessories", "accessories"),
+    _t(STILT_ROOT, "Accessories", "Soles & Floor Plates", "accessories", "accessories"),
+)
+
+BY_PATH = {normalize_key(t.path): t for t in NAVIGATION_TAXA}
+BY_LEAF = {normalize_key(t.leaf or t.group): t for t in NAVIGATION_TAXA}
+LEAF_ALIASES = {
+    "finishing_boxes": "flat_boxes",
+    "flat_finishing_boxes": "flat_boxes",
+    "box_handles": "flat_box_handles",
+    "angle_head_handles": "fixed_handles",
+    "taping_tool_sets": "automatic_taping_tool_sets",
+    "tool_sets": "automatic_taping_tool_sets",
+    "tool_sets_kits": "automatic_taping_tool_sets",
+    "corner_finishers": "angle_heads",
+    "corner_tools": "angle_heads",
+    "drywall_pumps": "loading_pumps",
+    "pumps": "loading_pumps",
+    "compound_pumps": "loading_pumps",
+    "mud_pumps": "loading_pumps",
+    "drywall_stilts": "stilts",
+}
+FAMILY_ONLY_KEYS = {"predator", "predator_family"}
+
+PRODUCT_KIND_DEFAULTS = {
+    "part": _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
+    "toolset": BY_LEAF["automatic_taping_tool_sets"],
+    "kit": BY_LEAF["automatic_taping_tool_sets"],
+    "stilt": _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
+}
+
+# Metadata-only mapping retained for the legacy audit/normalizer API. Generic
+# merchandising values intentionally remain ambiguous here even though an
+# explicit navigation path may resolve them in canonical_values().
+DISPLAY_TO_CATEGORY_KEY = {
     "automatic_tapers": "taping",
     "semi_automatic_tapers": "taping",
     "nail_spotters": "taping",
@@ -37,115 +139,91 @@ DETERMINISTIC_DISPLAY_TO_CATEGORY_KEY: dict[str, str] = {
     "parts": "parts",
     "stilts": "stilts",
 }
-
-# These are valid display/family concepts but they span more than one functional
-# broad category or can contain non-toolset accessories. They must never drive a
-# broad-category mutation without a stronger semantic authority.
-AMBIGUOUS_DISPLAY_KEYS = frozenset({
-    "predator_family",
-    "toolsets",
-    "accessories",
-})
-
-# Product kinds with an unambiguous cross-brand taxonomy contract override any
-# legacy broad/display values. Do not add brand or SKU entries here.
-PRODUCT_KIND_POLICY: dict[str, tuple[str, str]] = {
-    "part": ("parts", "parts"),
-    "toolset": ("taping", "toolsets"),
-}
+AMBIGUOUS_DISPLAY_KEYS = {"predator_family", "toolsets", "accessories"}
 
 
-def normalize_key(value: str | None) -> str:
-    return (value or "").strip().lower().replace("-", "_").replace(" ", "_")
+def taxon_for_path(raw_path: object) -> NavigationTaxon | None:
+    candidates: list[NavigationTaxon] = []
+    for parts in split_category_paths(raw_path):
+        normalized_parts = [normalize_key(part) for part in parts]
+        if any(part in FAMILY_ONLY_KEYS for part in normalized_parts):
+            continue
+        direct = BY_PATH.get(normalize_key(" > ".join(parts)))
+        if direct:
+            candidates.append(direct)
+            continue
+        leaf_key = LEAF_ALIASES.get(normalize_key(parts[-1]), normalize_key(parts[-1]))
+        taxon = BY_LEAF.get(leaf_key)
+        if taxon:
+            candidates.append(taxon)
+    unique = {item.path: item for item in candidates}
+    return next(iter(unique.values())) if len(unique) == 1 else None
 
 
-def expected_taxonomy(
-    *,
-    product_kind: str | None,
-    display_category_key: str | None,
-) -> TaxonomyExpectation | None:
-    """Return a universal expectation only when taxonomy is deterministic."""
+def navigation_for_row(row: dict[str, str], parent: dict[str, str] | None = None) -> NavigationTaxon | None:
+    if normalize_key(row.get("Type")) == "variation":
+        return navigation_for_row(parent, None) if parent else None
 
+    kind = normalize_key(row.get(KIND_FIELD))
+    if kind == "part":
+        for parts in split_category_paths(row.get("Categories")):
+            if parts and normalize_key(parts[0]) == normalize_key(STILT_ROOT):
+                return _t(STILT_ROOT, "Parts", "", "parts", "parts")
+        return PRODUCT_KIND_DEFAULTS["part"]
+    if kind == "stilt":
+        return PRODUCT_KIND_DEFAULTS["stilt"]
+    if kind in {"toolset", "kit"}:
+        return PRODUCT_KIND_DEFAULTS[kind]
+
+    return taxon_for_path(row.get("Categories"))
+
+
+def canonical_values(row: dict[str, str], parent: dict[str, str] | None = None) -> dict[str, str] | None:
+    taxon = navigation_for_row(row, parent)
+    if not taxon:
+        return None
+    return {"Categories": taxon.path, CATEGORY_FIELD: taxon.category_key, DISPLAY_FIELD: taxon.display_key}
+
+
+def expected_taxonomy(product_kind: str, display_category_key: str) -> TaxonomyExpectation | None:
     kind = normalize_key(product_kind)
-    if kind in PRODUCT_KIND_POLICY:
-        broad, display = PRODUCT_KIND_POLICY[kind]
-        return TaxonomyExpectation(broad, display, f"product_kind={kind}")
-
+    if kind in PRODUCT_KIND_DEFAULTS:
+        taxon = PRODUCT_KIND_DEFAULTS[kind]
+        return TaxonomyExpectation(taxon.category_key, taxon.display_key, "product_kind")
     display = normalize_key(display_category_key)
-    broad = DETERMINISTIC_DISPLAY_TO_CATEGORY_KEY.get(display)
-    if broad:
-        return TaxonomyExpectation(broad, display, f"display_category_key={display}")
+    if display in AMBIGUOUS_DISPLAY_KEYS:
+        return None
+    category = DISPLAY_TO_CATEGORY_KEY.get(display)
+    return TaxonomyExpectation(category, display, "display_category") if category else None
 
-    return None
 
-
-def taxonomy_state(
-    *,
-    product_kind: str | None,
-    category_key: str | None,
-    display_category_key: str | None,
-) -> dict[str, str | bool | None]:
-    """Return raw, normalized, expected, and review-disposition taxonomy state."""
-
-    raw_category = (category_key or "").strip()
-    raw_display = (display_category_key or "").strip()
-    current_category = normalize_key(category_key)
-    current_display = normalize_key(display_category_key)
-    kind = normalize_key(product_kind)
-
-    expected = expected_taxonomy(
-        product_kind=product_kind,
-        display_category_key=display_category_key,
-    )
-
-    if expected is not None:
-        category_matches = current_category == expected.category_key
-        display_matches = current_display == expected.display_category_key
-        if category_matches and display_matches:
-            disposition = "consistent"
-        elif category_matches and not display_matches:
-            disposition = "display_mismatch"
-        else:
-            disposition = "deterministic_mismatch"
-        return {
-            "known": True,
-            "ambiguous": False,
-            "consistent": disposition == "consistent",
-            "disposition": disposition,
-            "raw_category_key": raw_category,
-            "raw_display_category_key": raw_display,
-            "category_key": current_category,
-            "display_category_key": current_display,
-            "expected_category_key": expected.category_key,
-            "expected_display_category_key": expected.display_category_key,
-            "reason": expected.reason,
-        }
-
-    if current_display in AMBIGUOUS_DISPLAY_KEYS and kind not in PRODUCT_KIND_POLICY:
-        return {
-            "known": True,
-            "ambiguous": True,
-            "consistent": False,
-            "disposition": "ambiguous_review",
-            "raw_category_key": raw_category,
-            "raw_display_category_key": raw_display,
-            "category_key": current_category,
-            "display_category_key": current_display,
-            "expected_category_key": None,
-            "expected_display_category_key": current_display,
-            "reason": f"cross_cutting_display_category={current_display}",
-        }
-
-    return {
-        "known": False,
-        "ambiguous": False,
-        "consistent": True,
-        "disposition": "unknown",
+def taxonomy_state(*, product_kind: str, category_key: str, display_category_key: str) -> dict[str, object]:
+    raw_category = str(category_key or "").strip()
+    raw_display = str(display_category_key or "").strip()
+    category = normalize_key(raw_category)
+    display = normalize_key(raw_display)
+    base = {
         "raw_category_key": raw_category,
         "raw_display_category_key": raw_display,
-        "category_key": current_category,
-        "display_category_key": current_display,
-        "expected_category_key": None,
-        "expected_display_category_key": None,
-        "reason": None,
+        "category_key": category,
+        "display_category_key": display,
+    }
+    if display in AMBIGUOUS_DISPLAY_KEYS and normalize_key(product_kind) not in PRODUCT_KIND_DEFAULTS:
+        return {**base, "disposition": "ambiguous_review", "consistent": True, "expected_category_key": None, "expected_display_category_key": None, "reason": "cross-cutting merchandising/family value cannot determine taxonomy"}
+    expected = expected_taxonomy(product_kind, display)
+    if not expected:
+        return {**base, "disposition": "unknown", "consistent": True, "expected_category_key": None, "expected_display_category_key": None, "reason": "no deterministic metadata-only expectation"}
+    if category != expected.category_key:
+        disposition = "deterministic_mismatch"
+    elif display != expected.display_category_key:
+        disposition = "display_mismatch"
+    else:
+        disposition = "consistent"
+    return {
+        **base,
+        "disposition": disposition,
+        "consistent": disposition == "consistent",
+        "expected_category_key": expected.category_key,
+        "expected_display_category_key": expected.display_category_key,
+        "reason": expected.reason,
     }
