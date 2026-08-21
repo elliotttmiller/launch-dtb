@@ -49,19 +49,19 @@ define( 'WP_CACHE_KEY_SALT', 'CHANGE_ME_UNIQUE_CACHE_SALT' );
 $table_prefix = 'vaa_';
 
 /**
- * Canonical Drywall Toolbox production topology.
+ * Drywall Toolbox HostGator staging topology.
  */
-define( 'WP_HOME', 'https://elliottm4.sg-host.com' );
-define( 'WP_SITEURL', 'https://elliottm4.sg-host.com/wp' );
-define( 'DRYWALL_ALLOWED_ORIGIN', 'https://elliottm4.sg-host.com' );
+define( 'WP_HOME', 'https://drywalltoolbox.com/staging/2972' );
+define( 'WP_SITEURL', 'https://drywalltoolbox.com/staging/2972/wp' );
+define( 'DRYWALL_ALLOWED_ORIGIN', 'https://drywalltoolbox.com' );
 
 /**
- * Root cookie scope is required for root /wp-admin and /wp-json aliases.
+ * The staging frontend and WordPress aliases share this scoped cookie path.
  * Do not define COOKIE_DOMAIN without a reviewed multi-subdomain requirement.
  */
-define( 'COOKIEPATH', '/' );
-define( 'SITECOOKIEPATH', '/' );
-define( 'ADMIN_COOKIE_PATH', '/' );
+define( 'COOKIEPATH', '/staging/2972/' );
+define( 'SITECOOKIEPATH', '/staging/2972/' );
+define( 'ADMIN_COOKIE_PATH', '/staging/2972/wp/' );
 
 /**
  * Existing narrowly scoped topology compatibility switches.

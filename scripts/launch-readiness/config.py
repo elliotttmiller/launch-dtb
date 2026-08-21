@@ -65,8 +65,8 @@ def _load_dotenv() -> None:
 @dataclass(slots=True)
 class Config:
     # -- Target environment ------------------------------------------------
-    site_url: str = "https://elliottm4.sg-host.com"
-    api_base: str = ""  # derived: {site_url}/wp-json
+    site_url: str = "https://drywalltoolbox.com/staging/2972"
+    api_base: str = ""  # public WordPress REST base, e.g. https://host/wp-json
     request_timeout_s: float = 15.0
 
     # -- WooCommerce REST API (Settings > Advanced > REST API, read scope) --
@@ -129,11 +129,12 @@ class Config:
 def load_config() -> Config:
     _load_dotenv()
 
-    site_url = os.environ.get("LAUNCH_SITE_URL", "https://elliottm4.sg-host.com").rstrip("/")
+    site_url = os.environ.get("LAUNCH_SITE_URL", "https://drywalltoolbox.com/staging/2972").rstrip("/")
+    api_base = os.environ.get("LAUNCH_API_BASE_URL", f"{site_url}/wp-json").rstrip("/")
 
     config = Config(
         site_url=site_url,
-        api_base=f"{site_url}/wp-json",
+        api_base=api_base,
         request_timeout_s=_env_float("LAUNCH_REQUEST_TIMEOUT_S", 15.0),
         wc_consumer_key=os.environ.get("LAUNCH_WC_CONSUMER_KEY", ""),
         wc_consumer_secret=os.environ.get("LAUNCH_WC_CONSUMER_SECRET", ""),

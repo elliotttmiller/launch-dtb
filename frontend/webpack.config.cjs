@@ -55,7 +55,7 @@ module.exports = (envFlags, argv) => {
   // Determine build mode from webpack argv FIRST
   const mode   = (argv && argv.mode) ? argv.mode : (process.env.NODE_ENV || 'development');
 
-  // Resolve application environment (production/development/test).
+  // Resolve application environment (production/staging/development/test).
   const cliAppEnv = (envFlags && envFlags.appEnv) ? String(envFlags.appEnv).trim() : '';
   const inferredAppEnv = mode === 'production' ? 'production' : 'development';
   const appEnv = (
@@ -66,13 +66,14 @@ module.exports = (envFlags, argv) => {
     inferredAppEnv
   ).trim().toLowerCase();
 
-  const supportedAppEnvironments = new Set(['development', 'production', 'test']);
+  const supportedAppEnvironments = new Set(['development', 'staging', 'production', 'test']);
   if (!supportedAppEnvironments.has(appEnv)) {
-    throw new Error(`Unsupported APP_ENV "${appEnv}". Expected development, production, or test.`);
+    throw new Error(`Unsupported APP_ENV "${appEnv}". Expected development, staging, production, or test.`);
   }
 
   const envFileByAppEnv = {
     development: '.env.development',
+    staging: '.env.staging',
     production: '.env.production',
     test: '.env.test',
   };
@@ -98,25 +99,32 @@ module.exports = (envFlags, argv) => {
   // Now that env vars are loaded, continue with the rest of config
   const isDev  = mode !== 'production';
   const analyze = process.env.ANALYZE === 'true';
+  const deployTarget = env('DTB_DEPLOY_TARGET') || 'siteground';
+  if (!['siteground', 'hostgator'].includes(deployTarget)) {
+    throw new Error(`Unsupported DTB_DEPLOY_TARGET "${deployTarget}". Expected siteground or hostgator.`);
+  }
   const useFilesystemCache = isDev || env('DTB_WEBPACK_FS_CACHE') === '1';
   const emitSourceMaps = isDev || env('DTB_SOURCE_MAPS') === '1';
 
-  // Production: assets are served from / at the domain root.
+  // Production is root-mounted; staging is served from /staging/2972/.
   // Development: serve from / (webpack-dev-server).
   const PUBLIC_URL = env('PUBLIC_URL').replace(/\/+$/, '');
   if (!isDev && appEnv === 'production' && PUBLIC_URL !== '') {
     throw new Error('Production is root-mounted; PUBLIC_URL must be / (or empty).');
   }
+  if (!isDev && appEnv === 'staging' && PUBLIC_URL !== '/staging/2972') {
+    throw new Error('Staging must be mounted at PUBLIC_URL=/staging/2972.');
+  }
   const publicPath = isDev ? '/' : (PUBLIC_URL ? `${PUBLIC_URL}/` : '/');
 
-  // Production writes to repo-root dist/ for release assembly.
-  // Development and test write to frontend/dist/.
+  // Production and staging writes are isolated so a staging build cannot
+  // overwrite the root-deployment payload.
   const outputPath = isDev
     ? path.resolve(__dirname, 'dist')
-    : path.resolve(__dirname, '..', 'dist');
+    : path.resolve(__dirname, '..', appEnv === 'staging' ? 'dist-staging' : 'dist');
 
   const DEV_PROXY_TARGET = env('REACT_APP_API_BASE_URL') || 'https://elliottm4.sg-host.com';
-  const cacheName = `${mode}-${appEnv}-${PUBLIC_URL || 'root'}`.replace(/[^a-z0-9_.-]+/gi, '-');
+  const cacheName = `${mode}-${appEnv}-${deployTarget}-${PUBLIC_URL || 'root'}`.replace(/[^a-z0-9_.-]+/gi, '-');
   const siteUrl = (env('REACT_APP_SITE_URL') || 'https://elliottm4.sg-host.com').replace(/\/+$/, '');
   const searchIndexingEnabled = env('REACT_APP_SEARCH_INDEXING') !== '0' && appEnv === 'production';
   const robotsRule = searchIndexingEnabled ? 'Allow: /' : 'Disallow: /';
@@ -417,7 +425,14 @@ module.exports = (envFlags, argv) => {
             },
           },
           {
-            from: path.resolve(__dirname, '..', 'drywalltoolbox', '.htaccess'),
+            from: path.resolve(
+              __dirname,
+              '..',
+              'drywalltoolbox',
+              appEnv === 'staging'
+                ? 'htaccess.hostgator-staging'
+                : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess'),
+            ),
             to: '.htaccess',
             toType: 'file',
           },

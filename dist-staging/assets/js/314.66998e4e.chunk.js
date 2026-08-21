@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdrywall_toolbox_frontend=self.webpackChunkdrywall_toolbox_frontend||[]).push([[314],{9314(e,r,t){t.r(r),t.d(r,{default:()=>n});var a=t(9381),l=t(4848);function n(){return(0,l.jsx)("div",{className:"dtb-repair-start-route",children:(0,l.jsx)(a.RepairStartExperience,{})})}}}]);

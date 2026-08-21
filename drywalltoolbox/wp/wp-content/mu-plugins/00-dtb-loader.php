@@ -163,7 +163,7 @@ function dtb_normalize_origin( string $url ): string {
 
 function dtb_allowed_origins(): array {
 	$origins = [
-		'https://elliottm4.sg-host.com',
+		'https://drywalltoolbox.com',
 		'https://elliotttmiller.github.io', // GitHub Pages dev/preview build
 		'http://localhost:3000',
 		'http://localhost:5173',
