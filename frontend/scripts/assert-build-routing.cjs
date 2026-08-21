@@ -50,6 +50,20 @@ if (appEnv === 'staging' && !/^\s*RewriteRule\s+\^\s+index\.html\s+\[QSA,L\]$/m.
   throw new Error('The staging .htaccess must provide the HostGator subdirectory SPA fallback.');
 }
 
+const sitemapIndexRule = 'RewriteRule ^sitemap\\.xml$ wp/index.php?dtb_sitemap=index [QSA,L]';
+const sitemapChildRule = 'RewriteRule ^sitemaps/([a-z0-9-]+)-([1-9][0-9]*)\\.xml$ wp/index.php?dtb_sitemap=$1&dtb_sitemap_page=$2 [QSA,L]';
+const xmlGuardMarker = 'RewriteCond %{REQUEST_URI} \\.(?:css|js|mjs|map|json|webmanifest';
+const sitemapIndexPosition = emitted.indexOf(sitemapIndexRule);
+const sitemapChildPosition = emitted.indexOf(sitemapChildRule);
+const xmlGuardPosition = emitted.indexOf(xmlGuardMarker);
+
+if (sitemapIndexPosition < 0 || sitemapChildPosition < 0) {
+  throw new Error('The emitted .htaccess must route DTB sitemap index and child XML requests to WordPress.');
+}
+if (xmlGuardPosition < 0 || sitemapIndexPosition > xmlGuardPosition || sitemapChildPosition > xmlGuardPosition) {
+  throw new Error('DTB sitemap rewrites must run before the generic missing-static-asset XML 404 guard.');
+}
+
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 for (const logicalName of ['main.js', 'main.css', 'runtime.js']) {
   const assetPath = manifest.files?.[logicalName];
