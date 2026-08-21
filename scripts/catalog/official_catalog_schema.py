@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Canonical ordered schema and validation for the official WooCommerce catalog."""
+"""Canonical ordered schema and blocking validation for the official catalog."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class CatalogValidationError(RuntimeError):
 
 
 def create_catalog_backup(catalog_path: Path) -> Path:
-    """Atomically replace the single sibling .bak snapshot before a mutation."""
+    """Atomically replace the single sibling .bak rollback snapshot."""
     backup_path = catalog_path.with_name(catalog_path.name + ".bak")
     temporary_backup = backup_path.with_name(backup_path.name + ".tmp")
     try:
@@ -61,6 +61,15 @@ def create_catalog_backup(catalog_path: Path) -> Path:
 
 
 def _load_gap_audit(path: Path) -> dict[tuple[str, int], str]:
+    """Load reviewed include gaps; a missing file means no gaps are approved.
+
+    The absence of an audit must never disable validation. It is the strictest
+    mode: any observed include name without a component SKU remains blocking.
+    """
+    if not path.exists():
+        return {}
+    if not path.is_file():
+        raise CatalogValidationError(f"Include-gap audit is not a file: {path}")
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
