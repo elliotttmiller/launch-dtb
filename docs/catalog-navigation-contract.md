@@ -87,33 +87,16 @@ A variable parent owns navigation classification. Every variation inherits the p
 
 Variation-specific category drift is invalid. If two choices require materially different navigation identities, they are not valid variations of one product family.
 
-## Official catalog consolidation
+## Legacy secondary catalog artifacts
 
-`dtb_official_catalog_content_seo.csv` is a legacy secondary content artifact, not a catalog authority. Consolidation uses `dtb_official_catalog.csv` as the base and may import only allowlisted editorial fields when protected identity matches:
+`products/launch/official/dtb_official_catalog_content_seo.csv` is a legacy secondary artifact and **must not be used as a catalog authority or mutation source**. The prior consolidation workflow has been retired because it duplicated identity/taxonomy mutation logic outside the supported catalog runner.
 
-- `Short description`
-- `Description`
-- `Meta: _dtb_seo_title`
-- `Meta: _dtb_seo_description`
-- `Meta: _dtb_seo_focus_kw`
+Until that legacy file is archived or removed in a separately reviewed data-retention change:
 
-The secondary CSV may never create products or overwrite SKU, GTIN, MPN, brand, slug, category, parent/variation identity, canonical URL, noindex, pricing, inventory, media, specs, compatibility, or schematic identity.
-
-After a successful validated consolidation the duplicate content/SEO CSV is retired so `products/launch/official/` contains one catalog authority.
-
-Preview:
-
-```powershell
-python .\scripts\catalog\consolidate_official_catalog.py
-```
-
-Validated apply and duplicate-source retirement:
-
-```powershell
-python .\scripts\catalog\consolidate_official_catalog.py --apply --retire-seo-source
-```
-
-Apply refuses to run while any product has ambiguous/unrecognized navigation taxonomy. It creates the standard catalog rollback snapshot, writes atomically, validates the 127-column canonical schema, and verifies taxonomy convergence before retiring the secondary source.
+- do not import products from it;
+- do not copy protected identity, taxonomy, pricing, inventory, media, compatibility, or schematic fields from it;
+- do not treat its presence as evidence that a second official catalog exists;
+- use `dtb_official_catalog.csv` plus the supported review/evidence workflows for all new catalog work.
 
 ## Facets API and frontend
 
