@@ -2,9 +2,11 @@
 """Normalize canonical catalog taxonomy with one brand-independent policy.
 
 Preview is the default. --apply may remove recognized legacy brand path segments
-and may mutate taxonomy fields only for deterministic broad-category mismatches.
-Ambiguous and display-only taxonomy findings remain review-only. Mutations create
-the standard sibling rollback snapshot and re-validate the complete catalog.
+and may mutate taxonomy metadata only for deterministic policy mismatches.
+Ambiguous and display-only findings remain review-only.
+
+Standalone --apply creates a rollback snapshot. The unified catalog runner uses
+--no-backup after creating one run-level snapshot for the complete safe-fix set.
 """
 
 from __future__ import annotations
@@ -12,12 +14,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
-import tempfile
 from pathlib import Path
 
 from catalog_taxonomy_policy import taxonomy_state
-from official_catalog_schema import CatalogValidationError, create_catalog_backup, validate_catalog
+from official_catalog_schema import (
+    CatalogValidationError,
+    create_catalog_backup,
+    validate_catalog,
+    write_catalog_atomic,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "products" / "launch" / "official" / "dtb_official_catalog.csv"
@@ -34,7 +39,6 @@ def value(row: dict[str, str], field: str) -> str:
 
 def strip_brand_from_categories(raw: str, brand: str) -> str:
     """Remove a legacy brand segment only from the expected hierarchy position."""
-
     if not raw.strip() or not brand.strip():
         return raw.strip()
 
@@ -60,7 +64,6 @@ def strip_brand_from_categories(raw: str, brand: str) -> str:
 
 def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     """Return only mutation-safe changes; review-only taxonomy is excluded."""
-
     changes: list[dict[str, str]] = []
     for row in rows:
         sku = value(row, "SKU")
@@ -90,7 +93,9 @@ def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
 
         expected_category = str(state["expected_category_key"] or "")
         expected_display = str(state["expected_display_category_key"] or "")
-        if value(row, CATEGORY_FIELD).lower().replace("-", "_").replace(" ", "_") != expected_category:
+        normalized_category = value(row, CATEGORY_FIELD).lower().replace("-", "_").replace(" ", "_")
+        normalized_display = value(row, DISPLAY_FIELD).lower().replace("-", "_").replace(" ", "_")
+        if normalized_category != expected_category:
             changes.append(
                 {
                     "sku": sku,
@@ -102,7 +107,7 @@ def build_changes(rows: list[dict[str, str]]) -> list[dict[str, str]]:
                     "finding": "taxonomy_deterministic_mismatch",
                 }
             )
-        if expected_display and value(row, DISPLAY_FIELD).lower().replace("-", "_").replace(" ", "_") != expected_display:
+        if expected_display and normalized_display != expected_display:
             changes.append(
                 {
                     "sku": sku,
@@ -135,29 +140,7 @@ def review_counts(rows: list[dict[str, str]]) -> dict[str, int]:
 def apply_changes(rows: list[dict[str, str]], changes: list[dict[str, str]]) -> None:
     by_sku = {value(row, "SKU"): row for row in rows}
     for change in changes:
-        row = by_sku[change["sku"]]
-        row[change["field"]] = change["expected"]
-
-
-def write_catalog(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
-    """Atomically replace the CSV using the canonical writer convention."""
-    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    os.close(fd)
-    temp_path = Path(temp_name)
-    try:
-        with temp_path.open("w", encoding="utf-8-sig", newline="") as handle:
-            writer = csv.DictWriter(
-                handle,
-                fieldnames=fieldnames,
-                extrasaction="raise",
-                lineterminator="\n",
-            )
-            writer.writeheader()
-            writer.writerows(rows)
-        os.replace(temp_path, path)
-    finally:
-        if temp_path.exists():
-            temp_path.unlink()
+        by_sku[change["sku"]][change["field"]] = change["expected"]
 
 
 def main() -> int:
@@ -166,6 +149,11 @@ def main() -> int:
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--report", type=Path)
     parser.add_argument("--apply", action="store_true", help="Apply deterministic taxonomy fixes only. Default is preview-only.")
+    parser.add_argument(
+        "--no-backup",
+        action="store_true",
+        help="Skip the standalone rollback snapshot. Intended only for an orchestrator that already created one.",
+    )
     args = parser.parse_args()
 
     catalog = args.catalog.resolve()
@@ -179,9 +167,10 @@ def main() -> int:
     changes = build_changes(rows)
     reviews = review_counts(rows)
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "catalog": catalog.relative_to(ROOT).as_posix() if catalog.is_relative_to(ROOT) else str(catalog),
         "applied": False,
+        "backup_created": False,
         "safe_fix_finding": "taxonomy_deterministic_mismatch",
         "change_count": len(changes),
         "changed_skus": len({change["sku"] for change in changes}),
@@ -194,9 +183,11 @@ def main() -> int:
     }
 
     if args.apply and changes:
-        create_catalog_backup(catalog)
+        if not args.no_backup:
+            create_catalog_backup(catalog)
+            report["backup_created"] = True
         apply_changes(rows, changes)
-        write_catalog(catalog, fieldnames, rows)
+        write_catalog_atomic(catalog, fieldnames, rows)
         validate_catalog(catalog, gaps)
         report["applied"] = True
     elif args.apply:
