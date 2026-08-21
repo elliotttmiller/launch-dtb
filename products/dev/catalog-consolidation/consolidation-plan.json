@@ -1,0 +1,4278 @@
+{
+  "common_skus": 0,
+  "content_changes": [],
+  "main_only_skus": 755,
+  "main_rows": 755,
+  "rejected_content": [],
+  "seo_only_skus": [],
+  "seo_rows": 755,
+  "taxonomy_changes": [
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "PTAPER",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "predator_family",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PTAPER",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles, Drywall Finishing Tools > Predator Family",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "COL-PREDATOR-MATRIX-HANDLE",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "predator_family",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "COL-PREDATOR-MATRIX-HANDLE",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles, Drywall Finishing Tools > Predator Family",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "COL-PREDATOR-ONE-HANDLE",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "predator_family",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "COL-PREDATOR-ONE-HANDLE",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes, Drywall Finishing Tools > Predator Family",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "PCLT42",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes, Drywall Finishing Tools > Predator Family",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "PCMT42",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps, Drywall Finishing Tools > Predator Family",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "PHMP",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "PHMP",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "predator_family",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PHMP",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "toolsets",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-630",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "toolsets",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "LV5-ENTRY-FINISHING-SET",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "toolsets",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-677P",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "handles",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-707",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "handles",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4-707",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "automatic_tapers",
+      "expected": "semi_automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "5-311",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CF",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-FB",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "taping",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-772",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "automatic_tapers",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4-772",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-NS",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-SSCF",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-FA",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CA8",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S1-A",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S1-M",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S1X-A",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S1X-M",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S2-A",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S2-M",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-AICA",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S2X-A",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "Drywall Finishing Tools > Stilts",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "SP-S2X-M",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "",
+      "expected": "toolsets",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TTSFS-2",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "",
+      "expected": "toolsets",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TTSFS",
+      "source": "universal_navigation_policy"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "3BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "42BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "42BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "5BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "5BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "6BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "6BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "2AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "2.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "3AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "3.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3.5AH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "8FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "8FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "10FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "10FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "10FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "12FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "12FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "12FBBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "8FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "8FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "10FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "10FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "10FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "12FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "12FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "12FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "14FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "14FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "14FFBA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+      "field": "Categories",
+      "sku": "STAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "STAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "STAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+      "field": "Categories",
+      "sku": "TAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "TAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TAPER",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "ICA2-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "ICA2-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "ICA2-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "ICA4-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "ICA4-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "ICA4-1",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "ICATW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "ICATW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "ICATW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CEXT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CEXT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CEXT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CFLT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CFLT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CFLT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Box Fillers",
+      "field": "Categories",
+      "sku": "BF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "BF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "BF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Box Fillers",
+      "field": "Categories",
+      "sku": "TBBF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "TBBF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TBBF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CLT24",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CLT32",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CLT42",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CLT55",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "2.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3WTCSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3WTCSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3WTCSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3.5CSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CMT24",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CMT32",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CMT42",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CMT55",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "2.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3WTDF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3WTDF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3WTDF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3.5DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "4DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4DF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "5.5FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "5.5FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "5.5FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "8FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "8FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "10FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "10FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "10FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "12FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "12FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "12FBB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "5.5FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "5.5FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "5.5FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "7FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "7FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "7FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "8FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "8FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "10FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "10FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "10FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "12FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "12FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "12FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "14FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "14FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "14FFB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Goosenecks",
+      "field": "Categories",
+      "sku": "GN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "GN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "GN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Goosenecks",
+      "field": "Categories",
+      "sku": "TBGN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "TBGN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TBGN",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "HMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "HMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "HMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "TBMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "TBMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "TBMP",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "HMP-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "HMP-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "HMP-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "MHS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "MHS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "MH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "MH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "MHL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "MHL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "2NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "3NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "C1HEXT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "C1HEXT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "CHXL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CHXL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "C1HS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "C1HS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "C1H",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "C1H",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "COBCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "COBCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "COBCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "CBNCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CBNCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CBNCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "COBCRE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "COBCRE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "COBCRE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "COBCRW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "COBCRW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "COBCRW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PMHS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PMHS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PMH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PMH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PMHL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PMHL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PC1HEXT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PC1HEXT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PC1H",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PC1H",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PCHXL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PCHXL",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "2.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "2.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "2.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3WTSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3WTSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3WTSF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "3.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "3.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "3.5SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "4SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4SF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "FMH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "FMH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "FMH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "IA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "IA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "IA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "OA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "OA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "OA90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "OA90-325",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "OA90-325",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "OA90-325",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB14-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB14-10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB14-12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB14-14",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB25-10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB25-12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH3-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH3-2.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH3-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH3-3.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB11-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB11-10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB11-12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB5-7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB5-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB5-10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB5-12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB5-14",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-5.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB9-14",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS7-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS7-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS8-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS8-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH9A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH9",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "BH9-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "BH9-42",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "BH9-4",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "BH9-5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "BH9-6",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HH17A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HH17B",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS4-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS4-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB4-7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB4-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS15-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS15-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB7-7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB7-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS10A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HNS10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT71",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT77",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH7-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH7-2.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH7-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH7-3.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH1-2",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH1-2.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH1-3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH1-3.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "HFFB3A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT4",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "MP13A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "MP13",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT3",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT3A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT29",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CT29A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "FFB7A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB3-7",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "CFB3-8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH8A",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Parts",
+      "field": "Categories",
+      "sku": "AH8",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "D14-22",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "D18-30",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "D24-40",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "4-701",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "4-702",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles",
+      "field": "Categories",
+      "sku": "4-794",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles",
+      "field": "Categories",
+      "sku": "4-798",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "4-732",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "4-733",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "4-734",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "4-735",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles",
+      "field": "Categories",
+      "sku": "4-795",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles",
+      "field": "Categories",
+      "sku": "4-799",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "4-743",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "4-744",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-767",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-768",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-769",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-764",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-765",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-766",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "4-770",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-759",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-780",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-781",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-782",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-711",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-712",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "4-740",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "4-754",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-754",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner_tools",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4-754",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "4-755",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-755",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner_tools",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "4-755",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
+      "field": "Categories",
+      "sku": "4-602",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "toolsets",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-602",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
+      "field": "Categories",
+      "sku": "4-600P",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "toolsets",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "4-600P",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "5-777",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "4-777",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "4-778",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "4-779",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "PT-CF2.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CF2.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "PT-3CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-3CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "PT-CF3.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CF3.5",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "PT-CT24",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "PT-CT36",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "PT-CT42",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PT-BH34",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PT-BH42",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "PT-BH54",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PT-10FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-10FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PT-12FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-12FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PT-14FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-14FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PT-8FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-8FB",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "PT-2NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-2NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "PT-3NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-3NS",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "PT-3.5CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-3.5CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "PT-2.5CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-2.5CF",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "PT-CFH50",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "PT-CAH50",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles",
+      "field": "Categories",
+      "sku": "PT-CRH50",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "PT-ICA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-ICA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "PT-OCA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-OCA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "PT-CRE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CRE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "PT-CR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-CR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "PT-OCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PT-OCR",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-A-1624",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-A-2030",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-A-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-M-1624",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-M-2030",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1-M-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1X-A-2131",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1X-A-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1X-M-2131",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S1X-M-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-A-1624",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-A-2030",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-A-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-M-1624",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-M-2030",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2-M-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2X-A-3852",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2X-A-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2X-M-2131",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Stilts & Accessories > Stilts",
+      "field": "Categories",
+      "sku": "S2X-M-2640",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "16TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "16TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "16TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "16TT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "16TT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "16TT90",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "BHE-SW",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "BH",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "BHE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "BHE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF25COMBO",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF30COMBO",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF35COMBO",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF40COMBO",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CT24TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CT36TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+      "field": "Categories",
+      "sku": "CT42TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CA07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CA07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CA07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CA08TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CA08TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CA08TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "40XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "40XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "40XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "42TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "42TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "42TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "48TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "48TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "48TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads",
+      "field": "Categories",
+      "sku": "48XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "48XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "48XTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "15TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "15TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "15TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "17TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "17TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "17TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers",
+      "field": "Categories",
+      "sku": "17TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "17TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "17TTE",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CH55TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CH55TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CH55TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CH75TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CH75TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CH75TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CH83TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CH83TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CH83TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "CH90TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "corner-tools",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "CH90TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "CH90TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF25TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF30TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF35TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+      "field": "Categories",
+      "sku": "CF40TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+      "field": "Categories",
+      "sku": "03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+      "field": "Categories",
+      "sku": "07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+      "field": "Categories",
+      "sku": "07TT-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "automatic-tapers",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "07TT-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "automatic_tapers",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "07TT-C",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EZ07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EZ07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EZ07TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EZ10TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EZ10TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EZ10TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EZ12TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EZ12TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EZ12TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EZ15TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EZ15TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EZ15TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "76TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "76TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "76TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "76TT-CA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "76TT-CA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "76TT-CA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps",
+      "field": "Categories",
+      "sku": "76XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "76XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "76XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8134TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8134TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8142TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8142TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8154TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8154TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8172TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8172TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8034TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8034TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8042TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8042TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8054TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8054TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8072TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8072TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Goosenecks",
+      "field": "Categories",
+      "sku": "85T",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "85T",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "85T",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Goosenecks",
+      "field": "Categories",
+      "sku": "85XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "mudboxes",
+      "field": "Meta: _dtb_category_key",
+      "sku": "85XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "pumps",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "85XLTT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "EHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "EHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "EHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "NS02TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "NS02TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "NS02TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters",
+      "field": "Categories",
+      "sku": "NS03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "nail-spotters",
+      "expected": "taping",
+      "field": "Meta: _dtb_category_key",
+      "sku": "NS03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "nail_spotters",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "NS03TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PAHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "PAHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PAHC07",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PAHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "PAHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PAHC10",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "PAHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "PAHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "PAHC12",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "QB06-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "QB06-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "QB06-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes",
+      "field": "Categories",
+      "sku": "QB08-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "finishing-boxes",
+      "expected": "finishing",
+      "field": "Meta: _dtb_category_key",
+      "sku": "QB08-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "finishing_boxes",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "QB08-QSX",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8000TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8000TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles",
+      "field": "Categories",
+      "sku": "8000TT-PA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "handles",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "8000TT-PA",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "14TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "",
+      "expected": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+      "field": "Categories",
+      "sku": "MR01TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "mudboxes",
+      "expected": "corner",
+      "field": "Meta: _dtb_category_key",
+      "sku": "MR01TT",
+      "source": "parent_taxonomy_inheritance"
+    },
+    {
+      "current": "pumps",
+      "expected": "corner_tools",
+      "field": "Meta: _dtb_display_category_key",
+      "sku": "MR01TT",
+      "source": "parent_taxonomy_inheritance"
+    }
+  ],
+  "unresolved_taxonomy": [
+    {
+      "categories": "Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes",
+      "category_key": "corner",
+      "display_category_key": "corner_tools",
+      "name": "Columbia Throttle Corner Flusher Box",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "COL-THROTTLE-CORNER-FLUSHER-BOX",
+      "type": "variable"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases",
+      "category_key": "toolsets",
+      "display_category_key": "toolsets",
+      "name": "Columbia Tool Case",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "COL-TOOL-CASE",
+      "type": "variable"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories",
+      "category_key": "handles",
+      "display_category_key": "handles",
+      "name": "TapeTech Support Handle",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "TT-SUPPORT-HANDLE",
+      "type": "variable"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories",
+      "category_key": "handles",
+      "display_category_key": "handles",
+      "name": "TapeTech Support Handle Adapter",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "TT-SUPPORT-HANDLE-ADAPTER",
+      "type": "variable"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories",
+      "category_key": "corner",
+      "display_category_key": "corner_tools",
+      "name": "TapeTech Compound Tube Filler Adapter",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "CTA01TT",
+      "type": "simple"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories",
+      "category_key": "mudboxes",
+      "display_category_key": "pumps",
+      "name": "TapeTech Extension",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "MRX01TT",
+      "type": "simple"
+    },
+    {
+      "categories": "Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories",
+      "category_key": "mudboxes",
+      "display_category_key": "pumps",
+      "name": "TapeTech Filler Adapter",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "no unique canonical navigation taxon",
+      "sku": "90T",
+      "type": "simple"
+    },
+    {
+      "categories": "",
+      "category_key": "corner-tools",
+      "display_category_key": "",
+      "name": "Columbia Throttle Corner Flusher Box - 7\"",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent COL-THROTTLE-CORNER-FLUSHER-BOX has unresolved navigation taxonomy",
+      "sku": "7CFB",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "corner-tools",
+      "display_category_key": "",
+      "name": "Columbia Throttle Corner Flusher Box - 8\"",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent COL-THROTTLE-CORNER-FLUSHER-BOX has unresolved navigation taxonomy",
+      "sku": "8CFB",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "toolsets",
+      "display_category_key": "",
+      "name": "Columbia Tool Case - Gun Case",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent COL-TOOL-CASE has unresolved navigation taxonomy",
+      "sku": "TCS",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "toolsets",
+      "display_category_key": "",
+      "name": "Columbia Tool Case - Road Case",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent COL-TOOL-CASE has unresolved navigation taxonomy",
+      "sku": "RC",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle - Fiberglass",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE has unresolved navigation taxonomy",
+      "sku": "FHTT",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle - Closet Crusher Fiberglass",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE has unresolved navigation taxonomy",
+      "sku": "FHTT-CC",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle - Extension",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE has unresolved navigation taxonomy",
+      "sku": "XHTT",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle Adapter - Corner Applicator",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE-ADAPTER has unresolved navigation taxonomy",
+      "sku": "CAA-TT",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle Adapter - Corner Finisher",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE-ADAPTER has unresolved navigation taxonomy",
+      "sku": "CFA-TT",
+      "type": "variation"
+    },
+    {
+      "categories": "",
+      "category_key": "handles",
+      "display_category_key": "",
+      "name": "TapeTech Support Handle Adapter - Nail Spotter",
+      "product_kind": "drywall-finishing-tool",
+      "reason": "parent TT-SUPPORT-HANDLE-ADAPTER has unresolved navigation taxonomy",
+      "sku": "NSA-TT",
+      "type": "variation"
+    }
+  ]
+}

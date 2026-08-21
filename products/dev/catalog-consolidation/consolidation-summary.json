@@ -1,0 +1,31 @@
+{
+  "common_skus": 0,
+  "content_changed_skus": 0,
+  "content_changes": 0,
+  "content_rejected_conflicts": 0,
+  "include_gap_audit": {
+    "mode": "strict_no_approved_gaps",
+    "path": "D:\\AMD\\projects\\launch-dtb\\products\\launch\\official\\dtb_official_catalog.include-gaps.json",
+    "present": false
+  },
+  "main_only_skus": 755,
+  "main_rows": 755,
+  "mutates_catalog": false,
+  "schema_version": 2,
+  "seo_only_skus": 0,
+  "seo_rows": 755,
+  "seo_source_retirement_ready": false,
+  "structural_validation": {
+    "columns": 127,
+    "include_name_without_sku_reviewed": 0,
+    "rows": 755
+  },
+  "taxonomy_by_field": {
+    "Categories": 316,
+    "Meta: _dtb_category_key": 108,
+    "Meta: _dtb_display_category_key": 161
+  },
+  "taxonomy_changed_skus": 332,
+  "taxonomy_changes": 585,
+  "unresolved_taxonomy": 17
+}
