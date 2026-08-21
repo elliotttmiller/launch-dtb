@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """Prepare evidence-backed compatibility proposals from existing schematic data.
 
-This script is intentionally read-only. It reuses the repository's existing
-schematic authorities to propose `_dtb_compatible_tool_skus` relationships
-without mutating the canonical catalog:
+This command is intentionally read-only. It reuses repository authorities to
+propose `_dtb_compatible_tool_skus` relationships without mutating the catalog:
 
-- products/launch/official/dtb_official_catalog.csv for canonical product identity;
+- products/launch/official/dtb_official_catalog.csv for canonical identity;
 - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv
-  for part -> schematic occurrence evidence;
+  for part-to-schematic occurrence evidence;
 - frontend/src/data/productSchematicLinks.generated.js for purchasable
-  product -> canonical schematic identity.
+  product-to-schematic identity.
 
 Exact SKU and shared canonical schematic identity are required. No fuzzy name
-matching is performed. Variation tool SKUs collapse to their canonical parent
-SKU when a valid non-part parent exists. Multi-tool schematic matches are kept
-for review instead of being treated as mutation-ready.
+matching is performed. Variation tool SKUs collapse to a valid canonical parent
+SKU. Multi-tool schematic matches remain review-only.
 """
 
 from __future__ import annotations
@@ -47,13 +45,7 @@ def value(row: dict[str, str], field: str) -> str:
 
 
 def is_part(row: dict[str, str]) -> bool:
-    """Use the same canonical part contract as the enrichment audit.
-
-    `_dtb_product_kind=part` is the primary semantic signal in the current
-    canonical catalog. `_dtb_is_parts` remains a supported legacy/import flag.
-    Either signal is sufficient; neither is inferred from names or taxonomy.
-    """
-
+    """Use the same canonical part contract as the enrichment audit."""
     return (
         value(row, PRODUCT_KIND_FIELD).casefold() == "part"
         or value(row, IS_PART_FIELD).casefold() in TRUTHY
@@ -168,7 +160,7 @@ def prepare_proposals(
                 }
             )
 
-    return sorted(proposals, key=lambda item: (item["status"], item["schematic_id"], item["part_sku"]))
+    return sorted(proposals, key=lambda item: (item["status"], item["brand"], item["schematic_id"], item["part_sku"]))
 
 
 def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
@@ -198,7 +190,11 @@ def main() -> int:
     parser.add_argument("--schematic-master", type=Path, default=DEFAULT_MASTER)
     parser.add_argument("--product-links", type=Path, default=DEFAULT_LINKS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--brand", default="Columbia", help="Case-insensitive brand substring. Default: Columbia")
+    parser.add_argument(
+        "--brand",
+        default="",
+        help="Optional case-insensitive brand substring. Default processes all brands.",
+    )
     args = parser.parse_args()
 
     catalog_path = args.catalog.resolve()
@@ -222,8 +218,8 @@ def main() -> int:
     for proposal in proposals:
         counts[proposal["status"]] += 1
     summary = {
-        "schema_version": 1,
-        "brand_filter": args.brand,
+        "schema_version": 2,
+        "brand_filter": args.brand or None,
         "mutates_catalog": False,
         "proposal_rows": len(proposals),
         "by_status": dict(sorted(counts.items())),
