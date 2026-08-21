@@ -1,15 +1,32 @@
 [CmdletBinding()]
 param(
-    [string]$OfficialCatalog = 'products\launch\official\dtb_official_catalog.csv',
-    [string]$VeeqoImport = 'products\launch\official\veeqo_inventory.csv'
+    [string] $OfficialCatalog = 'products\launch\official\dtb_official_catalog.csv',
+    [string] $VeeqoImport = 'products\launch\official\veeqo_inventory.csv',
+    [string] $Python = 'python',
+    [switch] $Apply
 )
 
 $ErrorActionPreference = 'Stop'
-$invariant = [System.Globalization.CultureInfo]::InvariantCulture
-$officialPath = (Resolve-Path -LiteralPath $OfficialCatalog).Path
-$veeqoPath = (Resolve-Path -LiteralPath $VeeqoImport).Path
+Set-StrictMode -Version Latest
+
+$root = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..')).Path
+function Resolve-RepoFile {
+    param([Parameter(Mandatory)] [string] $Path)
+    $candidate = if ([IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $root $Path }
+    return (Resolve-Path -LiteralPath $candidate).Path
+}
+
+$officialPath = Resolve-RepoFile $OfficialCatalog
+$veeqoPath = Resolve-RepoFile $VeeqoImport
+$validator = Join-Path $PSScriptRoot 'validate_official_catalog.py'
+& $Python $validator --catalog $officialPath | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'Canonical catalog validation failed.' }
+
+$invariant = [Globalization.CultureInfo]::InvariantCulture
 $official = @(Import-Csv -LiteralPath $officialPath)
 $existing = @(Import-Csv -LiteralPath $veeqoPath)
+if ($existing.Count -eq 0) { throw 'Existing Veeqo projection is empty.' }
+
 $veeqoHeaders = @($existing[0].PSObject.Properties.Name)
 $expectedHeaders = @(
     'sku_code', 'product_title', 'variant_title', 'sales_price', 'cost_price',
@@ -20,15 +37,14 @@ $expectedHeaders = @(
     'variant_options', 'tariff_code', 'qty_on_hand', 'total_qty',
     'total_stock_value'
 )
-
 if (@(Compare-Object $veeqoHeaders $expectedHeaders).Count -ne 0) {
-    throw 'Unexpected Veeqo import schema.'
+    throw 'Unexpected Veeqo projection schema.'
 }
 if (@($official | Group-Object SKU | Where-Object { $_.Count -gt 1 }).Count -ne 0) {
     throw 'Official catalog contains duplicate SKUs.'
 }
 if (@($existing | Group-Object sku_code | Where-Object { $_.Count -gt 1 }).Count -ne 0) {
-    throw 'Existing Veeqo import contains duplicate SKUs.'
+    throw 'Existing Veeqo projection contains duplicate SKUs.'
 }
 
 $officialBySku = @{}
@@ -48,10 +64,10 @@ foreach ($row in $sellable) {
 }
 
 function Get-UniformDefault {
-    param([string]$Field)
+    param([string] $Field)
     $values = @($existing.$Field | Where-Object { $_ -ne '' } | Sort-Object -Unique)
     if ($values.Count -ne 1) {
-        throw "Cannot derive a single established Veeqo default for $Field."
+        throw "Cannot derive a single established Veeqo projection default for $Field."
     }
     return [string]$values[0]
 }
@@ -72,19 +88,19 @@ function Get-FirstImage {
 }
 
 function Format-Price {
-    param([string]$Value)
+    param([string] $Value)
     if (-not $Value) { return '' }
     return ([double]$Value).ToString('0.0#', $invariant)
 }
 
 function Format-Grams {
-    param([string]$Pounds)
+    param([string] $Pounds)
     if (-not $Pounds) { return '' }
     return ([math]::Round(([double]$Pounds) * 453.59237, 1)).ToString('0.0', $invariant)
 }
 
 function Get-PriorValue {
-    param($PriorRow, [string]$Field, [string]$Default = '')
+    param($PriorRow, [string] $Field, [string] $Default = '')
     if ($null -ne $PriorRow) { return [string]$PriorRow.$Field }
     return $Default
 }
@@ -97,7 +113,7 @@ function Get-VariantOptions {
     return '{' + $nameJson + ': ' + $valueJson + '}'
 }
 
-$output = [System.Collections.Generic.List[object]]::new()
+$output = [Collections.Generic.List[object]]::new()
 foreach ($row in $sellable) {
     $prior = if ($existingBySku.ContainsKey($row.SKU)) { $existingBySku[$row.SKU] } else { $null }
     $parent = if ($row.Parent) { $officialBySku[$row.Parent] } else { $null }
@@ -141,13 +157,35 @@ foreach ($row in $sellable) {
 
 $csvLines = @($output | ConvertTo-Csv -NoTypeInformation -UseQuotes AsNeeded)
 $text = [string]::Join("`r`n", $csvLines) + "`r`n"
-[System.IO.File]::WriteAllText($veeqoPath, $text, [System.Text.UTF8Encoding]::new($false))
+$existingText = [IO.File]::ReadAllText($veeqoPath)
+$changed = $existingText -cne $text
 
-[pscustomobject]@{
+$summary = [ordered]@{
+    mode = if ($Apply) { 'apply' } else { 'preview' }
+    mutates_catalog = $false
     official_rows = $official.Count
     sellable_rows = $sellable.Count
     output_rows = $output.Count
     preserved_skus = @($output | Where-Object { $existingBySku.ContainsKey($_.sku_code) }).Count
     added_skus = @($output | Where-Object { -not $existingBySku.ContainsKey($_.sku_code) }).Count
     removed_skus = @($existing | Where-Object { -not $officialBySku.ContainsKey($_.sku_code) -or $officialBySku[$_.sku_code].Type -notin @('simple', 'variation') }).Count
+    would_change_file = $changed
 }
+
+if (-not $Apply -or -not $changed) {
+    [pscustomobject]$summary
+    return
+}
+
+$backupPath = "$veeqoPath.bak"
+Copy-Item -LiteralPath $veeqoPath -Destination $backupPath -Force
+$tempPath = "$veeqoPath.tmp"
+try {
+    [IO.File]::WriteAllText($tempPath, $text, [Text.UTF8Encoding]::new($false))
+    Move-Item -LiteralPath $tempPath -Destination $veeqoPath -Force
+}
+finally {
+    if (Test-Path -LiteralPath $tempPath) { Remove-Item -LiteralPath $tempPath -Force }
+}
+$summary.rollback_snapshot = $backupPath
+[pscustomobject]$summary

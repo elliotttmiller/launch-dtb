@@ -3,8 +3,12 @@
 
 The React storefront owns the deterministic canonical PDP route `/products/:slug`.
 For published, indexable, non-variation products an explicit canonical override is
-therefore unnecessary and can become stale. This migration clears only
-`Meta: _dtb_seo_canonical`; it does not modify slug, identity, taxonomy, or copy.
+therefore unnecessary and can become stale. This command clears only
+`Meta: _dtb_seo_canonical`; it never modifies slug, identity, taxonomy, or copy.
+
+Preview is the default. Standalone --apply creates a rollback snapshot. The
+unified catalog runner supplies --no-backup because it owns one run-level
+pre-mutation snapshot for all bounded safe fixes.
 """
 
 from __future__ import annotations
@@ -12,12 +16,15 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
-import tempfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from official_catalog_schema import CatalogValidationError, validate_catalog
+from official_catalog_schema import (
+    CatalogValidationError,
+    create_catalog_backup,
+    validate_catalog,
+    write_catalog_atomic,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "products" / "launch" / "official" / "dtb_official_catalog.csv"
@@ -47,7 +54,9 @@ def canonical_path(raw: str) -> str:
     raw = raw.strip()
     if not raw:
         return ""
-    parsed = urlsplit(raw if "://" in raw else f"https://placeholder.invalid{raw if raw.startswith('/') else '/' + raw}")
+    parsed = urlsplit(
+        raw if "://" in raw else f"https://placeholder.invalid{raw if raw.startswith('/') else '/' + raw}"
+    )
     return parsed.path.rstrip("/") or "/"
 
 
@@ -75,28 +84,11 @@ def plan(rows: list[dict[str, str]]) -> list[dict[str, str]]:
                 "current_path": canonical_path(current),
                 "expected_runtime_path": expected_path(row),
                 "classification": (
-                    "redundant"
-                    if canonical_path(current) == expected_path(row)
-                    else "conflicting"
+                    "redundant" if canonical_path(current) == expected_path(row) else "conflicting"
                 ),
             }
         )
     return changes
-
-
-def write_catalog(path: Path, fieldnames: list[str], rows: list[dict[str, str]]) -> None:
-    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
-    os.close(fd)
-    temp_path = Path(temp_name)
-    try:
-        with temp_path.open("w", encoding="utf-8-sig", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="raise", lineterminator="\n")
-            writer.writeheader()
-            writer.writerows(rows)
-        os.replace(temp_path, path)
-    finally:
-        if temp_path.exists():
-            temp_path.unlink()
 
 
 def main() -> int:
@@ -105,6 +97,11 @@ def main() -> int:
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--report", type=Path)
     parser.add_argument("--apply", action="store_true", help="Apply the reviewed cleanup. Default is preview-only.")
+    parser.add_argument(
+        "--no-backup",
+        action="store_true",
+        help="Skip the standalone rollback snapshot. Intended only for an orchestrator that already created one.",
+    )
     args = parser.parse_args()
 
     catalog = args.catalog.resolve()
@@ -116,22 +113,25 @@ def main() -> int:
 
     changes = plan(rows)
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "catalog": catalog.relative_to(ROOT).as_posix() if catalog.is_relative_to(ROOT) else str(catalog),
         "field": FIELD,
         "eligible_overrides": len(changes),
         "conflicting": sum(item["classification"] == "conflicting" for item in changes),
         "redundant": sum(item["classification"] == "redundant" for item in changes),
         "applied": bool(args.apply),
+        "backup_created": bool(args.apply and changes and not args.no_backup),
         "changes": changes,
     }
 
     if args.apply and changes:
+        if not args.no_backup:
+            create_catalog_backup(catalog)
         change_skus = {item["sku"] for item in changes}
         for row in rows:
             if value(row, "SKU") in change_skus and eligible(row):
                 row[FIELD] = ""
-        write_catalog(catalog, fieldnames, rows)
+        write_catalog_atomic(catalog, fieldnames, rows)
         validate_catalog(catalog, gaps)
 
     payload = json.dumps(report, indent=2, sort_keys=True) + "\n"

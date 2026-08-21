@@ -1,2 +1,0 @@
--r competitor_price_research.requirements.txt
-playwright>=1.50,<2.0
