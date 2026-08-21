@@ -49,6 +49,9 @@ if (appEnv === 'production' && !/^\s*RewriteRule\s+\^checkout\/\?\$\s+wp\/index\
 if (appEnv === 'staging' && !/^\s*RewriteRule\s+\^\s+index\.html\s+\[QSA,L\]$/m.test(emitted)) {
   throw new Error('The staging .htaccess must provide the HostGator subdirectory SPA fallback.');
 }
+if (appEnv === 'staging' && !/^\s*Header\s+always\s+set\s+X-Robots-Tag\s+"noindex, nofollow"\s*$/m.test(emitted)) {
+  throw new Error('The staging .htaccess must enforce X-Robots-Tag: noindex, nofollow.');
+}
 
 const sitemapIndexRule = 'RewriteRule ^sitemap\\.xml$ wp/index.php?dtb_sitemap=index [QSA,L]';
 const sitemapChildRule = 'RewriteRule ^sitemaps/([a-z0-9-]+)-([1-9][0-9]*)\\.xml$ wp/index.php?dtb_sitemap=$1&dtb_sitemap_page=$2 [QSA,L]';
