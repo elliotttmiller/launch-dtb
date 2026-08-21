@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""Consolidate DTB official catalog content and rebuild canonical navigation taxonomy.
+"""Consolidate the legacy editorial catalog into the canonical launch catalog.
 
-The canonical commerce CSV is always the base authority. The legacy content/SEO
-CSV may contribute only allowlisted editorial fields for SKUs whose protected
-identity matches. It can never create products or overwrite commerce, identity,
-taxonomy, routing, compatibility, media, pricing, or inventory fields.
-
-Taxonomy is rebuilt from the universal navigation policy. Variations inherit
-parent taxonomy. Unknown/ambiguous navigation blocks --apply.
+The canonical WooCommerce CSV is always the base authority. The legacy content/
+SEO CSV may contribute only allowlisted editorial fields after exact SKU identity
+reconciliation and protected-identity checks. Taxonomy is rebuilt only from the
+universal navigation policy. Preview is the default; mutation requires --apply.
 """
 
 from __future__ import annotations
@@ -20,12 +17,7 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
-from catalog_taxonomy_policy import (
-    CATEGORY_FIELD,
-    DISPLAY_FIELD,
-    PARENT_FIELD,
-    canonical_values,
-)
+from catalog_taxonomy_policy import CATEGORY_FIELD, DISPLAY_FIELD, PARENT_FIELD, canonical_values
 from official_catalog_schema import CatalogValidationError, create_catalog_backup, validate_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -41,7 +33,6 @@ CONTENT_ALLOWLIST = (
     "Meta: _dtb_seo_description",
     "Meta: _dtb_seo_focus_kw",
 )
-# Matching these fields is required before SEO/editorial copy is trusted for a SKU.
 IDENTITY_MATCH_FIELDS = (
     "Type",
     "Name",
@@ -50,18 +41,15 @@ IDENTITY_MATCH_FIELDS = (
     "Meta: _dtb_manufacturer_sku",
     PARENT_FIELD,
 )
-NEVER_IMPORT_FROM_SEO = {
-    "SKU", "GTIN, UPC, EAN, or ISBN", "Slug", "Categories",
-    CATEGORY_FIELD, DISPLAY_FIELD, "Meta: _dtb_seo_canonical",
-    "Meta: _dtb_seo_noindex", "Images", "Regular price", "Sale price",
-    "Stock", "In stock?", "Meta: _dtb_compatible_tool_skus",
-    "Meta: _dtb_replacement_part_for", "Meta: _dtb_schematic_id",
-    "Meta: _dtb_specs_json",
-}
 
 
 def clean(value: object) -> str:
     return str(value or "").strip()
+
+
+def repo_path(path: Path) -> str:
+    resolved = path.resolve()
+    return resolved.relative_to(ROOT).as_posix() if resolved.is_relative_to(ROOT) else str(resolved)
 
 
 def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
@@ -70,20 +58,23 @@ def read_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
         return list(reader.fieldnames or []), list(reader)
 
 
-def index_by_sku(rows: list[dict[str, str]], label: str) -> dict[str, dict[str, str]]:
+def index_by_sku(rows: list[dict[str, str]], label: str) -> tuple[dict[str, dict[str, str]], int]:
     result: dict[str, dict[str, str]] = {}
     duplicates: list[str] = []
+    blank = 0
     for row in rows:
         sku = clean(row.get("SKU")).upper()
         if not sku:
+            blank += 1
             continue
         if sku in result:
             duplicates.append(sku)
         else:
             result[sku] = row
     if duplicates:
-        raise ValueError(f"{label} contains duplicate SKU(s): {', '.join(sorted(set(duplicates))[:20])}")
-    return result
+        sample = ", ".join(sorted(set(duplicates))[:20])
+        raise ValueError(f"{label} contains duplicate SKU(s): {sample}")
+    return result, blank
 
 
 def identity_conflicts(main: dict[str, str], seo: dict[str, str]) -> list[dict[str, str]]:
@@ -92,56 +83,24 @@ def identity_conflicts(main: dict[str, str], seo: dict[str, str]) -> list[dict[s
         if field not in seo:
             continue
         left, right = clean(main.get(field)), clean(seo.get(field))
-        # A blank secondary value carries no authority and is not a conflict.
         if right and left != right:
             conflicts.append({"field": field, "main": left, "seo": right})
     return conflicts
 
 
-def validate_for_consolidation(catalog: Path, gap_audit: Path) -> tuple[dict[str, object], dict[str, object]]:
-    """Validate the catalog without requiring a derived include-gap artifact.
-
-    When the reviewed gap audit exists it remains authoritative. When it is
-    absent, validate against a temporary *empty* approval set. This preserves
-    every structural check and makes any observed include-name-without-SKU gap
-    fail as unreviewed instead of silently approving or skipping it.
-    """
-
-    if gap_audit.is_file():
-        return validate_catalog(catalog, gap_audit), {
-            "path": str(gap_audit),
-            "present": True,
-            "mode": "reviewed_gap_audit",
-        }
-
-    fd, temporary_name = tempfile.mkstemp(prefix="dtb-include-gap-empty-", suffix=".json")
-    os.close(fd)
-    temporary = Path(temporary_name)
-    try:
-        temporary.write_text(
-            json.dumps({"schema_version": 1, "entries": []}, separators=(",", ":")) + "\n",
-            encoding="utf-8",
-        )
-        validation = validate_catalog(catalog, temporary)
-    finally:
-        temporary.unlink(missing_ok=True)
-
-    return validation, {
-        "path": str(gap_audit),
-        "present": False,
-        "mode": "strict_no_approved_gaps",
-    }
-
-
 def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) -> dict[str, object]:
-    main_by_sku = index_by_sku(main_rows, "canonical catalog")
-    seo_by_sku = index_by_sku(seo_rows, "content/SEO catalog")
+    main_by_sku, main_blank = index_by_sku(main_rows, "canonical catalog")
+    seo_by_sku, seo_blank = index_by_sku(seo_rows, "content/SEO catalog")
+    if main_blank:
+        raise ValueError(f"canonical catalog contains {main_blank} blank SKU row(s)")
 
+    common = sorted(set(main_by_sku) & set(seo_by_sku))
+    main_only = sorted(set(main_by_sku) - set(seo_by_sku))
+    seo_only = sorted(set(seo_by_sku) - set(main_by_sku))
     content_changes: list[dict[str, str]] = []
     rejected_content: list[dict[str, str]] = []
-    seo_only = sorted(set(seo_by_sku) - set(main_by_sku))
 
-    for sku in sorted(set(main_by_sku) & set(seo_by_sku)):
+    for sku in common:
         main = main_by_sku[sku]
         seo = seo_by_sku[sku]
         conflicts = identity_conflicts(main, seo)
@@ -166,7 +125,6 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
     taxonomy_changes: list[dict[str, str]] = []
     unresolved: list[dict[str, str]] = []
 
-    # Parents/simple products establish taxonomy first.
     for sku, row in main_by_sku.items():
         if clean(row.get("Type")).lower() == "variation":
             continue
@@ -194,7 +152,6 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
                     "source": "universal_navigation_policy",
                 })
 
-    # Variations inherit their parent's exact navigation/facet identity.
     for sku, row in main_by_sku.items():
         if clean(row.get("Type")).lower() != "variation":
             continue
@@ -202,7 +159,9 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
         parent = main_by_sku.get(parent_sku)
         if not parent:
             unresolved.append({
-                "sku": sku, "name": clean(row.get("Name")), "type": "variation",
+                "sku": sku,
+                "name": clean(row.get("Name")),
+                "type": "variation",
                 "product_kind": clean(row.get("Meta: _dtb_product_kind")),
                 "categories": clean(row.get("Categories")),
                 "category_key": clean(row.get(CATEGORY_FIELD)),
@@ -213,7 +172,9 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
         expected = canonical_values(row, parent)
         if expected is None:
             unresolved.append({
-                "sku": sku, "name": clean(row.get("Name")), "type": "variation",
+                "sku": sku,
+                "name": clean(row.get("Name")),
+                "type": "variation",
                 "product_kind": clean(row.get("Meta: _dtb_product_kind")),
                 "categories": clean(row.get("Categories")),
                 "category_key": clean(row.get(CATEGORY_FIELD)),
@@ -232,12 +193,24 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
                     "source": "parent_taxonomy_inheritance",
                 })
 
+    source_identity_complete = (
+        seo_blank == 0
+        and len(seo_by_sku) == len(main_by_sku)
+        and len(common) == len(main_by_sku)
+        and not main_only
+        and not seo_only
+        and not rejected_content
+    )
     return {
         "main_rows": len(main_rows),
         "seo_rows": len(seo_rows),
-        "common_skus": len(set(main_by_sku) & set(seo_by_sku)),
-        "main_only_skus": len(set(main_by_sku) - set(seo_by_sku)),
+        "main_indexed_skus": len(main_by_sku),
+        "seo_indexed_skus": len(seo_by_sku),
+        "seo_blank_sku_rows": seo_blank,
+        "common_skus": len(common),
+        "main_only_skus": main_only,
         "seo_only_skus": seo_only,
+        "source_identity_complete": source_identity_complete,
         "content_changes": content_changes,
         "rejected_content": rejected_content,
         "taxonomy_changes": taxonomy_changes,
@@ -245,8 +218,20 @@ def build_plan(main_rows: list[dict[str, str]], seo_rows: list[dict[str, str]]) 
     }
 
 
+def retirement_ready(plan: dict[str, object]) -> bool:
+    return bool(
+        plan["source_identity_complete"]
+        and not plan["content_changes"]
+        and not plan["rejected_content"]
+        and not plan["taxonomy_changes"]
+        and not plan["unresolved_taxonomy"]
+    )
+
+
 def apply_plan(rows: list[dict[str, str]], plan: dict[str, object]) -> None:
-    by_sku = index_by_sku(rows, "canonical catalog")
+    by_sku, blank = index_by_sku(rows, "canonical catalog")
+    if blank:
+        raise ValueError("canonical catalog contains blank SKU rows")
     for group in ("content_changes", "taxonomy_changes"):
         for change in plan[group]:  # type: ignore[index]
             by_sku[str(change["sku"]).upper()][str(change["field"])] = str(change["expected"])
@@ -263,28 +248,22 @@ def atomic_write(path: Path, fields: list[str], rows: list[dict[str, str]]) -> N
             writer.writerows(rows)
         os.replace(temp, path)
     finally:
-        if temp.exists():
-            temp.unlink()
+        temp.unlink(missing_ok=True)
 
 
-def write_report(
-    output: Path,
-    plan: dict[str, object],
-    applied: bool,
-    validation: dict[str, object],
-    gap_audit_status: dict[str, object],
-) -> None:
-    output.mkdir(parents=True, exist_ok=True)
+def summarize(plan: dict[str, object]) -> dict[str, object]:
     taxonomy = plan["taxonomy_changes"]  # type: ignore[index]
     content = plan["content_changes"]  # type: ignore[index]
-    summary = {
-        "schema_version": 2,
-        "mutates_catalog": applied,
+    return {
         "main_rows": plan["main_rows"],
         "seo_rows": plan["seo_rows"],
+        "main_indexed_skus": plan["main_indexed_skus"],
+        "seo_indexed_skus": plan["seo_indexed_skus"],
+        "seo_blank_sku_rows": plan["seo_blank_sku_rows"],
         "common_skus": plan["common_skus"],
-        "main_only_skus": plan["main_only_skus"],
+        "main_only_skus": len(plan["main_only_skus"]),  # type: ignore[arg-type]
         "seo_only_skus": len(plan["seo_only_skus"]),  # type: ignore[arg-type]
+        "source_identity_complete": plan["source_identity_complete"],
         "content_changes": len(content),
         "content_changed_skus": len({item["sku"] for item in content}),
         "content_rejected_conflicts": len(plan["rejected_content"]),  # type: ignore[arg-type]
@@ -292,12 +271,41 @@ def write_report(
         "taxonomy_changed_skus": len({item["sku"] for item in taxonomy}),
         "taxonomy_by_field": dict(Counter(item["field"] for item in taxonomy)),
         "unresolved_taxonomy": len(plan["unresolved_taxonomy"]),  # type: ignore[arg-type]
-        "seo_source_retirement_ready": not plan["unresolved_taxonomy"],
-        "structural_validation": validation,
-        "include_gap_audit": gap_audit_status,
+        "seo_source_retirement_ready": retirement_ready(plan),
     }
-    (output / "consolidation-summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    (output / "consolidation-plan.json").write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def write_report(
+    output: Path,
+    original_plan: dict[str, object],
+    current_plan: dict[str, object],
+    *,
+    applied: bool,
+    retired: bool,
+    validation: dict[str, object],
+    gap_audit: Path,
+) -> None:
+    output.mkdir(parents=True, exist_ok=True)
+    summary = {
+        "schema_version": 3,
+        "mutates_catalog": applied,
+        "seo_source_retired": retired,
+        **summarize(original_plan),
+        "post_apply": summarize(current_plan) if applied else None,
+        "seo_source_retirement_ready": retirement_ready(current_plan),
+        "structural_validation": validation,
+        "include_gap_audit": {
+            "path": repo_path(gap_audit),
+            "present": gap_audit.is_file(),
+            "mode": "reviewed_gap_audit" if gap_audit.is_file() else "strict_no_approved_gaps",
+        },
+    }
+    (output / "consolidation-summary.json").write_text(
+        json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    (output / "consolidation-plan.json").write_text(
+        json.dumps(original_plan, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     print(json.dumps(summary, indent=2, sort_keys=True))
 
 
@@ -307,38 +315,56 @@ def main() -> int:
     parser.add_argument("--seo-catalog", type=Path, default=DEFAULT_SEO)
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--apply", action="store_true")
-    parser.add_argument("--retire-seo-source", action="store_true", help="Delete the duplicate SEO CSV after a successful validated apply.")
+    parser.add_argument("--apply", action="store_true", help="Apply a fully reconciled consolidation plan.")
+    parser.add_argument(
+        "--retire-seo-source",
+        action="store_true",
+        help="Delete the legacy SEO CSV only after a validated, fully reconciled apply.",
+    )
     args = parser.parse_args()
+
+    if args.retire_seo_source and not args.apply:
+        raise ValueError("--retire-seo-source requires --apply")
 
     catalog = args.catalog.resolve()
     seo = args.seo_catalog.resolve()
     gaps = args.include_gap_audit.resolve()
-    validation, gap_audit_status = validate_for_consolidation(catalog, gaps)
+    output = args.output_dir.resolve()
+    validation = validate_catalog(catalog, gaps)
     fields, rows = read_csv(catalog)
     _seo_fields, seo_rows = read_csv(seo)
     plan = build_plan(rows, seo_rows)
 
-    if args.apply and plan["unresolved_taxonomy"]:
-        write_report(args.output_dir.resolve(), plan, False, validation, gap_audit_status)
-        raise ValueError(f"Refusing apply: {len(plan['unresolved_taxonomy'])} taxonomy row(s) remain unresolved")
+    blockers: list[str] = []
+    if not plan["source_identity_complete"]:
+        blockers.append("legacy SEO source does not reconcile one-to-one by SKU and protected identity")
+    if plan["unresolved_taxonomy"]:
+        blockers.append(f"{len(plan['unresolved_taxonomy'])} taxonomy row(s) remain unresolved")
+
+    if args.apply and blockers:
+        write_report(output, plan, plan, applied=False, retired=False, validation=validation, gap_audit=gaps)
+        raise ValueError("Refusing apply: " + "; ".join(blockers))
 
     applied = False
+    retired = False
+    current_plan = plan
     if args.apply:
         create_catalog_backup(catalog)
         apply_plan(rows, plan)
         atomic_write(catalog, fields, rows)
-        validation, gap_audit_status = validate_for_consolidation(catalog, gaps)
-        # Re-plan against the resulting file. Taxonomy must converge to zero.
+        validation = validate_catalog(catalog, gaps)
         _fields, applied_rows = read_csv(catalog)
-        post = build_plan(applied_rows, seo_rows)
-        if post["taxonomy_changes"] or post["unresolved_taxonomy"]:
-            raise ValueError("Post-apply taxonomy did not converge; restore the generated rollback snapshot")
+        current_plan = build_plan(applied_rows, seo_rows)
+        if current_plan["taxonomy_changes"] or current_plan["unresolved_taxonomy"] or current_plan["content_changes"]:
+            raise ValueError("Post-apply consolidation did not converge; restore the generated rollback snapshot")
         applied = True
         if args.retire_seo_source:
+            if not retirement_ready(current_plan):
+                raise ValueError("Refusing SEO source retirement: reconciliation is not complete")
             seo.unlink()
+            retired = True
 
-    write_report(args.output_dir.resolve(), plan, applied, validation, gap_audit_status)
+    write_report(output, plan, current_plan, applied=applied, retired=retired, validation=validation, gap_audit=gaps)
     return 0
 
 
