@@ -100,9 +100,9 @@ The WordPress virtual `robots.txt` filter removes duplicate `Sitemap:` declarati
 
 The React build also contains `frontend/public/robots.txt` with the `__DTB_SITE_URL__` placeholder. The build/deployment process replaces that placeholder with the active environment URL. A physical `robots.txt` takes precedence over WordPress virtual robots output.
 
-Staging intentionally remains non-indexable. Its physical robots policy is `Disallow: /`, and the React head policy emits `noindex, nofollow`. Do not weaken those controls merely to run an audit.
+A `robots.txt` served from `/staging/2972/robots.txt` is not the origin-level robots authority; standard crawler policy is read from `/robots.txt` at the origin root. Therefore staging index protection does not rely on the subdirectory robots file. The staging React head policy emits `noindex, nofollow`, and the canonical staging Apache configuration enforces `X-Robots-Tag: noindex, nofollow` on responses. The build routing assertion requires that server-level header to remain present.
 
-For Semrush Site Audit on staging, verify ownership in Semrush and enable its restriction-bypass option so SiteAuditBot may audit the environment despite `robots.txt` and robots-meta restrictions. The staging sitemap may then be selected as the Site Audit crawl source. Do not submit the staging sitemap to a search engine.
+For Semrush Site Audit on staging, verify ownership in Semrush and enable its restriction-bypass option so SiteAuditBot may audit the environment despite robots and robots-meta/header restrictions. The staging sitemap may then be selected as the Site Audit crawl source. Do not submit the staging sitemap to a search engine.
 
 ## Staging contract
 
@@ -169,10 +169,10 @@ After deploying staging or production:
 6. Confirm products carrying `_dtb_seo_noindex = 1` are absent from product sitemaps.
 7. Confirm WooCommerce `exclude-from-search` products are absent.
 8. Confirm variation URLs and legacy `/product/{partNumber}` aliases are absent.
-9. Confirm `/robots.txt` advertises exactly one environment-correct sitemap URL.
+9. Confirm `/robots.txt` advertises exactly one environment-correct sitemap URL where the origin-level robots policy is deployed.
 10. Run a product update and verify a subsequent sitemap request reflects the change.
 11. Confirm the DTB SEO Tools sitemap status view checks `/sitemap.xml`.
-12. On staging, confirm search indexing remains disabled and configure Semrush to bypass those restrictions for the authorized audit.
+12. On staging, confirm both the HTML robots meta and `X-Robots-Tag` response header keep indexing disabled, then configure Semrush to bypass those restrictions for the authorized audit.
 13. Only after production launch, when DTB is ready to enable search indexing, use the production `/sitemap.xml` for search-engine submission.
 
 ## Operational limits
