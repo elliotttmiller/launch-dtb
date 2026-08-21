@@ -131,6 +131,12 @@ ErrorDocument 511 /errors/511.html
   RewriteRule ^wp-json/(.*)$ wp/index.php?rest_route=/$1 [QSA,L]
   RewriteRule ^dtb/(.*)$ wp/index.php?rest_route=/dtb/$1 [QSA,L]
 
+  # Canonical DTB sitemap endpoints are public WordPress-backed resources.
+  # Route them before the missing-static-asset guard so .xml requests reach
+  # the MU-plugin sitemap service instead of becoming Apache 404 responses.
+  RewriteRule ^sitemap\.xml$ wp/index.php?dtb_sitemap=index [QSA,L]
+  RewriteRule ^sitemaps/([a-z0-9-]+)-([1-9][0-9]*)\.xml$ wp/index.php?dtb_sitemap=$1&dtb_sitemap_page=$2 [QSA,L]
+
   # WooCommerce/official Stripe callbacks. The official Stripe extension uses
   # WooCommerce's wc-api callback space (for example ?wc-api=wc_stripe).
   RewriteCond %{QUERY_STRING} (^|&)wc-api= [NC]
