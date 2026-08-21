@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Canonical ordered schema and validation for the official WooCommerce catalog."""
+"""Canonical ordered schema, validation, and safe file operations for the official catalog."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ import csv
 import json
 import os
 import shutil
+import tempfile
 from collections import Counter
 from pathlib import Path
 
@@ -47,20 +48,59 @@ class CatalogValidationError(RuntimeError):
     """The canonical catalog contract was violated."""
 
 
-def create_catalog_backup(catalog_path: Path) -> Path:
-    """Atomically replace the single sibling .bak snapshot before a mutation."""
-    backup_path = catalog_path.with_name(catalog_path.name + ".bak")
-    temporary_backup = backup_path.with_name(backup_path.name + ".tmp")
+def create_catalog_backup(catalog_path: Path, backup_path: Path | None = None) -> Path:
+    """Create an atomic rollback snapshot without partially written backup files.
+
+    The default sibling ``.bak`` keeps standalone maintenance commands backward
+    compatible. Orchestrators should pass a run-scoped ``backup_path`` so one
+    baseline snapshot is retained for the entire workflow.
+    """
+    destination = backup_path or catalog_path.with_name(catalog_path.name + ".bak")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    temporary_backup = destination.with_name(destination.name + ".tmp")
     try:
         shutil.copy2(catalog_path, temporary_backup)
-        os.replace(temporary_backup, backup_path)
+        os.replace(temporary_backup, destination)
     except OSError as exc:
         temporary_backup.unlink(missing_ok=True)
-        raise CatalogValidationError(f"Cannot create rollback snapshot {backup_path}: {exc}") from exc
-    return backup_path
+        raise CatalogValidationError(f"Cannot create rollback snapshot {destination}: {exc}") from exc
+    return destination
+
+
+def write_catalog_atomic(
+    catalog_path: Path,
+    fieldnames: list[str] | tuple[str, ...],
+    rows: list[dict[str, str]],
+) -> None:
+    """Atomically replace a canonical CSV while preserving the standard encoding."""
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{catalog_path.name}.", suffix=".tmp", dir=catalog_path.parent
+    )
+    os.close(fd)
+    temporary_path = Path(temporary_name)
+    try:
+        with temporary_path.open("w", encoding="utf-8-sig", newline="") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=fieldnames,
+                extrasaction="raise",
+                lineterminator="\n",
+            )
+            writer.writeheader()
+            writer.writerows(rows)
+        os.replace(temporary_path, catalog_path)
+    except (OSError, csv.Error) as exc:
+        raise CatalogValidationError(f"Cannot atomically write {catalog_path}: {exc}") from exc
+    finally:
+        temporary_path.unlink(missing_ok=True)
 
 
 def _load_gap_audit(path: Path) -> dict[tuple[str, int], str]:
+    # The gap file is an optional reviewed exception list. A fresh checkout with
+    # no exception file means strict mode: no include-name-without-SKU gaps are
+    # approved. This keeps validation clone-friendly without weakening policy.
+    if not path.is_file():
+        return {}
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
@@ -161,7 +201,7 @@ def validate_catalog(catalog_path: Path, gap_audit_path: Path) -> dict[str, obje
                 "_dtb_variation_value": (row.get("Meta: _dtb_variation_value") or "").strip(),
                 "_dtb_variation_sort": (row.get("Meta: _dtb_variation_sort") or "").strip(),
             }
-            missing = [name for name, value in required.items() if not value]
+            missing = [name for name, field_value in required.items() if not field_value]
             if missing:
                 errors.append(f"{sku}: variation missing required fields: {', '.join(missing)}")
             if parent != dtb_parent:
@@ -174,9 +214,9 @@ def validate_catalog(catalog_path: Path, gap_audit_path: Path) -> dict[str, obje
                 variation_axis = (row.get("Attribute 1 name") or "").strip()
                 variation_value = (row.get("Attribute 1 value(s)") or "").strip()
                 parent_values = [
-                    value.strip()
-                    for value in (parent_row.get("Attribute 1 value(s)") or "").split(",")
-                    if value.strip()
+                    option.strip()
+                    for option in (parent_row.get("Attribute 1 value(s)") or "").split(",")
+                    if option.strip()
                 ]
                 if variation_axis != parent_axis:
                     errors.append(
