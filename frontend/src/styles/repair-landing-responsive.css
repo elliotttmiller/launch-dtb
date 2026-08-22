@@ -1,0 +1,384 @@
+/* Repair landing responsive refinements
+   Loaded after repair-landing.css. These overrides keep one semantic layout
+   while tuning composition, typography, spacing, and background cropping
+   across desktop, tablet, and narrow mobile widths. */
+
+.repair-landing,
+.repair-landing * {
+  box-sizing: border-box;
+}
+
+.repair-landing {
+  overflow-x: clip;
+}
+
+.repair-hero {
+  min-height: clamp(430px, 34vw, 540px);
+  background-position: center center;
+}
+
+.repair-hero__inner,
+.repair-section-shell {
+  width: min(1280px, calc(100% - clamp(32px, 5vw, 64px)));
+}
+
+.repair-hero__content {
+  width: min(620px, 49%);
+}
+
+.repair-hero h1 {
+  max-width: 11ch;
+}
+
+.repair-hero__lead {
+  max-width: 54ch;
+}
+
+@media (min-width: 1440px) {
+  .repair-hero {
+    min-height: 520px;
+    background-position: center 48%;
+  }
+}
+
+@media (max-width: 1180px) {
+  .repair-hero {
+    min-height: 500px;
+    background-position: 57% center;
+  }
+
+  .repair-hero__content {
+    width: min(580px, 54%);
+  }
+
+  .repair-hero h1 {
+    font-size: clamp(2.65rem, 5vw, 4.15rem);
+  }
+}
+
+@media (max-width: 900px) {
+  .repair-hero {
+    min-height: clamp(600px, 79vw, 690px);
+    background:
+      linear-gradient(180deg,
+        rgba(2, 10, 25, 0.06) 0%,
+        rgba(2, 10, 25, 0.16) 24%,
+        rgba(2, 10, 25, 0.56) 47%,
+        rgba(2, 10, 25, 0.93) 68%,
+        rgba(2, 10, 25, 0.99) 100%),
+      url('/hero/repair-service.webp') 67% 42% / cover no-repeat;
+  }
+
+  .repair-hero__inner {
+    align-items: flex-end;
+  }
+
+  .repair-hero__content {
+    width: min(650px, 100%);
+    padding: clamp(250px, 37vw, 330px) 0 38px;
+  }
+
+  .repair-hero h1 {
+    max-width: 9ch;
+    font-size: clamp(2.65rem, 8vw, 3.8rem);
+    line-height: 0.96;
+  }
+
+  .repair-hero__lead {
+    max-width: 60ch;
+    font-size: 0.98rem;
+  }
+
+  .repair-process__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .repair-process__step:nth-child(2) {
+    border-right: 0;
+  }
+
+  .repair-process__step:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--repair-line);
+  }
+}
+
+@media (max-width: 700px) {
+  .repair-hero__inner,
+  .repair-section-shell {
+    width: calc(100% - 32px);
+  }
+
+  .repair-hero {
+    min-height: clamp(610px, 156vw, 720px);
+    background:
+      linear-gradient(180deg,
+        rgba(2, 10, 25, 0.08) 0%,
+        rgba(2, 10, 25, 0.18) 24%,
+        rgba(2, 10, 25, 0.64) 48%,
+        rgba(2, 10, 25, 0.95) 68%,
+        rgba(2, 10, 25, 1) 100%),
+      url('/hero/repair-service.webp') 66% 38% / auto 100% no-repeat,
+      #061127;
+  }
+
+  .repair-hero__content {
+    padding: clamp(260px, 73vw, 320px) 0 30px;
+  }
+
+  .repair-hero .repair-eyebrow {
+    margin-bottom: 10px;
+    font-size: 0.64rem;
+    letter-spacing: 0.11em;
+  }
+
+  .repair-hero h1 {
+    max-width: 8.8ch;
+    margin-bottom: 14px;
+    font-size: clamp(2.35rem, 11.6vw, 3.35rem);
+    line-height: 0.94;
+    letter-spacing: -0.045em;
+  }
+
+  .repair-hero__lead {
+    margin-bottom: 20px;
+    font-size: clamp(0.89rem, 3.7vw, 0.98rem);
+    line-height: 1.52;
+  }
+
+  .repair-hero__actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+
+  .repair-hero__actions .repair-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding-inline: 12px;
+    white-space: nowrap;
+    font-size: clamp(0.64rem, 2.9vw, 0.72rem);
+    letter-spacing: 0.045em;
+  }
+
+  .repair-hero__actions .repair-button--utility {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    min-height: 36px;
+    width: fit-content;
+    padding: 0;
+  }
+
+  .repair-hero__assurance {
+    display: none;
+  }
+
+  .repair-process {
+    padding: 34px 0 36px;
+  }
+
+  .repair-section-heading--center {
+    margin-bottom: 22px;
+    text-align: left;
+  }
+
+  .repair-section-heading h2,
+  .repair-service-panel h2,
+  .repair-resources__copy h2,
+  .repair-closing-cta h2,
+  .repair-brands h2 {
+    font-size: clamp(1.55rem, 7.4vw, 2rem);
+    line-height: 1.08;
+  }
+
+  .repair-section-heading > p:last-child {
+    font-size: 0.84rem;
+  }
+
+  .repair-process__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-process__step,
+  .repair-process__step:nth-child(-n + 2) {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 12px;
+    padding: 18px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-process__step:last-child {
+    border-bottom: 0;
+  }
+
+  .repair-process__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid #dbe5f5;
+    border-radius: 50%;
+    background: #fff;
+    line-height: 1;
+  }
+
+  .repair-process__step h3 {
+    margin-bottom: 5px;
+    font-size: 0.94rem;
+  }
+
+  .repair-process__step p {
+    font-size: 0.78rem;
+    line-height: 1.48;
+  }
+
+  .repair-assurance,
+  .repair-brands,
+  .repair-service-details,
+  .repair-resources,
+  .repair-faq {
+    padding: 34px 0;
+  }
+
+  .repair-assurance .repair-section-shell,
+  .repair-brands__inner,
+  .repair-service-details__grid,
+  .repair-resources__grid,
+  .repair-faq__layout {
+    gap: 28px;
+  }
+
+  .repair-assurance__item,
+  .repair-service-panel {
+    min-width: 0;
+  }
+
+  .repair-brands__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .repair-brands__list span {
+    min-height: 60px;
+    padding: 10px;
+    font-size: 0.76rem;
+  }
+
+  .repair-service-panel {
+    padding: 22px 18px;
+  }
+
+  .repair-service-panel > p:not(.repair-eyebrow),
+  .repair-resources__copy p:not(.repair-eyebrow),
+  .repair-faq details p {
+    font-size: 0.8rem;
+  }
+
+  .repair-faq summary {
+    padding-block: 18px;
+    font-size: 0.84rem;
+  }
+
+  .repair-closing-cta__inner,
+  .repair-closing-cta__actions {
+    width: 100%;
+  }
+
+  .repair-closing-cta__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .repair-closing-cta__actions .repair-button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .repair-hero__inner,
+  .repair-section-shell {
+    width: calc(100% - 28px);
+  }
+
+  .repair-hero {
+    min-height: 620px;
+    background:
+      linear-gradient(180deg,
+        rgba(2, 10, 25, 0.08) 0%,
+        rgba(2, 10, 25, 0.2) 23%,
+        rgba(2, 10, 25, 0.68) 47%,
+        rgba(2, 10, 25, 0.97) 66%,
+        rgba(2, 10, 25, 1) 100%),
+      url('/hero/repair-service.webp') 64% 34% / auto 96% no-repeat,
+      #061127;
+  }
+
+  .repair-hero__content {
+    padding-top: 255px;
+    padding-bottom: 26px;
+  }
+
+  .repair-hero h1 {
+    font-size: clamp(2.18rem, 12.2vw, 2.9rem);
+  }
+
+  .repair-hero__lead {
+    font-size: 0.88rem;
+  }
+
+  .repair-hero__actions {
+    gap: 8px;
+  }
+
+  .repair-hero__actions .repair-button {
+    min-height: 46px;
+    padding-inline: 8px;
+    font-size: 0.61rem;
+    letter-spacing: 0.035em;
+  }
+
+  .repair-eyebrow {
+    font-size: 0.62rem;
+  }
+
+  .repair-process__step {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .repair-assurance__grid,
+  .repair-brands__list {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-brands__list span {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 360px) {
+  .repair-hero {
+    min-height: 640px;
+    background-position: 62% 32%;
+  }
+
+  .repair-hero__content {
+    padding-top: 262px;
+  }
+
+  .repair-hero__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-hero__actions .repair-button--utility {
+    grid-column: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .repair-button {
+    transition: none;
+  }
+}
