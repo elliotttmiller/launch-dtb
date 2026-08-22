@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
 import { SCHEMATIC_DEFINITIONS } from '../data/schematicMappings';
 import '../styles/repair-landing.css';
+import '../styles/repair-landing-responsive.css';
 
 const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.localeCompare(b));
 
