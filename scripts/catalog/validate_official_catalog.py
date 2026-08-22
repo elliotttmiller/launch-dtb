@@ -7,7 +7,7 @@ import argparse
 import json
 from pathlib import Path
 
-from official_catalog_schema import CatalogValidationError, validate_catalog
+from official_catalog_schema import CatalogValidationError, validate_catalog, validate_catalog_taxonomy
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +21,7 @@ def main() -> int:
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     args = parser.parse_args()
     summary = validate_catalog(args.catalog.resolve(), args.include_gap_audit.resolve())
+    summary["taxonomy"] = validate_catalog_taxonomy(args.catalog.resolve())
     print(json.dumps(summary, sort_keys=True))
     return 0
 

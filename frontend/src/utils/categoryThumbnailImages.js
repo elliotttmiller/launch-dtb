@@ -6,12 +6,14 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
   'automatic-taping-tool-cases',
   'automatic-taping-tool-sets',
   'automatic-taping-tools',
+  'angle-boxes',
   'box-fillers',
   'compound-applicators',
   'compound-tubes',
   'corner-boxes',
   'corner-flushers',
   'corner-rollers',
+  'corner-tool-handles',
   'extendable-handles',
   'fixed-handles',
   'flat-box-handles',
@@ -19,15 +21,23 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
   'goosenecks',
   'loading-pumps',
   'nail-spotters',
+  'taping-tool-accessories',
+  'tool-cases',
   'semi-automatic-accessories',
   'semi-automatic-tapers',
   'semi-automatic-taping-tool-sets',
   'semi-automatic-taping-tools',
+  'semi-automatic-tools',
   'semi-automatic-tool-cases',
 ]);
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
+  'angle-boxes': 'corner-boxes',
+  'corner-tool-handles': 'fixed-handles',
   'semi-automatic-taping-tool-accessories': 'semi-automatic-accessories',
+  'semi-automatic-tools': 'semi-automatic-taping-tools',
+  'taping-tool-accessories': 'semi-automatic-accessories',
+  'tool-cases': 'automatic-taping-tool-cases',
 };
 
 export function resolveCategoryThumbnail(category) {

@@ -125,6 +125,19 @@ def test_taxonomy_findings_split_by_mutation_safety() -> None:
     assert report["findings"]["taxonomy_ambiguous_review"]["count"] == 1
 
 
+def test_registered_accessory_leaf_is_not_a_metadata_only_ambiguity() -> None:
+    row = make_row(
+        SKU="CASE",
+        Categories="Drywall Finishing Tools > Automatic Taping Tools > Tool Cases",
+        **{
+            "Meta: _dtb_product_kind": "drywall-finishing-tool",
+            "Meta: _dtb_category_key": "accessories",
+            "Meta: _dtb_display_category_key": "accessories",
+        },
+    )
+    assert "taxonomy_ambiguous_review" not in remediation_findings(audit_rows([row]))
+
+
 def test_taxonomy_remediation_preserves_raw_and_normalized_values() -> None:
     row = make_row(
         SKU="SET-LEGACY",

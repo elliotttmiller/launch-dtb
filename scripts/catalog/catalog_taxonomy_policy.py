@@ -57,7 +57,7 @@ class TaxonomyExpectation:
 DRYWALL_ROOT = "Drywall Finishing Tools"
 STILT_ROOT = "Stilts & Accessories"
 AUTOMATIC = "Automatic Taping Tools"
-SEMI_AUTOMATIC = "Semi-Automatic Taping Tools"
+SEMI_AUTOMATIC = "Semi-Automatic Tools"
 
 
 def _t(root: str, group: str, leaf: str, category: str, display: str) -> NavigationTaxon:
@@ -66,24 +66,29 @@ def _t(root: str, group: str, leaf: str, category: str, display: str) -> Navigat
 
 NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
     _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Tapers", "taping", "automatic_tapers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "finishing", "finishing_boxes"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Box Handles", "handles", "handles"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Boxes", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Box Fillers", "mudboxes", "pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Applicators", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Flushers", "corner", "corner_tools"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Tool Handles", "handles", "handles"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Extendable Handles", "handles", "handles"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "finishing", "finishing_boxes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks", "mudboxes", "pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Box Handles", "handles", "handles"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "taping", "nail_spotters"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Box Fillers", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Taping Tool Sets", "taping", "toolsets"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Extendable Handles", "handles", "handles"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Fixed Handles", "handles", "handles"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Tool Cases", "accessories", "accessories"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Smoothing Blades", "finishing", "smoothing_blades"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Accessories & Adapters", "accessories", "accessories"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "taping", "semi_automatic_tapers"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Taping Tool Sets", "taping", "toolsets"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Taping Tool Accessories", "accessories", "accessories"),
     _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Applicators", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
     _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Corner Flushers", "corner", "corner_tools"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Taping Tool Sets", "taping", "toolsets"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "taping", "semi_automatic_tapers"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Taping Tool Accessories", "accessories", "accessories"),
     _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
     _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
     _t(STILT_ROOT, "Accessories", "", "accessories", "accessories"),
@@ -97,12 +102,23 @@ NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
 )
 
 BY_PATH = {normalize_key(t.path): t for t in NAVIGATION_TAXA}
-BY_LEAF = {normalize_key(t.leaf or t.group): t for t in NAVIGATION_TAXA}
+BY_LEAF: dict[str, tuple[NavigationTaxon, ...]] = {}
+for _taxon in NAVIGATION_TAXA:
+    _leaf_key = normalize_key(_taxon.leaf or _taxon.group)
+    BY_LEAF[_leaf_key] = (*BY_LEAF.get(_leaf_key, ()), _taxon)
+
+PATH_ALIASES = {
+    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes"),
+    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Fixed Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Tool Handles"),
+    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Cases"),
+    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets"),
+    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Accessories & Adapters"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Taping Tool Accessories"),
+}
+GROUP_ALIASES = {"semi_automatic_taping_tools": normalize_key(SEMI_AUTOMATIC)}
 LEAF_ALIASES = {
     "finishing_boxes": "flat_boxes",
     "flat_finishing_boxes": "flat_boxes",
     "box_handles": "flat_box_handles",
-    "angle_head_handles": "fixed_handles",
     "taping_tool_sets": "automatic_taping_tool_sets",
     "tool_sets": "automatic_taping_tool_sets",
     "tool_sets_kits": "automatic_taping_tool_sets",
@@ -118,8 +134,8 @@ FAMILY_ONLY_KEYS = {"predator", "predator_family"}
 
 PRODUCT_KIND_DEFAULTS = {
     "part": _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
-    "toolset": BY_LEAF["automatic_taping_tool_sets"],
-    "kit": BY_LEAF["automatic_taping_tool_sets"],
+    "toolset": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets")],
+    "kit": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets")],
     "stilt": _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
 }
 
@@ -148,14 +164,20 @@ def taxon_for_path(raw_path: object) -> NavigationTaxon | None:
         normalized_parts = [normalize_key(part) for part in parts]
         if any(part in FAMILY_ONLY_KEYS for part in normalized_parts):
             continue
-        direct = BY_PATH.get(normalize_key(" > ".join(parts)))
+        normalized_path_parts = [GROUP_ALIASES.get(part, part) for part in normalized_parts]
+        path_key = normalize_key(" > ".join(normalized_path_parts))
+        direct = BY_PATH.get(PATH_ALIASES.get(path_key, path_key))
         if direct:
             candidates.append(direct)
             continue
         leaf_key = LEAF_ALIASES.get(normalize_key(parts[-1]), normalize_key(parts[-1]))
-        taxon = BY_LEAF.get(leaf_key)
-        if taxon:
-            candidates.append(taxon)
+        leaf_candidates = BY_LEAF.get(leaf_key, ())
+        group_keys = {normalize_key(part) for part in parts[:-1]}
+        grouped = [taxon for taxon in leaf_candidates if normalize_key(taxon.group) in group_keys]
+        if len(grouped) == 1:
+            candidates.append(grouped[0])
+        elif len(leaf_candidates) == 1:
+            candidates.append(leaf_candidates[0])
     unique = {item.path: item for item in candidates}
     return next(iter(unique.values())) if len(unique) == 1 else None
 
@@ -172,10 +194,12 @@ def navigation_for_row(row: dict[str, str], parent: dict[str, str] | None = None
         return PRODUCT_KIND_DEFAULTS["part"]
     if kind == "stilt":
         return PRODUCT_KIND_DEFAULTS["stilt"]
+    explicit = taxon_for_path(row.get("Categories"))
+    if explicit:
+        return explicit
     if kind in {"toolset", "kit"}:
         return PRODUCT_KIND_DEFAULTS[kind]
-
-    return taxon_for_path(row.get("Categories"))
+    return None
 
 
 def canonical_values(row: dict[str, str], parent: dict[str, str] | None = None) -> dict[str, str] | None:

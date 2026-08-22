@@ -18,25 +18,30 @@ Brand and product family are orthogonal dimensions. Brand names and family names
 Drywall Finishing Tools
   Automatic Taping Tools
     Automatic Tapers
-    Flat Boxes
-    Flat Box Handles
     Angle Heads
+    Angle Boxes
+    Box Fillers
+    Compound Applicators
+    Compound Tubes
+    Corner Flushers
     Corner Rollers
+    Corner Tool Handles
+    Extendable Handles
+    Flat Boxes
+    Goosenecks
+    Flat Box Handles
     Nail Spotters
     Loading Pumps
-    Box Fillers
-    Goosenecks
-    Automatic Taping Tool Sets
-    Extendable Handles
-    Fixed Handles
     Tool Cases
-    Smoothing Blades
-    Accessories & Adapters
-  Semi-Automatic Taping Tools
-    Semi-Automatic Tapers
-    Compound Tubes
+    Automatic Taping Tool Sets
+    Taping Tool Accessories
+  Semi-Automatic Tools
     Compound Applicators
+    Compound Tubes
     Corner Flushers
+    Semi-Automatic Taping Tool Sets
+    Semi-Automatic Tapers
+    Semi-Automatic Taping Tool Accessories
   Parts
 
 Stilts & Accessories
@@ -52,6 +57,38 @@ Stilts & Accessories
 ```
 
 The universal registry for this hierarchy is `scripts/catalog/catalog_taxonomy_policy.py`. It is brand-independent. A new manufacturer using an existing functional product class requires no taxonomy code change.
+
+The Automatic Taping Tools branch is DTB's universal cross-brand structure.
+Specialist retailers and manufacturer documentation are supporting evidence for
+product function only; their navigation trees are not copied as DTB taxonomy.
+
+Reference: <https://www.alstapingtools.com/shop-by-product/automatic-taping-tools/automatic-tapers/>
+
+Classification rules:
+
+- classify by tool function, never by brand, product family, material, or marketing series;
+- use `Angle Boxes` for compound-fed corner boxes and reserve `Flat Boxes` for flat-joint finishing boxes;
+- use `Corner Tool Handles` for fixed/interchangeable corner-system handles and their dedicated adapters;
+- use `Extendable Handles` only when the sellable family is consistently an extendable-handle product;
+- use `Box Fillers`, `Goosenecks`, and `Loading Pumps` as distinct loading-system functions;
+- use `Taping Tool Accessories` only when no more specific functional leaf applies;
+- keep true semi-automatic products under the separate Semi-Automatic Tools branch.
+
+Every catalog category is a hierarchy of separate terms. System names are
+parents and product classes are leaves; they must not be flattened into a
+single label. For example, use `Semi-Automatic Tools > Compound Tubes`, never
+`Semi-Automatic Compound Tubes`.
+
+The Semi-Automatic Tools branch is DTB's curated universal structure.
+CSR collection pages are supporting evidence for the named functional classes,
+not an authority whose complete navigation tree is copied into DTB.
+
+References:
+
+- <https://csrtools.com/en-us/collections/compound-applicators>
+- <https://csrtools.com/en-us/collections/compound-tubes>
+- <https://csrtools.com/en-us/collections/corner-flushers>
+- <https://csrtools.com/en-us/collections/semi-automatic-taping-tool-sets>
 
 ## Canonical metadata derivation
 
@@ -105,7 +142,7 @@ Until that legacy file is archived or removed in a separately reviewed data-rete
 Supported navigation groups are ordered:
 
 1. Automatic Taping Tools
-2. Semi-Automatic Taping Tools
+2. Semi-Automatic Tools
 3. Stilts & Accessories
 
 The frontend renders these backend-owned groups unchanged. Any CSV parser or legacy category mapper is a compatibility transport only and must prefer explicit canonical DTB metadata; it must not become a semantic taxonomy authority.

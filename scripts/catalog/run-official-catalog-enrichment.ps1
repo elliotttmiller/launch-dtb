@@ -200,7 +200,7 @@ finally {
                     change_count = $taxonomyFixSummary.change_count
                     changed_skus = $taxonomyFixSummary.changed_skus
                     by_field = $taxonomyFixSummary.by_field
-                    review_only = $taxonomyFixSummary.review_only
+                    unresolved_count = $taxonomyFixSummary.unresolved_count
                 }
             } else { $null }
         }

@@ -15,7 +15,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
 
-from catalog_taxonomy_policy import taxonomy_state
+from catalog_taxonomy_policy import CATEGORY_FIELD, DISPLAY_FIELD, canonical_values, normalize_key, taxonomy_state
 from official_catalog_schema import CatalogValidationError, validate_catalog
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -172,6 +172,28 @@ def _segmented_coverage(rows: list[dict[str, str]]) -> dict[str, object]:
 def _taxonomy_finding(row: dict[str, str]) -> tuple[str | None, str]:
     if _is_variation(row):
         return None, ""
+    canonical = canonical_values(row)
+    if canonical is not None:
+        category = _value(row, CATEGORY_FIELD)
+        display = _value(row, DISPLAY_FIELD)
+        expected_category = canonical[CATEGORY_FIELD]
+        expected_display = canonical[DISPLAY_FIELD]
+        if category == expected_category and display == expected_display:
+            return None, ""
+        finding = (
+            "taxonomy_deterministic_mismatch"
+            if category != expected_category
+            else "display_taxonomy_mismatch"
+        )
+        return finding, (
+            f"raw_category_key={category or '(blank)'}; "
+            f"raw_display_category_key={display or '(blank)'}; "
+            f"normalized_category_key={normalize_key(category) or '(blank)'}; "
+            f"normalized_display_category_key={normalize_key(display) or '(blank)'}; "
+            f"expected_category_key={expected_category}; "
+            f"expected_display_category_key={expected_display}; "
+            "policy=canonical navigation registry"
+        )
     state = taxonomy_state(
         product_kind=_value(row, "Meta: _dtb_product_kind"),
         category_key=_value(row, "Meta: _dtb_category_key"),

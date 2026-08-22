@@ -11,8 +11,10 @@ if str(CATALOG_DIR) not in sys.path:
 
 from prepare_schematic_compatibility_proposals import (
     build_tool_index,
+    canonical_schematic_id,
     canonical_tool_sku,
     prepare_proposals,
+    resolve_part_sku,
 )
 
 
@@ -40,7 +42,7 @@ def row(
 
 
 def write_master(path: Path, rows: list[dict[str, str]]) -> None:
-    fields = ["brand", "schematic_id", "product_sku", "source_file_from_brands"]
+    fields = ["brand", "schematic_id", "product_sku", "sku", "part_number", "source_file_from_brands"]
     with path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader()
@@ -78,6 +80,26 @@ def test_tool_index_deduplicates_variations_to_parent() -> None:
     assert build_tool_index(links, catalog) == {"schematic-a": ["TOOL-PARENT"]}
 
 
+def test_verbose_master_schematic_resolves_to_known_canonical_id() -> None:
+    aliases = {"columbiaangleheadsch": "columbia-angle-head"}
+    assert canonical_schematic_id(
+        "columbia-angle-head-sch", aliases, {"columbia-angle-head"}
+    ) == "columbia-angle-head"
+
+
+def test_part_resolution_uses_part_columns_not_product_sku() -> None:
+    catalog = {
+        "TOOL-A": row("TOOL-A", product_kind="drywall-finishing-tool"),
+        "PART-1": row("PART-1", product_kind="part"),
+    }
+    source = {
+        "product_sku": "TOOL-A",
+        "sku": "PART-1",
+        "part_number": "PART-1",
+    }
+    assert resolve_part_sku(source, catalog) == ("PART-1", "exact_part_identifier")
+
+
 def test_exact_shared_schematic_produces_single_tool_proposal_from_product_kind(tmp_path: Path) -> None:
     master = tmp_path / "master.csv"
     write_master(
@@ -86,7 +108,9 @@ def test_exact_shared_schematic_produces_single_tool_proposal_from_product_kind(
             {
                 "brand": "Columbia Taping Tools",
                 "schematic_id": "columbia-hydra-handle",
-                "product_sku": "HH19",
+                "product_sku": "HYDRA",
+                "sku": "HH19",
+                "part_number": "HH19",
                 "source_file_from_brands": "Columbia/Handles/Hydra.pdf",
             }
         ],
@@ -115,7 +139,9 @@ def test_multi_tool_schematic_is_review_only(tmp_path: Path) -> None:
             {
                 "brand": "Columbia Tools",
                 "schematic_id": "shared-schematic",
-                "product_sku": "PART-1",
+                "product_sku": "TOOL-A",
+                "sku": "PART-1",
+                "part_number": "PART-1",
                 "source_file_from_brands": "Columbia/shared.pdf",
             }
         ],
@@ -139,7 +165,9 @@ def test_existing_relationship_is_not_reproposed(tmp_path: Path) -> None:
             {
                 "brand": "Columbia Tools",
                 "schematic_id": "schematic-a",
-                "product_sku": "PART-1",
+                "product_sku": "TOOL-A",
+                "sku": "PART-1",
+                "part_number": "PART-1",
                 "source_file_from_brands": "Columbia/a.pdf",
             }
         ],
@@ -162,7 +190,9 @@ def test_unknown_part_sku_is_not_invented(tmp_path: Path) -> None:
             {
                 "brand": "Columbia Tools",
                 "schematic_id": "schematic-a",
-                "product_sku": "NOT-IN-CATALOG",
+                "product_sku": "TOOL-A",
+                "sku": "NOT-IN-CATALOG",
+                "part_number": "NOT-IN-CATALOG",
                 "source_file_from_brands": "Columbia/a.pdf",
             }
         ],

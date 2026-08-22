@@ -109,6 +109,7 @@ export const CATEGORY_MAP = {
   // Taping — automatic & semi-automatic tapers, tool sets/kits
   'automatic tapers':            'taping',
   'automatic taping tools':      'taping',
+  'semi-automatic tools':        'taping',
   'semi-automatic taping tools': 'taping',
   'taping & finishing tools':    'taping',  // legacy leaf (pre-remap)
   'tool sets & bundles':         'taping',  // legacy leaf (pre-remap)

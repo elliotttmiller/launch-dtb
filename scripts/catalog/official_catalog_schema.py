@@ -11,6 +11,8 @@ import tempfile
 from collections import Counter
 from pathlib import Path
 
+from catalog_taxonomy_policy import CATEGORY_FIELD, DISPLAY_FIELD, canonical_values
+
 
 EXPECTED_COLUMNS = (
     "Type", "SKU", "GTIN, UPC, EAN, or ISBN", "Name", "Published", "Is featured?",
@@ -46,6 +48,41 @@ ALLOWED_SCHEMA_CONDITIONS = {"NewCondition"}
 
 class CatalogValidationError(RuntimeError):
     """The canonical catalog contract was violated."""
+
+
+def validate_taxonomy_rows(rows: list[dict[str, str]]) -> dict[str, int]:
+    """Require every row to match one canonical owner/inheritance tuple."""
+    errors: list[str] = []
+    by_sku = {(row.get("SKU") or "").strip(): row for row in rows}
+    for row in rows:
+        sku = (row.get("SKU") or "").strip()
+        is_variation = (row.get("Type") or "").strip().casefold() == "variation"
+        parent_sku = (row.get("Parent") or row.get("Meta: _dtb_parent_product_sku") or "").strip()
+        parent = by_sku.get(parent_sku) if is_variation else None
+        expected = canonical_values(row, parent)
+        if expected is None:
+            errors.append(f"{sku}: taxonomy does not resolve to a canonical navigation path")
+            continue
+        for field in ("Categories", CATEGORY_FIELD, DISPLAY_FIELD):
+            actual = (row.get(field) or "").strip()
+            if actual != expected[field]:
+                errors.append(f"{sku}: {field} expected {expected[field]!r}, found {actual!r}")
+    if errors:
+        preview = "\n - ".join(errors[:50])
+        remainder = f"\n - ... {len(errors) - 50} additional error(s)" if len(errors) > 50 else ""
+        raise CatalogValidationError(
+            f"catalog taxonomy has {len(errors)} validation error(s):\n - {preview}{remainder}"
+        )
+    return {
+        "rows": len(rows),
+        "owners": sum(1 for row in rows if (row.get("Type") or "").strip().casefold() != "variation"),
+        "variations": sum(1 for row in rows if (row.get("Type") or "").strip().casefold() == "variation"),
+    }
+
+
+def validate_catalog_taxonomy(catalog_path: Path) -> dict[str, int]:
+    with catalog_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        return validate_taxonomy_rows(list(csv.DictReader(handle)))
 
 
 def create_catalog_backup(catalog_path: Path, backup_path: Path | None = None) -> Path:

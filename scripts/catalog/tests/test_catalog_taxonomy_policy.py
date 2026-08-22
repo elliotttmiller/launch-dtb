@@ -8,7 +8,7 @@ if str(CATALOG_DIR) not in sys.path:
     sys.path.insert(0, str(CATALOG_DIR))
 
 from catalog_taxonomy_policy import expected_taxonomy, taxonomy_state
-from normalize_official_taxonomy import build_changes, review_counts, strip_brand_from_categories
+from normalize_official_taxonomy import build_changes, parse_assignments
 
 
 def test_toolset_product_kind_is_deterministic_across_brands() -> None:
@@ -68,27 +68,11 @@ def test_unknown_display_category_does_not_invent_taxonomy() -> None:
     assert state["consistent"] is True
 
 
-def test_brand_segment_removal_uses_row_brand_not_brand_allowlist() -> None:
-    assert strip_brand_from_categories(
-        "Drywall Finishing Tools > New Future Brand > Automatic Taping Tools > Automatic Tapers",
-        "New Future Brand",
-    ) == "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers"
-
-
-def test_brand_segment_removal_only_applies_to_legacy_root_position() -> None:
-    raw = "Drywall Finishing Tools > Automatic Taping Tools > Acme > Specialty Tools"
-    assert strip_brand_from_categories(raw, "Acme") == raw
-
-
-def test_brand_named_root_is_not_removed() -> None:
-    raw = "Acme > Specialty Tools"
-    assert strip_brand_from_categories(raw, "Acme") == raw
-
-
-def test_normalizer_writes_only_deterministic_taxonomy_mismatches() -> None:
+def test_normalizer_writes_complete_canonical_tuples_and_reports_unknown_paths() -> None:
     rows = [
         {
             "SKU": "BROAD",
+            "Type": "simple",
             "Brands": "Brand A",
             "Categories": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
             "Meta: _dtb_product_kind": "toolset",
@@ -97,6 +81,7 @@ def test_normalizer_writes_only_deterministic_taxonomy_mismatches() -> None:
         },
         {
             "SKU": "DISPLAY-ONLY",
+            "Type": "simple",
             "Brands": "Brand B",
             "Categories": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
             "Meta: _dtb_product_kind": "toolset",
@@ -105,6 +90,7 @@ def test_normalizer_writes_only_deterministic_taxonomy_mismatches() -> None:
         },
         {
             "SKU": "AMBIGUOUS",
+            "Type": "simple",
             "Brands": "Brand C",
             "Categories": "Tools",
             "Meta: _dtb_product_kind": "drywall-finishing-tool",
@@ -112,15 +98,19 @@ def test_normalizer_writes_only_deterministic_taxonomy_mismatches() -> None:
             "Meta: _dtb_display_category_key": "predator_family",
         },
     ]
-    changes = build_changes(rows)
-    taxonomy_changes = [change for change in changes if change["field"].startswith("Meta:")]
-    assert [(change["sku"], change["field"], change["expected"]) for change in taxonomy_changes] == [
-        ("BROAD", "Meta: _dtb_category_key", "taping")
+    changes, unresolved = build_changes(rows)
+    assert [(change["sku"], change["field"], change["expected"]) for change in changes] == [
+        ("BROAD", "Meta: _dtb_category_key", "taping"),
+        ("DISPLAY-ONLY", "Meta: _dtb_display_category_key", "toolsets"),
     ]
-    assert review_counts(rows) == {
-        "taxonomy_ambiguous_review": 1,
-        "display_taxonomy_mismatch": 1,
-    }
+    assert [item["sku"] for item in unresolved] == ["AMBIGUOUS"]
+
+
+def test_reviewed_assignment_requires_an_exact_owner_path() -> None:
+    owner = {"SKU": "OWNER", "Type": "variable"}
+    by_sku = {"OWNER": owner}
+    path = "Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles"
+    assert parse_assignments([f"OWNER={path}"], by_sku) == {"OWNER": path}
 
 
 def test_taxonomy_state_reports_raw_and_normalized_values() -> None:

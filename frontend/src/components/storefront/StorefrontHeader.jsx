@@ -33,7 +33,7 @@ const MOBILE_SEARCH_DELAY_MS = 220;
 const MAX_SEARCH_PRODUCTS = 6;
 
 // The desktop "All Products" mega menu is a deliberately curated, fixed
-// top-level menu (two groups, five items each) matching the approved
+// top-level menu (two intentionally compact groups) matching the approved
 // mockup — it intentionally does NOT render the full live product-category
 // taxonomy (that full list still powers the mobile drawer's "All Products"
 // section via `drawerProductNavigation` below). Slugs must match real
@@ -46,22 +46,23 @@ const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
     viewAllLabel: 'View all Automatic Tools',
     items: [
       { slug: 'automatic-tapers', label: 'Automatic Tapers', description: 'High-speed taping with consistent results' },
-      { slug: 'automatic-taping-tool-cases', label: 'Automatic Taping Tool Cases', description: 'Durable cases for every taper' },
-      { slug: 'corner-boxes', label: 'Corner Boxes', description: 'Inside & outside corner solutions' },
+      { slug: 'tool-cases', label: 'Tool Cases', description: 'Protect and transport automatic tools' },
+      { slug: 'angle-boxes', label: 'Angle Boxes', description: 'Apply compound to inside corners' },
       { slug: 'flat-boxes', label: 'Flat Boxes', description: 'Finishing flat joints with precision' },
       { slug: 'nail-spotters', label: 'Nail Spotters', description: 'Quick nail & screw head coverage' },
     ],
   },
   {
-    slug: 'semi-automatic-taping-tools',
-    label: 'Semi-Automatic Taping Tools',
+    slug: 'semi-automatic-tools',
+    label: 'Semi-Automatic Tools',
     viewAllLabel: 'View all Semi-Automatic Tools',
     items: [
       { slug: 'semi-automatic-tapers', label: 'Semi-Automatic Tapers', description: 'Manual control. Maximum accuracy.' },
-      { slug: 'corner-flushers', label: 'Corner Finishers', description: 'Professional inside corner finishers' },
+      { slug: 'compound-applicators', label: 'Compound Applicators', description: 'Controlled compound delivery' },
       { slug: 'compound-tubes', label: 'Compound Tubes', description: 'Apply compound with ease' },
-      { slug: 'extendable-handles', label: 'Handles & Extensions', description: 'Reach farther, work smarter' },
-      { slug: 'semi-automatic-accessories', label: 'Accessories', description: 'Parts & add-ons for tapers' },
+      { slug: 'corner-flushers', label: 'Corner Flushers', description: 'Finish inside corners consistently' },
+      { slug: 'semi-automatic-taping-tool-sets', label: 'Semi-Automatic Tool Sets', description: 'Complete matched finishing systems' },
+      { slug: 'semi-automatic-taping-tool-accessories', label: 'Accessories', description: 'System-specific tools and add-ons' },
     ],
   },
 ];

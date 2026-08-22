@@ -17,9 +17,9 @@ Default mode is non-mutating. To apply reviewed deterministic safe fixes before 
 `-ApplySafeFixes` applies only bounded deterministic mutations before revalidation:
 
 1. stale explicit SEO canonical overrides are cleared so the active storefront route remains canonical authority;
-2. only mutation-safe deterministic taxonomy mismatches are normalized through the universal cross-brand taxonomy policy.
+2. only reviewed, deterministic taxonomy mismatches are normalized through the universal cross-brand taxonomy policy.
 
-Ambiguous taxonomy and display-only findings remain review-only. Do not add additional PowerShell wrappers for individual core stages unless they represent a genuinely separate operational workflow.
+The taxonomy stage is all-or-nothing: every owner must resolve to one canonical path and every variation must inherit its exact parent tuple before any write is allowed. Do not add additional PowerShell wrappers for individual core stages unless they represent a genuinely separate operational workflow.
 
 ## Universal taxonomy contract
 
@@ -31,6 +31,7 @@ Catalog classification is based on product semantics, never manufacturer identit
 - Broad category, display category, product family, and manufacturer are separate dimensions.
 - Brand-specific or SKU-specific taxonomy maps are prohibited. New brands must work without taxonomy code changes.
 - Unknown or ambiguous classifications remain unchanged and are surfaced for review rather than guessed.
+- Category paths use separate hierarchy terms, such as `Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes`; parent and leaf names are never flattened together.
 
 The runtime backend `DTB_CategoryNormalizer` remains the application-side category resolver. Catalog tooling must stay semantically aligned with that contract; the frontend consumes backend category/display-category DTOs and does not become a classification authority.
 
@@ -45,7 +46,7 @@ These files implement the unified run and are not separate product-data authorit
 - `audit_official_catalog_enrichment.py` — actionable quality audit and taxonomy review classification.
 - `catalog_seo_pre_generation.py` — evidence-bounded SEO/content preparation and finding authority.
 - `clear_legacy_seo_canonicals.py` — narrow deterministic canonical safe-fix implementation used by the unified runner.
-- `catalog-write-guard.ps1` — reusable validation/rollback guard for explicit catalog mutations.
+- `official_catalog_schema.py` — shared atomic-write and rollback primitives used by catalog mutation commands.
 
 ## Schematic compatibility proposal workflow
 

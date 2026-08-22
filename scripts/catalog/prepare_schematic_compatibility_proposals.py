@@ -20,7 +20,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from official_catalog_schema import CatalogValidationError, validate_catalog
@@ -30,6 +30,7 @@ DEFAULT_CATALOG = ROOT / "products" / "launch" / "official" / "dtb_official_cata
 DEFAULT_GAPS = ROOT / "products" / "launch" / "official" / "dtb_official_catalog.include-gaps.json"
 DEFAULT_MASTER = ROOT / "products" / "launch" / "universal_parts" / "references" / "all_brands_schematic_parts_master.csv"
 DEFAULT_LINKS = ROOT / "frontend" / "src" / "data" / "productSchematicLinks.generated.js"
+DEFAULT_VERBOSE_MAP = ROOT / "scripts" / "catalog" / "data" / "schematic_verbose_id_map.json"
 DEFAULT_OUTPUT = ROOT / "products" / "dev" / "catalog-enrichment" / "compatibility"
 
 PRODUCT_KIND_FIELD = "Meta: _dtb_product_kind"
@@ -67,6 +68,37 @@ def load_product_schematic_links(path: Path) -> dict[str, dict[str, object]]:
     return {str(sku).upper(): entry for sku, entry in parsed.items()}
 
 
+def normalized_schematic_key(value: str) -> str:
+    return "".join(character for character in value.casefold() if character.isalnum())
+
+
+def load_schematic_aliases(path: Path) -> dict[str, str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    aliases: dict[str, str] = {}
+    for raw_key, target in payload.items():
+        if not isinstance(target, list) or not target:
+            continue
+        canonical_id = str(target[0] or "").strip()
+        if canonical_id:
+            aliases[normalized_schematic_key(str(raw_key))] = canonical_id
+            aliases[normalized_schematic_key(canonical_id)] = canonical_id
+    return aliases
+
+
+def canonical_schematic_id(
+    raw: str,
+    aliases: dict[str, str],
+    known_ids: set[str],
+) -> str | None:
+    value = raw.strip()
+    if not value:
+        return None
+    if value in known_ids:
+        return value
+    resolved = aliases.get(normalized_schematic_key(value))
+    return resolved if resolved in known_ids else None
+
+
 def canonical_tool_sku(sku: str, catalog: dict[str, dict[str, str]]) -> str | None:
     key = sku.upper()
     row = catalog.get(key)
@@ -95,6 +127,48 @@ def build_tool_index(
     return {schematic_id: sorted(skus) for schematic_id, skus in tools.items()}
 
 
+def augment_tool_index_from_master(
+    master_path: Path,
+    tool_index: dict[str, list[str]],
+    catalog: dict[str, dict[str, str]],
+    aliases: dict[str, str],
+) -> dict[str, list[str]]:
+    tools = {schematic_id: set(skus) for schematic_id, skus in tool_index.items()}
+    known_ids = set(tools)
+    with master_path.open("r", encoding="utf-8-sig", newline="") as handle:
+        for source_row in csv.DictReader(handle):
+            raw_schematic_id = (source_row.get("schematic_id") or "").strip()
+            schematic_id = canonical_schematic_id(raw_schematic_id, aliases, known_ids)
+            product_sku = (source_row.get("product_sku") or "").strip()
+            if not schematic_id or not product_sku:
+                continue
+            resolved = canonical_tool_sku(product_sku, catalog)
+            if resolved:
+                tools.setdefault(schematic_id, set()).add(resolved)
+    return {schematic_id: sorted(skus) for schematic_id, skus in tools.items()}
+
+
+def resolve_part_sku(
+    source_row: dict[str, str],
+    catalog: dict[str, dict[str, str]],
+) -> tuple[str | None, str]:
+    candidates = {
+        (source_row.get(field) or "").strip().upper()
+        for field in ("sku", "part_number")
+        if (source_row.get(field) or "").strip()
+    }
+    matches = sorted(
+        candidate
+        for candidate in candidates
+        if candidate in catalog and is_part(catalog[candidate])
+    )
+    if len(matches) == 1:
+        return matches[0], "exact_part_identifier"
+    if len(matches) > 1:
+        return None, "ambiguous_part_identifiers"
+    return None, "part_identifier_not_in_catalog"
+
+
 def existing_relationships(row: dict[str, str]) -> bool:
     return bool(value(row, COMPATIBLE_FIELD) or value(row, REPLACEMENT_FIELD))
 
@@ -105,10 +179,16 @@ def prepare_proposals(
     master_path: Path,
     tool_index: dict[str, list[str]],
     brand_filter: str,
+    schematic_aliases: dict[str, str] | None = None,
+    diagnostics: list[dict[str, str]] | None = None,
 ) -> list[dict[str, str]]:
     proposals: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
     requested_brand = brand_filter.casefold().strip()
+    aliases = schematic_aliases or {}
+    known_ids = set(tool_index)
+    diagnostic_rows = diagnostics if diagnostics is not None else []
+    diagnostic_seen: set[tuple[str, str, str]] = set()
 
     with master_path.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
@@ -117,18 +197,43 @@ def prepare_proposals(
             if requested_brand and requested_brand not in brand.casefold():
                 continue
 
-            part_sku = (source_row.get("product_sku") or "").strip().upper()
-            schematic_id = (source_row.get("schematic_id") or "").strip()
-            if not part_sku or not schematic_id:
+            raw_schematic_id = (source_row.get("schematic_id") or "").strip()
+            raw_part_id = (source_row.get("sku") or source_row.get("part_number") or "").strip().upper()
+            schematic_id = canonical_schematic_id(raw_schematic_id, aliases, known_ids)
+            if not raw_part_id or not raw_schematic_id:
+                continue
+            if not schematic_id:
+                key = (raw_part_id, raw_schematic_id, "unresolved_schematic_identity")
+                if key not in diagnostic_seen:
+                    diagnostic_seen.add(key)
+                    diagnostic_rows.append({
+                        "brand": brand,
+                        "raw_schematic_id": raw_schematic_id,
+                        "raw_part_identifier": raw_part_id,
+                        "status": "unresolved_schematic_identity",
+                        "reason": "master schematic identity does not resolve to a canonical tool schematic",
+                    })
+                continue
+
+            part_sku, part_resolution = resolve_part_sku(source_row, catalog)
+            if not part_sku:
+                key = (raw_part_id, schematic_id, part_resolution)
+                if key not in diagnostic_seen:
+                    diagnostic_seen.add(key)
+                    diagnostic_rows.append({
+                        "brand": brand,
+                        "raw_schematic_id": raw_schematic_id,
+                        "raw_part_identifier": raw_part_id,
+                        "status": part_resolution,
+                        "reason": "master part identifier does not resolve to exactly one canonical part SKU",
+                    })
                 continue
             dedupe_key = (part_sku, schematic_id)
             if dedupe_key in seen:
                 continue
             seen.add(dedupe_key)
 
-            part = catalog.get(part_sku)
-            if part is None or not is_part(part):
-                continue
+            part = catalog[part_sku]
 
             targets = tool_index.get(schematic_id, [])
             existing = existing_relationships(part)
@@ -149,6 +254,7 @@ def prepare_proposals(
                 {
                     "brand": brand,
                     "schematic_id": schematic_id,
+                    "source_schematic_id": raw_schematic_id,
                     "source_file": (source_row.get("source_file_from_brands") or "").strip().replace("\\", "/"),
                     "part_sku": part_sku,
                     "part_name": value(part, "Name"),
@@ -156,7 +262,7 @@ def prepare_proposals(
                     "part_parent_sku": value(part, PARENT_SKU_FIELD),
                     "target_tool_skus": json.dumps(targets, separators=(",", ":")),
                     "status": status,
-                    "reason": reason,
+                    "reason": f"{reason}; part identity: {part_resolution}",
                 }
             )
 
@@ -168,6 +274,7 @@ def write_csv(path: Path, rows: list[dict[str, str]]) -> None:
     fields = (
         "brand",
         "schematic_id",
+        "source_schematic_id",
         "source_file",
         "part_sku",
         "part_name",
@@ -189,6 +296,7 @@ def main() -> int:
     parser.add_argument("--include-gap-audit", type=Path, default=DEFAULT_GAPS)
     parser.add_argument("--schematic-master", type=Path, default=DEFAULT_MASTER)
     parser.add_argument("--product-links", type=Path, default=DEFAULT_LINKS)
+    parser.add_argument("--schematic-aliases", type=Path, default=DEFAULT_VERBOSE_MAP)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument(
         "--brand",
@@ -201,18 +309,32 @@ def main() -> int:
     validate_catalog(catalog_path, args.include_gap_audit.resolve())
     _rows, catalog = load_catalog(catalog_path)
     links = load_product_schematic_links(args.product_links.resolve())
+    aliases = load_schematic_aliases(args.schematic_aliases.resolve())
     tool_index = build_tool_index(links, catalog)
+    tool_index = augment_tool_index_from_master(
+        args.schematic_master.resolve(), tool_index, catalog, aliases
+    )
+    diagnostics: list[dict[str, str]] = []
     proposals = prepare_proposals(
         catalog=catalog,
         master_path=args.schematic_master.resolve(),
         tool_index=tool_index,
         brand_filter=args.brand,
+        schematic_aliases=aliases,
+        diagnostics=diagnostics,
     )
 
     output = args.output_dir.resolve()
     proposal_path = output / "schematic-compatibility-proposals.csv"
     summary_path = output / "schematic-compatibility-summary.json"
+    diagnostics_path = output / "schematic-compatibility-unresolved.csv"
     write_csv(proposal_path, proposals)
+    diagnostics_path.parent.mkdir(parents=True, exist_ok=True)
+    with diagnostics_path.open("w", encoding="utf-8", newline="") as handle:
+        fields = ("brand", "raw_schematic_id", "raw_part_identifier", "status", "reason")
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(sorted(diagnostics, key=lambda item: (item["status"], item["brand"], item["raw_schematic_id"], item["raw_part_identifier"])))
 
     counts: dict[str, int] = defaultdict(int)
     for proposal in proposals:
@@ -225,8 +347,11 @@ def main() -> int:
         "by_status": dict(sorted(counts.items())),
         "unique_parts": len({item["part_sku"] for item in proposals}),
         "unique_schematics": len({item["schematic_id"] for item in proposals}),
+        "unresolved_rows": len(diagnostics),
+        "unresolved_by_status": dict(sorted(Counter(item["status"] for item in diagnostics).items())),
         "outputs": {
             "proposals": proposal_path.relative_to(ROOT).as_posix() if proposal_path.is_relative_to(ROOT) else str(proposal_path),
+            "unresolved": diagnostics_path.relative_to(ROOT).as_posix() if diagnostics_path.is_relative_to(ROOT) else str(diagnostics_path),
         },
     }
     summary_path.parent.mkdir(parents=True, exist_ok=True)
