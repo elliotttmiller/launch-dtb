@@ -10,7 +10,9 @@ The canonical public entry point is:
 
 The service disables the WordPress core sitemap provider to prevent duplicate sitemap authority.
 
-There is no separately generated frontend sitemap. Staging and production use the same DTB sitemap service and differ only through the environment-owned WordPress home URL and deployment mount path.
+There is no separately generated frontend sitemap. Production WordPress owns
+the only sitemap authority. The staging React surface shares production data
+but remains noindex and does not publish or advertise a staging sitemap.
 
 ## Sitemap topology
 
@@ -64,7 +66,10 @@ Because the public document root is a React SPA while WordPress core lives under
 - `^sitemap\.xml$` → `wp/index.php?dtb_sitemap=index`
 - `^sitemaps/...\.xml$` → `wp/index.php?dtb_sitemap=...`
 
-These rules must execute before the generic missing-static-asset `.xml` 404 guard. `frontend/scripts/assert-build-routing.cjs` enforces that ordering for production and staging builds. This keeps the MU-plugin service authoritative while making its public XML endpoints reachable through the storefront document root.
+These rules must execute before the generic missing-static-asset `.xml` 404
+guard. `frontend/scripts/assert-build-routing.cjs` enforces that ordering for
+production builds. This keeps the MU-plugin service authoritative while making
+its public XML endpoints reachable through the storefront document root.
 
 Unknown sitemap types and out-of-range pages return HTTP 404 with an XML error body.
 
@@ -98,27 +103,31 @@ The full Cache Tools workflow clears WordPress transient storage and therefore r
 
 The WordPress virtual `robots.txt` filter removes duplicate `Sitemap:` declarations and appends the environment-derived `/sitemap.xml` URL.
 
-The React build also contains `frontend/public/robots.txt` with the `__DTB_SITE_URL__` placeholder. The build/deployment process replaces that placeholder with the active environment URL. A physical `robots.txt` takes precedence over WordPress virtual robots output.
+The React build also contains `frontend/public/robots.txt`. Index-enabled
+production builds emit the root sitemap declaration. Staging builds emit
+`Allow: /` so authorized tools such as Semrush can crawl the staging surface,
+but emit no staging sitemap declaration. A physical `robots.txt` takes
+precedence over WordPress virtual robots output.
 
-A `robots.txt` served from `/staging/2972/robots.txt` is not the origin-level robots authority; standard crawler policy is read from `/robots.txt` at the origin root. Therefore staging index protection does not rely on the subdirectory robots file. The staging React head policy emits `noindex, nofollow`, and the canonical staging Apache configuration enforces `X-Robots-Tag: noindex, nofollow` on responses. The build routing assertion requires that server-level header to remain present.
+A `robots.txt` served from `/staging/2972/robots.txt` is not the origin-level
+robots authority; standard crawler policy is read from `/robots.txt` at the
+origin root. The root policy therefore does not disallow the staging mount.
+Staging index protection instead uses the React `noindex, nofollow` head policy
+and the canonical Apache `X-Robots-Tag: noindex, nofollow` response header. This
+allows crawling for audits without allowing search indexing.
 
-For Semrush Site Audit on staging, verify ownership in Semrush and enable its restriction-bypass option so SiteAuditBot may audit the environment despite robots and robots-meta/header restrictions. The staging sitemap may then be selected as the Site Audit crawl source. Do not submit the staging sitemap to a search engine.
+For Semrush Site Audit on staging, verify ownership in Semrush and enable its
+restriction-bypass option so SiteAuditBot may audit the environment despite
+robots and robots-meta/header restrictions. Use an explicit staging crawl URL;
+do not publish or submit a staging sitemap.
 
 ## Staging contract
 
-The current staging mount is:
-
-`https://drywalltoolbox.com/staging/2972/`
-
-Therefore the sitemap entry point is:
-
-`https://drywalltoolbox.com/staging/2972/sitemap.xml`
-
-and child sitemap URLs remain beneath the same mount, for example:
-
-`https://drywalltoolbox.com/staging/2972/sitemaps/products-1.xml`
-
-The sitemap data continues to come from the staging WooCommerce runtime. Staging does not maintain a second CSV-derived sitemap truth and does not make staging product URLs canonical for production.
+The staging mount is `https://drywalltoolbox.com/staging/2972/`. It shares the
+production WordPress/WooCommerce runtime but is not a canonical search surface.
+Its build permits crawling, its Apache responses emit
+`X-Robots-Tag: noindex, nofollow`, and it does not advertise a sitemap. The only
+canonical sitemap entry point remains `https://drywalltoolbox.com/sitemap.xml`.
 
 ## Admin diagnostics
 
@@ -161,9 +170,9 @@ The following route families are deliberately outside the sitemap contract even 
 
 After deploying staging or production:
 
-1. Visit the environment's `/sitemap.xml` and confirm HTTP 200 with a `<sitemapindex>` document.
+1. Visit production `/sitemap.xml` and confirm HTTP 200 with a `<sitemapindex>` document.
 2. Open every child listed by the index and confirm HTTP 200 with `<urlset>`.
-3. Confirm every sitemap URL remains on the expected environment host and mount path.
+3. Confirm every sitemap URL remains on `https://drywalltoolbox.com/` and never uses the staging mount.
 4. Confirm private and utility routes are absent.
 5. Confirm product URLs use `/products/{slug}` and resolve through the storefront.
 6. Confirm products carrying `_dtb_seo_noindex = 1` are absent from product sitemaps.

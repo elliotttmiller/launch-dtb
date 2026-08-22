@@ -16,14 +16,14 @@ const CATEGORY_PREVIEW_OVERRIDES = new Map([
   [
     'columbia::compound-tubes',
     {
-      url: 'https://drywalltoolbox.com/staging/2972/wp/wp-content/uploads/2026/media/columbia_tools_cmt24_01.webp',
+      url: 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/columbia_tools_cmt24_01.webp',
       source: 'category_override',
     },
   ],
   [
     'columbia::pumps',
     {
-      url: 'https://drywalltoolbox.com/staging/2972/wp/wp-content/uploads/2026/media/columbia_tools_hmp_01.webp',
+      url: 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/columbia_tools_hmp_01.webp',
       source: 'category_override',
     },
   ],

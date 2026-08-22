@@ -391,6 +391,17 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return crumbs;
   }, [categoryMeta, categoryPathSlug, isCategoryPageRoute]);
 
+  const categoryToolTypes = useMemo(
+    () => (Array.isArray(categoryMeta?.children) ? categoryMeta.children : [])
+      .map((child) => ({
+        ...child,
+        name: child?.label || child?.name || '',
+        count: Number(child?.productCount || child?.count || 0),
+      }))
+      .filter((child) => child.name && child.slug && child.count > 0),
+    [categoryMeta],
+  );
+
   const categorySeoTitle = isCategoryPageRoute
     ? (categoryMeta?.label || (categoryMetaError ? 'Category not found' : 'Loading category…'))
     : pageHeading;
@@ -576,7 +587,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
             <>
               <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={total} />
               {Array.isArray(categoryMeta.children) && categoryMeta.children.length > 0 && (
-                <ShopByToolType category={categoryMeta} displayCategories={filterCategories} onOpenFilters={() => setShowFilters(true)} />
+                <ShopByToolType categories={categoryToolTypes} onOpenFilters={() => setShowFilters(true)} />
               )}
             </>
           ) : categoryMetaError ? (

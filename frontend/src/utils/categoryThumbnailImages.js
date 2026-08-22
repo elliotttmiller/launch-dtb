@@ -33,11 +33,17 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
   'angle-boxes': 'corner-boxes',
+  'angle-boxes-corner-applicators': 'corner-boxes',
+  'angle-heads-corner-finishers': 'angle-heads',
   'corner-tool-handles': 'fixed-handles',
+  'goosenecks-box-fillers': 'box-fillers',
+  'handles-extensions': 'extendable-handles',
   'semi-automatic-taping-tool-accessories': 'semi-automatic-accessories',
   'semi-automatic-tools': 'semi-automatic-taping-tools',
   'taping-tool-accessories': 'semi-automatic-accessories',
   'tool-cases': 'automatic-taping-tool-cases',
+  'tool-sets': 'semi-automatic-taping-tool-sets',
+  'tool-sets-automatic-taping-tools': 'automatic-taping-tool-sets',
 };
 
 export function resolveCategoryThumbnail(category) {

@@ -2,19 +2,17 @@
 
 ## Environment boundaries
 
-Drywall Toolbox runs two independent WordPress environments in the same
-HostGator account and database. They share no WordPress tables or auth-cookie
-scope.
+Drywall Toolbox runs one production WordPress/WooCommerce runtime. The staging
+surface is a separately built React client mounted below `/staging/2972`; it
+reads from the shared root WordPress REST authority.
 
-| Environment | Public storefront | Physical WordPress URL | Table prefix | Server directory |
-| --- | --- | --- | --- | --- |
-| Staging | `https://drywalltoolbox.com/staging/2972` | `https://drywalltoolbox.com/staging/2972/wp` | `staging_kf5_` | `/public_html/drywalltoolbox/staging/2972/wp/` |
-| Production | `https://drywalltoolbox.com` | `https://drywalltoolbox.com/wp` | `kf5_` | `/public_html/drywalltoolbox/wp/` |
+| Surface | Public URL | WordPress/REST authority | Server directory |
+| --- | --- | --- | --- |
+| Staging React | `https://drywalltoolbox.com/staging/2972` | `https://drywalltoolbox.com/wp-json` | `/public_html/drywalltoolbox/staging/2972/` |
+| Production | `https://drywalltoolbox.com` | `https://drywalltoolbox.com/wp` | `/public_html/drywalltoolbox/wp/` |
 
-Native admin and login URLs remain in the physical WordPress namespace:
-
-- staging: `/staging/2972/wp/wp-admin/` and `/staging/2972/wp/wp-login.php`;
-- production: `/wp/wp-admin/` and `/wp/wp-login.php`.
+Native admin and login URLs remain in the physical production WordPress
+namespace: `/wp/wp-admin/` and `/wp/wp-login.php`.
 
 The document-root Apache files may expose convenience aliases, but WordPress
 must generate admin, login, plugin, nonce, and POST destinations from
@@ -23,15 +21,16 @@ must generate admin, login, plugin, nonce, and POST destinations from
 ## Configuration ownership
 
 - `wp-config.php` is server-owned, ignored by Git, and contains secrets.
-- `wp-config-staging-sample.php` is the tracked HostGator staging contract.
-- `wp-config-sample.php` is the tracked future HostGator production contract.
+- `wp-config-sample.php` is the tracked HostGator production contract.
 - `htaccess.hostgator-staging` and `htaccess.hostgator` at the application root
   own the React, REST, checkout, and WordPress alias routing for each deployment.
-- the matching files under `drywalltoolbox/wp/` own only the nested WordPress
-  runtime routing and dynamic-response cache policy.
+- the files under `drywalltoolbox/wp/` own the shared WordPress runtime routing
+  and dynamic-response cache policy.
 
-Never copy the staging runtime configuration into production. The staging
-prefix and cookie path are deliberate containment boundaries.
+The staging build must not assume that WordPress exists below
+`/staging/2972/wp`. Its public API configuration points to the root origin while
+`PUBLIC_URL=/staging/2972` remains authoritative for staging-owned assets and
+React routes.
 
 ## Database and URL synchronization
 
@@ -45,23 +44,7 @@ constants during recovery does not expose stale routing. URL replacement must
 use WP-CLI or another serialization-aware WordPress migration tool; do not run
 raw SQL replacement over serialized option or metadata values.
 
-The narrowly scoped identity scripts are:
-
-- `scripts/wordpress/sync-hostgator-staging.sql` for the current staging move;
-- `scripts/wordpress/sync-hostgator-production.sql` for the later approved launch.
-
-Each script shows the current values, updates only `home` and `siteurl`, and
-shows the resulting values in one transaction. The production script must not
-be run while staging is being prepared.
-
-For staging, the expected option values are:
-
-```text
-home    = https://drywalltoolbox.com/staging/2972
-siteurl = https://drywalltoolbox.com/staging/2972/wp
-```
-
-For production, the expected option values are:
+The production WordPress option values are:
 
 ```text
 home    = https://drywalltoolbox.com
@@ -70,10 +53,11 @@ siteurl = https://drywalltoolbox.com/wp
 
 ## Cookie and cache boundaries
 
-Production WordPress auth cookies use `/` because native `/wp/wp-admin/`, root
-REST aliases, and the storefront share the production session. Staging cookies
-use `/staging/2972/`, which covers the staging SPA, REST aliases, and physical
-WordPress admin without being sent to production routes.
+WordPress and WooCommerce cookies use `/` because native `/wp/wp-admin/`, root
+REST aliases, production storefront, and the staging React client share the
+same WordPress/WooCommerce runtime. Staging is therefore not a data-isolation
+boundary: authenticated, cart, account, and checkout behavior reaches the
+production system of record.
 
 Do not define `COOKIE_DOMAIN` for this same-host topology. Host-only cookies
 avoid unnecessary subdomain sharing. Dynamic admin, login, REST, cart, checkout,

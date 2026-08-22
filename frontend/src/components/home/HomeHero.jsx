@@ -9,6 +9,8 @@ const HERO_COPY = {
   description: 'Professional-grade tools that help you work faster, finish better, and build your reputation.',
 };
 
+const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
+
 export default function HomeHero({ brands = [] }) {
   const lastLineIndex = HERO_COPY.titleLines.length - 1;
 
@@ -19,7 +21,7 @@ export default function HomeHero({ brands = [] }) {
 
         <img
           className="home-hero__media"
-          src="/home/hero-drywall-tool.webp"
+          src={`${PUBLIC_ASSET_BASE}/home/hero-drywall-tool.webp`}
           alt=""
           decoding="async"
           fetchPriority="high"

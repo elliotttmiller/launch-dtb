@@ -16,4 +16,4 @@ Disallow: /settings/
 Disallow: /wp-admin/
 Disallow: /wp-json/
 
-Sitemap: __DTB_SITE_URL__/sitemap.xml
+__DTB_SITEMAP_RULE__

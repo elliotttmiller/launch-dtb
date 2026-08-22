@@ -6,15 +6,15 @@ import { buildCategoryPageUrl } from '../../utils/catalogFacets.js';
 import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import '../../styles/category-hero.css';
 
-function ToolTypeTile({ displayCategory }) {
+function ToolTypeTile({ category }) {
   const [imageFailed, setImageFailed] = useState(false);
-  const image = resolveCategoryThumbnail(displayCategory);
+  const image = resolveCategoryThumbnail(category);
   const hasImage = Boolean(image) && !imageFailed;
-  const count = Number(displayCategory?.count || 0);
+  const count = Number(category?.count || 0);
 
   return (
     <Link
-      to={buildCategoryPageUrl(displayCategory.slug)}
+      to={buildCategoryPageUrl(category.slug)}
       className={`dtb-tool-type-tile${hasImage ? '' : ' dtb-tool-type-tile--no-image'}`}
     >
       <span className="dtb-tool-type-tile__media">
@@ -33,7 +33,7 @@ function ToolTypeTile({ displayCategory }) {
           <Wrench size={22} strokeWidth={1.75} aria-hidden="true" className="dtb-tool-type-tile__icon" />
         )}
       </span>
-      <span className="dtb-tool-type-tile__label">{displayCategory.name}</span>
+      <span className="dtb-tool-type-tile__label">{category.name}</span>
       {count > 0 && (
         <span className="dtb-tool-type-tile__count">
           {count.toLocaleString()} product{count === 1 ? '' : 's'}
@@ -45,14 +45,12 @@ function ToolTypeTile({ displayCategory }) {
 
 /**
  * "Shop by Tool Type" row for the `/category/:slug` hero — renders the
- * same consolidated display-category list (name/slug/count) that feeds the
- * filter sidebar (`ProductsCatalogPlatform`'s `filterCategories`, built via
- * `mergeDisplayCategories()`), rather than the category's raw granular
- * `children` subcategory terms. Threaded in as a prop so this component
- * never derives or refetches its own category grouping.
+ * authoritative WooCommerce child terms returned by the category metadata
+ * endpoint. Display-category metadata remains a filtering/merchandising facet
+ * and must not define the storefront taxonomy architecture.
  */
-export default function ShopByToolType({ displayCategories = [], onOpenFilters }) {
-  const items = Array.isArray(displayCategories) ? displayCategories : [];
+export default function ShopByToolType({ categories = [], onOpenFilters }) {
+  const items = Array.isArray(categories) ? categories : [];
   if (items.length === 0) return null;
 
   const handleViewAll = (event) => {
@@ -77,8 +75,8 @@ export default function ShopByToolType({ displayCategories = [], onOpenFilters }
       </div>
 
       <StorefrontRail label="Shop by tool type" className="dtb-tool-type-rail">
-        {items.map((displayCategory) => (
-          <ToolTypeTile key={displayCategory.slug} displayCategory={displayCategory} />
+        {items.map((category) => (
+          <ToolTypeTile key={category.slug} category={category} />
         ))}
       </StorefrontRail>
     </div>

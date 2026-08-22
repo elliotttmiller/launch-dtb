@@ -50,8 +50,6 @@ def assert_repository_shape() -> None:
         FRONTEND_ROOT / "package-lock.json",
         FRONTEND_ROOT / ".env.staging",
         REPOSITORY_ROOT / "drywalltoolbox" / "htaccess.hostgator-staging",
-        REPOSITORY_ROOT / "drywalltoolbox" / "wp" / "htaccess.hostgator-staging",
-        REPOSITORY_ROOT / "drywalltoolbox" / "wp" / "wp-config-staging-sample.php",
     ]
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
@@ -86,8 +84,8 @@ def main() -> int:
     print("[staging-build] Complete.")
     print(f"[staging-build] Upload the CONTENTS of: {OUTPUT_ROOT}")
     print("[staging-build] HostGator destination: /public_html/drywalltoolbox/staging/2972/")
-    print("[staging-build] WordPress core remains server-owned under: /public_html/drywalltoolbox/staging/2972/wp/")
-    print("[staging-build] Keep its .htaccess synchronized from: drywalltoolbox/wp/htaccess.hostgator-staging")
+    print("[staging-build] Shared WordPress core remains server-owned under: /public_html/drywalltoolbox/wp/")
+    print("[staging-build] Shared REST authority: https://drywalltoolbox.com/wp-json/")
     return 0
 
 

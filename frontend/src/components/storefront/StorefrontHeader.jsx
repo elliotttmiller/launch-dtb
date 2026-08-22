@@ -46,14 +46,14 @@ const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
     viewAllLabel: 'View all Automatic Tools',
     items: [
       { slug: 'automatic-tapers', label: 'Automatic Tapers', description: 'High-speed taping with consistent results' },
-      { slug: 'tool-cases', label: 'Tool Cases', description: 'Protect and transport automatic tools' },
-      { slug: 'angle-boxes', label: 'Angle Boxes', description: 'Apply compound to inside corners' },
+      { slug: 'tool-sets-automatic-taping-tools', label: 'Tool Sets', description: 'Complete matched automatic finishing systems' },
+      { slug: 'angle-boxes-corner-applicators', label: 'Angle Boxes', description: 'Apply compound to inside corners' },
       { slug: 'flat-boxes', label: 'Flat Boxes', description: 'Finishing flat joints with precision' },
       { slug: 'nail-spotters', label: 'Nail Spotters', description: 'Quick nail & screw head coverage' },
     ],
   },
   {
-    slug: 'semi-automatic-tools',
+    slug: 'semi-automatic-taping-tools',
     label: 'Semi-Automatic Tools',
     viewAllLabel: 'View all Semi-Automatic Tools',
     items: [
@@ -61,8 +61,7 @@ const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
       { slug: 'compound-applicators', label: 'Compound Applicators', description: 'Controlled compound delivery' },
       { slug: 'compound-tubes', label: 'Compound Tubes', description: 'Apply compound with ease' },
       { slug: 'corner-flushers', label: 'Corner Flushers', description: 'Finish inside corners consistently' },
-      { slug: 'semi-automatic-taping-tool-sets', label: 'Semi-Automatic Tool Sets', description: 'Complete matched finishing systems' },
-      { slug: 'semi-automatic-taping-tool-accessories', label: 'Accessories', description: 'System-specific tools and add-ons' },
+      { slug: 'tool-sets', label: 'Semi-Automatic Tool Sets', description: 'Complete matched finishing systems' },
     ],
   },
 ];

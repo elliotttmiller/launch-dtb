@@ -73,7 +73,7 @@ COL-OUTSIDE-CORNER-ROLLER,automatic_corner_rollers,10,approved migration from ex
 COL-PREDATOR-MATRIX-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 COL-PREDATOR-ONE-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 COL-STANDARD-FLUSHER,semi_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
-COL-THROTTLE-CORNER-FLUSHER-BOX,automatic_angle_boxes_corner_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Angle Boxes & Corner Applicators,approved
+COL-THROTTLE-CORNER-FLUSHER-BOX,semi_compound_applicators,10,normalized by product equivalence: Columbia throttle corner flusher box is a compound-fed corner applicator,approved
 COL-UHMW-MUD-APPLICATOR,semi_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
 CPFGN,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 CPFP,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved

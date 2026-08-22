@@ -127,7 +127,10 @@ module.exports = (envFlags, argv) => {
   const cacheName = `${mode}-${appEnv}-${deployTarget}-${PUBLIC_URL || 'root'}`.replace(/[^a-z0-9_.-]+/gi, '-');
   const siteUrl = (env('REACT_APP_SITE_URL') || 'https://elliottm4.sg-host.com').replace(/\/+$/, '');
   const searchIndexingEnabled = env('REACT_APP_SEARCH_INDEXING') !== '0' && appEnv === 'production';
-  const robotsRule = searchIndexingEnabled ? 'Allow: /' : 'Disallow: /';
+  // Staging remains noindex at the HTML and HTTP-header layers, but robots.txt
+  // permits crawling so authorized tools such as Semrush can audit it.
+  const robotsRule = searchIndexingEnabled || appEnv === 'staging' ? 'Allow: /' : 'Disallow: /';
+  const sitemapRule = searchIndexingEnabled ? `Sitemap: ${siteUrl}/sitemap.xml` : '';
 
   // ─── DefinePlugin values ────────────────────────────────────────────────
   const defines = {
@@ -420,8 +423,8 @@ module.exports = (envFlags, argv) => {
             transform(content) {
               return content
                 .toString()
-                .replaceAll('__DTB_SITE_URL__', siteUrl)
-                .replaceAll('__DTB_ROBOTS_RULE__', robotsRule);
+                .replaceAll('__DTB_ROBOTS_RULE__', robotsRule)
+                .replaceAll('__DTB_SITEMAP_RULE__', sitemapRule);
             },
           },
           {
