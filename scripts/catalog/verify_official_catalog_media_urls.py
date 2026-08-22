@@ -29,10 +29,7 @@ def clean(value: object) -> str:
 
 def candidate_url(source: str) -> str:
     parsed = urlsplit(source)
-    path = parsed.path
-    if path.startswith("/wp/wp-content/"):
-        path = path[len("/wp"):]
-    return urlunsplit(("https", PRODUCTION_HOST, path, parsed.query, ""))
+    return urlunsplit(("https", PRODUCTION_HOST, parsed.path, parsed.query, ""))
 
 
 def request_head(url: str, timeout: float) -> dict[str, object]:

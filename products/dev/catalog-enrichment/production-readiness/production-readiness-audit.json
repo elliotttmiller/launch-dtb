@@ -1,14 +1,14 @@
 {
   "backup_observation": {
-    "bytes": 2314476,
+    "bytes": 2306218,
     "created_by_audit": false,
     "exists": true,
-    "last_modified_utc": "2026-08-22T07:25:33.961754+00:00",
-    "matches_current_catalog": false,
+    "last_modified_utc": "2026-08-22T11:47:57.341891+00:00",
+    "matches_current_catalog": true,
     "path": "products/launch/official/dtb_official_catalog.csv.bak",
     "relationship_note": "A verified rollback snapshot is expected to differ from the catalog after a successful mutation.",
     "role": "pre-mutation rollback snapshot",
-    "sha256": "135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d"
+    "sha256": "edaf3920230944bb23044a1e5bf1bbd15b58ad5f676a66d9b08321058afd0e6d"
   },
   "catalog": "products/launch/official/dtb_official_catalog.csv",
   "evidence_backlog": {
@@ -127,25 +127,25 @@
     }
   },
   "format": {
-    "bytes": 2312922,
+    "bytes": 2306218,
     "columns": 127,
     "crlf_line_endings": 756,
     "lf_only_line_endings": 0,
     "physical_lines": 756,
     "rows": 755,
-    "sha256_normalized_lf": "3e902e31ec95037a1e95ecf99ae01d2c071fdfc1d4253a3c7354f575cf9f7a0f",
-    "sha256_worktree": "225cf5a219901095bca97e8e881f08be2c597e2ce3f979b7e07a40d8de82711c",
+    "sha256_normalized_lf": "9cd39f821485409c53d09306177487cee40a2a5a936882147c741e4e2253ea79",
+    "sha256_worktree": "edaf3920230944bb23044a1e5bf1bbd15b58ad5f676a66d9b08321058afd0e6d",
     "utf8_bom": true
   },
-  "generated_at": "2026-08-22T09:29:10.289295+00:00",
+  "generated_at": "2026-08-22T11:55:11.788569+00:00",
   "inputs": {
     "enrichment_dir": "products/dev/catalog-enrichment",
     "veeqo": "products/launch/official/veeqo_inventory.csv"
   },
   "local_media_comparison": {
     "all_catalog_basenames_present": true,
-    "catalog_unique_basenames": 1016,
-    "local_files": 1023,
+    "catalog_unique_basenames": 1021,
+    "local_files": 1028,
     "media_dir": "products/launch/media/media",
     "missing_local_basenames": [],
     "unused_local_basenames": [
@@ -160,90 +160,106 @@
   },
   "media_url_validation": {
     "catalog": "products/launch/official/dtb_official_catalog.csv",
-    "catalog_sha256_worktree": "135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d",
+    "catalog_sha256_worktree": "edaf3920230944bb23044a1e5bf1bbd15b58ad5f676a66d9b08321058afd0e6d",
     "content_type_counts": {
-      "image/webp": 1006,
-      "text/html": 10
+      "(blank)": 52,
+      "image/webp": 964,
+      "text/html": 5
     },
-    "generated_at": "2026-08-22T08:11:10.391769+00:00",
-    "invalid_production_candidates": 10,
+    "generated_at": "2026-08-22T11:53:12.718501+00:00",
+    "invalid_production_candidates": 57,
     "output": "products/dev/catalog-enrichment/production-readiness/media-url-validation.csv",
     "schema_version": 1,
     "source_mutated": false,
-    "stale": true,
     "status_counts": {
-      "200": 1016
+      "0": 52,
+      "200": 969
     },
-    "unique_source_urls": 1016,
-    "valid_production_candidates": 1006
+    "unique_source_urls": 1021,
+    "valid_production_candidates": 964
   },
   "metrics": {
     "brands": {
-      "Columbia Tools": 511,
+      "Columbia Tools": 510,
       "Dura-Stilts": 4,
       "LEVEL5": 60,
       "Platinum Drywall Tools": 45,
       "SurPro": 28,
-      "TapeTech": 107
+      "TapeTech": 108
     },
     "commerce_modes": {
-      "deprecated": 1,
-      "parent_container": 29,
-      "purchasable": 107,
-      "quote_only": 385,
-      "standard": 10,
-      "standard-catalog": 223
+      "hidden_reference": 1,
+      "purchasable": 754
     },
-    "complete_dimension_rows": 159,
-    "cost_rows": 649,
-    "image_assignments": 1751,
+    "complete_dimension_rows": 160,
+    "cost_rows": 650,
+    "image_assignments": 1754,
     "image_hosts": {
-      "elliottm4.sg-host.com": 1751
+      "drywalltoolbox.com": 1754
     },
-    "priced_rows": 649,
+    "priced_rows": 650,
     "product_types": {
-      "simple": 336,
-      "variable": 106,
-      "variation": 313
+      "simple": 339,
+      "variable": 105,
+      "variation": 311
     },
-    "unique_image_urls": 1016,
-    "weight_rows": 353
+    "unique_image_urls": 1021,
+    "weight_rows": 354
   },
   "previous_version_comparison": {
-    "added_skus": [],
+    "added_skus": [
+      "88TTE"
+    ],
     "available": true,
     "baseline_columns": 127,
-    "baseline_commit": "401abd8e7339a09093de24da03442912eaf20e60",
-    "baseline_rows": 755,
-    "baseline_sha256": "bb45eef2dd65d267b1451eac3e799e4a2a5b28b343bb38973a6e41487be951d8",
-    "catalog_commit": "843491aef56adbbedf3a7510eef9f111fdc10e5f",
-    "changed_field_values": 830,
-    "changed_skus": 399,
+    "baseline_commit": "563b05c6fbc2d1716055dfd7750a4d6516a848d3",
+    "baseline_rows": 754,
+    "baseline_sha256": "101bdde9d5b1e743f74810fbe21c6e032beb849a1b4321842e9fdc0b418abb8d",
+    "catalog_commit": "157dbebe8cfb506b48f41381a91e42c6734339a2",
+    "changed_field_values": 3112,
+    "changed_skus": 754,
     "current_columns": 127,
-    "current_head": "fe075819874064d5a08a10bec47c8a843eb317c7",
+    "current_head": "157dbebe8cfb506b48f41381a91e42c6734339a2",
     "current_rows": 755,
     "field_change_counts": {
-      "Attribute 1 default": 2,
-      "Categories": 367,
-      "Meta: _dtb_category_key": 114,
-      "Meta: _dtb_display_category_key": 174,
-      "Meta: _dtb_inherit_parent_image": 2,
-      "Meta: _dtb_schematic_url": 171
+      "Categories": 722,
+      "Images": 753,
+      "Meta: _dtb_category_key": 333,
+      "Meta: _dtb_commerce_mode": 645,
+      "Meta: _dtb_display_category_key": 323,
+      "Meta: _dtb_product_kind": 307,
+      "Meta: _includes_10_sku": 2,
+      "Meta: _includes_11_sku": 2,
+      "Meta: _includes_12_name": 1,
+      "Meta: _includes_12_sku": 1,
+      "Meta: _includes_14_name": 1,
+      "Meta: _includes_14_sku": 1,
+      "Meta: _includes_15_name": 1,
+      "Meta: _includes_15_sku": 1,
+      "Meta: _includes_3_sku": 3,
+      "Meta: _includes_4_sku": 1,
+      "Meta: _includes_5_sku": 1,
+      "Meta: _includes_7_sku": 1,
+      "Meta: _includes_8_sku": 3,
+      "Meta: _includes_9_sku": 2,
+      "Published": 1,
+      "Regular price": 6,
+      "Visibility in catalog": 1
     },
-    "protected_field_changes": 0,
+    "protected_field_changes": 307,
     "removed_skus": []
   },
   "readiness": {
     "advisory_findings": 0,
-    "blocker_findings": 1422,
-    "blocker_skus": 755,
+    "blocker_findings": 54,
+    "blocker_skus": 54,
     "by_brand": {
-      "Columbia Tools": 4625,
-      "Dura-Stilts": 25,
-      "LEVEL5": 362,
-      "Platinum Drywall Tools": 297,
-      "SurPro": 180,
-      "TapeTech": 602
+      "Columbia Tools": 3837,
+      "Dura-Stilts": 20,
+      "LEVEL5": 286,
+      "Platinum Drywall Tools": 240,
+      "SurPro": 140,
+      "TapeTech": 368
     },
     "by_code": {
       "apply_taxonomy_validation_gap": 1,
@@ -260,21 +276,17 @@
       "claim_needs_evidence:universal_fit": 146,
       "claim_needs_evidence:warranty": 14,
       "compatibility_proposal_exact": 422,
-      "deprecated_row_published": 1,
       "description_long_for_class": 702,
       "duplicate_seo_description": 6,
       "generated_output_containment_gap": 1,
-      "include_target_absent": 21,
       "inventory_projection_runtime_verification_required": 1,
       "manifest_blank_erasure_risk": 1,
       "manifest_semantic_validation_gap": 1,
       "missing_image": 1,
       "mutation_runner_backup_contract_gap": 1,
       "near_duplicate_seo_description": 10,
-      "nonpositive_gross_margin": 6,
       "part_family_without_compatibility_or_replacement": 314,
-      "production_image_candidate_invalid": 18,
-      "quote_only_with_price": 358,
+      "production_image_candidate_invalid": 53,
       "repetitive_language:demanding_environment": 42,
       "repetitive_language:downtime": 275,
       "repetitive_language:job_site": 429,
@@ -283,39 +295,35 @@
       "repetitive_language:vital": 148,
       "seo_description_long": 22,
       "seo_title_long": 87,
-      "shippable_missing_dimensions": 32,
-      "shippable_missing_weight": 126,
+      "shippable_missing_dimensions": 34,
+      "shippable_missing_weight": 295,
       "shipping_class_policy_unconfirmed": 1,
       "sibling_variations_share_explicit_gallery": 13,
-      "staging_or_local_url": 754,
       "structured_part_number_identity_mismatch": 1,
-      "unsupported_commerce_mode": 263,
       "variation_gallery_equals_parent_without_inheritance": 29
     },
     "by_domain": {
-      "commerce": 628,
       "compatibility": 736,
       "content": 3583,
       "identity": 1,
       "integration": 25,
-      "media": 815,
-      "relationships": 21,
+      "media": 96,
       "seo": 125,
-      "shipping": 159,
+      "shipping": 330,
       "workflow": 5
     },
     "by_gate": {
-      "blocker": 1422,
-      "review": 4676
+      "blocker": 54,
+      "review": 4847
     },
     "by_severity": {
-      "critical": 1160,
-      "high": 451,
+      "critical": 55,
+      "high": 359,
       "low": 1145,
       "medium": 3342
     },
-    "review_findings": 4676,
-    "total_findings": 6098,
+    "review_findings": 4847,
+    "total_findings": 4901,
     "verdict": "NOT READY FOR PRODUCTION IMPORT"
   },
   "schema_version": 1,
@@ -325,15 +333,17 @@
     "include_name_without_sku_reviewed": 0,
     "rows": 755,
     "taxonomy": {
-      "owners": 442,
+      "owners": 444,
       "rows": 755,
-      "variations": 313
+      "variations": 311
     }
   },
   "veeqo_comparison": {
     "available": true,
-    "catalog_item_rows": 649,
-    "catalog_only_skus": [],
+    "catalog_item_rows": 650,
+    "catalog_only_skus": [
+      "88TTE"
+    ],
     "comparison_method": "source-authoritative fields using effective sale/regular price; blank preservable Veeqo fields excluded",
     "field_difference_rows": 84,
     "field_differences_by_type": {

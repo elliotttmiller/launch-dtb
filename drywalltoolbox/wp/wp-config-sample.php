@@ -18,7 +18,7 @@ define( 'WP_CACHE', true ); // Managed by SiteGround Speed Optimizer.
 define( 'DB_NAME', 'CHANGE_ME_DATABASE_NAME' );
 define( 'DB_USER', 'CHANGE_ME_DATABASE_USER' );
 define( 'DB_PASSWORD', 'CHANGE_ME_DATABASE_PASSWORD' );
-define( 'DB_HOST', 'CHANGE_ME_DATABASE_HOST' );
+define( 'DB_HOST', 'localhost' );
 
 define( 'DB_CHARSET', 'utf8' );
 define( 'DB_COLLATE', '' );
@@ -46,22 +46,22 @@ define( 'WP_CACHE_KEY_SALT', 'CHANGE_ME_UNIQUE_CACHE_SALT' );
  * This must match the installed database. Changing it on an existing site
  * disconnects WordPress from its current tables.
  */
-$table_prefix = 'vaa_';
+$table_prefix = 'kf5_';
 
 /**
- * Drywall Toolbox HostGator staging topology.
+ * Drywall Toolbox HostGator production topology.
  */
-define( 'WP_HOME', 'https://drywalltoolbox.com/staging/2972' );
-define( 'WP_SITEURL', 'https://drywalltoolbox.com/staging/2972/wp' );
+define( 'WP_HOME', 'https://drywalltoolbox.com' );
+define( 'WP_SITEURL', 'https://drywalltoolbox.com/wp' );
 define( 'DRYWALL_ALLOWED_ORIGIN', 'https://drywalltoolbox.com' );
 
 /**
- * The staging frontend and WordPress aliases share this scoped cookie path.
+ * The production frontend and WordPress aliases share the root cookie path.
  * Do not define COOKIE_DOMAIN without a reviewed multi-subdomain requirement.
  */
-define( 'COOKIEPATH', '/staging/2972/' );
-define( 'SITECOOKIEPATH', '/staging/2972/' );
-define( 'ADMIN_COOKIE_PATH', '/staging/2972/wp/' );
+define( 'COOKIEPATH', '/' );
+define( 'SITECOOKIEPATH', '/' );
+define( 'ADMIN_COOKIE_PATH', '/' );
 
 /**
  * Existing narrowly scoped topology compatibility switches.

@@ -1,18 +1,20 @@
 {
   "catalog": "products/launch/official/dtb_official_catalog.csv",
-  "catalog_sha256_worktree": "135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d",
+  "catalog_sha256_worktree": "edaf3920230944bb23044a1e5bf1bbd15b58ad5f676a66d9b08321058afd0e6d",
   "content_type_counts": {
-    "image/webp": 1006,
-    "text/html": 10
+    "(blank)": 52,
+    "image/webp": 964,
+    "text/html": 5
   },
-  "generated_at": "2026-08-22T08:11:10.391769+00:00",
-  "invalid_production_candidates": 10,
+  "generated_at": "2026-08-22T11:53:12.718501+00:00",
+  "invalid_production_candidates": 57,
   "output": "products/dev/catalog-enrichment/production-readiness/media-url-validation.csv",
   "schema_version": 1,
   "source_mutated": false,
   "status_counts": {
-    "200": 1016
+    "0": 52,
+    "200": 969
   },
-  "unique_source_urls": 1016,
-  "valid_production_candidates": 1006
+  "unique_source_urls": 1021,
+  "valid_production_candidates": 964
 }
