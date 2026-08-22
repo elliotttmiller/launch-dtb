@@ -5,6 +5,7 @@
 07TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers,false
 07TT,Meta: _dtb_category_key,automatic-tapers,taping,false
 07TT,Meta: _dtb_display_category_key,,automatic_tapers,false
+07TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Automatic+Tapers&amp;schematic=tapetech-07tt,/schematics?brand=tapetech&category=Automatic+Tapers&schematic=tapetech-07tt,false
 07TT-C,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers,false
 07TT-C,Meta: _dtb_category_key,automatic-tapers,taping,false
 07TT-C,Meta: _dtb_display_category_key,,automatic_tapers,false
@@ -14,30 +15,38 @@
 10FBBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 10FBBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 10FBBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+10FBBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-fat-boy-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box,false
 10FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 10FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 10FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+10FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=10,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=10,false
 10FFBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 10FFBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 10FFBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+10FFBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-automatic-flat-box&amp;variant=10,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=10,false
 12FBB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 12FBB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 12FBB,Meta: _dtb_display_category_key,,finishing_boxes,false
 12FBBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 12FBBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 12FBBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+12FBBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-fat-boy-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box,false
 12FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 12FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 12FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+12FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=12,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=12,false
 12FFBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 12FFBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 12FFBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+12FFBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-automatic-flat-box&amp;variant=12,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=12,false
 14FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 14FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 14FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+14FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=14,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=14,false
 14FFBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 14FFBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 14FFBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+14FFBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-automatic-flat-box&amp;variant=14,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=14,false
 14TT,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 15TTE,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 15TTE,Meta: _dtb_category_key,corner-tools,corner,false
@@ -51,65 +60,84 @@
 17TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 17TT,Meta: _dtb_category_key,corner-tools,corner,false
 17TT,Meta: _dtb_display_category_key,,corner_tools,false
+17TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Corner+Tools&amp;schematic=tapetech-17tt,/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-17tt,false
 17TTE,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 17TTE,Meta: _dtb_category_key,corner-tools,corner,false
 17TTE,Meta: _dtb_display_category_key,,corner_tools,false
 2.5AH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 2.5AH,Meta: _dtb_category_key,corner-tools,corner,false
 2.5AH,Meta: _dtb_display_category_key,,corner_tools,false
+2.5AH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Angleheads&amp;schematic=columbia-angle-head&amp;variant=2-5,/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=2-5,false
 2.5CSF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 2.5CSF,Meta: _dtb_category_key,corner-tools,corner,false
 2.5CSF,Meta: _dtb_display_category_key,,corner_tools,false
+2.5CSF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-combo-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher,false
 2.5DF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 2.5DF,Meta: _dtb_category_key,corner-tools,corner,false
 2.5DF,Meta: _dtb_display_category_key,,corner_tools,false
+2.5DF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
 2.5SF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 2.5SF,Meta: _dtb_category_key,corner-tools,corner,false
 2.5SF,Meta: _dtb_display_category_key,,corner_tools,false
+2.5SF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 2AH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 2AH,Meta: _dtb_category_key,corner-tools,corner,false
 2AH,Meta: _dtb_display_category_key,,corner_tools,false
+2AH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Angleheads&amp;schematic=columbia-angle-head&amp;variant=2,/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=2,false
 2NS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters,false
 2NS,Meta: _dtb_category_key,nail-spotters,taping,false
 2NS,Meta: _dtb_display_category_key,,nail_spotters,false
 3.5AH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 3.5AH,Meta: _dtb_category_key,corner-tools,corner,false
 3.5AH,Meta: _dtb_display_category_key,,corner_tools,false
+3.5AH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Angleheads&amp;schematic=columbia-angle-head&amp;variant=3-5,/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=3-5,false
 3.5CSF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3.5CSF,Meta: _dtb_category_key,corner-tools,corner,false
 3.5CSF,Meta: _dtb_display_category_key,,corner_tools,false
+3.5CSF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-combo-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher,false
 3.5DF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3.5DF,Meta: _dtb_category_key,corner-tools,corner,false
 3.5DF,Meta: _dtb_display_category_key,,corner_tools,false
+3.5DF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
 3.5SF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3.5SF,Meta: _dtb_category_key,corner-tools,corner,false
 3.5SF,Meta: _dtb_display_category_key,,corner_tools,false
+3.5SF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 3AH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 3AH,Meta: _dtb_category_key,corner-tools,corner,false
 3AH,Meta: _dtb_display_category_key,,corner_tools,false
+3AH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Angleheads&amp;schematic=columbia-angle-head&amp;variant=3,/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=3,false
 3BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 3BH,Meta: _dtb_display_category_key,,handles,false
+3BH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
 3CSF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3CSF,Meta: _dtb_category_key,corner-tools,corner,false
 3CSF,Meta: _dtb_display_category_key,,corner_tools,false
+3CSF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-combo-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher,false
 3DF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3DF,Meta: _dtb_category_key,corner-tools,corner,false
 3DF,Meta: _dtb_display_category_key,,corner_tools,false
+3DF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
 3NS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters,false
 3NS,Meta: _dtb_category_key,nail-spotters,taping,false
 3NS,Meta: _dtb_display_category_key,,nail_spotters,false
+3NS,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Nailspotters&amp;schematic=columbia-nailspotter&amp;variant=3,/schematics?brand=columbia-taping-tools&category=Nailspotters&schematic=columbia-nailspotter&variant=3,false
 3SF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3SF,Meta: _dtb_category_key,corner-tools,corner,false
 3SF,Meta: _dtb_display_category_key,,corner_tools,false
+3SF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 3WTCSF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3WTCSF,Meta: _dtb_category_key,corner-tools,corner,false
 3WTCSF,Meta: _dtb_display_category_key,,corner_tools,false
+3WTCSF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-combo-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher,false
 3WTDF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3WTDF,Meta: _dtb_category_key,corner-tools,corner,false
 3WTDF,Meta: _dtb_display_category_key,,corner_tools,false
+3WTDF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
 3WTSF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 3WTSF,Meta: _dtb_category_key,corner-tools,corner,false
 3WTSF,Meta: _dtb_display_category_key,,corner_tools,false
+3WTSF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 4-600P,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,false
 4-600P,Meta: _dtb_category_key,toolsets,taping,false
 4-602,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,false
@@ -120,11 +148,13 @@
 4-702,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 4-707,Meta: _dtb_category_key,handles,corner,false
 4-707,Meta: _dtb_display_category_key,handles,corner_tools,false
+4-707,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Corner+Rollers&amp;schematic=level5-corner-roller-4-707,/schematics?brand=level5&category=Corner+Rollers&schematic=level5-corner-roller-4-707,false
 4-711,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 4-712,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 4-732,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 4-733,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 4-734,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
+4-734,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Corner+Finishers&amp;schematic=level5-4-734-3-5-corner-finisher,/schematics?brand=level5&category=Corner+Finishers&schematic=level5-4-734-3-5-corner-finisher,false
 4-735,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 4-740,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 4-741,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
@@ -138,12 +168,19 @@
 4-755,Meta: _dtb_display_category_key,corner_tools,nail_spotters,false
 4-759,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 4-764,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-764,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-7-inch-flat-box-4-764,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-7-inch-flat-box-4-764,false
 4-765,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-765,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-10-inch-flat-box-4-765,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-10-inch-flat-box-4-765,false
 4-766,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-766,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-12-inch-flat-box-4-766,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-12-inch-flat-box-4-766,false
 4-767,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-767,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-7-inch-mega-flat-box-4-767,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-7-inch-mega-flat-box-4-767,false
 4-768,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-768,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-10-inch-mega-flat-box-4-768,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-10-inch-mega-flat-box-4-768,false
 4-769,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-769,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Finishing+Boxes&amp;schematic=level5-12-inch-mega-box-4-769,/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-12-inch-mega-box-4-769,false
 4-770,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
+4-771,Meta: _dtb_schematic_url,/schematics?brand=level5&amp;category=Pumps&amp;schematic=level5-compound-pump-4-771,/schematics?brand=level5&category=Pumps&schematic=level5-compound-pump-4-771,false
 4-772,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 4-772,Meta: _dtb_category_key,taping,corner,false
 4-772,Meta: _dtb_display_category_key,automatic_tapers,corner_tools,false
@@ -162,23 +199,29 @@
 40XTT,Meta: _dtb_display_category_key,,corner_tools,false
 42BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 42BH,Meta: _dtb_display_category_key,,handles,false
+42BH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
 42TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 42TT,Meta: _dtb_category_key,corner-tools,corner,false
 42TT,Meta: _dtb_display_category_key,,corner_tools,false
+42TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Corner+Tools&amp;schematic=tapetech-42tt,/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-42tt,false
 48TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 48TT,Meta: _dtb_category_key,corner-tools,corner,false
 48TT,Meta: _dtb_display_category_key,,corner_tools,false
+48TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Corner+Tools&amp;schematic=tapetech-48tt,/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-48tt,false
 48XTT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 48XTT,Meta: _dtb_category_key,corner-tools,corner,false
 48XTT,Meta: _dtb_display_category_key,,corner_tools,false
 4BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 4BH,Meta: _dtb_display_category_key,,handles,false
+4BH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
 4DF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 4DF,Meta: _dtb_category_key,corner-tools,corner,false
 4DF,Meta: _dtb_display_category_key,,corner_tools,false
+4DF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
 4SF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 4SF,Meta: _dtb_category_key,corner-tools,corner,false
 4SF,Meta: _dtb_display_category_key,,corner_tools,false
+4SF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 5-311,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers,false
 5-311,Meta: _dtb_display_category_key,automatic_tapers,semi_automatic_tapers,false
 5-777,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
@@ -188,13 +231,17 @@
 5.5FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 5.5FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 5.5FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+5.5FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=5-5,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=5-5,false
 5BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 5BH,Meta: _dtb_display_category_key,,handles,false
+5BH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
 6BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 6BH,Meta: _dtb_display_category_key,,handles,false
+6BH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
 76TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps,false
 76TT,Meta: _dtb_category_key,pumps,mudboxes,false
 76TT,Meta: _dtb_display_category_key,,pumps,false
+76TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Pumps&amp;schematic=tapetech-76tt,/schematics?brand=tapetech&category=Pumps&schematic=tapetech-76tt,false
 76TT-CA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps,false
 76TT-CA,Meta: _dtb_category_key,pumps,mudboxes,false
 76TT-CA,Meta: _dtb_display_category_key,,pumps,false
@@ -204,51 +251,67 @@
 7CFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes,false
 7CFB,Meta: _dtb_category_key,corner-tools,corner,false
 7CFB,Meta: _dtb_display_category_key,,corner_tools,false
+7CFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Boxes&amp;schematic=columbia-throttle-box&amp;variant=7,/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box&variant=7,false
 7FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 7FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 7FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+7FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=7,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=7,false
 8000TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8000TT,Meta: _dtb_display_category_key,,handles,false
 8000TT-PA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8000TT-PA,Meta: _dtb_display_category_key,,handles,false
 8034TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8034TT,Meta: _dtb_display_category_key,,handles,false
+8034TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-80xxtt&amp;variant=34,/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=34,false
 8042TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8042TT,Meta: _dtb_display_category_key,,handles,false
+8042TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-80xxtt&amp;variant=42,/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=42,false
 8054TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8054TT,Meta: _dtb_display_category_key,,handles,false
+8054TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-80xxtt&amp;variant=54,/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=54,false
 8072TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8072TT,Meta: _dtb_display_category_key,,handles,false
+8072TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-80xxtt&amp;variant=72,/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=72,false
 8134TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8134TT,Meta: _dtb_display_category_key,,handles,false
+8134TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-81xxtt&amp;variant=34,/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=34,false
 8142TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8142TT,Meta: _dtb_display_category_key,,handles,false
+8142TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-81xxtt&amp;variant=42,/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=42,false
 8154TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8154TT,Meta: _dtb_display_category_key,,handles,false
+8154TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-81xxtt&amp;variant=54,/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=54,false
 8172TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 8172TT,Meta: _dtb_display_category_key,,handles,false
+8172TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-81xxtt&amp;variant=72,/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=72,false
 85T,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Goosenecks,false
 85T,Meta: _dtb_category_key,pumps,mudboxes,false
 85T,Meta: _dtb_display_category_key,,pumps,false
+85T,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Pumps&amp;schematic=tapetech-85t,/schematics?brand=tapetech&category=Pumps&schematic=tapetech-85t,false
 85XLTT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Goosenecks,false
 85XLTT,Meta: _dtb_category_key,pumps,mudboxes,false
 85XLTT,Meta: _dtb_display_category_key,,pumps,false
 8CFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes,false
 8CFB,Meta: _dtb_category_key,corner-tools,corner,false
 8CFB,Meta: _dtb_display_category_key,,corner_tools,false
+8CFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Boxes&amp;schematic=columbia-throttle-box&amp;variant=8,/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box&variant=8,false
 8FBB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 8FBB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 8FBB,Meta: _dtb_display_category_key,,finishing_boxes,false
 8FBBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 8FBBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 8FBBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+8FBBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-fat-boy-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box,false
 8FFB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 8FFB,Meta: _dtb_category_key,finishing-boxes,finishing,false
 8FFB,Meta: _dtb_display_category_key,,finishing_boxes,false
+8FFB,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box&amp;variant=8,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=8,false
 8FFBA,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 8FFBA,Meta: _dtb_category_key,finishing-boxes,finishing,false
 8FFBA,Meta: _dtb_display_category_key,,finishing_boxes,false
+8FFBA,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-automatic-flat-box&amp;variant=8,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=8,false
 90T,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories,Drywall Finishing Tools > Automatic Taping Tools > Box Fillers,false
+90T,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Pumps&amp;schematic=tapetech-90t,/schematics?brand=tapetech&category=Pumps&schematic=tapetech-90t,false
 AH1-2,Categories,,Drywall Finishing Tools > Parts,false
 AH1-2.5,Categories,,Drywall Finishing Tools > Parts,false
 AH1-3,Categories,,Drywall Finishing Tools > Parts,false
@@ -262,12 +325,15 @@ AH7-2.5,Categories,,Drywall Finishing Tools > Parts,false
 AH7-3,Categories,,Drywall Finishing Tools > Parts,false
 AH7-3.5,Categories,,Drywall Finishing Tools > Parts,false
 AH8,Categories,,Drywall Finishing Tools > Parts,false
+AH8-CLIP,Attribute 1 default,"3.5"",Columbia AH8","3.5""",false
 AH8A,Categories,,Drywall Finishing Tools > Parts,false
 AH9,Categories,,Drywall Finishing Tools > Parts,false
+AH9-CLIP,Attribute 1 default,"3.5"",Columbia AH9","3.5""",false
 AH9A,Categories,,Drywall Finishing Tools > Parts,false
 BF,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Box Fillers,false
 BF,Meta: _dtb_category_key,pumps,mudboxes,false
 BF,Meta: _dtb_display_category_key,,pumps,false
+BF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-box-filler,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler,false
 BH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 BH,Meta: _dtb_display_category_key,,handles,false
 BH9-3,Categories,,Drywall Finishing Tools > Parts,false
@@ -280,10 +346,13 @@ BHE,Meta: _dtb_display_category_key,,handles,false
 BHE-SW,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 C1H,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 C1H,Meta: _dtb_display_category_key,,handles,false
+C1H,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-one,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one,false
 C1HEXT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 C1HEXT,Meta: _dtb_display_category_key,,handles,false
+C1HEXT,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-one,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one,false
 C1HS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 C1HS,Meta: _dtb_display_category_key,,handles,false
+C1HS,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-one,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one,false
 CA07TT,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 CA07TT,Meta: _dtb_category_key,corner-tools,corner,false
 CA07TT,Meta: _dtb_display_category_key,,corner_tools,false
@@ -295,9 +364,11 @@ CAA-TT,Meta: _dtb_display_category_key,,handles,false
 CBNCR,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 CBNCR,Meta: _dtb_category_key,corner-tools,corner,false
 CBNCR,Meta: _dtb_display_category_key,,corner_tools,false
+CC,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Rollers&amp;schematic=columbia-corner-cobra,/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-corner-cobra,false
 CEXT90,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 CEXT90,Meta: _dtb_category_key,corner-tools,corner,false
 CEXT90,Meta: _dtb_display_category_key,,corner_tools,false
+CEXT90,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Applicators&amp;schematic=columbia-external-corner-applicator,/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-external-corner-applicator,false
 CF25COMBO,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 CF25TT,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 CF30COMBO,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
@@ -331,38 +402,65 @@ CH90TT,Meta: _dtb_category_key,corner-tools,corner,false
 CH90TT,Meta: _dtb_display_category_key,,corner_tools,false
 CHXL,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 CHXL,Meta: _dtb_display_category_key,,handles,false
+CHXL,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-long-extendable-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-long-extendable-handle,false
 CLT24,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CLT24,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-cam-lock-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube,false
 CLT32,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CLT32,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-cam-lock-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube,false
 CLT42,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CLT42,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-cam-lock-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube,false
 CLT55,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CLT55,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-cam-lock-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube,false
+CMH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-closet-monster-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-closet-monster-flat-box-handle,false
 CMT24,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CMT24,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-compound-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube,false
 CMT32,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CMT32,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-compound-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube,false
 CMT42,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CMT42,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-compound-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube,false
 CMT55,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+CMT55,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-compound-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube,false
 COBCR,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 COBCR,Meta: _dtb_category_key,corner-tools,corner,false
 COBCR,Meta: _dtb_display_category_key,,corner_tools,false
+COBCR,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Rollers&amp;schematic=columbia-standard-outside-corner-roller,/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-standard-outside-corner-roller,false
 COBCRE,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 COBCRE,Meta: _dtb_category_key,corner-tools,corner,false
 COBCRE,Meta: _dtb_display_category_key,,corner_tools,false
 COBCRW,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 COBCRW,Meta: _dtb_category_key,corner-tools,corner,false
 COBCRW,Meta: _dtb_display_category_key,,corner_tools,false
+COL-180-GRIP-FLAT-BOX-HANDLE,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-flat-box-handle,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle,false
+COL-ANGLE-HEAD,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Angleheads&amp;schematic=columbia-angle-head,/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head,false
+COL-AUTOMATIC-FAT-BOY-BOX,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-fat-boy-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box,false
+COL-AUTOMATIC-FLAT-BOX,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-automatic-flat-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box,false
 COL-BILLET-MUD-APPLICATOR,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
+COL-BOX-FILLER,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-box-filler,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler,false
 COL-CAM-LOCK-TUBE,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+COL-CAM-LOCK-TUBE,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-cam-lock-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube,false
 COL-COMBO-FLUSHER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
+COL-COMBO-FLUSHER,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-combo-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher,false
 COL-COMPOUND-TUBE,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
+COL-COMPOUND-TUBE,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Compound+Tubes&amp;schematic=columbia-compound-tube,/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube,false
 COL-DIRECT-FLUSHER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
+COL-DIRECT-FLUSHER,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-direct-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher,false
+COL-FLAT-FINISHER-BOX,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Finishing+Boxes&amp;schematic=columbia-flat-box,/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box,false
+COL-GOOSENECK,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-gooseneck-adapter,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter,false
+COL-ONE-HANDLE,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-one,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one,false
 COL-PREDATOR-MATRIX-HANDLE,Categories,"Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles, Drywall Finishing Tools > Predator Family",Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 COL-PREDATOR-MATRIX-HANDLE,Meta: _dtb_display_category_key,predator_family,handles,false
+COL-PREDATOR-MATRIX-HANDLE,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-matrix,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix,false
 COL-PREDATOR-ONE-HANDLE,Categories,"Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles, Drywall Finishing Tools > Predator Family",Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 COL-PREDATOR-ONE-HANDLE,Meta: _dtb_display_category_key,predator_family,handles,false
 COL-STANDARD-FLUSHER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
+COL-STANDARD-FLUSHER,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Flushers&amp;schematic=columbia-standard-corner-flusher,/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher,false
 COL-THROTTLE-CORNER-FLUSHER-BOX,Categories,Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes,Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes,false
+COL-THROTTLE-CORNER-FLUSHER-BOX,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Boxes&amp;schematic=columbia-throttle-box,/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box,false
 COL-TOOL-CASE,Categories,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases,Drywall Finishing Tools > Automatic Taping Tools > Tool Cases,false
 COL-TOOL-CASE,Meta: _dtb_category_key,toolsets,accessories,false
 COL-TOOL-CASE,Meta: _dtb_display_category_key,toolsets,accessories,false
 COL-UHMW-MUD-APPLICATOR,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
+CR,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Corner+Rollers&amp;schematic=columbia-inside-corner-roller,/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-inside-corner-roller,false
 CT24TT,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
 CT29,Categories,,Drywall Finishing Tools > Parts,false
 CT29A,Categories,,Drywall Finishing Tools > Parts,false
@@ -377,29 +475,40 @@ CT77,Categories,,Drywall Finishing Tools > Parts,false
 CTA01TT,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
 CTA01TT,Meta: _dtb_display_category_key,corner_tools,compound_tubes,false
 D14-22,Categories,,Stilts & Accessories > Stilts,false
+D14-22,Meta: _dtb_schematic_url,/schematics?brand=dura-stilts&amp;category=Stilts&amp;schematic=dura-stilts-dura-iii&amp;page=1,/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=1,false
 D18-30,Categories,,Stilts & Accessories > Stilts,false
+D18-30,Meta: _dtb_schematic_url,/schematics?brand=dura-stilts&amp;category=Stilts&amp;schematic=dura-stilts-dura-iii&amp;page=2,/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=2,false
 D24-40,Categories,,Stilts & Accessories > Stilts,false
+D24-40,Meta: _dtb_schematic_url,/schematics?brand=dura-stilts&amp;category=Stilts&amp;schematic=dura-stilts-dura-iii&amp;page=3,/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=3,false
+DS-DURA-III,Meta: _dtb_schematic_url,/schematics?brand=dura-stilts&amp;category=Stilts&amp;schematic=dura-stilts-dura-iii,/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii,false
 EHC07,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EHC07,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EHC07,Meta: _dtb_display_category_key,,finishing_boxes,false
+EHC07,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-maxxbox-ehc&amp;page=1,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=1,false
 EHC10,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EHC10,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EHC10,Meta: _dtb_display_category_key,,finishing_boxes,false
+EHC10,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-maxxbox-ehc&amp;page=2,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=2,false
 EHC12,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EHC12,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EHC12,Meta: _dtb_display_category_key,,finishing_boxes,false
+EHC12,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-maxxbox-ehc&amp;page=3,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=3,false
 EZ07TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EZ07TT,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EZ07TT,Meta: _dtb_display_category_key,,finishing_boxes,false
+EZ07TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-easyclean-finishing-box&amp;page=1,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=1,false
 EZ10TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EZ10TT,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EZ10TT,Meta: _dtb_display_category_key,,finishing_boxes,false
+EZ10TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-easyclean-finishing-box&amp;page=2,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=2,false
 EZ12TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EZ12TT,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EZ12TT,Meta: _dtb_display_category_key,,finishing_boxes,false
+EZ12TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-easyclean-finishing-box&amp;page=3,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=3,false
 EZ15TT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 EZ15TT,Meta: _dtb_category_key,finishing-boxes,finishing,false
 EZ15TT,Meta: _dtb_display_category_key,,finishing_boxes,false
+EZ15TT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-easyclean-finishing-box&amp;page=4,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=4,false
 FFB11-10,Categories,,Drywall Finishing Tools > Parts,false
 FFB11-12,Categories,,Drywall Finishing Tools > Parts,false
 FFB11-8,Categories,,Drywall Finishing Tools > Parts,false
@@ -428,6 +537,7 @@ FMH,Meta: _dtb_display_category_key,,corner_tools,false
 GN,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Goosenecks,false
 GN,Meta: _dtb_category_key,pumps,mudboxes,false
 GN,Meta: _dtb_display_category_key,,pumps,false
+GN,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-gooseneck-adapter,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter,false
 HFFB14-10,Categories,,Drywall Finishing Tools > Parts,false
 HFFB14-12,Categories,,Drywall Finishing Tools > Parts,false
 HFFB14-14,Categories,,Drywall Finishing Tools > Parts,false
@@ -439,6 +549,7 @@ HH17B,Categories,,Drywall Finishing Tools > Parts,false
 HMP,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps,false
 HMP,Meta: _dtb_category_key,pumps,mudboxes,false
 HMP,Meta: _dtb_display_category_key,,pumps,false
+HMP,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-mud-pump,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-mud-pump,false
 HMP-C,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps,false
 HMP-C,Meta: _dtb_category_key,pumps,mudboxes,false
 HMP-C,Meta: _dtb_display_category_key,,pumps,false
@@ -458,12 +569,14 @@ IA90,Meta: _dtb_display_category_key,,corner_tools,false
 ICA2-1,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 ICA2-1,Meta: _dtb_category_key,corner-tools,corner,false
 ICA2-1,Meta: _dtb_display_category_key,,corner_tools,false
+ICA2-1,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Applicators&amp;schematic=columbia-inside-corner-applicator,/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-inside-corner-applicator,false
 ICA4-1,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 ICA4-1,Meta: _dtb_category_key,corner-tools,corner,false
 ICA4-1,Meta: _dtb_display_category_key,,corner_tools,false
 ICATW,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 ICATW,Meta: _dtb_category_key,corner-tools,corner,false
 ICATW,Meta: _dtb_display_category_key,,corner_tools,false
+ICATW,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Applicators&amp;schematic=columbia-2-way-internal-corner,/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-2-way-internal-corner,false
 LV5-CORNER-APPLICATOR,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 LV5-CORNER-FLUSHER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 LV5-CORNER-ROLLER-HANDLE,Categories,Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
@@ -500,12 +613,15 @@ OA90-325,Meta: _dtb_display_category_key,,corner_tools,false
 PAHC07,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PAHC07,Meta: _dtb_category_key,finishing-boxes,finishing,false
 PAHC07,Meta: _dtb_display_category_key,,finishing_boxes,false
+PAHC07,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-power-assist-maxxbox&amp;page=1,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=1,false
 PAHC10,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PAHC10,Meta: _dtb_category_key,finishing-boxes,finishing,false
 PAHC10,Meta: _dtb_display_category_key,,finishing_boxes,false
+PAHC10,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-power-assist-maxxbox&amp;page=2,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=2,false
 PAHC12,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PAHC12,Meta: _dtb_category_key,finishing-boxes,finishing,false
 PAHC12,Meta: _dtb_display_category_key,,finishing_boxes,false
+PAHC12,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-power-assist-maxxbox&amp;page=3,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=3,false
 PC1H,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 PC1H,Meta: _dtb_display_category_key,,handles,false
 PC1HEXT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
@@ -519,16 +635,22 @@ PHMP,Meta: _dtb_category_key,pumps,mudboxes,false
 PHMP,Meta: _dtb_display_category_key,predator_family,pumps,false
 PMH,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 PMH,Meta: _dtb_display_category_key,,handles,false
+PMH,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-matrix,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix,false
 PMHL,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 PMHL,Meta: _dtb_display_category_key,,handles,false
+PMHL,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-matrix,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix,false
 PMHS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles,false
 PMHS,Meta: _dtb_display_category_key,,handles,false
+PMHS,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Handles&amp;schematic=columbia-matrix,/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix,false
 PT-10FB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PT-10FB,Meta: _dtb_display_category_key,finishing-boxes,finishing_boxes,false
+PT-10FB,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Finishing+Boxes&amp;schematic=platinum-flat-box,/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box,false
 PT-12FB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PT-12FB,Meta: _dtb_display_category_key,finishing-boxes,finishing_boxes,false
+PT-12FB,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Finishing+Boxes&amp;schematic=platinum-flat-box,/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box,false
 PT-14FB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PT-14FB,Meta: _dtb_display_category_key,finishing-boxes,finishing_boxes,false
+PT-14FB,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Finishing+Boxes&amp;schematic=platinum-flat-box,/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box,false
 PT-2.5CF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 PT-2.5CF,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-2NS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters,false
@@ -537,10 +659,12 @@ PT-3.5CF,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flu
 PT-3.5CF,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-3CF,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 PT-3CF,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
+PT-3CF,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Corner+Finishers&amp;schematic=platinum-corner-finisher,/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher,false
 PT-3NS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters,false
 PT-3NS,Meta: _dtb_display_category_key,nail-spotters,nail_spotters,false
 PT-8FB,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 PT-8FB,Meta: _dtb_display_category_key,finishing-boxes,finishing_boxes,false
+PT-8FB,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Finishing+Boxes&amp;schematic=platinum-flat-box,/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box,false
 PT-90-APPLICATOR,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 PT-AICA,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 PT-AICA,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
@@ -551,17 +675,22 @@ PT-CA8,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compou
 PT-CA8,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-CAH50,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
 PT-CF,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
+PT-CF,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Corner+Finishers&amp;schematic=platinum-corner-finisher,/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher,false
 PT-CF2.5,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 PT-CF2.5,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
+PT-CF2.5,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Corner+Finishers&amp;schematic=platinum-corner-finisher,/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher,false
 PT-CF3.5,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Angle Heads,false
 PT-CF3.5,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
+PT-CF3.5,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Corner+Finishers&amp;schematic=platinum-corner-finisher,/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher,false
 PT-CFH50,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
 PT-CORNER-HANDLE-50,Categories,Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
+PT-CP,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Pumps&amp;schematic=platinum-compound-pump,/schematics?brand=platinum&category=Pumps&schematic=platinum-compound-pump,false
 PT-CR,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 PT-CR,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-CRE,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 PT-CRE,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-CRH50,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
+PT-CRH50,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Handles&amp;schematic=platinum-corner-roller-handle,/schematics?brand=platinum&category=Handles&schematic=platinum-corner-roller-handle,false
 PT-CT,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
 PT-CT24,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
 PT-CT36,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes,false
@@ -569,6 +698,7 @@ PT-CT42,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Tu
 PT-FA,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 PT-FA,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-FB,Meta: _dtb_display_category_key,finishing-boxes,finishing_boxes,false
+PT-FB,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Finishing+Boxes&amp;schematic=platinum-flat-box,/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box,false
 PT-ICA,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 PT-ICA,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-NS,Meta: _dtb_display_category_key,nail-spotters,nail_spotters,false
@@ -576,50 +706,83 @@ PT-OCA,Categories,,Drywall Finishing Tools > Semi-Automatic Tools > Compound App
 PT-OCA,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-OCR,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers,false
 PT-OCR,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
+PT-OCR,Meta: _dtb_schematic_url,/schematics?brand=platinum&amp;category=Corner+Rollers&amp;schematic=platinum-outside-corner-roller,/schematics?brand=platinum&category=Corner+Rollers&schematic=platinum-outside-corner-roller,false
 PT-SSCF,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
 PT-SSCF,Meta: _dtb_display_category_key,corner-tools,corner_tools,false
 PT-TP,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers,false
 PTAPER,Meta: _dtb_category_key,automatic-tapers,taping,false
 PTAPER,Meta: _dtb_display_category_key,predator_family,automatic_tapers,false
+PTAPER,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Automatic+Tapers&amp;schematic=columbia-predator-taper,/schematics?brand=columbia-taping-tools&category=Automatic+Tapers&schematic=columbia-predator-taper,false
 QB06-QSX,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 QB06-QSX,Meta: _dtb_category_key,finishing-boxes,finishing,false
 QB06-QSX,Meta: _dtb_display_category_key,,finishing_boxes,false
+QB06-QSX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-quickbox-qsx&amp;page=1,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx&page=1,false
 QB08-QSX,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes,false
 QB08-QSX,Meta: _dtb_category_key,finishing-boxes,finishing,false
 QB08-QSX,Meta: _dtb_display_category_key,,finishing_boxes,false
+QB08-QSX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-quickbox-qsx&amp;page=2,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx&page=2,false
 RC,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Tool Cases,false
 RC,Meta: _dtb_category_key,toolsets,accessories,false
 RC,Meta: _dtb_display_category_key,,accessories,false
 S1-A-1624,Categories,,Stilts & Accessories > Stilts,false
+S1-A-1624,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1-A-2030,Categories,,Stilts & Accessories > Stilts,false
+S1-A-2030,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1-A-2640,Categories,,Stilts & Accessories > Stilts,false
+S1-A-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1-M-1624,Categories,,Stilts & Accessories > Stilts,false
+S1-M-1624,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1-M-2030,Categories,,Stilts & Accessories > Stilts,false
+S1-M-2030,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1-M-2640,Categories,,Stilts & Accessories > Stilts,false
+S1-M-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 S1X-A-2131,Categories,,Stilts & Accessories > Stilts,false
+S1X-A-2131,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 S1X-A-2640,Categories,,Stilts & Accessories > Stilts,false
+S1X-A-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 S1X-M-2131,Categories,,Stilts & Accessories > Stilts,false
+S1X-M-2131,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 S1X-M-2640,Categories,,Stilts & Accessories > Stilts,false
+S1X-M-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 S2-A-1624,Categories,,Stilts & Accessories > Stilts,false
+S2-A-1624,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2-A-2030,Categories,,Stilts & Accessories > Stilts,false
+S2-A-2030,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2-A-2640,Categories,,Stilts & Accessories > Stilts,false
+S2-A-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2-M-1624,Categories,,Stilts & Accessories > Stilts,false
+S2-M-1624,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2-M-2030,Categories,,Stilts & Accessories > Stilts,false
+S2-M-2030,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2-M-2640,Categories,,Stilts & Accessories > Stilts,false
+S2-M-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 S2X-A-2640,Categories,,Stilts & Accessories > Stilts,false
+S2X-A-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 S2X-A-3852,Categories,,Stilts & Accessories > Stilts,false
+S2X-A-3852,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 S2X-M-2131,Categories,,Stilts & Accessories > Stilts,false
+S2X-M-2131,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 S2X-M-2640,Categories,,Stilts & Accessories > Stilts,false
+S2X-M-2640,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 SACS,Categories,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets,false
 SAT,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers,false
+SAT,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Semi-Automatic+Tapers&amp;schematic=columbia-semi-automatic-taper,/schematics?brand=columbia-taping-tools&category=Semi-Automatic+Tapers&schematic=columbia-semi-automatic-taper,false
 SP-S1-A,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S1-A,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 SP-S1-M,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S1-M,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1,false
 SP-S1X-A,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S1X-A,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 SP-S1X-M,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S1X-M,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s1x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x,false
 SP-S2-A,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S2-A,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 SP-S2-M,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S2-M,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2,false
 SP-S2X-A,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S2X-A,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 SP-S2X-M,Categories,Drywall Finishing Tools > Stilts,Stilts & Accessories > Stilts,false
+SP-S2X-M,Meta: _dtb_schematic_url,/schematics?brand=surpro&amp;category=Stilts&amp;schematic=surpro-s2x,/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x,false
 STAPER,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers,false
 STAPER,Meta: _dtb_category_key,automatic-tapers,taping,false
 STAPER,Meta: _dtb_display_category_key,,automatic_tapers,false
@@ -629,12 +792,15 @@ TAPER,Meta: _dtb_display_category_key,,automatic_tapers,false
 TBBF,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Box Fillers,false
 TBBF,Meta: _dtb_category_key,pumps,mudboxes,false
 TBBF,Meta: _dtb_display_category_key,,pumps,false
+TBBF,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-box-filler,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler,false
 TBGN,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Goosenecks,false
 TBGN,Meta: _dtb_category_key,pumps,mudboxes,false
 TBGN,Meta: _dtb_display_category_key,,pumps,false
+TBGN,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-gooseneck-adapter,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter,false
 TBMP,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps,false
 TBMP,Meta: _dtb_category_key,pumps,mudboxes,false
 TBMP,Meta: _dtb_display_category_key,,pumps,false
+TBMP,Meta: _dtb_schematic_url,/schematics?brand=columbia-taping-tools&amp;category=Pumps&amp;schematic=columbia-tall-boy-mud-pump,/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-tall-boy-mud-pump,false
 TCS,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Tool Cases,false
 TCS,Meta: _dtb_category_key,toolsets,accessories,false
 TCS,Meta: _dtb_display_category_key,,accessories,false
@@ -644,13 +810,22 @@ TT-COMPOUND-TUBE,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tool
 TT-CORNER-APPLICATOR,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 TT-COVE-APPLICATOR-HEAD,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
 TT-DIRECT-CORNER-FLUSHER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers,false
+TT-EASYCLEAN-FINISHING-BOX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-easyclean-finishing-box,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box,false
+TT-EASYFINISH-BOX-HANDLE,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-81xxtt,/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt,false
+TT-FLAT-BOX-HANDLE,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-80xxtt,/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt,false
+TT-MAXXBOX-HIGH-CAPACITY-FINISHING-BOX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-maxxbox-ehc,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc,false
 TT-MUDRUNNER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators,false
+TT-POWER-ASSIST-MAXXBOX-FINISHING-BOX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-power-assist-maxxbox,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox,false
+TT-QUICKBOX-QSX-FINISHING-BOX,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Finishing+Boxes&amp;schematic=tapetech-quickbox-qsx,/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx,false
 TT-SUPPORT-HANDLE,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
 TT-SUPPORT-HANDLE-ADAPTER,Categories,Drywall Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Taping Tool Accessories,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
 TTCFS,Categories,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets,false
 TTCFS-M,Categories,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets,false
 TTPFB,Categories,Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets,Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets,false
 TTSFS,Meta: _dtb_display_category_key,,toolsets,false
+TTSFS,Meta: _dtb_inherit_parent_image,1,0,false
 TTSFS-2,Meta: _dtb_display_category_key,,toolsets,false
+TTSFS-2,Meta: _dtb_inherit_parent_image,1,0,false
 XHTT,Categories,,Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles,false
 XHTT,Meta: _dtb_display_category_key,,handles,false
+XHTT,Meta: _dtb_schematic_url,/schematics?brand=tapetech&amp;category=Handles&amp;schematic=tapetech-xhtt,/schematics?brand=tapetech&category=Handles&schematic=tapetech-xhtt,false

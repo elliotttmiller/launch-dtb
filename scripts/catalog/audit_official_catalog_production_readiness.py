@@ -192,6 +192,8 @@ def backup_profile(catalog_path: Path) -> dict[str, object]:
         "bytes": stat.st_size,
         "sha256": backup_hash,
         "matches_current_catalog": backup_hash == file_sha256(catalog_path),
+        "role": "pre-mutation rollback snapshot",
+        "relationship_note": "A verified rollback snapshot is expected to differ from the catalog after a successful mutation.",
         "last_modified_utc": datetime.fromtimestamp(stat.st_mtime, timezone.utc).isoformat(),
     }
 
@@ -884,9 +886,11 @@ def report_markdown(
     lines = [
         "# DTB Official Catalog Production-Readiness Audit",
         "",
-        f"Generated: `{summary['generated_at']}`  ",
+        f"Generated: `{summary['generated_at']}`",
+        "",
         f"Catalog: `{summary['catalog']}`  ",
-        f"Catalog SHA-256 (working bytes): `{summary['format']['sha256_worktree']}`  ",
+        f"Catalog SHA-256 (working bytes): `{summary['format']['sha256_worktree']}`",
+        "",
         f"Catalog SHA-256 (normalized LF): `{summary['format']['sha256_normalized_lf']}`",
         "",
         "## Verdict",
@@ -929,7 +933,7 @@ def report_markdown(
         f"- Protected identifier changes: {previous.get('protected_field_changes')}",
         f"- Field changes: {json.dumps(previous.get('field_change_counts', {}), sort_keys=True)}",
         "",
-        "The prior catalog enhancement was a taxonomy-only consolidation: row count, schema, SKU population, and protected identifiers were preserved. Current taxonomy preview reports zero changes and zero unresolved rows.",
+        "The historical enrichment baseline was taxonomy-only. The current comparison additionally includes the bounded P0 schematic-URL, attribute-default, and image-inheritance corrections; row count, schema, SKU population, and protected identifiers remain preserved. Current taxonomy preview reports zero changes and zero unresolved rows.",
         "",
         "## Production evidence and ownership gaps",
         "",
@@ -937,8 +941,8 @@ def report_markdown(
         f"- Production media candidates: {media.get('valid_production_candidates', 'not run')} valid and {media.get('invalid_production_candidates', 'not run')} invalid by HTTP status/content type.",
         f"- Local media coverage: {summary['local_media_comparison']['catalog_unique_basenames']} of {summary['local_media_comparison']['catalog_unique_basenames']} catalog basenames present; {len(summary['local_media_comparison']['unused_local_basenames'])} local files unused.",
         f"- Physical data coverage: {summary['metrics']['weight_rows']} rows with weight; {summary['metrics']['complete_dimension_rows']} rows with all dimensions; shipping class is unconfirmed catalog-wide.",
-        f"- Veeqo identity comparison: {veeqo.get('shared_skus')} shared, {len(veeqo.get('catalog_only_skus', []))} catalog-only, {len(veeqo.get('veeqo_only_skus', []))} Veeqo-only; direct source-field differences: {json.dumps(veeqo.get('field_differences_by_type', {}), sort_keys=True)}.",
-        "- Veeqo rebuild preview passed structural checks and would change the projection; runtime inventory synchronization remains outside CSV-only proof.",
+        f"- Generated Veeqo bootstrap projection comparison: {veeqo.get('shared_skus')} shared, {len(veeqo.get('catalog_only_skus', []))} catalog-only, {len(veeqo.get('veeqo_only_skus', []))} projection-only; direct source-field differences: {json.dumps(veeqo.get('field_differences_by_type', {}), sort_keys=True)}.",
+        "- `veeqo_inventory.csv` is a generated bootstrap/import projection, not a live Veeqo export or synchronization authority. Do not import it over the already-configured live Veeqo catalog; validate bundle composition and stock through read-only live reconciliation.",
         f"- Compatibility research: {backlog['compatibility'].get('proposal_rows')} exact proposals across {backlog['compatibility'].get('unique_parts')} parts/{backlog['compatibility'].get('unique_schematics')} schematics; {backlog['compatibility'].get('unresolved_rows')} unresolved evidence rows remain.",
         f"- Content review: {backlog['accuracy_review'].get('rows')} accuracy findings across {backlog['accuracy_review'].get('unique_skus')} SKUs; {backlog['seo_pre_generation'].get('findings_by_workflow', {}).get('editorial_review')} editorial findings; no automatic copy application is approved.",
     ])
@@ -956,8 +960,8 @@ def report_markdown(
         "",
         "## Mutation-workflow safety",
         "",
-        "No catalog mutation is authorized through the generic apply runner until its backup and semantic-validation gaps are addressed. A retained sibling `dtb_official_catalog.csv.bak` must be created and verified immediately before any approved write.",
-        "The existing ignored sibling backup predates this audit and does not match the current catalog hash; this audit did not overwrite it because it made no catalog change.",
+        "The bounded P0 correction workflow created and hash-verified the required sibling `dtb_official_catalog.csv.bak` immediately before its write. The generic manifest apply runner remains unauthorized until its separate backup and semantic-validation gaps are addressed.",
+        "The sibling backup is the pre-P0 rollback snapshot and is therefore expected not to match the successfully mutated current catalog.",
     ])
     for item in findings:
         if item["domain"] == "workflow":

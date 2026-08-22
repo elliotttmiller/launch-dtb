@@ -1,0 +1,36 @@
+{
+  "approved_target_department": "Taping & Finishing Tools",
+  "dispositions": {
+    "deterministic_mapping": 118,
+    "inherited_from_parent": 311,
+    "inherited_parent_review": 2,
+    "outside_target_review": 1,
+    "preserved_separate_domain": 323
+  },
+  "manifest_rows": 755,
+  "requires_review_rows": 3,
+  "schema_version": 1,
+  "source_catalog": "products/launch/official/dtb_official_catalog.csv",
+  "source_mutated": false,
+  "source_rows": 755,
+  "source_sha256": "225cf5a219901095bca97e8e881f08be2c597e2ce3f979b7e07a40d8de82711c",
+  "unique_proposed_paths": [
+    "Replacement Parts",
+    "Stilts & Accessories > Stilts",
+    "Taping & Finishing Tools > Automatic Taping Tools > Angle Boxes & Corner Applicators",
+    "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers",
+    "Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers",
+    "Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers",
+    "Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes",
+    "Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers",
+    "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions",
+    "Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps",
+    "Taping & Finishing Tools > Automatic Taping Tools > Nail Spotters",
+    "Taping & Finishing Tools > Automatic Taping Tools > Tool Sets",
+    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators",
+    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes",
+    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers",
+    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers",
+    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets"
+  ]
+}

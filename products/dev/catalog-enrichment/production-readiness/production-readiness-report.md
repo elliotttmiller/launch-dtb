@@ -1,13 +1,15 @@
 # DTB Official Catalog Production-Readiness Audit
 
-Generated: `2026-08-22T08:21:10.102763+00:00`  
+Generated: `2026-08-22T09:29:10.289295+00:00`
+
 Catalog: `products/launch/official/dtb_official_catalog.csv`  
-Catalog SHA-256 (working bytes): `135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d`  
-Catalog SHA-256 (normalized LF): `667b3929e049f67a284f7db74d190407e28c4829212be7080dc7844360347758`
+Catalog SHA-256 (working bytes): `225cf5a219901095bca97e8e881f08be2c597e2ce3f979b7e07a40d8de82711c`
+
+Catalog SHA-256 (normalized LF): `3e902e31ec95037a1e95ecf99ae01d2c071fdfc1d4253a3c7354f575cf9f7a0f`
 
 ## Verdict
 
-**NOT READY FOR PRODUCTION IMPORT** — 1424 blocker finding rows across 755 product SKUs.
+**NOT READY FOR PRODUCTION IMPORT** — 1422 blocker finding rows across 755 product SKUs.
 
 The CSV is structurally valid, but it is not approved for production import until production URL and commerce-mode blockers are resolved and the approved result is revalidated.
 
@@ -18,9 +20,9 @@ The CSV is structurally valid, but it is not approved for production import unti
 - Structural validator: passed
 - Owner rows: 442
 - Variation rows: 313
-- Total consolidated findings: 6102
-- Blocker findings: 1424
-- Review findings: 4678
+- Total consolidated findings: 6098
+- Blocker findings: 1422
+- Review findings: 4676
 - Catalog file mutated by this audit: no
 - Existing sibling backup matches the audited catalog: false
 
@@ -54,11 +56,11 @@ The CSV is structurally valid, but it is not approved for production import unti
 - Baseline commit: `401abd8e7339a09093de24da03442912eaf20e60`
 - Catalog-change commit: `843491aef56adbbedf3a7510eef9f111fdc10e5f`
 - Added/removed SKUs: 0/0
-- Changed SKUs / field values: 377/655
+- Changed SKUs / field values: 399/830
 - Protected identifier changes: 0
-- Field changes: {"Categories": 367, "Meta: _dtb_category_key": 114, "Meta: _dtb_display_category_key": 174}
+- Field changes: {"Attribute 1 default": 2, "Categories": 367, "Meta: _dtb_category_key": 114, "Meta: _dtb_display_category_key": 174, "Meta: _dtb_inherit_parent_image": 2, "Meta: _dtb_schematic_url": 171}
 
-The prior catalog enhancement was a taxonomy-only consolidation: row count, schema, SKU population, and protected identifiers were preserved. Current taxonomy preview reports zero changes and zero unresolved rows.
+The historical enrichment baseline was taxonomy-only. The current comparison additionally includes the bounded P0 schematic-URL, attribute-default, and image-inheritance corrections; row count, schema, SKU population, and protected identifiers remain preserved. Current taxonomy preview reports zero changes and zero unresolved rows.
 
 ## Production evidence and ownership gaps
 
@@ -66,8 +68,8 @@ The prior catalog enhancement was a taxonomy-only consolidation: row count, sche
 - Production media candidates: 1006 valid and 10 invalid by HTTP status/content type.
 - Local media coverage: 1016 of 1016 catalog basenames present; 7 local files unused.
 - Physical data coverage: 353 rows with weight; 159 rows with all dimensions; shipping class is unconfirmed catalog-wide.
-- Veeqo identity comparison: 649 shared, 0 catalog-only, 0 Veeqo-only; direct source-field differences: {"price": 84}.
-- Veeqo rebuild preview passed structural checks and would change the projection; runtime inventory synchronization remains outside CSV-only proof.
+- Generated Veeqo bootstrap projection comparison: 649 shared, 0 catalog-only, 0 projection-only; direct source-field differences: {"price": 84}.
+- `veeqo_inventory.csv` is a generated bootstrap/import projection, not a live Veeqo export or synchronization authority. Do not import it over the already-configured live Veeqo catalog; validate bundle composition and stock through read-only live reconciliation.
 - Compatibility research: 422 exact proposals across 236 parts/27 schematics; 2764 unresolved evidence rows remain.
 - Content review: 1192 accuracy findings across 637 SKUs; 1962 editorial findings; no automatic copy application is approved.
 
@@ -76,16 +78,14 @@ The prior catalog enhancement was a taxonomy-only consolidation: row count, sche
 - `production_image_candidate_invalid` (18 SKUs): `4-755`, `42BH`, `4BH`, `5BH`, `6BH`, `8034TT`, `COL-180-GRIP-FLAT-BOX-HANDLE`, `COL-BOX-FILLER`, `CR`, `LV5-NAIL-SPOTTER`, `PT-10FB`, `PT-CT42`, `PT-FB`, `S2X-A-3852`, `SP-S2X-A`, `TBBF`, `TT-FLAT-BOX-HANDLE`, `TTCFS-M`
 - `nonpositive_gross_margin` (6 SKUs): `5.5FBB`, `BH1`, `COBCRE`, `CR1`, `CT120`, `CT77`
 - `include_target_absent` (12 SKUs): `4-600P`, `4-677P`, `TTBBS`, `TTBTS`, `TTCFS`, `TTCFS-M`, `TTPFB`, `TTPPS`, `TTPPS-EF`, `TTPSS`, `TTSFS`, `TTSFS-2`
-- `invalid_parent_attribute_default` (2 SKUs): `AH8-CLIP`, `AH9-CLIP`
 - `missing_image` (1 SKUs): `HH19`
 - `structured_part_number_identity_mismatch` (1 SKUs): `PT-CP`
-- `inherit_parent_image_on_nonvariation` (2 SKUs): `TTSFS`, `TTSFS-2`
 - `variation_gallery_equals_parent_without_inheritance` (29 SKUs): `4-777`, `42BH`, `4BH`, `5-777`, `5BH`, `6BH`, `BH9-3`, `BH9-4`, `BH9-42`, `BH9-5`, `BH9-6`, `CFB7-7`, `CFB7-8`, `CT29`, `CT3`, `CT4`, `CT71`, `D14-22`, `D18-30`, `D24-40`, `FFB11-10`, `FFB11-12`, `FFB11-8`, `FFB25-10`, `FFB25-12`, `FFB7`, `HFFB3`, `HFFB3A`, `HH17A`
 
 ## Mutation-workflow safety
 
-No catalog mutation is authorized through the generic apply runner until its backup and semantic-validation gaps are addressed. A retained sibling `dtb_official_catalog.csv.bak` must be created and verified immediately before any approved write.
-The existing ignored sibling backup predates this audit and does not match the current catalog hash; this audit did not overwrite it because it made no catalog change.
+The bounded P0 correction workflow created and hash-verified the required sibling `dtb_official_catalog.csv.bak` immediately before its write. The generic manifest apply runner remains unauthorized until its separate backup and semantic-validation gaps are addressed.
+The sibling backup is the pre-P0 rollback snapshot and is therefore expected not to match the successfully mutated current catalog.
 - `manifest_blank_erasure_risk`: The generic manifest applier can accept a blank proposed value and overwrite a populated catalog cell without field-specific evidence or an explicit clear-value operation.
 - `mutation_runner_backup_contract_gap`: The runner uses a disposable rollback directory and invokes child appliers with --no-backup; it does not retain the user-required sibling dtb_official_catalog.csv.bak.
 - `apply_taxonomy_validation_gap`: The non-taxonomy mutation path does not make the taxonomy validator a mandatory post-write gate.

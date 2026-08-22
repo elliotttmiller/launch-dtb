@@ -1,12 +1,14 @@
 {
   "backup_observation": {
-    "bytes": 2320787,
+    "bytes": 2314476,
     "created_by_audit": false,
     "exists": true,
-    "last_modified_utc": "2026-08-16T00:59:55.748761+00:00",
+    "last_modified_utc": "2026-08-22T07:25:33.961754+00:00",
     "matches_current_catalog": false,
     "path": "products/launch/official/dtb_official_catalog.csv.bak",
-    "sha256": "60178ec896ea30b32da10c4438fd5e50aab4fd7eef36a2ab3deea56dbfa218ad"
+    "relationship_note": "A verified rollback snapshot is expected to differ from the catalog after a successful mutation.",
+    "role": "pre-mutation rollback snapshot",
+    "sha256": "135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d"
   },
   "catalog": "products/launch/official/dtb_official_catalog.csv",
   "evidence_backlog": {
@@ -125,17 +127,17 @@
     }
   },
   "format": {
-    "bytes": 2314476,
+    "bytes": 2312922,
     "columns": 127,
     "crlf_line_endings": 756,
     "lf_only_line_endings": 0,
     "physical_lines": 756,
     "rows": 755,
-    "sha256_normalized_lf": "667b3929e049f67a284f7db74d190407e28c4829212be7080dc7844360347758",
-    "sha256_worktree": "135fe0ec8d4f53dca485b2af12b2949de950916576b0325e6021dfba10994b4d",
+    "sha256_normalized_lf": "3e902e31ec95037a1e95ecf99ae01d2c071fdfc1d4253a3c7354f575cf9f7a0f",
+    "sha256_worktree": "225cf5a219901095bca97e8e881f08be2c597e2ce3f979b7e07a40d8de82711c",
     "utf8_bom": true
   },
-  "generated_at": "2026-08-22T08:21:10.102763+00:00",
+  "generated_at": "2026-08-22T09:29:10.289295+00:00",
   "inputs": {
     "enrichment_dir": "products/dev/catalog-enrichment",
     "veeqo": "products/launch/official/veeqo_inventory.csv"
@@ -168,6 +170,7 @@
     "output": "products/dev/catalog-enrichment/production-readiness/media-url-validation.csv",
     "schema_version": 1,
     "source_mutated": false,
+    "stale": true,
     "status_counts": {
       "200": 1016
     },
@@ -214,30 +217,33 @@
     "baseline_rows": 755,
     "baseline_sha256": "bb45eef2dd65d267b1451eac3e799e4a2a5b28b343bb38973a6e41487be951d8",
     "catalog_commit": "843491aef56adbbedf3a7510eef9f111fdc10e5f",
-    "changed_field_values": 655,
-    "changed_skus": 377,
+    "changed_field_values": 830,
+    "changed_skus": 399,
     "current_columns": 127,
-    "current_head": "6c32fc8352fb96f56755fefd6cd13223d3177f7a",
+    "current_head": "fe075819874064d5a08a10bec47c8a843eb317c7",
     "current_rows": 755,
     "field_change_counts": {
+      "Attribute 1 default": 2,
       "Categories": 367,
       "Meta: _dtb_category_key": 114,
-      "Meta: _dtb_display_category_key": 174
+      "Meta: _dtb_display_category_key": 174,
+      "Meta: _dtb_inherit_parent_image": 2,
+      "Meta: _dtb_schematic_url": 171
     },
     "protected_field_changes": 0,
     "removed_skus": []
   },
   "readiness": {
     "advisory_findings": 0,
-    "blocker_findings": 1424,
+    "blocker_findings": 1422,
     "blocker_skus": 755,
     "by_brand": {
-      "Columbia Tools": 4627,
+      "Columbia Tools": 4625,
       "Dura-Stilts": 25,
       "LEVEL5": 362,
       "Platinum Drywall Tools": 297,
       "SurPro": 180,
-      "TapeTech": 604
+      "TapeTech": 602
     },
     "by_code": {
       "apply_taxonomy_validation_gap": 1,
@@ -259,8 +265,6 @@
       "duplicate_seo_description": 6,
       "generated_output_containment_gap": 1,
       "include_target_absent": 21,
-      "inherit_parent_image_on_nonvariation": 2,
-      "invalid_parent_attribute_default": 2,
       "inventory_projection_runtime_verification_required": 1,
       "manifest_blank_erasure_risk": 1,
       "manifest_semantic_validation_gap": 1,
@@ -294,24 +298,24 @@
       "content": 3583,
       "identity": 1,
       "integration": 25,
-      "media": 817,
-      "relationships": 23,
+      "media": 815,
+      "relationships": 21,
       "seo": 125,
       "shipping": 159,
       "workflow": 5
     },
     "by_gate": {
-      "blocker": 1424,
-      "review": 4678
+      "blocker": 1422,
+      "review": 4676
     },
     "by_severity": {
-      "critical": 1162,
-      "high": 453,
+      "critical": 1160,
+      "high": 451,
       "low": 1145,
       "medium": 3342
     },
-    "review_findings": 4678,
-    "total_findings": 6102,
+    "review_findings": 4676,
+    "total_findings": 6098,
     "verdict": "NOT READY FOR PRODUCTION IMPORT"
   },
   "schema_version": 1,
