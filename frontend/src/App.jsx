@@ -78,7 +78,7 @@ const Product = lazyWithReload(() => import('./pages/Product'));
 const ProductDetailPage = lazyWithReload(() => import('./pages/ProductDetailPage'));
 const CategoryLandingPage = lazyWithReload(() => import('./pages/CategoryLandingPage'));
 const Schematics = lazyWithReload(() => import('./pages/SchematicsPage'));
-const Repairs = lazyWithReload(() => import('./pages/Repairs'));
+const Repairs = lazyWithReload(() => import('./pages/RepairLanding'));
 const RepairStart = lazyWithReload(() => import('./pages/RepairStart'));
 const RepairPackages = lazyWithReload(() => import('./pages/RepairPackages'));
 const RepairTrack = lazyWithReload(() => import('./pages/RepairTrack'));
