@@ -35,6 +35,14 @@ Taping & Finishing Tools
 
 Replacement Parts, Brands, Stilts, product attributes, compatibility, schematics, and fixed toolset BOMs remain separate data dimensions or domains. They do not become children merely to fit this tool-shopping tree.
 
+### Universal cross-brand taxonomy rule
+
+- The taxonomy registry is universal for every brand. Stable taxon keys, parent relationships, customer labels, slugs, ordering, and publication policy cannot vary by brand.
+- Brand is an orthogonal attribute/facet and must never become a product-category parent, duplicate branch, or brand-specific category alias.
+- Product classification is based on the product's function and exact evidence, not its manufacturer. Equivalent product types from different brands map to the same taxon key.
+- A brand is not required to occupy every category. Genuine assortment gaps remain empty rather than being filled through inferred or inaccurate assignments.
+- Validation must emit a brand-by-taxon coverage matrix and reject any category path containing a brand label or any assignment referring to a taxon outside the universal registry.
+
 ## Identity invariants
 
 - Preserve every existing SKU and its case unless a separately approved protected-identity correction supplies authoritative evidence.

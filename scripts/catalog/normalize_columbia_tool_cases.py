@@ -38,6 +38,10 @@ def load(path: Path) -> tuple[list[str], list[dict[str, str]]]:
 
 def normalize(rows: list[dict[str, str]]) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
     by_sku = {row["SKU"]: row for row in rows}
+    if PARENT not in by_sku and CHILDREN.issubset(by_sku):
+        if all(by_sku[sku]["Type"] == "simple" and not by_sku[sku]["Parent"] for sku in CHILDREN):
+            return rows, []
+        raise ValueError("Columbia tool-case products exist in an unexpected post-migration state")
     if set(by_sku).isdisjoint({PARENT, *CHILDREN}):
         return rows, []
     if PARENT not in by_sku or not CHILDREN.issubset(by_sku):

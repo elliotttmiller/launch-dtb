@@ -12,10 +12,10 @@ from normalize_official_taxonomy import build_changes, parse_assignments
 
 
 def test_toolset_product_kind_is_deterministic_across_brands() -> None:
-    expected = expected_taxonomy(product_kind="toolset", display_category_key="toolsets")
+    expected = expected_taxonomy(product_kind="toolset", display_category_key="automatic_tool_sets")
     assert expected is not None
-    assert expected.category_key == "taping"
-    assert expected.display_category_key == "toolsets"
+    assert expected.category_key == "automatic_taping_tools"
+    assert expected.display_category_key == "automatic_tool_sets"
 
 
 def test_part_policy_is_identical_for_every_brand() -> None:
@@ -74,18 +74,18 @@ def test_normalizer_writes_complete_canonical_tuples_and_reports_unknown_paths()
             "SKU": "BROAD",
             "Type": "simple",
             "Brands": "Brand A",
-            "Categories": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
+            "Categories": "Taping & Finishing Tools > Automatic Taping Tools > Tool Sets",
             "Meta: _dtb_product_kind": "toolset",
             "Meta: _dtb_category_key": "toolsets",
-            "Meta: _dtb_display_category_key": "toolsets",
+            "Meta: _dtb_display_category_key": "automatic_tool_sets",
         },
         {
             "SKU": "DISPLAY-ONLY",
             "Type": "simple",
             "Brands": "Brand B",
-            "Categories": "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets",
+            "Categories": "Taping & Finishing Tools > Automatic Taping Tools > Tool Sets",
             "Meta: _dtb_product_kind": "toolset",
-            "Meta: _dtb_category_key": "taping",
+            "Meta: _dtb_category_key": "automatic_taping_tools",
             "Meta: _dtb_display_category_key": "",
         },
         {
@@ -100,8 +100,8 @@ def test_normalizer_writes_complete_canonical_tuples_and_reports_unknown_paths()
     ]
     changes, unresolved = build_changes(rows)
     assert [(change["sku"], change["field"], change["expected"]) for change in changes] == [
-        ("BROAD", "Meta: _dtb_category_key", "taping"),
-        ("DISPLAY-ONLY", "Meta: _dtb_display_category_key", "toolsets"),
+        ("BROAD", "Meta: _dtb_category_key", "automatic_taping_tools"),
+        ("DISPLAY-ONLY", "Meta: _dtb_display_category_key", "automatic_tool_sets"),
     ]
     assert [item["sku"] for item in unresolved] == ["AMBIGUOUS"]
 
@@ -109,7 +109,7 @@ def test_normalizer_writes_complete_canonical_tuples_and_reports_unknown_paths()
 def test_reviewed_assignment_requires_an_exact_owner_path() -> None:
     owner = {"SKU": "OWNER", "Type": "variable"}
     by_sku = {"OWNER": owner}
-    path = "Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles"
+    path = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions"
     assert parse_assignments([f"OWNER={path}"], by_sku) == {"OWNER": path}
 
 
@@ -124,6 +124,6 @@ def test_taxonomy_state_reports_raw_and_normalized_values() -> None:
     assert state["raw_display_category_key"] == "Tool Sets"
     assert state["category_key"] == "tool_sets"
     assert state["display_category_key"] == "tool_sets"
-    assert state["expected_category_key"] == "taping"
-    assert state["expected_display_category_key"] == "toolsets"
+    assert state["expected_category_key"] == "automatic_taping_tools"
+    assert state["expected_display_category_key"] == "automatic_tool_sets"
     assert "brand" not in state

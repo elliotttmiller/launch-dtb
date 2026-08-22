@@ -39,10 +39,30 @@ DIRECT_MAP = {
     "Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators": f"{SEMI} > Compound Applicators",
     "Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers": f"{SEMI} > Corner Flushers",
     "Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets": f"{SEMI} > Tool Sets",
+    "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases": f"{DEPARTMENT} > Tool Storage & Cases",
 }
+DIRECT_MAP.update({
+    f"{AUTO} > Automatic Tapers": f"{AUTO} > Automatic Tapers",
+    f"{AUTO} > Flat Boxes": f"{AUTO} > Flat Boxes",
+    f"{AUTO} > Angle Heads & Corner Finishers": f"{AUTO} > Angle Heads & Corner Finishers",
+    f"{AUTO} > Angle Boxes & Corner Applicators": f"{AUTO} > Angle Boxes & Corner Applicators",
+    f"{AUTO} > Corner Rollers": f"{AUTO} > Corner Rollers",
+    f"{AUTO} > Nail Spotters": f"{AUTO} > Nail Spotters",
+    f"{AUTO} > Loading Pumps": f"{AUTO} > Loading Pumps",
+    f"{AUTO} > Goosenecks & Box Fillers": f"{AUTO} > Goosenecks & Box Fillers",
+    f"{AUTO} > Handles & Extensions": f"{AUTO} > Handles & Extensions",
+    f"{AUTO} > Tool Sets": f"{AUTO} > Tool Sets",
+    f"{SEMI} > Semi-Automatic Tapers": f"{SEMI} > Semi-Automatic Tapers",
+    f"{SEMI} > Compound Tubes": f"{SEMI} > Compound Tubes",
+    f"{SEMI} > Compound Applicators": f"{SEMI} > Compound Applicators",
+    f"{SEMI} > Corner Flushers": f"{SEMI} > Corner Flushers",
+    f"{SEMI} > Tool Sets": f"{SEMI} > Tool Sets",
+    f"{DEPARTMENT} > Tool Storage & Cases": f"{DEPARTMENT} > Tool Storage & Cases",
+})
 
 SEPARATE_DOMAINS = {
     "Drywall Finishing Tools > Parts": "Replacement Parts",
+    "Replacement Parts": "Replacement Parts",
     "Stilts & Accessories > Stilts": "Stilts & Accessories > Stilts",
 }
 
@@ -70,8 +90,6 @@ def build_manifest(rows: list[dict[str, str]]) -> list[dict[str, str]]:
             owner_targets[sku] = (DIRECT_MAP[current], "deterministic_mapping", "approved target taxonomy + current functional leaf", "")
         elif current in SEPARATE_DOMAINS:
             owner_targets[sku] = (SEPARATE_DOMAINS[current], "preserved_separate_domain", "approved separation from tool-shopping taxonomy", "")
-        elif current.endswith(" > Tool Cases"):
-            owner_targets[sku] = ("", "outside_target_review", "approved target omits storage/cases", "Define separate accessories/storage domain; do not force into tool taxonomy.")
         else:
             owner_targets[sku] = ("", "unresolved_current_path", "no approved exact mapping", "Requires explicit taxonomy decision.")
 

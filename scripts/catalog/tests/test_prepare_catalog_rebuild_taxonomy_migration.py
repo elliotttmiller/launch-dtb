@@ -21,12 +21,12 @@ def test_direct_combined_label_mapping_and_parent_inheritance():
     assert result[1]["disposition"] == "inherited_from_parent"
 
 
-def test_cases_fail_to_review_instead_of_forced_mapping():
+def test_cases_map_to_separate_storage_category():
     rows = [{"Type": "simple", "SKU": "CASE", "Name": "Case", "Parent": "", "Categories": "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases"}]
     result = MODULE.build_manifest(rows)
-    assert result[0]["proposed_categories"] == ""
-    assert result[0]["requires_review"] == "1"
-    assert result[0]["disposition"] == "outside_target_review"
+    assert result[0]["proposed_categories"] == "Taping & Finishing Tools > Tool Storage & Cases"
+    assert result[0]["requires_review"] == "0"
+    assert result[0]["disposition"] == "deterministic_mapping"
 
 
 def test_parts_remain_outside_tool_shopping_tree():

@@ -232,6 +232,8 @@ def direct_findings(
         mode = clean(row.get("Meta: _dtb_commerce_mode"))
         slug = clean(row.get("Slug"))
         for field, allowed in ALLOWED_ENUMS.items():
+            if field not in row:
+                continue
             value = clean(row.get(field))
             if value not in allowed:
                 results.append(finding(

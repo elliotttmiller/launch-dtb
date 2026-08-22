@@ -207,27 +207,13 @@ function dtb_register_config_routes(): void {
 		'permission_callback' => '__return_true',
 	] );
 
-	// ── GET /dtb/v1/catalog — CSV proxy URL ───────────────────────────────────
-	register_rest_route( $ns, '/catalog', [
-		'methods'             => 'GET',
-		'callback'            => 'dtb_route_catalog',
-		'permission_callback' => '__return_true',
-	] );
-
-	// ── GET /dtb/v1/products-csv — stream the catalog CSV ────────────────────
-	register_rest_route( $ns, '/products-csv', [
-		'methods'             => 'GET',
-		'callback'            => 'dtb_route_products_csv',
-		'permission_callback' => '__return_true',
-	] );
-
-	// ── POST /dtb/v1/import-catalog — trigger WC CSV import ──────────────────
-	register_rest_route( $ns, '/import-catalog', [
-		'methods'             => 'POST',
-		'callback'            => 'dtb_route_import_catalog',
-		// Access control enforced inside the callback via hash_equals().
-		'permission_callback' => '__return_true',
-	] );
+	/*
+	 * Raw catalog export and remote catalog import are intentionally not
+	 * registered. The import CSV contains private commercial metadata and the
+	 * legacy mutation route used a replayable shared secret. A replacement must
+	 * be owned by dtb-catalog-platform and use an authenticated, hash-pinned
+	 * release operation before either capability can return.
+	 */
 
 	// ── POST /dtb/v1/create-app-password ─────────────────────────────────────
 	register_rest_route( $ns, '/create-app-password', [

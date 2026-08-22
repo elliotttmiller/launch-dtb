@@ -54,10 +54,10 @@ class TaxonomyExpectation:
     reason: str
 
 
-DRYWALL_ROOT = "Drywall Finishing Tools"
+DRYWALL_ROOT = "Taping & Finishing Tools"
 STILT_ROOT = "Stilts & Accessories"
 AUTOMATIC = "Automatic Taping Tools"
-SEMI_AUTOMATIC = "Semi-Automatic Tools"
+SEMI_AUTOMATIC = "Semi-Automatic Taping Tools"
 
 
 def _t(root: str, group: str, leaf: str, category: str, display: str) -> NavigationTaxon:
@@ -65,31 +65,25 @@ def _t(root: str, group: str, leaf: str, category: str, display: str) -> Navigat
 
 
 NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
-    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Tapers", "taping", "automatic_tapers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Boxes", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Box Fillers", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Applicators", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Flushers", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Tool Handles", "handles", "handles"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Extendable Handles", "handles", "handles"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "finishing", "finishing_boxes"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Box Handles", "handles", "handles"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "taping", "nail_spotters"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "mudboxes", "pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Tool Cases", "accessories", "accessories"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Taping Tool Sets", "taping", "toolsets"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Taping Tool Accessories", "accessories", "accessories"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Applicators", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "corner", "compound_tubes"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Corner Flushers", "corner", "corner_tools"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Taping Tool Sets", "taping", "toolsets"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "taping", "semi_automatic_tapers"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Taping Tool Accessories", "accessories", "accessories"),
-    _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Tapers", "automatic_taping_tools", "automatic_tapers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "automatic_taping_tools", "flat_boxes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads & Corner Finishers", "automatic_taping_tools", "automatic_angle_heads_corner_finishers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Boxes & Corner Applicators", "automatic_taping_tools", "automatic_angle_boxes_corner_applicators"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "automatic_taping_tools", "automatic_corner_rollers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "automatic_taping_tools", "automatic_nail_spotters"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "automatic_taping_tools", "automatic_loading_pumps"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks & Box Fillers", "automatic_taping_tools", "automatic_goosenecks_box_fillers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Continuous Flow Tools", "automatic_taping_tools", "automatic_continuous_flow_tools"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Handles & Extensions", "automatic_taping_tools", "automatic_handles_extensions"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Tool Sets", "automatic_taping_tools", "automatic_tool_sets"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "semi_automatic_taping_tools", "semi_automatic_tapers"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "semi_automatic_taping_tools", "semi_compound_tubes"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Applicators", "semi_automatic_taping_tools", "semi_compound_applicators"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Corner Flushers", "semi_automatic_taping_tools", "semi_corner_flushers"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Handles & Extensions", "semi_automatic_taping_tools", "semi_handles_extensions"),
+    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Tool Sets", "semi_automatic_taping_tools", "semi_tool_sets"),
+    _t(DRYWALL_ROOT, "Tool Storage & Cases", "", "accessories", "tool_storage_cases"),
+    _t("Replacement Parts", "", "", "parts", "parts"),
     _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
     _t(STILT_ROOT, "Accessories", "", "accessories", "accessories"),
     _t(STILT_ROOT, "Parts", "", "parts", "parts"),
@@ -107,12 +101,31 @@ for _taxon in NAVIGATION_TAXA:
     _leaf_key = normalize_key(_taxon.leaf or _taxon.group)
     BY_LEAF[_leaf_key] = (*BY_LEAF.get(_leaf_key, ()), _taxon)
 
-PATH_ALIASES = {
-    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes"),
-    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Fixed Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Tool Handles"),
-    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Cases"),
-    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets"),
-    normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Accessories & Adapters"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Taping Tool Accessories"),
+PATH_ALIASES: dict[str, str] = {
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Tapers"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Flat Boxes"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Finishing Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Flat Boxes"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Angle Heads"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Heads & Corner Finishers"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes & Corner Applicators"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes & Corner Applicators"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Rollers"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Nail Spotters"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Loading Pumps"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Goosenecks"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Goosenecks & Box Fillers"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Box Fillers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Goosenecks & Box Fillers"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
+    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Semi-Automatic Tapers"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Compound Tubes"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Compound Applicators"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Corner Flushers"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Tool Sets"),
+    normalize_key("Drywall Finishing Tools > Parts"): normalize_key("Replacement Parts"),
 }
 GROUP_ALIASES = {"semi_automatic_taping_tools": normalize_key(SEMI_AUTOMATIC)}
 LEAF_ALIASES = {
@@ -133,9 +146,9 @@ LEAF_ALIASES = {
 FAMILY_ONLY_KEYS = {"predator", "predator_family"}
 
 PRODUCT_KIND_DEFAULTS = {
-    "part": _t(DRYWALL_ROOT, "Parts", "", "parts", "parts"),
-    "toolset": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets")],
-    "kit": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Taping Tool Sets")],
+    "part": BY_PATH[normalize_key("Replacement Parts")],
+    "toolset": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets")],
+    "kit": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets")],
     "stilt": _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
 }
 
@@ -158,7 +171,7 @@ DISPLAY_TO_CATEGORY_KEY = {
 AMBIGUOUS_DISPLAY_KEYS = {"predator_family", "toolsets", "accessories"}
 
 
-def taxon_for_path(raw_path: object) -> NavigationTaxon | None:
+def taxons_for_path(raw_path: object) -> tuple[NavigationTaxon, ...]:
     candidates: list[NavigationTaxon] = []
     for parts in split_category_paths(raw_path):
         normalized_parts = [normalize_key(part) for part in parts]
@@ -179,7 +192,12 @@ def taxon_for_path(raw_path: object) -> NavigationTaxon | None:
         elif len(leaf_candidates) == 1:
             candidates.append(leaf_candidates[0])
     unique = {item.path: item for item in candidates}
-    return next(iter(unique.values())) if len(unique) == 1 else None
+    return tuple(unique.values())
+
+
+def taxon_for_path(raw_path: object) -> NavigationTaxon | None:
+    taxons = taxons_for_path(raw_path)
+    return taxons[0] if len(taxons) == 1 else None
 
 
 def navigation_for_row(row: dict[str, str], parent: dict[str, str] | None = None) -> NavigationTaxon | None:

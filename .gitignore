@@ -74,6 +74,8 @@ readme.html
 wp-config.php
 wp-config-local.php
 wp-config-*.php
+wp-config.php.*
+**/wp-config.php.*
 !wp/wp-config-sample.php
 !*/wp/wp-config-sample.php
 

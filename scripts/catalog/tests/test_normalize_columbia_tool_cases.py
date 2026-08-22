@@ -34,3 +34,12 @@ def test_idempotent_when_family_is_already_absent():
     result, changes = MODULE.normalize(rows)
     assert result == rows
     assert changes == []
+
+
+def test_idempotent_after_children_are_simple_and_parent_removed():
+    rows = [row("TCS", "simple"), row("RC", "simple")]
+    for item in rows:
+        item["Parent"] = ""
+    result, changes = MODULE.normalize(rows)
+    assert result == rows
+    assert changes == []

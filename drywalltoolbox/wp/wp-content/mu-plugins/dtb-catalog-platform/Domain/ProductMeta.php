@@ -41,7 +41,7 @@ final class DTB_ProductMeta {
 
 	// ── Classification keys ────────────────────────────────────────────────────
 
-	/** Product kind: tool | part | accessory | service | kit. */
+	/** Product kind: tool | part | accessory | toolset | stilt. */
 	const PRODUCT_KIND = '_dtb_product_kind';
 
 	/** Tool family key (flat_box | automatic_taper | angle_head | pump | handle | …). */

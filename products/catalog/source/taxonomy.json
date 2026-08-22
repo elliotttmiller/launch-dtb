@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "root_taxa": [
+    "taping_finishing_tools",
+    "replacement_parts",
+    "stilts_accessories"
+  ],
+  "taxa": [
+    {"key": "taping_finishing_tools", "parent_key": null, "label": "Taping & Finishing Tools", "slug": "taping-finishing-tools", "sort": 100, "publish_when_empty": false},
+    {"key": "automatic_taping_tools", "parent_key": "taping_finishing_tools", "label": "Automatic Taping Tools", "slug": "automatic-taping-tools", "sort": 110, "publish_when_empty": false},
+    {"key": "automatic_tapers", "parent_key": "automatic_taping_tools", "label": "Automatic Tapers", "slug": "automatic-tapers", "sort": 111, "publish_when_empty": false},
+    {"key": "flat_boxes", "parent_key": "automatic_taping_tools", "label": "Flat Boxes", "slug": "flat-boxes", "sort": 112, "publish_when_empty": false},
+    {"key": "automatic_angle_heads_corner_finishers", "parent_key": "automatic_taping_tools", "label": "Angle Heads & Corner Finishers", "slug": "angle-heads-corner-finishers", "sort": 113, "publish_when_empty": false},
+    {"key": "automatic_angle_boxes_corner_applicators", "parent_key": "automatic_taping_tools", "label": "Angle Boxes & Corner Applicators", "slug": "angle-boxes-corner-applicators", "sort": 114, "publish_when_empty": false},
+    {"key": "automatic_corner_rollers", "parent_key": "automatic_taping_tools", "label": "Corner Rollers", "slug": "corner-rollers", "sort": 115, "publish_when_empty": false},
+    {"key": "automatic_nail_spotters", "parent_key": "automatic_taping_tools", "label": "Nail Spotters", "slug": "nail-spotters", "sort": 116, "publish_when_empty": false},
+    {"key": "automatic_loading_pumps", "parent_key": "automatic_taping_tools", "label": "Loading Pumps", "slug": "loading-pumps", "sort": 117, "publish_when_empty": false},
+    {"key": "automatic_goosenecks_box_fillers", "parent_key": "automatic_taping_tools", "label": "Goosenecks & Box Fillers", "slug": "goosenecks-box-fillers", "sort": 118, "publish_when_empty": false},
+    {"key": "automatic_continuous_flow_tools", "parent_key": "automatic_taping_tools", "label": "Continuous Flow Tools", "slug": "continuous-flow-tools", "sort": 119, "publish_when_empty": false},
+    {"key": "automatic_handles_extensions", "parent_key": "automatic_taping_tools", "label": "Handles & Extensions", "slug": "automatic-handles-extensions", "sort": 120, "publish_when_empty": false},
+    {"key": "automatic_tool_sets", "parent_key": "automatic_taping_tools", "label": "Tool Sets", "slug": "automatic-tool-sets", "sort": 121, "publish_when_empty": false},
+    {"key": "semi_automatic_taping_tools", "parent_key": "taping_finishing_tools", "label": "Semi-Automatic Taping Tools", "slug": "semi-automatic-taping-tools", "sort": 130, "publish_when_empty": false},
+    {"key": "semi_automatic_tapers", "parent_key": "semi_automatic_taping_tools", "label": "Semi-Automatic Tapers", "slug": "semi-automatic-tapers", "sort": 131, "publish_when_empty": false},
+    {"key": "semi_compound_tubes", "parent_key": "semi_automatic_taping_tools", "label": "Compound Tubes", "slug": "compound-tubes", "sort": 132, "publish_when_empty": false},
+    {"key": "semi_compound_applicators", "parent_key": "semi_automatic_taping_tools", "label": "Compound Applicators", "slug": "compound-applicators", "sort": 133, "publish_when_empty": false},
+    {"key": "semi_corner_flushers", "parent_key": "semi_automatic_taping_tools", "label": "Corner Flushers", "slug": "corner-flushers", "sort": 134, "publish_when_empty": false},
+    {"key": "semi_handles_extensions", "parent_key": "semi_automatic_taping_tools", "label": "Handles & Extensions", "slug": "semi-automatic-handles-extensions", "sort": 135, "publish_when_empty": false},
+    {"key": "semi_tool_sets", "parent_key": "semi_automatic_taping_tools", "label": "Tool Sets", "slug": "semi-automatic-tool-sets", "sort": 136, "publish_when_empty": false},
+    {"key": "tool_storage_cases", "parent_key": "taping_finishing_tools", "label": "Tool Storage & Cases", "slug": "tool-storage-cases", "sort": 140, "publish_when_empty": false},
+    {"key": "replacement_parts", "parent_key": null, "label": "Replacement Parts", "slug": "replacement-parts", "sort": 200, "publish_when_empty": false},
+    {"key": "stilts_accessories", "parent_key": null, "label": "Stilts & Accessories", "slug": "stilts-accessories", "sort": 300, "publish_when_empty": false},
+    {"key": "stilts", "parent_key": "stilts_accessories", "label": "Stilts", "slug": "stilts", "sort": 310, "publish_when_empty": false}
+  ]
+}
