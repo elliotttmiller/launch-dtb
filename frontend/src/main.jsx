@@ -16,7 +16,6 @@ import './styles/tool-selector.css';
 import './styles/technical-specifications.css';
 import './styles/product-detail-modern.css';
 import './styles/product-detail-description.css';
-import './styles/product-detail-production.css';
 import './styles/product-variation-selector-overlay.css';
 import './styles/reviews.css';
 import './styles/hero-section.css';
@@ -42,6 +41,7 @@ import './styles/loading-transitions.css';
 import './styles/cart-page.css';
 import './styles/global-typography.css';
 import './styles/product-detail-typography.css';
+import './styles/product-detail-production.css';
 import './components/catalog/products-selector-overrides.css';
 
 /* Final and exclusive cross-route responsive authority. */
