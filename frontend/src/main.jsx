@@ -16,6 +16,7 @@ import './styles/tool-selector.css';
 import './styles/technical-specifications.css';
 import './styles/product-detail-modern.css';
 import './styles/product-detail-description.css';
+import './styles/product-detail-production.css';
 import './styles/product-variation-selector-overlay.css';
 import './styles/reviews.css';
 import './styles/hero-section.css';
