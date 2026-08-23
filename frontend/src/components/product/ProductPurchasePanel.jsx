@@ -17,6 +17,8 @@ export default function ProductPurchasePanel({
   needsVariation,
   hasCompleteSelection,
   addToCartState = 'idle',
+  setSummary = null,
+  onViewIncludes,
 }) {
   const handleInputChange = (e) => {
     const val = parseInt(e.target.value, 10);
@@ -38,12 +40,37 @@ export default function ProductPurchasePanel({
     : needsVariation && !hasCompleteSelection
       ? 'Select all required product options before continuing to secure checkout.'
       : '';
+  const includedItemCount = Number.isInteger(setSummary?.itemCount) && setSummary.itemCount > 0
+    ? setSummary.itemCount
+    : 0;
+  const hasSetSummary = Boolean(setSummary && typeof onViewIncludes === 'function');
 
   return (
     <div
       className="product-detail-purchase-panel dtb-pdp-purchase-panel"
       aria-busy={purchaseBusy}
     >
+      {hasSetSummary ? (
+        <div className="dtb-pdp-set-summary">
+          <div className="dtb-pdp-set-summary__copy">
+            <strong>Complete Professional Set</strong>
+            {includedItemCount > 0 ? (
+              <span>
+                {includedItemCount} included {includedItemCount === 1 ? 'item' : 'items'}
+              </span>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className="dtb-pdp-set-summary__action"
+            onClick={onViewIncludes}
+          >
+            View what&apos;s included
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      ) : null}
+
       <span className="dtb-pdp-purchase-panel__quantity-label">Quantity</span>
       <div className="dtb-pdp-purchase-row">
         <div className="dtb-pdp-qty-root" role="group" aria-label="Quantity">
