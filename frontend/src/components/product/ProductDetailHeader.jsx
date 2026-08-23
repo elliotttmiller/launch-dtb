@@ -17,6 +17,7 @@ export default function ProductDetailHeader({
   displayPrice,
   pricePrefix,
   compareAt,
+  rawPrice,
   onReviewsClick,
   money,
   reviewsClassName = '',
@@ -25,30 +26,18 @@ export default function ProductDetailHeader({
   const reviewLabel = 'View reviews, 0 out of 5 stars, no reviews yet';
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
+  const compareAtValue = Number.parseFloat(compareAt);
+  const rawPriceValue = Number.parseFloat(rawPrice);
+  const showCompareAt = Number.isFinite(compareAtValue)
+    && compareAtValue > 0
+    && Number.isFinite(rawPriceValue)
+    && compareAtValue > rawPriceValue;
 
-  const mobileReviewsButton = (
+  const reviewsButton = (className = '') => (
     <button
       type="button"
       onClick={onReviewsClick}
-      className="dtb-pdp-header__reviews dtb-pdp-header__reviews--mobile"
-      aria-label={reviewLabel}
-    >
-      <span className="dtb-pdp-header__reviews-stars" role="img" aria-label="0 out of 5 stars">
-        {[...Array(5)].map((_, i) => (
-          <svg key={i} className="dtb-pdp-header__review-star" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-          </svg>
-        ))}
-      </span>
-      <span className="dtb-pdp-header__reviews-label">No reviews yet</span>
-    </button>
-  );
-
-  const desktopReviewsButton = (
-    <button
-      type="button"
-      onClick={onReviewsClick}
-      className={`dtb-pdp-header__reviews ${reviewsClassName}`.trim()}
+      className={`dtb-pdp-header__reviews ${className}`.trim()}
       aria-label={reviewLabel}
     >
       <span className="dtb-pdp-header__reviews-stars" role="img" aria-label="0 out of 5 stars">
@@ -69,10 +58,14 @@ export default function ProductDetailHeader({
           <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
           {isOutOfStock ? 'Out of stock' : 'In stock'}
         </span>
-        {mobileReviewsButton}
+        {reviewsButton('dtb-pdp-header__reviews--mobile')}
       </div>
 
-      <h2 className="dtb-pdp-header__title">
+      {brandLabel ? (
+        <div className="dtb-pdp-header__brand-eyebrow">{brandLabel}</div>
+      ) : null}
+
+      <h1 className="dtb-pdp-header__title">
         {productUrl ? (
           <Link
             to={productUrl}
@@ -82,31 +75,14 @@ export default function ProductDetailHeader({
             {title}
           </Link>
         ) : title}
-      </h2>
+      </h1>
 
-      <div className="dtb-pdp-header__desktop-reviews">
-        {desktopReviewsButton}
-      </div>
-
-      <div className="dtb-pdp-header__meta">
-        <span className={`dtb-pdp-header__meta-stock dtb-pdp-header__meta-stock--desktop${isOutOfStock ? ' is-out' : ''}`}>
-          <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
-          {isOutOfStock ? 'Out of stock' : 'In stock'}
-        </span>
-        {brandLabel ? (
-          <span className="dtb-pdp-header__meta-brand">{brandLabel}</span>
-        ) : null}
+      <div className="dtb-pdp-header__identity-row">
+        <div className="dtb-pdp-header__desktop-reviews">
+          {reviewsButton(reviewsClassName)}
+        </div>
         {effectiveSku ? (
-          <span className="dtb-pdp-header__meta-item">
-            <span className="dtb-pdp-header__meta-label">SKU</span>
-            <span className="dtb-pdp-header__meta-value">{effectiveSku}</span>
-          </span>
-        ) : null}
-        {product.upc ? (
-          <span className="dtb-pdp-header__meta-item">
-            <span className="dtb-pdp-header__meta-label">Barcode</span>
-            <span className="dtb-pdp-header__meta-value">{product.upc}</span>
-          </span>
+          <span className="dtb-pdp-header__identity-sku">SKU: {effectiveSku}</span>
         ) : null}
       </div>
 
@@ -115,13 +91,30 @@ export default function ProductDetailHeader({
           <span className="dtb-pdp-header__price">
             {pricePrefix}{displayPrice}
           </span>
-          {compareAt && parseFloat(compareAt) > 0 ? (
+          {showCompareAt ? (
             <span className="dtb-pdp-header__compare-at">
-              ${money(compareAt)}
+              ${money(compareAtValue)}
             </span>
           ) : null}
         </div>
       </div>
+
+      <div className="dtb-pdp-header__availability-row">
+        <span className={`dtb-pdp-header__meta-stock dtb-pdp-header__meta-stock--desktop${isOutOfStock ? ' is-out' : ''}`}>
+          <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
+          {isOutOfStock ? 'Out of stock' : 'In Stock'}
+        </span>
+        {!isOutOfStock ? <span className="dtb-pdp-header__fulfillment">Ready for fulfillment</span> : null}
+      </div>
+
+      {product.upc ? (
+        <div className="dtb-pdp-header__meta dtb-pdp-header__meta--secondary">
+          <span className="dtb-pdp-header__meta-item">
+            <span className="dtb-pdp-header__meta-label">Barcode</span>
+            <span className="dtb-pdp-header__meta-value">{product.upc}</span>
+          </span>
+        </div>
+      ) : null}
 
       <p className="dtb-pdp-shipping-note">
         <Link to="/shipping-policy" className="dtb-pdp-shipping-note__link">
