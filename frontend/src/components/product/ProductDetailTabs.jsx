@@ -1,17 +1,5 @@
 import { Link } from 'react-router-dom';
 
-function getSpecsFromNode(node) {
-  if (!node?.props) return [];
-  if (Array.isArray(node.props.specs)) return node.props.specs;
-  const child = node.props.children;
-  if (child?.props && Array.isArray(child.props.specs)) return child.props.specs;
-  return [];
-}
-
-function isIncludesLabel(label) {
-  return /^(set\s+|kit\s+)?includes?$/i.test(String(label || '').trim());
-}
-
 function ShippingReturnsPanel() {
   return (
     <div className="dtb-pdp-policy-panel">
@@ -29,9 +17,14 @@ function ShippingReturnsPanel() {
   );
 }
 
-export default function ProductDetailTabs({ activeTab, setActiveTab, descriptionNode, specsNode, reviewsNode }) {
-  const specs = getSpecsFromNode(specsNode);
-  const hasIncludes = specs.some((spec) => isIncludesLabel(spec?.label));
+export default function ProductDetailTabs({
+  activeTab,
+  setActiveTab,
+  descriptionNode,
+  specsNode,
+  reviewsNode,
+  hasIncludes = false,
+}) {
   const tabs = [
     { key: 'description', label: 'Overview' },
     ...(hasIncludes ? [{ key: 'includes', label: "What's Included" }] : []),
