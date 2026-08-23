@@ -1,4 +1,5 @@
-import { LockKeyhole, Minus, Package, Plus, RotateCcw, Truck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Minus, Plus } from 'lucide-react';
 import ProductBuyNow from './ProductBuyNow.jsx';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
 
@@ -43,6 +44,7 @@ export default function ProductPurchasePanel({
       className="product-detail-purchase-panel dtb-pdp-purchase-panel"
       aria-busy={purchaseBusy}
     >
+      <span className="dtb-pdp-purchase-panel__quantity-label">Quantity</span>
       <div className="dtb-pdp-purchase-row">
         <div className="dtb-pdp-qty-root" role="group" aria-label="Quantity">
           <button
@@ -95,15 +97,18 @@ export default function ProductPurchasePanel({
         disabledReason={buyNowDisabledReason}
       />
 
-      <div className="dtb-pdp-trust-row" aria-label="Purchase assurances">
-        <div><LockKeyhole aria-hidden="true" /><span><strong>Secure Checkout</strong></span></div>
-        <div><Truck aria-hidden="true" /><span><strong>Fast Shipping</strong></span></div>
+      <div className="dtb-pdp-assurance-row" aria-label="Purchase information">
         <div>
-          <span className="dtb-pdp-trust-row__returns-icon" aria-hidden="true">
-            <RotateCcw className="dtb-pdp-trust-row__returns-ring" />
-            <Package className="dtb-pdp-trust-row__returns-package" />
-          </span>
-          <span><strong>Easy Returns</strong></span>
+          <strong>Secure Checkout</strong>
+          <span>Payments processed securely</span>
+        </div>
+        <div>
+          <strong>Shipping</strong>
+          <span>Calculated at checkout</span>
+        </div>
+        <div>
+          <strong>Returns</strong>
+          <span><Link to="/return-policy">View return policy</Link></span>
         </div>
       </div>
     </div>
