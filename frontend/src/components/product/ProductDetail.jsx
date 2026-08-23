@@ -122,7 +122,7 @@ function splitDescriptionSections(text) {
 }
 
 function isIncludesLabel(label) {
-  return /^(set\s+)?includes?$/i.test(String(label || '').trim());
+  return /^(?:set\s+|kit\s+)?includes?$/i.test(String(label || '').trim());
 }
 
 function looksLikeSetContentsParagraph(value) {
@@ -154,22 +154,17 @@ function stripSetIncludesFromDescription(content) {
   if (!content || typeof content !== 'string') return content;
 
   const cleanedHtml = content
-    // Remove a complete Set/Kit Includes section when it is stored in the
-    // product description; structured specs own this content in the PDP.
     .replace(
       /<h[1-6][^>]*>\s*(?:set|kit)\s+includes?\s*:?\s*<\/h[1-6]>\s*<(?:ul|ol)[^>]*>\s*(?:<li[^>]*>[\s\S]*?<\/li>\s*)+<\/(?:ul|ol)>\s*/gi,
       ''
     )
-    // Remove heading rows like "Set Includes" / "Kit Includes" (with optional bullet + colon).
     .replace(
       /<(?:p|div|li|strong|b|h[1-6])[^>]*>\s*(?:<[^>]+>\s*)*(?:&bull;|&#8226;|•)?\s*(?:set|kit)\s+includes?\s*:?\s*(?:<\/[^>]+>\s*)*<\/(?:p|div|li|strong|b|h[1-6])>\s*/gi,
       ''
     )
-    // Remove an immediate includes list block if present.
     .replace(/<(?:ul|ol)[^>]*>\s*(?:<li[^>]*>[\s\S]*?<\/li>\s*)+<\/(?:ul|ol)>\s*/gi, (listBlock) => {
       return /(?:set|kit)\s+includes?/i.test(listBlock) ? '' : listBlock;
     })
-    // Remove dense SKU/item list paragraphs that duplicate Set Includes content.
     .replace(/<p[^>]*>[\s\S]*?<\/p>/gi, (paragraphBlock) => {
       return looksLikeSetContentsParagraph(paragraphBlock) ? '' : paragraphBlock;
     });
@@ -193,7 +188,6 @@ function stripSetIncludesFromDescription(content) {
       .replace(/[ \t]+/g, ' ')
       .trim();
     if (!plain) return true;
-    // Typical includes item formats: "1x ...", "07TT ...", "SKU: ...", bullets, etc.
     return (
       /^(?:[-*•]\s*)?(?:\d+\s*x\s+)?[A-Z0-9][A-Z0-9.\- ]{1,20}(?:\s+SKU\b|\s+[A-Za-z].*)?$/i.test(plain)
       || /^sku\s*:/i.test(plain)
@@ -436,9 +430,6 @@ function mergeProductImages(...sets) {
 }
 
 function getEffectiveVariationImages(parentProduct, selectedVariation) {
-  // Prefer explicit SKU-resolved gallery from the backend (variationGalleryImages
-  // is set by VariationReadModelService.enrich_variation_gallery when the catalog
-  // image manifest knows about this variation's image set).
   const explicitGallery = Array.isArray(selectedVariation?.variationGalleryImages)
     ? selectedVariation.variationGalleryImages
     : Array.isArray(selectedVariation?.media?.variationImages)
@@ -449,19 +440,13 @@ function getEffectiveVariationImages(parentProduct, selectedVariation) {
     return mergeProductImages(explicitGallery);
   }
 
-  // Collect whatever WooCommerce has on the variation object itself.
   const selectedImages = mergeProductImages(
     Array.isArray(selectedVariation?.images) ? selectedVariation.images : [],
     selectedVariation?.image ? [selectedVariation.image] : []
   );
 
-  // If the variation has its own images (even just 1), use only those — do NOT
-  // merge the whole parent gallery in. The "1/15" bug happened because the old
-  // threshold (> 1) caused token-based matching against all 15 parent images for
-  // any variation that only had a single WooCommerce-set image.
   if (selectedImages.length > 0) return selectedImages;
 
-  // Variation has zero images — fall back to full parent gallery.
   return mergeProductImages(
     Array.isArray(parentProduct?.media?.images) ? parentProduct.media.images : [],
     Array.isArray(parentProduct?.images) ? parentProduct.images : [],
@@ -632,17 +617,12 @@ export default function ProductDetail({
     const applyVariations = (vars) => {
       if (!mounted || !Array.isArray(vars) || vars.length === 0) return false;
       setVariations(vars);
-      
-      // Try to preserve the current selection if it exists and is valid
+
       if (Object.keys(currentInitialAttrs || {}).length > 0) {
-        // Validate that the initial selection matches a variation
-        // Match is determined by comparing normalized attribute keys and values (see variationSelection.js)
         const matchedVariation = findMatchingVariation(vars, currentInitialAttrs);
         if (matchedVariation) {
-          // Valid selection - use it
           setSelectedAttrs(currentInitialAttrs);
         } else if (autoSelectDefaultVariation) {
-          // Selection doesn't match - fall back to default/first in stock
           const firstInStock = vars.find((v) => v.stock_status !== 'outofstock') || vars[0];
           if (firstInStock) {
             setSelectedAttrs(getVariationSelectionMap(firstInStock));
@@ -650,11 +630,9 @@ export default function ProductDetail({
             setSelectedAttrs({});
           }
         } else {
-          // No auto-select, but preserve the attrs even if they don't match (user might be building selection)
           setSelectedAttrs(currentInitialAttrs);
         }
       } else if (autoSelectDefaultVariation) {
-        // No initial selection - auto-select first available
         const firstInStock = vars.find((v) => v.stock_status !== 'outofstock') || vars[0];
         if (firstInStock) {
           setSelectedAttrs(getVariationSelectionMap(firstInStock));
@@ -828,8 +806,6 @@ export default function ProductDetail({
   const partsUrl = schematicLink?.url || null;
   const brandLabel = getBrandLabel(product, effectiveProduct);
 
-  // Build the "browse all compatible parts" URL — prefer the specific schematic link,
-  // fall back to the brand's parts page, then to the generic /parts landing.
   const canonicalBrandForParts = BRAND_ALIASES[brandLabel] || brandLabel;
   const brandSlugForParts = BRAND_TO_SLUG[canonicalBrandForParts] || '';
   const browsePartsUrl = partsUrl ||
@@ -841,19 +817,15 @@ export default function ProductDetail({
     ? `/products/${product.slug}${selectedVariation?.id ? `/variations/${encodeURIComponent(selectedVariation.id)}` : ''}`
     : '';
   const needsVariation = product.is_variable && variationAttributes.length > 0;
-  
-  // Check if all required variation attributes have been selected
-  // Allows numeric values like 0, booleans like false, but rejects null/undefined and empty strings
+
   const hasCompleteSelection = !needsVariation || variationAttributes.every((attr) => {
     const value = selectedAttrs?.[attr.name]
       ?? Object.entries(selectedAttrs || {}).find(
         ([name]) => normalizeAttributeKey(name) === normalizeAttributeKey(attr.name)
       )?.[1];
-    // Check for null/undefined and empty strings, but allow 0, false, etc.
     return value != null && (typeof value !== 'string' || value.trim() !== '');
   });
-  
-  // Only allow add to cart if: not out of stock AND either not variable OR has valid matching variation
+
   const canAddToCart = !isOutOfStock && (!needsVariation || Boolean(selectedVariation && hasCompleteSelection));
 
   const handleAddToCart = async () => {
@@ -895,9 +867,6 @@ export default function ProductDetail({
       setBuyNowState('pending');
       await addToCart(productToAdd, quantity);
       setBuyNowState('confirmed');
-      // Matches the checkmark draw + pop animation in product-buy-now.css
-      // (draw finishes at 440ms, pop finishes at 700ms) so the redirect
-      // never clips it.
       buyNowRedirectTimerRef.current = window.setTimeout(() => {
         navigateDocument(getWooCheckoutUrl(), { transition: 'checkout' });
       }, 720);
@@ -909,6 +878,7 @@ export default function ProductDetail({
       );
     }
   };
+
   const clearAddToCartError = () => {
     if (addToCartError) setAddToCartError('');
   };
@@ -930,7 +900,15 @@ export default function ProductDetail({
         },
       ]
     : baseProductSpecifications;
-  const hasIncludesSpec = productSpecifications.some((spec) => isIncludesLabel(spec?.label));
+  const includesSpec = productSpecifications.find((spec) => isIncludesLabel(spec?.label)) || null;
+  const hasIncludesSpec = Boolean(includesSpec);
+  const includesItems = Array.isArray(includesSpec?.items) ? includesSpec.items : [];
+  const setSummary = hasIncludesSpec
+    ? {
+        itemCount: includesItems.length,
+        items: includesItems,
+      }
+    : null;
   const rawDescriptionBase = stripSpecsFromHtml(
     effectiveProduct.description_full || effectiveProduct.description || effectiveProduct.short_description || ''
   );
@@ -947,6 +925,18 @@ export default function ProductDetail({
       );
 
   const descriptionNode = descriptionContent;
+
+  const handleViewIncludes = () => {
+    if (!hasIncludesSpec || detailTabs.hidden) return;
+    setActiveTab('includes');
+
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      const sections = document.querySelector('.dtb-pdp-sections');
+      sections?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('product-tab-includes')?.focus({ preventScroll: true });
+    });
+  };
 
   return (
     <div className={`dtb-pdp${onClose ? ' dtb-pdp--modal' : ''} w-full max-w-6xl mx-auto flex flex-col relative`}>
@@ -1035,6 +1025,8 @@ export default function ProductDetail({
                   isWishlisted={isWishlisted}
                   onToggleWishlist={() => setIsWishlisted((prev) => !prev)}
                   partsUrl={partsUrl}
+                  setSummary={!detailTabs.hidden ? setSummary : null}
+                  onViewIncludes={handleViewIncludes}
                   reviewNode={<EmptyReviewsButton onClick={() => setActiveTab('reviews')} className="dtb-pdp-header__reviews--mobile-inline" />}
                 />
 
@@ -1074,6 +1066,7 @@ export default function ProductDetail({
                 <ProductSpecTable specs={productSpecifications} onItemClick={onClose} />
               </div>
             )}
+            hasIncludes={hasIncludesSpec}
             compatibilityNode={(
               <div className="dtb-pdp-compatibility">
                 <p>Confirm fit using this product&apos;s specifications and available options.</p>
