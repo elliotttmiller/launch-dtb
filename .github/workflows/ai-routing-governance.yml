@@ -1,0 +1,38 @@
+name: AI Routing Governance
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - '.claude/**'
+      - '.codex/**'
+      - '.github/copilot-instructions.md'
+      - '.github/workflows/ai-routing-governance.yml'
+      - 'memory-bank/**'
+      - 'scripts/ai/**'
+      - 'docs/work/**'
+  push:
+    branches: [main]
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - '.claude/**'
+      - '.codex/**'
+      - '.github/copilot-instructions.md'
+      - 'memory-bank/**'
+      - 'scripts/ai/**'
+      - 'docs/work/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ai-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate AI context and registry
+        run: node scripts/ai/validate-context.mjs
+      - name: Test deterministic routing
+        run: node scripts/ai/test-routing.mjs
