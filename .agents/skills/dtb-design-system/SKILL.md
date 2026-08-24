@@ -1,13 +1,11 @@
 ---
 name: dtb-design-system
-description: DTB storefront design-system and responsive-UX guidance. Use for layout, design tokens, typography, spacing, accessibility, loading/error/empty states, motion, responsive behavior, or UI consistency work in frontend/.
+description: DTB storefront design-system, token, typography, motion, accessibility and visual-consistency guidance grounded in active source.
 ---
+# DTB Design System
 
-# DTB Design System bridge
+Audit against the real DTB system before proposing change. Inspect active tokens, typography, shared layout primitives and feature styles. Reinforce the system rather than inventing a second palette, type system, component library or breakpoint strategy.
 
-1. Read root `AGENTS.md` and active frontend source first.
-2. Read `.claude/skills/dtb-design-system/SKILL.md` as the mature DTB design-system reference. Follow its referenced files when deeper context is required.
-3. Treat active `frontend/src/styles/`, design tokens, typography files, components and build configuration as authoritative when they disagree with any adapter documentation.
-4. Reinforce the existing DTB system; do not invent a parallel palette, type system, breakpoint strategy or component library.
-5. Preserve mobile-first/fluid behavior, accessibility, reduced-motion support, visible focus, semantic interaction, touch targets and existing checkout/provider boundaries.
-6. Report source evidence for visual-system decisions and note any documentation drift discovered.
+Prefer restrained contractor-focused commerce UI, semantic controls, visible focus, readable type, intentional hierarchy, shared spacing/layer/motion tokens and provider-authentic payment surfaces. Reverse-engineer approved mockups into reusable tokens/components/states/responsive rules rather than screenshot-specific CSS.
+
+For material responsive work load `dtb-responsive-ui-engineering`. For complete stateful flows load `dtb-ux-flow-engineering`; for formal critique load `dtb-ui-design-critique`.

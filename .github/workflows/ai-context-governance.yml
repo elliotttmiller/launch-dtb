@@ -1,0 +1,39 @@
+name: AI Context Governance
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - '.claude/**'
+      - '.codex/**'
+      - '.github/copilot-instructions.md'
+      - '.github/workflows/ai-context-governance.yml'
+      - '.vscode/settings.json'
+      - 'memory-bank/**'
+      - 'scripts/ai/**'
+      - 'docs/work/**'
+  push:
+    branches: [main]
+    paths:
+      - 'AGENTS.md'
+      - '.agents/**'
+      - '.claude/**'
+      - '.codex/**'
+      - '.github/copilot-instructions.md'
+      - 'memory-bank/**'
+      - 'scripts/ai/**'
+      - 'docs/work/**'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-context:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate canonical AI context
+        run: |
+          node --version
+          node scripts/ai/validate-context.mjs

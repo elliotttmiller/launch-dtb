@@ -1,13 +1,13 @@
 ---
 name: dtb-seo
-description: DTB technical SEO and storefront discoverability guidance. Use for SEOHead/meta/canonical/robots, structured data, sitemap behavior, internal linking, product SEO fields, or Core Web Vitals work.
+description: DTB technical SEO, structured data, sitemap, internal-linking and Core Web Vitals discipline grounded in current source/runtime evidence.
 ---
+# DTB SEO
 
-# DTB SEO bridge
+Use the actual DTB pipeline, route map and sitemap implementation. Never fabricate price, availability, rating, product identifiers, route existence or rendered/indexing behavior.
 
-1. Read root `AGENTS.md` and active implementation first.
-2. Read `.claude/skills/dtb-seo/SKILL.md` as the mature DTB SEO workflow/reference and load its referenced files when the requested mode requires them.
-3. Verify the current pipeline before edits: frontend head/schema code, DTB backend SEO meta contracts, sitemap services, route map and catalog relationship consumers.
-4. Do not substitute generic WordPress-plugin, blog/content-marketing, SSR/Next.js or backlink advice for this client-rendered commerce architecture.
-5. Never fabricate price, stock, reviews, ratings, canonical identities, product identifiers or structured-data facts.
-6. Route frontend implementation to `frontend_react`, backend sitemap/meta work to `wp_backend`, and bulk catalog relationship/identifier work to `catalog_data`.
+Separate source-verifiable findings from runtime/search-engine verification. Cite exact paths/symbols/evidence in audits. Session/account/cart/checkout/order/status/preview/operator routes are not public indexable inventory unless active source explicitly changes that contract. Structured data must match visible authoritative commerce content.
+
+Internal product relationships should use existing canonical catalog/schematic relationship mechanisms rather than hard-coded React links. Core Web Vitals work belongs in owning frontend/build layers and should be measured rather than guessed.
+
+Audit/task output belongs in scoped `docs/work/<task-id>/`, not a global repository TODO file.
