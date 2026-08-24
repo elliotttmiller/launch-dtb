@@ -25,20 +25,21 @@ Resolve substantial work through the registry rather than inventing role/skill c
 node scripts/ai/resolve-task.mjs --intent implement --domain frontend --flags ui,responsive --risk medium
 ```
 
-For durable cross-session work, create a scoped task package:
+For durable cross-session work, create or reroute a scoped task package:
 
 ```text
 node scripts/ai/create-task.mjs --id pdp-responsive-purchase --title "PDP responsive purchase flow" --intent redesign --domain frontend --flags ui,responsive,ux-flow --risk medium
+node scripts/ai/update-task.mjs --id pdp-responsive-purchase --risk high
 node scripts/ai/validate-task.mjs --id pdp-responsive-purchase
 ```
 
-The resolver selects one workflow, one owning role, the minimal skill set, effective risk, and mandatory independent reviewers. Vendor adapters may invoke or reproduce this deterministic resolution, but may not define competing routing rules.
+The resolver selects one workflow, an executing role, the subject-domain owner, the minimal skill set, effective risk, and mandatory independent reviewers. Review/verification/research intent can therefore select a read-only execution role without granting the subject owner write authority. Vendor adapters may invoke or reproduce this deterministic resolution, but may not define competing routing rules.
 
 ## Core execution policy
 
 1. Inspect active implementation before changing behavior.
 2. Identify the owning system/module and system of record.
-3. Resolve workflow/role/skills/reviewers through `registry.json` for substantial work.
+3. Resolve workflow/role/subject-owner/skills/reviewers through `registry.json` for substantial work.
 4. Parallelize read-heavy investigation and independent review; serialize overlapping writes.
 5. Use one owning writer per overlapping authority boundary.
 6. Require evidence, source paths, assumptions, decision criteria, calculations when relevant, and verification results; never require disclosure of private chain-of-thought.
@@ -64,7 +65,7 @@ Adapters map these capabilities to the tools actually available in a specific as
 ## Context loading tiers
 
 - **Tier 0**: `AGENTS.md` + current task/brief.
-- **Tier 1**: resolved workflow, one canonical role, resolved skills, and the owning current architecture doc.
+- **Tier 1**: resolved workflow, executing role, subject owner when distinct, resolved skills, and the owning current architecture doc.
 - **Tier 2**: deep references, historical migration material, external research, or additional specialist context only when needed.
 
 More context is not automatically better. Prefer progressive disclosure and evidence over large standing prompts.
