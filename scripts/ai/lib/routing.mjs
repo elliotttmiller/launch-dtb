@@ -38,17 +38,19 @@ export function maxRisk(registry, ...risks) {
 
 export function resolveTask({ intent, domain, flags = [], risk = 'low' }, registry = loadRegistry()) {
   const normalizedFlags = unique(normalizeList(flags));
-  const workflowId = registry.intents[intent];
-  if (!workflowId) throw new Error(`unknown intent: ${intent}`);
+  const intentRule = registry.intents[intent];
+  if (!intentRule) throw new Error(`unknown intent: ${intent}`);
 
+  const workflowId = intentRule.workflow;
   const workflow = registry.workflows[workflowId];
   if (!workflow) throw new Error(`intent ${intent} references unknown workflow: ${workflowId}`);
 
-  const roleId = registry.domains[domain];
-  if (!roleId) throw new Error(`unknown domain: ${domain}`);
+  const domainRoleId = registry.domains[domain];
+  if (!domainRoleId) throw new Error(`unknown domain: ${domain}`);
 
+  const roleId = intentRule.domainRoleOverrides?.[domain] || intentRule.role || domainRoleId;
   const role = registry.roles[roleId];
-  if (!role) throw new Error(`domain ${domain} references unknown role: ${roleId}`);
+  if (!role) throw new Error(`routing resolved unknown role: ${roleId}`);
 
   let effectiveRisk = maxRisk(registry, risk, role.minimumRisk || 'low');
   const skillIds = [...(role.requiredSkills || [])];
@@ -82,6 +84,7 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
     registryVersion: registry.version,
     intent,
     domain,
+    subjectRole: { id: domainRoleId, path: registry.roles[domainRoleId]?.path || null },
     flags: normalizedFlags,
     requestedRisk: risk,
     effectiveRisk,
