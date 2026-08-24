@@ -25,6 +25,7 @@ function fail(message) { failures.push(message); }
 
 const required = [
   'AGENTS.md',
+  'CLAUDE.md',
   '.agents/README.md',
   '.agents/registry.json',
   '.agents/roles/explorer.md',
@@ -43,6 +44,7 @@ const required = [
   'scripts/ai/resolve-task.mjs',
   'scripts/ai/create-task.mjs',
   'scripts/ai/validate-task.mjs',
+  'scripts/ai/test-routing.mjs',
 ];
 for (const file of required) if (!exists(file)) fail(`missing required AI governance file: ${file}`);
 
@@ -68,6 +70,7 @@ for (const file of canonicalFiles) {
 }
 
 const adapterFiles = [
+  'CLAUDE.md',
   ...walk('.claude/agents').filter((p) => p.endsWith('.md')),
   ...walk('.claude/skills').filter((p) => p.endsWith('/SKILL.md')),
   ...walk('.codex/agents').filter((p) => p.endsWith('.toml')),
@@ -95,15 +98,28 @@ if (registry) {
   for (const [workflowId, workflowPath] of Object.entries(registry.workflows || {})) {
     if (!exists(workflowPath)) fail(`.agents/registry.json: workflow ${workflowId} references missing file ${workflowPath}`);
   }
-  for (const [intent, workflowId] of Object.entries(registry.intents || {})) {
-    if (!registry.workflows?.[workflowId]) fail(`.agents/registry.json: intent ${intent} references unknown workflow ${workflowId}`);
+
+  for (const [intent, rule] of Object.entries(registry.intents || {})) {
+    if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
+      fail(`.agents/registry.json: intent ${intent} must be an object`);
+      continue;
+    }
+    if (!registry.workflows?.[rule.workflow]) fail(`.agents/registry.json: intent ${intent} references unknown workflow ${rule.workflow}`);
+    if (rule.role && !registry.roles?.[rule.role]) fail(`.agents/registry.json: intent ${intent} references unknown role ${rule.role}`);
+    for (const [domain, roleId] of Object.entries(rule.domainRoleOverrides || {})) {
+      if (!registry.domains?.[domain]) fail(`.agents/registry.json: intent ${intent} override references unknown domain ${domain}`);
+      if (!registry.roles?.[roleId]) fail(`.agents/registry.json: intent ${intent} override references unknown role ${roleId}`);
+    }
   }
+
   for (const [domain, roleId] of Object.entries(registry.domains || {})) {
     if (!registry.roles?.[roleId]) fail(`.agents/registry.json: domain ${domain} references unknown role ${roleId}`);
   }
+
   for (const [roleId, role] of Object.entries(registry.roles || {})) {
     if (!exists(role.path)) fail(`.agents/registry.json: role ${roleId} references missing file ${role.path}`);
     if (!['read', 'write'].includes(role.mode)) fail(`.agents/registry.json: role ${roleId} has invalid mode ${role.mode}`);
+    if (role.minimumRisk && !registry.riskOrder.includes(role.minimumRisk)) fail(`.agents/registry.json: role ${roleId} has invalid minimumRisk ${role.minimumRisk}`);
     for (const skillId of role.requiredSkills || []) {
       if (!registry.skills?.[skillId]) fail(`.agents/registry.json: role ${roleId} references unknown skill ${skillId}`);
     }
@@ -112,9 +128,11 @@ if (registry) {
       else if (registry.roles[reviewerId].mode !== 'read') fail(`.agents/registry.json: reviewer ${reviewerId} must be read-only`);
     }
   }
+
   for (const [skillId, skillPath] of Object.entries(registry.skills || {})) {
     if (!exists(skillPath)) fail(`.agents/registry.json: skill ${skillId} references missing file ${skillPath}`);
   }
+
   for (const [flag, rule] of Object.entries(registry.flags || {})) {
     for (const skillId of rule.skills || []) {
       if (!registry.skills?.[skillId]) fail(`.agents/registry.json: flag ${flag} references unknown skill ${skillId}`);
@@ -125,6 +143,7 @@ if (registry) {
     }
     if (rule.minimumRisk && !registry.riskOrder.includes(rule.minimumRisk)) fail(`.agents/registry.json: flag ${flag} has invalid minimumRisk ${rule.minimumRisk}`);
   }
+
   for (const [risk, reviewerIds] of Object.entries(registry.riskReviewers || {})) {
     if (!registry.riskOrder.includes(risk)) fail(`.agents/registry.json: unknown riskReviewers level ${risk}`);
     for (const reviewerId of reviewerIds) {
