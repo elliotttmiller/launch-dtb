@@ -9,7 +9,18 @@ if (!args.id) {
   process.exit(2);
 }
 
-const taskDir = path.join(ROOT, 'docs', 'work', args.id);
+if (!/^[a-z0-9][a-z0-9-]{2,80}$/.test(args.id)) {
+  console.error('Task id must be 3-81 lowercase alphanumeric/hyphen characters.');
+  process.exit(2);
+}
+
+const workRoot = path.join(ROOT, 'docs', 'work');
+const taskDir = path.join(workRoot, args.id);
+if (!taskDir.startsWith(`${workRoot}${path.sep}`)) {
+  console.error('Task path escaped docs/work.');
+  process.exit(1);
+}
+
 const requiredFiles = ['task.json', 'brief.md', 'evidence.md', 'decisions.md', 'status.md', 'verification.md'];
 const errors = [];
 
@@ -25,6 +36,7 @@ for (const file of requiredFiles) {
 if (!errors.length) {
   try {
     const manifest = JSON.parse(fs.readFileSync(path.join(taskDir, 'task.json'), 'utf8'));
+    if (manifest.taskId !== args.id) errors.push(`task.json taskId must match requested id ${args.id}`);
     errors.push(...validateTaskManifest(manifest, loadRegistry()));
   } catch (error) {
     errors.push(`task.json is invalid JSON: ${error.message}`);
