@@ -61,10 +61,8 @@ const tempTaskDir = path.join(workRoot, `.tmp-${args.id}-${process.pid}-${Date.n
 try {
   fs.mkdirSync(tempTaskDir, { recursive: false });
   fs.writeFileSync(path.join(tempTaskDir, 'task.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-  fs.writeFileSync(path.join(tempTaskDir, 'brief.md'), `# ${args.title}\n\n## Objective\n\nDescribe the requested outcome.\n\n## Acceptance criteria\n\n- Define observable completion criteria.\n\n## Non-goals\n\n- Record intentionally excluded scope.\n`);
-  fs.writeFileSync(path.join(tempTaskDir, 'evidence.md'), '# Evidence\n\nRecord repository paths, symbols, runtime evidence, external evidence, and provenance.\n');
-  fs.writeFileSync(path.join(tempTaskDir, 'decisions.md'), '# Decisions\n\nRecord material architecture decisions, rejected alternatives, and invariants.\n');
-  fs.writeFileSync(path.join(tempTaskDir, 'status.md'), '# Status\n\n- State: planned\n- Completed:\n- In progress:\n- Blocked:\n');
+  fs.writeFileSync(path.join(tempTaskDir, 'brief.md'), `# ${args.title}\n\n## Objective\n\nDescribe the requested outcome.\n\n## Acceptance criteria\n\n- Define observable completion criteria.\n\n## Non-goals\n\n- Record intentionally excluded scope.\n\n## Decisions\n\nRecord only material decisions that affect scope, ownership, or implementation.\n`);
+  fs.writeFileSync(path.join(tempTaskDir, 'evidence.md'), '# Evidence\n\nRecord repository paths, symbols, runtime/external evidence, and unresolved facts.\n');
   fs.writeFileSync(path.join(tempTaskDir, 'verification.md'), '# Verification\n\nRecord checks run, results, unverified behavior, and residual risks.\n');
   fs.renameSync(tempTaskDir, taskDir);
 } catch (error) {

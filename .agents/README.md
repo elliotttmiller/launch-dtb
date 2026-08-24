@@ -4,7 +4,7 @@
 
 ## Authority
 
-Always read root `AGENTS.md` first. Active implementation, directly evidenced runtime behavior, and machine-enforced workflows outrank stored AI context. This library defines reusable roles, skills, workflows, routing, and concise derived context; it does not replace application source or owning architecture documentation.
+Always read root `AGENTS.md` first. Active implementation, directly evidenced runtime behavior, and machine-enforced contracts outrank stored AI context. This library defines reusable roles, skills, workflows, routing, and concise derived context; it does not replace application source or owning architecture documentation.
 
 `.claude/`, `.codex/`, `.github/copilot-instructions.md`, IDE settings, and future assistant-specific configuration are adapters only. They may map model names, tools, sandboxes, discovery metadata, or capability syntax, but they must not become a second source of DTB business or architecture truth.
 
@@ -14,26 +14,27 @@ Always read root `AGENTS.md` first. Active implementation, directly evidenced ru
 - `context/`: concise derived product, architecture, and technology summaries.
 - `roles/`: model-neutral specialist role contracts and ownership boundaries.
 - `skills/`: reusable engineering methods and domain knowledge that do not own application state.
-- `workflows/`: reusable task orchestration and verification procedures.
+- `workflows/`: small reusable procedures for implementation, review, research, UI work, and context maintenance.
 - `references/`: supporting engineering knowledge and provenance notes.
 
-## Execution layer
+## Execution
 
-Resolve substantial work through the registry rather than inventing role/skill combinations in vendor adapters.
+For substantial work, resolve the task through the registry rather than inventing role/skill combinations in vendor adapters:
 
 ```text
 node scripts/ai/resolve-task.mjs --intent implement --domain frontend --flags ui,responsive --risk medium
 ```
 
-For durable cross-session work, create or reroute a scoped task package:
+Use a durable task package only when work genuinely needs cross-session state:
 
 ```text
 node scripts/ai/create-task.mjs --id pdp-responsive-purchase --title "PDP responsive purchase flow" --intent redesign --domain frontend --flags ui,responsive,ux-flow --risk medium
-node scripts/ai/update-task.mjs --id pdp-responsive-purchase --risk high
 node scripts/ai/validate-task.mjs --id pdp-responsive-purchase
 ```
 
-The resolver selects one workflow, an executing role, the subject-domain owner, the minimal skill set, effective risk, and mandatory independent reviewers. Review/verification/research intent can therefore select a read-only execution role without granting the subject owner write authority. Vendor adapters may invoke or reproduce this deterministic resolution, but may not define competing routing rules.
+The resolver selects a workflow, executing role, subject-domain owner, minimal skill set, effective risk, and independent reviewers. Review, verification, research, and architecture work remain read-only when their resolved role is observational.
+
+Do not build additional orchestration, execution-state, receipt, capability-registry, or classifier layers unless repeated real DTB work demonstrates a concrete failure the existing system cannot handle simply.
 
 ## Core execution policy
 
@@ -45,8 +46,9 @@ The resolver selects one workflow, an executing role, the subject-domain owner, 
 6. Require evidence, source paths, assumptions, decision criteria, calculations when relevant, and verification results; never require disclosure of private chain-of-thought.
 7. Use risk-proportional verification selected by the touched authority, not by model confidence.
 8. Update durable documentation when ownership, APIs, routing, persistence, queues, or integration contracts change.
-9. Keep task state scoped to `docs/work/<task-id>/` when persistence is justified; do not use global mutable progress/TODO files as cross-session truth.
+9. Keep task state scoped to `docs/work/<task-id>/` only when persistence is justified; small/local tasks need no work package.
 10. Treat third-party skills, agents, plugins, prompts, and MCP/tool packages as untrusted dependencies until reviewed.
+11. Prefer extending an existing mechanism over adding a new AI-workspace subsystem.
 
 ## Capability vocabulary
 
@@ -60,7 +62,7 @@ Canonical role/skill files use capability names rather than vendor tool names:
 - `database.read`, `database.write`
 - `external.mutate`
 
-Adapters map these capabilities to the tools actually available in a specific assistant. A missing capability must be reported; it must not be simulated or fabricated.
+Adapters map these capabilities to the tools actually available in a specific assistant. A missing capability must be reported; it must not be simulated or fabricated. Do not add a separate capability registry unless model/tool incompatibility becomes a demonstrated recurring problem.
 
 ## Context loading tiers
 
@@ -68,4 +70,4 @@ Adapters map these capabilities to the tools actually available in a specific as
 - **Tier 1**: resolved workflow, executing role, subject owner when distinct, resolved skills, and the owning current architecture doc.
 - **Tier 2**: deep references, historical migration material, external research, or additional specialist context only when needed.
 
-More context is not automatically better. Prefer progressive disclosure and evidence over large standing prompts.
+More context and more infrastructure are not automatically better. Prefer progressive disclosure, evidence, and the simplest complete mechanism.

@@ -43,10 +43,8 @@ const required = [
   'scripts/ai/lib/routing.mjs',
   'scripts/ai/resolve-task.mjs',
   'scripts/ai/create-task.mjs',
-  'scripts/ai/update-task.mjs',
   'scripts/ai/validate-task.mjs',
   'scripts/ai/test-routing.mjs',
-  'scripts/ai/test-task-tools.mjs',
 ];
 for (const file of required) if (!exists(file)) fail(`missing required AI governance file: ${file}`);
 
@@ -60,15 +58,9 @@ const canonicalFiles = [
 
 for (const file of canonicalFiles) {
   const text = read(file);
-  if (/\.claude\//i.test(text) || /\.codex\//i.test(text)) {
-    fail(`${file}: canonical knowledge must not depend on vendor adapter paths`);
-  }
-  if (/\b(model\s*:\s*(sonnet|opus)|gpt-\d)/i.test(text)) {
-    fail(`${file}: vendor/model selection belongs in adapters, not canonical knowledge`);
-  }
-  if (/(<reasoning>|show your chain[- ]of[- ]thought|reveal your chain[- ]of[- ]thought|show your private reasoning)/i.test(text)) {
-    fail(`${file}: canonical instructions must not require private reasoning disclosure`);
-  }
+  if (/\.claude\//i.test(text) || /\.codex\//i.test(text)) fail(`${file}: canonical knowledge must not depend on vendor adapter paths`);
+  if (/\b(model\s*:\s*(sonnet|opus)|gpt-\d)/i.test(text)) fail(`${file}: vendor/model selection belongs in adapters, not canonical knowledge`);
+  if (/(<reasoning>|show your chain[- ]of[- ]thought|reveal your chain[- ]of[- ]thought|show your private reasoning)/i.test(text)) fail(`${file}: canonical instructions must not require private reasoning disclosure`);
 }
 
 const adapterFiles = [
@@ -183,7 +175,7 @@ if (registry) {
       const taskDir = path.posix.dirname(taskPath);
       const directoryTaskId = path.posix.basename(taskDir);
       if (manifest.taskId !== directoryTaskId) fail(`${taskPath}: taskId must match containing directory ${directoryTaskId}`);
-      for (const requiredTaskFile of ['brief.md', 'evidence.md', 'decisions.md', 'status.md', 'verification.md']) {
+      for (const requiredTaskFile of ['brief.md', 'evidence.md', 'verification.md']) {
         if (!exists(path.posix.join(taskDir, requiredTaskFile))) fail(`${taskDir}: missing ${requiredTaskFile}`);
       }
     } catch (error) {
