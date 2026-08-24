@@ -5,11 +5,22 @@ import { parseArgs, resolveTask, ROOT, validateTaskManifest, loadRegistry } from
 
 const args = parseArgs(process.argv.slice(2));
 if (!args.id) {
-  console.error('Usage: node scripts/ai/update-task.mjs --id <task-id> [--title <title>] [--intent <intent>] [--domain <domain>] [--flags a,b] [--risk low|medium|high|critical]');
+  console.error('Usage: node scripts/ai/update-task.mjs --id <task-id> [--title <title>] [--intent <intent>] [--domain <domain>] [--flags a,b | --clear-flags] [--risk low|medium|high|critical]');
   process.exit(2);
 }
 
-const taskDir = path.join(ROOT, 'docs', 'work', args.id);
+if (!/^[a-z0-9][a-z0-9-]{2,80}$/.test(args.id)) {
+  console.error('Task id must be 3-81 lowercase alphanumeric/hyphen characters.');
+  process.exit(2);
+}
+
+const workRoot = path.join(ROOT, 'docs', 'work');
+const taskDir = path.join(workRoot, args.id);
+if (!taskDir.startsWith(`${workRoot}${path.sep}`)) {
+  console.error('Task path escaped docs/work.');
+  process.exit(1);
+}
+
 const taskPath = path.join(taskDir, 'task.json');
 if (!fs.existsSync(taskPath)) {
   console.error(`Task manifest does not exist: docs/work/${args.id}/task.json`);
@@ -24,12 +35,23 @@ try {
   process.exit(1);
 }
 
+if (current.taskId !== args.id) {
+  console.error(`Existing task.json taskId must match requested id ${args.id}.`);
+  process.exit(1);
+}
+
+const nextFlags = args['clear-flags']
+  ? []
+  : args.flags !== undefined
+    ? String(args.flags).split(',').map((item) => item.trim()).filter(Boolean)
+    : (current.flags || []);
+
 const next = {
   ...current,
   title: args.title || current.title,
   intent: args.intent || current.intent,
   domain: args.domain || current.domain,
-  flags: args.flags !== undefined ? String(args.flags).split(',').map((item) => item.trim()).filter(Boolean) : (current.flags || []),
+  flags: nextFlags,
   risk: args.risk || current.risk,
 };
 
@@ -63,9 +85,15 @@ if (errors.length) {
   process.exit(1);
 }
 
-const tempPath = `${taskPath}.tmp`;
-fs.writeFileSync(tempPath, `${JSON.stringify(next, null, 2)}\n`);
-fs.renameSync(tempPath, taskPath);
+const tempPath = `${taskPath}.tmp-${process.pid}-${Date.now()}`;
+try {
+  fs.writeFileSync(tempPath, `${JSON.stringify(next, null, 2)}\n`);
+  fs.renameSync(tempPath, taskPath);
+} catch (error) {
+  fs.rmSync(tempPath, { force: true });
+  console.error(`DTB AI task rerouting failed while writing task.json: ${error.message}`);
+  process.exit(1);
+}
 
 console.log(`Updated routing for docs/work/${args.id}`);
 console.log(JSON.stringify(resolved, null, 2));
