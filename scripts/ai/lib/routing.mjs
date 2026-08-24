@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-export const ROOT = process.cwd();
+export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 export const REGISTRY_PATH = '.agents/registry.json';
 
 export function readJson(relativePath) {
