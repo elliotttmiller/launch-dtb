@@ -1,339 +1,145 @@
 # Drywall Toolbox Engineering Operating Contract
 
-This file is the repository-wide operating contract for engineering agents working on Drywall Toolbox. It describes the product, architecture, ownership model, system authorities, workflows, data boundaries, integration contracts, and implementation rules that govern all changes.
+This is the repository-wide engineering contract for Drywall Toolbox. It defines authority, ownership, security, data, checkout, queue/integration and engineering invariants. It is model-neutral.
 
-It intentionally does not define deployment procedures, release procedures, validation checklists, smoke-test commands, rollback steps, or environment-verification instructions. Those concerns belong in their owning workflow and operations documentation.
+Assistant-specific configuration does not outrank this file. Canonical reusable AI roles, skills and workflows live under `.agents/`; `.claude/`, `.codex/`, Copilot and IDE configuration are adapters only.
 
-## 1. Role and mandate
+## 1. Mandate
 
-Act as the Distinguished Principal Engineer, Systems Architect, and Senior Product UI/UX Engineer for Drywall Toolbox.
+Produce production-grade solutions that preserve security/privacy, data integrity and stable identifiers, one authority per concern, idempotency/duplicate containment, queue correctness/retry safety, observability, bounded resource use, accessibility/responsive usability, compatibility and architectural simplicity.
 
-Produce production-grade solutions that preserve:
+Do not invent repository state, runtime behavior, schemas, routes, provider capabilities, credentials, production configuration, test results or deployment outcomes.
 
-- security and privacy;
-- data integrity and stable business identifiers;
-- explicit ownership and one authority per concern;
-- idempotency and duplicate containment;
-- queue correctness and retry safety;
-- observability and explainable failure states;
-- scalability and bounded resource use;
-- accessibility and responsive usability;
-- compatibility with WordPress, WooCommerce, HPOS, Action Scheduler, and provider contracts;
-- maintainability and architectural simplicity.
-
-Do not invent repository state, runtime behavior, schemas, routes, provider capabilities, credentials, production configuration, test results, or operational outcomes.
-
-Distinguish clearly between:
-
-1. behavior verified in active implementation;
-2. architecture or product intent defined by durable documentation;
-3. user-supplied current operational truth;
-4. evidence-based inference;
-5. recommendations.
+Distinguish verified implementation/runtime evidence from durable intent, user-supplied operational truth, inference and recommendation.
 
 ## 2. Source precedence
 
-When sources disagree, use this precedence:
+When sources disagree:
 
-1. active implementation and current composition/routing behavior;
-2. current runtime behavior when directly evidenced;
-3. active workflows and machine-enforced contracts;
+1. active implementation and current composition/routing;
+2. directly evidenced runtime behavior;
+3. machine-enforced workflows/contracts/tests;
 4. this `AGENTS.md`;
-5. `.github/copilot-instructions.md`;
-6. `memory-bank/product.md`;
-7. `memory-bank/structure.md`;
-8. `memory-bank/tech.md`;
-9. MU-plugin and module documentation;
-10. current architecture documentation under `docs/`;
-11. historical plans, generated reports, comments, legacy wrappers, and reference-only material.
+5. canonical `.agents/` roles, skills and workflows;
+6. current owning architecture/API/integration documentation under `docs/` and module documentation;
+7. concise derived context under `.agents/context/` and `memory-bank/`;
+8. assistant-specific adapters (`.claude/`, `.codex/`, `.github/copilot-instructions.md`, IDE settings);
+9. historical plans, generated reports, comments, legacy wrappers and reference-only material.
 
-Source code wins over filenames, comments, and assumptions. Inspect imports, hooks, routes, persistence, queues, integrations, and execution paths before changing behavior.
+Source code wins over filenames, comments and assumptions. Inspect imports, hooks, routes, persistence, queues, integrations and execution paths before changing behavior. Do not redefine source precedence in lower-precedence files.
 
 ## 3. Product purpose
 
-Drywall Toolbox is a contractor-focused ecommerce and service-operations platform for professional drywall tools and parts.
+Drywall Toolbox is a contractor-focused ecommerce and service-operations platform for professional drywall tools and parts. It supports catalog/variations, compatible-part discovery, schematics, repairs, returns, customer accounts/orders, fulfillment visibility, accounting projection, integrations/marketplaces, SEO/media/catalog tooling and operator control centers.
 
-The platform supports:
-
-- professional tool and parts commerce;
-- brand and category browsing;
-- product variations and technical specifications;
-- compatible-part discovery;
-- interactive schematics and hotspot-linked parts;
-- repair intake, package selection, quoting, shipping coordination, and tracking;
-- returns and warranty workflows;
-- customer accounts, orders, addresses, support, and status tracking;
-- inventory and fulfillment integration;
-- accounting projection;
-- marketplace and operator workflows;
-- SEO, media, catalog enrichment, and administrative tooling.
-
-Primary users are professional drywall contractors who need fast product identification, trustworthy availability, accurate compatibility, clear checkout, and operational visibility after purchase.
-
-## 4. System topology
-
-The principal architecture is:
+## 4. System topology and authorities
 
 ```text
 React 19 Storefront
-  -> same-origin WordPress REST and WooCommerce Store API
+  -> same-origin WordPress REST / WooCommerce Store API
   -> WooCommerce cart/session and commerce persistence
   -> native WooCommerce Checkout Block
-  -> provider-owned payment UI and payment lifecycle
+  -> provider-owned payment UI/lifecycle
   -> WooCommerce Order
   -> DTB event ledger
   -> Action Scheduler queues
   -> Veeqo / QuickBooks / notifications / marketplaces
-  -> catalog, media, repairs, returns, schematics, and operator tooling
 ```
 
-The major architectural rule is one authority per concern.
+One authority per concern:
 
-- React owns customer-facing presentation and interaction.
-- WooCommerce owns commerce.
-- DTB MU Plugins own backend domain policy and orchestration.
-- Action Scheduler owns asynchronous execution.
-- Veeqo owns inventory and fulfillment truth.
-- QuickBooks owns accounting projections.
-- Payment providers own payment collection, authentication, tokens, wallets, and provider UI.
+- React: customer presentation, routing, local interaction state and API consumption.
+- WooCommerce: runtime products/variations, customers, cart/session, checkout, shipping/tax/totals, storefront orders, order/payment state and refunds.
+- DTB MU Plugins: backend domain policy, authorization, events, queues, integrations, repairs, returns, schematics, media and operator workflows.
+- Action Scheduler: asynchronous execution.
+- Veeqo: inventory, allocation, fulfillment, shipping and tracking truth.
+- QuickBooks: accounting projection.
+- Active payment provider: payment collection, authentication, tokenization, wallets/BNPL/provider UI and provider webhook semantics.
 
-No layer may silently create a parallel source of truth.
+No layer may create parallel truth for another authority.
 
 ## 5. Repository ownership
 
-### 5.1 `frontend/`
+### `frontend/`
 
-`frontend/` is the canonical React storefront source.
+Owns customer UI/routing, responsive presentation, local interaction state, frontend API/auth clients, shared UI primitives and presentation. It is not authoritative for orders, payment capture/confirmation, refunds, inventory allocation, fulfillment, accounting, shipping/tax truth or server-side ownership.
 
-It owns customer UI, routing, responsive presentation, local interaction state, cart presentation, account presentation, product and service experiences, frontend API clients, browser cache consumers, feature flags used for presentation, and design-system primitives.
+Use JavaScript/JSX consistently unless a deliberate migration changes that contract.
 
-Key areas:
+### `drywalltoolbox/`
 
-- `frontend/src/App.jsx`: application composition, providers, route map, route-level loading, shell behavior;
-- `frontend/src/pages/`: route-level screens;
-- `frontend/src/components/`: reusable and domain UI;
-- `frontend/src/api/`: centralized API clients;
-- `frontend/src/auth/`: authentication context and client identity handling;
-- `frontend/src/context/`: shared React state;
-- `frontend/src/hooks/`: reusable hooks;
-- `frontend/src/services/`: active client-side services and cache/data adapters;
-- `frontend/src/data/`: static or generated client data;
-- `frontend/src/styles/`: presentation authority;
-- `frontend/public/`: public static resources and web metadata templates.
+Tracked WordPress/WooCommerce application source. Custom backend logic belongs under `drywalltoolbox/wp/wp-content/mu-plugins/`; tracked theme integration under `drywalltoolbox/wp/wp-content/themes/drywall-toolbox/`. Do not modify WordPress core or regular-plugin internals.
 
-The frontend is not authoritative for orders, payment confirmation or capture, refunds, inventory allocation, fulfillment, accounting, shipping truth, tax truth, server-side customer ownership, or provider secrets.
+### `products/`
 
-Do not introduce isolated TypeScript into this JavaScript/JSX application unless the repository deliberately adopts a migration strategy.
+Canonical catalog source, taxonomy/brand/compatibility/schematic/media/enrichment inputs. WooCommerce owns runtime product records derived/imported from this material. SKU, MPN, GTIN, part number, brand/taxonomy identity, compatibility IDs and external IDs are protected stable identifiers.
 
-### 5.2 `drywalltoolbox/`
+### `scripts/`
 
-`drywalltoolbox/` is the tracked WordPress/WooCommerce application source.
+Deterministic operational tooling only: repeatable, bounded, observable, non-destructive by default and appropriately idempotent. Scripts never become alternate application services.
 
-Custom backend logic belongs under:
+### `docs/`, `.agents/context/`, `memory-bank/`
 
-```text
-drywalltoolbox/wp/wp-content/mu-plugins/
-```
-
-Tracked theme integration belongs under:
-
-```text
-drywalltoolbox/wp/wp-content/themes/drywall-toolbox/
-```
-
-WordPress core and third-party plugin internals are not DTB application code. Do not modify WordPress core or vendor plugin source to implement DTB behavior.
-
-### 5.3 `products/`
-
-`products/` owns canonical catalog source material, including product and parts datasets, taxonomy and brand data, compatibility records, schematics source material, media references, and enrichment inputs.
-
-WooCommerce owns runtime product records generated or imported from this material.
-
-Protected business identifiers include SKU, MPN, GTIN, part number, brand identity, taxonomy identity, compatibility IDs, and external provider IDs. Do not rewrite them as incidental cleanup.
-
-### 5.4 `scripts/`
-
-`scripts/` contains deterministic operational tooling. Scripts must be repeatable, bounded, observable, non-destructive by default, appropriately idempotent, and explicit about input, output, and ownership.
-
-Scripts must not become alternate application services or parallel authorities for commerce, inventory, accounting, repairs, returns, or integration state.
-
-### 5.5 `docs/` and `memory-bank/`
-
-`docs/` contains durable architecture and contract documentation. `memory-bank/` contains concise product, structure, and technology summaries. These support active implementation; they do not replace it.
-
-### 5.6 Generated output
-
-Generated bundles, caches, assembled artifacts, exported reports, and derived catalogs are not canonical source when an owning source or generator exists. Do not hand-edit generated output to implement application behavior.
+`docs/` holds durable owning architecture/contracts. `.agents/context/` and `memory-bank/` are concise derived summaries and never replace active source. Substantial transient task state belongs under `docs/work/<task-id>/` when persistence is justified.
 
 ## 6. MU-plugin composition root
 
-The backend composition root is:
+Canonical composition is `drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php`.
 
-```text
-drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php
-```
+Expected current order:
 
-The expected module order is:
+1. `dtb-platform`
+2. `dtb-catalog-platform`
+3. `dtb-commerce`
+4. `dtb-order-platform`
+5. `dtb-schematics`
+6. `dtb-media`
+7. `dtb-marketing`
+8. `dtb-repair-service`
+9. `dtb-integrations`
+10. `dtb-support`
+11. `dtb-returns`
+12. `dtb-deployment`
+13. `dtb-visual-designer`
 
-1. `dtb-platform`;
-2. `dtb-catalog-platform`;
-3. `dtb-commerce`;
-4. `dtb-order-platform`;
-5. `dtb-schematics`;
-6. `dtb-media`;
-7. `dtb-marketing`;
-8. `dtb-repair-service`;
-9. `dtb-integrations`;
-10. `dtb-support`;
-11. `dtb-returns`;
-12. `dtb-deployment`.
-
-Preserve composition order unless an explicit dependency change requires modification. Root MU-plugin files may act as loaders, guards, or compatibility delegates. They must not accumulate unrelated domain logic.
+Active loader source remains authoritative if this inventory drifts. Preserve composition order unless an explicit dependency change requires it. Root MU files may be loaders/guards/compatibility delegates but must not grow unrelated domain logic.
 
 ## 7. MU-plugin ownership
 
-### 7.1 `dtb-platform`
+- `dtb-platform`: shared config/auth/session/origin/CORS/nonce/security, REST infrastructure, Store API containment, cache, health/diagnostics/logging/metrics/audit, account APIs and common admin/system-manager primitives.
+- `dtb-catalog-platform`: product/variation normalization, brands/taxonomy/relationships/compatibility, compatible parts, catalog REST/enrichment/inventory intelligence/operator tools.
+- `dtb-commerce`: cart extension data, checkout policy/native runtime integration, shipping policy, commerce REST, non-secret payment readiness/order tagging and WooCommerce email routing.
+- `dtb-order-platform`: order observation, append-only events, captured-payment observation, tracking/refund identity, integration state, queue boundary, duplicate containment/retry policy.
+- `dtb-schematics`: schematic domain records, manifests, media relationships, exact part resolution, APIs and invalidation.
+- `dtb-media`: product/variation media synchronization and bounded media administration.
+- `dtb-marketing`: coming-soon/referral and product SEO/marketing metadata.
+- `dtb-repair-service`: repair intake/packages/quotes/approvals/status/events/media/shipping/queues/notifications/operator workflows.
+- `dtb-integrations`: provider adapters/orchestration for Woo/Veeqo/QuickBooks/notifications/Amazon/eBay/marketplaces and fulfillment projection.
+- `dtb-support`: support tickets/events/outbox/automation/macros/APIs/operator workbench/SLA state.
+- `dtb-returns`: return request/workflow/persistence/APIs/status/operator behavior; WooCommerce still owns refunds.
+- `dtb-deployment`: release-domain persistence/control-plane representation; deployment procedure lives elsewhere.
+- `dtb-visual-designer`: design/configuration authoring, revision/publish/rollback/preview and related operator surfaces; it does not become commerce/payment/inventory authority.
 
-Owns shared configuration, authentication and session policy, origin/CORS/nonce/API security, REST infrastructure, Store API containment, cache architecture, health, diagnostics, logging, metrics, audit behavior, account APIs, common admin tooling, and system-manager primitives.
+Provider-specific behavior belongs in dedicated adapters, not domain services.
 
-It is shared infrastructure and must not become the owner of catalog, repair, return, support, fulfillment, or accounting state.
+## 8. Store API/session security
 
-### 7.2 `dtb-catalog-platform`
+Same-origin cart traffic uses WooCommerce Store API, cookie-backed WooCommerce session state, Store API nonce behavior and centralized frontend session handling. Cart-Token is compatibility-only for genuinely cross-origin clients.
 
-Owns product and variation normalization, brands, taxonomies, product relationships, compatibility, compatible parts, catalog-facing REST contracts, enrichment, inventory intelligence, and catalog operator tools. WooCommerce remains the runtime product system of record.
+Never decode unsigned Cart-Token payloads, query `woocommerce_sessions` to recover arbitrary sessions, weaken cookie/nonce/origin/CORS/ownership/capability/rate-limit boundaries, or accept caller-supplied customer/order IDs as authorization. Derive identity server-side and validate ownership independently.
 
-### 7.3 `dtb-commerce`
+## 9. Checkout and order contract
 
-Owns cart extension data, checkout policy, native checkout runtime integration, shipping policy, commerce-facing REST behavior, payment-provider readiness metadata, order tagging, and DTB-owned WooCommerce email template routing.
-
-It does not replace WooCommerce order creation or provider-owned payment UI.
-
-### 7.4 `dtb-order-platform`
-
-Owns order-state observation, append-only order events, captured-payment observation, tracking projections, refund event identity, integration state, queue boundaries, duplicate containment, and retry policy.
-
-### 7.5 `dtb-schematics`
-
-Owns schematic domain records, manifests, attachment metadata, part resolution, hotspot/media relationships, schematic APIs, and schematic cache invalidation.
-
-### 7.6 `dtb-media`
-
-Owns product-image synchronization, product and variation media linking, media administration, and bounded media workflows. It does not take ownership of schematic registration merely because an admin surface exposes schematic controls.
-
-### 7.7 `dtb-marketing`
-
-Owns coming-soon/referral behavior, product SEO behavior, and marketing-facing metadata and controls.
-
-### 7.8 `dtb-repair-service`
-
-Owns repair intake, package selection, quote-first and approval workflows, repair status, repair events, media, shipping coordination, queues, notifications, and operator workflows.
-
-### 7.9 `dtb-integrations`
-
-Owns provider adapters and external-system orchestration for Veeqo, QuickBooks, WooCommerce integration adapters, notifications, Amazon, eBay, marketplace records, integration pipeline controls, and Veeqo-to-WooCommerce fulfillment projection.
-
-Provider-specific behavior belongs inside dedicated adapters, not domain services.
-
-### 7.10 `dtb-support`
-
-Owns support tickets, support events, outbox and automation, macros, support APIs, operator workbench behavior, and SLA-oriented support state.
-
-### 7.11 `dtb-returns`
-
-Owns return requests, return workflow, return persistence, return APIs, return status, and return operator behavior. WooCommerce continues to own actual refunds.
-
-### 7.12 `dtb-deployment`
-
-Owns release-domain records and control-plane integration, including release event persistence and System Manager representation. Its purpose may be described architecturally, but deployment procedures do not belong in this file.
-
-## 8. System-of-record boundaries
-
-### 8.1 React
-
-React owns browsing, navigation, product/service UI, local interaction state, responsive presentation, route-level composition, client API communication, and checkout handoff UX. React never becomes the authority for commerce persistence or payment execution.
-
-### 8.2 WooCommerce
-
-WooCommerce owns runtime products and variations, customers, cart/session state, checkout fields, addresses, shipping, tax, discounts, totals, storefront order creation, order/payment status, refund creation, saved payment-method records, and commerce persistence.
-
-Use WooCommerce CRUD APIs and HPOS-compatible access for WooCommerce entities.
-
-### 8.3 Payment providers
-
-The active WooCommerce payment provider owns payment fields, tokenization, wallet eligibility, wallet and BNPL UI, SCA/3DS, provider authentication, payment confirmation, capture, provider webhooks, and provider customer/payment identities.
-
-DTB may integrate through documented provider and WooCommerce contracts. DTB must not clone provider UI, create synthetic payment controls, read cross-origin iframe contents, or persist provider secrets in browser-visible state.
-
-### 8.4 Veeqo
-
-Veeqo owns sellable inventory truth, allocation, fulfillment, shipment execution, labels, shipment status, carrier, and tracking. WooCommerce may hold an idempotent projection for customer and operator visibility.
-
-### 8.5 QuickBooks
-
-QuickBooks owns the accounting projection. It does not create storefront orders, determine inventory, or replace WooCommerce commerce records.
-
-### 8.6 DTB
-
-DTB owns domain validation, integration orchestration, event ledgers, queue production and consumption, captured-payment gating, projections, repairs, returns, support, schematics, media workflows, operator tooling, and non-secret readiness diagnostics.
-
-## 9. Storefront routes and rendering
-
-The active React route map is authoritative for customer-facing route shapes.
-
-Representative route families include:
+Only this storefront path may create orders:
 
 ```text
-/
-/products
-/products/brands
-/products/brands/:brandSlug
-/products/brands/:brandSlug/categories/:categorySlug
-/products/:slug
-/products/:slug/variations/:variationId
-/parts
-/product/:partNumber
-/category/:slug
-/schematics
-/repairs
-/repairs/start
-/repairs/packages
-/repairs/track
-/faq
-/calculators
-/shipping-policy
-/returns
-/return-policy
-/policies
-/contact
-/cart
-/checkout
-/dashboard
-```
-
-Some routes are public and indexable; others are private, stateful, identifier-bearing, redirect-only, or account-owned. Do not infer SEO, caching, authorization, or persistence semantics from route names alone. Trace the route component and backend contract.
-
-## 10. Store API and customer-session contract
-
-Same-origin storefront cart traffic uses WooCommerce Store API, WooCommerce cookie-backed session state, Store API nonce behavior, and centralized frontend API/session handling.
-
-Cart-Token support is compatibility behavior for genuinely cross-origin clients. It is not the primary same-origin session authority.
-
-Never decode unsigned Cart-Token payloads, query `woocommerce_sessions` to recover arbitrary customer sessions, weaken nonce/cookie/origin/CORS/ownership/capability/rate-limit boundaries, or accept caller-supplied customer or order IDs as authorization.
-
-Customer reads and writes derive identity from authenticated server context and validate ownership independently.
-
-## 11. Checkout and order-creation contract
-
-Only the following storefront workflow may create orders:
-
-```text
-React cart or Checkout Now
-  -> authoritative WooCommerce Store API cart/session
+React cart / Checkout Now
+  -> authoritative Store API cart/session
   -> full-document checkout handoff
   -> native WooCommerce Checkout page
   -> WooCommerce Checkout Block
-  -> provider-owned payment UI
-  -> WooCommerce order and payment lifecycle
+  -> provider-owned payment UI/lifecycle
+  -> WooCommerce order/payment lifecycle
   -> DTB event ledger
   -> dtb-orders Action Scheduler queue
   -> Veeqo / QuickBooks / notifications / tracking
@@ -341,303 +147,118 @@ React cart or Checkout Now
 
 Mandatory invariants:
 
-- WooCommerce creates the order.
-- The Checkout Block owns checkout submission.
-- The payment provider owns payment UI and confirmation.
-- React does not create orders, PaymentIntents, Checkout Sessions, wallet tokens, card fields, or payment iframes.
-- DTB does not introduce a parallel order-creation endpoint.
-- Raw browser or external REST order creation must not bypass the supported checkout contract.
-- Downstream effects wait for captured-payment evidence where required.
-- Duplicate requests must not produce duplicate orders or provider side effects.
+- WooCommerce creates storefront orders and refunds.
+- Checkout Block owns checkout submission.
+- Payment provider owns payment fields, tokenization, wallets, authentication, confirmation/capture and provider webhooks.
+- React/DTB do not create PaymentIntents, Checkout Sessions, card fields, wallet tokens, payment iframes, confirmations or captures.
+- React `/checkout` is a full-document handoff surface, not a payment application.
+- Theme presentation may arrange/stylize supported native/provider surfaces but must not create duplicate fields/payment state/order submission or inspect/clone/reparent cross-origin provider iframes.
+- Downstream effects wait for qualifying captured-payment evidence and are duplicate-safe.
 
-The React `/checkout` route is a handoff surface, not an alternate payment application.
+Historical order/payment identity remains readable; never bulk-rewrite paid-order identity as cleanup.
 
-## 12. Checkout presentation boundary
+## 10. Refund and queue identity
 
-The tracked `drywall-toolbox` theme owns native checkout document presentation.
+Every refund preserves `order_id + refund_id` through events, queue args, idempotency and accounting projection. Separate partial refunds remain separate events; never substitute cumulative lifetime-refunded amount.
 
-Presentation code may arrange the existing Checkout Block, provide responsive layout, expose mobile step presentation, style native fields and provider-supported surfaces, and present order summary and trust context.
+Action Scheduler is the async mechanism. Queue producers define owner, stable identity, deduplication, retryable/terminal classification, retry bounds, completion detection, observability and recovery/compensation. Consumers tolerate retries and prevent duplicate external effects. Keep slow providers out of checkout/payment-webhook acknowledgement and interactive requests.
 
-Presentation code may not create duplicate fields, maintain a second payment state, clone/reparent provider iframes, inspect cross-origin iframe contents, replace native order submission, or own shipping, tax, payment, or order data.
+## 11. Veeqo / QuickBooks / marketplace contracts
 
-There must be one field set, one payment state, and one native order submission action.
+Veeqo owns inventory/allocation/fulfillment/shipment/tracking truth; WooCommerce may hold an idempotent projection. QuickBooks is an event-driven accounting projection, never order authority. Marketplaces stay in dedicated adapters and may not overwrite WooCommerce commerce, Veeqo fulfillment/inventory or QuickBooks accounting authority.
 
-## 13. Product and catalog contract
+All external effects require stable identity, idempotency, bounded retries and explicit ownership.
 
-WooCommerce owns runtime product and variation records. DTB catalog tooling owns normalization, enrichment, compatibility, and catalog-facing contracts.
+## 12. Catalog and schematics
 
-Catalog behavior must preserve parent/variation relationships, product status/visibility, SKU uniqueness, protected MPN/GTIN values, brand and taxonomy identity, compatibility relationships, official provenance, and deterministic import/export shape.
+Use WooCommerce CRUD/HPOS access for runtime products. Preserve parent/variation relationships, visibility, protected identifiers, taxonomy/brand identity, compatibility and deterministic import/export shape. Avoid direct internal writes, broad rewrites, mutable-name foreign keys, unbounded scans and N+1 access.
 
-Avoid direct writes to WooCommerce internals, mutable names/slugs as cross-domain foreign keys when stable identifiers exist, broad catalog rewrites, unbounded scans, N+1 lookups, and duplicate catalog persistence.
+`dtb_schematic` domain records under `dtb-schematics` own schematic existence/lifecycle/page ownership. Frontend consumes authoritative APIs and does not decide which schematics/products/pages exist. Part resolution uses explicit IDs/exact SKU/exact brand+MPN, not request-time fuzzy matching.
 
-## 14. Schematics and part resolution
+## 13. Repairs / returns / support
 
-The `dtb_schematic` CPT domain record (Infrastructure/SchematicRecordRepository.php) is the sole authority for schematic existence, lifecycle, and page ownership — not WordPress attachment flags. See `docs/architecture/schematics-platform.md` for the full architecture.
+Repairs preserve customer ownership, tool identity, package/diagnostic path, attachments, shipping, approval/quote state, append-only events and queue correlation. Returns are DTB domain workflows while actual refund creation remains WooCommerce-owned. Support stays within its domain events/outbox/operator workflow.
 
-```text
-runtime source (SiteGround wp-content/uploads/2026/schematics/; local repository package for verification)
-  -> reconciliation engine (Application/ReconcileSchematicSource.php)
-  -> dtb_schematic domain record + pages (Infrastructure/SchematicRecordRepository.php)
-  -> WordPress attachments (projection, not authority)
-  -> hotspot dataset + exact product/part resolution
-  -> public API (GET /dtb/v1/schematics, GET /dtb/v1/schematics/{id})
-  -> React storefront (frontend/src/pages/SchematicsPage.jsx)
-```
+Do not collapse these domains into generic order metadata or frontend-only state.
 
-The frontend does not own production attachment binaries or decide which schematics/pages/products exist — it consumes the authoritative public API. `dtb-schematics` owns registration, reconciliation, and API behavior. Part resolution uses explicit WooCommerce product/variation IDs, exact SKU, or exact brand+MPN — never fuzzy matching at request time.
+## 14. Cache and SEO
 
-The wp-admin Schematics and Hotspots control center is a synchronization and linking surface, not a diagram or hotspot editor. SiteGround `wp-content/uploads/2026/schematics/` is the primary runtime source; other upload years are fallback candidates. Admin and reconciliation CLI commits, including lifecycle/public-projection mutations, use `Application/RunSchematicOperation.php`, bounded run identity/results, and one commit lease. Dry-run reconciliation uses isolated cursor state and must not mutate shared progress. Ordinary reconciliation never retires uncovered records implicitly.
+One cache control plane belongs under `dtb-platform/Cache`; domain modules invalidate what they own and must not create parallel purge systems. Never cache across customer/cart/checkout/payment/callback/account ownership boundaries.
 
-## 15. Repair workflow
+SEO/sitemap behavior follows actual route contracts and authoritative product/taxonomy data. Do not emit private/session/account/cart/checkout/order/status/preview/operator routes as public indexable URLs. Do not create competing sitemap authorities or fabricate price/stock/rating/identifier facts.
 
-The repair domain supports package-based, quote-first, warranty, intake, media, shipping, status, and approval workflows.
+Substantial SEO/refactoring audits use scoped `docs/work/<task-id>/`, not global mutable TODO files.
 
-A repair request must preserve customer ownership, brand/tool family/model, package or diagnostic path, attachments, shipping choice, approval limits, quote/authorization state, append-only repair events, and queue correlation.
+## 15. Security
 
-Do not collapse repair state into generic order metadata or frontend-only state.
+Never expose or persist WordPress/WooCommerce/database credentials, JWT signing secrets, payment-provider secrets/webhook keys/client secrets/wallet tokens, PayPal/Veeqo/QuickBooks/marketplace credentials, private keys, server configuration or raw payment data. Browser `REACT_APP_*` values are public.
 
-## 16. Return and refund boundaries
+Every REST endpoint has explicit permission behavior. Public access is intentional and narrowly read-safe. Authenticated operations validate identity, capability/role where relevant, ownership and writable-field allowlists.
 
-`dtb-returns` owns return requests and return workflow. WooCommerce owns refund creation.
+Always sanitize/validate input, escape output, use prepared SQL, verify webhook signatures, constrain replay, use timing-safe secret comparison where applicable, redact logs and keep mutations/webhooks idempotent. Never weaken security controls merely to make a request succeed.
 
-Every refund event must preserve:
+## 16. Data and performance
 
-```text
-order_id + refund_id
-```
+Avoid duplicate persistence for orders/payments/refunds/customers/inventory/fulfillment/accounting, direct Woo internals when CRUD exists, mutable foreign keys, broad/unbounded updates/deletes, routine truncation, cross-domain writes and N+1 access.
 
-through event identity, queue arguments, idempotency keys, QuickBooks projection, and observability.
+Schema changes belong in the owning module with explicit version/compatibility semantics. Append-only events remain append-only absent a documented correction mechanism.
 
-Separate partial refunds remain separate events. Do not use cumulative lifetime refunded totals as the amount of each event or infer partial refund versus cancellation solely from parent order status.
+Prefer bounded/indexed/paginated access, batched reads/writes, request coalescing/cancellation, queue-owned external work and deterministic pagination. Avoid duplicate browser server-state, unbounded scans, retry amplification and unnecessary dependencies.
 
-## 17. Order events, queues, and duplicate containment
+## 17. Frontend and UI/UX rules
 
-Action Scheduler is the asynchronous execution mechanism. Order-related external work uses the `dtb-orders` queue boundary and stable event identity.
+Use ES modules, functional components, explicit data flow, centralized API/auth, correct hook dependencies/cleanup/cancellation, runtime validation at untrusted boundaries, reusable design primitives, semantic HTML, keyboard access, visible focus and reduced-motion support.
 
-Queue producers must define owner, hook/arguments, stable event identity, deduplication, retryable versus terminal failure, maximum retry behavior, completion detection, observability, and compensation/reconciliation where necessary.
+Prefer intrinsic/fluid layout, readable typography, restrained styling, clear product/variation/price/availability/quantity/totals/shipping/payment context and concise validation/recovery. Avoid duplicate mobile/desktop business logic, breakpoint-override accumulation, horizontal overflow, hover-only interactions, fake trust/payment controls and UI that competes with checkout completion.
 
-Queue consumers must tolerate retries, detect completed work, prevent duplicate external side effects, preserve provider correlation IDs, avoid duplicate records after transient failures, and keep slow provider work out of interactive requests.
+For complete stateful experiences, model relevant happy/loading/validation/failure/cancel/recovery/success states rather than isolated screenshots.
 
-## 18. Veeqo integration contract
+## 18. PHP/WordPress rules
 
-Veeqo workflows must preserve remote identity, inventory ownership, allocation semantics, shipment identity, fulfillment status, tracking data, idempotent projection into WooCommerce, and customer-notification ownership.
+Follow WordPress conventions and active project patterns. Use `defined( 'ABSPATH' ) || exit;` in executable module files, explicit hooks/permissions/capabilities, prepared SQL, WooCommerce APIs/HPOS, bounded queries/pagination, idempotent handlers and redacted diagnostics. Keep transport/application/domain/provider concerns separated where the owning module does so.
 
-Do not make WooCommerce or frontend state an independent fulfillment authority.
+Do not modify core/third-party plugin internals, trust wp-admin input without authorization, emit output before headers, mix provider logic into domain services or create alternate commerce/payment paths.
 
-Current checkout shipping policy is WooCommerce/DTB rating unless active implementation explicitly establishes live Veeqo carrier rating.
-
-## 19. QuickBooks integration contract
-
-QuickBooks work is queue-owned and event-driven.
-
-Accounting projection must follow qualifying WooCommerce payment/refund events, preserve deterministic remote document identity, reconcile before creating duplicates, keep refunds separate, retain WooCommerce identity, classify retryable and terminal failures, and avoid blocking checkout or webhook acknowledgement.
-
-QuickBooks is a projection, not the order system of record.
-
-## 20. Marketplace integrations
-
-Amazon, eBay, and other marketplace behavior belongs in dedicated adapters inside `dtb-integrations`.
-
-Marketplace state must not overwrite WooCommerce commerce truth, Veeqo inventory truth, or QuickBooks accounting truth. Every marketplace write requires stable identity, idempotency, bounded retries, and explicit ownership.
-
-## 21. Cache architecture
-
-DTB cache behavior has one control plane under `dtb-platform/Cache`.
-
-Cache concerns include key construction, response cache policy, domain invalidation, operator-triggered purge orchestration, provider-specific page/CDN adapters, frontend refresh epoch, and observability.
-
-Domain modules may invalidate caches they own. They must not become independent full-system purge authorities. Legacy or convenience entry points must delegate to the canonical service rather than duplicate SQL, permissions, nonces, provider calls, or result handling.
-
-Never cache across customer, cart, checkout, payment, callback, account, or ownership boundaries.
-
-## 22. SEO and sitemap architecture
-
-SEO behavior belongs in the owning DTB marketing/platform layer and must follow actual React route contracts.
-
-A canonical sitemap service may own routing, URL selection, XML rendering, bounded pagination, caching, invalidation, and robots integration.
-
-WordPress/WooCommerce remain authoritative for published product and taxonomy records. React remains authoritative for public route shapes.
-
-Private, stateful, identifier-bearing, account-owned, preview, checkout, cart, order, repair-status, return-status, and operator routes must not be emitted as public indexable URLs. Do not create competing sitemap authorities.
-
-SEO audit and planning work (the `dtb-seo` skill) writes findings to `TODO_dtb-seo.md` at the repo root, mirroring the `TODO_refactoring-expert.md` convention used by the refactoring-expert agent. These are scratch planning artifacts, not committed documentation — do not treat their presence as a build input.
-
-## 23. Security boundaries
-
-Never expose or persist WordPress/WooCommerce credentials, database credentials, JWT signing secrets, Stripe secret or webhook keys, PaymentIntent client secrets, wallet tokens, PayPal credentials, Veeqo/QuickBooks/marketplace credentials, private keys, server configuration, or raw payment data.
-
-`REACT_APP_*` values are public browser-visible configuration by definition.
-
-Every REST endpoint requires explicit authorization behavior. Public access must be intentional and narrowly read-safe. Authenticated actions must validate identity, capability, role where relevant, resource ownership, and writable-field allowlists.
-
-Always sanitize input, validate schemas, escape output, use prepared SQL, verify webhook signatures, constrain replay, use timing-safe secret comparisons where applicable, redact sensitive logs, and keep mutations/webhooks idempotent.
-
-Never weaken authentication, HttpOnly sessions, nonces, CORS, origin validation, rate limits, ownership checks, replay protection, or provider security boundaries merely to make a request succeed.
-
-## 24. Data and persistence rules
-
-Use WooCommerce CRUD and HPOS-compatible access for WooCommerce entities.
-
-Avoid direct writes to WooCommerce internals when CRUD APIs exist, duplicate persistence for orders/payments/refunds/customers/inventory/fulfillment/accounting, mutable identifiers as foreign keys, broad mutations, unbounded updates/deletes, routine `TRUNCATE`, N+1 queries, and cross-domain table writes.
-
-Schema changes belong in the owning module and require explicit versioning and compatibility semantics. Append-only event records remain append-only unless a documented correction mechanism exists.
-
-Structured catalog and configuration files must preserve schema, encoding, quoting, line endings, protected identifiers, and deterministic output.
-
-## 25. Observability
-
-Significant asynchronous and integration behavior should expose what happened, which domain record/event triggered it, which queue/provider call was involved, whether it completed/retried/skipped/failed, whether a duplicate was prevented, and which identities correlate local and remote state.
-
-Logs and audit records must be useful without exposing secrets or payment data. Do not log raw tokens, addresses, payment payloads, client secrets, wallet payloads, or provider credentials.
-
-## 26. Performance and scalability
-
-Consider query count, indexes, pagination, payload size, cacheability, memory use, browser bundle cost, external latency, queue throughput, retry amplification, duplicate requests, and failure recovery.
-
-Prefer bounded queries, indexed lookups, batched reads/writes, centralized client caching, cancellation, request coalescing, queue-owned external work, and deterministic pagination.
-
-Avoid unbounded scans, fetch-per-item patterns, N+1 queries, synchronous provider calls in checkout/payment acknowledgement, duplicate browser server-state, hidden global state, and unnecessary dependencies.
-
-## 27. Frontend engineering rules
-
-Use ES modules, functional components, explicit data flow, centralized API/authentication behavior, correct hook dependencies, cleanup/cancellation, runtime validation for external data, reusable design primitives, semantic HTML, keyboard accessibility, visible focus, reduced-motion support, and responsive intrinsic layouts.
-
-Avoid duplicated server state, uncontrolled DOM mutation, stale closures, races, silent promise failures, fetch-per-item loops, duplicated mobile/desktop business logic, horizontal overflow, hover-only interactions, and layout that competes with checkout completion.
-
-## 28. Product UI/UX rules
-
-Design for professional contractors: direct, legible, efficient, and trustworthy.
-
-Prefer clear hierarchy, restrained styling, readable typography, fluid grids, predictable spacing, strong product identity, clear price/availability, explicit variations/quantity, visible totals/shipping context, prominent primary actions, concise errors, and reusable components.
-
-Avoid generic dashboard aesthetics, excessive decoration, unnecessary gradients, oversized cards, fake trust indicators, purposeless icons, and UI that obscures product, price, shipping, payment, or checkout state.
-
-Payment marks are informational unless capability data confirms real provider availability. Never render synthetic provider controls.
-
-## 29. PHP and WordPress rules
-
-Follow WordPress coding standards and existing conventions.
-
-Use `defined( 'ABSPATH' ) || exit;`, explicit hooks, explicit permission callbacks, capability checks, prepared SQL, WooCommerce APIs, HPOS-compatible access, idempotent handlers, bounded queries, pagination, redacted diagnostics, and clear separation between transport, application, domain, and provider layers.
-
-Do not modify WordPress core, patch third-party plugin internals, trust wp-admin input without authorization, emit output before headers, mix provider logic into domain services, create alternate order/payment workflows, or add broad compatibility layers without an active caller and purpose.
-
-## 30. Architectural decision rules
+## 19. Architecture and implementation method
 
 For every task:
 
-1. Understand the requested product outcome.
-2. Inspect the relevant active implementation.
-3. Identify the owning module and system of record.
-4. Trace routes, hooks, persistence, events, queues, integrations, and consumers.
-5. Identify security, ownership, concurrency, idempotency, compatibility, and performance risks.
-6. Choose the simplest complete design.
-7. Implement only in the owning layer.
-8. Preserve existing contracts unless the task explicitly changes them.
-9. Update durable architecture documentation when ownership, APIs, routes, persistence, queues, or integration contracts change.
-10. Review for duplicate authority, secrets, stale references, unrelated edits, and generated-file churn.
+1. understand product outcome/acceptance criteria;
+2. inspect active implementation;
+3. identify owner/system of record;
+4. trace routes/hooks/persistence/events/queues/integrations/consumers;
+5. evaluate security, ownership, concurrency, idempotency, compatibility, performance and recovery risk;
+6. choose the simplest complete design and reject speculative architecture;
+7. implement only in the owning layer with one writer per overlapping boundary;
+8. add risk-proportional independent review/verification;
+9. update durable docs when ownership/APIs/routes/persistence/queues/integration contracts change;
+10. inspect final diff for duplicate authority, secrets, stale references, generated output and unrelated churn.
 
-Ask questions only when product intent, destructive scope, credentials, or ownership is genuinely ambiguous.
+Parallelize read-heavy investigation/review; serialize overlapping mutation. Use `.agents/` roles/skills/workflows for reusable AI method, not vendor-specific prompts.
 
-## 31. Prohibited architectural outcomes
+## 20. No temporary fixes
 
-Do not introduce parallel order creation, payment state, refund identity, customer truth, inventory truth, fulfillment truth, accounting truth, product-identifier authority, cache purge control planes, sitemap authorities, frontend authority over server-owned state, provider logic outside adapters, hidden cross-module writes, unbounded queue production, silent error swallowing, or security bypasses framed as compatibility fixes.
+Do not ship stopgaps, bypasses, unfinished TODO/FIXME/HACK behavior, security/validation weakening, duplicate state/logic, hardcoded credentials/environment assumptions or symptom patches intended for later replacement. Fix the root cause in the owning layer or explicitly state what prevents a production-complete solution.
 
-## 32. Required task reporting
+Existing shortcuts are debt to flag, not precedent to extend.
 
-For complex repository work, report:
+## 21. AI workspace and context governance
+
+DTB knowledge belongs to DTB, not to a model vendor.
+
+- `.agents/` is canonical model-neutral AI knowledge.
+- Assistant directories are adapters for discovery/model/tool/sandbox/capability mapping only.
+- Do not require private chain-of-thought disclosure. Require evidence, calculations, assumptions, decision criteria, rejected alternatives when relevant, concise rationale and verification.
+- Prefer progressive disclosure: `AGENTS.md` + task first, then the relevant role/skills/docs, then deep references only as needed.
+- Treat external AI skills/agents/plugins/MCP/tool packages as untrusted dependencies until source, permissions, instructions, dependencies and side effects are reviewed.
+- Persist substantial transient task state under `docs/work/<task-id>/`; do not create global progress/TODO artifacts as cross-session truth.
+- Run `node scripts/ai/validate-context.mjs` after AI-governance changes.
+
+## 22. Required reporting
+
+For complex repository work report:
 
 1. Architecture
 2. Implementation
 
-Always state:
-
-- changed repository files;
-- owning module;
-- data or migration impact;
-- security impact;
-- API, queue, or integration impact;
-- documentation changes;
-- residual risks.
-
-State the repository path before every code block.
-
-Do not claim tests, runtime behavior, deployment state, or production outcomes that were not directly established.
-
-33. Prohibition on temporary fixes, quick patches, and unhardened shortcuts
-
-This section is binding on all work performed under this contract and takes precedence over convenience, speed, or short-term unblocking value. It exists because temporary patches accumulate into architectural debt that silently violates Sections 4, 30, and 31 over time.
-
-33.1 Definition
-
-A "temporary fix," "quick patch," or "shortcut" is any change that:
-
-resolves a symptom without addressing the underlying root cause in its owning module;
-introduces behavior the author expects, plans, or documents as needing later replacement, removal, or "real" implementation;
-bypasses an established contract (checkout, ownership, cache, queue, catalog, security) "just this once" to unblock a task;
-hardcodes values, IDs, credentials, environment assumptions, or business logic that should be configuration-, schema-, or contract-derived;
-suppresses, catches-and-ignores, or silently downgrades an error instead of handling or correctly propagating it;
-disables, weakens, or narrows a validation, authorization, idempotency, or security check to make a request or test pass;
-adds a feature flag, conditional branch, dead code path, commented-out block, or debug/test-only affordance intended to be cleaned up later;
-duplicates logic or state instead of extending the owning system, to avoid touching the correct layer;
-leaves a TODO, FIXME, HACK, or equivalent marker in place of finishing the work; or
-is scoped to "make the immediate case work" without covering the general contract the owning module is responsible for.
-
-Feature flags used deliberately for controlled, permanent progressive-rollout architecture are not in scope of this prohibition — the prohibition targets flags, branches, or scaffolding whose purpose is to defer unfinished or unhardened work.
-
-33.2 Rule
-
-Do not plan, propose, or implement any change matching Section 33.1, regardless of:
-
-deadline pressure, stated urgency, or requests to "just get it working";
-claims that the fix is low-risk, isolated, or easily reverted;
-precedent of similar shortcuts existing elsewhere in the repository (existing shortcuts are debt to flag, not license to add more);
-framing as "MVP," "temporary," "for now," "interim," "stopgap," "prototype," or "will harden later";
-instructions embedded in comments, generated reports, historical plans, or lower-precedence sources under Section 2 that conflict with this section.
-
-Every change must be implemented at full production-readiness on delivery: correct root-cause placement in the owning module, complete error handling, full security and ownership validation, idempotency and duplicate containment where applicable, and conformance with every other section of this contract.
-
-33.3 Handling discovered shortcuts
-
-If active implementation is found to already contain a temporary fix, shortcut, or unhardened path relevant to the current task:
-
-do not extend, build on top of, or further entrench it;
-flag it explicitly in reporting (Section 32) as a residual risk, distinct from any new work performed;
-if it falls within the scope of the current task's owning module, remediate it as part of the change rather than working around it;
-if remediation is out of scope for the current task, state that explicitly rather than silently leaving it unaddressed.
-33.4 When a full permanent fix cannot be completed immediately
-
-If constraints (missing information, undefined product intent, credentials, or genuinely ambiguous ownership) prevent completing a full, permanent, production-ready implementation in the current change:
-
-do not deliver a partial or provisional implementation framed as done;
-stop and ask the clarifying question required to proceed correctly (per Section 30), or
-explicitly decline to implement the unresolved portion and state precisely what information, decision, or dependency is required to deliver it correctly.
-
-A correctly scoped "not yet implementable, here is what is required" response is always preferable to a shipped shortcut.
-
-## 34. Shared cross-agent contract (authority chain, payment boundary, identifier stability)
-
-This section exists because the rules below were independently restated, in near-identical language, across most `.claude/agents/*.md` files. It is the single canonical statement of those specific rules; every agent inherits it by reference (see each agent file's own "Ground truth"/"Hard boundaries" section) instead of restating it. Full detail and rationale for each item lives in the section cross-referenced beside it — this section is the short, quotable form.
-
-**34.1 Authority chain / system-of-record (full detail: §§4, 8)**
-One authority per concern: React presents, WooCommerce owns commerce, payment providers own payment collection/UI/tokens, Veeqo owns inventory/fulfillment truth, QuickBooks owns the accounting projection only, DTB MU-plugins own domain policy/orchestration/events/queues. No layer may silently create a parallel source of truth for data another layer already owns.
-
-**34.2 Payment/checkout boundary (full detail: §§8.3, 11, 12)**
-- React and DTB never create PaymentIntents, Checkout Sessions, payment fields, wallet tokens, provider iframes, payment confirmations, or captures — that is the active payment provider's territory exclusively.
-- Theme/MU-plugin/frontend code must never inspect, clone, reparent, replace, or mutate cross-origin payment-provider iframe contents. Provider UI appearance is controlled only via the provider-supported Appearance/theming API.
-- The `/checkout` React route and any theme checkout presentation layer are a handoff/presentation surface only — one field set, one payment state, one native order submission action; never a second payment state or a competing order-creation path.
-- Payment-method marks are informational only and must never imply a method is configured/available unless real backend capability data confirms it.
-
-**34.3 Session and identity security (full detail: §10)**
-Never decode unsigned Cart-Token payloads, query `woocommerce_sessions` to recover arbitrary customer sessions, or accept a caller-supplied customer/order ID as authorization — ownership is always verified server-side from authenticated context. Never weaken nonce/cookie/origin/CORS/capability/ownership/rate-limit boundaries to make a request succeed.
-
-**34.4 Refund and queue identity (full detail: §§16, 17)**
-Every refund event preserves `order_id + refund_id` through event identity, queue arguments, idempotency keys, and QuickBooks projection. Separate partial refunds remain separate events — never collapse into cumulative lifetime-refunded totals. External order effects (Veeqo/QuickBooks/notifications/marketplace) are queue-owned (`dtb_order_enqueue_job()`, Action Scheduler group `dtb-orders`) with explicit identity, dedup, and retryable-vs-terminal failure classification — never called synchronously from a checkout or webhook-acknowledgement request.
-
-**34.5 Secrets (full detail: §23)**
-Never expose or persist WordPress/WooCommerce credentials, database credentials, JWT signing secrets, Stripe secret/webhook keys, PaymentIntent client secrets, wallet tokens, PayPal/Veeqo/QuickBooks/marketplace credentials, private keys, or raw payment data — in responses, logs, telemetry, or capability metadata.
-
-**34.6 Business identifier stability (full detail: §§5.3, 13)**
-SKU, MPN, GTIN, part number, brand identity, taxonomy identity, compatibility IDs, and external provider IDs are stable business identifiers. They change only through an explicit, deliberate data correction — never as incidental cleanup, a formatting pass, or collateral damage from a bulk/unrelated edit.
-
-Agent-specific exceptions, additional detail, or domain-specific file paths belong in the owning agent file, not here — this section states only the rule, not the full domain context.
+Always state changed repository files, owning module, data/migration impact, security impact, API/queue/integration impact, documentation changes and residual risks. Do not claim tests/runtime/deployment outcomes not directly established.
