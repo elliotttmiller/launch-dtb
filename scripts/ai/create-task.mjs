@@ -16,7 +16,8 @@ if (!/^[a-z0-9][a-z0-9-]{2,80}$/.test(args.id)) {
   process.exit(2);
 }
 
-const taskDir = path.join(ROOT, 'docs', 'work', args.id);
+const workRoot = path.join(ROOT, 'docs', 'work');
+const taskDir = path.join(workRoot, args.id);
 if (fs.existsSync(taskDir)) {
   console.error(`Task directory already exists: docs/work/${args.id}`);
   process.exit(1);
@@ -34,8 +35,6 @@ try {
   console.error(`DTB AI task creation failed: ${error.message}`);
   process.exit(1);
 }
-
-fs.mkdirSync(taskDir, { recursive: true });
 
 const manifest = {
   schemaVersion: 1,
@@ -56,12 +55,23 @@ const manifest = {
   }
 };
 
-fs.writeFileSync(path.join(taskDir, 'task.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-fs.writeFileSync(path.join(taskDir, 'brief.md'), `# ${args.title}\n\n## Objective\n\nDescribe the requested outcome.\n\n## Acceptance criteria\n\n- Define observable completion criteria.\n\n## Non-goals\n\n- Record intentionally excluded scope.\n`);
-fs.writeFileSync(path.join(taskDir, 'evidence.md'), '# Evidence\n\nRecord repository paths, symbols, runtime evidence, external evidence, and provenance.\n');
-fs.writeFileSync(path.join(taskDir, 'decisions.md'), '# Decisions\n\nRecord material architecture decisions, rejected alternatives, and invariants.\n');
-fs.writeFileSync(path.join(taskDir, 'status.md'), '# Status\n\n- State: planned\n- Completed:\n- In progress:\n- Blocked:\n');
-fs.writeFileSync(path.join(taskDir, 'verification.md'), '# Verification\n\nRecord checks run, results, unverified behavior, and residual risks.\n');
+fs.mkdirSync(workRoot, { recursive: true });
+const tempTaskDir = path.join(workRoot, `.tmp-${args.id}-${process.pid}-${Date.now()}`);
+
+try {
+  fs.mkdirSync(tempTaskDir, { recursive: false });
+  fs.writeFileSync(path.join(tempTaskDir, 'task.json'), `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.writeFileSync(path.join(tempTaskDir, 'brief.md'), `# ${args.title}\n\n## Objective\n\nDescribe the requested outcome.\n\n## Acceptance criteria\n\n- Define observable completion criteria.\n\n## Non-goals\n\n- Record intentionally excluded scope.\n`);
+  fs.writeFileSync(path.join(tempTaskDir, 'evidence.md'), '# Evidence\n\nRecord repository paths, symbols, runtime evidence, external evidence, and provenance.\n');
+  fs.writeFileSync(path.join(tempTaskDir, 'decisions.md'), '# Decisions\n\nRecord material architecture decisions, rejected alternatives, and invariants.\n');
+  fs.writeFileSync(path.join(tempTaskDir, 'status.md'), '# Status\n\n- State: planned\n- Completed:\n- In progress:\n- Blocked:\n');
+  fs.writeFileSync(path.join(tempTaskDir, 'verification.md'), '# Verification\n\nRecord checks run, results, unverified behavior, and residual risks.\n');
+  fs.renameSync(tempTaskDir, taskDir);
+} catch (error) {
+  fs.rmSync(tempTaskDir, { recursive: true, force: true });
+  console.error(`DTB AI task creation failed while writing files: ${error.message}`);
+  process.exit(1);
+}
 
 console.log(`Created docs/work/${args.id}`);
 console.log(JSON.stringify(resolved, null, 2));
