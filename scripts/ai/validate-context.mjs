@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadRegistry, validateTaskManifest } from './lib/routing.mjs';
+import { ROOT, loadRegistry, validateTaskManifest } from './lib/routing.mjs';
 
-const root = process.cwd();
+const root = ROOT;
 const failures = [];
 
 const exists = (p) => fs.existsSync(path.join(root, p));
@@ -43,6 +43,7 @@ const required = [
   'scripts/ai/lib/routing.mjs',
   'scripts/ai/resolve-task.mjs',
   'scripts/ai/create-task.mjs',
+  'scripts/ai/update-task.mjs',
   'scripts/ai/validate-task.mjs',
   'scripts/ai/test-routing.mjs',
 ];
@@ -164,6 +165,8 @@ if (registry) {
       const manifest = JSON.parse(read(taskPath));
       for (const error of validateTaskManifest(manifest, registry)) fail(`${taskPath}: ${error}`);
       const taskDir = path.posix.dirname(taskPath);
+      const directoryTaskId = path.posix.basename(taskDir);
+      if (manifest.taskId !== directoryTaskId) fail(`${taskPath}: taskId must match containing directory ${directoryTaskId}`);
       for (const requiredTaskFile of ['brief.md', 'evidence.md', 'decisions.md', 'status.md', 'verification.md']) {
         if (!exists(path.posix.join(taskDir, requiredTaskFile))) fail(`${taskDir}: missing ${requiredTaskFile}`);
       }
