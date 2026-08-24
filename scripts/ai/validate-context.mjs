@@ -46,6 +46,7 @@ const required = [
   'scripts/ai/update-task.mjs',
   'scripts/ai/validate-task.mjs',
   'scripts/ai/test-routing.mjs',
+  'scripts/ai/test-task-tools.mjs',
 ];
 for (const file of required) if (!exists(file)) fail(`missing required AI governance file: ${file}`);
 
@@ -100,6 +101,7 @@ if (registry) {
     if (!exists(workflowPath)) fail(`.agents/registry.json: workflow ${workflowId} references missing file ${workflowPath}`);
   }
 
+  const readOnlyWorkflows = new Set(['architecture', 'review', 'research']);
   for (const [intent, rule] of Object.entries(registry.intents || {})) {
     if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
       fail(`.agents/registry.json: intent ${intent} must be an object`);
@@ -107,9 +109,23 @@ if (registry) {
     }
     if (!registry.workflows?.[rule.workflow]) fail(`.agents/registry.json: intent ${intent} references unknown workflow ${rule.workflow}`);
     if (rule.role && !registry.roles?.[rule.role]) fail(`.agents/registry.json: intent ${intent} references unknown role ${rule.role}`);
+    if (readOnlyWorkflows.has(rule.workflow) && rule.role && registry.roles?.[rule.role]?.mode !== 'read') {
+      fail(`.agents/registry.json: ${rule.workflow} intent ${intent} must resolve to a read-only execution role`);
+    }
     for (const [domain, roleId] of Object.entries(rule.domainRoleOverrides || {})) {
       if (!registry.domains?.[domain]) fail(`.agents/registry.json: intent ${intent} override references unknown domain ${domain}`);
       if (!registry.roles?.[roleId]) fail(`.agents/registry.json: intent ${intent} override references unknown role ${roleId}`);
+      else if (readOnlyWorkflows.has(rule.workflow) && registry.roles[roleId].mode !== 'read') {
+        fail(`.agents/registry.json: ${rule.workflow} intent ${intent} override ${domain} must use a read-only execution role`);
+      }
+    }
+    if (readOnlyWorkflows.has(rule.workflow) && !rule.role) {
+      for (const [domain, domainRoleId] of Object.entries(registry.domains || {})) {
+        const resolvedRoleId = rule.domainRoleOverrides?.[domain] || domainRoleId;
+        if (registry.roles?.[resolvedRoleId]?.mode !== 'read') {
+          fail(`.agents/registry.json: ${rule.workflow} intent ${intent} would resolve domain ${domain} to write-capable role ${resolvedRoleId}`);
+        }
+      }
     }
   }
 
