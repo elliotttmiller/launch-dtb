@@ -33,9 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: '24'
-          package-manager-cache: false
       - name: Validate canonical AI context
-        run: node scripts/ai/validate-context.mjs
+        run: |
+          node --version
+          node scripts/ai/validate-context.mjs
