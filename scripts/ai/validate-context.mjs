@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { ROOT, loadRegistry, validateTaskManifest } from './lib/routing.mjs';
 
-const root = process.cwd();
+const root = ROOT;
 const failures = [];
 
 const exists = (p) => fs.existsSync(path.join(root, p));
@@ -24,7 +25,9 @@ function fail(message) { failures.push(message); }
 
 const required = [
   'AGENTS.md',
+  'CLAUDE.md',
   '.agents/README.md',
+  '.agents/registry.json',
   '.agents/roles/explorer.md',
   '.agents/roles/architect.md',
   '.agents/roles/frontend-engineer.md',
@@ -37,10 +40,18 @@ const required = [
   '.agents/roles/test-verifier.md',
   '.agents/workflows/implementation.md',
   'docs/work/README.md',
+  'scripts/ai/lib/routing.mjs',
+  'scripts/ai/resolve-task.mjs',
+  'scripts/ai/create-task.mjs',
+  'scripts/ai/update-task.mjs',
+  'scripts/ai/validate-task.mjs',
+  'scripts/ai/test-routing.mjs',
+  'scripts/ai/test-task-tools.mjs',
 ];
 for (const file of required) if (!exists(file)) fail(`missing required AI governance file: ${file}`);
 
 const canonicalFiles = [
+  '.agents/registry.json',
   ...walk('.agents/context'),
   ...walk('.agents/roles'),
   ...walk('.agents/skills'),
@@ -61,15 +72,124 @@ for (const file of canonicalFiles) {
 }
 
 const adapterFiles = [
-  ...walk('.claude/agents'),
+  'CLAUDE.md',
+  ...walk('.claude/agents').filter((p) => p.endsWith('.md')),
   ...walk('.claude/skills').filter((p) => p.endsWith('/SKILL.md')),
-  ...walk('.codex/agents'),
+  ...walk('.codex/agents').filter((p) => p.endsWith('.toml')),
   '.github/copilot-instructions.md',
 ].filter((p) => exists(p));
 for (const file of adapterFiles) {
   const text = read(file);
   if (!text.includes('.agents/')) fail(`${file}: assistant adapter must point to canonical .agents/ knowledge`);
   if (/source precedence/i.test(text)) fail(`${file}: assistant adapter must not redefine source precedence`);
+}
+
+let registry;
+try {
+  registry = loadRegistry();
+} catch (error) {
+  fail(`.agents/registry.json: invalid registry JSON: ${error.message}`);
+}
+
+if (registry) {
+  if (registry.version !== 1) fail(`.agents/registry.json: unsupported registry version ${registry.version}`);
+  if (!Array.isArray(registry.riskOrder) || JSON.stringify(registry.riskOrder) !== JSON.stringify(['low', 'medium', 'high', 'critical'])) {
+    fail('.agents/registry.json: riskOrder must be low, medium, high, critical');
+  }
+
+  for (const [workflowId, workflowPath] of Object.entries(registry.workflows || {})) {
+    if (!exists(workflowPath)) fail(`.agents/registry.json: workflow ${workflowId} references missing file ${workflowPath}`);
+  }
+
+  const readOnlyWorkflows = new Set(['architecture', 'review', 'research']);
+  for (const [intent, rule] of Object.entries(registry.intents || {})) {
+    if (!rule || typeof rule !== 'object' || Array.isArray(rule)) {
+      fail(`.agents/registry.json: intent ${intent} must be an object`);
+      continue;
+    }
+    if (!registry.workflows?.[rule.workflow]) fail(`.agents/registry.json: intent ${intent} references unknown workflow ${rule.workflow}`);
+    if (rule.role && !registry.roles?.[rule.role]) fail(`.agents/registry.json: intent ${intent} references unknown role ${rule.role}`);
+    if (readOnlyWorkflows.has(rule.workflow) && rule.role && registry.roles?.[rule.role]?.mode !== 'read') {
+      fail(`.agents/registry.json: ${rule.workflow} intent ${intent} must resolve to a read-only execution role`);
+    }
+    for (const [domain, roleId] of Object.entries(rule.domainRoleOverrides || {})) {
+      if (!registry.domains?.[domain]) fail(`.agents/registry.json: intent ${intent} override references unknown domain ${domain}`);
+      if (!registry.roles?.[roleId]) fail(`.agents/registry.json: intent ${intent} override references unknown role ${roleId}`);
+      else if (readOnlyWorkflows.has(rule.workflow) && registry.roles[roleId].mode !== 'read') {
+        fail(`.agents/registry.json: ${rule.workflow} intent ${intent} override ${domain} must use a read-only execution role`);
+      }
+    }
+    if (readOnlyWorkflows.has(rule.workflow) && !rule.role) {
+      for (const [domain, domainRoleId] of Object.entries(registry.domains || {})) {
+        const resolvedRoleId = rule.domainRoleOverrides?.[domain] || domainRoleId;
+        if (registry.roles?.[resolvedRoleId]?.mode !== 'read') {
+          fail(`.agents/registry.json: ${rule.workflow} intent ${intent} would resolve domain ${domain} to write-capable role ${resolvedRoleId}`);
+        }
+      }
+    }
+  }
+
+  for (const [domain, roleId] of Object.entries(registry.domains || {})) {
+    if (!registry.roles?.[roleId]) fail(`.agents/registry.json: domain ${domain} references unknown role ${roleId}`);
+  }
+
+  for (const [roleId, role] of Object.entries(registry.roles || {})) {
+    if (!exists(role.path)) fail(`.agents/registry.json: role ${roleId} references missing file ${role.path}`);
+    if (!['read', 'write'].includes(role.mode)) fail(`.agents/registry.json: role ${roleId} has invalid mode ${role.mode}`);
+    if (role.minimumRisk && !registry.riskOrder.includes(role.minimumRisk)) fail(`.agents/registry.json: role ${roleId} has invalid minimumRisk ${role.minimumRisk}`);
+    for (const skillId of role.requiredSkills || []) {
+      if (!registry.skills?.[skillId]) fail(`.agents/registry.json: role ${roleId} references unknown skill ${skillId}`);
+    }
+    for (const reviewerId of role.alwaysReviewers || []) {
+      if (!registry.roles?.[reviewerId]) fail(`.agents/registry.json: role ${roleId} references unknown reviewer ${reviewerId}`);
+      else if (registry.roles[reviewerId].mode !== 'read') fail(`.agents/registry.json: reviewer ${reviewerId} must be read-only`);
+    }
+  }
+
+  for (const [skillId, skillPath] of Object.entries(registry.skills || {})) {
+    if (!exists(skillPath)) fail(`.agents/registry.json: skill ${skillId} references missing file ${skillPath}`);
+  }
+
+  for (const [flag, rule] of Object.entries(registry.flags || {})) {
+    for (const skillId of rule.skills || []) {
+      if (!registry.skills?.[skillId]) fail(`.agents/registry.json: flag ${flag} references unknown skill ${skillId}`);
+    }
+    for (const reviewerId of rule.reviewers || []) {
+      if (!registry.roles?.[reviewerId]) fail(`.agents/registry.json: flag ${flag} references unknown reviewer ${reviewerId}`);
+      else if (registry.roles[reviewerId].mode !== 'read') fail(`.agents/registry.json: reviewer ${reviewerId} must be read-only`);
+    }
+    if (rule.minimumRisk && !registry.riskOrder.includes(rule.minimumRisk)) fail(`.agents/registry.json: flag ${flag} has invalid minimumRisk ${rule.minimumRisk}`);
+  }
+
+  for (const [risk, reviewerIds] of Object.entries(registry.riskReviewers || {})) {
+    if (!registry.riskOrder.includes(risk)) fail(`.agents/registry.json: unknown riskReviewers level ${risk}`);
+    for (const reviewerId of reviewerIds) {
+      if (!registry.roles?.[reviewerId]) fail(`.agents/registry.json: risk ${risk} references unknown reviewer ${reviewerId}`);
+      else if (registry.roles[reviewerId].mode !== 'read') fail(`.agents/registry.json: reviewer ${reviewerId} must be read-only`);
+    }
+  }
+
+  const roleIdsByPath = new Map();
+  for (const [roleId, role] of Object.entries(registry.roles || {})) {
+    if (roleIdsByPath.has(role.path)) fail(`.agents/registry.json: roles ${roleIdsByPath.get(role.path)} and ${roleId} share ${role.path}`);
+    roleIdsByPath.set(role.path, roleId);
+  }
+
+  const taskJsonFiles = walk('docs/work').filter((p) => p.endsWith('/task.json'));
+  for (const taskPath of taskJsonFiles) {
+    try {
+      const manifest = JSON.parse(read(taskPath));
+      for (const error of validateTaskManifest(manifest, registry)) fail(`${taskPath}: ${error}`);
+      const taskDir = path.posix.dirname(taskPath);
+      const directoryTaskId = path.posix.basename(taskDir);
+      if (manifest.taskId !== directoryTaskId) fail(`${taskPath}: taskId must match containing directory ${directoryTaskId}`);
+      for (const requiredTaskFile of ['brief.md', 'evidence.md', 'decisions.md', 'status.md', 'verification.md']) {
+        if (!exists(path.posix.join(taskDir, requiredTaskFile))) fail(`${taskDir}: missing ${requiredTaskFile}`);
+      }
+    } catch (error) {
+      fail(`${taskPath}: invalid JSON: ${error.message}`);
+    }
+  }
 }
 
 const loaderPath = 'drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php';
