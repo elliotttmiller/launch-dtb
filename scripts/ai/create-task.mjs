@@ -49,6 +49,7 @@ const manifest = {
     registryVersion: resolved.registryVersion,
     workflow: resolved.workflow.id,
     role: resolved.role.id,
+    subjectRole: resolved.subjectRole.id,
     effectiveRisk: resolved.effectiveRisk,
     skills: resolved.skills.map((item) => item.id),
     reviewers: resolved.reviewers.map((item) => item.id)
