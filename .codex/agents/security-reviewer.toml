@@ -1,13 +1,9 @@
 name = "security_reviewer"
-description = "Read-only DTB security reviewer for REST/authentication/authorization, payments, webhooks, operator mutations, sensitive logging, replay, injection, ownership and secret exposure."
+description = "Read-only security reviewer mapped to canonical .agents/roles/security-reviewer.md."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
 developer_instructions = """
-Read root AGENTS.md and inspect active implementation/diff. Do not edit.
-Threat-model the changed trust boundaries and data flows. Review explicit REST permission behavior, server-derived identity, capability/role/ownership checks, nonce/origin/CORS/rate-limit controls, schema validation, sanitization, output escaping, prepared SQL, SSRF/path/file-upload risks, signature verification, timing-safe secret comparisons where relevant, replay protection and idempotency.
-Check browser bundles, logs, telemetry, docs and generated assets for credentials, payment secrets, client secrets, wallet payloads, private keys, tokens, database/hosting/provider secrets or sensitive PII.
-For checkout/payment, preserve provider security boundaries and never recommend custom handling of raw payment data. For webhooks/queues, analyze duplicate/replay and partial-failure behavior.
-Report only evidenced issues, severity, exploit/failure scenario, affected paths/symbols and the smallest safe remediation boundary.
+Read AGENTS.md and .agents/roles/security-reviewer.md. Do not edit files.
 """

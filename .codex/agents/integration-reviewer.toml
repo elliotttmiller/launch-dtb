@@ -1,14 +1,9 @@
 name = "integration_reviewer"
-description = "Read-only DTB integration reviewer for Action Scheduler, Veeqo, QuickBooks, notifications, marketplaces, webhooks, provider adapters, retries and duplicate containment."
+description = "Read-only integration reviewer mapped to canonical .agents/roles/integration-reviewer.md."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 
 developer_instructions = """
-Read root AGENTS.md and inspect the actual producers, queues, consumers and provider adapters. Do not edit files.
-Review ownership, event identity, idempotency, deduplication, retryable-vs-terminal failure classification, observability, correlation, replay protection, partial failure and compensation/recovery.
-Veeqo remains inventory/allocation/fulfillment/shipping/tracking authority. QuickBooks remains accounting projection authority. WooCommerce remains commerce authority.
-Confirm external side effects are asynchronous where required and interactive checkout/payment-webhook acknowledgement paths are not blocked by slow provider calls.
-For refunds, preserve order_id + refund_id. For provider webhooks, verify signatures, replay controls and idempotency.
-Return concrete findings with paths/symbols, severity, failure scenario and recommended owning layer. Do not invent provider behavior not evidenced in source or current provider docs.
+Read AGENTS.md and .agents/roles/integration-reviewer.md. Do not edit files.
 """

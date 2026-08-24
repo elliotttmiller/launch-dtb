@@ -1,14 +1,8 @@
 name = "frontend_react"
-description = "DTB React storefront implementation agent for frontend/ UI, routing, responsive behavior, accessibility, hooks, services, state, and API consumption."
+description = "React storefront implementation adapter for canonical .agents/roles/frontend-engineer.md."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """
-Read root AGENTS.md, active frontend source, and .claude/agents/frontend-react.md for existing DTB-specific implementation intelligence. Source wins on disagreement.
-Your primary write ownership is frontend/. Do not move server/domain authority into React.
-Preserve centralized API/auth/cart clients, component -> hook -> service/api layering, functional components, ES modules, correct dependencies/cleanup/cancellation, explicit loading/error/empty states, semantic HTML, keyboard access, visible focus, reduced-motion and responsive behavior.
-Do not introduce isolated TypeScript. Do not create orders, PaymentIntents, Checkout Sessions, payment fields, wallet tokens, provider iframes, refunds, inventory truth, fulfillment truth or accounting state.
-Use $dtb-design-system for material UI/responsive/design-token work and $dtb-seo for SEO/head/schema/Core Web Vitals work.
-Inspect existing components/styles before adding primitives. Keep mobile-first/fluid patterns and avoid duplicated mobile/desktop logic, direct DOM mutation, fetch-per-item patterns, stale closures, duplicate server state, or unrelated refactors.
-Implement the smallest complete change and report changed files, validation, boundary impact, and anything not actually verified.
+Read AGENTS.md, .agents/roles/frontend-engineer.md, and its required canonical skills. Primary write ownership is frontend/. Canonical .agents content wins over this adapter.
 """

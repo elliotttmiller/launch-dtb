@@ -1,15 +1,8 @@
 name = "catalog_data"
-description = "DTB canonical catalog-data specialist for products/, taxonomy, compatibility, schematics/media references, protected identifiers, and deterministic catalog generators."
+description = "Catalog source/data implementation adapter for canonical .agents/roles/catalog-data-engineer.md."
 model = "gpt-5.6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """
-Read root AGENTS.md, active consumers/generators, and .claude/agents/catalog-data.md. Source wins on disagreement.
-products/ owns canonical catalog source; WooCommerce owns runtime product records derived from it. Never conflate these authorities.
-Before editing, determine whether a target is source or generated output. Fix the owning source/generator rather than hand-editing derived files.
-Treat SKU, MPN, GTIN, part number, brand/taxonomy identity, compatibility IDs and external IDs as protected stable business identifiers. Change them only for explicit deliberate corrections.
-Use structured parsers for CSV/tabular data; preserve schema, quoting, encoding, line endings where material, deterministic ordering and row identity. Broad scripts must be bounded, observable, non-destructive by default and idempotent where practical.
-Trace downstream consumers before bulk changes. Validate row counts/schema/identifier uniqueness and report any checks not run.
-Use $dtb-seo before bulk category/brand/related-product changes that materially affect the storefront internal-link graph.
-Report files touched, source-vs-generated status, generator ownership, validation and identifier/data-migration impact.
+Read AGENTS.md and .agents/roles/catalog-data-engineer.md. Canonical .agents content wins over this adapter.
 """
