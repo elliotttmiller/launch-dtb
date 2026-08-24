@@ -36,6 +36,14 @@ export function maxRisk(registry, ...risks) {
   ), normalized[0]);
 }
 
+function resolveSkillIds(skillIds, registry) {
+  return unique(skillIds).map((skillId) => {
+    const skillPath = registry.skills[skillId];
+    if (!skillPath) throw new Error(`unknown skill: ${skillId}`);
+    return { id: skillId, path: skillPath };
+  });
+}
+
 export function resolveTask({ intent, domain, flags = [], risk = 'low' }, registry = loadRegistry()) {
   const normalizedFlags = unique(normalizeList(flags));
   const intentRule = registry.intents[intent];
@@ -47,6 +55,8 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
 
   const domainRoleId = registry.domains[domain];
   if (!domainRoleId) throw new Error(`unknown domain: ${domain}`);
+  const subjectRole = registry.roles[domainRoleId];
+  if (!subjectRole) throw new Error(`domain ${domain} references unknown role: ${domainRoleId}`);
 
   const roleId = intentRule.domainRoleOverrides?.[domain] || intentRule.role || domainRoleId;
   const role = registry.roles[roleId];
@@ -71,20 +81,22 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
     .map((reviewerId) => {
       const reviewer = registry.roles[reviewerId];
       if (!reviewer) throw new Error(`unknown reviewer role: ${reviewerId}`);
-      return { id: reviewerId, path: reviewer.path, mode: reviewer.mode };
+      return {
+        id: reviewerId,
+        path: reviewer.path,
+        mode: reviewer.mode,
+        skills: resolveSkillIds(reviewer.requiredSkills || [], registry),
+      };
     });
 
-  const skills = unique(skillIds).map((skillId) => {
-    const skillPath = registry.skills[skillId];
-    if (!skillPath) throw new Error(`unknown skill: ${skillId}`);
-    return { id: skillId, path: skillPath };
-  });
+  const skills = resolveSkillIds(skillIds, registry);
+  const subjectContext = roleId === domainRoleId ? [] : [subjectRole.path];
 
   return {
     registryVersion: registry.version,
     intent,
     domain,
-    subjectRole: { id: domainRoleId, path: registry.roles[domainRoleId]?.path || null },
+    subjectRole: { id: domainRoleId, path: subjectRole.path, mode: subjectRole.mode },
     flags: normalizedFlags,
     requestedRisk: risk,
     effectiveRisk,
@@ -92,7 +104,7 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
     role: { id: roleId, path: role.path, mode: role.mode },
     skills,
     reviewers,
-    context: ['AGENTS.md', '.agents/README.md', workflow, role.path, ...skills.map((item) => item.path)],
+    context: unique(['AGENTS.md', '.agents/README.md', workflow, role.path, ...subjectContext, ...skills.map((item) => item.path)]),
   };
 }
 
@@ -142,6 +154,7 @@ export function validateTaskManifest(manifest, registry = loadRegistry()) {
   if (routing.registryVersion !== resolved.registryVersion) errors.push('routing.registryVersion is stale');
   if (routing.workflow !== resolved.workflow.id) errors.push(`routing.workflow must be ${resolved.workflow.id}`);
   if (routing.role !== resolved.role.id) errors.push(`routing.role must be ${resolved.role.id}`);
+  if (routing.subjectRole !== resolved.subjectRole.id) errors.push(`routing.subjectRole must be ${resolved.subjectRole.id}`);
   if (routing.effectiveRisk !== resolved.effectiveRisk) errors.push(`routing.effectiveRisk must be ${resolved.effectiveRisk}`);
 
   const expectedSkills = resolved.skills.map((item) => item.id).sort();
