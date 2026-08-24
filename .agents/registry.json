@@ -10,19 +10,27 @@
     "context": ".agents/workflows/context-maintenance.md"
   },
   "intents": {
-    "implement": "implementation",
-    "fix": "implementation",
-    "change": "implementation",
-    "architecture": "architecture",
-    "design-system": "architecture",
-    "review": "review",
-    "audit": "review",
-    "verify": "review",
-    "ui-design": "ui",
-    "redesign": "ui",
-    "research": "research",
-    "investigate": "research",
-    "context-maintenance": "context"
+    "implement": { "workflow": "implementation" },
+    "fix": { "workflow": "implementation" },
+    "change": { "workflow": "implementation" },
+    "architecture": { "workflow": "architecture", "role": "architect" },
+    "design-system": { "workflow": "architecture", "role": "architect" },
+    "review": { "workflow": "review", "role": "code-reviewer" },
+    "audit": { "workflow": "review", "role": "code-reviewer" },
+    "verify": { "workflow": "review", "role": "test-verifier" },
+    "ui-design": { "workflow": "ui" },
+    "redesign": { "workflow": "ui" },
+    "research": {
+      "workflow": "research",
+      "role": "explorer",
+      "domainRoleOverrides": { "market-research": "market-intelligence-analyst" }
+    },
+    "investigate": {
+      "workflow": "research",
+      "role": "explorer",
+      "domainRoleOverrides": { "market-research": "market-intelligence-analyst" }
+    },
+    "context-maintenance": { "workflow": "context" }
   },
   "domains": {
     "frontend": "frontend-engineer",
