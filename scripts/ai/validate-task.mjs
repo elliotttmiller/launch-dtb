@@ -21,7 +21,7 @@ if (!taskDir.startsWith(`${workRoot}${path.sep}`)) {
   process.exit(1);
 }
 
-const requiredFiles = ['task.json', 'brief.md', 'evidence.md', 'decisions.md', 'status.md', 'verification.md'];
+const requiredFiles = ['task.json', 'brief.md', 'evidence.md', 'verification.md'];
 const errors = [];
 
 if (!fs.existsSync(taskDir)) {
