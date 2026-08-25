@@ -77,6 +77,8 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 	// which batch window is currently being processed.
 	$resolved_all  = dtb_schematic_reconcile_resolve_all_identities( $all_rows );
 	$duplicate_keys = dtb_schematic_reconcile_find_duplicate_keys( $resolved_all );
+	$last_row_by_canonical_id = dtb_schematic_reconcile_last_row_by_canonical_id( $resolved_all );
+	$source_rows_by_canonical_id = dtb_schematic_reconcile_source_rows_by_canonical_id( $all_rows, $resolved_all );
 
 	if ( $persist_state ) {
 		$state = $resume ? dtb_schematic_reconcile_state_get() : dtb_schematic_reconcile_state_start_pass();
@@ -112,6 +114,19 @@ function dtb_schematic_reconcile_source( array $args = [] ): array {
 			$dry_run,
 			$upload_path
 		);
+
+		$canonical_id = (string) ( $resolved['canonical_id'] ?? '' );
+		if ( ! $dry_run && $wp_context && '' !== $canonical_id && ( $last_row_by_canonical_id[ $canonical_id ] ?? null ) === $index ) {
+			$finalization = dtb_schematic_reconcile_finalize_record_pipeline( $canonical_id, $source_rows_by_canonical_id[ $canonical_id ] ?? [] );
+			$asset_report['record_finalization'] = $finalization;
+			$report['finalized']++;
+			if ( 'blocked' === $finalization['status'] ) {
+				$report['publication_blocked']++;
+			}
+			if ( ! empty( $finalization['changed'] ) ) {
+				$asset_report['changed'] = true;
+			}
+		}
 
 		$report['examined']++;
 		$report['dispositions'][ $asset_report['disposition'] ] = 1 + ( $report['dispositions'][ $asset_report['disposition'] ] ?? 0 );
@@ -181,6 +196,8 @@ function dtb_schematic_reconcile_empty_report( bool $dry_run ): array {
 		'skipped'                     => 0,
 		'unresolved'                  => 0,
 		'retired'                     => 0,
+		'finalized'                   => 0,
+		'publication_blocked'         => 0,
 		'dispositions'                => [],
 		'assets'                      => [],
 		'batch_start'                 => 0,
@@ -261,6 +278,33 @@ function dtb_schematic_reconcile_find_duplicate_keys( array $resolved_all ): arr
 		$by_key[ $key ][] = $index;
 	}
 	return array_filter( $by_key, static fn( $indexes ) => count( $indexes ) > 1 );
+}
+
+/** Return the final manifest row index for every resolved canonical record. */
+function dtb_schematic_reconcile_last_row_by_canonical_id( array $resolved_all ): array {
+	$last_rows = [];
+	foreach ( $resolved_all as $index => $resolved ) {
+		$canonical_id = (string) ( $resolved['canonical_id'] ?? '' );
+		if ( '' !== $canonical_id ) {
+			$last_rows[ $canonical_id ] = $index;
+		}
+	}
+	return $last_rows;
+}
+
+/** Group manifest rows with their resolved page identity for final readiness. */
+function dtb_schematic_reconcile_source_rows_by_canonical_id( array $rows, array $resolved_all ): array {
+	$grouped = [];
+	foreach ( $resolved_all as $index => $resolved ) {
+		$canonical_id = (string) ( $resolved['canonical_id'] ?? '' );
+		if ( '' !== $canonical_id ) {
+			$grouped[ $canonical_id ][] = [
+				'row'      => $rows[ $index ],
+				'resolved' => $resolved,
+			];
+		}
+	}
+	return $grouped;
 }
 
 /**
@@ -454,10 +498,6 @@ function dtb_schematic_reconcile_finalize_asset( array $asset, ?DTB_Schematic_Re
 
 	if ( $already_synchronized ) {
 		$asset['disposition'] = DTB_Schematic_Asset_Disposition::ACTIVE_AND_SYNCHRONIZED;
-		if ( ! $dry_run && $record && dtb_schematic_reconcile_ensure_published( $record ) ) {
-			$asset['changed'] = true;
-			$asset['notes'][] = 'Schematic record backfilled and/or published via ManageSchematicRecord.';
-		}
 		return $asset;
 	}
 
@@ -486,88 +526,142 @@ function dtb_schematic_reconcile_finalize_asset( array $asset, ?DTB_Schematic_Re
 		$asset['notes'][] = 'Domain record page attached/updated via ManageSchematicRecord.';
 	}
 
-	$fresh_record = dtb_schematic_record_repo_find_by_canonical_id( $canonical_id );
-	if ( $fresh_record && dtb_schematic_reconcile_ensure_published( $fresh_record ) ) {
-		$asset['changed'] = true;
-		$asset['notes'][] = 'Schematic record backfilled and/or published via ManageSchematicRecord.';
-	}
-
 	return $asset;
 }
 
 /**
- * Closes the loop for a reconciled record: backfills brand_id/category_id
- * from DTB_SCHEMATIC_BRAND_CATEGORY_MAP if either is still missing (covers
- * records created before that map existed), then — if the record is now
- * publication-eligible and not already published/retired — promotes it
- * straight through draft/incomplete -> ready -> published. Called for every
- * resolved record in a commit-mode pass regardless of whether its page
- * needed (re)writing, so "successfully registered, linked and synced" always
- * results in a published record without a separate manual publish step.
- * Idempotent and safe to call repeatedly; every failure is logged rather
- * than silently swallowed, since a record that stays unpublished here has
- * no other signal surfaced to the operator.
+ * Finalize one record only after its final manifest page has reconciled.
+ * Metadata, product linkage, hotspot migration, exact part resolution and
+ * runtime media readiness must all succeed before publication.
  *
- * @return bool True if this call changed the record (backfill and/or lifecycle).
+ * @return array{canonical_id:string,status:string,changed:bool,requirements:array,hotspots:array,error:string}
  */
-function dtb_schematic_reconcile_ensure_published( DTB_Schematic_Record_Entity $record ): bool {
-	$changed = false;
+function dtb_schematic_reconcile_finalize_record_pipeline( string $canonical_id, array $source_rows = [] ): array {
+	$result = [
+		'canonical_id' => $canonical_id,
+		'status'       => 'failed',
+		'changed'      => false,
+		'requirements' => [],
+		'hotspots'     => [],
+		'error'        => '',
+	];
+	$record = dtb_schematic_record_repo_find_by_canonical_id( $canonical_id );
+	if ( ! $record ) {
+		$result['error'] = 'The authoritative schematic record was not created.';
+		return $result;
+	}
+	if ( $record->lifecycle->is_retired() ) {
+		$result['status'] = 'retired';
+		return $result;
+	}
 
-	if ( '' === trim( $record->brand_id ) || '' === trim( $record->category_id ) ) {
-		$brand_category = DTB_SCHEMATIC_BRAND_CATEGORY_MAP[ $record->canonical_id ] ?? null;
-		if ( $brand_category ) {
-			$backfill = [];
-			if ( '' === trim( $record->brand_id ) ) {
-				$backfill['brand_id'] = $brand_category['brand_id'];
-			}
-			if ( '' === trim( $record->category_id ) ) {
-				$backfill['category_id'] = $brand_category['category_id'];
-			}
-			$updated = dtb_schematic_update( $record->id, $backfill );
-			if ( is_wp_error( $updated ) ) {
-				error_log( sprintf( '[dtb-schematics] brand/category backfill failed for %s: %s', $record->canonical_id, $updated->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			} else {
-				$record  = $updated;
-				$changed = true;
-			}
-		} else {
-			// No catalog-derived mapping for this id — surfaced so a real
-			// catalog/map gap doesn't look identical to "already backfilled".
-			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $record->canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	$enriched = dtb_schematic_enrich_metadata( $record );
+	if ( is_wp_error( $enriched ) ) {
+		$result['error'] = $enriched->get_error_message();
+		return $result;
+	}
+	$record            = $enriched['record'];
+	$result['changed'] = $result['changed'] || $enriched['changed'];
+
+	$family = dtb_schematic_reconcile_backfill_family( $record );
+	if ( $family ) {
+		$record            = $family;
+		$result['changed'] = true;
+	}
+
+	if ( dtb_schematic_reconcile_refresh_linked_products( $record ) ) {
+		$result['changed'] = true;
+		$record = dtb_schematic_record_repo_get( $record->id ) ?: $record;
+	}
+
+	$result['hotspots'] = dtb_schematic_migrate_hotspot_dataset_for_record( $record, false );
+	if ( 'failed' === $result['hotspots']['status'] ) {
+		$result['error'] = (string) $result['hotspots']['detail'];
+		return $result;
+	}
+	if ( 'migrated' === $result['hotspots']['status'] ) {
+		$result['changed'] = true;
+	}
+	$record = dtb_schematic_record_repo_get( $record->id ) ?: $record;
+
+	$result['requirements'] = array_merge(
+		dtb_schematic_reconcile_source_requirements( $record, $source_rows ),
+		dtb_schematic_runtime_publication_requirements( $record )
+	);
+	if ( 'source_file_missing' === $result['hotspots']['status'] ) {
+		$result['requirements'][] = 'hotspot_source_file_missing';
+	}
+	$result['requirements'] = array_values( array_unique( $result['requirements'] ) );
+	if ( ! empty( $result['requirements'] ) ) {
+		$incomplete = dtb_schematic_mark_incomplete( $record->id, $result['requirements'] );
+		if ( is_wp_error( $incomplete ) ) {
+			$result['error'] = $incomplete->get_error_message();
+			return $result;
 		}
+		$result['changed'] = $result['changed'] || $incomplete->lifecycle->value() !== $record->lifecycle->value();
+		$result['status']  = 'blocked';
+		return $result;
 	}
 
-	if ( '' === trim( $record->family_id ) ) {
-		$backfilled = dtb_schematic_reconcile_backfill_family( $record );
-		if ( $backfilled ) {
-			$record  = $backfilled;
-			$changed = true;
+	if ( $record->lifecycle->is_published() ) {
+		if ( $result['changed'] ) {
+			$projection = dtb_schematic_update_published_projection( $record->id );
+			if ( is_wp_error( $projection ) ) {
+				$result['error'] = $projection->get_error_message();
+				return $result;
+			}
 		}
-	}
-
-	if ( $record->lifecycle->is_published() || $record->lifecycle->is_retired() ) {
-		return $changed;
-	}
-
-	if ( ! empty( dtb_schematic_publication_requirements( $record->to_array() ) ) ) {
-		return $changed;
+		$result['status'] = 'published';
+		return $result;
 	}
 
 	if ( DTB_Schematic_Lifecycle_Status::READY !== $record->lifecycle->value() ) {
-		$ready = dtb_schematic_mark_ready( $record->id );
-		if ( is_wp_error( $ready ) ) {
-			error_log( sprintf( '[dtb-schematics] auto mark-ready failed for %s: %s', $record->canonical_id, $ready->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-			return $changed;
+		$record = dtb_schematic_mark_ready( $record->id );
+		if ( is_wp_error( $record ) ) {
+			$result['error'] = $record->get_error_message();
+			return $result;
 		}
+		$result['changed'] = true;
 	}
-
 	$published = dtb_schematic_publish( $record->id );
 	if ( is_wp_error( $published ) ) {
-		error_log( sprintf( '[dtb-schematics] auto-publish failed for %s: %s', $record->canonical_id, $published->get_error_message() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		return $changed;
+		$result['error'] = $published->get_error_message();
+		return $result;
 	}
+	$result['changed'] = true;
+	$result['status']  = 'published';
+	return $result;
+}
 
-	return true;
+/** Confirm every canonical manifest page reached the authoritative record. */
+function dtb_schematic_reconcile_source_requirements( DTB_Schematic_Record_Entity $record, array $source_rows ): array {
+	$unmet = [];
+	$pages = [];
+	foreach ( $record->pages as $page ) {
+		$pages[ (int) $page['page_number'] ] = $page;
+	}
+	$seen = [];
+	foreach ( $source_rows as $source ) {
+		$page_number = (int) ( $source['resolved']['page'] ?? 0 );
+		if ( $page_number < 1 || isset( $seen[ $page_number ] ) ) {
+			$unmet[] = 'canonical_source_page_collision:' . $page_number;
+			continue;
+		}
+		$seen[ $page_number ] = true;
+		$binary = dtb_schematics_describe_source_binary( (string) ( $source['row']['filename'] ?? '' ), true );
+		if ( empty( $binary['exists'] ) ) {
+			$unmet[] = 'canonical_source_binary_missing:' . $page_number;
+		}
+		if ( ! isset( $pages[ $page_number ] ) ) {
+			$unmet[] = 'canonical_source_page_unreconciled:' . $page_number;
+			continue;
+		}
+		$expected_checksum = (string) ( $source['row']['checksum_sha256'] ?? '' );
+		if ( '' !== $expected_checksum && $expected_checksum !== (string) ( $pages[ $page_number ]['source_checksum'] ?? '' ) ) {
+			$unmet[] = 'canonical_source_checksum_mismatch:' . $page_number;
+		}
+	}
+	return $unmet;
 }
 
 /**
@@ -677,12 +771,8 @@ function dtb_schematic_reconcile_write_row( ?DTB_Schematic_Record_Entity $record
 			error_log( sprintf( '[dtb-schematics] no brand/category mapping available for %s; publication will stay blocked until scripts/catalog/gen_sku_schematic_map.py is regenerated with a row for this id.', $canonical_id ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 		}
 	}
-	// Backfilling brand_id/category_id on an *existing* record, and promoting
-	// an eligible record through ready -> published, both happen in
-	// dtb_schematic_reconcile_ensure_published() below — called for every
-	// resolved record regardless of whether its page needed writing, so it
-	// also covers already-page-synchronized records that never reach this
-	// function (see dtb_schematic_reconcile_finalize_asset()).
+	// Customer-facing metadata and lifecycle publication are finalized once,
+	// after the record's final canonical manifest page has reconciled.
 
 	$existing_page = null;
 	foreach ( $record->pages as $existing ) {

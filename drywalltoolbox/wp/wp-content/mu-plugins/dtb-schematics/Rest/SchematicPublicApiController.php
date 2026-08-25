@@ -214,6 +214,9 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 			if ( ! $record->lifecycle->is_published() ) {
 				continue; // Defense in depth: never leak a non-published record.
 			}
+			if ( ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
+				continue; // Published metadata alone never exposes an unusable projection.
+			}
 
 			$entry = dtb_schematic_generate_catalog_entry( $record );
 
@@ -269,7 +272,7 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 
 	$record = dtb_schematic_record_repo_find_by_canonical_id( $schematic_id );
 
-	if ( ! $record || ! $record->lifecycle->is_published() ) {
+	if ( ! $record || ! $record->lifecycle->is_published() || ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
 		return new WP_Error(
 			'dtb_schematic_not_found',
 			__( 'Schematic not found.', 'drywall-toolbox' ),

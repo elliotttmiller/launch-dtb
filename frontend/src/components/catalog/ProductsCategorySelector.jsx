@@ -16,8 +16,8 @@ const ALL_PRODUCTS_PREVIEW_LIMIT = 8;
 const ALL_PRODUCTS_SLIDE_INTERVAL_MS = 3800;
 
 const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
-  'automatic_tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_05.webp',
-  'automatic-tapers': '/wp-content/uploads/2026/media/columbia_tools_taper_05.webp',
+  'automatic_tapers': '/wp/wp-content/uploads/2026/media/columbia_tools_taper_01-scaled.webp',
+  'automatic-tapers': '/wp/wp-content/uploads/2026/media/columbia_tools_taper_01-scaled.webp',
   'compound_tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
   'compound-tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
   'corner_tools': '/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',

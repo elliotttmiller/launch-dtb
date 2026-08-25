@@ -77,7 +77,7 @@ final class DTB_Schematic_Lifecycle_Status {
 			self::DRAFT      => [ self::INCOMPLETE, self::READY, self::RETIRED ],
 			self::INCOMPLETE => [ self::DRAFT, self::READY, self::RETIRED ],
 			self::READY      => [ self::DRAFT, self::INCOMPLETE, self::PUBLISHED, self::RETIRED ],
-			self::PUBLISHED  => [ self::READY, self::RETIRED ],
+			self::PUBLISHED  => [ self::READY, self::INCOMPLETE, self::RETIRED ],
 			self::RETIRED    => [ self::DRAFT ],
 		];
 	}

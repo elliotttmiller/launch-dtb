@@ -8,6 +8,7 @@
  */
 
 import { PRODUCT_SCHEMATIC_LINKS } from './productSchematicLinks.generated.js';
+import { getSchematicBrandIdByName } from './schematicBrands.js';
 
 // Defined schematics from Parts.jsx organized by brand
 export const SCHEMATIC_DEFINITIONS = {
@@ -391,9 +392,9 @@ export function getSchematicLinkForProduct(product, { allowLegacyFallback = true
       || generated?.category
       || definition?.category
       || '';
-    const url = getMetaValue(product, '_dtb_schematic_url')
-      || generated?.url
-      || buildSchematicsUrl(schematicId, { category, page, variant });
+    // Always rebuild the route from canonical identity. Stored/generated URLs
+    // may contain legacy brand aliases even when the schematic ID is current.
+    const url = buildSchematicsUrl(schematicId, { category, page, variant });
 
     return {
       schematicId,
@@ -436,15 +437,6 @@ export function buildPartsUrl(schematicId) {
   return `/parts?schematic=${encodeURIComponent(schematicId)}`;
 }
 
-// Maps each brand name to the URL slug used in /schematics?brand=<slug>
-const BRAND_TO_SLUG = {
-  'Columbia Tools': 'columbia-taping-tools',
-  'Columbia Taping Tools': 'columbia-taping-tools',
-  'TapeTech': 'tapetech',
-  'Dura-Stilts': 'dura-stilts',
-  'Level5': 'level5',
-};
-
 // Reverse-lookup: schematic ID → brand name (built once from SCHEMATIC_DEFINITIONS)
 const SCHEMATIC_ID_TO_BRAND = (() => {
   const map = {};
@@ -463,10 +455,12 @@ const SCHEMATIC_ID_TO_BRAND = (() => {
 export function buildSchematicsUrl(schematicId, { category = '', page = null, variant = null } = {}) {
   if (!schematicId) return '/schematics';
   const brand = SCHEMATIC_ID_TO_BRAND[schematicId] || '';
-  const slug  = BRAND_TO_SLUG[brand] || '';
+  const brandId = getSchematicBrandIdByName(brand);
   const params = new URLSearchParams();
-  if (slug) params.set('brand', slug);
-  if (category) params.set('category', category);
+  if (brandId) params.set('brand', brandId);
+  if (category) {
+    params.set('category', category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+  }
   params.set('schematic', schematicId);
   if (variant) params.set('variant', variant);
   if (page) params.set('page', String(page));

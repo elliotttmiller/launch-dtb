@@ -30,6 +30,8 @@ SiteGround wp-content/uploads/2026/schematics/
 
 The live public API is limited to the collection and detail routes above. The private CPT is not public REST storage, and the frontend does not decide availability or publication.
 
+Schematic brand IDs use one canonical contract across API records, generated links, header navigation, and route state: `columbia`, `tape-tech`, `sur-pro`, `platinum`, `dura-stilts`, and `level5`. Customer-facing names are stored separately. Legacy route aliases such as `columbia-taping-tools`, `tapetech`, `surpro`, `platinum-drywall-tools`, `durastilts`, and `level-5` are accepted only as inbound compatibility values and are replaced with their canonical query value in the browser.
+
 Hotspot source JSON is read from the approved `frontend/public/brands/**/schematic_data*.json` repository source or its deployment-equivalent `/brands` root. The hotspot reader validates references against those fixed roots, enforces file/part/occurrence bounds, understands legacy and v2 source schemas, normalizes geometry, and never fabricates missing coordinates.
 
 ## 3. Schematics and Hotspots control center
@@ -43,11 +45,11 @@ Its primary surfaces are:
 - Record: pages/attachments, normalized hotspot state, exact product-link state, publication requirements, preview, and record-scoped operations.
 - Operations and history: global reconciliation preview/commit and append-only operational results.
 
-A temporary `Admin/Diagnostics/HotspotResolver.php` surface is available for hotspot/part diagnosis while source data is being reconciled. It does not introduce a second source of truth. `Application/DiagnoseSchematicHotspots.php` operates against authoritative schematic relationships and delegates all writes through `Application/ManageSchematicRecord.php`. Automatic repair is limited to the existing deterministic resolution contract: explicit preserved override, exact SKU, exact brand plus protected MPN, and explicit compatibility relationship. Fuzzy/title candidates are review-only and require an explicit operator decision.
+The `Admin/Diagnostics/HotspotResolver.php` surface supports hotspot/part diagnosis while source data is being reconciled. It does not introduce a second source of truth. `Application/DiagnoseSchematicHotspots.php` operates against authoritative schematic relationships and delegates all writes through `Application/ManageSchematicRecord.php`. Automatic repair is limited to the existing deterministic resolution contract: explicit preserved override, exact SKU, exact brand plus protected MPN, and explicit compatibility relationship. Fuzzy/title candidates are review-only and require an explicit operator decision.
 
 The resolver also includes a read-only source-truth audit implemented by `Application/AuditSchematicHotspotSources.php`. It reads current `frontend/public/brands` hotspot files through the same approved source locator, reader, normalization, source grouping, and dataset-merge semantics used by `MigrateSchematicHotspotDatasets.php`. It compares current source interpretation to the persisted normalized projection and reports source drift, source-only/stored-only parts, dangling hotspot part references, invalid coordinates, duplicate hotspot identities, page mismatches, source read failures, and exact-resolution potential. Source audit findings never mutate the source files, WooCommerce products, protected identifiers, or schematic records.
 
-A temporary one-time optimizer is implemented by `Application/OptimizeSchematicHotspots.php` and `Admin/Diagnostics/HotspotOptimizerPanel.php`. It is invoked from the Hotspot Resolver and runs through `RunSchematicOperation.php` as `optimize_hotspots`. Preview mode performs no writes. Apply mode acquires the existing process-wide schematic commit lease, audits the current approved source data, runs the existing hotspot migration for every bounded authoritative record, refreshes deterministic part resolution, then classifies every remaining unresolved relationship into an operator work queue. Repeated part identities are collapsed across schematics so one catalog/source problem is shown once with its total relationship and hotspot impact.
+The bounded optimizer is implemented by `Application/OptimizeSchematicHotspots.php` and `Admin/Diagnostics/HotspotOptimizerPanel.php`. It is invoked from the Hotspot Resolver and runs through `RunSchematicOperation.php` as `optimize_hotspots`. Preview mode performs no writes. Apply mode acquires the existing process-wide schematic commit lease, audits the current approved source data, runs the existing hotspot migration for every bounded authoritative record, refreshes deterministic part resolution, then classifies every remaining unresolved relationship into an operator work queue. Repeated part identities are collapsed across schematics so one catalog/source problem is shown once with its total relationship and hotspot impact.
 
 The optimizer never creates WooCommerce products and never rewrites SKU, MPN, brand, or other protected catalog identifiers. Its commit path is restricted to the existing schematic dataset/relationship writes already owned by `MigrateSchematicHotspotDatasets.php` and `ManageSchematicRecord.php`. Exact SKU, exact brand+MPN, preserved explicit override, intentionally-not-sold state, and explicit compatibility remain the only automatic resolution mechanisms. MPN/brand conflicts, formatting similarities, title candidates, missing source identifiers, and absent catalog matches are diagnostic evidence only and are emitted with a required operator resolution.
 
@@ -75,6 +77,8 @@ Commit operations acquire a process-wide compare-and-swap lease. The owning run 
 
 Reconciliation never retires records by default. Retirement by source omission requires a separate explicitly reviewed full-pass policy; ordinary admin and CLI reconciliation pass `retire_uncovered => false`.
 
+Reconciliation finalizes a canonical record only after its final manifest row has been processed. Finalization persists canonical brand/category IDs and customer-facing brand/category/title metadata, fills family metadata, refreshes linked WooCommerce IDs, migrates the normalized hotspot dataset, resolves parts through exact identifiers, compares every expected manifest page/checksum, and evaluates live attachment descriptions. Only a record with public attachment URLs, complete source pages, required normalized hotspot data, and no unresolved part relationships advances through ready to published. A previously published record that no longer satisfies the contract is moved to incomplete and excluded from both collection and detail API projections.
+
 ## 5. Security and write boundaries
 
 - The admin page and every mutation require `dtb_schematics_can_manage()` and a WordPress nonce.
@@ -95,9 +99,9 @@ Reconciliation never retires records by default. Retirement by source omission r
 
 The rebuild introduces no new public schema and no catalog identifier migration. It adds non-autoloaded WordPress options for bounded operation-run results, a completed-run index, and the active commit lease. Existing schematic records, page definitions, hotspot datasets, activity rows, WooCommerce products, and public API shapes are preserved.
 
-The temporary source audit adds no persistence. It derives its report from current approved hotspot source files, persisted normalized schematic data, authoritative record page/part relationships, and read-only WooCommerce resolution lookups.
+The source audit adds no persistence. It derives its report from current approved hotspot source files, persisted normalized schematic data, authoritative record page/part relationships, and read-only WooCommerce resolution lookups.
 
-The one-time optimizer adds no new domain persistence. Preview runs only store the existing bounded operation-run result/history. Apply runs may update normalized hotspot datasets and schematic part relationships through the established migration/application services, and record a `hotspot_one_time_optimizer` activity entry. WooCommerce product/catalog data is read-only throughout the optimizer.
+The optimizer adds no new domain persistence. Preview runs only store the existing bounded operation-run result/history. Apply runs may update normalized hotspot datasets and schematic part relationships through the established migration/application services, and record a `hotspot_one_time_optimizer` activity entry. WooCommerce product/catalog data is read-only throughout the optimizer.
 
 No live reconciliation or migration is implied by repository changes. A commit action in wp-admin or WP-CLI is still an explicit runtime operation.
 

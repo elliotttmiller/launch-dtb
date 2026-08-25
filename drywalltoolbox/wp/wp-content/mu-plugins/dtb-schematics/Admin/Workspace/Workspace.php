@@ -139,7 +139,7 @@ function dtb_schematics_workspace_health( DTB_Schematic_Record_Entity $record ):
 	$missing_pages = 0;
 	foreach ( array_slice( $record->pages, 0, 50 ) as $page ) { if ( empty( $page['attachment_id'] ) || DTB_SCHEMATIC_PAGE_STATE_MISSING_ASSET === $page['lifecycle_state'] ) { $missing_pages++; } }
 	$unresolved_parts = count( array_filter( $record->parts, static fn( $part ) => empty( $part['product_id'] ) && ( $part['resolution_state'] ?? '' ) !== DTB_SCHEMATIC_PART_STATE_NOT_SOLD ) );
-	return [ 'missing_pages' => $missing_pages, 'dataset' => dtb_schematic_hotspot_dataset_repo_get( $record->id ), 'reference' => (string) ( $record->hotspot_dataset['reference'] ?? '' ), 'unresolved_parts' => $unresolved_parts, 'requirements' => dtb_schematic_publication_requirements( $record->to_array() ), 'preview' => dtb_schematic_resolve_preview( $record ) ];
+	return [ 'missing_pages' => $missing_pages, 'dataset' => dtb_schematic_hotspot_dataset_repo_get( $record->id ), 'reference' => (string) ( $record->hotspot_dataset['reference'] ?? '' ), 'unresolved_parts' => $unresolved_parts, 'requirements' => dtb_schematic_runtime_publication_requirements( $record ), 'preview' => dtb_schematic_resolve_preview( $record ) ];
 }
 
 function dtb_schematics_workspace_source_status(): array {

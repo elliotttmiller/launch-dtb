@@ -118,18 +118,19 @@ function dtb_schematic_resolve_preview( DTB_Schematic_Record_Entity $record ): a
  * }
  */
 function dtb_schematic_generate_catalog_entry( DTB_Schematic_Record_Entity $record ): array {
+	$display = dtb_schematic_resolve_display_metadata( $record );
 	return [
 		'schema_version'  => $record->source_schema_version ?: 'v1',
 		'catalog_version' => $record->publication_version,
 		'id'              => $record->canonical_id,
-		'title'           => $record->title,
+		'title'           => $display['title'],
 		'brand'           => [
-			'id'   => $record->brand_id,
-			'name' => $record->brand_name,
+			'id'   => $display['brand_id'],
+			'name' => $display['brand_name'],
 		],
 		'category'        => [
-			'id'   => $record->category_id,
-			'name' => $record->category_name,
+			'id'   => $display['category_id'],
+			'name' => $display['category_name'],
 		],
 		// Groups size/variant siblings of one WooCommerce parent product
 		// (e.g. 8FFBA/10FFBA/12FFBA/14FFBA) under a shared id so the
@@ -155,6 +156,7 @@ function dtb_schematic_generate_catalog_entry( DTB_Schematic_Record_Entity $reco
  * resolution service.
  */
 function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $record ): array {
+	$display = dtb_schematic_resolve_display_metadata( $record );
 	// Phase 5: the normalized hotspot dataset (Infrastructure/SchematicHotspotDatasetRepository.php),
 	// if one has been migrated for this record. Read once per response build,
 	// never per hotspot/page — the migration batch (Application/MigrateSchematicHotspotDatasets.php)
@@ -240,14 +242,14 @@ function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $re
 		'schema_version'  => $record->source_schema_version ?: 'v1',
 		'catalog_version' => $record->publication_version,
 		'id'              => $record->canonical_id,
-		'title'           => $record->title,
+		'title'           => $display['title'],
 		'brand'           => [
-			'id'   => $record->brand_id,
-			'name' => $record->brand_name,
+			'id'   => $display['brand_id'],
+			'name' => $display['brand_name'],
 		],
 		'category'        => [
-			'id'   => $record->category_id,
-			'name' => $record->category_name,
+			'id'   => $display['category_id'],
+			'name' => $display['category_name'],
 		],
 		'family_id'       => $record->family_id,
 		'variant_label'   => $record->variant_label,

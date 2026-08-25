@@ -1,20 +1,9 @@
 /*
- * NOTE (audited 2026-08-14): the generator this file's header used to
- * credit, scripts/sync_catalog_schematic_links.py, does not exist anywhere
- * in this repository's history. This file is consumed directly by
- * ProductDetail.jsx and Repairs.jsx (via data/schematicMappings.js),
- * bypassing the live GET /dtb/v1/schematics REST API and the dtb_schematic
- * CPT/postmeta records that api/schematicsApi.js reads. It is also read as
- * an *input* by scripts/catalog/gen_sku_schematic_map.py (the backend's
- * SkuSchematicMap.php generator), so it is upstream of the backend map, not
- * downstream of it.
- *
- * There is currently no tooling that regenerates this file or verifies it
- * still agrees with the backend's dtb_schematic records after either side
- * changes — editing it (or the backend records) alone can silently
- * desynchronize what ProductDetail/Repairs link to versus what the
- * schematics viewer actually serves. Treat manual edits here as changing a
- * second, independent source of truth, not "the" catalog data.
+ * Catalog product-to-schematic relationships. The relationship fields are
+ * curated catalog data; scripts/catalog/gen_sku_schematic_map.py normalizes
+ * every URL through the canonical schematic brand/category identity contract.
+ * Runtime consumers also rebuild URLs from these fields rather than trusting
+ * a stored legacy URL.
  */
 
 export const PRODUCT_SCHEMATIC_LINKS = {
@@ -25,7 +14,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyClean® Automatic Taper",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Automatic+Tapers&schematic=tapetech-07tt"
+    "url": "/schematics?brand=tape-tech&category=automatic-tapers&schematic=tapetech-07tt"
   },
   "10FBBA": {
     "schematicId": "columbia-fat-boy-box",
@@ -34,7 +23,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Fat Boy Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-fat-boy-box"
   },
   "10FFB": {
     "schematicId": "columbia-flat-box",
@@ -43,7 +32,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "10",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=10"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=10"
   },
   "10FFBA": {
     "schematicId": "columbia-automatic-flat-box",
@@ -52,7 +41,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Automatic Flat Box",
     "page": null,
     "variant": "10",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=10"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-automatic-flat-box&variant=10"
   },
   "12FBBA": {
     "schematicId": "columbia-fat-boy-box",
@@ -61,7 +50,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Fat Boy Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-fat-boy-box"
   },
   "12FFB": {
     "schematicId": "columbia-flat-box",
@@ -70,7 +59,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "12",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=12"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=12"
   },
   "12FFBA": {
     "schematicId": "columbia-automatic-flat-box",
@@ -79,7 +68,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Automatic Flat Box",
     "page": null,
     "variant": "12",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=12"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-automatic-flat-box&variant=12"
   },
   "14FFB": {
     "schematicId": "columbia-flat-box",
@@ -88,7 +77,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "14",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=14"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=14"
   },
   "14FFBA": {
     "schematicId": "columbia-automatic-flat-box",
@@ -97,7 +86,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Automatic Flat Box",
     "page": null,
     "variant": "14",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=14"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-automatic-flat-box&variant=14"
   },
   "17TT": {
     "schematicId": "tapetech-17tt",
@@ -106,7 +95,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Roller - Outside Corner (17TT)",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-17tt"
+    "url": "/schematics?brand=tape-tech&category=corner-tools&schematic=tapetech-17tt"
   },
   "2.5AH": {
     "schematicId": "columbia-angle-head",
@@ -115,7 +104,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Angle Head",
     "page": null,
     "variant": "2-5",
-    "url": "/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=2-5"
+    "url": "/schematics?brand=columbia&category=angleheads&schematic=columbia-angle-head&variant=2-5"
   },
   "2.5CSF": {
     "schematicId": "columbia-combo-flusher",
@@ -124,7 +113,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Combo Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-combo-flusher"
   },
   "2.5DF": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -133,7 +122,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "2.5SF": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -142,7 +131,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "2AH": {
     "schematicId": "columbia-angle-head",
@@ -151,7 +140,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Angle Head",
     "page": null,
     "variant": "2",
-    "url": "/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=2"
+    "url": "/schematics?brand=columbia&category=angleheads&schematic=columbia-angle-head&variant=2"
   },
   "3.5AH": {
     "schematicId": "columbia-angle-head",
@@ -160,7 +149,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Angle Head",
     "page": null,
     "variant": "3-5",
-    "url": "/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=3-5"
+    "url": "/schematics?brand=columbia&category=angleheads&schematic=columbia-angle-head&variant=3-5"
   },
   "3.5CSF": {
     "schematicId": "columbia-combo-flusher",
@@ -169,7 +158,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Combo Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-combo-flusher"
   },
   "3.5DF": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -178,7 +167,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "3.5SF": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -187,7 +176,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "3AH": {
     "schematicId": "columbia-angle-head",
@@ -196,7 +185,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Angle Head",
     "page": null,
     "variant": "3",
-    "url": "/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head&variant=3"
+    "url": "/schematics?brand=columbia&category=angleheads&schematic=columbia-angle-head&variant=3"
   },
   "3BH": {
     "schematicId": "columbia-flat-box-handle",
@@ -205,7 +194,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "3CSF": {
     "schematicId": "columbia-combo-flusher",
@@ -214,7 +203,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Combo Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-combo-flusher"
   },
   "3DF": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -223,7 +212,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "3NS": {
     "schematicId": "columbia-nailspotter",
@@ -232,7 +221,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Nailspotter",
     "page": null,
     "variant": "3",
-    "url": "/schematics?brand=columbia-taping-tools&category=Nailspotters&schematic=columbia-nailspotter&variant=3"
+    "url": "/schematics?brand=columbia&category=nailspotters&schematic=columbia-nailspotter&variant=3"
   },
   "3SF": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -241,7 +230,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "3WTCSF": {
     "schematicId": "columbia-combo-flusher",
@@ -250,7 +239,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Combo Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-combo-flusher"
   },
   "3WTDF": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -259,7 +248,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "3WTSF": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -268,7 +257,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "4-707": {
     "schematicId": "level5-corner-roller-4-707",
@@ -277,7 +266,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Roller",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Corner+Rollers&schematic=level5-corner-roller-4-707"
+    "url": "/schematics?brand=level5&category=corner-rollers&schematic=level5-corner-roller-4-707"
   },
   "4-734": {
     "schematicId": "level5-4-734-3-5-corner-finisher",
@@ -286,7 +275,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "3.5\" Corner Finisher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Corner+Finishers&schematic=level5-4-734-3-5-corner-finisher"
+    "url": "/schematics?brand=level5&category=corner-finishers&schematic=level5-4-734-3-5-corner-finisher"
   },
   "4-764": {
     "schematicId": "level5-7-inch-flat-box-4-764",
@@ -295,7 +284,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "7\" Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-7-inch-flat-box-4-764"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-7-inch-flat-box-4-764"
   },
   "4-765": {
     "schematicId": "level5-10-inch-flat-box-4-765",
@@ -304,7 +293,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "10\" Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-10-inch-flat-box-4-765"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-10-inch-flat-box-4-765"
   },
   "4-766": {
     "schematicId": "level5-12-inch-flat-box-4-766",
@@ -313,7 +302,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "12\" Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-12-inch-flat-box-4-766"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-12-inch-flat-box-4-766"
   },
   "4-767": {
     "schematicId": "level5-7-inch-mega-flat-box-4-767",
@@ -322,7 +311,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "7\" Mega Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-7-inch-mega-flat-box-4-767"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-7-inch-mega-flat-box-4-767"
   },
   "4-768": {
     "schematicId": "level5-10-inch-mega-flat-box-4-768",
@@ -331,7 +320,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "10\" Mega Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-10-inch-mega-flat-box-4-768"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-10-inch-mega-flat-box-4-768"
   },
   "4-769": {
     "schematicId": "level5-12-inch-mega-box-4-769",
@@ -340,7 +329,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "12\" Mega Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Finishing+Boxes&schematic=level5-12-inch-mega-box-4-769"
+    "url": "/schematics?brand=level5&category=finishing-boxes&schematic=level5-12-inch-mega-box-4-769"
   },
   "4-771": {
     "schematicId": "level5-compound-pump-4-771",
@@ -349,7 +338,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Pump",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=level5&category=Pumps&schematic=level5-compound-pump-4-771"
+    "url": "/schematics?brand=level5&category=pumps&schematic=level5-compound-pump-4-771"
   },
   "42BH": {
     "schematicId": "columbia-flat-box-handle",
@@ -358,7 +347,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "42TT": {
     "schematicId": "tapetech-42tt",
@@ -367,7 +356,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher - 2.5\" (42TT)",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-42tt"
+    "url": "/schematics?brand=tape-tech&category=corner-tools&schematic=tapetech-42tt"
   },
   "48TT": {
     "schematicId": "tapetech-48tt",
@@ -376,7 +365,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher - 3\" EasyRoll Adjustable (48TT)",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Corner+Tools&schematic=tapetech-48tt"
+    "url": "/schematics?brand=tape-tech&category=corner-tools&schematic=tapetech-48tt"
   },
   "4BH": {
     "schematicId": "columbia-flat-box-handle",
@@ -385,7 +374,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "4DF": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -394,7 +383,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "4SF": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -403,7 +392,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "5.5FFB": {
     "schematicId": "columbia-flat-box",
@@ -412,7 +401,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "5-5",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=5-5"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=5-5"
   },
   "5BH": {
     "schematicId": "columbia-flat-box-handle",
@@ -421,7 +410,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "6BH": {
     "schematicId": "columbia-flat-box-handle",
@@ -430,7 +419,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "76TT": {
     "schematicId": "tapetech-76tt",
@@ -439,7 +428,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyClean® Pump - Standard",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Pumps&schematic=tapetech-76tt"
+    "url": "/schematics?brand=tape-tech&category=pumps&schematic=tapetech-76tt"
   },
   "7CFB": {
     "schematicId": "columbia-throttle-box",
@@ -448,7 +437,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Throttle Box",
     "page": null,
     "variant": "7",
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box&variant=7"
+    "url": "/schematics?brand=columbia&category=corner-boxes&schematic=columbia-throttle-box&variant=7"
   },
   "7FFB": {
     "schematicId": "columbia-flat-box",
@@ -457,7 +446,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "7",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=7"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=7"
   },
   "8034TT": {
     "schematicId": "tapetech-80xxtt",
@@ -466,7 +455,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Finishing Box Handle Assemblies (80XXTT)",
     "page": null,
     "variant": "34",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=34"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-80xxtt&variant=34"
   },
   "8042TT": {
     "schematicId": "tapetech-80xxtt",
@@ -475,7 +464,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Finishing Box Handle Assemblies (80XXTT)",
     "page": null,
     "variant": "42",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=42"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-80xxtt&variant=42"
   },
   "8054TT": {
     "schematicId": "tapetech-80xxtt",
@@ -484,7 +473,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Finishing Box Handle Assemblies (80XXTT)",
     "page": null,
     "variant": "54",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=54"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-80xxtt&variant=54"
   },
   "8072TT": {
     "schematicId": "tapetech-80xxtt",
@@ -493,7 +482,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Finishing Box Handle Assemblies (80XXTT)",
     "page": null,
     "variant": "72",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt&variant=72"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-80xxtt&variant=72"
   },
   "8134TT": {
     "schematicId": "tapetech-81xxtt",
@@ -502,7 +491,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)",
     "page": null,
     "variant": "34",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=34"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-81xxtt&variant=34"
   },
   "8142TT": {
     "schematicId": "tapetech-81xxtt",
@@ -511,7 +500,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)",
     "page": null,
     "variant": "42",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=42"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-81xxtt&variant=42"
   },
   "8154TT": {
     "schematicId": "tapetech-81xxtt",
@@ -520,7 +509,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)",
     "page": null,
     "variant": "54",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=54"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-81xxtt&variant=54"
   },
   "8172TT": {
     "schematicId": "tapetech-81xxtt",
@@ -529,7 +518,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)",
     "page": null,
     "variant": "72",
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt&variant=72"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-81xxtt&variant=72"
   },
   "85T": {
     "schematicId": "tapetech-85t",
@@ -538,7 +527,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Gooseneck - Standard",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Pumps&schematic=tapetech-85t"
+    "url": "/schematics?brand=tape-tech&category=pumps&schematic=tapetech-85t"
   },
   "88TTE": {
     "schematicId": "tapetech-88tte",
@@ -547,7 +536,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Box XTender Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-88tte"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-88tte"
   },
   "8CFB": {
     "schematicId": "columbia-throttle-box",
@@ -556,7 +545,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Throttle Box",
     "page": null,
     "variant": "8",
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box&variant=8"
+    "url": "/schematics?brand=columbia&category=corner-boxes&schematic=columbia-throttle-box&variant=8"
   },
   "8FBBA": {
     "schematicId": "columbia-fat-boy-box",
@@ -565,7 +554,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Fat Boy Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-fat-boy-box"
   },
   "8FFB": {
     "schematicId": "columbia-flat-box",
@@ -574,7 +563,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": "8",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box&variant=8"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box&variant=8"
   },
   "8FFBA": {
     "schematicId": "columbia-automatic-flat-box",
@@ -583,7 +572,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Automatic Flat Box",
     "page": null,
     "variant": "8",
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box&variant=8"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-automatic-flat-box&variant=8"
   },
   "90T": {
     "schematicId": "tapetech-90t",
@@ -592,7 +581,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Filler Adapter",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Pumps&schematic=tapetech-90t"
+    "url": "/schematics?brand=tape-tech&category=pumps&schematic=tapetech-90t"
   },
   "BF": {
     "schematicId": "columbia-box-filler",
@@ -601,7 +590,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Box Filler",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-box-filler"
   },
   "C1H": {
     "schematicId": "columbia-one",
@@ -610,7 +599,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Columbia One",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-one"
   },
   "C1HEXT": {
     "schematicId": "columbia-one",
@@ -619,7 +608,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Columbia One",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-one"
   },
   "C1HS": {
     "schematicId": "columbia-one",
@@ -628,7 +617,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Columbia One",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-one"
   },
   "CC": {
     "schematicId": "columbia-corner-cobra",
@@ -637,7 +626,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Cobra",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-corner-cobra"
+    "url": "/schematics?brand=columbia&category=corner-rollers&schematic=columbia-corner-cobra"
   },
   "CEXT90": {
     "schematicId": "columbia-external-corner-applicator",
@@ -646,7 +635,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "External Corner Applicator",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-external-corner-applicator"
+    "url": "/schematics?brand=columbia&category=applicators&schematic=columbia-external-corner-applicator"
   },
   "CHXL": {
     "schematicId": "columbia-long-extendable-handle",
@@ -655,7 +644,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Long Extendable Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-long-extendable-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-long-extendable-handle"
   },
   "CLT24": {
     "schematicId": "columbia-cam-lock-tube",
@@ -664,7 +653,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Cam Lock Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-cam-lock-tube"
   },
   "CLT32": {
     "schematicId": "columbia-cam-lock-tube",
@@ -673,7 +662,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Cam Lock Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-cam-lock-tube"
   },
   "CLT42": {
     "schematicId": "columbia-cam-lock-tube",
@@ -682,7 +671,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Cam Lock Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-cam-lock-tube"
   },
   "CLT55": {
     "schematicId": "columbia-cam-lock-tube",
@@ -691,7 +680,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Cam Lock Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-cam-lock-tube"
   },
   "CMH": {
     "schematicId": "columbia-closet-monster-flat-box-handle",
@@ -700,7 +689,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Closet Monster Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-closet-monster-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-closet-monster-flat-box-handle"
   },
   "CMT24": {
     "schematicId": "columbia-compound-tube",
@@ -709,7 +698,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-compound-tube"
   },
   "CMT32": {
     "schematicId": "columbia-compound-tube",
@@ -718,7 +707,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-compound-tube"
   },
   "CMT42": {
     "schematicId": "columbia-compound-tube",
@@ -727,7 +716,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-compound-tube"
   },
   "CMT55": {
     "schematicId": "columbia-compound-tube",
@@ -736,7 +725,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-compound-tube"
   },
   "COBCR": {
     "schematicId": "columbia-standard-outside-corner-roller",
@@ -745,7 +734,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Outside Corner Roller",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-standard-outside-corner-roller"
+    "url": "/schematics?brand=columbia&category=corner-rollers&schematic=columbia-standard-outside-corner-roller"
   },
   "COL-180-GRIP-FLAT-BOX-HANDLE": {
     "schematicId": "columbia-flat-box-handle",
@@ -754,7 +743,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-flat-box-handle"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-flat-box-handle"
   },
   "COL-ANGLE-HEAD": {
     "schematicId": "columbia-angle-head",
@@ -763,7 +752,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Angle Head",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Angleheads&schematic=columbia-angle-head"
+    "url": "/schematics?brand=columbia&category=angleheads&schematic=columbia-angle-head"
   },
   "COL-AUTOMATIC-FAT-BOY-BOX": {
     "schematicId": "columbia-fat-boy-box",
@@ -772,7 +761,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Fat Boy Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-fat-boy-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-fat-boy-box"
   },
   "COL-AUTOMATIC-FLAT-BOX": {
     "schematicId": "columbia-automatic-flat-box",
@@ -781,7 +770,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Automatic Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-automatic-flat-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-automatic-flat-box"
   },
   "COL-BOX-FILLER": {
     "schematicId": "columbia-box-filler",
@@ -790,7 +779,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Box Filler",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-box-filler"
   },
   "COL-CAM-LOCK-TUBE": {
     "schematicId": "columbia-cam-lock-tube",
@@ -799,7 +788,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Cam Lock Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-cam-lock-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-cam-lock-tube"
   },
   "COL-COMBO-FLUSHER": {
     "schematicId": "columbia-combo-flusher",
@@ -808,7 +797,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Combo Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-combo-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-combo-flusher"
   },
   "COL-COMPOUND-TUBE": {
     "schematicId": "columbia-compound-tube",
@@ -817,7 +806,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Tube",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Compound+Tubes&schematic=columbia-compound-tube"
+    "url": "/schematics?brand=columbia&category=compound-tubes&schematic=columbia-compound-tube"
   },
   "COL-DIRECT-FLUSHER": {
     "schematicId": "columbia-direct-corner-flusher",
@@ -826,7 +815,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Direct Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-direct-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-direct-corner-flusher"
   },
   "COL-FLAT-FINISHER-BOX": {
     "schematicId": "columbia-flat-box",
@@ -835,7 +824,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Finishing+Boxes&schematic=columbia-flat-box"
+    "url": "/schematics?brand=columbia&category=finishing-boxes&schematic=columbia-flat-box"
   },
   "COL-GOOSENECK": {
     "schematicId": "columbia-gooseneck-adapter",
@@ -844,7 +833,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Gooseneck Adapter",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-gooseneck-adapter"
   },
   "COL-ONE-HANDLE": {
     "schematicId": "columbia-one",
@@ -853,7 +842,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Columbia One",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-one"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-one"
   },
   "COL-PREDATOR-MATRIX-HANDLE": {
     "schematicId": "columbia-matrix",
@@ -862,7 +851,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Predator Matrix Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-matrix"
   },
   "COL-STANDARD-FLUSHER": {
     "schematicId": "columbia-standard-corner-flusher",
@@ -871,7 +860,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Standard Corner Flusher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Flushers&schematic=columbia-standard-corner-flusher"
+    "url": "/schematics?brand=columbia&category=corner-flushers&schematic=columbia-standard-corner-flusher"
   },
   "COL-THROTTLE-CORNER-FLUSHER-BOX": {
     "schematicId": "columbia-throttle-box",
@@ -880,7 +869,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Throttle Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Boxes&schematic=columbia-throttle-box"
+    "url": "/schematics?brand=columbia&category=corner-boxes&schematic=columbia-throttle-box"
   },
   "CR": {
     "schematicId": "columbia-inside-corner-roller",
@@ -889,7 +878,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Inside Corner Roller",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Corner+Rollers&schematic=columbia-inside-corner-roller"
+    "url": "/schematics?brand=columbia&category=corner-rollers&schematic=columbia-inside-corner-roller"
   },
   "D14-22": {
     "schematicId": "dura-stilts-dura-iii",
@@ -898,7 +887,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "DURA III",
     "page": 1,
     "variant": null,
-    "url": "/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=1"
+    "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=1"
   },
   "D18-30": {
     "schematicId": "dura-stilts-dura-iii",
@@ -907,7 +896,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "DURA III",
     "page": 2,
     "variant": null,
-    "url": "/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=2"
+    "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=2"
   },
   "D24-40": {
     "schematicId": "dura-stilts-dura-iii",
@@ -916,7 +905,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "DURA III",
     "page": 3,
     "variant": null,
-    "url": "/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii&page=3"
+    "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=3"
   },
   "D38-64": {
     "schematicId": "dura-stilts-dura-iii",
@@ -925,7 +914,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "DURA III",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii"
+    "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii"
   },
   "DS-DURA-III": {
     "schematicId": "dura-stilts-dura-iii",
@@ -934,7 +923,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "DURA III",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=dura-stilts&category=Stilts&schematic=dura-stilts-dura-iii"
+    "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii"
   },
   "EHC07": {
     "schematicId": "tapetech-maxxbox-ehc",
@@ -943,7 +932,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "MaxxBox® High Capacity Finishing Box",
     "page": 1,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=1"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-maxxbox-ehc&page=1"
   },
   "EHC10": {
     "schematicId": "tapetech-maxxbox-ehc",
@@ -952,7 +941,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "MaxxBox® High Capacity Finishing Box",
     "page": 2,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=2"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-maxxbox-ehc&page=2"
   },
   "EHC12": {
     "schematicId": "tapetech-maxxbox-ehc",
@@ -961,7 +950,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "MaxxBox® High Capacity Finishing Box",
     "page": 3,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc&page=3"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-maxxbox-ehc&page=3"
   },
   "EZ07TT": {
     "schematicId": "tapetech-easyclean-finishing-box",
@@ -970,7 +959,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "EasyClean® Finishing Box",
     "page": 1,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=1"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-easyclean-finishing-box&page=1"
   },
   "EZ10TT": {
     "schematicId": "tapetech-easyclean-finishing-box",
@@ -979,7 +968,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "EasyClean® Finishing Box",
     "page": 2,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=2"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-easyclean-finishing-box&page=2"
   },
   "EZ12TT": {
     "schematicId": "tapetech-easyclean-finishing-box",
@@ -988,7 +977,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "EasyClean® Finishing Box",
     "page": 3,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=3"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-easyclean-finishing-box&page=3"
   },
   "EZ15TT": {
     "schematicId": "tapetech-easyclean-finishing-box",
@@ -997,7 +986,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "EasyClean® Finishing Box",
     "page": 4,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box&page=4"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-easyclean-finishing-box&page=4"
   },
   "GN": {
     "schematicId": "columbia-gooseneck-adapter",
@@ -1006,7 +995,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Gooseneck Adapter",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-gooseneck-adapter"
   },
   "HMP": {
     "schematicId": "columbia-mud-pump",
@@ -1015,7 +1004,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Mud Pump",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-mud-pump"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-mud-pump"
   },
   "ICA2-1": {
     "schematicId": "columbia-inside-corner-applicator",
@@ -1024,7 +1013,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Inside Corner Applicator",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-inside-corner-applicator"
+    "url": "/schematics?brand=columbia&category=applicators&schematic=columbia-inside-corner-applicator"
   },
   "ICA4-1": {
     "schematicId": "columbia-inside-corner-applicator",
@@ -1033,7 +1022,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Inside Corner Applicator",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-inside-corner-applicator"
+    "url": "/schematics?brand=columbia&category=applicators&schematic=columbia-inside-corner-applicator"
   },
   "ICATW": {
     "schematicId": "columbia-2-way-internal-corner",
@@ -1042,7 +1031,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "2-Way Internal Corner Applicator",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Applicators&schematic=columbia-2-way-internal-corner"
+    "url": "/schematics?brand=columbia&category=applicators&schematic=columbia-2-way-internal-corner"
   },
   "PAHC07": {
     "schematicId": "tapetech-power-assist-maxxbox",
@@ -1051,7 +1040,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Power Assist® MaxxBox® Finishing Box",
     "page": 1,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=1"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-power-assist-maxxbox&page=1"
   },
   "PAHC10": {
     "schematicId": "tapetech-power-assist-maxxbox",
@@ -1060,7 +1049,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Power Assist® MaxxBox® Finishing Box",
     "page": 2,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=2"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-power-assist-maxxbox&page=2"
   },
   "PAHC12": {
     "schematicId": "tapetech-power-assist-maxxbox",
@@ -1069,7 +1058,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Power Assist® MaxxBox® Finishing Box",
     "page": 3,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox&page=3"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-power-assist-maxxbox&page=3"
   },
   "PMH": {
     "schematicId": "columbia-matrix",
@@ -1078,7 +1067,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Predator Matrix Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-matrix"
   },
   "PMHL": {
     "schematicId": "columbia-matrix",
@@ -1087,7 +1076,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Predator Matrix Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-matrix"
   },
   "PMHS": {
     "schematicId": "columbia-matrix",
@@ -1096,7 +1085,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Predator Matrix Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Handles&schematic=columbia-matrix"
+    "url": "/schematics?brand=columbia&category=handles&schematic=columbia-matrix"
   },
   "PT-10FB": {
     "schematicId": "platinum-flat-box",
@@ -1105,7 +1094,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box"
+    "url": "/schematics?brand=platinum&category=finishing-boxes&schematic=platinum-flat-box"
   },
   "PT-12FB": {
     "schematicId": "platinum-flat-box",
@@ -1114,7 +1103,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box"
+    "url": "/schematics?brand=platinum&category=finishing-boxes&schematic=platinum-flat-box"
   },
   "PT-14FB": {
     "schematicId": "platinum-flat-box",
@@ -1123,7 +1112,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box"
+    "url": "/schematics?brand=platinum&category=finishing-boxes&schematic=platinum-flat-box"
   },
   "PT-3CF": {
     "schematicId": "platinum-corner-finisher",
@@ -1132,7 +1121,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher"
+    "url": "/schematics?brand=platinum&category=corner-finishers&schematic=platinum-corner-finisher"
   },
   "PT-8FB": {
     "schematicId": "platinum-flat-box",
@@ -1141,7 +1130,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box"
+    "url": "/schematics?brand=platinum&category=finishing-boxes&schematic=platinum-flat-box"
   },
   "PT-CF": {
     "schematicId": "platinum-corner-finisher",
@@ -1150,7 +1139,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher"
+    "url": "/schematics?brand=platinum&category=corner-finishers&schematic=platinum-corner-finisher"
   },
   "PT-CF2.5": {
     "schematicId": "platinum-corner-finisher",
@@ -1159,7 +1148,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher"
+    "url": "/schematics?brand=platinum&category=corner-finishers&schematic=platinum-corner-finisher"
   },
   "PT-CF3.5": {
     "schematicId": "platinum-corner-finisher",
@@ -1168,7 +1157,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Finisher",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Corner+Finishers&schematic=platinum-corner-finisher"
+    "url": "/schematics?brand=platinum&category=corner-finishers&schematic=platinum-corner-finisher"
   },
   "PT-CP": {
     "schematicId": "platinum-compound-pump",
@@ -1177,7 +1166,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Compound Pump",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Pumps&schematic=platinum-compound-pump"
+    "url": "/schematics?brand=platinum&category=pumps&schematic=platinum-compound-pump"
   },
   "PT-CRH50": {
     "schematicId": "platinum-corner-roller-handle",
@@ -1186,7 +1175,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Corner Roller Handle",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Handles&schematic=platinum-corner-roller-handle"
+    "url": "/schematics?brand=platinum&category=handles&schematic=platinum-corner-roller-handle"
   },
   "PT-FB": {
     "schematicId": "platinum-flat-box",
@@ -1195,7 +1184,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Flat Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Finishing+Boxes&schematic=platinum-flat-box"
+    "url": "/schematics?brand=platinum&category=finishing-boxes&schematic=platinum-flat-box"
   },
   "PT-OCR": {
     "schematicId": "platinum-outside-corner-roller",
@@ -1204,7 +1193,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Outside Corner Roller",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=platinum&category=Corner+Rollers&schematic=platinum-outside-corner-roller"
+    "url": "/schematics?brand=platinum&category=corner-rollers&schematic=platinum-outside-corner-roller"
   },
   "PTAPER": {
     "schematicId": "columbia-predator-taper",
@@ -1213,7 +1202,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Predator Taper",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Automatic+Tapers&schematic=columbia-predator-taper"
+    "url": "/schematics?brand=columbia&category=automatic-tapers&schematic=columbia-predator-taper"
   },
   "QB06-QSX": {
     "schematicId": "tapetech-quickbox-qsx",
@@ -1222,7 +1211,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "QuickBox® QSX Finishing Box",
     "page": 1,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx&page=1"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-quickbox-qsx&page=1"
   },
   "QB08-QSX": {
     "schematicId": "tapetech-quickbox-qsx",
@@ -1231,7 +1220,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "QuickBox® QSX Finishing Box",
     "page": 2,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx&page=2"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-quickbox-qsx&page=2"
   },
   "S1-A-1624": {
     "schematicId": "surpro-s1",
@@ -1240,7 +1229,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1-A-2030": {
     "schematicId": "surpro-s1",
@@ -1249,7 +1238,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1-A-2640": {
     "schematicId": "surpro-s1",
@@ -1258,7 +1247,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1-M-1624": {
     "schematicId": "surpro-s1",
@@ -1267,7 +1256,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1-M-2030": {
     "schematicId": "surpro-s1",
@@ -1276,7 +1265,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1-M-2640": {
     "schematicId": "surpro-s1",
@@ -1285,7 +1274,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "S1X-A-2131": {
     "schematicId": "surpro-s1x",
@@ -1294,7 +1283,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "S1X-A-2640": {
     "schematicId": "surpro-s1x",
@@ -1303,7 +1292,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "S1X-M-2131": {
     "schematicId": "surpro-s1x",
@@ -1312,7 +1301,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "S1X-M-2640": {
     "schematicId": "surpro-s1x",
@@ -1321,7 +1310,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "S2-A-1624": {
     "schematicId": "surpro-s2",
@@ -1330,7 +1319,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2-A-2030": {
     "schematicId": "surpro-s2",
@@ -1339,7 +1328,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2-A-2640": {
     "schematicId": "surpro-s2",
@@ -1348,7 +1337,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2-M-1624": {
     "schematicId": "surpro-s2",
@@ -1357,7 +1346,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2-M-2030": {
     "schematicId": "surpro-s2",
@@ -1366,7 +1355,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2-M-2640": {
     "schematicId": "surpro-s2",
@@ -1375,7 +1364,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "S2X-A-2640": {
     "schematicId": "surpro-s2x",
@@ -1384,7 +1373,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "S2X-A-3852": {
     "schematicId": "surpro-s2x",
@@ -1393,7 +1382,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "S2X-M-2131": {
     "schematicId": "surpro-s2x",
@@ -1402,7 +1391,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "S2X-M-2640": {
     "schematicId": "surpro-s2x",
@@ -1411,7 +1400,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "SAT": {
     "schematicId": "columbia-semi-automatic-taper",
@@ -1420,7 +1409,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Semi-Automatic Taper",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Semi-Automatic+Tapers&schematic=columbia-semi-automatic-taper"
+    "url": "/schematics?brand=columbia&category=semi-automatic-tapers&schematic=columbia-semi-automatic-taper"
   },
   "SP-S1-A": {
     "schematicId": "surpro-s1",
@@ -1429,7 +1418,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "SP-S1-M": {
     "schematicId": "surpro-s1",
@@ -1438,7 +1427,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1"
   },
   "SP-S1X-A": {
     "schematicId": "surpro-s1x",
@@ -1447,7 +1436,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "SP-S1X-M": {
     "schematicId": "surpro-s1x",
@@ -1456,7 +1445,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S1X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s1x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s1x"
   },
   "SP-S2-A": {
     "schematicId": "surpro-s2",
@@ -1465,7 +1454,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "SP-S2-M": {
     "schematicId": "surpro-s2",
@@ -1474,7 +1463,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2"
   },
   "SP-S2X-A": {
     "schematicId": "surpro-s2x",
@@ -1483,7 +1472,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "SP-S2X-M": {
     "schematicId": "surpro-s2x",
@@ -1492,7 +1481,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "S2X",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=surpro&category=Stilts&schematic=surpro-s2x"
+    "url": "/schematics?brand=sur-pro&category=stilts&schematic=surpro-s2x"
   },
   "TBBF": {
     "schematicId": "columbia-box-filler",
@@ -1501,7 +1490,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Box Filler",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-box-filler"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-box-filler"
   },
   "TBGN": {
     "schematicId": "columbia-gooseneck-adapter",
@@ -1510,7 +1499,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Gooseneck Adapter",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-gooseneck-adapter"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-gooseneck-adapter"
   },
   "TBMP": {
     "schematicId": "columbia-tall-boy-mud-pump",
@@ -1519,7 +1508,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Tall Boy Mud Pump",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=columbia-taping-tools&category=Pumps&schematic=columbia-tall-boy-mud-pump"
+    "url": "/schematics?brand=columbia&category=pumps&schematic=columbia-tall-boy-mud-pump"
   },
   "TT-EASYCLEAN-FINISHING-BOX": {
     "schematicId": "tapetech-easyclean-finishing-box",
@@ -1528,7 +1517,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "EasyClean® Finishing Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-easyclean-finishing-box"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-easyclean-finishing-box"
   },
   "TT-EASYFINISH-BOX-HANDLE": {
     "schematicId": "tapetech-81xxtt",
@@ -1537,7 +1526,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-81xxtt"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-81xxtt"
   },
   "TT-FLAT-BOX-HANDLE": {
     "schematicId": "tapetech-80xxtt",
@@ -1546,7 +1535,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Finishing Box Handle Assemblies (80XXTT)",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-80xxtt"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-80xxtt"
   },
   "TT-MAXXBOX-HIGH-CAPACITY-FINISHING-BOX": {
     "schematicId": "tapetech-maxxbox-ehc",
@@ -1555,7 +1544,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "MaxxBox® High Capacity Finishing Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-maxxbox-ehc"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-maxxbox-ehc"
   },
   "TT-POWER-ASSIST-MAXXBOX-FINISHING-BOX": {
     "schematicId": "tapetech-power-assist-maxxbox",
@@ -1564,7 +1553,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "Power Assist® MaxxBox® Finishing Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-power-assist-maxxbox"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-power-assist-maxxbox"
   },
   "TT-QUICKBOX-QSX-FINISHING-BOX": {
     "schematicId": "tapetech-quickbox-qsx",
@@ -1573,7 +1562,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "QuickBox® QSX Finishing Box",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Finishing+Boxes&schematic=tapetech-quickbox-qsx"
+    "url": "/schematics?brand=tape-tech&category=finishing-boxes&schematic=tapetech-quickbox-qsx"
   },
   "XHTT": {
     "schematicId": "tapetech-xhtt",
@@ -1582,8 +1571,6 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "title": "TapeTech Support Handle - Extension",
     "page": null,
     "variant": null,
-    "url": "/schematics?brand=tapetech&category=Handles&schematic=tapetech-xhtt"
+    "url": "/schematics?brand=tape-tech&category=handles&schematic=tapetech-xhtt"
   }
 };
-
-export default PRODUCT_SCHEMATIC_LINKS;

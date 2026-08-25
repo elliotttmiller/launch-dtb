@@ -10,7 +10,11 @@
  *   - a non-empty customer-facing title;
  *   - a non-empty brand ID;
  *   - a non-empty category ID;
- *   - at least one page with a stable page ID and a real (non-zero) attachment ID.
+ *   - at least one page with a stable page ID and a non-zero attachment relationship.
+ *
+ * Runtime attachment existence, public URL availability, normalized hotspot
+ * projection, and exact part-resolution requirements are evaluated by
+ * Application/EvaluateSchematicReadiness.php before ready/publish transitions.
  *
  * @package drywall-toolbox
  */

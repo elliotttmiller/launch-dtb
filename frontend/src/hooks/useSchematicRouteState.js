@@ -19,14 +19,16 @@
  * require or consult a local mapping table.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { canonicalizeSchematicBrandId } from '../data/schematicBrands.js';
 
 export function useSchematicRouteState() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const brandId = searchParams.get('brand') || null;
+  const routeBrandId = searchParams.get('brand') || null;
+  const brandId = routeBrandId ? canonicalizeSchematicBrandId(routeBrandId) : null;
   const categoryId = searchParams.get('category') || null;
   const schematicId = searchParams.get('schematic') || null;
   const pageParam = searchParams.get('page');
@@ -34,6 +36,16 @@ export function useSchematicRouteState() {
   const variant = searchParams.get('variant') || null;
 
   const view = schematicId ? 'viewer' : 'catalog';
+
+  // Keep legacy shared/bookmarked links working while replacing their URL
+  // with the canonical API identity. Consumers receive the canonical value
+  // immediately, before the replace-navigation effect completes.
+  useEffect(() => {
+    if (!routeBrandId || !brandId || routeBrandId === brandId) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('brand', brandId);
+    setSearchParams(params, { replace: true });
+  }, [brandId, routeBrandId, searchParams, setSearchParams]);
 
   const goToCatalogRoot = useCallback(() => {
     setSearchParams({}, { replace: false });

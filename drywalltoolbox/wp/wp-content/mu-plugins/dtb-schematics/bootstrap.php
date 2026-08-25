@@ -46,6 +46,8 @@ dtb_module_require( 'dtb-schematics/Services/SchematicAttachmentProcessor.php' )
 dtb_module_require( 'dtb-schematics/Application/RegisterSchematicUploads.php' );
 dtb_module_require( 'dtb-schematics/Application/ResolveSchematicParts.php' );
 dtb_module_require( 'dtb-schematics/Application/ManageSchematicRecord.php' );
+dtb_module_require( 'dtb-schematics/Application/EnrichSchematicMetadata.php' );
+dtb_module_require( 'dtb-schematics/Application/EvaluateSchematicReadiness.php' );
 dtb_module_require( 'dtb-schematics/Application/GenerateSchematicResponse.php' );
 dtb_module_require( 'dtb-schematics/Application/ReconcileSchematicSource.php' );
 dtb_module_require( 'dtb-schematics/Application/ReconcileSchematicSourceCli.php' );

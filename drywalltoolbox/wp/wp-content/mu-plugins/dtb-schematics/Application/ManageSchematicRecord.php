@@ -242,7 +242,7 @@ function dtb_schematic_mark_ready( int $schematic_id ) {
 		return new WP_Error( 'dtb_schematic_invalid_transition', __( 'This schematic cannot move to ready from its current lifecycle state.', 'drywall-toolbox' ) );
 	}
 
-	$unmet = dtb_schematic_publication_requirements( $record->to_array() );
+	$unmet = dtb_schematic_runtime_publication_requirements( $record );
 	if ( ! empty( $unmet ) ) {
 		return new WP_Error(
 			'dtb_schematic_not_publication_eligible',
@@ -271,7 +271,7 @@ function dtb_schematic_publish( int $schematic_id ) {
 		return new WP_Error( 'dtb_schematic_invalid_transition', __( 'This schematic cannot be published from its current lifecycle state.', 'drywall-toolbox' ) );
 	}
 
-	$unmet = dtb_schematic_publication_requirements( $record->to_array() );
+	$unmet = dtb_schematic_runtime_publication_requirements( $record );
 	if ( ! empty( $unmet ) ) {
 		return new WP_Error(
 			'dtb_schematic_not_publication_eligible',
@@ -306,7 +306,7 @@ function dtb_schematic_update_published_projection( int $schematic_id ) {
 		return new WP_Error( 'dtb_schematic_not_published', __( 'This schematic is not currently published.', 'drywall-toolbox' ) );
 	}
 
-	$unmet = dtb_schematic_publication_requirements( $record->to_array() );
+	$unmet = dtb_schematic_runtime_publication_requirements( $record );
 	if ( ! empty( $unmet ) ) {
 		return new WP_Error(
 			'dtb_schematic_not_publication_eligible',
