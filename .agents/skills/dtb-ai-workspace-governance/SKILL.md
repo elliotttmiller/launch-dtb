@@ -1,11 +1,19 @@
 ---
 name: dtb-ai-workspace-governance
-description: Govern DTB roles, skills, adapters, context, task state and assistant capability mappings without creating vendor-specific architecture authority.
+description: Govern DTB model-neutral roles, skills, workflows, context and vendor adapters while preventing duplication, drift and AI-workspace overengineering.
 ---
 # DTB AI Workspace Governance
 
-Before adding a role or skill, check existing coverage. A role exists when there is a durable responsibility/ownership or independent review boundary. A skill exists when knowledge/method can be reused by multiple owners. Do not create near-duplicate personas.
+## Classification rule
+A **role** exists only for a durable ownership/responsibility boundary or independent review function. A **skill** exists for reusable expertise/method shared across tasks or owners. A **workflow** defines a small repeatable sequence. Derived context summarizes current architecture; adapters only map vendor capabilities/configuration.
 
-Canonical DTB knowledge lives under `.agents/`; assistant directories are adapters. Vendor/model/tool names belong only in adapters. No permanent router bureaucracy is required: the top-level session may orchestrate specialists when decomposition or independent review materially improves the task.
+Before adding anything, search existing coverage and ask whether an existing role/skill/workflow can be strengthened instead. Do not create near-duplicate personas, technology-specific aliases, permanent orchestrator bureaucracy, receipt systems, capability registries, classifiers, or state machines without repeated evidence that the current simple system cannot solve a real problem.
 
-Use one writer for overlapping boundaries. Keep reviewers read-only. Persist task state only when justified and scope it under `docs/work/<task-id>/`. Run the context validator after governance changes.
+## Authority
+Canonical reusable knowledge lives under `.agents/`; `AGENTS.md` remains repository constitutional policy. Vendor/model/tool names belong in vendor adapters, not canonical knowledge. Active source/runtime and machine contracts outrank stored AI context.
+
+## Execution discipline
+One writer per overlapping authority boundary. Review/exploration remain read-only. Parallelize independent investigation; serialize overlapping mutation. Persist `docs/work/<task-id>/` only when cross-session state is genuinely useful.
+
+## Change review
+When modifying AI governance, check for duplicated authority, stale pointers, vendor coupling, contradictions with `AGENTS.md`, accidental role write overlap, unnecessary new infrastructure, and context bloat. Run `node scripts/ai/validate-context.mjs` and `node scripts/ai/test-routing.mjs` when execution is available; otherwise state that they were not executed.
