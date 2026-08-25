@@ -47,26 +47,10 @@
     "verification": "test-verifier"
   },
   "roles": {
-    "explorer": {
-      "path": ".agents/roles/explorer.md",
-      "mode": "read",
-      "requiredSkills": []
-    },
-    "architect": {
-      "path": ".agents/roles/architect.md",
-      "mode": "read",
-      "requiredSkills": ["dtb-module-architecture"]
-    },
-    "frontend-engineer": {
-      "path": ".agents/roles/frontend-engineer.md",
-      "mode": "write",
-      "requiredSkills": ["dtb-react-engineering"]
-    },
-    "wordpress-backend-engineer": {
-      "path": ".agents/roles/wordpress-backend-engineer.md",
-      "mode": "write",
-      "requiredSkills": ["dtb-php-wordpress-quality"]
-    },
+    "explorer": { "path": ".agents/roles/explorer.md", "mode": "read", "requiredSkills": [] },
+    "architect": { "path": ".agents/roles/architect.md", "mode": "read", "requiredSkills": ["dtb-module-architecture"] },
+    "frontend-engineer": { "path": ".agents/roles/frontend-engineer.md", "mode": "write", "requiredSkills": ["dtb-react-engineering"] },
+    "wordpress-backend-engineer": { "path": ".agents/roles/wordpress-backend-engineer.md", "mode": "write", "requiredSkills": ["dtb-php-wordpress-quality"] },
     "commerce-checkout-engineer": {
       "path": ".agents/roles/commerce-checkout-engineer.md",
       "mode": "write",
@@ -74,41 +58,13 @@
       "minimumRisk": "high",
       "alwaysReviewers": ["security-reviewer", "test-verifier"]
     },
-    "catalog-data-engineer": {
-      "path": ".agents/roles/catalog-data-engineer.md",
-      "mode": "write",
-      "requiredSkills": []
-    },
-    "market-intelligence-analyst": {
-      "path": ".agents/roles/market-intelligence-analyst.md",
-      "mode": "read",
-      "requiredSkills": ["dtb-market-research"]
-    },
-    "pdp-conversion-specialist": {
-      "path": ".agents/roles/pdp-conversion-specialist.md",
-      "mode": "read",
-      "requiredSkills": ["dtb-design-system", "dtb-ux-flow-engineering"]
-    },
-    "code-reviewer": {
-      "path": ".agents/roles/code-reviewer.md",
-      "mode": "read",
-      "requiredSkills": ["dtb-engineering-review"]
-    },
-    "security-reviewer": {
-      "path": ".agents/roles/security-reviewer.md",
-      "mode": "read",
-      "requiredSkills": []
-    },
-    "integration-reviewer": {
-      "path": ".agents/roles/integration-reviewer.md",
-      "mode": "read",
-      "requiredSkills": []
-    },
-    "test-verifier": {
-      "path": ".agents/roles/test-verifier.md",
-      "mode": "read",
-      "requiredSkills": []
-    }
+    "catalog-data-engineer": { "path": ".agents/roles/catalog-data-engineer.md", "mode": "write", "requiredSkills": [] },
+    "market-intelligence-analyst": { "path": ".agents/roles/market-intelligence-analyst.md", "mode": "read", "requiredSkills": ["dtb-market-research"] },
+    "pdp-conversion-specialist": { "path": ".agents/roles/pdp-conversion-specialist.md", "mode": "read", "requiredSkills": ["dtb-design-system", "dtb-ux-flow-engineering"] },
+    "code-reviewer": { "path": ".agents/roles/code-reviewer.md", "mode": "read", "requiredSkills": ["dtb-engineering-review"] },
+    "security-reviewer": { "path": ".agents/roles/security-reviewer.md", "mode": "read", "requiredSkills": ["dtb-engineering-review"] },
+    "integration-reviewer": { "path": ".agents/roles/integration-reviewer.md", "mode": "read", "requiredSkills": ["dtb-engineering-review"] },
+    "test-verifier": { "path": ".agents/roles/test-verifier.md", "mode": "read", "requiredSkills": ["dtb-engineering-review"] }
   },
   "skills": {
     "dtb-design-system": ".agents/skills/dtb-design-system/SKILL.md",
@@ -128,86 +84,26 @@
     "dtb-market-research": ".agents/skills/dtb-market-research/SKILL.md"
   },
   "flags": {
-    "ui": {
-      "skills": ["dtb-design-system", "dtb-ui-design-critique"]
-    },
-    "responsive": {
-      "skills": ["dtb-responsive-ui-engineering"]
-    },
-    "ux-flow": {
-      "skills": ["dtb-ux-flow-engineering"]
-    },
-    "frontend-architecture": {
-      "skills": ["dtb-frontend-architecture-decisions"],
-      "minimumRisk": "medium",
-      "reviewers": ["code-reviewer"]
-    },
-    "refactor": {
-      "skills": ["dtb-refactoring"],
-      "minimumRisk": "medium",
-      "reviewers": ["code-reviewer"]
-    },
-    "seo": {
-      "skills": ["dtb-seo"]
-    },
-    "auth": {
-      "minimumRisk": "high",
-      "reviewers": ["security-reviewer", "test-verifier"]
-    },
-    "authorization": {
-      "minimumRisk": "high",
-      "reviewers": ["security-reviewer", "test-verifier"]
-    },
-    "customer-data": {
-      "minimumRisk": "high",
-      "reviewers": ["security-reviewer", "test-verifier"]
-    },
-    "payment": {
-      "minimumRisk": "critical",
-      "reviewers": ["security-reviewer", "integration-reviewer", "test-verifier"]
-    },
-    "queue": {
-      "minimumRisk": "high",
-      "reviewers": ["integration-reviewer", "test-verifier"]
-    },
-    "provider": {
-      "minimumRisk": "high",
-      "reviewers": ["integration-reviewer", "security-reviewer", "test-verifier"]
-    },
-    "webhook": {
-      "minimumRisk": "high",
-      "reviewers": ["integration-reviewer", "security-reviewer", "test-verifier"]
-    },
-    "persistence": {
-      "minimumRisk": "high",
-      "reviewers": ["security-reviewer", "test-verifier"]
-    },
-    "api-contract": {
-      "minimumRisk": "high",
-      "reviewers": ["architect", "security-reviewer", "test-verifier"]
-    },
-    "ownership-change": {
-      "minimumRisk": "critical",
-      "reviewers": ["architect", "security-reviewer", "integration-reviewer", "test-verifier"]
-    },
-    "migration": {
-      "minimumRisk": "critical",
-      "reviewers": ["architect", "security-reviewer", "test-verifier"]
-    },
-    "catalog-identifiers": {
-      "minimumRisk": "critical",
-      "reviewers": ["test-verifier"]
-    },
-    "external-skill": {
-      "skills": ["dtb-external-skill-security"],
-      "minimumRisk": "high",
-      "reviewers": ["security-reviewer"]
-    },
-    "ai-governance": {
-      "skills": ["dtb-ai-context-engineering", "dtb-ai-workspace-governance"],
-      "minimumRisk": "medium",
-      "reviewers": ["code-reviewer", "test-verifier"]
-    }
+    "ui": { "skills": ["dtb-design-system", "dtb-ui-design-critique"] },
+    "responsive": { "skills": ["dtb-responsive-ui-engineering"] },
+    "ux-flow": { "skills": ["dtb-ux-flow-engineering"] },
+    "frontend-architecture": { "skills": ["dtb-frontend-architecture-decisions"], "minimumRisk": "medium", "reviewers": ["code-reviewer"] },
+    "refactor": { "skills": ["dtb-refactoring"], "minimumRisk": "medium", "reviewers": ["code-reviewer"] },
+    "seo": { "skills": ["dtb-seo"] },
+    "auth": { "minimumRisk": "high", "reviewers": ["security-reviewer", "test-verifier"] },
+    "authorization": { "minimumRisk": "high", "reviewers": ["security-reviewer", "test-verifier"] },
+    "customer-data": { "minimumRisk": "high", "reviewers": ["security-reviewer", "test-verifier"] },
+    "payment": { "minimumRisk": "critical", "reviewers": ["security-reviewer", "integration-reviewer", "test-verifier"] },
+    "queue": { "minimumRisk": "high", "reviewers": ["integration-reviewer", "test-verifier"] },
+    "provider": { "minimumRisk": "high", "reviewers": ["integration-reviewer", "security-reviewer", "test-verifier"] },
+    "webhook": { "minimumRisk": "high", "reviewers": ["integration-reviewer", "security-reviewer", "test-verifier"] },
+    "persistence": { "minimumRisk": "high", "reviewers": ["security-reviewer", "test-verifier"] },
+    "api-contract": { "minimumRisk": "high", "reviewers": ["architect", "security-reviewer", "test-verifier"] },
+    "ownership-change": { "minimumRisk": "critical", "reviewers": ["architect", "security-reviewer", "integration-reviewer", "test-verifier"] },
+    "migration": { "minimumRisk": "critical", "reviewers": ["architect", "security-reviewer", "test-verifier"] },
+    "catalog-identifiers": { "minimumRisk": "critical", "reviewers": ["test-verifier"] },
+    "external-skill": { "skills": ["dtb-external-skill-security"], "minimumRisk": "high", "reviewers": ["security-reviewer"] },
+    "ai-governance": { "skills": ["dtb-ai-context-engineering", "dtb-ai-workspace-governance"], "minimumRisk": "medium", "reviewers": ["code-reviewer", "test-verifier"] }
   },
   "riskReviewers": {
     "low": [],
