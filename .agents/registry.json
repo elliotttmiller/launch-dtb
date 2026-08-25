@@ -14,7 +14,7 @@
     "fix": { "workflow": "implementation" },
     "change": { "workflow": "implementation" },
     "architecture": { "workflow": "architecture", "role": "architect" },
-    "design-system": { "workflow": "architecture", "role": "architect" },
+    "design-system": { "workflow": "ui" },
     "review": { "workflow": "review", "role": "code-reviewer" },
     "audit": { "workflow": "review", "role": "code-reviewer" },
     "verify": { "workflow": "review", "role": "test-verifier" },
