@@ -1,6 +1,6 @@
 ---
 id: market-intelligence-analyst
-mode: research
+mode: read-only
 capabilities:
   required: [web.search]
   optional: [web.fetch, repository.read]

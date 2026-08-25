@@ -1,6 +1,6 @@
 ---
 id: test-verifier
-mode: verification
+mode: read-only
 capabilities:
   required: [repository.read, git.read]
   optional: [shell.execute, browser.render, browser.interact]
