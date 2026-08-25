@@ -109,7 +109,7 @@ def write_catalog_atomic(
     fieldnames: list[str] | tuple[str, ...],
     rows: list[dict[str, str]],
 ) -> None:
-    """Atomically replace a canonical CSV while preserving the standard encoding."""
+    """Atomically replace a canonical CSV while preserving encoding and CRLF rows."""
     fd, temporary_name = tempfile.mkstemp(
         prefix=f".{catalog_path.name}.", suffix=".tmp", dir=catalog_path.parent
     )
@@ -121,7 +121,7 @@ def write_catalog_atomic(
                 handle,
                 fieldnames=fieldnames,
                 extrasaction="raise",
-                lineterminator="\n",
+                lineterminator="\r\n",
             )
             writer.writeheader()
             writer.writerows(rows)

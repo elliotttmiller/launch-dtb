@@ -40,12 +40,12 @@ def test_run_scoped_backup_preserves_exact_catalog_bytes(tmp_path: Path) -> None
     assert backup.read_bytes() == catalog.read_bytes()
 
 
-def test_atomic_writer_uses_canonical_utf8_bom_and_lf(tmp_path: Path) -> None:
+def test_atomic_writer_uses_canonical_utf8_bom_and_crlf(tmp_path: Path) -> None:
     catalog = tmp_path / "catalog.csv"
     write_catalog_atomic(catalog, ["A", "B"], [{"A": "1", "B": "two,three"}])
 
     payload = catalog.read_bytes()
     assert payload.startswith(b"\xef\xbb\xbf")
-    assert b"\r\n" not in payload
+    assert payload.count(b"\r\n") == 2
     with catalog.open("r", encoding="utf-8-sig", newline="") as handle:
         assert list(csv.DictReader(handle)) == [{"A": "1", "B": "two,three"}]

@@ -254,11 +254,12 @@ DTB knowledge belongs to DTB, not to a model vendor.
 - Persist substantial transient task state under `docs/work/<task-id>/`; do not create global progress/TODO artifacts as cross-session truth.
 - Run `node scripts/ai/validate-context.mjs` after AI-governance changes.
 
-## 22. Required reporting
+## 22. Reporting
 
-For complex repository work report:
+Lead with the outcome, conclusion or most important finding. Shape the response around the task and the user's needs so it reads as a clear, cohesive explanation rather than a fixed report template.
 
-1. Architecture
-2. Implementation
+For material repository work, communicate the relevant architecture, implementation, changed files, owning module, verification, data or migration impact, security impact, API/queue/integration impact, documentation changes and residual risks. These are requirements for appropriate information coverage, not mandatory headings, ordering or a closing checklist. Include, combine or omit individual dimensions according to their relevance, and summarize genuinely unaffected areas only when doing so prevents ambiguity.
 
-Always state changed repository files, owning module, data/migration impact, security impact, API/queue/integration impact, documentation changes and residual risks. Do not claim tests/runtime/deployment outcomes not directly established.
+Use `Architecture` and `Implementation` sections when that separation materially improves understanding, especially for cross-cutting ownership or contract changes; do not add them mechanically to every response. Match the presentation to the work: findings-first for reviews, root-cause-first for diagnosis, outcome-and-verification for implementation, and concise prose for simple tasks. When no files changed, state that only when it is useful context rather than automatically adding an implementation-status block.
+
+Never claim tests, runtime behavior, deployment state, provider behavior or production outcomes that were not directly established. Clearly distinguish verified evidence, inference, recommendation and unverified behavior.

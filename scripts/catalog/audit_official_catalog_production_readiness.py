@@ -554,14 +554,25 @@ def direct_findings(
             ))
         explicit_by_images: defaultdict[str, list[str]] = defaultdict(list)
         for child in children:
-            if clean(child.get("Meta: _dtb_inherit_parent_image")) not in {"1", "true", "yes"}:
+            inherits_parent = clean(child.get("Meta: _dtb_inherit_parent_image")).casefold() in {"1", "true", "yes", "on"}
+            child_images = clean(child.get("Images"))
+            parent_images = clean(parent.get("Images"))
+            if inherits_parent and (not parent_images or child_images != parent_images):
+                results.append(finding(
+                    catalog_sha, child, code="variation_inheritance_gallery_mismatch", severity="high", gate="blocker",
+                    domain="media", workflow="variation_media_review", field="Images", current=child_images,
+                    source="production-readiness audit",
+                    detail=f"Variation declares parent-image inheritance but its ordered gallery does not exactly match parent {parent_sku}.",
+                    confidence="confirmed_contract_violation",
+                ))
+            if not inherits_parent:
                 image_value = clean(child.get("Images"))
                 if image_value:
                     explicit_by_images[image_value].append(clean(child.get("SKU")))
             if (
-                clean(child.get("Meta: _dtb_inherit_parent_image")) not in {"1", "true", "yes"}
-                and clean(child.get("Images"))
-                and clean(child.get("Images")) == clean(parent.get("Images"))
+                not inherits_parent
+                and child_images
+                and child_images == parent_images
             ):
                 results.append(finding(
                     catalog_sha, child, code="variation_gallery_equals_parent_without_inheritance", severity="medium", gate="review",
@@ -952,6 +963,7 @@ def report_markdown(
         "production_image_candidate_invalid", "nonpositive_gross_margin", "include_target_absent",
         "invalid_parent_attribute_default", "missing_image", "structured_part_number_identity_mismatch",
         "inherit_parent_image_on_nonvariation", "variation_gallery_equals_parent_without_inheritance",
+        "variation_inheritance_gallery_mismatch", "sibling_variations_share_explicit_gallery",
     )
     lines.extend(["", "## Exact bounded exception sets", ""])
     for code in selected_codes:

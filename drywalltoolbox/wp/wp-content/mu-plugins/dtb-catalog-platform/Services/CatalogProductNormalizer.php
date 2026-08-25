@@ -346,12 +346,23 @@ final class DTB_CatalogProductNormalizer {
 
 	/** Extract variation-specific metadata. */
 	private static function extract_variation_meta( array $meta ): array {
+		$inherit_parent_image = $meta[ DTB_ProductMeta::INHERIT_PARENT_IMAGE ] ?? false;
+		if ( is_string( $inherit_parent_image ) ) {
+			$inherit_parent_image = in_array(
+				strtolower( trim( $inherit_parent_image ) ),
+				[ '1', 'true', 'yes', 'on' ],
+				true
+			);
+		} else {
+			$inherit_parent_image = (bool) $inherit_parent_image;
+		}
+
 		return [
 			'axis'               => (string) ( $meta[ DTB_ProductMeta::VARIATION_AXIS ] ?? '' ),
 			'value'              => (string) ( $meta[ DTB_ProductMeta::VARIATION_VALUE ] ?? '' ),
 			'label'              => (string) ( $meta[ DTB_ProductMeta::VARIATION_LABEL ] ?? '' ),
 			'sort'               => absint( $meta[ DTB_ProductMeta::VARIATION_SORT ] ?? 0 ),
-			'inheritParentImage' => (bool) ( $meta[ DTB_ProductMeta::INHERIT_PARENT_IMAGE ] ?? false ),
+			'inheritParentImage' => $inherit_parent_image,
 		];
 	}
 

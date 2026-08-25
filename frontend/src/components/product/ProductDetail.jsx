@@ -429,7 +429,32 @@ function mergeProductImages(...sets) {
   return out;
 }
 
+function isVariationImageInherited(selectedVariation) {
+  const value = selectedVariation?.variation?.inheritParentImage
+    ?? selectedVariation?.inheritParentImage
+    ?? selectedVariation?.inherit_parent_image;
+
+  if (typeof value === 'string') {
+    return ['1', 'true', 'yes', 'on'].includes(value.trim().toLowerCase());
+  }
+
+  return value === true || value === 1;
+}
+
+function getParentProductImages(parentProduct) {
+  return mergeProductImages(
+    Array.isArray(parentProduct?.media?.images) ? parentProduct.media.images : [],
+    Array.isArray(parentProduct?.images) ? parentProduct.images : [],
+    parentProduct?.media?.image ? [parentProduct.media.image] : [],
+    parentProduct?.image ? [parentProduct.image] : []
+  );
+}
+
 function getEffectiveVariationImages(parentProduct, selectedVariation) {
+	if (isVariationImageInherited(selectedVariation)) {
+	  return getParentProductImages(parentProduct);
+	}
+
   const explicitGallery = Array.isArray(selectedVariation?.variationGalleryImages)
     ? selectedVariation.variationGalleryImages
     : Array.isArray(selectedVariation?.media?.variationImages)
@@ -447,12 +472,7 @@ function getEffectiveVariationImages(parentProduct, selectedVariation) {
 
   if (selectedImages.length > 0) return selectedImages;
 
-  return mergeProductImages(
-    Array.isArray(parentProduct?.media?.images) ? parentProduct.media.images : [],
-    Array.isArray(parentProduct?.images) ? parentProduct.images : [],
-    parentProduct?.media?.image ? [parentProduct.media.image] : [],
-    parentProduct?.image ? [parentProduct.image] : []
-  );
+  return getParentProductImages(parentProduct);
 }
 
 function composeVariableParentProduct(parentProduct, variations = []) {
@@ -503,7 +523,7 @@ function composeEffectiveVariationProduct(parentProduct, selectedVariation, sele
     description_full: selectedVariation.description_full || parentProduct.description_full,
     short_description: selectedVariation.short_description || parentProduct.short_description,
     images: images.length > 0 ? images : (parentProduct.images || parentProduct?.media?.images),
-    image: selectedVariation.image || images[0] || parentProduct?.media?.image || parentProduct.image,
+    image: images[0] || selectedVariation.image || parentProduct?.media?.image || parentProduct.image,
     variationGalleryImages: selectedVariation.variationGalleryImages || selectedVariation?.media?.variationImages || [],
     name,
   };

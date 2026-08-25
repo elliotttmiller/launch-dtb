@@ -86,6 +86,45 @@ def test_inheritance_flag_on_simple_product_requires_review() -> None:
     assert "inherit_parent_image_on_nonvariation" in codes([row(**{"Meta: _dtb_inherit_parent_image": "1"})])
 
 
+def test_parent_equal_variation_gallery_requires_explicit_inheritance() -> None:
+    parent = row(Type="variable", SKU="PARENT", Slug="parent", **{
+        "Attribute 1 value(s)": "Small", "Attribute 1 default": "Small",
+    })
+    child = row(Type="variation", SKU="SMALL", Slug="small", Parent="PARENT", **{
+        "Attribute 1 value(s)": "Small",
+    })
+    assert "variation_gallery_equals_parent_without_inheritance" in codes([parent, child])
+
+
+def test_inherited_variation_gallery_must_exactly_match_parent_order() -> None:
+    parent = row(Type="variable", SKU="PARENT", Slug="parent", Images="https://drywalltoolbox.com/parent.webp", **{
+        "Attribute 1 value(s)": "Small", "Attribute 1 default": "Small",
+    })
+    child = row(Type="variation", SKU="SMALL", Slug="small", Parent="PARENT", Images="https://drywalltoolbox.com/child.webp", **{
+        "Attribute 1 value(s)": "Small", "Meta: _dtb_inherit_parent_image": "1",
+    })
+    assert "variation_inheritance_gallery_mismatch" in codes([parent, child])
+
+
+def test_matching_inherited_gallery_clears_variation_media_findings() -> None:
+    images = "https://drywalltoolbox.com/parent.webp"
+    parent = row(Type="variable", SKU="PARENT", Slug="parent", Images=images, **{
+        "Attribute 1 value(s)": "Small, Large", "Attribute 1 default": "Small",
+    })
+    children = [
+        row(Type="variation", SKU="SMALL", Slug="small", Parent="PARENT", Images=images, **{
+            "Attribute 1 value(s)": "Small", "Meta: _dtb_inherit_parent_image": "1",
+        }),
+        row(Type="variation", SKU="LARGE", Slug="large", Parent="PARENT", Images=images, **{
+            "Attribute 1 value(s)": "Large", "Meta: _dtb_inherit_parent_image": "1",
+        }),
+    ]
+    observed = codes([parent, *children])
+    assert "variation_gallery_equals_parent_without_inheritance" not in observed
+    assert "sibling_variations_share_explicit_gallery" not in observed
+    assert "variation_inheritance_gallery_mismatch" not in observed
+
+
 def test_invalid_gtin_check_digit_is_blocked() -> None:
     assert "invalid_gtin_check_digit" in codes([row(**{"GTIN, UPC, EAN, or ISBN": "123456789013"})])
 

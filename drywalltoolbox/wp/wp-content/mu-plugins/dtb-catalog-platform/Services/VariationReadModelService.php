@@ -39,6 +39,8 @@ final class DTB_VariationReadModelService {
 			'restChildCount'          => 0,
 			'parentSkuMetaMatchCount' => 0,
 			'normalizedCount'         => 0,
+			'explicitGalleryCount'    => 0,
+			'inheritedGalleryCount'   => 0,
 			'source'                  => 'none',
 		];
 
@@ -75,7 +77,10 @@ final class DTB_VariationReadModelService {
 			}
 			$raw['type'] = 'variation';
 			$dto          = dtb_catalog_normalize_product( $raw, $parent_wc );
-			$variations[] = self::enrich_variation_gallery( $dto );
+			$variations[] = self::enrich_variation_gallery(
+				$dto,
+				(string) ( $parent_wc['sku'] ?? '' )
+			);
 		}
 
 		usort( $variations, static function ( array $a, array $b ): int {
@@ -94,21 +99,29 @@ final class DTB_VariationReadModelService {
 	/**
 	 * Add the full SKU-specific variation gallery when the catalog image manifest
 	 * knows about more images than WooCommerce persists on variation products.
+	 * Variations explicitly configured to inherit always resolve the parent's
+	 * ordered manifest instead of retaining stale child attachment state.
 	 *
 	 * @param array<string,mixed> $variation
+	 * @param string              $parent_sku
 	 * @return array<string,mixed>
 	 */
-	private static function enrich_variation_gallery( array $variation ): array {
-		$gallery = self::get_variation_gallery_images( (string) ( $variation['sku'] ?? '' ) );
+	private static function enrich_variation_gallery( array $variation, string $parent_sku ): array {
+		$inherits_parent = true === ( $variation['variation']['inheritParentImage'] ?? false );
+		$gallery_sku     = $inherits_parent ? $parent_sku : (string) ( $variation['sku'] ?? '' );
+		$gallery         = self::get_variation_gallery_images( $gallery_sku );
 
 		if ( empty( $gallery ) ) {
 			return $variation;
 		}
 
+		$diagnostic_key = $inherits_parent ? 'inheritedGalleryCount' : 'explicitGalleryCount';
+		self::$last_diagnostics[ $diagnostic_key ]++;
+
 		$media = is_array( $variation['media'] ?? null ) ? $variation['media'] : [];
 		$media['variationImages'] = $gallery;
 
-		if ( count( $gallery ) > count( (array) ( $media['images'] ?? [] ) ) ) {
+		if ( $inherits_parent || count( $gallery ) > count( (array) ( $media['images'] ?? [] ) ) ) {
 			$media['images'] = $gallery;
 			$media['image']  = (string) ( $gallery[0]['src'] ?? $media['image'] ?? '' );
 		}
