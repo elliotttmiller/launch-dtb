@@ -1,15 +1,24 @@
 ---
 name: dtb-react-engineering
-description: DTB React implementation discipline for state, hooks, components, API consumption, async states and performance.
+description: Production React engineering for DTB state ownership, components, hooks, API boundaries, async behavior, accessibility and measured performance.
 ---
 # DTB React Engineering
 
-- Prefer small focused components and reusable semantics, not abstraction for its own sake.
-- Keep server-owned truth in server systems; do not mirror commerce/payment/inventory authority in React state.
-- Route network behavior through existing API/service layers; avoid fetch-per-item patterns.
-- Effects synchronize with external systems; do not use effects to derive state that can be computed during render/event handling.
-- Correct dependencies, cleanup and cancellation are mandatory.
-- Handle loading, empty, error, disabled, success and retry states explicitly where relevant.
-- Use memoization only for measured/identity-sensitive needs, not reflexively.
-- Optimize measured bottlenecks, bundle boundaries and request paths rather than speculative micro-optimization.
-- Preserve semantic HTML, keyboard operation, focus visibility and reduced-motion behavior.
+## Apply when
+Use for React components, hooks, routing, client state, server/API consumption, async interactions, performance-sensitive rendering, or frontend refactors. The owning frontend engineer remains the writer.
+
+## State and data discipline
+Classify every value before storing it: server-owned truth, URL/navigation state, local interaction state, derived state, or transient request state. Do not mirror WooCommerce/payment/inventory authority into long-lived React state. Derive values during render when possible; use effects only to synchronize with external systems.
+
+Route network work through existing API/service clients. Prefer request aggregation over fetch-per-item behavior. Handle abort/cancellation, stale response races, duplicate submissions, retries, and component teardown explicitly when concurrent interactions are possible. Treat server responses as untrusted external data and validate assumptions at boundaries.
+
+## Component design
+Split by responsibility and semantic reuse, not arbitrary line counts. Keep presentation independent from domain transport details. Prefer composition over configurable mega-components and avoid abstractions before a stable repeated pattern exists. Preserve one semantic tree across responsive presentation unless behavior genuinely differs.
+
+Hooks must have correct dependencies, cleanup, stable ownership, and no stale closures. Do not use effect chains as an implicit state machine when explicit event/state modeling is clearer. Memoization is for measured or identity-sensitive needs, not routine decoration.
+
+## User-state completeness
+For async/customer-facing features account for relevant loading, empty, pending, disabled, error, success, retry, cancellation, and stale/session-expired states. Preserve semantic HTML, accessible names, keyboard operation, visible focus, and reduced-motion behavior.
+
+## Performance and verification
+Measure before optimizing. Inspect bundle/request/render cost when a change plausibly affects them; prefer route/component boundaries and request-path fixes over micro-optimizations. Verify affected routes, async/error paths, cleanup/races, and accessibility; use browser evidence when available. Report anything not rendered or executed rather than inferring success.

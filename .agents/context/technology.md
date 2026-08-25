@@ -14,10 +14,10 @@ Stable technology family:
 - CSS/Tailwind/design-token based presentation with responsive intrinsic layout.
 - WordPress/WooCommerce backend and DTB must-use plugins in PHP.
 - WooCommerce CRUD/HPOS-compatible commerce access.
-- Action Scheduler for asynchronous work.
+- Action Scheduler for asynchronous application work.
 - Veeqo, QuickBooks and marketplace/provider adapters under DTB integration ownership.
-- GitHub Actions and deterministic repository scripts for CI/operations.
+- Deterministic repository scripts for repeatable validation and operational tooling where implemented.
 
-Dependency presence does not establish architectural authority. For example, a browser package may remain installed for a non-checkout surface even when provider-owned WooCommerce UI is the checkout authority. Verify imports and active execution paths before inferring usage.
+Dependency presence does not establish architectural authority. A package may remain installed for a limited/non-authoritative surface; verify imports and active execution paths before inferring usage or ownership.
 
-Exact versions, route lists, provider activation, module inventory and deployment state are intentionally omitted because they are mutable source/runtime facts.
+GitHub-hosted automation availability is account/environment dependent and is not an application architecture requirement. Exact versions, route lists, provider activation, module inventory and deployment/runtime state are intentionally omitted because they are mutable source/runtime facts.

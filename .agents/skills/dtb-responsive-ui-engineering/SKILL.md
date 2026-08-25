@@ -1,25 +1,24 @@
 ---
 name: dtb-responsive-ui-engineering
-description: Intrinsic, fluid, accessible responsive engineering for DTB React surfaces across continuous available widths.
+description: Intrinsic, fluid and accessible responsive engineering for DTB interfaces across continuous available widths and adversarial content.
 ---
 # DTB Responsive UI Engineering
 
-Treat responsiveness as a constraint problem, not three device screenshots.
+## Mental model
+Responsiveness is constraint management, not three screenshots. Diagnose the full chain before patching:
 
-Trace viewport/container -> page frame -> layout primitive -> domain component -> feature CSS before editing. Diagnose parent width, min-content/max-content, composition, component allocation, viewport geometry, content density or state-dependent failures.
+```text
+viewport/container -> page frame -> layout primitive -> component allocation -> content intrinsic size -> feature styles/state
+```
 
-Prefer:
+Identify whether failure comes from parent constraints, min/max-content, fixed dimensions, flex/grid allocation, media geometry, safe areas, content density, state changes, or specificity/cascade conflicts.
 
-- base mobile composition with progressive `min-width` structural changes;
-- intrinsic grid/flex (`minmax`, `auto-fit/auto-fill`, wrapping, `min-width: 0`);
-- `clamp()`/`min()`/`max()` for bounded fluid values;
-- container queries for reusable component allocation;
-- `aspect-ratio` to reserve media space;
-- `dvh`/`svh`/`lvh` and safe-area handling for mobile geometry;
-- logical properties where direction-aware layout matters;
-- real responsive image behavior through the existing media pipeline;
-- preference queries for reduced motion/contrast/color behavior when supported.
+## Preferred tools
+Use intrinsic flex/grid, wrapping, `min-width: 0`, `minmax()`, `auto-fit/auto-fill`, bounded fluid `clamp()/min()/max()`, container queries for reusable components, `aspect-ratio` for media reservation, logical properties, responsive images, and `dvh/svh/lvh` plus safe areas when viewport geometry requires them. Start from the simplest base composition and add structural breakpoints only where content actually needs them.
 
-Do not stack override files or specificity as a debugging strategy. Remove/narrow obsolete conflicting rules. Do not duplicate React trees for presentation-only differences or move CSS-expressible layout into resize JavaScript.
+Do not stack emergency override files or escalating specificity. Remove/narrow obsolete rules. Do not duplicate React trees solely for desktop/mobile presentation or use resize JavaScript for layout CSS can express.
 
-Validate continuous widths, immediately around structural transitions, 200% zoom/text expansion, long realistic content, loading/error/empty/selected states, keyboard/focus, coarse pointer, reduced motion and safe areas.
+## Robustness criteria
+Validate immediately below/above structural transitions and at representative narrow/intermediate/wide widths. Test long names/prices/labels, empty/loading/error/selected states, dynamic controls, image aspect extremes, 200% zoom/text expansion, keyboard focus, coarse pointer/touch targets, reduced motion, safe areas, and horizontal overflow.
+
+Responsive success means hierarchy and task completion remain intact, not merely that elements fit. When rendering tools are unavailable, state the exact widths/states not visually verified.
