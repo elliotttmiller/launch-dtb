@@ -65,7 +65,7 @@ def _load_dotenv() -> None:
 @dataclass(slots=True)
 class Config:
     # -- Target environment ------------------------------------------------
-    site_url: str = "https://drywalltoolbox.com/staging/2972"
+    site_url: str = "https://drywalltoolbox.com/staging"
     api_base: str = ""  # public WordPress REST base, e.g. https://host/wp-json
     request_timeout_s: float = 15.0
 
@@ -129,7 +129,7 @@ class Config:
 def load_config() -> Config:
     _load_dotenv()
 
-    site_url = os.environ.get("LAUNCH_SITE_URL", "https://drywalltoolbox.com/staging/2972").rstrip("/")
+    site_url = os.environ.get("LAUNCH_SITE_URL", "https://drywalltoolbox.com/staging").rstrip("/")
     api_base = os.environ.get("LAUNCH_API_BASE_URL", f"{site_url}/wp-json").rstrip("/")
 
     config = Config(

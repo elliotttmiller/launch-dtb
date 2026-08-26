@@ -1,15 +1,15 @@
-# HostGator WordPress runtime architecture
+# SiteGround WordPress runtime architecture
 
 ## Environment boundaries
 
 Drywall Toolbox runs one production WordPress/WooCommerce runtime. The staging
-surface is a separately built React client mounted below `/staging/2972`; it
+surface is a separately built React client mounted below `/staging`; it
 reads from the shared root WordPress REST authority.
 
 | Surface | Public URL | WordPress/REST authority | Server directory |
 | --- | --- | --- | --- |
-| Staging React | `https://drywalltoolbox.com/staging/2972` | `https://drywalltoolbox.com/wp-json` | `/public_html/drywalltoolbox/staging/2972/` |
-| Production | `https://drywalltoolbox.com` | `https://drywalltoolbox.com/wp` | `/public_html/drywalltoolbox/wp/` |
+| Staging React | `https://drywalltoolbox.com/staging` | `https://drywalltoolbox.com/wp-json` | `/public_html/staging/` |
+| Production | `https://drywalltoolbox.com` | `https://drywalltoolbox.com/wp` | `/public_html/wp/` |
 
 Native admin and login URLs remain in the physical production WordPress
 namespace: `/wp/wp-admin/` and `/wp/wp-login.php`.
@@ -21,22 +21,22 @@ must generate admin, login, plugin, nonce, and POST destinations from
 ## Configuration ownership
 
 - `wp-config.php` is server-owned, ignored by Git, and contains secrets.
-- `wp-config-sample.php` is the tracked HostGator production contract.
-- `htaccess.hostgator-staging` and `htaccess.hostgator` at the application root
-  own the React, REST, checkout, and WordPress alias routing for each deployment.
+- `wp-config-sample.php` is the tracked WordPress production contract.
+- `htaccess.staging` and the selected production `.htaccess` contract at the
+  application root own React, REST, checkout, and WordPress alias routing.
 - the files under `drywalltoolbox/wp/` own the shared WordPress runtime routing
   and dynamic-response cache policy.
 
 The staging build must not assume that WordPress exists below
-`/staging/2972/wp`. Its public API configuration points to the root origin while
-`PUBLIC_URL=/staging/2972` remains authoritative for staging-owned assets and
+`/staging/wp`. Its public API configuration points to the root origin while
+`PUBLIC_URL=/staging` remains authoritative for staging-owned assets and
 React routes.
 
 ## Database and URL synchronization
 
-The HostGator MySQL connection uses database `benconkl_drywalltoolbox`, a
-cPanel-owned database user assigned to that database, and host `localhost`.
-Credentials remain only in the server-owned `wp-config.php`.
+The SiteGround database connection and credentials remain only in the
+server-owned `wp-config.php`; repository documentation does not define or
+duplicate those environment-owned values.
 
 `WP_HOME` and `WP_SITEURL` constants are authoritative at runtime. The matching
 `home` and `siteurl` option rows should contain the same values so removing the

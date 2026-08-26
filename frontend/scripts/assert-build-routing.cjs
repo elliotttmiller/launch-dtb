@@ -16,14 +16,14 @@ if (!['production', 'staging'].includes(appEnv)) {
 if (appEnv === 'production' && publicUrl !== '') {
   throw new Error('Production routing must be root-mounted with PUBLIC_URL=/ (normalized to empty).');
 }
-if (appEnv === 'staging' && publicUrl !== '/staging/2972') {
-  throw new Error('Staging routing must use PUBLIC_URL=/staging/2972.');
+if (appEnv === 'staging' && publicUrl !== '/staging') {
+  throw new Error('Staging routing must use PUBLIC_URL=/staging.');
 }
 
 const outputRoot = path.join(repositoryRoot, appEnv === 'staging' ? 'dist-staging' : 'dist');
 const emittedPath = path.join(outputRoot, '.htaccess');
 const routingFilename = appEnv === 'staging'
-  ? 'htaccess.hostgator-staging'
+  ? 'htaccess.staging'
   : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess');
 const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', routingFilename);
 const manifestPath = path.join(outputRoot, 'asset-manifest.json');
@@ -49,7 +49,7 @@ if (appEnv === 'production' && !/^\s*RewriteRule\s+\^checkout\/\?\$\s+wp\/index\
 
 if (appEnv === 'staging') {
   if (!/^\s*RewriteRule\s+\^\s+index\.html\s+\[QSA,L\]$/m.test(emitted)) {
-    throw new Error('The staging .htaccess must provide the HostGator subdirectory SPA fallback.');
+    throw new Error('The staging .htaccess must provide the SiteGround subdirectory SPA fallback.');
   }
   if (!/^\s*Header\s+always\s+set\s+X-Robots-Tag\s+"noindex, nofollow"\s*$/m.test(emitted)) {
     throw new Error('The staging .htaccess must enforce X-Robots-Tag: noindex, nofollow.');
@@ -85,8 +85,8 @@ for (const logicalName of ['main.js', 'main.css', 'runtime.js']) {
   if (!assetPath || !/\.[a-f0-9]{8}\.(?:js|css)$/i.test(assetPath)) {
     throw new Error(`${logicalName} must resolve to a content-hashed production asset.`);
   }
-  if (appEnv === 'staging' && !assetPath.startsWith('/staging/2972/')) {
-    throw new Error(`${logicalName} must be emitted below /staging/2972/.`);
+  if (appEnv === 'staging' && !assetPath.startsWith('/staging/')) {
+    throw new Error(`${logicalName} must be emitted below /staging/.`);
   }
 }
 
@@ -96,8 +96,8 @@ const emittedHomeHero = Object.values(manifest.files || {}).find(
 if (!emittedHomeHero) {
   throw new Error('The asset manifest is missing the content-hashed home hero image.');
 }
-if (appEnv === 'staging' && !emittedHomeHero.startsWith('/staging/2972/')) {
-  throw new Error('The staging home hero asset must be emitted below /staging/2972/.');
+if (appEnv === 'staging' && !emittedHomeHero.startsWith('/staging/')) {
+  throw new Error('The staging home hero asset must be emitted below /staging/.');
 }
 
 const lazyAssets = Object.values(manifest.files || {}).filter((assetPath) => /\.chunk\.(?:js|css)$/i.test(assetPath));
@@ -114,7 +114,7 @@ if (appEnv === 'staging') {
   if (!/^Allow:\s*\/$/m.test(robots)) {
     throw new Error('The staging robots.txt must allow crawling for authorized SEO audits.');
   }
-  if (/^Disallow:\s*\/$/m.test(robots) || /^Disallow:\s*\/staging\/2972\/$/m.test(robots)) {
+  if (/^Disallow:\s*\/$/m.test(robots) || /^Disallow:\s*\/staging\/$/m.test(robots)) {
     throw new Error('The staging robots policy must not block the staging audit surface.');
   }
   if (/^Sitemap:/mi.test(robots)) {
@@ -123,7 +123,7 @@ if (appEnv === 'staging') {
 
   const javascriptAssets = Object.values(manifest.files || {})
     .filter((assetPath) => /\.js$/i.test(assetPath))
-    .map((assetPath) => path.join(outputRoot, assetPath.replace(/^\/staging\/2972\//, '')));
+    .map((assetPath) => path.join(outputRoot, assetPath.replace(/^\/staging\//, '')));
   const compiledJavascript = javascriptAssets
     .filter((assetPath) => fs.existsSync(assetPath))
     .map((assetPath) => fs.readFileSync(assetPath, 'utf8'))
@@ -132,10 +132,10 @@ if (appEnv === 'staging') {
   if (!compiledJavascript.includes('REACT_APP_API_BASE_URL:"https://drywalltoolbox.com"')) {
     throw new Error('The staging bundle must target the shared root WordPress API origin.');
   }
-  if (compiledJavascript.includes('https://drywalltoolbox.com/staging/2972/wp-json')) {
+  if (compiledJavascript.includes('https://drywalltoolbox.com/staging/wp-json')) {
     throw new Error('The staging bundle contains the obsolete staging-prefixed REST authority.');
   }
-  if (compiledJavascript.includes('https://drywalltoolbox.com/staging/2972/wp/wp-content')) {
+  if (compiledJavascript.includes('https://drywalltoolbox.com/staging/wp/wp-content')) {
     throw new Error('The staging bundle contains the obsolete staging WordPress media path.');
   }
 }

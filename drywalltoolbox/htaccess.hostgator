@@ -128,7 +128,6 @@ ErrorDocument 511 /errors/511.html
   RewriteRule ^checkout/?$ wp/index.php?pagename=checkout [QSA,L]
 
   RewriteRule ^$ index.html [L]
-  RewriteRule ^favicon\.ico$ logos/favicon.ico [L]
 
   # Internal WordPress aliases preserve POST bodies, credentials, and nonces.
   RewriteRule ^wp-admin/admin-ajax\.php$ wp/wp-admin/admin-ajax.php [L,QSA]

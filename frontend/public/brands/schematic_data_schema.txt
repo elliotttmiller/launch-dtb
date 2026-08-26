@@ -136,7 +136,7 @@
 
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://drywalltoolbox.com/staging/2972/schemas/schematic_data.schema.json",
+  "$id": "https://drywalltoolbox.com/staging/schemas/schematic_data.schema.json",
   "title": "Drywall Toolbox Schematic Data Schema",
   "description": "Validation schema for interactive brand schematic hotspot data.",
   "type": "object",

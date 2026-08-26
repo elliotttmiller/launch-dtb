@@ -1,6 +1,6 @@
 // Current public authority. Launch cutover changes REACT_APP_SITE_URL without
 // changing route consumers; this may include a hosted subdirectory.
-export const DEFAULT_PUBLIC_SITE_URL = 'https://drywalltoolbox.com/staging/2972';
+export const DEFAULT_PUBLIC_SITE_URL = 'https://drywalltoolbox.com/staging';
 
 function normalizeConfiguredSiteUrl(value) {
   try {

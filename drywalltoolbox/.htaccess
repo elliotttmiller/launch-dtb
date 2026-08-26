@@ -179,7 +179,6 @@ ErrorDocument 511 /errors/511.html
   # Force homepage to the static React landing page after API fallbacks.
   RewriteRule ^$ index.html [L]
 
-  RewriteRule ^favicon\.ico$ logos/favicon.ico [L]
 
   # WordPress admin/login aliases. These must remain internal rewrites: a
   # browser-followed 302 changes login/admin POST requests to GET and drops the

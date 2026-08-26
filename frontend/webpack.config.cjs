@@ -106,14 +106,14 @@ module.exports = (envFlags, argv) => {
   const useFilesystemCache = isDev || env('DTB_WEBPACK_FS_CACHE') === '1';
   const emitSourceMaps = isDev || env('DTB_SOURCE_MAPS') === '1';
 
-  // Production is root-mounted; staging is served from /staging/2972/.
+  // Production is root-mounted; staging is served from /staging/.
   // Development: serve from / (webpack-dev-server).
   const PUBLIC_URL = env('PUBLIC_URL').replace(/\/+$/, '');
   if (!isDev && appEnv === 'production' && PUBLIC_URL !== '') {
     throw new Error('Production is root-mounted; PUBLIC_URL must be / (or empty).');
   }
-  if (!isDev && appEnv === 'staging' && PUBLIC_URL !== '/staging/2972') {
-    throw new Error('Staging must be mounted at PUBLIC_URL=/staging/2972.');
+  if (!isDev && appEnv === 'staging' && PUBLIC_URL !== '/staging') {
+    throw new Error('Staging must be mounted at PUBLIC_URL=/staging.');
   }
   const publicPath = isDev ? '/' : (PUBLIC_URL ? `${PUBLIC_URL}/` : '/');
 
@@ -434,7 +434,7 @@ module.exports = (envFlags, argv) => {
               '..',
               'drywalltoolbox',
               appEnv === 'staging'
-                ? 'htaccess.hostgator-staging'
+                ? 'htaccess.staging'
                 : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess'),
             ),
             to: '.htaccess',

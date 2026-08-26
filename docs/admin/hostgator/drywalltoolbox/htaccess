@@ -119,24 +119,24 @@ ErrorDocument 511 /errors/511.html
   RewriteRule ^dtb/(.*)$ wp/index.php?rest_route=/dtb/$1 [QSA,L]
 
   # Staging REST aliases -> WordPress in /wp.
-  RewriteRule ^staging/2972/wp-json/?$ wp/index.php?rest_route=/ [QSA,L]
-  RewriteRule ^staging/2972/wp-json/(.*)$ wp/index.php?rest_route=/$1 [QSA,L]
-  RewriteRule ^staging/2972/dtb/(.*)$ wp/index.php?rest_route=/dtb/$1 [QSA,L]
+  RewriteRule ^staging/wp-json/?$ wp/index.php?rest_route=/ [QSA,L]
+  RewriteRule ^staging/wp-json/(.*)$ wp/index.php?rest_route=/$1 [QSA,L]
+  RewriteRule ^staging/dtb/(.*)$ wp/index.php?rest_route=/dtb/$1 [QSA,L]
 
-  RewriteCond %{REQUEST_URI} ^/staging/2972/?$ [NC]
+  RewriteCond %{REQUEST_URI} ^/staging/?$ [NC]
   RewriteCond %{QUERY_STRING} (^|&)rest_route= [NC]
-  RewriteRule ^staging/2972/?$ wp/index.php [QSA,L]
+  RewriteRule ^staging/?$ wp/index.php [QSA,L]
 
   # WooCommerce/official Stripe callbacks. The official Stripe extension uses
   # WooCommerce's wc-api callback space (for example ?wc-api=wc_stripe).
   RewriteCond %{QUERY_STRING} (^|&)wc-api= [NC]
   RewriteRule ^(?:index\.php)?$ wp/index.php [QSA,L]
   RewriteRule ^wc-api/?$ wp/index.php [QSA,L]
-  RewriteRule ^staging/2972/wc-api/?$ wp/index.php [QSA,L]
+  RewriteRule ^staging/wc-api/?$ wp/index.php [QSA,L]
 
   # WooCommerce Checkout Block is the authoritative storefront checkout surface.
   RewriteRule ^checkout/?$ wp/index.php?pagename=checkout [QSA,L]
-  RewriteRule ^staging/2972/checkout/?$ wp/index.php?pagename=checkout [QSA,L]
+  RewriteRule ^staging/checkout/?$ wp/index.php?pagename=checkout [QSA,L]
 
   # Canonicalize wp-prefixed WooCommerce payment endpoints back to the public checkout URL.
   RewriteRule ^wp/checkout/order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA]
@@ -146,11 +146,11 @@ ErrorDocument 511 /errors/511.html
   # WooCommerce payment/order-pay endpoints must be handled by WordPress, not by the React SPA shell.
   RewriteRule ^checkout/order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
   RewriteRule ^order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
-  RewriteRule ^staging/2972/checkout/order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
+  RewriteRule ^staging/checkout/order-pay/([0-9]+)/?$ wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
 
   # WooCommerce order-received/thank-you endpoints must also remain in WordPress.
   RewriteRule ^checkout/order-received/([0-9]+)/?$ wp/index.php?pagename=checkout&order-received=$1 [QSA,L]
-  RewriteRule ^staging/2972/checkout/order-received/([0-9]+)/?$ wp/index.php?pagename=checkout&order-received=$1 [QSA,L]
+  RewriteRule ^staging/checkout/order-received/([0-9]+)/?$ wp/index.php?pagename=checkout&order-received=$1 [QSA,L]
 
   # Reduced/query-string order-pay shapes must also remain in WooCommerce.
   RewriteCond %{QUERY_STRING} (^|&)(pay_for_order=true|order-pay=[0-9]+)(&|$) [NC]
@@ -159,7 +159,7 @@ ErrorDocument 511 /errors/511.html
 
   RewriteCond %{QUERY_STRING} (^|&)(pay_for_order=true|order-pay=[0-9]+)(&|$) [NC]
   RewriteCond %{QUERY_STRING} (^|&)key=wc_order_ [NC]
-  RewriteRule ^staging/2972/checkout/?$ wp/index.php?pagename=checkout [QSA,L]
+  RewriteRule ^staging/checkout/?$ wp/index.php?pagename=checkout [QSA,L]
 
   # Signal Endurance/nginx cache to bypass WordPress admin/auth and customer/session-owned surfaces.
   <If "%{REQUEST_URI} =~ m#^/(?:wp-admin|wp-login\.php|wp-json|dtb|wp-cron\.php|xmlrpc\.php|cart|checkout|account|my-account|dashboard|orders|addresses|rewards|login|register|forgot-password|lost-password|reset-password|logout|wc-api)(?:/|$)#i || %{REQUEST_URI} =~ m#/checkout/order-pay/#i || %{QUERY_STRING} =~ m#(^|&)(?:rest_route=|pay_for_order=true|order-pay=[0-9]+|wc-api=)#i || %{HTTP_COOKIE} =~ m#(?:^|;\s*)(?:wordpress_logged_in_|wordpress_sec_|wordpress_test_cookie|wp-settings-|woocommerce_cart_hash|woocommerce_items_in_cart|wp_woocommerce_session_|dtb_auth)#i">
@@ -172,7 +172,6 @@ ErrorDocument 511 /errors/511.html
   # Force homepage to the static React landing page after API fallbacks.
   RewriteRule ^$ index.html [L]
 
-  RewriteRule ^favicon\.ico$ logos/favicon.ico [L]
 
   # WordPress admin/login aliases. These must remain internal rewrites: a
   # browser-followed 302 changes login/admin POST requests to GET and drops the
@@ -189,13 +188,13 @@ ErrorDocument 511 /errors/511.html
   RewriteRule ^xmlrpc\.php$ wp/xmlrpc.php [L,QSA]
 
   # Staging SPA deep-link fallback. Checkout is already consumed by the explicit rules above.
-  RewriteCond %{REQUEST_URI} ^/staging/2972/ [NC]
-  RewriteCond %{REQUEST_URI} !^/staging/2972/(?:wp-json|dtb)(?:/|$) [NC]
-  RewriteCond %{REQUEST_URI} !^/staging/2972/checkout(?:/|$) [NC]
+  RewriteCond %{REQUEST_URI} ^/staging/ [NC]
+  RewriteCond %{REQUEST_URI} !^/staging/(?:wp-json|dtb)(?:/|$) [NC]
+  RewriteCond %{REQUEST_URI} !^/staging/checkout(?:/|$) [NC]
   RewriteCond %{REQUEST_URI} !\.(?:css|js|mjs|map|json|webmanifest|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf|eot|pdf|txt|xml)$ [NC]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule ^staging/2972/ /staging/2972/index.html [QSA,L]
+  RewriteRule ^staging/ /staging/index.html [QSA,L]
 
   # Serve existing files/directories directly.
   RewriteCond %{REQUEST_FILENAME} -f [OR]

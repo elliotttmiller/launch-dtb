@@ -109,7 +109,7 @@ production builds emit the root sitemap declaration. Staging builds emit
 but emit no staging sitemap declaration. A physical `robots.txt` takes
 precedence over WordPress virtual robots output.
 
-A `robots.txt` served from `/staging/2972/robots.txt` is not the origin-level
+A `robots.txt` served from `/staging/robots.txt` is not the origin-level
 robots authority; standard crawler policy is read from `/robots.txt` at the
 origin root. The root policy therefore does not disallow the staging mount.
 Staging index protection instead uses the React `noindex, nofollow` head policy
@@ -123,7 +123,7 @@ do not publish or submit a staging sitemap.
 
 ## Staging contract
 
-The staging mount is `https://drywalltoolbox.com/staging/2972/`. It shares the
+The staging mount is `https://drywalltoolbox.com/staging/`. It shares the
 production WordPress/WooCommerce runtime but is not a canonical search surface.
 Its build permits crawling, its Apache responses emit
 `X-Robots-Tag: noindex, nofollow`, and it does not advertise a sitemap. The only
