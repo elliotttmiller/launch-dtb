@@ -66,7 +66,7 @@
         rgba(2, 10, 25, 0.56) 47%,
         rgba(2, 10, 25, 0.93) 68%,
         rgba(2, 10, 25, 0.99) 100%),
-      url('/hero/repair-service.webp') 67% 42% / cover no-repeat;
+      url('../assets/media/repairs/repair-hero.webp') 67% 42% / cover no-repeat;
   }
 
   .repair-hero__inner {
@@ -117,7 +117,7 @@
         rgba(2, 10, 25, 0.64) 48%,
         rgba(2, 10, 25, 0.95) 68%,
         rgba(2, 10, 25, 1) 100%),
-      url('/hero/repair-service.webp') 66% 38% / auto 100% no-repeat,
+      url('../assets/media/repairs/repair-hero.webp') 66% 38% / auto 100% no-repeat,
       #061127;
   }
 
@@ -312,7 +312,7 @@
         rgba(2, 10, 25, 0.68) 47%,
         rgba(2, 10, 25, 0.97) 66%,
         rgba(2, 10, 25, 1) 100%),
-      url('/hero/repair-service.webp') 64% 34% / auto 96% no-repeat,
+      url('../assets/media/repairs/repair-hero.webp') 64% 34% / auto 96% no-repeat,
       #061127;
   }
 

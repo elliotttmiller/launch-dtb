@@ -1,7 +1,7 @@
 import { Facebook, Instagram, Twitter } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import LogoWhite from '/logo-white.svg';
+import LogoWhite from '@assets/brand/dtb-logo-white.svg';
 import '../../styles/storefront-footer-template.css';
 import { useEditableComponent } from '../../designer/useEditableComponent.js';
 

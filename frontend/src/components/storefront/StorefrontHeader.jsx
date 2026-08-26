@@ -3,7 +3,7 @@ import { startTransition, useState, useEffect, useRef, useMemo, useCallback } fr
 import { useCart } from '../../context/CartContext';
 import { useAuthContext } from '../../auth/AuthContext.js';
 import { ShoppingCart, X, ChevronRight, User, Headset, Phone } from 'lucide-react';
-import LogoWhite from '/logo-white.svg';
+import LogoWhite from '@assets/brand/dtb-logo-white.svg';
 import StorefrontSearchOverlay from './StorefrontSearchOverlay';
 import StorefrontMobileDrawer from './StorefrontMobileDrawer';
 import AccountHubSheet from '../account/AccountHubSheet.jsx';

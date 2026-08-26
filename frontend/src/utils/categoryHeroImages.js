@@ -20,8 +20,10 @@
  * entries have no srcset (they're a single static asset), which is fine —
  * the browser just uses `src` directly.
  */
+import automaticTapersHero from '@assets/media/catalog/category-heroes/automatic-tapers.webp';
+
 const CATEGORY_HERO_IMAGE_OVERRIDES = {
-  'automatic-tapers': '/hero/automatic-tapers.webp',
+  'automatic-tapers': automaticTapersHero,
 };
 
 export function resolveCategoryHeroImage(category) {

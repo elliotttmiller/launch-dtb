@@ -27,7 +27,6 @@ const routingFilename = appEnv === 'staging'
   : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess');
 const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', routingFilename);
 const manifestPath = path.join(outputRoot, 'asset-manifest.json');
-const heroPath = path.join(outputRoot, 'home', 'hero-drywall-tool.webp');
 const robotsPath = path.join(outputRoot, 'robots.txt');
 
 const expected = fs.readFileSync(sourcePath, 'utf8');
@@ -91,15 +90,22 @@ for (const logicalName of ['main.js', 'main.css', 'runtime.js']) {
   }
 }
 
+const emittedHomeHero = Object.values(manifest.files || {}).find(
+  (assetPath) => /\/assets\/images\/home-hero\.[a-f0-9]{8}\.webp$/i.test(assetPath),
+);
+if (!emittedHomeHero) {
+  throw new Error('The asset manifest is missing the content-hashed home hero image.');
+}
+if (appEnv === 'staging' && !emittedHomeHero.startsWith('/staging/2972/')) {
+  throw new Error('The staging home hero asset must be emitted below /staging/2972/.');
+}
+
 const lazyAssets = Object.values(manifest.files || {}).filter((assetPath) => /\.chunk\.(?:js|css)$/i.test(assetPath));
 if (lazyAssets.length === 0 || lazyAssets.some((assetPath) => !/\.[a-f0-9]{8}\.chunk\.(?:js|css)$/i.test(assetPath))) {
   throw new Error('Every lazy JavaScript/CSS chunk must use a content-hashed production URL.');
 }
 
 if (appEnv === 'staging') {
-  if (!fs.existsSync(heroPath)) {
-    throw new Error('The staging artifact is missing home/hero-drywall-tool.webp.');
-  }
   if (!fs.existsSync(robotsPath)) {
     throw new Error('The staging artifact is missing robots.txt.');
   }

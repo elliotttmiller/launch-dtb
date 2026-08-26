@@ -1,8 +1,8 @@
 import './calculator-report.css'
 
-import { absoluteSiteUrl, PUBLIC_SITE_URL } from '../../../utils/siteUrl.js'
+import dtbLogoWhite from '@assets/brand/dtb-logo-white.svg'
+import { PUBLIC_SITE_URL } from '../../../utils/siteUrl.js'
 
-const LOGO_URL = absoluteSiteUrl('/logos/logo-white.svg')
 const SITE_HOST = new URL(PUBLIC_SITE_URL).host
 
 export default function CalculatorReport({ report }) {
@@ -12,7 +12,7 @@ export default function CalculatorReport({ report }) {
         <div className="dtb-report-brand">
           <img
             className="dtb-report-logo"
-            src={LOGO_URL}
+            src={dtbLogoWhite}
             alt="Drywall Toolbox"
             loading="eager"
             decoding="sync"
