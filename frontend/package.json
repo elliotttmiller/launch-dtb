@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://drywalltoolbox.com/staging/2972/",
+  "homepage": "https://drywalltoolbox.com/",
   "scripts": {
     "dev": "webpack serve --config webpack.config.cjs --mode development",
     "build": "npm run build:siteground-root",

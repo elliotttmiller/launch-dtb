@@ -41,53 +41,6 @@ final class DTB_StoreApiSameOriginCartSession {
 		// AbstractCartRoute reads it per-request). 'muplugins_loaded' is the
 		// earliest action available and fires well before either.
 		add_action( 'muplugins_loaded', [ __CLASS__, 'maybe_strip_cross_context_cart_token' ], 0 );
-
-		// TEMPORARY diagnostic for the "cart empty at checkout" investigation.
-		// Logs session/cookie/cart state actually seen by cart and checkout
-		// Store API requests so the real session identity at each step is
-		// visible in the PHP error log, instead of guessing from the browser
-		// side. Safe to remove once the root cause is confirmed — it does not
-		// change any request/response behavior.
-		add_filter( 'rest_request_after_callbacks', [ __CLASS__, 'log_cart_session_diagnostic' ], 20, 3 );
-	}
-
-	public static function log_cart_session_diagnostic( $response, array $handler, \WP_REST_Request $request ) {
-		$route = (string) $request->get_route();
-		if ( ! preg_match( '#^/wc/store/v1/(cart|checkout)#', $route ) ) {
-			return $response;
-		}
-
-		$session_cookie_name = '';
-		$session_cookie_value = '';
-		foreach ( $_COOKIE as $cookie_name => $cookie_value ) {
-			if ( 0 === strpos( (string) $cookie_name, 'wp_woocommerce_session_' ) ) {
-				$session_cookie_name = (string) $cookie_name;
-				$session_cookie_value = substr( (string) $cookie_value, 0, 24 ) . '…';
-				break;
-			}
-		}
-
-		$cart_count = null;
-		$customer_id = null;
-		if ( function_exists( 'WC' ) && WC()->cart instanceof \WC_Cart ) {
-			$cart_count = WC()->cart->get_cart_contents_count();
-		}
-		if ( function_exists( 'WC' ) && WC()->session ) {
-			$customer_id = WC()->session->get_customer_id();
-		}
-
-		error_log( sprintf(
-			'[DTB_CART_DIAG] route=%s method=%s cart_token_header=%s session_cookie=%s session_cookie_value=%s wc_session_customer_id=%s cart_count=%s',
-			$route,
-			$request->get_method(),
-			empty( $_SERVER['HTTP_CART_TOKEN'] ) ? 'absent' : 'PRESENT',
-			$session_cookie_name ?: 'none-found',
-			$session_cookie_value ?: 'n/a',
-			$customer_id ?? 'n/a',
-			$cart_count ?? 'n/a'
-		) );
-
-		return $response;
 	}
 
 	public static function maybe_strip_cross_context_cart_token(): void {

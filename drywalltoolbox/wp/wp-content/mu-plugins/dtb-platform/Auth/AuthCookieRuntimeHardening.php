@@ -300,9 +300,6 @@ function dtb_auth_clear_native_customer_cookie(): void {
 	}
 	$native_user = get_user_by( 'id', $native_user_id );
 	if ( ! $native_user instanceof WP_User || dtb_auth_user_is_privileged( $native_user ) ) {
-		if ( $native_user instanceof WP_User && function_exists( 'dtb_security_log' ) ) {
-			dtb_security_log( 'native_privileged_cookie_preserved_during_storefront_auth', [] );
-		}
 		return;
 	}
 	wp_clear_auth_cookie();

@@ -123,9 +123,9 @@ module.exports = (envFlags, argv) => {
     ? path.resolve(__dirname, 'dist')
     : path.resolve(__dirname, '..', appEnv === 'staging' ? 'dist-staging' : 'dist');
 
-  const DEV_PROXY_TARGET = env('REACT_APP_API_BASE_URL') || 'https://elliottm4.sg-host.com';
+  const DEV_PROXY_TARGET = env('REACT_APP_API_BASE_URL') || 'https://drywalltoolbox.com';
   const cacheName = `${mode}-${appEnv}-${deployTarget}-${PUBLIC_URL || 'root'}`.replace(/[^a-z0-9_.-]+/gi, '-');
-  const siteUrl = (env('REACT_APP_SITE_URL') || 'https://elliottm4.sg-host.com').replace(/\/+$/, '');
+  const siteUrl = (env('REACT_APP_SITE_URL') || 'https://drywalltoolbox.com').replace(/\/+$/, '');
   const searchIndexingEnabled = env('REACT_APP_SEARCH_INDEXING') !== '0' && appEnv === 'production';
   // Staging remains noindex at the HTML and HTTP-header layers, but robots.txt
   // permits crawling so authorized tools such as Semrush can audit it.
@@ -616,7 +616,7 @@ module.exports = (envFlags, argv) => {
           // browser's broken-image glyph. Proxying it the same way as the
           // REST endpoints above fixes it for every consumer, not just one
           // component — confirmed the underlying live URLs are valid
-          // (e.g. https://elliottm4.sg-host.com/wp-content/uploads/2026/categories/thumbnails/automatic-tapers.webp
+          // (e.g. https://drywalltoolbox.com/wp-content/uploads/2026/categories/thumbnails/automatic-tapers.webp
           // returns real WebP image data), so this is purely a missing
           // dev-proxy route, not a wrong asset path.
           context: ['/wp-content'],

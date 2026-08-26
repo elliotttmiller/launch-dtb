@@ -315,7 +315,7 @@ function dtb_schematics_workspace_handle_ajax_action(): void {
 function dtb_schematics_workspace_perform_operation( string $operation, int $id, bool $commit ): array {
 	if ( str_starts_with( $operation, 'reconcile_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_RECONCILE; } elseif ( str_starts_with( $operation, 'migrate_hotspots_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_MIGRATE_HOTSPOTS; } elseif ( str_starts_with( $operation, 'refresh_products_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REFRESH_PRODUCTS; } elseif ( str_starts_with( $operation, 'regenerate_oversized_' ) ) { $kind = DTB_SCHEMATIC_OPERATION_REGENERATE_OVERSIZED; } else { $kind = [ 'publish' => DTB_SCHEMATIC_OPERATION_PUBLISH, 'retire' => DTB_SCHEMATIC_OPERATION_RETIRE, 'refresh_projection' => DTB_SCHEMATIC_OPERATION_REFRESH_PUBLIC ][ $operation ]; }
 	$args = [ 'kind' => $kind, 'dry_run' => ! $commit, 'operator_id' => get_current_user_id() ];
-	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 25; $args['resume'] = true; } elseif ( str_starts_with( $operation, 'migrate_hotspots_all_' ) ) { $args['all_records'] = true; $args['per_page'] = 25; } else { $args['schematic_ids'] = [ $id ]; }
+	if ( DTB_SCHEMATIC_OPERATION_RECONCILE === $kind ) { $args['batch_size'] = 10; $args['resume'] = true; } elseif ( str_starts_with( $operation, 'migrate_hotspots_all_' ) ) { $args['all_records'] = true; $args['per_page'] = 25; } else { $args['schematic_ids'] = [ $id ]; }
 	$run = dtb_schematic_run_operation( $args );
 	if ( is_wp_error( $run ) ) { return [ 'notice' => $run->get_error_message(), 'notice_type' => 'error', 'run_id' => '' ]; }
 	$result = (array) ( $run['result'] ?? [] );

@@ -1,5 +1,5 @@
 # Drywall Toolbox live root routing
-# SiteGround document root: the directory serving elliottm4.sg-host.com
+# SiteGround document root: the directory serving drywalltoolbox.com
 # WordPress core: document-root/wp/
 # React build: upload the CONTENTS of dist/ into this document root.
 
@@ -92,13 +92,13 @@ ErrorDocument 511 /errors/511.html
   RewriteCond %{HTTP:X-Forwarded-Proto} !^https$ [NC]
   RewriteCond %{HTTP_HOST} !^localhost$ [NC]
   RewriteCond %{HTTP_HOST} !^127\.0\.0\.1$ [NC]
-  RewriteRule ^ https://elliottm4.sg-host.com%{REQUEST_URI} [R=301,L,NE]
+  RewriteRule ^ https://drywalltoolbox.com%{REQUEST_URI} [R=301,L,NE]
 
   # Canonical host. Redirect only recognized legacy hosts; never reflect an
   # arbitrary Host header into Location. This keeps storefront, Woo session,
   # DTB auth, checkout, and Stripe return URLs on one origin.
-  RewriteCond %{HTTP_HOST} ^(?:www\.)?drywalltoolbox\.com$ [NC]
-  RewriteRule ^ https://elliottm4.sg-host.com%{REQUEST_URI} [R=301,L,NE]
+  RewriteCond %{HTTP_HOST} ^(?:www\.drywalltoolbox\.com|elliottm4\.sg-host\.com)$ [NC]
+  RewriteRule ^ https://drywalltoolbox.com%{REQUEST_URI} [R=301,L,NE]
 
   # Apple Pay / official WooCommerce Stripe gateway domain association.
   # The official Stripe extension can create the required association file. If

@@ -54,7 +54,7 @@ function dtb_admin_security_can_run_smoke(): bool {
 }
 
 function dtb_admin_security_trace_login_init(): void {
-	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', true ) ) {
+	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false ) ) {
 		return;
 	}
 
@@ -72,7 +72,7 @@ function dtb_admin_security_trace_login_init(): void {
 }
 
 function dtb_admin_security_trace_login_failed( string $username, $error = null ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
-	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', true ) ) {
+	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false ) ) {
 		return;
 	}
 
@@ -88,7 +88,7 @@ function dtb_admin_security_trace_login_failed( string $username, $error = null 
 }
 
 function dtb_admin_security_trace_auth_cookie( string $auth_cookie, int $expire, int $expiration, int $user_id, string $scheme, string $token ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', true ) ) {
+	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false ) ) {
 		return;
 	}
 
@@ -103,7 +103,7 @@ function dtb_admin_security_trace_auth_cookie( string $auth_cookie, int $expire,
 }
 
 function dtb_admin_security_trace_logged_in_cookie( string $logged_in_cookie, int $expire, int $expiration, int $user_id, string $scheme, string $token ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', true ) ) {
+	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false ) ) {
 		return;
 	}
 
@@ -118,7 +118,7 @@ function dtb_admin_security_trace_logged_in_cookie( string $logged_in_cookie, in
 }
 
 function dtb_admin_security_trace_login_success( string $user_login, WP_User $user ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
-	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', true ) ) {
+	if ( ! dtb_feature_enabled( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false ) ) {
 		return;
 	}
 

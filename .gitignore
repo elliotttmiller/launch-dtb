@@ -18,12 +18,14 @@ build/
 *.tmp
 *.cache
 coverage/
+/stdout
 .amazonq
 .venv
 
 # ─── Environment Configuration Files ──────────────────────────────────────────
-# Sensitive credentials and environment-specific settings — NEVER committed.
-# GitHub Actions injects production credentials via Secrets, not .env files.
+# Server credentials and private environment settings are never committed.
+# Frontend REACT_APP_* values are public browser build configuration; the
+# reviewed staging and production contracts are committed without secrets.
 #
 # Structure:
 #   Root-level (.env files for various scripts/workflows):
@@ -34,18 +36,19 @@ coverage/
 #   Frontend (.env files with webpack DefinePlugin auto-detection):
 #     /frontend/.env                    — Legacy single env file (if used)
 #     /frontend/.env.development        — Used by: npm run dev
-#     /frontend/.env.production         — Used by: npm run build (local testing)
+#     /frontend/.env.production         — Used by: npm run build
 #     /frontend/.env.*.local            — Any other local overrides
 #
-# Committed files (templates, no secrets):
-#     /frontend/.env.example            — Template for developers (no secrets)
+# Committed files (public values only):
+#     /frontend/.env.example            — Template for developers
+#     /frontend/.env.staging            — Staging build contract
+#     /frontend/.env.production         — Production build contract
 
 /.env
 /.env.development
 /.env.production
 frontend/.env
 frontend/.env.development
-frontend/.env.production
 frontend/.env.*.local
 
 # frontend build artifacts
@@ -107,6 +110,11 @@ drywalltoolbox/wp/wp-content/updraft/log*.txt
 # A local WordPress/site snapshot under launch is runtime-owned. It may contain
 # a nested repository, WordPress core, plugins, uploads, logs, and secrets.
 /launch/wp/
+
+# Local WordPress runtime mirror used for launch-site inspection. Canonical DTB
+# application source remains under drywalltoolbox/wp/; keep this entire mirror
+# out of Git, including core, third-party plugins, uploads, caches, and secrets.
+/drywalltoolbox/launch-wp/
 
 # WordPress content tracked in this repo (wp/wp-content/):
 #   wp/wp-content/themes/drywall-toolbox/           — legacy theme (kept until headless-base validated)

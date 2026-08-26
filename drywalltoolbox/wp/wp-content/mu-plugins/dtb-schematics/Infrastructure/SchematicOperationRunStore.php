@@ -137,6 +137,42 @@ function dtb_schematic_operation_commit_lease_release( string $run_id ): void {
 }
 
 /**
+ * Release an owned lease and close its run when PHP terminates fatally.
+ *
+ * PHP execution-time and memory-limit fatals bypass the operation runner's
+ * finally block. Without shutdown cleanup, the dead request leaves every
+ * subsequent commit blocked until the full lease interval expires.
+ */
+function dtb_schematic_operation_register_fatal_lease_cleanup( string $run_id ): void {
+	register_shutdown_function(
+		static function () use ( $run_id ): void {
+			$error = error_get_last();
+			if ( ! is_array( $error ) ) {
+				return;
+			}
+
+			$fatal_error_types = [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR ];
+			if ( ! in_array( (int) ( $error['type'] ?? 0 ), $fatal_error_types, true ) ) {
+				return;
+			}
+
+			dtb_schematic_operation_commit_lease_release( $run_id );
+
+			$run = dtb_schematic_operation_run_get( $run_id );
+			if ( ! $run || 'running' !== (string) ( $run['status'] ?? '' ) ) {
+				return;
+			}
+
+			$message = __( 'The schematic operation was terminated by PHP before completion. Review the server error log using the operation run ID.', 'drywall-toolbox' );
+			$run     = dtb_schematic_operation_run_complete( $run, [ 'fatal_error' => $message ], $message );
+			if ( function_exists( 'dtb_schematic_operation_log_activity' ) ) {
+				dtb_schematic_operation_log_activity( (string) ( $run['kind'] ?? '' ), $run );
+			}
+		}
+	);
+}
+
+/**
  * Extend a lease only while the caller still owns its exact stored value.
  * Losing ownership is terminal for the active run; it must stop writing.
  */

@@ -490,6 +490,17 @@ function dtb_schematic_reconcile_finalize_asset( array $asset, ?DTB_Schematic_Re
 
 	$described = dtb_schematic_attachment_repo_describe( $attachment_id );
 	$has_dimensions = $described && $described['exists'] && $described['width'] > 0 && $described['height'] > 0;
+	if ( ! $dry_run && ! $has_dimensions ) {
+		$metadata_repair = dtb_schematic_reconcile_repair_attachment_metadata( $attachment_id );
+		if ( is_wp_error( $metadata_repair ) ) {
+			$asset['notes'][] = $metadata_repair->get_error_message();
+		} elseif ( $metadata_repair ) {
+			$asset['changed'] = true;
+			$asset['notes'][] = sprintf( 'Rebuilt metadata for attachment #%d after an interrupted registration.', $attachment_id );
+			$described      = dtb_schematic_attachment_repo_describe( $attachment_id );
+			$has_dimensions = $described && $described['exists'] && $described['width'] > 0 && $described['height'] > 0;
+		}
+	}
 
 	$already_synchronized = $existing_page
 		&& (int) $existing_page['attachment_id'] === $attachment_id
@@ -1061,18 +1072,19 @@ function dtb_schematic_reconcile_create_attachment_from_uploads( string $relativ
  * crisp — unlike ordinary content images, WordPress's default "big image"
  * downscale (`big_image_size_threshold`, 2560px on the long edge) is actively
  * harmful here: it silently replaces the attachment's main file/dimensions
- * with a capped `-scaled` derivative and there is no larger derivative left
- * in `sources` for the frontend to request. Disabled only for the single
- * wp_generate_attachment_metadata() call this wraps — every other attachment
- * type on the site (product photos, etc.) keeps WordPress's default
- * threshold via dtb-media, which is unaffected by this filter's add/remove
- * pairing.
+ * with a capped `-scaled` derivative. Schematic responses use the original
+ * attachment URL for deep zoom, so generating every registered intermediate
+ * size adds substantial Imagick work without a consumer. Both behaviors are
+ * disabled only for the single wp_generate_attachment_metadata() call this
+ * wraps; other media retains the normal WordPress image-size policy.
  */
 function dtb_schematic_generate_attachment_metadata_full_resolution( int $attachment_id, string $abs_path ) {
 	add_filter( 'big_image_size_threshold', 'dtb_schematic_disable_big_image_size_threshold' );
+	add_filter( 'intermediate_image_sizes_advanced', 'dtb_schematic_disable_intermediate_image_sizes', 10, 3 );
 	try {
 		return wp_generate_attachment_metadata( $attachment_id, $abs_path );
 	} finally {
+		remove_filter( 'intermediate_image_sizes_advanced', 'dtb_schematic_disable_intermediate_image_sizes', 10 );
 		remove_filter( 'big_image_size_threshold', 'dtb_schematic_disable_big_image_size_threshold' );
 	}
 }
@@ -1082,6 +1094,32 @@ function dtb_schematic_generate_attachment_metadata_full_resolution( int $attach
  */
 function dtb_schematic_disable_big_image_size_threshold() {
 	return false;
+}
+
+/** Keep schematic registration metadata-only; the original is the public source. */
+function dtb_schematic_disable_intermediate_image_sizes( array $sizes ): array {
+	return [];
+}
+
+/**
+ * Repair metadata for an attachment inserted by an interrupted prior run.
+ *
+ * @return true|WP_Error True when metadata was rebuilt.
+ */
+function dtb_schematic_reconcile_repair_attachment_metadata( int $attachment_id ) {
+	$abs_path = get_attached_file( $attachment_id );
+	if ( ! is_string( $abs_path ) || '' === $abs_path || ! is_file( $abs_path ) ) {
+		return new WP_Error( 'dtb_schematic_attachment_binary_missing', sprintf( 'Attachment #%d has no readable source file for metadata repair.', $attachment_id ) );
+	}
+
+	require_once ABSPATH . 'wp-admin/includes/image.php';
+	$metadata = dtb_schematic_generate_attachment_metadata_full_resolution( $attachment_id, $abs_path );
+	if ( ! is_array( $metadata ) || empty( $metadata['width'] ) || empty( $metadata['height'] ) ) {
+		return new WP_Error( 'dtb_schematic_attachment_metadata_failed', sprintf( 'Attachment #%d metadata could not be rebuilt.', $attachment_id ) );
+	}
+
+	wp_update_attachment_metadata( $attachment_id, $metadata );
+	return true;
 }
 
 /**

@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdrywall_toolbox_frontend=self.webpackChunkdrywall_toolbox_frontend||[]).push([[812],{9812(e,o,r){r.r(o),r.d(o,{default:()=>a});var l=r(6213),t=r(4848);function a(){return(0,t.jsx)(l.C5,{to:"/dashboard",replace:!0})}}}]);

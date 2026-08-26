@@ -125,6 +125,9 @@ function dtb_catalog_wc_get_response( string $route, array $params = [] ): ?WP_R
 			if ( ! $request->has_param( 'order' ) ) {
 				$request->set_param( 'order', 'desc' );
 			}
+			if ( ! $request->has_param( 'orderby' ) ) {
+				$request->set_param( 'orderby', 'date' );
+			}
 			$response = $controller->get_items( $request );
 		}
 	} catch ( Throwable $error ) {

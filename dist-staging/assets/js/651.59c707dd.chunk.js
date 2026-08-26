@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdrywall_toolbox_frontend=self.webpackChunkdrywall_toolbox_frontend||[]).push([[651],{1651(r,o,e){e.r(o),e.d(o,{default:()=>n});var t=e(3373),l=e(4848);function n(r){return(0,l.jsx)(t.A,{forceProductGrid:!0,...r})}}}]);

@@ -76,6 +76,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 			dtb_schematic_operation_log_activity( $kind, $run );
 			return $run;
 		}
+		dtb_schematic_operation_register_fatal_lease_cleanup( $run['id'] );
 	}
 
 	try {
