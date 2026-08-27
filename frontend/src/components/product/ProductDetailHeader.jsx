@@ -78,12 +78,17 @@ export default function ProductDetailHeader({
       </h1>
 
       <div className="dtb-pdp-header__identity-row">
-        <div className="dtb-pdp-header__desktop-reviews">
-          {reviewsButton(reviewsClassName)}
-        </div>
+        <span className={`dtb-pdp-header__meta-stock dtb-pdp-header__meta-stock--desktop${isOutOfStock ? ' is-out' : ''}`}>
+          <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
+          {isOutOfStock ? 'Out of stock' : 'In stock'}
+        </span>
         {effectiveSku ? (
           <span className="dtb-pdp-header__identity-sku">SKU: {effectiveSku}</span>
         ) : null}
+      </div>
+
+      <div className="dtb-pdp-header__desktop-reviews-row">
+        {reviewsButton(reviewsClassName)}
       </div>
 
       <div className="dtb-pdp-header__price-block">
@@ -97,13 +102,6 @@ export default function ProductDetailHeader({
             </span>
           ) : null}
         </div>
-      </div>
-
-      <div className="dtb-pdp-header__availability-row">
-        <span className={`dtb-pdp-header__meta-stock dtb-pdp-header__meta-stock--desktop${isOutOfStock ? ' is-out' : ''}`}>
-          <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
-          {isOutOfStock ? 'Out of stock' : 'In Stock'}
-        </span>
       </div>
 
       {product.upc ? (
