@@ -1,41 +1,72 @@
 /**
- * Hero photo for a `/category/:slug` page. The primary source is
- * `category.heroImage` (+ `category.heroImageSrcset`) from
- * GET /wp-json/dtb/v1/catalog/category — a dedicated field, set in WP-Admin
- * under Products → Categories → edit the category → "Hero header image" →
- * Upload/Add image. That field (`dtb_hero_image_id` term meta, see
- * mu-plugins/dtb-catalog-platform/Admin/CategoryHeroImageField.php) is
- * intentionally separate from the category's "Thumbnail" field
- * (`category.image` / `thumbnail_id`), which feeds the small "Shop by Tool
- * Type" subcategory tiles instead of the hero banner. The backend serves it
- * via a dedicated `dtb_category_hero` image size (soft-resized, capped at
- * 1920px — see Application/RegisterCategoryHeroImageSize.php) with a
- * srcset, so the browser can pick a smaller generated file on narrow
- * viewports instead of always downloading the full-width image.
+ * Category hero artwork resolver for `/category/:slug` pages.
  *
- * `CATEGORY_HERO_IMAGE_OVERRIDES` is only a fallback for categories that
- * don't have a hero image set in WP-Admin yet — once one is uploaded there
- * it takes priority automatically. Mirrors the override-map pattern already
- * used for brand+category tiles in `ProductsCategorySelector.jsx`. Override
- * entries have no srcset (they're a single static asset), which is fine —
- * the browser just uses `src` directly.
+ * Canonical repository-owned hero media lives in:
+ *   products/launch/media/categories/heroes/
+ *
+ * `frontend/scripts/sync-category-heroes.cjs` mirrors those assets into the
+ * frontend source tree before dev/build/preview. Webpack's `require.context`
+ * then discovers every mirrored WebP automatically, so adding or replacing a
+ * correctly named category hero does not require another import or map edit.
+ *
+ * Naming contract: use the exact WooCommerce category slug as the filename:
+ *   <category-slug>.webp
+ *
+ * A small alias table exists only for legacy filenames that predate that
+ * contract. Do not add new aliases when creating new category hero artwork.
+ *
+ * Repository-packaged artwork is preferred when present because it is the
+ * version-controlled DTB presentation asset. The backend `category.heroImage`
+ * remains the fallback for categories that do not yet have a packaged hero;
+ * its `srcset` is preserved in that case.
  */
-import automaticTapersHero from '@assets/media/catalog/category-heroes/automatic-tapers.webp';
 
-const CATEGORY_HERO_IMAGE_OVERRIDES = {
-  'automatic-tapers': automaticTapersHero,
+const CATEGORY_HERO_FILENAME_ALIASES = {
+  // Legacy source filename. New hero files must use the exact category slug.
+  'compound-applicators': 'compound-applicator',
 };
+
+function discoverPackagedHeroImages() {
+  // This directory is materialized by sync-category-heroes.cjs before webpack
+  // starts. require.context is intentionally used here because this frontend is
+  // webpack-based, not Vite-based.
+  const context = require.context(
+    '../assets/media/catalog/category-heroes',
+    false,
+    /\.webp$/i,
+  );
+
+  return context.keys().reduce((images, key) => {
+    const filename = key.replace(/^\.\//, '');
+    const slug = filename.replace(/\.webp$/i, '');
+    const resolved = context(key);
+    images[slug] = resolved?.default || resolved;
+    return images;
+  }, {});
+}
+
+const PACKAGED_CATEGORY_HERO_IMAGES = discoverPackagedHeroImages();
+
+function resolvePackagedHero(slug) {
+  if (!slug) return '';
+  if (PACKAGED_CATEGORY_HERO_IMAGES[slug]) {
+    return PACKAGED_CATEGORY_HERO_IMAGES[slug];
+  }
+
+  const aliasedFilename = CATEGORY_HERO_FILENAME_ALIASES[slug];
+  return aliasedFilename ? (PACKAGED_CATEGORY_HERO_IMAGES[aliasedFilename] || '') : '';
+}
 
 export function resolveCategoryHeroImage(category) {
   const slug = category?.slug || '';
+  const packagedHero = resolvePackagedHero(slug);
+
+  if (packagedHero) {
+    return { src: packagedHero, srcSet: '' };
+  }
 
   if (category?.heroImage) {
     return { src: category.heroImage, srcSet: category.heroImageSrcset || '' };
-  }
-
-  const override = CATEGORY_HERO_IMAGE_OVERRIDES[slug];
-  if (override) {
-    return { src: override, srcSet: '' };
   }
 
   return { src: '', srcSet: '' };
