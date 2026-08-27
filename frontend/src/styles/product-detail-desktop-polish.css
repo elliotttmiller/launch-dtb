@@ -1,0 +1,306 @@
+/* Desktop PDP + quick-view refinement.
+ *
+ * ProductDetail.jsx remains the shared rendering authority for the full product
+ * route and quick-view modal. ProductModal adds the same dtb-product-page-shell
+ * scope so both surfaces intentionally share this visual contract.
+ */
+
+@media (min-width: 1024px) {
+  /* Desktop hero balance ------------------------------------------------ */
+  .dtb-product-page-shell .dtb-pdp__hero {
+    grid-template-columns: minmax(0, 1.3fr) minmax(390px, 0.82fr) !important;
+    gap: clamp(30px, 2.4vw, 40px) !important;
+    margin-bottom: 24px !important;
+  }
+
+  .dtb-product-page-shell .dtb-pdp__info-column {
+    display: flex;
+    flex-direction: column;
+    padding-left: clamp(30px, 2.25vw, 38px);
+  }
+
+  .dtb-product-page-shell .dtb-pdp__summary-region {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header {
+    gap: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__brand-eyebrow {
+    margin-bottom: 10px;
+    color: var(--dtb-pdp-blue);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__title {
+    max-width: 620px;
+    font-size: clamp(30px, 2.15vw, 36px);
+    line-height: 1.075;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__identity-row {
+    margin-top: 14px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__price-block {
+    margin-top: 24px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__availability-row {
+    margin-top: 17px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-shipping-note {
+    margin-top: 18px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp__purchase-region {
+    margin-top: 28px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-purchase-panel {
+    gap: 12px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-purchase-panel__quantity-label {
+    margin-bottom: 1px;
+    color: var(--dtb-pdp-navy);
+    font-size: 13px;
+    line-height: 1.3;
+    font-weight: 650;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-purchase-row {
+    grid-template-columns: 112px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-qty-root,
+  .dtb-product-page-shell .dtb-pdp-add-to-cart,
+  .dtb-product-page-shell .dtb-product-buy-now {
+    min-height: 48px;
+  }
+
+  /* Customer-facing reassurance --------------------------------------- */
+  .dtb-product-page-shell .dtb-pdp-assurance-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 10px;
+    padding-top: 16px;
+    border-top: 1px solid var(--dtb-pdp-border);
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 16px;
+    border-right: 1px solid var(--dtb-pdp-border);
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row > div:first-child {
+    padding-left: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row > div:last-child {
+    padding-right: 0;
+    border-right: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row strong {
+    display: block;
+    color: var(--dtb-pdp-navy);
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 750;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row span,
+  .dtb-product-page-shell .dtb-pdp-assurance-row a {
+    display: block;
+    color: var(--dtb-pdp-muted);
+    font-size: 10px;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row a {
+    color: var(--dtb-pdp-blue);
+    text-decoration: none;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-assurance-row a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Product information ------------------------------------------------ */
+  .dtb-product-page-shell .dtb-pdp-sections {
+    margin-top: 16px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-section__content {
+    padding: 28px 0 10px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-overview {
+    grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+    gap: clamp(30px, 2.6vw, 44px);
+    align-items: start;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-overview__editorial {
+    min-width: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-overview__quick {
+    padding: 22px 24px;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.035);
+  }
+
+  /* Editorial description layout: one clear lead, then balanced feature
+     modules. This replaces the previous four narrow text columns. */
+  .dtb-product-page-shell .dtb-pdp-description-content--formatted {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 20px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-kicker {
+    grid-column: 1 / -1;
+    margin: 0 0 4px;
+    color: var(--dtb-pdp-navy);
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 760;
+    letter-spacing: -0.018em;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-card {
+    min-width: 0;
+    padding: 16px 18px !important;
+    border: 1px solid var(--dtb-pdp-border) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.025) !important;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card:first-of-type {
+    grid-column: 1 / -1;
+    padding: 0 0 20px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card:not(:first-of-type) {
+    border-left: 1px solid var(--dtb-pdp-border) !important;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-card h3 {
+    margin: 0 0 7px;
+    color: var(--dtb-pdp-navy);
+    font-size: 13px;
+    line-height: 1.35;
+    font-weight: 750;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-card p,
+  .dtb-product-page-shell .dtb-pdp-description-content--rich :is(p, li) {
+    margin: 0;
+    color: #344761;
+    font-size: 13px;
+    line-height: 1.68;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-lead,
+  .dtb-product-page-shell .dtb-pdp-description-content--rich > .dtb-pdp-description-card > p:first-child {
+    max-width: 78ch;
+    color: #243852;
+    font-size: 14px;
+    line-height: 1.72;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--rich > .dtb-pdp-description-card {
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--rich :is(h2, h3, h4) {
+    margin: 22px 0 8px;
+    color: var(--dtb-pdp-navy);
+    line-height: 1.3;
+    font-weight: 750;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--rich :is(ul, ol) {
+    margin: 12px 0 0;
+    padding-left: 20px;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--rich li + li {
+    margin-top: 6px;
+  }
+
+  /* Quick-view --------------------------------------------------------- */
+  .product-modal-card-shell.dtb-product-page-shell {
+    max-width: 1180px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp {
+    padding: 30px 34px 32px;
+    background: #fff;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__hero {
+    grid-template-columns: minmax(0, 1.08fr) minmax(410px, 0.92fr) !important;
+    gap: 38px !important;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__info-column {
+    padding-left: 32px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__title {
+    font-size: clamp(29px, 2.2vw, 34px);
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__price {
+    font-size: 33px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__purchase-region {
+    position: static !important;
+    margin-top: 26px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-sections {
+    margin-top: 22px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-section__content {
+    padding: 26px 4px 8px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-overview {
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.7fr);
+    gap: 34px;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-description-content--formatted {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px 16px;
+  }
+}
