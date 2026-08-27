@@ -1,15 +1,15 @@
 /* Category page hero ("/category/:slug") + Shop by Tool Type row.
    Built from the shared design tokens in storefront-tokens.css. */
 
-/* The category hero is intentionally part of the page canvas rather than a
-   separate card. Keeping the shell transparent lets the page background flow
-   through while the bounded content/media geometry provides the visual
-   hierarchy. */
+/* Category heroes belong to the page canvas, not to a separate gray card.
+   The shell is transparent; hierarchy comes from spacing and a deliberately
+   bounded content/media composition. */
 .dtb-category-hero-card {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  padding: 0.5rem 0 0.75rem;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.75rem 0 1rem;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -70,47 +70,63 @@
   white-space: nowrap;
 }
 
-/* Hero media is a bounded contain-fit viewport. It never crops category art,
-   but it also cannot make the header excessively tall when the source asset
-   has an unusual aspect ratio. */
+/* Mobile receives a taller art-directed viewport. The media box itself owns
+   the geometry, so image intrinsic dimensions cannot stretch the hero. */
 .dtb-category-hero-card__media {
   order: -1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  display: block;
   width: 100%;
-  height: clamp(112px, 29vw, 156px);
   min-width: 0;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  background: transparent;
 }
 
+/* Hero photography is intentionally cover-fit. Category hero masters should
+   be composed for their viewport with crop-safe subject margins; `cover`
+   prevents letterboxing and keeps the right-side panel visually complete.
+   Never stretch the bitmap to the container. */
 .dtb-category-hero-card__image {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: 50% 50%;
 }
 
 @media (min-width: 768px) {
   .dtb-category-hero-card {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 42%);
     align-items: center;
-    gap: clamp(1.5rem, 4vw, 4rem);
-    min-height: 168px;
+    gap: clamp(1.5rem, 3vw, 3.5rem);
+    min-height: 0;
     padding-block: 0.75rem 1rem;
   }
 
   .dtb-category-hero-card__content {
-    flex: 1 1 58%;
+    grid-column: 1;
   }
 
+  /* Desktop category artwork is authored around a wide, shallow 3:1 slot.
+     Width determines height, giving predictable fitment from tablet through
+     large desktop without hard-coded pixel heights or a restrictive max-width. */
   .dtb-category-hero-card__media {
-    order: 1;
-    flex: 0 1 42%;
-    width: auto;
-    height: clamp(136px, 11vw, 184px);
-    max-width: 560px;
+    order: initial;
+    grid-column: 2;
+    width: 100%;
+    aspect-ratio: 3 / 1;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dtb-category-hero-card {
+    grid-template-columns: minmax(0, 1fr) minmax(540px, 42%);
   }
 }
 
