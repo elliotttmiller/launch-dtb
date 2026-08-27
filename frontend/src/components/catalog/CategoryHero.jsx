@@ -9,9 +9,10 @@ import '../../styles/category-hero.css';
  * product data itself, only the category term metadata (+ live product
  * count) passed in.
  *
- * Contained card layout (light-gray rounded background) per the approved
- * mockup: image stacked above content on narrow screens, side-by-side
- * (content left, image right) from `md` up.
+ * The hero shell is intentionally transparent so it visually belongs to the
+ * page canvas. At desktop widths, category photography renders inside the
+ * standardized 3:1 right-side media viewport defined by category-hero.css;
+ * narrower layouts use a taller art-directed viewport.
  */
 export default function CategoryHero({ category, breadcrumbs = [], productCount }) {
   const { src: heroImageSrc, srcSet: heroImageSrcSet } = resolveCategoryHeroImage(category || {});
@@ -54,11 +55,9 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
             <img
               src={heroImageSrc}
               srcSet={heroImageSrcSet || undefined}
-              sizes={heroImageSrcSet ? '(min-width: 768px) 45vw, 100vw' : undefined}
+              sizes={heroImageSrcSet ? '(min-width: 1280px) 42vw, (min-width: 768px) 42vw, 100vw' : undefined}
               alt=""
               className="dtb-category-hero-card__image"
-              width={1920}
-              height={800}
               loading="eager"
               fetchPriority="high"
               decoding="async"
