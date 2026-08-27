@@ -1,92 +1,331 @@
 # Drywall Toolbox Engineering Operating Contract
 
-This is the repository-wide engineering contract for Drywall Toolbox. It defines authority, ownership, security, data, checkout, queue/integration and engineering invariants. It is model-neutral.
+This file is the repository-wide engineering constitution for Drywall Toolbox.
 
-Assistant-specific configuration does not outrank this file. Canonical reusable AI roles, skills and workflows live under `.agents/`; `.claude/`, `.codex/`, Copilot and IDE configuration are adapters only.
+It defines durable authority, ownership, security, data, commerce, integration, implementation, verification, and AI-engineering invariants. It is model-neutral and applies regardless of which capable AI client, IDE, agent runtime, or human engineer performs the work.
 
-## 1. Mandate
+Detailed reusable execution methods belong under `.agents/`. Assistant-specific configuration is an adapter only and must never become an alternate source of Drywall Toolbox architecture or business truth.
 
-Produce production-grade solutions that preserve security/privacy, data integrity and stable identifiers, one authority per concern, idempotency/duplicate containment, queue correctness/retry safety, observability, bounded resource use, accessibility/responsive usability, compatibility and architectural simplicity.
+---
 
-Do not invent repository state, runtime behavior, schemas, routes, provider capabilities, credentials, production configuration, test results or deployment outcomes.
+## 1. Engineering mandate
 
-Distinguish verified implementation/runtime evidence from durable intent, user-supplied operational truth, inference and recommendation.
+Produce production-grade solutions that preserve, as applicable:
+
+* security and privacy;
+* data integrity and stable identity;
+* one authoritative owner per concern;
+* idempotency and duplicate containment;
+* concurrency correctness;
+* queue integrity and retry safety;
+* payment, order, refund, and fulfillment integrity;
+* observability and recoverability;
+* bounded resource use;
+* performance and scalability;
+* compatibility and migration safety;
+* accessibility and responsive usability;
+* maintainability and architectural simplicity.
+
+Prefer the smallest complete solution that satisfies the demonstrated requirement.
+
+Do not invent repository state, runtime behavior, schemas, routes, provider behavior, production configuration, credentials, test results, deployment outcomes, or evidence that has not been established.
+
+Clearly distinguish:
+
+* verified implementation evidence;
+* directly evidenced runtime behavior;
+* durable documented intent;
+* user-supplied operational facts;
+* inference;
+* recommendation;
+* unverified assumptions.
+
+Never present inference as verified fact.
+
+---
 
 ## 2. Source precedence
 
-When sources disagree:
+When evidence conflicts, use this precedence:
 
 1. active implementation and current composition/routing;
 2. directly evidenced runtime behavior;
-3. machine-enforced workflows/contracts/tests;
+3. machine-enforced contracts, workflows, schemas, tests, and validation;
 4. this `AGENTS.md`;
-5. canonical `.agents/` roles, skills and workflows;
-6. current owning architecture/API/integration documentation under `docs/` and module documentation;
+5. canonical `.agents/` routing, roles, skills, and workflows;
+6. current owning architecture/API/integration/module documentation under `docs/` or the owning module;
 7. concise derived context under `.agents/context/` and `memory-bank/`;
-8. assistant-specific adapters (`.claude/`, `.codex/`, `.github/copilot-instructions.md`, IDE settings);
-9. historical plans, generated reports, comments, legacy wrappers and reference-only material.
+8. assistant-specific adapters such as `.claude/`, `.codex/`, `.github/copilot-instructions.md`, and IDE configuration;
+9. historical plans, generated reports, comments, legacy wrappers, examples, and reference-only material.
 
-Source code wins over filenames, comments and assumptions. Inspect imports, hooks, routes, persistence, queues, integrations and execution paths before changing behavior. Do not redefine source precedence in lower-precedence files.
+Active source outranks filenames, comments, summaries, assumptions, and stale documentation.
 
-## 3. Product purpose
+Before modifying behavior, inspect the active execution path rather than inferring responsibility from file names.
 
-Drywall Toolbox is a contractor-focused ecommerce and service-operations platform for professional drywall tools and parts. It supports catalog/variations, compatible-part discovery, schematics, repairs, returns, customer accounts/orders, fulfillment visibility, accounting projection, integrations/marketplaces, SEO/media/catalog tooling and operator control centers.
+Do not redefine this precedence in lower-authority files.
 
-## 4. System topology and authorities
+---
+
+## 3. Product and system purpose
+
+Drywall Toolbox is a contractor-focused ecommerce and service-operations platform for professional drywall tools, replacement parts, compatible-part discovery, schematics, repair services, returns, customer accounts, order visibility, fulfillment, accounting projection, integrations, marketplace workflows, SEO, media, catalog operations, and operator tooling.
+
+The platform is intentionally composed around bounded system authorities rather than one application owning every concern.
+
+---
+
+## 4. System topology
+
+The current primary storefront and commerce topology is:
 
 ```text
-React 19 Storefront
+React Storefront
   -> same-origin WordPress REST / WooCommerce Store API
   -> WooCommerce cart/session and commerce persistence
-  -> native WooCommerce Checkout Block
-  -> provider-owned payment UI/lifecycle
-  -> WooCommerce Order
+  -> native WooCommerce checkout
+  -> WooCommerce Checkout Block
+  -> provider-owned payment lifecycle/UI
+  -> WooCommerce order/payment state
   -> DTB event ledger
   -> Action Scheduler queues
   -> Veeqo / QuickBooks / notifications / marketplaces
 ```
 
-One authority per concern:
+This topology is a durable architectural contract, but active implementation remains authoritative if individual implementation details change.
 
-- React: customer presentation, routing, local interaction state and API consumption.
-- WooCommerce: runtime products/variations, customers, cart/session, checkout, shipping/tax/totals, storefront orders, order/payment state and refunds.
-- DTB MU Plugins: backend domain policy, authorization, events, queues, integrations, repairs, returns, schematics, media and operator workflows.
-- Action Scheduler: asynchronous execution.
-- Veeqo: inventory, allocation, fulfillment, shipping and tracking truth.
-- QuickBooks: accounting projection.
-- Active payment provider: payment collection, authentication, tokenization, wallets/BNPL/provider UI and provider webhook semantics.
+Any material change to authority, checkout flow, persistence, queue identity, provider boundaries, or module composition requires explicit architecture review and durable documentation updates.
 
-No layer may create parallel truth for another authority.
+---
 
-## 5. Repository ownership
+## 5. System authorities
+
+Maintain one authority per concern.
+
+### React storefront
+
+React owns:
+
+* customer-facing presentation;
+* client-side routing;
+* local interaction state;
+* responsive behavior;
+* accessibility;
+* design-system composition;
+* frontend API consumption;
+* non-authoritative presentation of server-owned state.
+
+React does not own:
+
+* order creation;
+* payment confirmation or capture;
+* refunds;
+* authoritative pricing;
+* tax truth;
+* shipping truth;
+* inventory allocation;
+* fulfillment;
+* accounting;
+* server-side authorization.
+
+### WooCommerce
+
+WooCommerce owns:
+
+* runtime products and variations;
+* customers;
+* cart/session state;
+* checkout;
+* shipping and tax calculation;
+* totals;
+* storefront orders;
+* order/payment state;
+* refunds;
+* commerce persistence.
+
+### DTB MU Plugins
+
+DTB MU Plugins own:
+
+* backend business/domain policy;
+* authorization and ownership enforcement;
+* event ledgers;
+* queues;
+* integration orchestration;
+* catalog domain extensions;
+* compatibility;
+* schematics;
+* media orchestration;
+* repairs;
+* returns workflows;
+* support workflows;
+* operator tooling;
+* deployment-domain tooling;
+* observability and platform behavior.
+
+### Action Scheduler
+
+Action Scheduler is the asynchronous execution mechanism for DTB WordPress backend work.
+
+Do not invent a parallel queue mechanism for domain work already owned by Action Scheduler.
+
+### Veeqo
+
+Veeqo owns:
+
+* inventory truth;
+* allocation;
+* fulfillment;
+* shipping;
+* shipment state;
+* tracking.
+
+WooCommerce or DTB may hold bounded projections, but they must not become competing fulfillment/inventory authorities.
+
+### QuickBooks
+
+QuickBooks owns accounting projection.
+
+QuickBooks does not own commerce order creation or operational fulfillment state.
+
+### Payment providers
+
+The active payment provider owns:
+
+* payment collection;
+* sensitive payment fields;
+* tokenization;
+* authentication;
+* provider-controlled wallets/BNPL;
+* confirmation/capture semantics;
+* provider UI;
+* provider webhook semantics.
+
+DTB must not replicate provider security responsibilities.
+
+---
+
+## 6. Repository ownership
 
 ### `frontend/`
 
-Owns customer UI/routing, responsive presentation, local interaction state, frontend API/auth clients, shared UI primitives and presentation. It is not authoritative for orders, payment capture/confirmation, refunds, inventory allocation, fulfillment, accounting, shipping/tax truth or server-side ownership.
+Owns the customer-facing application:
 
-Use JavaScript/JSX consistently unless a deliberate migration changes that contract.
+* React routing and rendering;
+* responsive UI;
+* client interaction state;
+* accessibility;
+* shared visual primitives;
+* frontend API/auth/session clients;
+* presentation and UX composition.
+
+Use the active frontend language/tooling conventions already established by the repository. Do not introduce a language, framework, state-management system, rendering model, or build system migration without a demonstrated requirement and explicit architectural justification.
+
+Frontend state must not become alternate authority for server-owned commerce or operational state.
 
 ### `drywalltoolbox/`
 
-Tracked WordPress/WooCommerce application source. Custom backend logic belongs under `drywalltoolbox/wp/wp-content/mu-plugins/`; tracked theme integration under `drywalltoolbox/wp/wp-content/themes/drywall-toolbox/`. Do not modify WordPress core or regular-plugin internals.
+Contains tracked WordPress/WooCommerce application integration.
+
+Custom backend behavior belongs under:
+
+```text
+drywalltoolbox/wp/wp-content/mu-plugins/
+```
+
+Tracked theme integration belongs under:
+
+```text
+drywalltoolbox/wp/wp-content/themes/drywall-toolbox/
+```
+
+Never modify WordPress core or third-party plugin internals as the DTB implementation mechanism.
 
 ### `products/`
 
-Canonical catalog source, taxonomy/brand/compatibility/schematic/media/enrichment inputs. WooCommerce owns runtime product records derived/imported from this material. SKU, MPN, GTIN, part number, brand/taxonomy identity, compatibility IDs and external IDs are protected stable identifiers.
+Owns canonical catalog source material, including as applicable:
+
+* product definitions;
+* taxonomy;
+* brands;
+* compatibility;
+* schematics;
+* canonical media/enrichment inputs;
+* protected external identifiers.
+
+WooCommerce owns runtime commerce product records created or projected from this source.
+
+The following are protected business identities unless an explicit migration says otherwise:
+
+* SKU;
+* MPN;
+* GTIN;
+* part number;
+* brand identity;
+* taxonomy identity;
+* compatibility IDs;
+* external provider IDs.
+
+Do not casually regenerate, normalize, rewrite, or use mutable display names as substitutes for these identifiers.
 
 ### `scripts/`
 
-Deterministic operational tooling only: repeatable, bounded, observable, non-destructive by default and appropriately idempotent. Scripts never become alternate application services.
+Scripts are deterministic operational tooling only.
 
-### `docs/`, `.agents/context/`, `memory-bank/`
+They must be:
 
-`docs/` holds durable owning architecture/contracts. `.agents/context/` and `memory-bank/` are concise derived summaries and never replace active source. Substantial transient task state belongs under `docs/work/<task-id>/` when persistence is justified.
+* repeatable;
+* bounded;
+* observable;
+* non-destructive by default;
+* appropriately idempotent;
+* explicit about inputs and side effects.
 
-## 6. MU-plugin composition root
+Scripts must never evolve into alternate application services or parallel authorities.
 
-Canonical composition is `drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php`.
+### `docs/`
 
-Expected current order:
+`docs/` contains durable architecture, interfaces, operational contracts, and intentionally persisted work products.
+
+Architecture/API/integration changes must update their owning durable documentation.
+
+### `.agents/`
+
+`.agents/` contains canonical, model-neutral AI engineering knowledge:
+
+* routing;
+* roles;
+* skills;
+* workflows;
+* concise derived context;
+* deeper references.
+
+It is not application source and must never supersede active implementation.
+
+### `.agents/context/` and `memory-bank/`
+
+These are derived summaries.
+
+They should remain concise and should contain only information whose retrieval value justifies duplication from primary sources.
+
+Mutable implementation facts should not be copied broadly into derived context.
+
+### `docs/work/<task-id>/`
+
+Use a durable task package only when substantial cross-session state genuinely benefits from persistence.
+
+Do not create repository-global mutable progress, scratchpad, or TODO documents as cross-session authority.
+
+---
+
+## 7. MU-plugin composition root
+
+The canonical DTB MU-plugin composition root is:
+
+```text
+drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php
+```
+
+The current module load order is:
 
 1. `dtb-platform`
 2. `dtb-catalog-platform`
@@ -102,164 +341,1804 @@ Expected current order:
 12. `dtb-deployment`
 13. `dtb-visual-designer`
 
-Active loader source remains authoritative if this inventory drifts. Preserve composition order unless an explicit dependency change requires it. Root MU files may be loaders/guards/compatibility delegates but must not grow unrelated domain logic.
+The active loader is authoritative if this inventory drifts.
 
-## 7. MU-plugin ownership
+Preserve load order unless an actual dependency change requires modification.
 
-- `dtb-platform`: shared config/auth/session/origin/CORS/nonce/security, REST infrastructure, Store API containment, cache, health/diagnostics/logging/metrics/audit, account APIs and common admin/system-manager primitives.
-- `dtb-catalog-platform`: product/variation normalization, brands/taxonomy/relationships/compatibility, compatible parts, catalog REST/enrichment/inventory intelligence/operator tools.
-- `dtb-commerce`: cart extension data, checkout policy/native runtime integration, shipping policy, commerce REST, non-secret payment readiness/order tagging and WooCommerce email routing.
-- `dtb-order-platform`: order observation, append-only events, captured-payment observation, tracking/refund identity, integration state, queue boundary, duplicate containment/retry policy.
-- `dtb-schematics`: schematic domain records, manifests, media relationships, exact part resolution, APIs and invalidation.
-- `dtb-media`: product/variation media synchronization and bounded media administration.
-- `dtb-marketing`: coming-soon/referral and product SEO/marketing metadata.
-- `dtb-repair-service`: repair intake/packages/quotes/approvals/status/events/media/shipping/queues/notifications/operator workflows.
-- `dtb-integrations`: provider adapters/orchestration for Woo/Veeqo/QuickBooks/notifications/Amazon/eBay/marketplaces and fulfillment projection.
-- `dtb-support`: support tickets/events/outbox/automation/macros/APIs/operator workbench/SLA state.
-- `dtb-returns`: return request/workflow/persistence/APIs/status/operator behavior; WooCommerce still owns refunds.
-- `dtb-deployment`: release-domain persistence/control-plane representation; deployment procedure lives elsewhere.
-- `dtb-visual-designer`: design/configuration authoring, revision/publish/rollback/preview and related operator surfaces; it does not become commerce/payment/inventory authority.
+Root MU-plugin files may act as:
 
-Provider-specific behavior belongs in dedicated adapters, not domain services.
+* loaders;
+* guards;
+* compatibility delegates;
+* shared bootstrap primitives.
 
-## 8. Store API/session security
+They must not accumulate unrelated domain logic.
 
-Same-origin cart traffic uses WooCommerce Store API, cookie-backed WooCommerce session state, Store API nonce behavior and centralized frontend session handling. Cart-Token is compatibility-only for genuinely cross-origin clients.
+---
 
-Never decode unsigned Cart-Token payloads, query `woocommerce_sessions` to recover arbitrary sessions, weaken cookie/nonce/origin/CORS/ownership/capability/rate-limit boundaries, or accept caller-supplied customer/order IDs as authorization. Derive identity server-side and validate ownership independently.
+## 8. MU-plugin ownership
 
-## 9. Checkout and order contract
+### `dtb-platform`
 
-Only this storefront path may create orders:
+Owns shared platform concerns including:
+
+* configuration;
+* authentication infrastructure;
+* account/session infrastructure;
+* origin/CORS/nonce/security primitives;
+* REST infrastructure;
+* Store API containment;
+* cache control-plane infrastructure;
+* health and diagnostics;
+* logging;
+* metrics;
+* audit;
+* common account APIs;
+* common operator/system-manager primitives.
+
+### `dtb-catalog-platform`
+
+Owns DTB catalog-domain backend behavior including:
+
+* product/variation normalization;
+* brand/taxonomy relationships;
+* compatibility;
+* compatible-part behavior;
+* catalog APIs;
+* enrichment;
+* inventory intelligence projections;
+* catalog operator tools.
+
+WooCommerce still owns runtime commerce product persistence.
+
+### `dtb-commerce`
+
+Owns DTB commerce policy and WooCommerce integration including:
+
+* cart extension data;
+* checkout policy;
+* native checkout integration;
+* shipping policy;
+* commerce REST behavior;
+* non-secret payment readiness/order tagging;
+* WooCommerce email routing.
+
+It does not replace WooCommerce order/payment/refund authority.
+
+### `dtb-order-platform`
+
+Owns:
+
+* order observation;
+* append-only order events;
+* captured-payment observation;
+* tracking identity;
+* refund identity propagation;
+* integration state;
+* order queue boundary;
+* duplicate containment;
+* retry policy.
+
+WooCommerce remains order/payment/refund authority.
+
+### `dtb-schematics`
+
+Owns:
+
+* schematic domain records;
+* manifests;
+* schematic lifecycle;
+* schematic media relationships;
+* exact part resolution;
+* schematic APIs;
+* invalidation.
+
+### `dtb-media`
+
+Owns:
+
+* product/variation media synchronization;
+* bounded media administration;
+* media-domain orchestration.
+
+### `dtb-marketing`
+
+Owns:
+
+* coming-soon/referral behavior;
+* product SEO/marketing metadata owned by DTB.
+
+### `dtb-repair-service`
+
+Owns:
+
+* repair intake;
+* service packages;
+* diagnostics;
+* quotes;
+* approvals;
+* repair status;
+* repair events;
+* repair media;
+* repair shipping orchestration;
+* repair queues;
+* repair notifications;
+* repair operator workflows.
+
+### `dtb-integrations`
+
+Owns provider-specific adapters and integration orchestration for:
+
+* WooCommerce projections where needed;
+* Veeqo;
+* QuickBooks;
+* notifications;
+* Amazon;
+* eBay;
+* marketplaces;
+* fulfillment/accounting projections.
+
+Provider-specific transport and payload semantics belong here rather than in domain services.
+
+### `dtb-support`
+
+Owns:
+
+* support tickets;
+* support events;
+* outbox behavior;
+* automation;
+* macros;
+* support APIs;
+* operator workbench;
+* SLA state.
+
+### `dtb-returns`
+
+Owns:
+
+* return requests;
+* return workflow;
+* return persistence;
+* return APIs;
+* return status;
+* return operator behavior.
+
+WooCommerce still owns actual refund creation.
+
+### `dtb-deployment`
+
+Owns release-domain persistence and deployment control-plane representation.
+
+It does not make application runtime code the authority for infrastructure deployment procedure.
+
+### `dtb-visual-designer`
+
+Owns:
+
+* design/configuration authoring;
+* revisions;
+* publish;
+* rollback;
+* preview;
+* related operator interfaces.
+
+It must not become order, payment, inventory, pricing, checkout, or fulfillment authority.
+
+---
+
+## 9. Specialized ownership overrides generic technology ownership
+
+Domain responsibility is semantic, not merely filesystem-based.
+
+A specialized domain owner outranks a generic technology owner when both could technically modify the same directory.
+
+Examples:
+
+* checkout/order/payment-contract work belongs to the specialized commerce/checkout responsibility even though implementation is PHP/WordPress;
+* catalog identity and enrichment work belongs to catalog responsibility even when implemented in WordPress;
+* frontend implementation remains frontend-owned even when the subject is PDP conversion optimization.
+
+Do not choose an owner solely because a file resides under that owner's broad filesystem scope.
+
+Identify the concern first, then the implementation location.
+
+---
+
+## 10. Store API and session security
+
+Same-origin cart traffic uses WooCommerce Store API and authoritative WooCommerce session state.
+
+Preserve:
+
+* cookie-backed session integrity;
+* Store API nonce behavior;
+* centralized frontend session handling;
+* same-origin security assumptions where applicable.
+
+`Cart-Token` is compatibility behavior for genuinely cross-origin clients, not the normal authority mechanism for same-origin storefront behavior.
+
+Never:
+
+* decode unsigned Cart-Token payloads and trust their content;
+* query WooCommerce session storage to recover arbitrary sessions;
+* accept caller-provided customer or order IDs as authorization;
+* weaken nonce enforcement merely to make a request work;
+* weaken CORS/origin checks;
+* bypass capability/ownership checks;
+* remove rate limits without equivalent protection.
+
+Derive authenticated identity server-side and validate resource ownership independently.
+
+---
+
+## 11. Checkout and order creation contract
+
+Only the approved WooCommerce storefront lifecycle may create storefront orders.
+
+Current contract:
 
 ```text
 React cart / Checkout Now
   -> authoritative Store API cart/session
   -> full-document checkout handoff
-  -> native WooCommerce Checkout page
+  -> native WooCommerce checkout
   -> WooCommerce Checkout Block
-  -> provider-owned payment UI/lifecycle
+  -> provider-owned payment lifecycle
   -> WooCommerce order/payment lifecycle
   -> DTB event ledger
   -> dtb-orders Action Scheduler queue
-  -> Veeqo / QuickBooks / notifications / tracking
+  -> downstream integrations/projections
 ```
 
 Mandatory invariants:
 
-- WooCommerce creates storefront orders and refunds.
-- Checkout Block owns checkout submission.
-- Payment provider owns payment fields, tokenization, wallets, authentication, confirmation/capture and provider webhooks.
-- React/DTB do not create PaymentIntents, Checkout Sessions, card fields, wallet tokens, payment iframes, confirmations or captures.
-- React `/checkout` is a full-document handoff surface, not a payment application.
-- Theme presentation may arrange/stylize supported native/provider surfaces but must not create duplicate fields/payment state/order submission or inspect/clone/reparent cross-origin provider iframes.
-- Downstream effects wait for qualifying captured-payment evidence and are duplicate-safe.
+* WooCommerce creates storefront orders.
+* WooCommerce creates refunds.
+* WooCommerce Checkout Block owns checkout submission.
+* Payment providers own payment authentication, tokenization, confirmation/capture, provider UI, wallets, and provider webhook semantics.
+* React does not create storefront orders.
+* DTB custom backend code does not create a parallel storefront order path.
+* React/DTB must not recreate provider-sensitive payment fields or tokenization.
+* React `/checkout` is a full-document handoff/compatibility surface, not an independent payment application.
+* Theme presentation may arrange or style supported native/provider UI but must not duplicate payment state, checkout submission, or provider-sensitive fields.
+* Cross-origin provider iframes must not be inspected, cloned, reparented, or treated as DTB-owned DOM.
+* Downstream effects require qualifying authoritative payment/order evidence.
+* Duplicate callbacks or repeated status transitions must not duplicate downstream effects.
 
-Historical order/payment identity remains readable; never bulk-rewrite paid-order identity as cleanup.
+Do not introduce a second checkout/order-creation architecture for convenience.
 
-## 10. Refund and queue identity
+---
 
-Every refund preserves `order_id + refund_id` through events, queue args, idempotency and accounting projection. Separate partial refunds remain separate events; never substitute cumulative lifetime-refunded amount.
+## 12. Order, event, and refund identity
 
-Action Scheduler is the async mechanism. Queue producers define owner, stable identity, deduplication, retryable/terminal classification, retry bounds, completion detection, observability and recovery/compensation. Consumers tolerate retries and prevent duplicate external effects. Keep slow providers out of checkout/payment-webhook acknowledgement and interactive requests.
+Identity must survive every boundary.
 
-## 11. Veeqo / QuickBooks / marketplace contracts
+Order events and queue producers must use stable, reproducible identity sufficient to detect duplicate work.
 
-Veeqo owns inventory/allocation/fulfillment/shipment/tracking truth; WooCommerce may hold an idempotent projection. QuickBooks is an event-driven accounting projection, never order authority. Marketplaces stay in dedicated adapters and may not overwrite WooCommerce commerce, Veeqo fulfillment/inventory or QuickBooks accounting authority.
+Refund identity is:
 
-All external effects require stable identity, idempotency, bounded retries and explicit ownership.
+```text
+order_id + refund_id
+```
 
-## 12. Catalog and schematics
+Preserve that identity through:
 
-Use WooCommerce CRUD/HPOS access for runtime products. Preserve parent/variation relationships, visibility, protected identifiers, taxonomy/brand identity, compatibility and deterministic import/export shape. Avoid direct internal writes, broad rewrites, mutable-name foreign keys, unbounded scans and N+1 access.
+* event creation;
+* queue arguments;
+* idempotency;
+* provider/accounting projection;
+* retry handling;
+* observability.
 
-`dtb_schematic` domain records under `dtb-schematics` own schematic existence/lifecycle/page ownership. Frontend consumes authoritative APIs and does not decide which schematics/products/pages exist. Part resolution uses explicit IDs/exact SKU/exact brand+MPN, not request-time fuzzy matching.
+Separate partial refunds remain separate refund events.
 
-## 13. Repairs / returns / support
+Never replace refund-event identity with cumulative lifetime-refunded totals.
 
-Repairs preserve customer ownership, tool identity, package/diagnostic path, attachments, shipping, approval/quote state, append-only events and queue correlation. Returns are DTB domain workflows while actual refund creation remains WooCommerce-owned. Support stays within its domain events/outbox/operator workflow.
+Historical order/payment/refund identities remain readable and must not be bulk-rewritten as cleanup.
 
-Do not collapse these domains into generic order metadata or frontend-only state.
+---
 
-## 14. Cache and SEO
+## 13. Action Scheduler and asynchronous work
 
-One cache control plane belongs under `dtb-platform/Cache`; domain modules invalidate what they own and must not create parallel purge systems. Never cache across customer/cart/checkout/payment/callback/account ownership boundaries.
+Action Scheduler is the asynchronous execution mechanism for DTB backend queues.
 
-SEO/sitemap behavior follows actual route contracts and authoritative product/taxonomy data. Do not emit private/session/account/cart/checkout/order/status/preview/operator routes as public indexable URLs. Do not create competing sitemap authorities or fabricate price/stock/rating/identifier facts.
+Every queue producer must define:
 
-Substantial SEO/refactoring audits use scoped `docs/work/<task-id>/`, not global mutable TODO files.
+* owning domain;
+* stable event/job identity;
+* deduplication behavior;
+* retryable versus terminal failure classification;
+* retry bounds;
+* completion detection;
+* correlation/observability;
+* recovery or compensation behavior where required.
 
-## 15. Security
+Every consumer must tolerate retries.
 
-Never expose or persist WordPress/WooCommerce/database credentials, JWT signing secrets, payment-provider secrets/webhook keys/client secrets/wallet tokens, PayPal/Veeqo/QuickBooks/marketplace credentials, private keys, server configuration or raw payment data. Browser `REACT_APP_*` values are public.
+External side effects must not occur twice merely because:
 
-Every REST endpoint has explicit permission behavior. Public access is intentional and narrowly read-safe. Authenticated operations validate identity, capability/role where relevant, ownership and writable-field allowlists.
+* a job was retried;
+* a callback repeated;
+* a status transitioned more than once;
+* an HTTP acknowledgement was replayed;
+* an operator retried a failed workflow.
 
-Always sanitize/validate input, escape output, use prepared SQL, verify webhook signatures, constrain replay, use timing-safe secret comparison where applicable, redact logs and keep mutations/webhooks idempotent. Never weaken security controls merely to make a request succeed.
+Keep slow provider work outside:
 
-## 16. Data and performance
+* checkout submission acknowledgement;
+* payment-webhook acknowledgement;
+* latency-sensitive interactive requests.
 
-Avoid duplicate persistence for orders/payments/refunds/customers/inventory/fulfillment/accounting, direct Woo internals when CRUD exists, mutable foreign keys, broad/unbounded updates/deletes, routine truncation, cross-domain writes and N+1 access.
+Use queues to isolate slow or retryable external effects.
 
-Schema changes belong in the owning module with explicit version/compatibility semantics. Append-only events remain append-only absent a documented correction mechanism.
+---
 
-Prefer bounded/indexed/paginated access, batched reads/writes, request coalescing/cancellation, queue-owned external work and deterministic pagination. Avoid duplicate browser server-state, unbounded scans, retry amplification and unnecessary dependencies.
+## 14. External integrations
 
-## 17. Frontend and UI/UX rules
+Veeqo, QuickBooks, payment providers, marketplaces, and notification systems are external authorities with explicit boundaries.
 
-Use ES modules, functional components, explicit data flow, centralized API/auth, correct hook dependencies/cleanup/cancellation, runtime validation at untrusted boundaries, reusable design primitives, semantic HTML, keyboard access, visible focus and reduced-motion support.
+Provider-specific:
 
-Prefer intrinsic/fluid layout, readable typography, restrained styling, clear product/variation/price/availability/quantity/totals/shipping/payment context and concise validation/recovery. Avoid duplicate mobile/desktop business logic, breakpoint-override accumulation, horizontal overflow, hover-only interactions, fake trust/payment controls and UI that competes with checkout completion.
+* authentication;
+* transport;
+* request/response shapes;
+* pagination;
+* rate limits;
+* retry behavior;
+* error mapping;
+* webhook semantics;
+* external identifiers;
 
-For complete stateful experiences, model relevant happy/loading/validation/failure/cancel/recovery/success states rather than isolated screenshots.
+belong inside dedicated adapters.
 
-## 18. PHP/WordPress rules
+Domain services should operate on DTB/domain contracts rather than provider payload trivia.
 
-Follow WordPress conventions and active project patterns. Use `defined( 'ABSPATH' ) || exit;` in executable module files, explicit hooks/permissions/capabilities, prepared SQL, WooCommerce APIs/HPOS, bounded queries/pagination, idempotent handlers and redacted diagnostics. Keep transport/application/domain/provider concerns separated where the owning module does so.
+All external mutations require:
 
-Do not modify core/third-party plugin internals, trust wp-admin input without authorization, emit output before headers, mix provider logic into domain services or create alternate commerce/payment paths.
+* explicit owner;
+* stable correlation identity;
+* idempotency;
+* bounded retry;
+* terminal-failure behavior;
+* redacted diagnostics.
 
-## 19. Architecture and implementation method
+Never treat a transient provider response as a reason to create parallel local authority.
+
+---
+
+## 15. Catalog, compatibility, and schematics
+
+Use WooCommerce CRUD APIs and HPOS-compatible access for WooCommerce runtime entities.
+
+Preserve:
+
+* parent/variation relationships;
+* product visibility;
+* protected identifiers;
+* taxonomy identity;
+* brand identity;
+* compatibility identity;
+* deterministic import/export shape.
+
+Avoid:
+
+* direct writes to WooCommerce internals when CRUD APIs exist;
+* mutable names as foreign keys;
+* broad identifier rewrites;
+* unbounded catalog scans;
+* N+1 access patterns.
+
+Schematic lifecycle authority belongs to `dtb-schematics`.
+
+Frontend presentation consumes authoritative schematic APIs and does not independently decide which schematics, products, pages, or compatibility relationships exist.
+
+Runtime part resolution should prefer explicit stable identity such as:
+
+* exact internal ID;
+* exact SKU;
+* exact brand + MPN;
+* other explicitly defined canonical identifiers.
+
+Do not use request-time fuzzy matching as authoritative part identity resolution.
+
+Fuzzy matching belongs in bounded research/enrichment workflows where ambiguity is visible and reviewed.
+
+---
+
+## 16. Repairs, returns, and support
+
+These are separate domains and must remain separate from generic order metadata.
+
+### Repairs
+
+Preserve:
+
+* customer ownership;
+* tool identity;
+* package/diagnostic path;
+* photos/attachments;
+* shipping state;
+* quote/approval state;
+* approval limits;
+* append-only events;
+* queue correlation.
+
+### Returns
+
+DTB owns the return workflow.
+
+WooCommerce owns actual refunds.
+
+Return status must not silently become alternate refund authority.
+
+### Support
+
+Support owns its:
+
+* tickets;
+* events;
+* outbox;
+* automation;
+* macros;
+* operator state;
+* SLA state.
+
+Do not collapse support/repair/return domain state into frontend-only state or loosely structured generic order metadata.
+
+---
+
+## 17. Cache authority
+
+One DTB cache control plane belongs under `dtb-platform`.
+
+Domain modules may invalidate data they own but must not create competing global purge/control systems.
+
+Never cache across ownership-sensitive boundaries including:
+
+* customer identity;
+* cart;
+* checkout;
+* payment;
+* callbacks;
+* authenticated account state;
+* private order state.
+
+Cache keys must reflect every input that can materially change the cached result.
+
+Invalidation must follow the authoritative owner.
+
+---
+
+## 18. SEO and public indexing
+
+SEO and sitemap behavior must reflect actual public routes and authoritative product/taxonomy data.
+
+Do not index private or session-bound surfaces such as:
+
+* account internals;
+* cart;
+* checkout;
+* payment/order-pay;
+* private order status;
+* operator/admin tools;
+* previews;
+* authenticated callbacks;
+* internal API routes.
+
+Do not create competing sitemap authorities.
+
+Do not fabricate:
+
+* price;
+* stock;
+* ratings;
+* reviews;
+* identifiers;
+* product attributes;
+* availability.
+
+SEO tooling may project authoritative data but must not become commerce/catalog truth.
+
+---
+
+## 19. Security baseline
+
+Never expose, log, commit, reproduce, or persist:
+
+* WordPress credentials;
+* WooCommerce secrets;
+* database credentials;
+* JWT signing secrets;
+* payment-provider secrets;
+* webhook signing keys;
+* private API keys;
+* OAuth client secrets;
+* wallet/payment tokens;
+* Veeqo credentials;
+* QuickBooks credentials;
+* marketplace credentials;
+* private keys;
+* server configuration secrets;
+* raw payment data.
+
+Browser-visible environment variables must be treated as public regardless of naming convention.
+
+Every REST endpoint requires explicit permission behavior.
+
+Public access must be intentional and narrowly read-safe.
+
+Authenticated operations must validate:
+
+* identity;
+* authentication;
+* relevant capability/role;
+* resource ownership;
+* allowed mutation fields.
+
+Always:
+
+* validate input schema;
+* sanitize input;
+* allowlist writable fields;
+* escape output;
+* use prepared SQL;
+* derive protected identity server-side;
+* validate upload/file behavior where relevant;
+* constrain external URLs/SSRF surfaces;
+* verify webhook signatures;
+* prevent or constrain replay;
+* use timing-safe comparison for secrets where applicable;
+* redact diagnostics;
+* make mutations/webhooks idempotent.
+
+Security controls must not be weakened merely to make a failing flow succeed.
+
+---
+
+## 20. Files, uploads, and external URLs
+
+Treat uploads and remote URL handling as high-risk boundaries.
+
+For uploads, validate:
+
+* authentication/authorization;
+* ownership;
+* allowed MIME/type;
+* extension where relevant;
+* size;
+* storage destination;
+* filename/path handling;
+* access visibility;
+* deletion lifecycle.
+
+Never trust browser-provided MIME or filename alone.
+
+For server-side remote fetches:
+
+* constrain accepted schemes;
+* validate destination;
+* prevent SSRF;
+* prevent access to loopback/private/link-local/internal ranges where not explicitly required;
+* bound redirects;
+* bound response size;
+* bound timeout;
+* validate expected content type.
+
+Never create a generic unrestricted server-side fetch proxy.
+
+---
+
+## 21. Data and persistence
+
+Maintain one authoritative writer for each durable concern.
+
+Avoid:
+
+* duplicate persistence for orders;
+* duplicate payment state;
+* duplicate refund authority;
+* duplicate customer authority;
+* parallel inventory truth;
+* parallel fulfillment truth;
+* parallel accounting truth;
+* mutable-display-name foreign keys;
+* broad/unbounded updates;
+* routine table truncation;
+* hidden cross-domain writes;
+* uncontrolled meta/option growth.
+
+Schema changes belong to the owning module.
+
+Every schema change must define as relevant:
+
+* ownership;
+* version semantics;
+* forward compatibility;
+* backward compatibility;
+* migration;
+* rollback or recovery;
+* idempotent migration behavior.
+
+Append-only event history remains append-only unless an explicit correction mechanism is designed.
+
+Never silently rewrite historical event identity.
+
+---
+
+## 22. Concurrency and idempotency
+
+Assume concurrent and repeated execution is normal.
+
+Evaluate concurrent behavior for:
+
+* order finalization;
+* payment callbacks;
+* webhook delivery;
+* queue jobs;
+* imports;
+* inventory projections;
+* operator mutations;
+* repair/return state transitions;
+* scheduled work.
+
+Any external side effect or state transition susceptible to replay must have an explicit duplicate-containment strategy.
+
+Do not rely on:
+
+* "this endpoint should only run once";
+* UI button disabling;
+* happy-path sequencing;
+* provider callbacks arriving once;
+* Action Scheduler executing only once.
+
+Where correctness depends on atomicity, make the boundary explicit and use the owning persistence mechanism appropriately.
+
+---
+
+## 23. Performance and bounded-resource rules
+
+Prefer:
+
+* bounded queries;
+* indexed access;
+* deterministic pagination;
+* batched reads/writes;
+* request coalescing;
+* cancellation where applicable;
+* queue-owned provider work;
+* stable cache boundaries;
+* incremental processing.
+
+Avoid:
+
+* unbounded scans;
+* N+1 reads;
+* fetch-per-item browser patterns;
+* duplicated browser server state;
+* unlimited retries;
+* retry amplification;
+* unbounded log/context accumulation;
+* large synchronous provider calls in interactive paths;
+* speculative dependencies.
+
+Performance optimization must preserve correctness and ownership.
+
+Do not introduce caches, denormalization, background jobs, or alternate stores without proving they solve a measured or structurally unavoidable constraint.
+
+---
+
+## 24. Frontend engineering
+
+Use active repository conventions.
+
+Prefer:
+
+* ES modules;
+* functional React components;
+* explicit data flow;
+* centralized API/auth/session behavior;
+* correct hook dependencies;
+* cleanup and cancellation;
+* runtime validation at untrusted boundaries;
+* reusable design primitives;
+* semantic HTML;
+* keyboard accessibility;
+* visible focus;
+* reduced-motion support;
+* explicit async/error states.
+
+Prevent:
+
+* stale-response races;
+* duplicate requests;
+* silent promise failures;
+* broad unnecessary global state;
+* presentation-only resize JavaScript;
+* direct DOM mutation where React should own rendering;
+* fetch-per-item patterns;
+* speculative memoization;
+* duplicate mobile/desktop business logic.
+
+Server-owned state should remain server-owned.
+
+Do not copy authoritative server state into a competing frontend persistence layer.
+
+---
+
+## 25. UI/UX engineering
+
+Design for contractors using commerce and service workflows under real operating conditions.
+
+Prioritize:
+
+* clarity;
+* strong information hierarchy;
+* legibility;
+* trust through accurate information;
+* conversion without manipulation;
+* accessible interaction;
+* predictable layout;
+* responsive behavior;
+* performance.
+
+Prefer:
+
+* intrinsic/fluid layouts;
+* semantic responsive structure;
+* reusable primitives;
+* restrained decoration;
+* readable typography;
+* consistent spacing;
+* clear primary actions;
+* clear validation/recovery.
+
+Avoid:
+
+* generic dashboard styling;
+* excessive cards;
+* decorative gradients without purpose;
+* fake trust indicators;
+* misleading payment UI;
+* hover-only interaction;
+* broken intermediate widths;
+* horizontal overflow;
+* breakpoint-override accumulation;
+* duplicated responsive trees unless semantics genuinely differ.
+
+Commerce interfaces should communicate as applicable:
+
+* product identity;
+* brand;
+* variation;
+* price;
+* availability;
+* quantity;
+* totals;
+* shipping context;
+* payment context;
+* primary action;
+* validation/error recovery.
+
+For stateful experiences, evaluate relevant:
+
+* loading;
+* empty;
+* validation;
+* failure;
+* pending;
+* cancellation;
+* recovery;
+* success.
+
+Do not evaluate only a static happy-path screenshot.
+
+---
+
+## 26. WordPress and PHP engineering
+
+Follow active project patterns and WordPress/WooCommerce conventions.
+
+Executable module files should use the established direct-access guard where applicable:
+
+```php
+defined( 'ABSPATH' ) || exit;
+```
+
+Use:
+
+* explicit hooks;
+* explicit permission callbacks;
+* capability checks;
+* ownership checks;
+* prepared SQL;
+* WooCommerce APIs;
+* HPOS-compatible access;
+* bounded queries;
+* pagination;
+* idempotent handlers;
+* redacted diagnostics.
+
+Keep concerns separated where the owning module supports that structure:
+
+```text
+transport
+-> application/domain behavior
+-> persistence/event boundary
+-> provider adapter
+```
+
+Do not:
+
+* modify WordPress core;
+* modify third-party plugins as the permanent DTB implementation;
+* trust wp-admin input merely because it originated in wp-admin;
+* emit output before headers;
+* mix provider payload logic throughout domain services;
+* create alternate commerce/payment paths;
+* write directly to WooCommerce internals where supported APIs exist.
+
+---
+
+## 27. Observability
+
+Production-critical behavior must be diagnosable without exposing sensitive data.
+
+Use stable correlation identities where applicable across:
+
+* order events;
+* refunds;
+* queue jobs;
+* provider calls;
+* webhooks;
+* repairs;
+* returns;
+* support workflows.
+
+Diagnostics should answer:
+
+* what happened;
+* which bounded operation failed;
+* what stable identity was involved;
+* whether it is retryable or terminal;
+* what recovery path exists.
+
+Do not log:
+
+* secrets;
+* payment data;
+* sensitive full payloads;
+* authentication tokens;
+* private credentials.
+
+Observability must not become a second persistence authority.
+
+---
+
+## 28. Error and failure semantics
+
+Failures must be explicit.
+
+Do not silently convert:
+
+* provider failure into success;
+* missing data into fabricated defaults;
+* authorization failure into public access;
+* validation failure into coercion that changes identity;
+* queue failure into dropped work.
+
+Classify failures as appropriate:
+
+* validation/user-correctable;
+* authorization;
+* conflict/duplicate;
+* retryable infrastructure/provider;
+* terminal domain;
+* invariant violation.
+
+Retry only retryable failures.
+
+Never retry indefinitely.
+
+User-facing errors should be concise and actionable without exposing sensitive internals.
+
+---
+
+## 29. Migration and compatibility
+
+Treat migrations as architecture work proportional to blast radius.
+
+Before changing durable data or public contracts, establish:
+
+* current readers and writers;
+* owner;
+* stable identities;
+* compatibility requirements;
+* deployment sequence;
+* rollback/recovery;
+* duplicate execution behavior.
+
+Prefer additive or staged migration where practical.
+
+Do not maintain compatibility layers indefinitely without a current consumer.
+
+Remove obsolete compatibility code once verified safe and when its removal is in scope.
+
+Existing legacy behavior is evidence to inspect, not automatically a contract to preserve.
+
+---
+
+## 30. Architecture change criteria
+
+Architecture review is required when a change materially affects any of the following:
+
+* system of record;
+* domain ownership;
+* module ownership;
+* module composition/load order;
+* public or cross-module API contracts;
+* persistence authority or schema lifecycle;
+* event identity;
+* queue identity/deduplication contract;
+* checkout/order-creation contract;
+* payment authority;
+* refund identity/authority;
+* provider contract boundaries;
+* integration ownership;
+* migration strategy;
+* runtime/deployment boundaries;
+* security boundaries.
+
+Architecture review is not required merely because a task touches a database, queue, provider, or checkout-related file.
+
+Distinguish:
+
+```text
+implementation inside an existing contract
+```
+
+from:
+
+```text
+changing the contract itself
+```
+
+Prefer extending the existing owner over introducing:
+
+* new services;
+* new persistence;
+* new queue systems;
+* new BFFs;
+* new rendering architectures;
+* compatibility layers;
+* parallel control planes.
+
+New architecture requires a demonstrated constraint and a material advantage over the simpler existing owner.
+
+---
+
+## 31. Implementation method
+
+For material implementation work:
+
+1. establish the user-visible/product outcome;
+2. derive observable acceptance criteria;
+3. identify explicit constraints and non-goals;
+4. inspect active implementation;
+5. identify system of record and owning domain;
+6. trace the affected execution path;
+7. inspect callers, consumers, persistence, events, queues, providers, and tests relevant to the change;
+8. classify risk and architecture-contract impact;
+9. choose the smallest complete design;
+10. implement through the owning layer;
+11. use one writer per overlapping authority boundary;
+12. independently review according to actual risk dimensions;
+13. verify the final implementation against acceptance criteria;
+14. update durable documentation when contracts changed;
+15. inspect the final diff for unrelated changes, duplicate authority, secrets, stale references, generated artifacts, and accidental identity changes.
+
+Do not ask the user for information that current source can resolve.
+
+Do ask when product intent, destructive scope, credentials, or authority genuinely cannot be resolved safely.
+
+---
+
+## 32. One writer per authority boundary
+
+Parallelize:
+
+* repository exploration;
+* independent research;
+* review;
+* verification;
+* non-overlapping investigation.
+
+Serialize overlapping mutation.
+
+Only one active writer should own a given overlapping authority boundary at a time.
+
+Review, architecture, research, and verification roles remain read-only unless the task is explicitly transitioned into an implementation role.
+
+Do not allow multiple agents to independently modify the same commerce/security/persistence boundary and reconcile afterward.
+
+---
+
+## 33. Independent review
+
+Review the final diff/source and authoritative surrounding code, not remembered conversation state.
+
+Apply review dimensions based on the actual change.
+
+### Correctness review
+
+Use for material implementation.
+
+Focus on:
+
+* ownership;
+* invariants;
+* callers/consumers;
+* compatibility;
+* regressions;
+* failure paths.
+
+### Security review
+
+Required when materially affecting:
+
+* authentication;
+* authorization;
+* customer/sensitive data;
+* payment;
+* webhooks;
+* uploads;
+* remote URLs;
+* operator mutations;
+* secrets;
+* security controls.
+
+### Integration review
+
+Required when materially affecting:
+
+* providers;
+* queues;
+* events;
+* webhooks;
+* external side effects;
+* retry semantics;
+* projections.
+
+### Architecture review
+
+Required for contract-changing work defined in the architecture-change section.
+
+### UI/accessibility review
+
+Required for material customer-facing interaction or presentation changes.
+
+### Verification
+
+Verification reports what was actually inspected, executed, rendered, or tested.
+
+Do not convert "should pass" into "passed."
+
+Empty review findings are valid.
+
+Reviewers should report only actionable findings grounded in source evidence and a concrete failure condition.
+
+---
+
+## 34. Verification standard
+
+Verification must be proportional to risk.
+
+Use the narrowest reliable checks that establish the changed behavior and adjacent failure modes.
+
+Potential evidence includes:
+
+* targeted automated tests;
+* lint/static analysis;
+* contract inspection;
+* focused runtime evidence;
+* browser rendering/interactions;
+* queue/event inspection;
+* deterministic scripts;
+* provider documentation when provider semantics are material.
+
+Never claim:
+
+* a test passed when it was not run;
+* browser behavior was validated when not rendered;
+* production behavior was observed when only source was inspected;
+* provider behavior was confirmed without current documentation/runtime evidence.
+
+State what remains unverified.
+
+---
+
+## 35. Documentation governance
+
+Update durable documentation when a change modifies:
+
+* ownership;
+* architecture;
+* APIs;
+* routes;
+* persistence;
+* event identity;
+* queue contracts;
+* integrations;
+* checkout/payment/refund contracts;
+* deployment/runtime contracts.
+
+Do not churn durable documentation for local implementation details discoverable directly from source.
+
+Correct sources in this order:
+
+```text
+active implementation
+-> owning durable documentation
+-> AGENTS.md if repository-wide policy changed
+-> canonical .agents/ if reusable AI behavior changed
+-> derived context
+-> vendor adapters if adapter behavior changed
+```
+
+Do not fix stale derived context while leaving its authoritative source wrong.
+
+---
+
+## 36. No temporary fixes
+
+Do not ship:
+
+* stopgaps intended for later replacement;
+* security bypasses;
+* validation bypasses;
+* hardcoded secrets;
+* hardcoded environment assumptions;
+* duplicate state/authority;
+* temporary parallel order/payment paths;
+* unfinished TODO/FIXME/HACK production behavior;
+* symptom patches that preserve the root defect.
+
+Fix the root cause in the owning layer.
+
+If a production-complete solution cannot be implemented because of a real external constraint, state the constraint and preserve system integrity rather than weakening the architecture.
+
+Existing shortcuts are technical debt to identify, not precedent to extend.
+
+---
+
+# AI Engineering Governance
+
+## 37. Canonical AI architecture
+
+DTB engineering knowledge belongs to Drywall Toolbox, not to an AI vendor.
+
+The canonical model-neutral AI system is:
+
+```text
+AGENTS.md
+  -> .agents/registry.json
+  -> resolved workflow
+  -> execution role
+  -> subject role when distinct
+  -> required skills
+  -> risk/specialist reviewers
+  -> just-in-time references/context
+```
+
+Responsibilities:
+
+### `AGENTS.md`
+
+Repository constitution:
+
+* authority;
+* invariant ownership;
+* safety;
+* execution discipline;
+* durable engineering policy.
+
+### `.agents/registry.json`
+
+Deterministic routing authority.
+
+It defines how:
+
+* intent;
+* domain;
+* flags;
+* risk;
+
+resolve to:
+
+* workflow;
+* execution role;
+* subject role;
+* skills;
+* reviewers.
+
+Other `.agents/` metadata must not contradict the registry.
+
+### `.agents/roles/`
+
+Defines who is responsible and what standards apply.
+
+A role exists only for:
+
+* a durable ownership/responsibility boundary; or
+* an independent review function.
+
+Do not create roles merely for:
+
+* a framework;
+* a file type;
+* a temporary task;
+* a vendor;
+* a prompt style.
+
+### `.agents/skills/`
+
+Defines reusable expert methodology.
+
+A skill may influence decisions and verification but does not create write authority.
+
+### `.agents/workflows/`
+
+Defines small repeatable execution sequences.
+
+### `.agents/context/`
+
+Contains concise derived summaries.
+
+### `.agents/references/`
+
+Contains deeper supporting material loaded only when useful.
+
+### Vendor adapters
+
+`.claude/`, `.codex/`, Copilot configuration, IDE configuration, and future assistant-specific files may map:
+
+* tools;
+* models;
+* capability syntax;
+* sandbox behavior;
+* discovery metadata.
+
+They must not duplicate or override DTB architecture, security, ownership, or business doctrine.
+
+---
+
+## 38. Routing semantics
+
+Keep routing dimensions orthogonal.
+
+### Intent
+
+Answers:
+
+> What operation are we performing?
+
+Examples:
+
+* implement;
+* fix;
+* change;
+* architecture;
+* review;
+* verify;
+* research;
+* investigate;
+* context maintenance.
+
+### Domain
+
+Answers:
+
+> What DTB subject/ownership area is affected?
+
+A domain should represent a real product, architecture, or ownership concern.
+
+Do not use execution functions such as "review" or "verification" as subject domains unless a concrete tooling requirement demands it.
+
+### Role
+
+Answers:
+
+> Who executes the operation?
+
+Execution ownership is singular.
+
+### Subject role
+
+Provides domain expertise when the execution role is intentionally different from the domain owner.
+
+For example:
+
+```text
+PDP redesign implementation
+execution role -> frontend engineer
+subject specialist -> PDP conversion specialist
+```
+
+A read-only subject specialist must not become the implementation owner merely because the task concerns its specialty.
+
+### Skills
+
+Answer:
+
+> Which reusable methods can materially improve the decision or implementation?
+
+Load only decision-relevant skills.
+
+### Flags
+
+Represent concerns that materially change:
+
+* required expertise;
+* effective risk;
+* architecture review;
+* specialist review.
+
+Do not create flags merely to label syntax or file types.
+
+### Risk
+
+Represents consequence/blast radius.
+
+Risk and review specialty are related but not identical.
+
+High risk does not automatically mean every specialist reviewer is relevant.
+
+Specialist review should also be driven by the actual affected boundary.
+
+---
+
+## 39. Progressive context disclosure
+
+Default context should be intentionally small.
+
+### Tier 0 — always
+
+Load:
+
+```text
+AGENTS.md
+current task/request
+```
+
+### Tier 1 — resolved
+
+Load only:
+
+* resolved workflow;
+* execution role;
+* subject role when distinct and useful;
+* resolved skills;
+* directly relevant owning source/docs.
+
+### Tier 2 — just in time
+
+Load only when required:
+
+* deeper references;
+* derived context;
+* historical documentation;
+* external research;
+* additional modules;
+* broader repository history.
+
+`.agents/README.md` is library documentation and should not be injected into ordinary resolved task context unless understanding or maintaining the AI workspace itself requires it.
+
+More context is not automatically better.
+
+Optimize relevance and authority, not prompt size in isolation.
+
+---
+
+## 40. Context sufficiency
+
+Stop expanding context when authoritative evidence is sufficient to act correctly.
+
+Evidence is normally sufficient when the agent has established, as applicable:
+
+* required outcome;
+* owning domain/system of record;
+* active execution path;
+* affected contract;
+* relevant persistence/events/queues/providers;
+* necessary security/identity boundaries;
+* enough implementation evidence to make the decision safely;
+* verification strategy.
+
+Continue retrieval only when:
+
+* a material fact remains unresolved;
+* authoritative sources conflict;
+* a required boundary remains unverified;
+* verification requires additional evidence;
+* a credible alternative could materially change the decision.
+
+Do not explore merely because more repository content exists.
+
+---
+
+## 41. Retrieval discipline
+
+Before another repository/search/tool fetch:
+
+1. determine whether current authoritative evidence already answers the question;
+2. reuse established evidence when valid;
+3. if more evidence is necessary, retrieve the narrowest source that can resolve the gap;
+4. expand only when the narrower evidence is insufficient.
+
+Prefer:
+
+```text
+search
+-> exact path/symbol
+-> bounded file/range
+-> relevant surrounding implementation
+```
+
+over:
+
+```text
+load large directory
+-> load many entire files
+-> retain everything
+```
+
+Prefer:
+
+* filtered queries;
+* bounded result counts;
+* pagination;
+* exact symbols;
+* relevant log windows;
+* stable references.
+
+Do not repeatedly fetch unchanged evidence solely to re-establish a fact already verified in the same execution context.
+
+Independent reviewers may retrieve evidence independently when independence is valuable.
+
+---
+
+## 42. Context quality
+
+Avoid context pollution from:
+
+* duplicated instructions;
+* stale architecture summaries;
+* irrelevant files;
+* giant standing prompts;
+* repeated vendor wrappers;
+* copied mutable implementation facts;
+* obsolete tool output;
+* repeated source excerpts;
+* unrelated prior tasks.
+
+When context becomes large, preserve:
+
+* authoritative facts;
+* decisions;
+* stable identities;
+* affected paths;
+* unresolved risks;
+* verification state.
+
+Discard or compact irrelevant exploratory material where the runtime supports it.
+
+Do not require preservation of private reasoning transcripts.
+
+---
+
+## 43. Task persistence
+
+Use `docs/work/<task-id>/` only when durable cross-session state is useful.
+
+Persist conclusions and evidence, not conversational transcripts.
+
+Useful durable task state includes:
+
+* brief/acceptance criteria;
+* verified evidence;
+* current decisions;
+* affected paths/contracts;
+* unresolved questions;
+* verification status.
+
+Do not persist:
+
+* private chain-of-thought;
+* every search result;
+* discarded speculation;
+* complete conversation history;
+* repetitive source excerpts.
+
+A task package is a structured checkpoint, not a transcript archive.
+
+---
+
+## 44. Agent efficiency
+
+Agent efficiency means eliminating unnecessary work without removing required intelligence.
+
+Prefer:
+
+* precise task framing;
+* progressive disclosure;
+* bounded retrieval;
+* evidence reuse;
+* explicit stopping conditions;
+* isolated reviewer context;
+* stable deterministic routing;
+* existing primitives;
+* concise decision-dense skills.
+
+Do not optimize merely for the lowest token count.
+
+Never remove:
+
+* security invariants;
+* ownership constraints;
+* critical failure modes;
+* necessary verification;
+* required independent review;
+
+solely to save context.
+
+The optimization objective is:
+
+> maximize useful engineering signal per context token and per tool operation.
+
+---
+
+## 45. Reviewer context isolation
+
+Independent reviewers should begin from authoritative task artifacts rather than inheriting the entire writer transcript.
+
+Reviewer context should normally include:
+
+* `AGENTS.md`;
+* reviewer role;
+* relevant reviewer skill;
+* final diff or changed source;
+* acceptance criteria;
+* affected contracts/source.
+
+Do not automatically inject:
+
+* writer exploration history;
+* rejected speculative branches;
+* unrelated skills;
+* unrelated tool results;
+* complete conversation history.
+
+This preserves both independence and context efficiency.
+
+---
+
+## 46. AI workspace simplicity
+
+Before adding a new role, skill, workflow, context file, reference system, routing mechanism, or agent subsystem:
+
+1. search existing coverage;
+2. determine whether an existing mechanism can be strengthened;
+3. require a demonstrated recurring engineering deficiency;
+4. choose the smallest mechanism that fixes it.
+
+Do not create:
+
+* model comparison infrastructure;
+* model scorecards;
+* Claude-vs-Codex evaluations;
+* per-model DTB doctrine;
+* prompt A/B frameworks;
+* permanent orchestrator bureaucracy;
+* agent message buses;
+* duplicate capability registries;
+* LLM-based routing when deterministic routing is sufficient;
+* role aliases for individual vendors;
+* large persona collections without durable ownership boundaries.
+
+Improve canonical DTB engineering knowledge when it is incomplete.
+
+Never optimize DTB doctrine for one particular model.
+
+---
+
+## 47. External AI tools and skills
+
+Treat external:
+
+* skills;
+* agents;
+* MCP servers;
+* plugins;
+* prompt packages;
+* repositories;
+* tool integrations;
+
+as untrusted dependencies until reviewed.
+
+Evaluate:
+
+* source/provenance;
+* instructions;
+* permissions;
+* filesystem/network access;
+* credentials required;
+* mutation capability;
+* dependencies;
+* side effects;
+* update mechanism;
+* data exposure;
+* prompt injection surface.
+
+Never grant broad access merely because an external tool advertises developer productivity.
+
+Canonical DTB security and ownership boundaries remain authoritative.
+
+---
+
+## 48. Capability vocabulary
+
+Canonical AI files describe capabilities generically rather than depending on vendor tool names.
+
+Examples:
+
+```text
+repository.read
+repository.write
+git.read
+git.publish
+shell.read
+shell.execute
+web.search
+web.fetch
+browser.render
+browser.interact
+database.read
+database.write
+external.mutate
+```
+
+Vendor adapters map these concepts to actual available tools.
+
+If a required capability is unavailable, report the limitation.
+
+Do not fabricate evidence or simulate tool execution.
+
+Do not create a more complicated capability registry unless repeated real incompatibility demonstrates a need.
+
+---
+
+## 49. AI routing and governance validation
+
+After changes to AI governance, run the repository's AI validation tooling when execution is available, including:
+
+```text
+node scripts/ai/validate-context.mjs
+node scripts/ai/test-routing.mjs
+```
+
+Routing/validation should enforce or test, as applicable:
+
+* all registered paths exist;
+* intents resolve valid workflows;
+* domains resolve valid subject roles;
+* execution roles are valid;
+* reviewer roles are read-only;
+* read-only workflows cannot resolve write execution roles;
+* required skills exist;
+* reviewer IDs are deduplicated;
+* execution role is not its own independent reviewer;
+* risk escalation is monotonic;
+* unknown intents/domains/flags fail closed;
+* vendor adapters do not redefine canonical authority;
+* canonical files do not depend on vendor/model-specific behavior;
+* specialized ownership does not accidentally become competing write authority;
+* task manifests remain consistent with routing;
+* active composition remains represented correctly where intentionally summarized.
+
+Prefer strengthening existing validators over introducing a second governance system.
+
+---
+
+## 50. AI context-size governance
+
+Context growth should be observable.
+
+Where practical, validation/tooling may report:
+
+* file size;
+* resolved context-pack size;
+* number of required skills;
+* reviewer count;
+* large unexpected growth in canonical role/skill files.
+
+Initially prefer warnings/observability rather than arbitrary hard token limits.
+
+Do not use provider-specific token budgets as canonical engineering doctrine.
+
+A larger context is acceptable when the task genuinely requires it.
+
+The problem is unnecessary context, not context itself.
+
+---
+
+## 51. Chain-of-thought and rationale
+
+Never require private chain-of-thought disclosure.
+
+For material decisions, require useful inspectable artifacts instead:
+
+* source evidence;
+* assumptions;
+* calculations where relevant;
+* decision criteria;
+* concise rationale;
+* materially credible rejected alternatives;
+* verification evidence;
+* unresolved uncertainty.
+
+The objective is auditable engineering, not private reasoning transcripts.
+
+---
+
+## 52. Reporting
+
+Lead with the outcome, conclusion, or most important finding.
+
+Match presentation to the work.
+
+Examples:
+
+* review → findings first;
+* diagnosis → root cause first;
+* implementation → outcome and verification;
+* architecture → current state, selected contract, consequences;
+* simple task → concise answer.
+
+For material repository work, communicate the relevant:
+
+* changed repository files;
+* owning module/domain;
+* implementation outcome;
+* verification performed;
+* data/migration impact;
+* security impact;
+* API/queue/integration impact;
+* documentation changes;
+* residual risks.
+
+These are information requirements, not mandatory headings.
+
+Do not mechanically repeat "no impact" sections when they add no value.
+
+Use `Architecture` and `Implementation` sections when that separation materially improves understanding.
+
+Never claim tests, runtime behavior, deployments, provider behavior, or production outcomes that were not directly established.
+
+---
+
+## 53. Final engineering rule
 
 For every task:
 
-1. understand product outcome/acceptance criteria;
-2. inspect active implementation;
-3. identify owner/system of record;
-4. trace routes/hooks/persistence/events/queues/integrations/consumers;
-5. evaluate security, ownership, concurrency, idempotency, compatibility, performance and recovery risk;
-6. choose the simplest complete design and reject speculative architecture;
-7. implement only in the owning layer with one writer per overlapping boundary;
-8. add risk-proportional independent review/verification;
-9. update durable docs when ownership/APIs/routes/persistence/queues/integration contracts change;
-10. inspect final diff for duplicate authority, secrets, stale references, generated output and unrelated churn.
-
-Parallelize read-heavy investigation/review; serialize overlapping mutation. Use `.agents/` roles/skills/workflows for reusable AI method, not vendor-specific prompts.
-
-## 20. No temporary fixes
-
-Do not ship stopgaps, bypasses, unfinished TODO/FIXME/HACK behavior, security/validation weakening, duplicate state/logic, hardcoded credentials/environment assumptions or symptom patches intended for later replacement. Fix the root cause in the owning layer or explicitly state what prevents a production-complete solution.
-
-Existing shortcuts are debt to flag, not precedent to extend.
-
-## 21. AI workspace and context governance
-
-DTB knowledge belongs to DTB, not to a model vendor.
-
-- `.agents/` is canonical model-neutral AI knowledge.
-- Assistant directories are adapters for discovery/model/tool/sandbox/capability mapping only.
-- Do not require private chain-of-thought disclosure. Require evidence, calculations, assumptions, decision criteria, rejected alternatives when relevant, concise rationale and verification.
-- Prefer progressive disclosure: `AGENTS.md` + task first, then the relevant role/skills/docs, then deep references only as needed.
-- Treat external AI skills/agents/plugins/MCP/tool packages as untrusted dependencies until source, permissions, instructions, dependencies and side effects are reviewed.
-- Persist substantial transient task state under `docs/work/<task-id>/`; do not create global progress/TODO artifacts as cross-session truth.
-- Run `node scripts/ai/validate-context.mjs` after AI-governance changes.
-
-## 22. Reporting
-
-Lead with the outcome, conclusion or most important finding. Shape the response around the task and the user's needs so it reads as a clear, cohesive explanation rather than a fixed report template.
-
-For material repository work, communicate the relevant architecture, implementation, changed files, owning module, verification, data or migration impact, security impact, API/queue/integration impact, documentation changes and residual risks. These are requirements for appropriate information coverage, not mandatory headings, ordering or a closing checklist. Include, combine or omit individual dimensions according to their relevance, and summarize genuinely unaffected areas only when doing so prevents ambiguity.
-
-Use `Architecture` and `Implementation` sections when that separation materially improves understanding, especially for cross-cutting ownership or contract changes; do not add them mechanically to every response. Match the presentation to the work: findings-first for reviews, root-cause-first for diagnosis, outcome-and-verification for implementation, and concise prose for simple tasks. When no files changed, state that only when it is useful context rather than automatically adding an implementation-status block.
-
-Never claim tests, runtime behavior, deployment state, provider behavior or production outcomes that were not directly established. Clearly distinguish verified evidence, inference, recommendation and unverified behavior.
+> Inspect before assuming.
+> Identify the authority before writing.
+> Preserve one source of truth.
+> Preserve identity across every boundary.
+> Treat concurrency, retries, and failure as normal conditions.
+> Load only context that can materially improve the result.
+> Stop investigating when authoritative evidence is sufficient.
+> Prefer existing owners and primitives over new infrastructure.
+> Review according to actual risk.
+> Verify what actually changed.
+> Update durable knowledge only when the durable contract changed.
+> Never weaken architecture or security for convenience.
