@@ -61,13 +61,13 @@
     "media": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "medium" },
     "marketing": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer" },
     "repairs": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "medium" },
-    "integrations": { "subjectRole": "integration-engineer", "implementationRole": "integration-engineer", "minimumRisk": "high" },
+    "integrations": { "subjectRole": "integration-engineer", "implementationRole": "integration-engineer", "minimumRisk": "high", "reviewers": ["integration-reviewer"] },
     "support": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "medium" },
     "returns": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "high" },
     "deployment": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "high" },
     "visual-designer": { "subjectRole": "wordpress-backend-engineer", "implementationRole": "wordpress-backend-engineer", "minimumRisk": "medium" },
     "market-research": { "subjectRole": "market-intelligence-analyst", "implementationRole": null },
-    "ai-governance": { "subjectRole": "ai-governance-engineer", "implementationRole": "ai-governance-engineer", "minimumRisk": "medium" }
+    "ai-governance": { "subjectRole": "ai-governance-engineer", "implementationRole": "ai-governance-engineer", "minimumRisk": "medium", "reviewers": ["test-verifier"] }
   },
   "roles": {
     "explorer": { "path": ".agents/roles/explorer.md", "mode": "read", "requiredSkills": [] },
