@@ -26,7 +26,7 @@ assert(pdpImplementation.skills.some((item) => item.id === 'dtb-design-system'))
 assert(pdpImplementation.skills.some((item) => item.id === 'dtb-responsive-ui-engineering'));
 assert(pdpImplementation.skills.some((item) => item.id === 'dtb-ux-flow-engineering'));
 
-const integration = resolveTask({ intent: 'implement', domain: 'integrations', flags: ['queue'], risk: 'low' }, registry);
+const integration = resolveTask({ intent: 'implement', domain: 'integrations', flags: [], risk: 'low' }, registry);
 assert.equal(integration.role.id, 'integration-engineer');
 assert.equal(integration.effectiveRisk, 'high');
 assert(integration.skills.some((item) => item.id === 'dtb-integration-engineering'));
@@ -59,6 +59,8 @@ assert.equal(contextMaintenance.role.mode, 'write');
 assert.equal(contextMaintenance.effectiveRisk, 'medium');
 assert(contextMaintenance.skills.some((item) => item.id === 'dtb-ai-context-engineering'));
 assert(contextMaintenance.skills.some((item) => item.id === 'dtb-ai-workspace-governance'));
+assert(contextMaintenance.reviewers.some((item) => item.id === 'code-reviewer'));
+assert(contextMaintenance.reviewers.some((item) => item.id === 'test-verifier'));
 
 const marketResearch = resolveTask({ intent: 'research', domain: 'market-research', risk: 'low' }, registry);
 assert.equal(marketResearch.role.id, 'market-intelligence-analyst');
