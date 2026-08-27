@@ -49,11 +49,21 @@ define( 'WP_CACHE_KEY_SALT', 'CHANGE_ME_UNIQUE_CACHE_SALT' );
 $table_prefix = 'kf5_';
 
 /**
- * Drywall Toolbox HostGator production topology.
+ * Drywall Toolbox SiteGround production topology.
  */
 define( 'WP_HOME', 'https://drywalltoolbox.com' );
 define( 'WP_SITEURL', 'https://drywalltoolbox.com/wp' );
 define( 'DRYWALL_ALLOWED_ORIGIN', 'https://drywalltoolbox.com' );
+
+/**
+ * DTB application security.
+ *
+ * Generate a unique 64-character hexadecimal JWT secret server-side. Keep
+ * external-order write access undefined so WooCommerce REST order creation
+ * remains blocked outside the native checkout/order pipeline.
+ */
+define( 'DRYWALL_JWT_SECRET', 'CHANGE_ME_64_CHARACTER_HEX_JWT_SECRET' );
+define( 'DTB_ADMIN_EMAIL', 'CHANGE_ME_OPERATIONAL_ADMIN_EMAIL' );
 
 /**
  * The production frontend and WordPress aliases share the root cookie path.
@@ -67,6 +77,18 @@ define( 'ADMIN_COOKIE_PATH', '/' );
  * Existing narrowly scoped topology compatibility switches.
  */
 define( 'DTB_ENABLE_WOO_ADMIN_REST_NONCE_COMPAT', true );
+define( 'DTB_ENABLE_REST_CORS', true );
+define( 'DTB_RESTRICT_USER_ENDPOINTS', true );
+define( 'DTB_WC_PUBLIC_READ', true );
+define( 'DTB_ENABLE_NONCE_REFRESH', true );
+define( 'DTB_SECURITY_LOGGING', true );
+define( 'DTB_ENABLE_PROXY_RATE_LIMIT', true );
+define( 'DTB_ENABLE_LOGIN_RATE_LIMIT', true );
+define( 'DTB_ENABLE_CSP', false );
+define( 'DTB_ENABLE_ADMIN_AUTH_DIAGNOSTICS', false );
+define( 'DTB_ENABLE_ADMIN_LOGIN_TRACE', false );
+define( 'DTB_ENABLE_ADMIN_REST_LOGGING', false );
+define( 'DTB_ENABLE_ADMIN_SMOKE_ROUTE', false );
 
 /**
  * HTTPS and production hardening.
@@ -83,11 +105,9 @@ define( 'WP_MAX_MEMORY_LIMIT', '512M' );
  * Keep resource IDs at 0 until each live identifier is verified. Keep webhook
  * verification disabled unless Veeqo's live signing contract is verified.
  */
-define( 'DTB_VEEQO_API_KEY', 'CHANGE_ME_SERVER_SIDE_VEEQO_API_KEY' );
-define( 'DTB_VEEQO_CHANNEL_ID', 0 );
-define( 'DTB_VEEQO_WAREHOUSE_ID', 0 );
-define( 'DTB_VEEQO_DELIVERY_METHOD_ID', 0 );
-define( 'DTB_VEEQO_WEBHOOK_SECRET', '' );
+// Define DTB_VEEQO_API_KEY only after obtaining a rotated production key.
+// Let verified resource IDs persist through the Veeqo settings workflow rather
+// than defining guessed IDs here.
 define( 'DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS', false );
 define( 'DTB_VEEQO_DEBUG', false );
 
@@ -106,23 +126,8 @@ define( 'SCRIPT_DEBUG', false );
 /**
  * QuickBooks Online sandbox integration.
  */
-define( 'DTB_QBO_ENVIRONMENT', 'sandbox' );
-define( 'DTB_QBO_CLIENT_ID', 'CHANGE_ME_SERVER_SIDE_QBO_CLIENT_ID' );
-define( 'DTB_QBO_CLIENT_SECRET', 'CHANGE_ME_SERVER_SIDE_QBO_CLIENT_SECRET' );
-define( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN', 'CHANGE_ME_QBO_WEBHOOK_VERIFIER_TOKEN' );
-
-/**
- * Deployment Center / Release Management.
- *
- * The webhook secret must exactly match the GitHub Actions repository secret.
- * The GitHub token must be repository-scoped with Actions write, Contents read,
- * and Pull requests read permissions.
- */
-define( 'DTB_DEPLOYMENT_WEBHOOK_SECRET', 'CHANGE_ME_64_CHARACTER_HEX_SECRET' );
-define( 'DTB_GITHUB_DEPLOYMENT_TOKEN', 'CHANGE_ME_FINE_GRAINED_GITHUB_PAT' );
-define( 'DTB_GITHUB_REPO_OWNER', 'elliotttmiller' );
-define( 'DTB_GITHUB_REPO_NAME', 'launch-dtb' );
-define( 'DTB_GITHUB_RELEASE_WORKFLOW_FILE', 'release-siteground.yml' );
+// QuickBooks remains unconfigured until a reviewed production or sandbox
+// connection is intentionally enabled with newly issued provider credentials.
 
 /* That's all, stop editing! Happy publishing. */
 

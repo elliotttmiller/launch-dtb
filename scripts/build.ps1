@@ -135,7 +135,7 @@ try {
     Assert-RequiredFile (Join-Path $frontendRoot 'package-lock.json')
     Assert-RequiredFile (Join-Path $frontendRoot '.env.staging')
     Assert-RequiredFile (Join-Path $frontendRoot '.env.production')
-    Assert-RequiredFile (Join-Path $repositoryRoot 'drywalltoolbox\htaccess.staging')
+    Assert-RequiredFile (Join-Path $repositoryRoot 'drywalltoolbox\staging\.htaccess')
     Assert-RequiredFile (Join-Path $repositoryRoot 'drywalltoolbox\.htaccess')
 
     $selectedTarget = Resolve-BuildTarget

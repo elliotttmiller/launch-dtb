@@ -1,6 +1,6 @@
 # BEGIN WordPress
 # Drywall Toolbox WordPress subdirectory runtime
-# HostGator staging path: document-root/staging/2972/wp/.htaccess
+# SiteGround production path: document-root/wp/.htaccess
 
 Options -Indexes
 FileETag None
@@ -18,7 +18,7 @@ FileETag None
 
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteBase /staging/2972/wp/
+RewriteBase /wp/
 
 # Preserve Authorization headers for WordPress REST, JWT, and WooCommerce handlers.
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
@@ -27,13 +27,14 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 # /wp/checkout/order-pay/* is not the storefront checkout permalink; route it
 # back through /checkout/order-pay/* so the root router sends the request into
 # WordPress with the correct WooCommerce checkout endpoint context.
-RewriteRule ^checkout/order-pay/(.*)$ /staging/2972/checkout/order-pay/$1 [R=302,L,QSA]
-RewriteRule ^order-pay/(.*)$ /staging/2972/checkout/order-pay/$1 [R=302,L,QSA]
+RewriteRule ^checkout/order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA]
+RewriteRule ^order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA]
+RewriteRule ^checkout/order-received/(.*)$ /checkout/order-received/$1 [R=302,L,QSA]
 
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /staging/2972/wp/index.php [L]
+RewriteRule . /wp/index.php [L]
 </IfModule>
 
 <IfModule mod_headers.c>

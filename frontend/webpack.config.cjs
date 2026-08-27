@@ -434,7 +434,7 @@ module.exports = (envFlags, argv) => {
               '..',
               'drywalltoolbox',
               appEnv === 'staging'
-                ? 'htaccess.staging'
+                ? path.join('staging', '.htaccess')
                 : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess'),
             ),
             to: '.htaccess',

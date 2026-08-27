@@ -23,7 +23,7 @@ if (appEnv === 'staging' && publicUrl !== '/staging') {
 const outputRoot = path.join(repositoryRoot, appEnv === 'staging' ? 'dist-staging' : 'dist');
 const emittedPath = path.join(outputRoot, '.htaccess');
 const routingFilename = appEnv === 'staging'
-  ? 'htaccess.staging'
+  ? path.join('staging', '.htaccess')
   : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess');
 const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', routingFilename);
 const manifestPath = path.join(outputRoot, 'asset-manifest.json');
