@@ -42,6 +42,7 @@ import './styles/cart-page.css';
 import './styles/global-typography.css';
 import './styles/product-detail-typography.css';
 import './styles/product-detail-production.css';
+import './styles/product-detail-desktop-polish.css';
 import './components/catalog/products-selector-overrides.css';
 
 /* Final and exclusive cross-route responsive authority. */
