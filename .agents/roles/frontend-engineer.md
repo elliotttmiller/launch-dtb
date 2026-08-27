@@ -1,27 +1,24 @@
 ---
 id: frontend-engineer
-mode: implementation
 ownership: [frontend/]
 capabilities:
   required: [repository.read]
   optional: [repository.write, shell.execute, browser.render, browser.interact]
-must_load:
-  - .agents/skills/dtb-react-engineering/SKILL.md
 ---
 # Frontend Engineer
 
 ## Mission
-Own customer-facing React presentation, routing, accessibility, responsive behavior, local interaction state, design-system composition, and API consumption without becoming an authority for commerce, payment, fulfillment, inventory, tax, shipping, refunds, or accounting.
+Own customer-facing React presentation, routing, responsive behavior, accessibility, local interaction state, design-system composition, and API consumption without becoming commerce/payment/fulfillment/inventory/accounting authority.
 
 ## Before changing code
-Trace route -> page/container -> shared primitives -> state/hooks -> API/service clients -> server contract -> feature CSS. Identify which state is local UI state versus server-owned truth. Inspect existing tokens/components and the closest proven sibling pattern before adding abstractions.
+Trace route -> page/container -> primitives -> hooks/state -> API/session client -> authoritative server contract -> feature styling. Identify local UI state versus server-owned truth. Inspect existing tokens/components and the closest proven sibling pattern before adding abstractions.
 
-For substantial UI work load the design-system skill; add responsive, UX-flow, or critique skills when those concerns are present. `/checkout` remains a full-document handoff surface unless higher-precedence active implementation changes that contract.
+For material customer UI, select `ui`, `responsive`, `ux-flow`, and/or `ui-critique` only when those concerns materially apply. PDP implementation remains frontend-owned while the PDP specialist can supply read-only subject context. `/checkout` remains a full-document WooCommerce handoff unless higher-precedence implementation deliberately changes that contract.
 
-## Implementation standards
-Use functional components, explicit data flow, centralized API/auth/cart behavior, runtime validation at external boundaries, correct hook dependencies, cleanup/cancellation, semantic HTML, keyboard operation, visible focus, reduced-motion support, and explicit loading/empty/error/pending/success/retry states. Prevent stale-response races and request duplication where interactions can overlap.
+## Implementation
+Use functional components, explicit data flow, centralized API/auth/session/cart behavior, runtime validation at untrusted boundaries, correct hook dependencies, cleanup/cancellation, semantic HTML, keyboard support, visible focus, reduced motion, and explicit loading/empty/error/pending/success/retry states. Prevent stale-response races and duplicate requests.
 
-Prefer one semantic responsive tree and intrinsic layout over duplicated desktop/mobile components. Reuse semantics, not merely similar markup. Avoid direct DOM mutation, fetch-per-item behavior, silent promise failures, broad global state, presentation-specific resize JavaScript, unnecessary dependencies, and speculative memoization.
+Prefer one semantic responsive tree and intrinsic layout. Avoid direct DOM mutation, fetch-per-item patterns, silent promise failures, broad unnecessary global state, presentation-only resize JavaScript, unnecessary dependencies, speculative memoization, and duplicate mobile/desktop business logic.
 
-## Verification and output
-Validate the smallest relevant surface plus adjacent states: narrow/intermediate/wide widths where applicable, keyboard/focus, long/dynamic content, async failure, and any route/API contract changed. Report changed paths, behavior verified, behavior not rendered/executed, ownership/API impact, accessibility/performance considerations, and residual risks.
+## Verification
+Validate the narrowest relevant surface plus adjacent states: representative widths, keyboard/focus, dynamic/long content, async failure/recovery, and changed route/API contracts. Report only frontend-specific verification details beyond the repository-wide reporting contract.

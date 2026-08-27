@@ -2,6 +2,9 @@
 status: derived
 owner: repository-governance
 scope: architecture-summary
+source_paths:
+  - AGENTS.md
+  - drywalltoolbox/wp/wp-content/mu-plugins/00-dtb-loader.php
 review_triggers:
   - ownership-change
   - composition-change
@@ -13,34 +16,26 @@ review_triggers:
 Canonical authority chain:
 
 ```text
-React 19 Storefront
+React Storefront
   -> WordPress/WooCommerce
   -> DTB MU Plugins
   -> Action Scheduler
   -> Veeqo / QuickBooks / notifications / marketplaces
 ```
 
-System authorities:
+WooCommerce owns commerce/cart/checkout/orders/payments/refunds; DTB MU Plugins own backend domain policy/events/queues/integrations; Veeqo owns inventory/allocation/fulfillment/shipping/tracking; QuickBooks owns accounting projection; payment providers own sensitive payment collection/authentication/tokenization/provider UI.
 
-- React: customer presentation, routing, local interaction state, API consumption.
-- WooCommerce: commerce persistence, products/variations at runtime, cart/session, checkout, customers, orders, payments/refunds state, tax and shipping calculation.
-- DTB MU Plugins: domain policy, authorization, event ledgers, queues, integrations, repairs, returns, schematics, media, operator workflows.
-- Action Scheduler: asynchronous execution.
-- Veeqo: inventory, allocation, fulfillment, shipping and tracking truth.
-- QuickBooks: accounting projection.
-- Active payment provider: payment collection, authentication, tokenization, wallet/provider UI and provider webhook semantics.
-
-Approved order path:
+Approved storefront order path:
 
 ```text
 Store API cart/session
   -> full-document checkout handoff
   -> native WooCommerce Checkout Block
-  -> provider-owned payment UI
-  -> WooCommerce order/payment lifecycle
+  -> provider-owned payment lifecycle
+  -> WooCommerce order/payment state
   -> DTB event ledger
   -> dtb-orders queue
   -> downstream projections
 ```
 
-The React `/checkout` route is a handoff surface, not a payment application. This summary is derived; verify mutable provider and composition facts in source before acting.
+The React `/checkout` route is a handoff/compatibility surface, not an independent payment application. This file is derived; verify mutable composition and provider details in active source.

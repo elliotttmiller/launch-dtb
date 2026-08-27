@@ -1,45 +1,48 @@
-# Article-Derived Principles Applied to DTB
+# Reviewed Engineering Principles Applied to DTB
 
-The 2026 reference set reviewed for the AI workspace contributed these model-neutral techniques:
+This reference records model-neutral techniques retained from reviewed external engineering/context material. It does not establish architecture or routing.
 
 ## Context engineering
 
-- Treat files, memory, tools, retrieval, examples and task state as part of the model environment.
-- Separate permanent rules from transient task state.
-- Prefer progressive disclosure and targeted context over giant standing prompts.
-- Keep evidence higher-precedence than stored summaries.
+- Treat instructions, files, retrieval, tools, examples, and task state as one information environment.
+- Separate permanent policy from task-specific evidence/state.
+- Prefer progressive disclosure and just-in-time retrieval over giant standing prompts.
+- Reuse established evidence before repeating retrieval.
+- Stop expanding context once authoritative evidence is sufficient for the decision.
+- Keep primary evidence higher authority than derived summaries.
+- Isolate independent reviewer context from irrelevant writer history.
+- Measure context growth without treating shortest-context as the objective.
 
-## Complete UX flows
+## Complete UI/UX flows
 
-- Design flows, not isolated screens.
-- Include relevant loading, validation, failure, auth/provider challenge, cancellation, recovery and success states.
-- Explain architecture with state/sequence diagrams when that improves shared understanding.
-- Convert approved visual references into reusable design-system rules, not screenshot-specific implementation.
+- Design workflows rather than isolated screenshots.
+- Include material loading, validation, failure, auth/provider challenge, cancellation, recovery, duplicate-submission, and success states.
+- Convert approved visual direction into reusable design-system/component/responsive rules rather than screenshot-specific CSS.
 
 ## Structured UI critique
 
-Apply ordered specialist passes: accessibility; information hierarchy; commerce clarity; content; interaction/state completeness; responsive integrity.
+Apply specialist critique by relevant dimensions: accessibility, hierarchy, commerce clarity, content truth, interaction/state completeness, and responsive integrity. Critique is a review concern and need not be loaded into every UI writer context.
 
 ## React engineering
 
-Use focused reusable components, intentional local/shared state, explicit async states and measured optimization. Avoid reflexive memoization and duplicated server truth.
+Use focused components, explicit local/server-state ownership, complete async states, cancellation/race handling, and measured optimization. Avoid duplicated server truth and reflexive abstractions/memoization.
 
-## Responsive CSS
+## Responsive engineering
 
-Prefer intrinsic relationships (`clamp`, `minmax`, auto-fit/auto-fill, container queries, aspect ratio, dynamic viewport units, logical properties, responsive media and user-preference queries) over breakpoint/override accumulation.
+Prefer intrinsic relationships, fluid constraints, container-aware components, responsive media, logical properties, safe-area/dynamic viewport support, and user-preference queries over breakpoint/override accumulation.
 
 ## Architecture decisions
 
-Treat architecture as placement of work among browser/server/build-time/authoritative systems. State what, why, trade-offs and rejected alternatives. Do not adopt BFFs, micro-frontends, SSR/RSC, islands or edge execution without an evidenced DTB need.
+Distinguish implementation inside an existing contract from changing ownership/API/persistence/event/provider/runtime contracts. State the demonstrated constraint, authority, identities, failure semantics, trade-offs, and credible rejected alternatives. Do not adopt new services/BFFs/micro-frontends/rendering modes/edge execution without an evidenced DTB need.
 
-## Lean AI systems
+## Lean AI engineering
 
-Before creating behavior ask: does it need to exist, does it already exist, does the browser/platform/provider already own it, and can the solution be simpler? Use specialists when isolation/independent review materially helps; avoid agent multiplication for work with no parallel benefit.
+Before adding AI infrastructure ask whether the mechanism already exists, whether strengthening canonical knowledge is sufficient, and whether the proposed subsystem solves a recurring demonstrated failure. Avoid model-specific doctrine, model comparison tests/scorecards, LLM-based routing when deterministic routing works, permanent orchestrator bureaucracy, and duplicate capability registries.
 
 ## External skill safety
 
-Third-party AI skills/agents/plugins can contain executable behavior or prompt injection. Inspect source, permissions, dependencies, network/filesystem access and instructions before use; prefer extracting useful technique into DTB-owned knowledge.
+Treat third-party AI skills/agents/plugins/MCP packages as untrusted dependencies. Inspect source, permissions, instructions, dependencies, filesystem/network access, credential needs, mutation capability, update mechanism, and side effects before use. Prefer extracting durable useful technique into DTB-owned canonical knowledge.
 
-## Reasoning portability
+## Auditable reasoning artifacts
 
-Do not require private chain-of-thought disclosure. Require auditable artifacts instead: evidence, calculations, assumptions, decision criteria, alternatives, concise rationale and verification.
+Do not require private chain-of-thought. Require source evidence, assumptions, calculations where relevant, decision criteria, concise rationale, materially credible alternatives, and verification.

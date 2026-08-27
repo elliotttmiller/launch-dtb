@@ -1,26 +1,24 @@
 # Implementation Workflow
 
-Use for fixes/features/changes where an owning writer will modify repository source.
+Use for fixes/features/changes where one owning writer modifies repository source inside a selected contract.
 
-## 1. Frame the task
-Extract observable acceptance criteria, constraints, non-goals, and any user-specified scope. Identify unknowns that can be resolved from source before asking for more information.
+## 1. Frame
+Extract observable acceptance criteria, constraints, non-goals, and user scope. Resolve source-answerable unknowns before asking the user.
 
 ## 2. Establish current behavior
-Read `AGENTS.md` and inspect active implementation. Use the explorer when ownership/execution is unfamiliar or cross-cutting. Trace concrete entry points, persistence, queues/providers, consumers and tests needed to understand blast radius.
+Read `AGENTS.md`, resolve routing, and inspect active implementation. Trace only the entry points, persistence/events/queues/providers, consumers, tests, and docs required to understand the change. Reuse established evidence and stop expanding when evidence is sufficient.
 
-## 3. Confirm ownership and risk
-Name the system of record and owning module. Do not implement in a convenient non-owner. Use the architect when the change affects ownership, persistence, API contracts, event/queue identity, checkout/payment/refund, providers, migrations, composition, or another cross-system invariant. Load only relevant skills.
+## 3. Confirm semantic owner and contract status
+Name system of record and owning domain. Specialized semantic ownership outranks generic filesystem ownership. Explicitly decide whether this is implementation inside an existing contract or a contract-changing architecture task. Use contract flags such as `ownership-change`, `persistence-contract`, `queue-identity`, `provider-contract`, `api-contract`, `checkout-contract`, `refund-contract`, `migration`, `composition-change`, or `deployment-boundary` when applicable.
 
 ## 4. Design the smallest complete change
-Preserve existing contracts unless intentionally changing them. Account for authorization, validation, idempotency, concurrency, retries, partial failure, cleanup/cancellation, compatibility and recovery when relevant. Prefer extending existing primitives over introducing new infrastructure.
+Preserve existing contracts unless intentionally changing them. Account for authorization, validation, stable identity, idempotency, concurrency, retries, partial failure, bounds, cleanup/cancellation, compatibility, observability, and recovery where relevant. Prefer existing owners/primitives.
 
-## 5. Implement through the owner
-One writer per overlapping authority boundary. Keep provider-specific logic in adapters and generated outputs owned by their generators. Avoid unrelated cleanup unless it is required for a safe implementation.
+## 5. Implement through one owner
+One writer per overlapping authority boundary. Keep provider details in adapters and generated outputs owned by generators. Avoid unrelated cleanup.
 
 ## 6. Review and verify
-Apply risk-selected review: code, security, integration, and/or UI critique. Verify the final implementation against acceptance criteria using existing targeted checks and runtime/browser evidence where available. Do not claim unexecuted checks passed.
+Apply review dimensions from resolved risk/flags. Reviewers use final diff/source and isolated authoritative context. Verify against acceptance criteria with targeted checks; never claim unexecuted checks passed.
 
-## 7. Close cleanly
-Update durable docs only when contracts/ownership/APIs/routing/persistence/queues/integrations changed. Inspect the final diff for duplicate authority, secrets, protected-identifier changes, generated-source mistakes, debug artifacts and unrelated churn. Report changed files, owner, data/security/API/queue/integration/docs impact, verification and residual risk.
-
-Parallelize independent investigation/review; serialize overlapping mutation.
+## 7. Close
+Update durable docs only when durable contracts changed. Inspect final diff for duplicate authority, secrets, protected identifiers, generated-source mistakes, debug artifacts, stale references, and unrelated churn.
