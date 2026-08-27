@@ -23,8 +23,6 @@ function ToolTypeTile({ category }) {
             src={image}
             alt=""
             className="dtb-tool-type-tile__image"
-            width={348}
-            height={128}
             loading="lazy"
             decoding="async"
             onError={() => setImageFailed(true)}
@@ -48,6 +46,11 @@ function ToolTypeTile({ category }) {
  * authoritative WooCommerce child terms returned by the category metadata
  * endpoint. Display-category metadata remains a filtering/merchandising facet
  * and must not define the storefront taxonomy architecture.
+ *
+ * Category thumbnail source assets intentionally have intrinsic, tool-specific
+ * aspect ratios. The fixed media viewport and `object-fit: contain` CSS own
+ * layout stability and fitment; the image element must not assert a legacy
+ * 348x128 intrinsic ratio.
  */
 export default function ShopByToolType({ categories = [], onOpenFilters }) {
   const items = Array.isArray(categories) ? categories : [];
