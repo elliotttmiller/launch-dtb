@@ -615,8 +615,8 @@ body,
 
   .dtb-pdp:not(.dtb-pdp--modal) .dtb-pdp__info-column {
     display: grid;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0;
+    padding: 0.875rem;
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__main {
@@ -624,6 +624,68 @@ body,
     height: auto;
     min-height: 0;
     aspect-ratio: 1 / 1;
+  }
+
+  /* Mobile PDP rhythm mirrors the desktop hierarchy while preserving
+     touch-sized controls. These rules intentionally apply to both the full
+     product page and the full-screen mobile quick view. */
+  .dtb-product-page-shell .dtb-pdp__summary-region {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__mobile-status-row {
+    margin: 0 0 0.65rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__brand-eyebrow {
+    margin: 0 0 0.55rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__title {
+    margin: 0;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__identity-row {
+    margin-top: 0.85rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__desktop-reviews-row {
+    margin-top: 0.45rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__price-block {
+    margin-top: 0.95rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-shipping-note {
+    margin: 0.7rem 0 0;
+  }
+
+  .dtb-product-page-shell .product-variation-rail {
+    margin-top: 1.05rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp__purchase-region {
+    position: static !important;
+    margin-top: 1.1rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-purchase-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-purchase-panel__quantity-label {
+    margin: 0 0 0.1rem;
   }
 
   .dtb-pdp-purchase-row {
