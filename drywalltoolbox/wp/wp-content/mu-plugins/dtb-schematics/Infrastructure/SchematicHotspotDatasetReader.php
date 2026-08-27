@@ -46,10 +46,20 @@ function dtb_schematics_hotspot_source_roots(): array {
 	}
 
 	$wp_root = untrailingslashit( ABSPATH );
-	$roots   = [
-		dirname( dirname( $wp_root ) ) . '/frontend/public/brands', // Repository checkout.
-		dirname( $wp_root ) . '/brands', // SiteGround: WordPress lives at /wp, public assets at site root.
-	];
+	$public_root = dirname( $wp_root );
+	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+	$runtime_root = 'staging' === $environment && 'staging' !== strtolower( basename( $public_root ) )
+		? $public_root . '/staging/brands'
+		: $public_root . '/brands';
+
+	$roots = [];
+	// An absolute server-only override supports nonstandard layouts without
+	// deriving filesystem authority from request URLs or caller input.
+	if ( defined( 'DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT' ) && is_string( DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT ) ) {
+		$roots[] = DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT;
+	}
+	$roots[] = $runtime_root;
+	$roots[] = dirname( dirname( $wp_root ) ) . '/frontend/public/brands'; // Repository checkout.
 	$roots = function_exists( 'apply_filters' ) ? apply_filters( 'dtb_schematics_hotspot_source_roots', $roots ) : $roots;
 
 	$resolved = [];

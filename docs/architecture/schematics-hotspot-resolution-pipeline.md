@@ -36,6 +36,18 @@ Fuzzy/title evidence, cross-brand guesses, weak numeric diagram callouts, and am
 
 The source audit reads only approved schematic-data references through the established source resolver, reader, normalization, grouping, and merge path.
 
+The canonical repository tree is `frontend/public/brands`. Frontend builds copy
+that tree without transformation to `dist/brands` for production and
+`dist-staging/brands` for staging. On SiteGround, the approved runtime root is
+`public_html/brands` when `WP_ENVIRONMENT_TYPE` is `production`, and
+`public_html/staging/brands` when it is `staging` (including a WordPress
+installation already rooted below `public_html/staging`). A nonstandard host
+layout may define the server-only absolute
+`DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT`; request URLs never select filesystem
+authority. The production and staging build validations fail unless every
+`schematic_data*.json` source is valid JSON and is emitted at the same
+case-sensitive relative path with identical bytes.
+
 Each authoritative source group is classified independently:
 
 - `ok` — complete readable source with no drift or structural issue;

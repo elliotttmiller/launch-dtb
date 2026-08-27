@@ -100,8 +100,8 @@ module.exports = (envFlags, argv) => {
   const isDev  = mode !== 'production';
   const analyze = process.env.ANALYZE === 'true';
   const deployTarget = env('DTB_DEPLOY_TARGET') || 'siteground';
-  if (!['siteground', 'hostgator'].includes(deployTarget)) {
-    throw new Error(`Unsupported DTB_DEPLOY_TARGET "${deployTarget}". Expected siteground or hostgator.`);
+  if (deployTarget !== 'siteground') {
+    throw new Error(`Unsupported DTB_DEPLOY_TARGET "${deployTarget}". Expected siteground.`);
   }
   const useFilesystemCache = isDev || env('DTB_WEBPACK_FS_CACHE') === '1';
   const emitSourceMaps = isDev || env('DTB_SOURCE_MAPS') === '1';
@@ -435,7 +435,7 @@ module.exports = (envFlags, argv) => {
               'drywalltoolbox',
               appEnv === 'staging'
                 ? path.join('staging', '.htaccess')
-                : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess'),
+                : '.htaccess',
             ),
             to: '.htaccess',
             toType: 'file',

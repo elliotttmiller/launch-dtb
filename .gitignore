@@ -14,7 +14,7 @@ scripts/reports/
 
 .idea/
 dist/
-/dist-staging/
+dist-staging/
 build/
 *.tmp
 *.cache

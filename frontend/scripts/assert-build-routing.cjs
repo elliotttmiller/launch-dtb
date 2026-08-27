@@ -24,13 +24,61 @@ const outputRoot = path.join(repositoryRoot, appEnv === 'staging' ? 'dist-stagin
 const emittedPath = path.join(outputRoot, '.htaccess');
 const routingFilename = appEnv === 'staging'
   ? path.join('staging', '.htaccess')
-  : (deployTarget === 'hostgator' ? 'htaccess.hostgator' : '.htaccess');
+  : '.htaccess';
 const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', routingFilename);
 const manifestPath = path.join(outputRoot, 'asset-manifest.json');
 const robotsPath = path.join(outputRoot, 'robots.txt');
+const schematicSourceRoot = path.join(frontendRoot, 'public', 'brands');
+const schematicOutputRoot = path.join(outputRoot, 'brands');
+
+function collectSchematicDatasets(root) {
+  const datasets = new Map();
+  const pending = [root];
+
+  while (pending.length > 0) {
+    const directory = pending.pop();
+    if (!fs.existsSync(directory)) continue;
+
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolutePath = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        pending.push(absolutePath);
+      } else if (/^schematic_data[^/]*\.json$/i.test(entry.name)) {
+        const relativePath = path.relative(root, absolutePath).split(path.sep).join('/');
+        datasets.set(relativePath, fs.readFileSync(absolutePath));
+      }
+    }
+  }
+
+  return datasets;
+}
 
 const expected = fs.readFileSync(sourcePath, 'utf8');
 const emitted = fs.readFileSync(emittedPath, 'utf8');
+
+const sourceSchematicDatasets = collectSchematicDatasets(schematicSourceRoot);
+const emittedSchematicDatasets = collectSchematicDatasets(schematicOutputRoot);
+
+if (sourceSchematicDatasets.size === 0) {
+  throw new Error('frontend/public/brands contains no schematic_data*.json source datasets.');
+}
+if (emittedSchematicDatasets.size !== sourceSchematicDatasets.size) {
+  throw new Error(
+    `The build emitted ${emittedSchematicDatasets.size} schematic hotspot datasets, ` +
+    `but frontend/public/brands contains ${sourceSchematicDatasets.size}.`
+  );
+}
+for (const [relativePath, sourceContent] of sourceSchematicDatasets) {
+  const emittedContent = emittedSchematicDatasets.get(relativePath);
+  if (!emittedContent || !sourceContent.equals(emittedContent)) {
+    throw new Error(`The emitted schematic hotspot dataset is missing or changed: brands/${relativePath}.`);
+  }
+  try {
+    JSON.parse(sourceContent.toString('utf8'));
+  } catch (error) {
+    throw new Error(`Invalid schematic hotspot JSON at frontend/public/brands/${relativePath}: ${error.message}`);
+  }
+}
 
 if (emitted !== expected) {
   throw new Error(
@@ -142,5 +190,6 @@ if (appEnv === 'staging') {
 
 process.stdout.write(
   `Routing contract verified: ${path.relative(repositoryRoot, emittedPath)} ` +
-  `matches ${path.relative(repositoryRoot, sourcePath)}.\n`
+  `matches ${path.relative(repositoryRoot, sourcePath)}; ` +
+  `${emittedSchematicDatasets.size} schematic hotspot datasets were preserved byte-for-byte.\n`
 );
