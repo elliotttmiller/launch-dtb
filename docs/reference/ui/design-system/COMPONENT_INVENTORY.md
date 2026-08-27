@@ -6,7 +6,6 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 
 - Logo variants and clear space
 - Color and semantic states
-- Geist type scale and numeric styles
 - Fluid spacing and containers
 - Radius, border, elevation, and layer scale
 - Icon sizing and product imagery rules
@@ -47,11 +46,13 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 
 ### Category hero media contract
 
-Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. Every category route uses one unified bounded hero composition with restrained radius/elevation, left-side text hierarchy, a compact icon-plus-count treatment, and right-side category photography. The hero surface itself remains transparent so the page canvas and the authored hero-image background form one continuous visual background rather than introducing a separate painted card color.
+Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. Every category route uses one unified bounded hero composition with restrained radius/elevation, left-side text hierarchy, a compact icon-plus-count treatment, and right-side category artwork.
 
-Desktop category hero photography fills the right half of the bounded hero composition. The hero container owns the vertical geometry and the media viewport fills that height; both the outer hero surface and media viewport remain transparent. Images use `object-fit: cover` with centered positioning so they fill the slot without distortion or letterboxing. Category hero masters should be authored for a wide, shallow crop close to `3:1`, with approximately 8–10% crop-safe perimeter around important product geometry. Narrow layouts may use a taller viewport rather than forcing the desktop crop onto mobile.
+The hero card owns one continuous white-to-silver gradient surface across both content and media. The media viewport itself must remain transparent so isolated hero artwork reveals that same card surface and does not introduce a second painted background. The default desktop composition keeps the content/media split near 48/52 and uses a stable bounded hero height rather than allowing source-image dimensions to determine page geometry.
 
-Responsive image metadata should allow the browser to select an appropriate source from the backend-provided `srcset`; presentation code must not stretch the bitmap or rely on source-image dimensions to determine page layout.
+Transparent or isolated category hero artwork uses `object-fit: contain` with centered positioning so complete tools remain visible without cropping or distortion. Hero source assets should contain only the intended product/tool composition with modest transparent safety space; baked white/gray studio backgrounds should not be used when the unified card surface is intended to show through. Narrow layouts may use a taller media viewport while retaining the same single-surface treatment.
+
+Responsive image metadata should allow the browser to select an appropriate source from the backend-provided `srcset` when available. Frontend-authored fallback hero assets may be imported explicitly for categories that do not yet have a backend hero image, but those overrides must not become a second catalog metadata authority.
 
 ### Category thumbnail media contract
 
