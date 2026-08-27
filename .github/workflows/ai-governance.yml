@@ -1,0 +1,61 @@
+name: AI Governance
+
+on:
+  pull_request:
+    paths:
+      - AGENTS.md
+      - .agents/**
+      - scripts/ai/**
+      - CLAUDE.md
+      - .claude/**
+      - .codex/**
+      - .github/copilot-instructions.md
+      - .github/workflows/ai-governance.yml
+      - docs/work/**
+  push:
+    branches: [main]
+    paths:
+      - AGENTS.md
+      - .agents/**
+      - scripts/ai/**
+      - CLAUDE.md
+      - .claude/**
+      - .codex/**
+      - .github/copilot-instructions.md
+      - .github/workflows/ai-governance.yml
+      - docs/work/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ai-governance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax check AI tooling
+        run: |
+          node --check scripts/ai/lib/routing.mjs
+          node --check scripts/ai/resolve-task.mjs
+          node --check scripts/ai/create-task.mjs
+          node --check scripts/ai/validate-task.mjs
+          node --check scripts/ai/test-routing.mjs
+          node --check scripts/ai/validate-context.mjs
+
+      - name: Test deterministic routing
+        run: node scripts/ai/test-routing.mjs
+
+      - name: Validate canonical AI context
+        run: node scripts/ai/validate-context.mjs
