@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
@@ -10,27 +11,46 @@ import '../../styles/category-hero.css';
  * count) passed in.
  *
  * Presentation is standardized across every category route: content occupies
- * the left side of one bounded hero surface and dedicated category photography
+ * the left side of one bounded hero surface and dedicated category artwork
  * fills the right-side media viewport without stretching.
  */
 export default function CategoryHero({ category, breadcrumbs = [], productCount }) {
-  const { src: heroImageSrc, srcSet: heroImageSrcSet } = resolveCategoryHeroImage(category || {});
+  const resolvedHero = resolveCategoryHeroImage(category || {});
+  const [activeHero, setActiveHero] = useState(() => ({
+    src: resolvedHero.src,
+    srcSet: resolvedHero.srcSet,
+    failed: false,
+  }));
+
+  useEffect(() => {
+    setActiveHero({
+      src: resolvedHero.src,
+      srcSet: resolvedHero.srcSet,
+      failed: false,
+    });
+  }, [resolvedHero.src, resolvedHero.srcSet]);
 
   if (!category) return null;
 
   const { label, description, parent } = category;
-  // WP-Admin's native Description field (Products → Categories → edit
-  // category) is the real source — this is only a placeholder for
-  // categories nobody's filled that in for yet, so the hero never renders
-  // with just a bare title. Replace it category-by-category by filling in
-  // the real field; this line stops showing the moment that field is set.
-  // Kept neutral — no manufacturer-support/replacement-parts claims we
-  // can't actually back for every category.
   const displayDescription = description
     || `Browse our full selection of ${label} for professional drywall work.`;
   const eyebrow = parent?.label || '';
   const count = Number(productCount);
   const hasCount = Number.isFinite(count) && count >= 0;
+
+  const handleHeroError = () => {
+    if (resolvedHero.fallbackSrc && activeHero.src !== resolvedHero.fallbackSrc) {
+      setActiveHero({
+        src: resolvedHero.fallbackSrc,
+        srcSet: resolvedHero.fallbackSrcSet,
+        failed: false,
+      });
+      return;
+    }
+
+    setActiveHero((current) => ({ ...current, src: '', srcSet: '', failed: true }));
+  };
 
   return (
     <div className="dtb-category-hero mb-5 sm:mb-6">
@@ -53,17 +73,18 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
           )}
         </div>
 
-        {heroImageSrc && (
+        {activeHero.src && !activeHero.failed && (
           <div className="dtb-category-hero-card__media">
             <img
-              src={heroImageSrc}
-              srcSet={heroImageSrcSet || undefined}
-              sizes={heroImageSrcSet ? '(min-width: 1280px) 52vw, (min-width: 768px) 50vw, 100vw' : undefined}
+              src={activeHero.src}
+              srcSet={activeHero.srcSet || undefined}
+              sizes={activeHero.srcSet ? '(min-width: 1280px) 52vw, (min-width: 768px) 50vw, 100vw' : undefined}
               alt=""
               className="dtb-category-hero-card__image"
               loading="eager"
               fetchPriority="high"
               decoding="async"
+              onError={handleHeroError}
             />
           </div>
         )}
