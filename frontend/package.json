@@ -5,15 +5,14 @@
   "type": "module",
   "homepage": "https://drywalltoolbox.com/",
   "scripts": {
-    "hero:sync": "node scripts/sync-category-heroes.cjs",
-    "dev": "npm run hero:sync && webpack serve --config webpack.config.cjs --mode development",
+    "dev": "webpack serve --config webpack.config.cjs --mode development",
     "build": "npm run build:siteground-root",
-    "build:siteground-root": "cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-public-env-safe.cjs pre && node scripts/assert-pwa-hardening.cjs && node scripts/assert-font-authority.cjs && node scripts/clean-build-artifacts.cjs production && npm run hero:sync && cross-env APP_ENV=production PUBLIC_URL=/ webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-build-routing.cjs && cross-env APP_ENV=production node scripts/assert-public-env-safe.cjs post",
-    "build:staging": "cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-public-env-safe.cjs pre && node scripts/assert-pwa-hardening.cjs && node scripts/assert-font-authority.cjs && node scripts/clean-build-artifacts.cjs staging && npm run hero:sync && cross-env APP_ENV=staging PUBLIC_URL=/staging webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-build-routing.cjs && cross-env APP_ENV=staging node scripts/assert-public-env-safe.cjs post",
+    "build:siteground-root": "cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-public-env-safe.cjs pre && node scripts/assert-pwa-hardening.cjs && node scripts/assert-font-authority.cjs && node scripts/clean-build-artifacts.cjs production && cross-env APP_ENV=production PUBLIC_URL=/ webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-build-routing.cjs && cross-env APP_ENV=production node scripts/assert-public-env-safe.cjs post",
+    "build:staging": "cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-public-env-safe.cjs pre && node scripts/assert-pwa-hardening.cjs && node scripts/assert-font-authority.cjs && node scripts/clean-build-artifacts.cjs staging && cross-env APP_ENV=staging PUBLIC_URL=/staging webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-build-routing.cjs && cross-env APP_ENV=staging node scripts/assert-public-env-safe.cjs post",
     "clean:build-cache": "node scripts/clean-build-artifacts.cjs cache",
     "reviews-server": "node server/index.js",
     "lint": "eslint src",
-    "preview": "npm run hero:sync && webpack serve --config webpack.config.cjs --mode production"
+    "preview": "webpack serve --config webpack.config.cjs --mode production"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -44,7 +43,7 @@
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.23",
-    "babel-loader": "^9.2.1",
+    "babel-loader": "^7.29.0",
     "copy-webpack-plugin": "^14.0.0",
     "cross-env": "^10.1.0",
     "css-loader": "^7.1.4",
