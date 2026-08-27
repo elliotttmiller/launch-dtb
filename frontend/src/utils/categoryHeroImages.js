@@ -1,74 +1,47 @@
-/* global require */
 /**
  * Category hero artwork resolver for `/category/:slug` pages.
  *
- * Canonical repository-owned hero media lives in:
- *   products/launch/media/categories/heroes/
+ * Runtime delivery is owned by the live WordPress uploads directory:
+ *   /wp-content/uploads/2026/categories/heroes/
  *
- * `frontend/scripts/sync-category-heroes.cjs` mirrors those assets into the
- * frontend source tree before dev/build/preview. Webpack's `require.context`
- * then discovers every mirrored WebP automatically, so adding or replacing a
- * correctly named category hero does not require another import or map edit.
+ * New hero files should use the exact WooCommerce category slug as the
+ * filename: <category-slug>.webp. That convention allows the frontend to
+ * resolve hero media without bundling binary assets or maintaining one import
+ * per category.
  *
- * Naming contract: use the exact WooCommerce category slug as the filename:
- *   <category-slug>.webp
+ * `products/launch/media/categories/heroes/` is a local authoring/reference
+ * workspace only. Files placed there are not assumed to exist on the live
+ * server until they are uploaded/deployed to the uploads directory above.
  *
- * A small alias table exists only for legacy filenames that predate that
- * contract. Do not add new aliases when creating new category hero artwork.
- *
- * Repository-packaged artwork is preferred when present because it is the
- * version-controlled DTB presentation asset. The backend `category.heroImage`
- * remains the fallback for categories that do not yet have a packaged hero;
- * its `srcset` is preserved in that case.
+ * WordPress category hero metadata remains a fallback because it provides a
+ * confirmed media URL plus srcset when a category is managed through WP-Admin.
  */
 
+const CATEGORY_HERO_UPLOAD_BASE = '/wp-content/uploads/2026/categories/heroes';
+
 const CATEGORY_HERO_FILENAME_ALIASES = {
-  // Legacy source filename. New hero files must use the exact category slug.
+  // Legacy live filename. New files must use the exact category slug.
   'compound-applicators': 'compound-applicator',
 };
 
-function discoverPackagedHeroImages() {
-  // This directory is materialized by sync-category-heroes.cjs before webpack
-  // starts. require.context is intentionally used here because this frontend is
-  // webpack-based, not Vite-based.
-  const context = require.context(
-    '../assets/media/catalog/category-heroes',
-    false,
-    /\.webp$/i,
-  );
-
-  return context.keys().reduce((images, key) => {
-    const filename = key.replace(/^\.\//, '');
-    const slug = filename.replace(/\.webp$/i, '');
-    const resolved = context(key);
-    images[slug] = resolved?.default || resolved;
-    return images;
-  }, {});
+function getHeroFilename(slug) {
+  if (!slug) return '';
+  return CATEGORY_HERO_FILENAME_ALIASES[slug] || slug;
 }
 
-const PACKAGED_CATEGORY_HERO_IMAGES = discoverPackagedHeroImages();
-
-function resolvePackagedHero(slug) {
-  if (!slug) return '';
-  if (PACKAGED_CATEGORY_HERO_IMAGES[slug]) {
-    return PACKAGED_CATEGORY_HERO_IMAGES[slug];
-  }
-
-  const aliasedFilename = CATEGORY_HERO_FILENAME_ALIASES[slug];
-  return aliasedFilename ? (PACKAGED_CATEGORY_HERO_IMAGES[aliasedFilename] || '') : '';
+function getLiveHeroUrl(slug) {
+  const filename = getHeroFilename(slug);
+  return filename ? `${CATEGORY_HERO_UPLOAD_BASE}/${encodeURIComponent(filename)}.webp` : '';
 }
 
 export function resolveCategoryHeroImage(category) {
   const slug = category?.slug || '';
-  const packagedHero = resolvePackagedHero(slug);
+  const liveHero = getLiveHeroUrl(slug);
 
-  if (packagedHero) {
-    return { src: packagedHero, srcSet: '' };
-  }
-
-  if (category?.heroImage) {
-    return { src: category.heroImage, srcSet: category.heroImageSrcset || '' };
-  }
-
-  return { src: '', srcSet: '' };
+  return {
+    src: liveHero || category?.heroImage || '',
+    srcSet: liveHero ? '' : (category?.heroImageSrcset || ''),
+    fallbackSrc: liveHero && category?.heroImage ? category.heroImage : '',
+    fallbackSrcSet: liveHero && category?.heroImage ? (category.heroImageSrcset || '') : '',
+  };
 }
