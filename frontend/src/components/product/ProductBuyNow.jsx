@@ -6,10 +6,7 @@ import '../../styles/product-buy-now.css';
 
 function readinessMessage(readiness) {
   if (readiness.state === 'ready') {
-    return 'Secure payment methods are presented by Stripe on the checkout page.';
-  }
-  if (readiness.state === 'unavailable') {
-    return 'Checkout is available, but the Stripe payment configuration needs attention.';
+    return 'Secure payment methods are presented on the checkout page.';
   }
   return 'Available payment methods are confirmed on the secure checkout page.';
 }
@@ -50,9 +47,6 @@ export default function ProductBuyNow({
     clickLockedRef.current = false;
   }, [disabled]);
 
-  // Only this button's own action drives its busy/success animation — a
-  // separate, unrelated cart mutation (e.g. the Add to Cart button) must
-  // never make this button spin too.
   const busy = pending || confirmed;
   const blocked = disabled || busy;
   const statusMessage = interactionError
@@ -64,8 +58,7 @@ export default function ProductBuyNow({
         : readinessMessage(readiness));
   const statusVisible = Boolean(
     interactionError
-    || (disabled && disabledReason)
-    || readiness.state === 'unavailable',
+    || (disabled && disabledReason),
   );
   const buttonLabel = pending
     ? 'Preparing Checkout…'
