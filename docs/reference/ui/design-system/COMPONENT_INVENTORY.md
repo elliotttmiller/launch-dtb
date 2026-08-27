@@ -45,6 +45,14 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 - Related products and compatible parts
 - Quick-view/modal behavior
 
+### Category thumbnail media contract
+
+Canonical category thumbnails live in `products/launch/media/categories/thumbnails/` and are generated deterministically by `scripts/catalog/generate-category-thumbnails.py` from canonical product media. Deployment may mirror the same filenames under `/wp-content/uploads/2026/categories/thumbnails/`; the frontend resolver owns that public URL mapping.
+
+Category thumbnail files contain only isolated tool/category artwork on a transparent WebP background. They are tightly cropped with modest transparent safety padding and retain a source aspect ratio appropriate to the represented tool. A fixed 348x128 source canvas, baked white matte, component border, or presentation background must not be encoded into these assets.
+
+Frontend category media containers own visible surface color, viewport dimensions, padding, responsive geometry, and `object-fit: contain` fitment. The same canonical thumbnail may therefore be reused by Shop by Tool Type cards and desktop category navigation without requiring surface-specific image variants.
+
 ## Schematics and parts
 
 - Brand/tool selectors
