@@ -56,6 +56,11 @@ frontend/.env.*.local
 frontend/dist/
 frontend/node_modules/
 
+# Generated category-hero build mirror. Canonical media is owned by
+# products/launch/media/categories/heroes/ and copied here by
+# frontend/scripts/sync-category-heroes.cjs before dev/build/preview.
+frontend/src/assets/media/catalog/category-heroes/*.webp
+
 # ---------------------------------------------------------------
 # WordPress — wp/ subdirectory (NEVER commit these files)
 # ---------------------------------------------------------------
