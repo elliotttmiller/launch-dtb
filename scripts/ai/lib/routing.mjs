@@ -45,6 +45,24 @@ function resolveSkillIds(skillIds, registry) {
   });
 }
 
+function resolveReviewerIds(reviewerIds, executionRoleId, registry) {
+  return unique(reviewerIds)
+    .filter((reviewerId) => reviewerId !== executionRoleId)
+    .map((reviewerId) => {
+      const reviewer = registry.roles[reviewerId];
+      if (!reviewer) throw new Error(`unknown reviewer role: ${reviewerId}`);
+      if (reviewer.mode !== 'read') throw new Error(`reviewer ${reviewerId} must be read-only`);
+      const skills = resolveSkillIds(reviewer.requiredSkills || [], registry);
+      return {
+        id: reviewerId,
+        path: reviewer.path,
+        mode: reviewer.mode,
+        skills,
+        context: unique(['AGENTS.md', reviewer.path, ...skills.map((item) => item.path)]),
+      };
+    });
+}
+
 export function resolveTask({ intent, domain, flags = [], risk = 'low' }, registry = loadRegistry()) {
   const normalizedFlags = unique(normalizeList(flags));
   const intentRule = registry.intents[intent];
@@ -54,18 +72,44 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
   const workflow = registry.workflows[workflowId];
   if (!workflow) throw new Error(`intent ${intent} references unknown workflow: ${workflowId}`);
 
-  const domainRoleId = registry.domains[domain];
-  if (!domainRoleId) throw new Error(`unknown domain: ${domain}`);
-  const subjectRole = registry.roles[domainRoleId];
-  if (!subjectRole) throw new Error(`domain ${domain} references unknown role: ${domainRoleId}`);
+  const domainRule = registry.domains[domain];
+  if (!domainRule) throw new Error(`unknown domain: ${domain}`);
 
-  const roleId = intentRule.domainRoleOverrides?.[domain] || intentRule.role || domainRoleId;
+  const subjectRoleId = domainRule.subjectRole;
+  const subjectRole = registry.roles[subjectRoleId];
+  if (!subjectRole) throw new Error(`domain ${domain} references unknown subject role: ${subjectRoleId}`);
+
+  let roleId = intentRule.domainRoleOverrides?.[domain] || intentRule.role;
+  if (!roleId && intentRule.execution === 'domain-write') {
+    roleId = domainRule.implementationRole;
+    if (!roleId) throw new Error(`domain ${domain} does not define an implementation role for intent ${intent}`);
+  }
+  if (!roleId) roleId = subjectRoleId;
+
   const role = registry.roles[roleId];
   if (!role) throw new Error(`routing resolved unknown role: ${roleId}`);
+  if (intentRule.execution === 'domain-write' && role.mode !== 'write') {
+    throw new Error(`intent ${intent} requires a write-capable execution role; ${roleId} is ${role.mode}`);
+  }
 
-  let effectiveRisk = maxRisk(registry, risk, role.minimumRisk || 'low');
-  const skillIds = [...(role.requiredSkills || [])];
-  const reviewerIds = [...(role.alwaysReviewers || [])];
+  let effectiveRisk = maxRisk(
+    registry,
+    risk,
+    role.minimumRisk || 'low',
+    domainRule.minimumRisk || 'low',
+    intentRule.minimumRisk || 'low',
+  );
+
+  const skillIds = [
+    ...(role.requiredSkills || []),
+    ...(intentRule.skills || []),
+    ...(domainRule.skills || []),
+  ];
+  const reviewerIds = [
+    ...(role.alwaysReviewers || []),
+    ...(intentRule.reviewers || []),
+    ...(domainRule.reviewers || []),
+  ];
 
   for (const flag of normalizedFlags) {
     const rule = registry.flags[flag];
@@ -77,27 +121,15 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
 
   reviewerIds.push(...(registry.riskReviewers[effectiveRisk] || []));
 
-  const reviewers = unique(reviewerIds)
-    .filter((reviewerId) => reviewerId !== roleId)
-    .map((reviewerId) => {
-      const reviewer = registry.roles[reviewerId];
-      if (!reviewer) throw new Error(`unknown reviewer role: ${reviewerId}`);
-      return {
-        id: reviewerId,
-        path: reviewer.path,
-        mode: reviewer.mode,
-        skills: resolveSkillIds(reviewer.requiredSkills || [], registry),
-      };
-    });
-
   const skills = resolveSkillIds(skillIds, registry);
-  const subjectContext = roleId === domainRoleId ? [] : [subjectRole.path];
+  const reviewers = resolveReviewerIds(reviewerIds, roleId, registry);
+  const subjectContext = roleId === subjectRoleId ? [] : [subjectRole.path];
 
   return {
     registryVersion: registry.version,
     intent,
     domain,
-    subjectRole: { id: domainRoleId, path: subjectRole.path, mode: subjectRole.mode },
+    subjectRole: { id: subjectRoleId, path: subjectRole.path, mode: subjectRole.mode },
     flags: normalizedFlags,
     requestedRisk: risk,
     effectiveRisk,
@@ -105,7 +137,7 @@ export function resolveTask({ intent, domain, flags = [], risk = 'low' }, regist
     role: { id: roleId, path: role.path, mode: role.mode },
     skills,
     reviewers,
-    context: unique(['AGENTS.md', '.agents/README.md', workflow, role.path, ...subjectContext, ...skills.map((item) => item.path)]),
+    context: unique(['AGENTS.md', workflow, role.path, ...subjectContext, ...skills.map((item) => item.path)]),
   };
 }
 
