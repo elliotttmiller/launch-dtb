@@ -27,13 +27,13 @@
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 0.58rem;
-  padding: 1.5rem 1.25rem 1.4rem;
+  gap: 0.5rem;
+  padding: 1.25rem 1.25rem 1.2rem;
 }
 
 .dtb-category-hero-card__eyebrow {
   color: var(--color-primary-600, #2255ee);
-  font-size: 0.69rem;
+  font-size: 0.68rem;
   font-weight: 850;
   letter-spacing: 0.085em;
   line-height: 1.15;
@@ -43,7 +43,7 @@
 .dtb-category-hero-card__title {
   margin: 0;
   color: var(--dtb-text, #0f172a);
-  font-size: clamp(1.9rem, 4.5vw, 2.65rem);
+  font-size: clamp(1.85rem, 4.25vw, 2.5rem);
   font-weight: 900;
   letter-spacing: -0.035em;
   line-height: 1.02;
@@ -51,47 +51,15 @@
 
 .dtb-category-hero-card__description {
   display: -webkit-box;
-  max-width: 50ch;
+  max-width: 48ch;
   margin: 0;
   overflow: hidden;
   color: var(--dtb-muted, #52657d);
-  font-size: clamp(0.86rem, 1.1vw, 0.98rem);
-  line-height: 1.5;
+  font-size: clamp(0.84rem, 1vw, 0.94rem);
+  line-height: 1.46;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
-}
-
-.dtb-category-hero-card__count {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  gap: 0.52rem;
-  margin-top: 0.45rem;
-  color: var(--dtb-muted, #52657d);
-  font-size: 0.73rem;
-  font-weight: 800;
-  letter-spacing: 0.035em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.dtb-category-hero-card__count-icon {
-  display: inline-flex;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  background: var(--color-primary-600, #2255ee);
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(34, 85, 238, 0.18);
-}
-
-.dtb-category-hero-card__count-label {
-  display: inline-block;
 }
 
 /* Media never paints its own surface. Transparent category art therefore
@@ -236,17 +204,18 @@
   .dtb-category-hero-card {
     display: grid;
     grid-template-columns: minmax(0, 48%) minmax(0, 52%);
-    min-height: 220px;
+    min-height: 184px;
   }
 
   .dtb-category-hero-card__content {
     grid-column: 1;
     grid-row: 1;
-    padding: clamp(1.7rem, 3vw, 2.5rem) clamp(1.75rem, 3.4vw, 3.25rem);
+    gap: 0.48rem;
+    padding: clamp(1.35rem, 2.15vw, 1.8rem) clamp(1.75rem, 3.2vw, 3rem);
   }
 
   .dtb-category-hero-card__title {
-    font-size: clamp(2rem, 3.2vw, 2.85rem);
+    font-size: clamp(1.95rem, 2.8vw, 2.55rem);
   }
 
   .dtb-category-hero-card__media {
@@ -256,7 +225,7 @@
     width: 100%;
     height: 100%;
     aspect-ratio: auto;
-    padding: 0.35rem clamp(0.75rem, 1.4vw, 1.35rem) 0.35rem 0;
+    padding: 0.2rem clamp(0.6rem, 1.15vw, 1rem) 0.2rem 0;
   }
 
   .dtb-tool-type-rail {
@@ -267,16 +236,16 @@
 
 @media (min-width: 1280px) {
   .dtb-category-hero-card {
-    min-height: 246px;
+    min-height: 202px;
   }
 
   .dtb-category-hero-card__content {
-    padding-left: clamp(2.5rem, 4.4vw, 4.25rem);
-    padding-right: clamp(2rem, 3vw, 3rem);
+    padding-left: clamp(2.35rem, 4vw, 3.8rem);
+    padding-right: clamp(1.8rem, 2.7vw, 2.7rem);
   }
 
   .dtb-category-hero-card__media {
-    min-height: 246px;
+    min-height: 202px;
   }
 
   .dtb-tool-type-rail {
@@ -287,11 +256,11 @@
 @media (min-width: 1536px) {
   .dtb-category-hero-card {
     grid-template-columns: minmax(0, 46%) minmax(0, 54%);
-    min-height: 252px;
+    min-height: 210px;
   }
 
   .dtb-category-hero-card__media {
-    min-height: 252px;
+    min-height: 210px;
   }
 
   .dtb-tool-type-rail {
@@ -306,7 +275,7 @@
   }
 
   .dtb-category-hero-card__media {
-    padding: 0.75rem 0.85rem 0;
+    padding: 0.65rem 0.8rem 0;
   }
 
   .dtb-tool-type-section .storefront-section__head {
