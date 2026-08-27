@@ -22,7 +22,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Iterable
 
-from PIL import Image, ImageChops
+from PIL import Image
 
 try:
     from rembg import new_session, remove
@@ -82,7 +82,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--in-place",
         action="store_true",
-        help="Replace source images atomically. Mutually exclusive with --output.",
+        help="Atomically replace WebP source images. Mutually exclusive with --output.",
     )
     parser.add_argument(
         "--recursive",
@@ -219,7 +219,7 @@ def qa_warning(image: Image.Image, fraction: float) -> str | None:
 
 def destination_for(source: Path, input_root: Path, output_root: Path, in_place: bool) -> Path:
     if in_place:
-        return source.with_suffix(".webp")
+        return source
     relative = source.relative_to(input_root)
     return (output_root / relative).with_suffix(".webp")
 
@@ -229,6 +229,12 @@ def assert_no_output_collisions(
 ) -> None:
     seen: dict[Path, Path] = {}
     for source in sources:
+        if in_place and source.suffix.lower() != ".webp":
+            raise RuntimeError(
+                f"--in-place only accepts WebP sources because the category-media contract "
+                f"requires WebP output: {source}"
+            )
+
         target = destination_for(source, input_root, output_root, in_place)
         previous = seen.get(target)
         if previous is not None and previous != source:
