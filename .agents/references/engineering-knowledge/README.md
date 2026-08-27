@@ -1,5 +1,7 @@
 # Engineering Knowledge References
 
-This directory stores model-neutral principles extracted from reviewed external reference material. It is reference knowledge, not a higher-precedence architecture source.
+This directory stores model-neutral techniques distilled from reviewed external material. It is deep reference knowledge, not runtime task context and not an architecture/routing authority.
 
-The extraction process intentionally removes vendor/model branding, temporary product features and unsupported claims. Durable techniques are applied only when they fit active DTB implementation and `AGENTS.md` ownership.
+Only techniques that improve actual DTB decisions, failure detection, evidence quality, context efficiency, or engineering reliability should be retained. Remove vendor branding, temporary product behavior, unsupported quantitative claims, model-comparison guidance, and duplicated canonical rules.
+
+Load these references just in time when a resolved skill points to a material knowledge gap. Active implementation, `AGENTS.md`, deterministic routing, and owning durable documentation remain higher authority.

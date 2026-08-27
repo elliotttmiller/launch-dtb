@@ -1,15 +1,15 @@
-# AI Workflow Evaluation
+# Canonical Behavior Verification
 
-Evaluate model-assisted workflows with observable outputs rather than hidden reasoning.
+Use verification to determine whether DTB's canonical engineering instructions and routing preserve required behavior. This is not a model-comparison or benchmark framework.
 
-Minimum test classes where relevant:
+Where a reusable instruction/routing change is material, verify representative classes as relevant:
 
-- happy path;
+- expected/happy path;
 - boundary/edge case;
-- malformed or missing-data case;
+- malformed or missing-evidence case;
 - adversarial/instruction-injection case;
-- regression case for previously correct behavior.
+- regression for a previously established DTB invariant.
 
-Define measurable success criteria: valid schema/format, grounded citations/evidence, preserved ownership, no fabricated facts, correct tool selection, or explicit uncertainty when capability/data is unavailable.
+Success criteria should be observable: correct owner/routing, valid schema/format, grounded evidence, preserved security/data/commerce boundaries, correct capability use, explicit uncertainty when evidence/capability is unavailable, and no fabricated runtime facts.
 
-Change one major prompt/context variable at a time when diagnosing reliability so cause/effect remains observable.
+Do not build Claude-vs-Codex/model scorecards, wording-match tests, per-model prompt optimization, or benchmark infrastructure. If work exposes incomplete DTB doctrine, strengthen the canonical rule/skill/workflow that was deficient.
