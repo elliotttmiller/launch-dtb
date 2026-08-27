@@ -32,8 +32,8 @@ function useIsMobileModal() {
 }
 
 export default function ProductModal({ isOpen, product, onClose, children }) {
-  const scrollRef   = useRef(null);
-  const openerRef   = useRef(null);
+  const scrollRef = useRef(null);
+  const openerRef = useRef(null);
   const scrollHideTimerRef = useRef(null);
   const [isScrollActive, setIsScrollActive] = useState(false);
   const reduceMotion = useReducedMotion();
@@ -185,18 +185,50 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
               width: 0;
               background: transparent;
             }
+
+            /* Mobile quick view is a true full-viewport product surface rather
+               than a bottom sheet. The dialog owns the viewport; product-detail
+               internals continue to own their normal responsive spacing. */
+            .product-modal-scroll-inner {
+              min-height: 100dvh;
+              align-items: stretch;
+              background: #fff;
+            }
+            .product-modal-card-shell.dtb-product-page-shell {
+              width: 100%;
+              max-width: none;
+              min-height: 100dvh;
+              margin: 0;
+              padding: 0;
+              background: #fff;
+            }
             .product-modal-card-shell > * {
-              border-radius: 26px 26px 0 0;
-              box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.18);
+              min-height: 100dvh;
+              border-radius: 0;
+              box-shadow: none;
               overflow: hidden;
             }
+
             @media (min-width: 48rem) {
               .product-modal-scroll-shell {
                 top: 0;
                 scrollbar-width: thin;
                 scrollbar-color: transparent transparent;
               }
+              .product-modal-scroll-inner {
+                min-height: 100%;
+                align-items: center;
+                background: transparent;
+              }
+              .product-modal-card-shell.dtb-product-page-shell {
+                width: 100%;
+                max-width: 72rem;
+                min-height: 0;
+                margin-inline: auto;
+                background: transparent;
+              }
               .product-modal-card-shell > * {
+                min-height: 0;
                 border-radius: 26px;
                 box-shadow: 0 32px 90px rgba(15, 23, 42, 0.28), 0 8px 22px rgba(15, 23, 42, 0.16);
               }
