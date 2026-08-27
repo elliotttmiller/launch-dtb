@@ -337,6 +337,20 @@ export default function ProductImageGallery({ product }) {
     thumbsRef.current?.children[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }, []);
 
+  const scrollThumbRail = useCallback((railDirection) => {
+    const rail = thumbsRef.current;
+    if (!rail) return;
+
+    const visibleWidth = rail.clientWidth;
+    if (visibleWidth <= 0) return;
+
+    const step = Math.max(160, Math.round(visibleWidth * 0.72));
+    rail.scrollBy({
+      left: railDirection * step,
+      behavior: 'smooth',
+    });
+  }, []);
+
   const goTo = useCallback((index, nextDirection) => {
     setDirection(nextDirection);
     setCurrentIndex(index);
@@ -491,13 +505,15 @@ export default function ProductImageGallery({ product }) {
   };
 
   const onThumbPrev = (event) => {
+    event.preventDefault();
     event.stopPropagation();
-    prev();
+    scrollThumbRail(-1);
   };
 
   const onThumbNext = (event) => {
+    event.preventDefault();
     event.stopPropagation();
-    next();
+    scrollThumbRail(1);
   };
 
   const activeMeta = imageMeta[activeIndex] || imageMeta[0];
@@ -606,7 +622,7 @@ export default function ProductImageGallery({ product }) {
               type="button"
               onClick={onThumbPrev}
               className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--prev hidden md:flex absolute left-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
-              aria-label="Previous thumbnail image"
+              aria-label="Scroll thumbnail list backward"
             >
               <ChevronLeft size={17} strokeWidth={2.5} />
             </button>
@@ -649,7 +665,7 @@ export default function ProductImageGallery({ product }) {
               type="button"
               onClick={onThumbNext}
               className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--next hidden md:flex absolute right-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
-              aria-label="Next thumbnail image"
+              aria-label="Scroll thumbnail list forward"
             >
               <ChevronRight size={17} strokeWidth={2.5} />
             </button>
