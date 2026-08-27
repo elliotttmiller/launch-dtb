@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import "./styles/category-media-fitment.css";
+@plugin "@tailwindcss/typography";
 
 /* Tailwind v4 theme bridge. Canonical storefront values remain in
  * storefront-tokens.css; these names preserve existing utility classes. */
