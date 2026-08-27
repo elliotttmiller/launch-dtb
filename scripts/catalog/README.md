@@ -113,6 +113,36 @@ products/dev/catalog-enrichment/content-review/
 
 Manufacturer research may validate or reject a claim, but generated/researched text must never modify SKU, MPN, GTIN, brand, taxonomy, variation identity, schematic identity, or other protected fields.
 
+## Category thumbnail background removal
+
+Use `remove_category_thumbnail_backgrounds.py` for a reviewed bulk migration of category thumbnails from baked studio backgrounds to transparent WebP assets. It uses `rembg` with the `isnet-general-use` model by default, reuses one ONNX inference session across the batch, enables alpha matting for metallic/tool edges, trims exterior transparency, preserves each tool's natural aspect ratio, writes files atomically, and emits a JSON QA report.
+
+Install the isolated runtime dependencies:
+
+```powershell
+python -m pip install -r .\scripts\catalog\remove_category_thumbnail_backgrounds.requirements.txt
+```
+
+Preview the batch without loading the model or writing files:
+
+```powershell
+python .\scripts\catalog\remove_category_thumbnail_backgrounds.py --dry-run
+```
+
+Generate a non-destructive review batch. By default the source directory is `products/launch/media/categories/thumbnails/` and output goes to the sibling `thumbnails-transparent/` directory:
+
+```powershell
+python .\scripts\catalog\remove_category_thumbnail_backgrounds.py
+```
+
+Review every output and the generated `products/dev/media/category-thumbnail-background-removal-report.json` before replacing canonical thumbnail media. After approval, the existing WebP files may be processed atomically in place:
+
+```powershell
+python .\scripts\catalog\remove_category_thumbnail_backgrounds.py --in-place
+```
+
+`--in-place` intentionally accepts only WebP source files. The tool continues through per-image failures, records each failure in the report, and exits non-zero when any image fails. Model-based isolation is not a substitute for visual QA: thin cables, chrome edges, holes, pale components, and cast shadows remain the highest-risk cases.
+
 ## Specialized operational tools
 
 Keep specialized tools separate when they have distinct authorities or failure modes, including:
