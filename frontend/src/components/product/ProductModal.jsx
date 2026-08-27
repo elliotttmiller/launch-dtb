@@ -158,7 +158,7 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
               onClick={onClose}
             >
               <Motion.div
-                className="product-modal-card-shell w-full max-w-6xl"
+                className="product-modal-card-shell dtb-product-page-shell w-full max-w-6xl"
                 layout="position"
                 transition={transition}
                 onClick={(e) => e.stopPropagation()}
