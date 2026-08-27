@@ -45,6 +45,14 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 - Related products and compatible parts
 - Quick-view/modal behavior
 
+### Category hero media contract
+
+Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. The hero shell is transparent and inherits the category page canvas rather than introducing a gray card surface.
+
+Desktop category hero photography renders in a standardized `3:1` right-side viewport. The media viewport owns geometry and uses `object-fit: cover` with centered positioning so the image fully fills the slot without distortion or letterboxing. Category hero masters should therefore be composed specifically for a wide, shallow crop with approximately 8–10% crop-safe perimeter around important product geometry. Narrow layouts may use a taller viewport rather than forcing the desktop crop onto mobile.
+
+Responsive image metadata should allow the browser to select an appropriate source from the backend-provided `srcset`; presentation code must not stretch the bitmap or rely on fixed pixel heights that drift from the authored aspect ratio.
+
 ### Category thumbnail media contract
 
 Canonical category thumbnails live in `products/launch/media/categories/thumbnails/` and are generated deterministically by `scripts/catalog/generate-category-thumbnails.py` from canonical product media. Deployment may mirror the same filenames under `/wp-content/uploads/2026/categories/thumbnails/`; the frontend resolver owns that public URL mapping.
