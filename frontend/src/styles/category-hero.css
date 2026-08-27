@@ -1,17 +1,24 @@
 /* Category page hero ("/category/:slug") + Shop by Tool Type row.
    Built from the shared design tokens in storefront-tokens.css. */
 
-/* The hero is a bounded layout container, not a painted card. Its surface and
-   media viewport remain transparent so category artwork can blend directly
-   into the category page canvas without introducing a second background. */
+/* The hero owns one restrained white/silver surface across both content and
+   media. Category artwork is expected to be isolated/transparent so the same
+   surface remains continuous behind title copy and tools. */
 .dtb-category-hero-card {
   display: flex;
   flex-direction: column;
   width: 100%;
   overflow: hidden;
-  border: 1px solid rgba(203, 213, 225, 0.72);
+  border: 1px solid rgba(203, 213, 225, 0.74);
   border-radius: 14px;
-  background: transparent;
+  background:
+    linear-gradient(
+      112deg,
+      #ffffff 0%,
+      #fcfdff 42%,
+      #f5f7fa 72%,
+      #eef2f6 100%
+    );
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
 }
 
@@ -87,26 +94,31 @@
   display: inline-block;
 }
 
+/* Media never paints its own surface. Transparent category art therefore
+   reveals the exact same card gradient used behind the content column. */
 .dtb-category-hero-card__media {
   order: -1;
   position: relative;
-  display: block;
+  display: flex;
   width: 100%;
   min-width: 0;
   aspect-ratio: 16 / 9;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   background: transparent;
 }
 
+/* Isolated hero artwork must remain completely visible. `contain` is the
+   correct fit contract for transparent product compositions; it avoids
+   cropping taper heads/handles and lets the card own all surrounding space. */
 .dtb-category-hero-card__image {
-  position: absolute;
-  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   max-width: none;
   max-height: none;
-  object-fit: cover;
+  object-fit: contain;
   object-position: 50% 50%;
 }
 
@@ -244,6 +256,7 @@
     width: 100%;
     height: 100%;
     aspect-ratio: auto;
+    padding: 0.35rem clamp(0.75rem, 1.4vw, 1.35rem) 0.35rem 0;
   }
 
   .dtb-tool-type-rail {
@@ -290,6 +303,10 @@
 @media (max-width: 767px) {
   .dtb-category-hero-card__content {
     order: 1;
+  }
+
+  .dtb-category-hero-card__media {
+    padding: 0.75rem 0.85rem 0;
   }
 
   .dtb-tool-type-section .storefront-section__head {
