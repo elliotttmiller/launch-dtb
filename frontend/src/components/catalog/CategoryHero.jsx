@@ -9,10 +9,9 @@ import '../../styles/category-hero.css';
  * product data itself, only the category term metadata (+ live product
  * count) passed in.
  *
- * The hero shell is intentionally transparent so it visually belongs to the
- * page canvas. At desktop widths, category photography renders inside the
- * standardized 3:1 right-side media viewport defined by category-hero.css;
- * narrower layouts use a taller art-directed viewport.
+ * Presentation is standardized across every category route: content occupies
+ * the left side of one bounded hero surface and dedicated category photography
+ * fills the right-side media viewport without stretching.
  */
 export default function CategoryHero({ category, breadcrumbs = [], productCount }) {
   const { src: heroImageSrc, srcSet: heroImageSrcSet } = resolveCategoryHeroImage(category || {});
@@ -34,7 +33,7 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
   const hasCount = Number.isFinite(count) && count >= 0;
 
   return (
-    <div className="dtb-category-hero mb-6 sm:mb-8">
+    <div className="dtb-category-hero mb-5 sm:mb-6">
       <Breadcrumb items={breadcrumbs} />
 
       <div className="dtb-category-hero-card">
@@ -43,9 +42,13 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
           <h1 className="dtb-category-hero-card__title">{label}</h1>
           <p className="dtb-category-hero-card__description">{displayDescription}</p>
           {hasCount && (
-            <span className="dtb-category-hero-card__count-pill">
-              <LayoutGrid size={13} strokeWidth={2.4} aria-hidden="true" />
-              {count.toLocaleString()} product{count === 1 ? '' : 's'}
+            <span className="dtb-category-hero-card__count" aria-label={`${count.toLocaleString()} products`}>
+              <span className="dtb-category-hero-card__count-icon" aria-hidden="true">
+                <LayoutGrid size={13} strokeWidth={2.35} />
+              </span>
+              <span className="dtb-category-hero-card__count-label">
+                {count.toLocaleString()} product{count === 1 ? '' : 's'}
+              </span>
             </span>
           )}
         </div>
@@ -55,7 +58,7 @@ export default function CategoryHero({ category, breadcrumbs = [], productCount 
             <img
               src={heroImageSrc}
               srcSet={heroImageSrcSet || undefined}
-              sizes={heroImageSrcSet ? '(min-width: 1280px) 42vw, (min-width: 768px) 42vw, 100vw' : undefined}
+              sizes={heroImageSrcSet ? '(min-width: 1280px) 52vw, (min-width: 768px) 50vw, 100vw' : undefined}
               alt=""
               className="dtb-category-hero-card__image"
               loading="eager"
