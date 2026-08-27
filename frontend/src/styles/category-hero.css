@@ -1,6 +1,9 @@
 /* Category page hero ("/category/:slug") + Shop by Tool Type row.
    Built from the shared design tokens in storefront-tokens.css. */
 
+/* The hero is a bounded layout container, not a painted card. Its surface and
+   media viewport remain transparent so category artwork can blend directly
+   into the category page canvas without introducing a second background. */
 .dtb-category-hero-card {
   display: flex;
   flex-direction: column;
@@ -8,7 +11,7 @@
   overflow: hidden;
   border: 1px solid rgba(203, 213, 225, 0.72);
   border-radius: 14px;
-  background: #fbfcfe;
+  background: transparent;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
 }
 
@@ -92,7 +95,7 @@
   min-width: 0;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  background: #f8fafc;
+  background: transparent;
 }
 
 .dtb-category-hero-card__image {
