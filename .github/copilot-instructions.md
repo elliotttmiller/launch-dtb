@@ -1,15 +1,13 @@
 # Drywall Toolbox Copilot Adapter
 
-This file is a tool adapter, not an architecture authority.
+This file is a client adapter, not architecture or routing authority.
 
 1. Read and obey root `AGENTS.md`.
-2. Read `.agents/README.md` and `.agents/registry.json` for the canonical model-neutral execution system.
-3. For substantial work, resolve intent, domain, flags and risk through the registry before loading role/skill context. Use `node scripts/ai/resolve-task.mjs` when shell execution is available; otherwise reproduce the registry resolution exactly.
-4. Load only the resolved workflow, owning role and resolved skills. Apply the resolved independent reviewers before completion.
-5. Active implementation and directly evidenced runtime behavior outrank all stored context.
-6. Do not recreate DTB business, checkout, security, queue, provider, ownership or routing rules in this file.
-7. Preserve one writer per overlapping authority boundary. Review/exploration roles do not mutate production code.
-8. Never expose credentials, provider secrets, payment data or server configuration.
-9. If Copilot lacks a capability required by a canonical role/skill, state that limitation rather than inventing evidence.
-
-Assistant-specific syntax and product behavior may change; DTB architecture and routing must not depend on it.
+2. For substantial work resolve intent/domain/flags/risk through canonical `.agents/registry.json`; use `node scripts/ai/resolve-task.mjs` when shell execution is available.
+3. Load only the resolved workflow, execution role, distinct subject role, and resolved skills. `.agents/README.md` is orientation/maintenance documentation, not ordinary task context.
+4. Apply resolved reviewers independently using final diff/source and relevant contracts rather than the full writer transcript.
+5. Active implementation and directly evidenced runtime behavior outrank stored context.
+6. Do not recreate DTB business, checkout, security, queue, provider, ownership, or routing rules here.
+7. Preserve one writer per overlapping authority boundary; review/research/exploration remain read-only.
+8. Never expose credentials, provider secrets, payment data, or server configuration.
+9. If Copilot lacks a required canonical capability, state the limitation rather than inventing evidence.

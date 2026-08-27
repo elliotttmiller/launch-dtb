@@ -1,20 +1,21 @@
 # Context Maintenance Workflow
 
-Context is derived from implementation; it never overrides higher-precedence source/runtime evidence.
-
-## When to update
-Update AI context only when a reusable engineering rule, architecture/ownership contract, model-neutral skill/role, or concise derived summary actually changed. Do not churn context for ordinary implementation details already discoverable from source.
+Use for canonical AI-governance changes. `AGENTS.md` is constitutional policy; `.agents/registry.json` is deterministic routing authority; roles/skills/workflows provide reusable model-neutral behavior; derived context is subordinate; vendor adapters remain thin.
 
 ## Sequence
-1. Correct active implementation and owning durable documentation first.
-2. Update `AGENTS.md` only for repository-wide policy, authority or precedence changes.
-3. Update canonical `.agents/` role/skill/workflow only when reusable AI behavior changes.
-4. Update concise `.agents/context` summaries after durable sources are correct; keep mutable details minimal.
-5. Update vendor adapters only for vendor capability/model/tool/discovery mapping changes.
-6. Check for duplicated rules, stale pointers, vendor coupling, role write overlap, unnecessary new files and context bloat.
-7. Run `node scripts/ai/validate-context.mjs` and `node scripts/ai/test-routing.mjs` when execution is available; otherwise report that validation was not executed.
+1. Inspect current `AGENTS.md`, registry, routing implementation/tests, affected canonical files, and adapter layout.
+2. Classify the deficiency: constitutional policy, routing semantics, responsibility, reusable method, workflow, derived context, validation, or adapter mapping.
+3. Strengthen/delete existing mechanisms before adding new ones.
+4. Update `AGENTS.md` only for repository-wide durable policy/invariants.
+5. Update `registry.json` for routing; do not duplicate routing truth in role frontmatter/adapters.
+6. Update roles/skills/workflows only when reusable behavior changes.
+7. Update derived context only after authoritative sources are correct; keep it concise and provenance-tagged.
+8. Update vendor adapters only for discovery/tool/model/capability mapping.
+9. Check context bloat, duplicate doctrine, semantic write overlap, stale paths, vendor coupling, unreachable assets, and contradictions.
+10. Run AI validation/routing tests when execution is available.
 
-## Simplicity rule
-Prefer editing or deleting existing context over adding another source. Do not copy mutable implementation facts into multiple assistant prompts. Do not introduce new agent infrastructure unless repeated real work demonstrates a failure the existing simple control plane cannot solve.
+## Efficiency
+Ordinary resolved task context is `AGENTS.md` plus resolved workflow/role/subject/skills; `.agents/README.md` is not default inference context. Require evidence sufficiency, reuse-before-retrieval, bounded fetching, and isolated reviewer context.
 
-Exit when each concern has one authoritative home and adapters remain thin.
+## Exit
+Each concern has one authoritative home, machine routing matches constitutional policy, adapters remain subordinate, and no new infrastructure exists without a demonstrated recurring need.

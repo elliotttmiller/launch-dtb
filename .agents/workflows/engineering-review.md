@@ -1,21 +1,25 @@
 # Engineering Review Workflow
 
-Review the final diff/source, not remembered conversation state. Reviewers remain independent and read-only.
+Review final diff/source and authoritative surrounding implementation, not remembered conversation state. Reviewers remain independent and read-only.
 
 ## Establish intent
-Identify intended behavior, acceptance criteria, owner/system of record, affected contracts and blast radius. Read enough surrounding code to understand callers, consumers, persistence, generated-source relationships and existing guards.
+Identify acceptance criteria, owner/system of record, affected contracts, and blast radius. Read only enough callers/consumers/persistence/generated-source relationships/guards to establish consequences.
 
-## Compose review by risk
-- Always perform cross-cutting correctness/ownership review for material changes.
-- Add security review for auth/authorization, payment, webhooks, files/uploads/URLs, operator mutation, secrets or sensitive/customer data.
-- Add integration review for queues/events, providers, webhooks, external side effects, retries or projections.
-- Add UI design/responsive/accessibility critique for customer-facing presentation/interaction changes.
-- Use independent verification to report what actually executes/passes.
+## Compose by actual dimensions
+- Correctness review for material implementation.
+- Security review for auth/authorization, sensitive/customer data, payment, webhooks, uploads, remote URLs, operator mutation, secrets, or security controls.
+- Integration review for queues/events/providers/webhooks/external effects/retries/projections.
+- Architecture review for contract-changing work, not merely because a queue/provider/database is touched.
+- UI/accessibility critique for material customer-facing presentation/interaction.
+- Verification for what actually executes/passes.
+
+Risk determines minimum rigor; flags determine specialist dimensions. Critical risk does not automatically imply every specialist reviewer.
 
 ## Finding standard
-A finding needs source evidence, a concrete trigger/precondition, consequence, affected path/symbol, severity and smallest safe correction boundary. Search surrounding implementation before reporting to avoid false positives. Do not turn preference or speculative future risk into a production bug. Empty findings are valid.
+Require source evidence, concrete trigger/precondition, consequence, path/symbol, severity, and smallest safe correction boundary. Search surrounding implementation before reporting. Preferences/speculative future risk are not production defects; empty findings are valid.
 
-Prioritize security/authorization, duplicate authority, order/payment/refund integrity, protected identifiers/data loss, idempotency/concurrency/retry safety, API compatibility, deterministic runtime failures and unsafe migrations. Keep maintainability/performance/style advisory unless materially harmful.
+## Context isolation
+Provide reviewer with `AGENTS.md`, reviewer role/skills, acceptance criteria, final diff, and affected authoritative source/contracts. Do not automatically inherit writer exploration, rejected branches, unrelated skills, or unrelated tool output.
 
-## Reconcile and report
-Reconcile duplicate/conflicting findings against active source and `AGENTS.md`. Report blocking findings first, then advisory findings, validation evidence, unverified runtime behavior, ownership/data/security/API/queue/integration/docs impact, unrelated churn and residual risk.
+## Report
+Blocking findings first, then advisory findings, validation evidence, unverified behavior, material impact, and residual risk.

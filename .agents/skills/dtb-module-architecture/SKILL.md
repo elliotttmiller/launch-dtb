@@ -1,18 +1,19 @@
 ---
 name: dtb-module-architecture
-description: DTB architecture method for placing new domain behavior into the smallest correct existing owner or, when justified, a bounded new module.
+description: DTB architecture method for distinguishing implementation from contract change and placing durable behavior in the smallest correct existing owner.
 ---
 # DTB Module Architecture
 
+## Contract-change gate
+Architecture review is required when materially changing system/domain ownership, persistence authority/schema lifecycle, public/cross-module APIs, event/queue identity, checkout/payment/refund boundaries, provider contracts, composition, migration strategy, or runtime/deployment boundaries. Merely touching a database, queue, provider, or checkout-related file is not itself an architecture change.
+
 ## Start with ownership
-Inspect the composition root and closest sibling implementation. Determine product outcome, authoritative system, lifecycle, data ownership and consumers. First ask whether an existing module can own the behavior without weakening cohesion; a new directory/module is not a design goal.
+Inspect active composition and the closest execution path. Establish product outcome, authoritative system, lifecycle, identities, data ownership, consumers, and demonstrated constraint. Ask first whether the existing owner can satisfy the requirement without weakening cohesion.
 
 ## Contract design
-For material new behavior define: owner/system of record; public/internal API; identity keys; authorization/ownership; persistence and lifecycle; events/queues and idempotency; provider adapter boundary; customer/operator surfaces; failure/retry/recovery; observability/correlation; migration/compatibility; and durable documentation.
+Define owner/system of record; inputs/outputs; identity; authorization/ownership; persistence/lifecycle; events/queues/idempotency; provider boundary; failure/retry/recovery; observability; migration/compatibility/rollback; and durable docs as relevant.
 
-Reuse established platform auth, permissions, event ledger, queue, cache, REST, design and admin primitives. Keep provider payload/transport details out of domain services. New modules must not become shadow authorities for WooCommerce commerce, Veeqo fulfillment/inventory, QuickBooks accounting, payment-provider security/collection, or protected catalog identifiers.
+Reuse platform auth, event, queue, cache, REST, design, and operator primitives. Keep provider transport out of domain services. Never create shadow authority for WooCommerce commerce, Veeqo fulfillment/inventory, QuickBooks accounting, payment providers, or protected catalog identities.
 
 ## Complexity gate
-Do not create a module for a single helper, thin pass-through, temporary migration, or speculative future capability. Prefer explicit composition and narrow dependencies over service locators/global registries. Define a new boundary only when responsibility/lifecycle/change cadence is coherent and materially improves maintainability or safety.
-
-Document rejected simpler placement when a new module is recommended.
+Do not create a module/service/store/control plane for a helper, thin pass-through, temporary migration, or speculative future capability. Prefer explicit composition and narrow dependencies. New boundaries require coherent responsibility/lifecycle and a demonstrated safety/maintainability advantage over simpler placement.
