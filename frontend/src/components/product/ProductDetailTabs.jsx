@@ -42,12 +42,6 @@ export default function ProductDetailTabs({
       <div className="dtb-pdp-overview__editorial">
         {descriptionNode}
       </div>
-      {specsNode ? (
-        <aside className="dtb-pdp-overview__quick" aria-label="Quick product details">
-          <h2 className="dtb-pdp-overview__quick-title">Quick Details</h2>
-          {specsNode}
-        </aside>
-      ) : null}
     </div>
   );
 
