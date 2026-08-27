@@ -3,7 +3,7 @@
  * semantic presentation and interaction polish for the shared PDP/quick view. */
 
 .dtb-pdp-sections {
-  padding-top: clamp(1rem, 2vw, 1.5rem);
+  padding-top: clamp(.85rem, 1.5vw, 1.25rem);
 }
 
 .dtb-pdp-tabs {
@@ -28,7 +28,7 @@
   flex: 0 0 auto;
   min-width: max-content;
   min-height: 48px;
-  padding: .8rem 1rem .72rem;
+  padding: .76rem 1rem .7rem;
   scroll-snap-align: center;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -36,17 +36,13 @@
   background: transparent;
   color: #64748b;
   font: inherit;
-  font-size: clamp(.82rem, 1.3vw, .95rem);
+  font-size: clamp(.82rem, 1.3vw, .94rem);
   font-weight: 650;
   line-height: 1.15;
   text-align: center;
   white-space: nowrap;
   cursor: pointer;
   transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
-}
-
-.dtb-pdp-tabs__tab::after {
-  display: none;
 }
 
 .dtb-pdp-tabs__tab:hover:not(.is-active) {
@@ -65,7 +61,7 @@
 }
 
 .dtb-pdp-section {
-  padding-top: clamp(1rem, 2vw, 1.35rem);
+  padding-top: clamp(1.15rem, 2vw, 1.65rem);
 }
 
 .dtb-pdp-section__content--transitioning {
@@ -73,90 +69,116 @@
 }
 
 @keyframes dtb-pdp-panel-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.dtb-pdp-section__content--description {
-  position: relative;
-  overflow: visible;
+.dtb-pdp-section,
+.dtb-pdp-section__content,
+.dtb-pdp-section__content--description,
+.dtb-pdp-overview {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
+.dtb-pdp-overview {
+  display: block;
+  padding: 0;
+}
+
+.dtb-pdp-overview__editorial {
+  width: min(100%, 980px);
+  min-width: 0;
+}
+
+/* Editorial product description: deliberately simple and commerce-oriented.
+ * Avoid cards, numbered feature grids, decorative rails and dashboard styling. */
 .dtb-pdp-description-content {
   width: 100%;
-  color: #25324a;
-  font-size: clamp(.96rem, .35vw + .88rem, 1.04rem);
-  line-height: 1.68;
+  color: #30415b;
+  font-size: clamp(.94rem, .3vw + .88rem, 1.02rem);
+  line-height: 1.66;
 }
 
 .dtb-pdp-description-kicker {
-  display: none;
+  display: block;
+  margin: 0 0 .8rem;
+  color: #101828;
+  font-size: clamp(1rem, .4vw + .94rem, 1.12rem);
+  font-weight: 760;
+  letter-spacing: -.018em;
+  line-height: 1.25;
 }
 
 .dtb-pdp-description-content--formatted {
-  display: grid;
-  gap: .9rem;
+  display: block;
 }
 
-.dtb-pdp-description-content--formatted .dtb-pdp-description-card,
-.dtb-pdp-description-content--rich .dtb-pdp-description-card {
+.dtb-pdp-description-card {
   display: flow-root;
   margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.dtb-pdp-description-card + .dtb-pdp-description-card {
+  margin-top: .8rem;
 }
 
 .dtb-pdp-description-content p,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
-  max-width: 78ch;
+  max-width: 92ch;
   margin: 0;
-  color: #30415b;
+  color: #34445d;
   font-size: inherit;
   font-weight: 430;
-  line-height: 1.7;
+  line-height: 1.68;
 }
 
 .dtb-pdp-description-content p + p,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
-  margin-top: .9rem;
+  margin-top: .8rem;
 }
 
 .dtb-pdp-description-lead,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > p:first-child {
-  color: #172033;
-  font-size: clamp(1rem, .45vw + .9rem, 1.08rem);
-  font-weight: 500;
-  line-height: 1.7;
+  color: #25344d;
+  font-size: inherit;
+  font-weight: 450;
+  line-height: 1.68;
 }
 
 .dtb-pdp-description-content :is(h1, h2, h3, h4),
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(h2, h3, h4) {
-  margin: 1.5rem 0 .7rem;
-  color: #0f172a;
-  font-size: clamp(1.02rem, .45vw + .94rem, 1.18rem);
-  font-weight: 790;
-  line-height: 1.25;
-  letter-spacing: -.015em;
+  margin: 1.15rem 0 .42rem;
+  padding: 0;
+  color: #101828;
+  font-size: clamp(.96rem, .32vw + .91rem, 1.08rem);
+  font-weight: 740;
+  line-height: 1.3;
+  letter-spacing: -.012em;
 }
 
 .dtb-pdp-description-content :is(ul, ol),
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) {
-  display: grid;
-  gap: .72rem;
-  margin: 0;
-  padding-left: 1.45rem;
+  display: block;
+  margin: .55rem 0 0;
+  padding-left: 1.2rem;
 }
 
 .dtb-pdp-description-content li,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li {
-  color: #25324a;
+  margin: 0 0 .42rem;
+  padding: 0;
+  border: 0;
+  color: #34445d;
   font-size: inherit;
   font-weight: 430;
-  line-height: 1.62;
+  line-height: 1.6;
 }
 
 .dtb-pdp-description-content li::marker {
@@ -165,193 +187,137 @@
 
 .dtb-pdp-description-content li strong,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li strong {
-  color: #0f172a;
-  font-weight: 760;
+  color: #172033;
+  font-weight: 700;
 }
 
-/* Mobile / narrow PDP authority. This file is loaded after the desktop
- * production layers and before unified-responsive.css; these component-scoped
- * rules deliberately outrank legacy grid-tab and oversized description styles. */
+.dtb-pdp-description-content :is(table, .ts-table-shell) {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.dtb-pdp-policy-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .dtb-product-page-shell .dtb-pdp-section__content {
+    padding: 1.6rem 0 .5rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-overview__editorial {
+    width: min(100%, 900px);
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-overview__editorial {
+    width: min(100%, 860px);
+  }
+}
+
+/* Mobile / narrow PDP authority. */
 @media (max-width: 47.99rem) {
   .dtb-product-page-shell .dtb-pdp-sections {
-    margin-top: .35rem;
-    padding-top: .35rem;
+    margin-top: .25rem;
+    padding-top: .25rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-tabs {
-    display: flex;
-    grid-template-columns: none;
     width: calc(100% + .25rem);
     min-height: 0;
     margin-inline: -.125rem;
     padding: 0 .125rem;
-    gap: .25rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-bottom: 1px solid #dfe6ef;
+    gap: .15rem;
     scroll-padding-inline: .125rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-tabs__tab {
-    flex: 0 0 auto;
-    min-width: max-content;
-    min-height: 46px;
-    padding: .72rem .8rem .68rem;
-    border-bottom: 2px solid transparent;
+    min-height: 44px;
+    padding: .68rem .74rem .62rem;
     color: #66758c;
-    font-size: .82rem;
+    font-size: .8rem;
     font-weight: 650;
-    letter-spacing: -.005em;
   }
 
   .dtb-product-page-shell .dtb-pdp-tabs__tab.is-active {
-    border-bottom-color: #2255ee;
     color: #174fdf;
     font-weight: 760;
   }
 
   .dtb-product-page-shell .dtb-pdp-section {
-    padding-top: .95rem;
+    padding-top: .82rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-section__content {
     padding: 0;
   }
 
-  .dtb-product-page-shell .dtb-pdp-section__content--description,
-  .dtb-product-page-shell .dtb-pdp-overview {
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-overview {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-  }
-
   .dtb-product-page-shell .dtb-pdp-overview__editorial {
-    min-width: 0;
+    width: 100%;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content {
-    padding: .15rem .1rem 0;
+    padding: 0 .05rem;
     color: #33445d;
+    font-size: .94rem;
+    line-height: 1.58;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-kicker {
+    margin-bottom: .62rem;
     font-size: .98rem;
-    line-height: 1.62;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-card + .dtb-pdp-description-card {
+    margin-top: .68rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content p,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
     max-width: none;
     color: #33445d;
-    font-size: .98rem;
-    line-height: 1.63;
+    font-size: .94rem;
+    line-height: 1.6;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content p + p,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
-    margin-top: 1rem;
+    margin-top: .68rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-lead,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p:first-child {
-    color: #1f304a;
-    font-size: 1rem;
-    font-weight: 500;
-    line-height: 1.64;
+    color: #263650;
+    font-size: .95rem;
+    font-weight: 450;
+    line-height: 1.6;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content :is(h1, h2, h3, h4),
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(h2, h3, h4) {
-    position: relative;
-    display: block;
-    margin: 1.55rem 0 .72rem;
-    padding-left: .85rem;
-    color: #0f1c33;
-    font-size: 1rem;
-    font-weight: 800;
-    line-height: 1.25;
-    letter-spacing: -.018em;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-description-content :is(h1, h2, h3, h4)::before,
-  .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(h2, h3, h4)::before {
-    content: '';
-    position: absolute;
-    top: .14em;
-    bottom: .14em;
-    left: 0;
-    width: 3px;
-    height: auto;
-    border-radius: 999px;
-    background: #2255ee;
-    box-shadow: none;
+    margin: 1rem 0 .35rem;
+    padding: 0;
+    color: #101828;
+    font-size: .95rem;
+    font-weight: 740;
+    line-height: 1.3;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content :is(ul, ol),
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-    margin: .2rem 0 0;
-    padding: 0;
-    list-style: none;
+    margin-top: .45rem;
+    padding-left: 1.1rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content li,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li {
-    position: relative;
-    display: block;
-    margin: 0;
-    padding: .78rem 0 .78rem 1.25rem;
-    border-bottom: 1px solid #e8edf4;
+    margin-bottom: .38rem;
+    padding: 0;
+    border: 0;
     color: #34445c;
-    font-size: .95rem;
+    font-size: .93rem;
     line-height: 1.55;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-description-content li:last-child,
-  .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li:last-child {
-    border-bottom: 0;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-description-content li::before,
-  .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li::before {
-    content: '';
-    position: absolute;
-    top: 1.24rem;
-    left: .1rem;
-    width: .42rem;
-    height: .42rem;
-    border-radius: 999px;
-    background: #2255ee;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-description-content li strong,
-  .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li strong {
-    display: inline;
-    color: #111d32;
-    font-weight: 780;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-overview__quick {
-    position: static;
-    width: 100%;
-    padding: 1rem 1rem .85rem;
-    border: 1px solid #dfe6ef;
-    border-radius: 12px;
-    background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
-    box-shadow: 0 6px 18px rgba(15, 23, 42, .035);
-  }
-
-  .dtb-product-page-shell .dtb-pdp-overview__quick-title {
-    margin: 0 0 .5rem;
-    color: #0f1c33;
-    font-size: .9rem;
-    font-weight: 780;
   }
 
   .dtb-product-page-shell .dtb-pdp-policy-panel {
