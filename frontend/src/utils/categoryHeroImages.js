@@ -1,3 +1,4 @@
+/* global require */
 /**
  * Category hero artwork resolver for `/category/:slug` pages.
  *
