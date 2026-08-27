@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Minus, Plus } from 'lucide-react';
 import ProductBuyNow from './ProductBuyNow.jsx';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
@@ -123,21 +122,6 @@ export default function ProductPurchasePanel({
         suspended={canBuyNow && addToCartPending}
         disabledReason={buyNowDisabledReason}
       />
-
-      <div className="dtb-pdp-assurance-row" aria-label="Purchase information">
-        <div>
-          <strong>Secure Checkout</strong>
-          <span>Payments processed securely</span>
-        </div>
-        <div>
-          <strong>Shipping</strong>
-          <span>Calculated at checkout</span>
-        </div>
-        <div>
-          <strong>Returns</strong>
-          <span><Link to="/return-policy">View return policy</Link></span>
-        </div>
-      </div>
     </div>
   );
 }
