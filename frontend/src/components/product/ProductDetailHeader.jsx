@@ -104,7 +104,6 @@ export default function ProductDetailHeader({
           <span className="dtb-pdp-header__meta-stock-dot" aria-hidden="true" />
           {isOutOfStock ? 'Out of stock' : 'In Stock'}
         </span>
-        {!isOutOfStock ? <span className="dtb-pdp-header__fulfillment">Ready for fulfillment</span> : null}
       </div>
 
       {product.upc ? (
