@@ -7,20 +7,15 @@
  * consumes this at admin_menu time.
  *
  * Library: 'tools'
- * Menus:
+ * Visible menus:
  *   DTB Tool Library
- *     ├─ Schematics              (position 10)
- *     ├─ Image Sync              (position 20)
- *     ├─ Product Mapping         (position 30)
- *     ├─ Catalog Health          (position 40)
- *     ├─ Parts Manager           (position 45)
- *     ├─ Inventory Intelligence  (position 47)
- *     ├─ Catalog Pricing         (position 48)
- *     ├─ Cache Tools             (position 50)
- *     ├─ API Health              (position 55)
- *     ├─ SEO Tools               (position 60)
- *     ├─ Import / Export         (position 65)
- *     └─ Config Reference        (position 70)
+ *     ├─ Catalog Operations
+ *     ├─ Schematics
+ *     └─ Visual Designer (registered by its owning module)
+ *
+ * Individual catalog and platform tools remain registered as hidden,
+ * capability-protected routes. Catalog Operations and System Manager surface
+ * those routes without changing their domain ownership or endpoint contracts.
  *
  * @package drywall-toolbox
  */
@@ -30,6 +25,25 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_menu', 'dtb_tool_library_menu_register_pages', 5 );
 
 function dtb_tool_library_menu_register_pages(): void {
+	// Unified catalog operations landing page. Individual domain pages remain
+	// registered as hidden, capability-protected routes so their assets,
+	// endpoints, bookmarks, and operational contracts remain stable.
+	dtb_register_admin_page( [
+		'library'    => 'tools',
+		'slug'       => 'dtb-catalog-operations',
+		'title'      => __( 'Catalog Operations', 'drywall-toolbox' ),
+		'menu_title' => __( 'Catalog Operations', 'drywall-toolbox' ),
+		'capability' => 'dtb_view_catalog_operations',
+		'callback'   => 'dtb_catalog_operations_render_page',
+		'position'   => 5,
+		'template'   => 'dashboard',
+		'section'    => 'Catalog Operations',
+		'assets'     => [
+			'css' => [
+				[ 'id' => 'dtb-catalog-operations', 'dir' => __DIR__ . '/assets/', 'url' => plugin_dir_url( __FILE__ ) . 'assets/', 'file' => 'dtb-catalog-operations.css' ],
+			],
+		],
+	] );
 
 	// Schematics.
 	dtb_register_admin_page( [
@@ -42,6 +56,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 10,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => true,
 	] );
 
 	// Image Sync.
@@ -55,6 +70,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 20,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Product Mapping.
@@ -68,6 +84,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 30,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Catalog Health.
@@ -81,6 +98,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 40,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Parts Manager.
@@ -94,6 +112,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 45,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Inventory Intelligence.
@@ -107,6 +126,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 47,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Catalog Pricing.
@@ -120,6 +140,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 48,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 		'assets'     => [
 			'css' => [
 				[
@@ -151,6 +172,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 50,
 		'template'   => 'tool',
 		'section'    => 'Platform',
+		'menu_visible' => false,
 	] );
 
 	// API Health.
@@ -164,6 +186,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 55,
 		'template'   => 'tool',
 		'section'    => 'Platform',
+		'menu_visible' => false,
 	] );
 
 	// SEO Tools.
@@ -177,6 +200,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 60,
 		'template'   => 'tool',
 		'section'    => 'Catalog Maintenance',
+		'menu_visible' => false,
 	] );
 
 	// Import / Export.
@@ -190,6 +214,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 65,
 		'template'   => 'tool',
 		'section'    => 'Data',
+		'menu_visible' => false,
 	] );
 
 	// Config Reference.
@@ -203,6 +228,7 @@ function dtb_tool_library_menu_register_pages(): void {
 		'position'   => 70,
 		'template'   => 'tool',
 		'section'    => 'Data',
+		'menu_visible' => false,
 	] );
 
 	dtb_register_admin_page( [
@@ -210,11 +236,12 @@ function dtb_tool_library_menu_register_pages(): void {
 		'slug'       => 'dtb-record-cleanup',
 		'title'      => __( 'Record Cleanup', 'drywall-toolbox' ),
 		'menu_title' => __( 'Record Cleanup', 'drywall-toolbox' ),
-		'capability' => 'manage_woocommerce',
+		'capability' => 'dtb_manage_system',
 		'callback'   => 'dtb_record_cleanup_render_page',
 		'position'   => 75,
 		'template'   => 'tool',
 		'section'    => 'Data',
+		'menu_visible' => false,
 		'assets'     => [
 			'css' => [
 				[

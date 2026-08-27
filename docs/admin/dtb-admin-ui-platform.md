@@ -90,6 +90,22 @@ Registered pages declare module assets through `AdminPageRegistry` metadata:
 
 Asset IDs must be stable and unique. Asset files must be canonical repository files. Versions are derived from `filemtime()` when present. Missing declared styles are reported by handle only.
 
+## Operator workspace navigation
+
+The Tool Library exposes three primary workspaces:
+
+- Catalog Operations;
+- Schematics;
+- Visual Designer.
+
+Catalog Operations is a capability-filtered composition surface for catalog health, CSV transfer, product relationships, parts and compatibility, inventory projections, media, pricing, and SEO. Each tool keeps its existing owning module, page slug, assets, REST/AJAX routes, nonces, and mutation boundary. Those bounded pages are registered with `menu_visible => false` and are reached through the shared Catalog Operations navigation.
+
+Schematics owns its records, synchronization, readiness, and the single canonical hotspot resolution pipeline. Legacy resolver transports are not independently registered as mutation paths.
+
+Platform health, API diagnostics, cache operations, allowlisted configuration reference, and restricted recovery are surfaced through System Manager. Record cleanup requires `dtb_manage_system`; ordinary WooCommerce management is insufficient. Git-backed release controls are not exposed on the SiteGround production System Manager surface.
+
+Visual Designer remains an independently owned, visible Tool Library workspace. Catalog and platform consolidation must not change its registration, assets, REST routes, drafts, revisions, preview, publication, or rollback behavior.
+
 ## Shared component contract
 
 The BrikPanel-native layer recognizes established DTB roots and shared component aliases for:

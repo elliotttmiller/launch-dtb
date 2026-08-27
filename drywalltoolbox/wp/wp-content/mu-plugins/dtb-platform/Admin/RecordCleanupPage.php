@@ -8,7 +8,7 @@
 defined( 'ABSPATH' ) || exit;
 
 function dtb_record_cleanup_render_page(): void {
-	if ( ! current_user_can( 'manage_woocommerce' ) ) {
+	if ( ! current_user_can( 'dtb_manage_system' ) ) {
 		dtb_admin_shell_access_denied();
 		return;
 	}

@@ -27,8 +27,8 @@ function dtb_pricing_bulk_enqueue_assets( string $hook_suffix ): void {
 		return;
 	}
 	$base = plugin_dir_url( __FILE__ ) . 'assets/';
-	wp_enqueue_style( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.css', [], '2.0.0' );
-	wp_enqueue_script( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.js', [], '2.0.0', true );
+	wp_enqueue_style( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.css', [], '2.0.1' );
+	wp_enqueue_script( 'dtb-pricing-bulk-optimizer', $base . 'dtb-pricing-bulk-optimizer.js', [], '2.0.1', true );
 }
 
 function dtb_pricing_bulk_minor_units( $value ): int {

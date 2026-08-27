@@ -211,7 +211,7 @@
 		];
 		var adminBase = ( window.dtbAdminConfig && window.dtbAdminConfig.adminUrl )
 			? window.dtbAdminConfig.adminUrl.replace( /admin\.php.*$/, 'admin.php' )
-			: '/wp-admin/admin.php';
+			: new URL( 'admin.php', window.location.href ).href;
 		var resolvedSysUrl = sysUrl || ( adminBase + '?page=dtb-system-manager' );
 		var chips = [];
 		Object.keys( integrations ).forEach( function ( key ) {

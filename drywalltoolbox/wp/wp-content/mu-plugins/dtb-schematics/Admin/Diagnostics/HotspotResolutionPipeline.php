@@ -15,6 +15,11 @@ const DTB_SCHEMATIC_HOTSPOT_PIPELINE_NONCE = 'dtb_schematic_hotspot_pipeline';
 const DTB_SCHEMATIC_HOTSPOT_PIPELINE_REVIEW_LIMIT = 150;
 
 remove_action( 'admin_menu', 'dtb_schematic_hotspot_workflow_register_page', 6 );
+remove_action( 'admin_post_dtb_schematic_hotspot_resolver_action', 'dtb_schematic_hotspot_resolver_handle_post' );
+remove_action( 'wp_ajax_dtb_schematic_hotspot_resolver_action', 'dtb_schematic_hotspot_resolver_handle_ajax' );
+remove_action( 'admin_post_dtb_schematic_hotspot_workflow_preview', 'dtb_schematic_hotspot_workflow_handle_preview' );
+remove_action( 'admin_post_dtb_schematic_hotspot_workflow_apply', 'dtb_schematic_hotspot_workflow_handle_apply' );
+remove_action( 'admin_post_dtb_schematic_hotspot_export_report', 'dtb_schematic_hotspot_workflow_export_report' );
 add_action( 'admin_menu', 'dtb_schematic_hotspot_pipeline_register_page', 7 );
 add_action( 'admin_post_dtb_hotspot_pipeline_build', 'dtb_schematic_hotspot_pipeline_build' );
 add_action( 'admin_post_dtb_hotspot_pipeline_apply', 'dtb_schematic_hotspot_pipeline_apply' );
@@ -28,7 +33,7 @@ function dtb_schematic_hotspot_pipeline_register_page(): void {
 		'library' => 'tools', 'slug' => DTB_SCHEMATIC_HOTSPOT_RESOLVER_SLUG,
 		'title' => __( 'Hotspot Resolver', 'drywall-toolbox' ), 'menu_title' => __( 'Hotspot Resolver', 'drywall-toolbox' ),
 		'capability' => 'dtb_manage_schematics', 'callback' => 'dtb_schematic_hotspot_pipeline_render',
-		'position' => 11, 'template' => 'tool', 'section' => 'Catalog Maintenance',
+		'position' => 11, 'template' => 'tool', 'section' => 'Catalog Maintenance', 'menu_visible' => false,
 	] );
 }
 

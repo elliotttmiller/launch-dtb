@@ -59,6 +59,7 @@ function dtb_admin_all_capabilities(): array {
 		'dtb_manage_marketplace_settings',
 
 		// Tool Library
+		'dtb_view_catalog_operations',
 		'dtb_manage_schematics',
 		'dtb_manage_image_sync',
 		'dtb_manage_product_mapping',
@@ -119,6 +120,7 @@ function dtb_admin_role_capability_map(): array {
 		],
 
 		'dtb_catalog_manager' => [
+			'dtb_view_catalog_operations',
 			'dtb_manage_schematics',
 			'dtb_manage_image_sync',
 			'dtb_manage_product_mapping',

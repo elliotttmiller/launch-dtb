@@ -3,21 +3,13 @@
  * DTB Platform — SystemManagerPage
  *
  * Renders dtb-system-manager — the unified operations console for
- * technical admins. This is the single home for both platform health and
- * Git-backed release management; it replaces the previous separate
- * "Git Control Center" page. Tabs:
+ * technical admins. This is the single home for platform health,
+ * configuration, diagnostics, and restricted recovery tools. Tabs:
  *
  *   Overview
  *   Platform Health:    System Info | Queues & Cron | Integrations | Webhooks
- *   Release Management: Deployment | Repository | Pull Requests |
- *                        Workflow Runs | Releases & Tags | Release History |
- *                        Rollback | Deploy Settings
+ *   Platform Tools:     Tools & Recovery
  *   Diagnostics:         Audit Log | Debug Log
- *
- * Release Management tab content is rendered by
- * dtb-deployment/Admin/GitControlCenterTabs.php — this page surfaces it
- * without owning it, the same pattern dtb-media's admin screen already uses
- * to surface (without owning) dtb-schematics registration.
  *
  * This console is live by default: dtb-system-manager.js polls the active
  * tab's content automatically (faster while a release is in progress) with
@@ -53,17 +45,10 @@ function dtb_system_manager_tab_groups(): array {
 				[ 'id' => 'webhooks',     'label' => __( 'Webhooks', 'drywall-toolbox' ) ],
 			],
 		],
-		'release' => [
-			'label' => __( 'Release Management', 'drywall-toolbox' ),
+		'tools' => [
+			'label' => __( 'Platform Tools', 'drywall-toolbox' ),
 			'tabs'  => [
-				[ 'id' => 'deployment',      'label' => __( 'Deployment', 'drywall-toolbox' ),      'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'repository',      'label' => __( 'Repository', 'drywall-toolbox' ),      'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'pull-requests',   'label' => __( 'Pull Requests', 'drywall-toolbox' ),   'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'workflow-runs',   'label' => __( 'Workflow Runs', 'drywall-toolbox' ),   'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'releases',        'label' => __( 'Releases & Tags', 'drywall-toolbox' ), 'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'history',         'label' => __( 'Release History', 'drywall-toolbox' ), 'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'rollback',        'label' => __( 'Rollback', 'drywall-toolbox' ),        'requires' => 'dtb_manage_deployments' ],
-				[ 'id' => 'deploy-settings', 'label' => __( 'Deploy Settings', 'drywall-toolbox' ), 'requires' => 'dtb_manage_deployments' ],
+				[ 'id' => 'tools', 'label' => __( 'Tools & Recovery', 'drywall-toolbox' ) ],
 			],
 		],
 		'diagnostics' => [
@@ -84,7 +69,9 @@ function dtb_system_manager_tab_groups(): array {
 
 function dtb_system_manager_render_page(): void {
 	$can_system      = current_user_can( 'dtb_manage_system' );
-	$can_deployments = current_user_can( 'dtb_manage_deployments' );
+	// Git-backed release administration is intentionally not exposed on the
+	// SiteGround production control surface.
+	$can_deployments = false;
 
 	if ( ! $can_system && ! $can_deployments ) {
 		dtb_admin_shell_access_denied();
@@ -116,7 +103,7 @@ function dtb_system_manager_render_page(): void {
 
 	dtb_admin_shell_open( [
 		'title'       => __( 'System Manager', 'drywall-toolbox' ),
-		'subtitle'    => __( 'Unified platform health, queues, integrations, webhooks, and Git-backed release management.', 'drywall-toolbox' ),
+		'subtitle'    => __( 'Unified platform health, queues, integrations, webhooks, configuration, and restricted recovery.', 'drywall-toolbox' ),
 		'section'     => 'operations',
 		'page'        => 'dtb-system-manager',
 		'template'    => 'dashboard',
@@ -222,10 +209,34 @@ function dtb_system_manager_dispatch_tab( string $active_tab, bool $can_system, 
 		case 'integration-settings':
 			dtb_system_manager_render_integration_settings_tab();
 			break;
+		case 'tools':
+			dtb_system_manager_render_tools_tab();
+			break;
 		default:
 			dtb_system_manager_render_overview_tab( $can_system, $can_deployments );
 			break;
 	}
+}
+
+/** Surface capability-protected platform tools without duplicating ownership. */
+function dtb_system_manager_render_tools_tab(): void {
+	$tools = [
+		[ 'capability' => 'dtb_view_api_health', 'title' => __( 'API Health', 'drywall-toolbox' ), 'description' => __( 'Run bounded WordPress, WooCommerce, REST, authentication, and endpoint diagnostics.', 'drywall-toolbox' ), 'slug' => 'dtb-api-health' ],
+		[ 'capability' => 'dtb_manage_cache_tools', 'title' => __( 'Cache', 'drywall-toolbox' ), 'description' => __( 'Inspect and invalidate DTB, WordPress, WooCommerce, SiteGround, and storefront caches.', 'drywall-toolbox' ), 'slug' => 'dtb-cache-tools' ],
+		[ 'capability' => 'dtb_view_config_reference', 'title' => __( 'Configuration', 'drywall-toolbox' ), 'description' => __( 'Review the allowlisted DTB configuration and capability reference.', 'drywall-toolbox' ), 'slug' => 'dtb-config-reference' ],
+		[ 'capability' => 'dtb_manage_system', 'title' => __( 'Restricted Recovery', 'drywall-toolbox' ), 'description' => __( 'Permanently remove explicitly selected operational records. Use only after backup and review.', 'drywall-toolbox' ), 'slug' => 'dtb-record-cleanup' ],
+	];
+
+	echo '<div class="dtb-grid dtb-grid--two">';
+	foreach ( $tools as $tool ) {
+		if ( ! current_user_can( $tool['capability'] ) ) {
+			continue;
+		}
+		echo '<section class="dtb-card"><div class="dtb-card__body"><h2 class="dtb-card__title">' . esc_html( $tool['title'] ) . '</h2>';
+		echo '<p>' . esc_html( $tool['description'] ) . '</p>';
+		echo '<p><a class="button" href="' . esc_url( admin_url( 'admin.php?page=' . $tool['slug'] ) ) . '">' . esc_html__( 'Open tool', 'drywall-toolbox' ) . '</a></p></div></section>';
+	}
+	echo '</div>';
 }
 
 function dtb_system_manager_render_tab_access_denied( string $message ): void {

@@ -1,0 +1,41 @@
+.dtb-card-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+	gap: 16px;
+	margin-bottom: 20px;
+}
+
+.dtb-card-grid .dtb-card {
+	height: 100%;
+}
+
+.dtb-card-grid .dashicons {
+	width: 32px;
+	height: 32px;
+	font-size: 32px;
+	color: var(--dtb-admin-primary, #3858e9);
+}
+
+.dtb-catalog-operations-nav {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin: 12px 20px 0 2px;
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.dtb-catalog-operations-nav .button {
+	margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dtb-card-grid *,
+	.dtb-catalog-operations-nav * {
+		scroll-behavior: auto !important;
+		transition: none !important;
+	}
+}

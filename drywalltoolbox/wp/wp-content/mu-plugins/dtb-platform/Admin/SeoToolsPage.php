@@ -107,7 +107,7 @@ function dtb_seo_tools_render_audit_tab(): void {
 
 function dtb_seo_tools_render_sitemap_tab(): void {
 	$sitemap_url = home_url( '/sitemap.xml' );
-	$response    = wp_remote_head( $sitemap_url, [ 'timeout' => 5, 'sslverify' => false ] );
+	$response    = wp_remote_head( $sitemap_url, [ 'timeout' => 5, 'sslverify' => true ] );
 	$code        = is_wp_error( $response ) ? 0 : wp_remote_retrieve_response_code( $response );
 	$ok          = $code === 200;
 

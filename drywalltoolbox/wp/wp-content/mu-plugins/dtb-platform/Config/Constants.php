@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * READY-TO-COPY CONSTANTS BLOCK
  * -----------------------------------------------------------------------------
  *
- * define('DRYWALL_ALLOWED_ORIGIN',   'https://elliottm4.sg-host.com');
+ * define('DRYWALL_ALLOWED_ORIGIN',   'https://drywalltoolbox.com');
  * define('DRYWALL_JWT_SECRET',       '');  // 32+ char random string
  * define('WC_PROXY_CONSUMER_KEY',    'ck_...');
  * define('WC_PROXY_CONSUMER_SECRET', 'cs_...');
@@ -118,7 +118,7 @@ defined( 'ABSPATH' ) || exit;
  *   bootstrap. Use false for staged catalog imports/backfills, then set true
  *   only after catalog facet/product/toolset endpoint smoke checks pass.
  *
- * define('DTB_WEBHOOK_DELIVERY_URL', 'https://elliottm4.sg-host.com/wp-json/drywall/v1/webhooks/products');
+ * define('DTB_WEBHOOK_DELIVERY_URL', 'https://drywalltoolbox.com/wp-json/drywall/v1/webhooks/products');
  *   Override the WooCommerce webhook delivery URL (drywall_ensure_webhooks).
  *
  * define('DTB_IMPORT_SECRET', '');
@@ -296,7 +296,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * STEP 3 — Register images in the WP Media Library
  * --------------------------------------------------
- *   POST https://elliottm4.sg-host.com/wp-json/dtb/v1/sync-images
+ *   POST https://drywalltoolbox.com/wp-json/dtb/v1/sync-images
  *   Authorization: Bearer <admin-jwt>     (or Application Password Basic auth)
  *   Content-Type: application/json
  *
@@ -308,11 +308,11 @@ defined( 'ABSPATH' ) || exit;
  *   image on the matching WooCommerce product (matched by SKU = filename stem).
  *
  *   Status check (no writes):
- *   GET https://elliottm4.sg-host.com/wp-json/dtb/v1/sync-images/status
+ *   GET https://drywalltoolbox.com/wp-json/dtb/v1/sync-images/status
  *
  * STEP 4 — Re-import the product catalog
  * ----------------------------------------
- *   POST https://elliottm4.sg-host.com/wp-json/dtb/v1/import-catalog
+ *   POST https://drywalltoolbox.com/wp-json/dtb/v1/import-catalog
  *   Content-Type: application/json
  *   { "secret": "<DTB_IMPORT_SECRET>" }
  *
@@ -324,7 +324,7 @@ defined( 'ABSPATH' ) || exit;
  *     them against attachment GUIDs. Steps 3 and 4 together ensure GUIDs
  *     and the CSV URLs are in sync.
  *   • To add images for a future upload month (e.g. 2026/05), repeat
- *     Step 1 with --base https://elliottm4.sg-host.com/wp-content/uploads/2026/05
+ *     Step 1 with --base https://drywalltoolbox.com/wp-content/uploads/2026/05
  *     and call sync-images with { "year": "2026", "month": "05" }.
  *
  * =============================================================================

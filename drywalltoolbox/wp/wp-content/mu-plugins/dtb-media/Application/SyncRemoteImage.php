@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
  * Image file naming convention: {Slug}-{SKU}-{Seq}.webp
  * Example: columbia-10-24-nyloc-nut-FA271-2.webp
  * CSV Images column uses the full URL, e.g.:
- *   https://elliottm4.sg-host.com/wp-content/uploads/2026/media/columbia-10-24-nyloc-nut-FA271-2.webp
+ *   https://drywalltoolbox.com/wp-content/uploads/2026/media/columbia-10-24-nyloc-nut-FA271-2.webp
  *
  * Sync strategy (exact-filename, Images-first):
  *   1. Load all product SKUs from the DB in one indexed query.

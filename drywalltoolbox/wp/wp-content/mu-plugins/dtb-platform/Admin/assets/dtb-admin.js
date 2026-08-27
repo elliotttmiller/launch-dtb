@@ -516,7 +516,7 @@
 	 * @returns {Promise<boolean>} Resolves true when nonce was refreshed successfully.
 	 */
 	DtbAdmin._refreshNonce = function () {
-		const ajaxUrl = ( cfg.ajaxUrl || '/wp-admin/admin-ajax.php' ).replace( /\/$/, '' );
+		const ajaxUrl = ( cfg.ajaxUrl || window.ajaxurl || new URL( 'admin-ajax.php', window.location.href ).href ).replace( /\/$/, '' );
 		return fetch( ajaxUrl + '?action=dtb_refresh_nonce', {
 			method:      'GET',
 			credentials: 'same-origin',

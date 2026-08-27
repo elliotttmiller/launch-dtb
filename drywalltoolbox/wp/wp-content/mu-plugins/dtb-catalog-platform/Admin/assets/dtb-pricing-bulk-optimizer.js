@@ -7,8 +7,19 @@
 	if (!toolbar) return;
 
 	const money = (value) => `${config.currencySymbol || '$'}${Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+	const restUrl = (path = '') => {
+		const route = `/dtb/v1/admin/pricing${path}`;
+		const configuredBase = String(config.restUrl || '');
+		if (configuredBase.includes('rest_route=')) {
+			const url = new URL(configuredBase, window.location.origin);
+			url.searchParams.set('rest_route', route);
+			return url.href;
+		}
+		const base = configuredBase || `${window.location.origin}/wp-json/`;
+		return `${base.replace(/\/$/, '')}${route}`;
+	};
 	const request = async (path, body = {}) => {
-		const response = await fetch(`${config.restUrl.replace(/\/$/, '')}/dtb/v1/admin/pricing${path}`, {
+		const response = await fetch(restUrl(path), {
 			method: 'POST', credentials: 'same-origin',
 			headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': config.nonce },
 			body: JSON.stringify(body),

@@ -64,6 +64,7 @@ function dtb_schematics_workspace_render_page(): void {
 	$view = sanitize_key( wp_unslash( $_GET['view'] ?? 'dashboard' ) );
 	$view = in_array( $view, [ 'dashboard', 'catalog', 'record', 'operations' ], true ) ? $view : 'dashboard';
 	echo '<main class="wrap dtb-schematics-workspace"><h1>' . esc_html__( 'Schematics & Hotspots', 'drywall-toolbox' ) . '</h1><p class="description">' . esc_html__( 'Control schematic records, hotspot synchronization, exact product links, and storefront readiness.', 'drywall-toolbox' ) . '</p>';
+	echo '<p><a class="button button-secondary" href="' . esc_url( admin_url( 'admin.php?page=' . DTB_SCHEMATIC_HOTSPOT_RESOLVER_SLUG ) ) . '">' . esc_html__( 'Open Hotspot Resolution', 'drywall-toolbox' ) . '</a></p>';
 	dtb_schematics_workspace_navigation( $view );
 	echo '<div id="dtb-schematics-workspace-app">';
 	echo dtb_schematics_workspace_render_app_content( $view ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- pre-escaped markup assembled by the render_* functions.

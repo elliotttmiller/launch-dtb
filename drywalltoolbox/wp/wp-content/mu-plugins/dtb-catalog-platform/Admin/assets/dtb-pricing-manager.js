@@ -14,8 +14,25 @@
 	const money = (value) => value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? '—' : `${currency}${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 	const percent = (value) => value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? '—' : `${Number(value).toFixed(2)}%`;
 	const setMessage = (text = '', type = '') => { if (!message) return; message.textContent = text; message.classList.remove('is-error', 'is-success'); if (type) message.classList.add(`is-${type}`); };
+	const restUrl = (path = '') => {
+		const routeBase = '/dtb/v1/admin/pricing';
+		const separator = path.indexOf('?');
+		const routePath = separator === -1 ? path : path.slice(0, separator);
+		const query = separator === -1 ? '' : path.slice(separator + 1);
+		const configuredBase = String(config.restUrl || '');
+
+		if (configuredBase.includes('rest_route=')) {
+			const url = new URL(configuredBase, window.location.origin);
+			url.searchParams.set('rest_route', `${routeBase}${routePath}`);
+			new URLSearchParams(query).forEach((value, key) => url.searchParams.set(key, value));
+			return url.href;
+		}
+
+		const base = configuredBase || `${window.location.origin}/wp-json/`;
+		return `${base.replace(/\/$/, '')}${routeBase}${routePath}${query ? `?${query}` : ''}`;
+	};
 	const request = async (path, options = {}) => {
-		const response = await fetch(`${config.restUrl.replace(/\/$/, '')}/dtb/v1/admin/pricing${path}`, { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': config.nonce, ...(options.headers || {}) } });
+		const response = await fetch(restUrl(path), { credentials: 'same-origin', ...options, headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': config.nonce, ...(options.headers || {}) } });
 		const payload = await response.json().catch(() => ({}));
 		if (!response.ok) throw new Error(payload.message || 'The pricing request could not be completed.');
 		return payload;

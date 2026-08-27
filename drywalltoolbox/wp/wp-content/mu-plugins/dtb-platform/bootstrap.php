@@ -129,6 +129,7 @@ require_once $_dtb_platform . '/Admin/AdminGlobalNavigation.php';
 require_once $_dtb_platform . '/Admin/AdminShell.php';
 require_once $_dtb_platform . '/Admin/AdminUi.php';
 require_once $_dtb_platform . '/Admin/OperationsMenu.php';
+require_once $_dtb_platform . '/Admin/CatalogOperationsPage.php';
 require_once $_dtb_platform . '/Admin/ToolLibraryMenu.php';
 require_once $_dtb_platform . '/Admin/SettingsPage.php';
 require_once $_dtb_platform . '/Admin/CacheToolsPage.php';
