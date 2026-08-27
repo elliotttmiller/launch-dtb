@@ -47,11 +47,11 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 
 ### Category hero media contract
 
-Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. The hero shell is transparent and inherits the category page canvas rather than introducing a gray card surface.
+Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. Every category route uses one unified bordered hero surface with restrained radius/elevation, left-side text hierarchy, a compact icon-plus-count treatment, and right-side category photography.
 
-Desktop category hero photography renders in a standardized `3:1` right-side viewport. The media viewport owns geometry and uses `object-fit: cover` with centered positioning so the image fully fills the slot without distortion or letterboxing. Category hero masters should therefore be composed specifically for a wide, shallow crop with approximately 8–10% crop-safe perimeter around important product geometry. Narrow layouts may use a taller viewport rather than forcing the desktop crop onto mobile.
+Desktop category hero photography fills the right half of the bounded hero surface. The hero card owns the vertical geometry and the media viewport fills that height; images use `object-fit: cover` with centered positioning so they fill the slot without distortion or letterboxing. Category hero masters should be authored for a wide, shallow crop close to `3:1`, with approximately 8–10% crop-safe perimeter around important product geometry. Narrow layouts may use a taller viewport rather than forcing the desktop crop onto mobile.
 
-Responsive image metadata should allow the browser to select an appropriate source from the backend-provided `srcset`; presentation code must not stretch the bitmap or rely on fixed pixel heights that drift from the authored aspect ratio.
+Responsive image metadata should allow the browser to select an appropriate source from the backend-provided `srcset`; presentation code must not stretch the bitmap or rely on source-image dimensions to determine page layout.
 
 ### Category thumbnail media contract
 
@@ -59,7 +59,7 @@ Canonical category thumbnails live in `products/launch/media/categories/thumbnai
 
 Category thumbnail files contain only isolated tool/category artwork on a transparent WebP background. They are tightly cropped with modest transparent safety padding and retain a source aspect ratio appropriate to the represented tool. A fixed 348x128 source canvas, baked white matte, component border, or presentation background must not be encoded into these assets.
 
-Frontend category media containers own visible surface color, viewport dimensions, padding, responsive geometry, and `object-fit: contain` fitment. The same canonical thumbnail may therefore be reused by Shop by Tool Type cards and desktop category navigation without requiring surface-specific image variants.
+Frontend category media containers own visible surface color, viewport dimensions, padding, responsive geometry, and `object-fit: contain` fitment. Shop by Tool Type cards use one unified compact white-card geometry, restrained border/elevation, fixed media viewport, strong two-line maximum label hierarchy, and muted product count. The same canonical thumbnail may therefore be reused by Shop by Tool Type cards and desktop category navigation without requiring surface-specific image variants.
 
 ## Schematics and parts
 
@@ -100,4 +100,3 @@ Every async or mutating component should account for:
 | Empty | Explanation and one relevant next action |
 | Error | Plain-language cause/recovery without lost input |
 | Success | Confirmation adjacent to the initiating action |
-
