@@ -17,7 +17,7 @@ final class DTB_CatalogFacetsController {
 
 	private const NAVIGATION_GROUP_SLUGS = [
 		'automatic-taping-tools',
-		'semi-automatic-tools',
+		'semi-automatic-taping-tools',
 		'stilts-accessories',
 	];
 
