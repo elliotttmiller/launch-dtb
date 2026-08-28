@@ -1,5 +1,21 @@
 import { brandToSlug, canonicalBrandLabel, sortBrandsBy } from './catalogUrlState.js';
 
+const LEGACY_CATEGORY_SLUG_ALIASES = {
+  'automatic-taping-tool-sets': 'automatic-tool-sets',
+  'semi-automatic-tools': 'semi-automatic-taping-tools',
+  'semi-automatic-taping-tool-sets': 'semi-automatic-tool-sets',
+  'tool-sets': 'semi-automatic-tool-sets',
+  'tool-sets-automatic-taping-tools': 'automatic-tool-sets',
+};
+
+export function canonicalCatalogCategorySlug(value) {
+  const slug = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-');
+  return LEGACY_CATEGORY_SLUG_ALIASES[slug] || slug;
+}
+
 export function normalizeDisplayCategorySlug(value) {
   return String(value || '')
     .toLowerCase()
@@ -15,10 +31,12 @@ export function buildDisplayCategoryUrl(slug) {
 /**
  * Build a URL against the canonical WooCommerce product category taxonomy.
  * `category` is resolved server-side as a product_cat slug (including child
- * terms) before the legacy metadata fallback is considered.
+ * terms) before the legacy metadata fallback is considered. Known historical
+ * storefront aliases are normalized here so stale callers cannot emit links
+ * to terms that no longer exist in the canonical taxonomy.
  */
 export function buildCatalogCategoryUrl(slug) {
-  return `/products?category=${encodeURIComponent(slug)}`;
+  return `/products?category=${encodeURIComponent(canonicalCatalogCategorySlug(slug))}`;
 }
 
 /**
@@ -29,7 +47,7 @@ export function buildCatalogCategoryUrl(slug) {
  * still need the query-param form.
  */
 export function buildCategoryPageUrl(slug) {
-  return `/category/${encodeURIComponent(slug)}`;
+  return `/category/${encodeURIComponent(canonicalCatalogCategorySlug(slug))}`;
 }
 
 export function normalizeCatalogBrandEntry(rawBrand = {}) {
@@ -120,11 +138,11 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
   return (Array.isArray(rawGroups) ? rawGroups : [])
     .map((rawGroup) => {
       const label = rawGroup?.label || rawGroup?.name || '';
-      const slug = rawGroup?.slug || rawGroup?.key || '';
+      const slug = canonicalCatalogCategorySlug(rawGroup?.slug || rawGroup?.key || '');
       const children = (Array.isArray(rawGroup?.children) ? rawGroup.children : [])
         .map((rawChild) => {
           const childLabel = rawChild?.label || rawChild?.name || '';
-          const childSlug = rawChild?.slug || rawChild?.key || '';
+          const childSlug = canonicalCatalogCategorySlug(rawChild?.slug || rawChild?.key || '');
           if (!childLabel || !childSlug) return null;
           return {
             ...rawChild,
@@ -154,10 +172,10 @@ export function normalizeCatalogCategoryEntry(category) {
   if (typeof category === 'string') {
     return {
       label: category,
-      slug: normalizeDisplayCategorySlug(category),
+      slug: canonicalCatalogCategorySlug(normalizeDisplayCategorySlug(category)),
     };
   }
   const label = category?.label || category?.name || '';
-  const slug = category?.slug || category?.key || normalizeDisplayCategorySlug(label);
+  const slug = canonicalCatalogCategorySlug(category?.slug || category?.key || normalizeDisplayCategorySlug(label));
   return { label, slug };
 }
