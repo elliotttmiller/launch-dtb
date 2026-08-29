@@ -28,14 +28,30 @@ const DTB_SCHEMATIC_HOTSPOT_DATA_META_KEY = '_dtb_schematic_hotspot_data';
 /**
  * Persist the normalized dataset for a schematic record.
  *
- * Fail closed on structurally invalid hotspot data. The migration service
+ * Fail closed on structurally invalid hotspot data. Validation includes the
+ * authoritative record's actual page numbers so a source occurrence cannot
+ * be stored for a page the schematic does not expose. The migration service
  * handles a false return by restoring the authoritative record projection,
- * so malformed geometry or dangling relationships can never become the
- * storefront's persisted hotspot authority.
+ * so malformed geometry, dangling relationships, duplicate identities, or
+ * page mismatches can never become the storefront's persisted hotspot authority.
  */
 function dtb_schematic_hotspot_dataset_repo_save( int $schematic_post_id, array $dataset ): bool {
-	$normalized = dtb_schematic_hotspot_dataset_make( $dataset );
-	if ( ! empty( dtb_schematic_hotspot_dataset_integrity_issues( $normalized ) ) ) {
+	$normalized   = dtb_schematic_hotspot_dataset_make( $dataset );
+	$record       = function_exists( 'dtb_schematic_record_repo_get' ) ? dtb_schematic_record_repo_get( $schematic_post_id ) : null;
+	$valid_pages  = [];
+
+	if ( $record ) {
+		$valid_pages = array_values(
+			array_unique(
+				array_filter(
+					array_map( static fn( $page ) => (int) ( $page['page_number'] ?? 0 ), (array) $record->pages ),
+					static fn( $page_number ) => $page_number > 0
+				)
+			)
+		);
+	}
+
+	if ( ! empty( dtb_schematic_hotspot_dataset_integrity_issues( $normalized, $valid_pages ) ) ) {
 		return false;
 	}
 
