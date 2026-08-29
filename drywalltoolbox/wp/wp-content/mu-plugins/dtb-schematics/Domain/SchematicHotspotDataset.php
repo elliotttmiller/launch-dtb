@@ -85,9 +85,10 @@ function dtb_schematic_hotspot_normalize_shape_type( string $type ): string {
 /**
  * Coordinates are stored as a flat, shape-agnostic map of normalized
  * (percentage-of-page, 0..100) numeric fields. Unknown/absent fields are
- * dropped rather than defaulted to zero or image-center — callers
- * (Rest/SchematicPublicApiController.php, the future frontend) must treat a
- * missing coordinate as invalid rather than silently rendering at (0,0)/center.
+ * dropped rather than defaulted to zero or image-center. Values are not
+ * clamped here: invalid source geometry must remain detectable and fail
+ * integrity validation rather than being silently rewritten into a plausible
+ * location.
  */
 function dtb_schematic_hotspot_normalize_coordinates( array $raw ): array {
 	$allowed = [ 'x_pct', 'y_pct', 'width_pct', 'height_pct', 'r_pct_w', 'r_pct_h', 'points_pct' ];
@@ -100,7 +101,7 @@ function dtb_schematic_hotspot_normalize_coordinates( array $raw ): array {
 			if ( is_array( $raw[ $key ] ) ) {
 				$points = [];
 				foreach ( $raw[ $key ] as $point ) {
-					if ( is_array( $point ) && count( $point ) >= 2 ) {
+					if ( is_array( $point ) && count( $point ) >= 2 && is_numeric( $point[0] ) && is_numeric( $point[1] ) ) {
 						$points[] = [ (float) $point[0], (float) $point[1] ];
 					}
 				}
@@ -117,26 +118,67 @@ function dtb_schematic_hotspot_normalize_coordinates( array $raw ): array {
 	return $out;
 }
 
+/** Whether one percentage coordinate is inside the canonical page space. */
+function dtb_schematic_hotspot_percent_is_valid( $value ): bool {
+	return is_numeric( $value ) && (float) $value >= 0.0 && (float) $value <= 100.0;
+}
+
 /**
- * Whether a normalized hotspot occurrence carries usable coordinate data.
- * Used by the public API / future frontend to decide whether to render an
- * occurrence at all rather than defaulting invalid coordinates to center.
+ * Whether a normalized hotspot occurrence carries usable, in-bounds geometry.
+ *
+ * This deliberately validates the same 0..100 contract the React viewer uses.
+ * The previous implementation only checked that keys existed, so an
+ * out-of-range source coordinate could pass backend audits/publication and
+ * then be silently discarded by the storefront. Invalid geometry now fails
+ * closed at the domain boundary instead.
  */
 function dtb_schematic_hotspot_occurrence_has_valid_coordinates( array $occurrence ): bool {
-	$coords = $occurrence['coordinates'] ?? [];
+	$coords = is_array( $occurrence['coordinates'] ?? null ) ? $occurrence['coordinates'] : [];
+
 	if ( ! empty( $coords['points_pct'] ) ) {
+		if ( ! is_array( $coords['points_pct'] ) || count( $coords['points_pct'] ) < 3 ) {
+			return false;
+		}
+		foreach ( $coords['points_pct'] as $point ) {
+			if ( ! is_array( $point ) || count( $point ) < 2
+				|| ! dtb_schematic_hotspot_percent_is_valid( $point[0] )
+				|| ! dtb_schematic_hotspot_percent_is_valid( $point[1] ) ) {
+				return false;
+			}
+		}
 		return true;
 	}
-	if ( isset( $coords['x_pct'], $coords['y_pct'] ) ) {
-		return true;
+
+	if ( ! dtb_schematic_hotspot_percent_is_valid( $coords['x_pct'] ?? null )
+		|| ! dtb_schematic_hotspot_percent_is_valid( $coords['y_pct'] ?? null ) ) {
+		return false;
 	}
-	if ( isset( $coords['x_pct'], $coords['y_pct'], $coords['width_pct'], $coords['height_pct'] ) ) {
-		return true;
+
+	$has_width  = array_key_exists( 'width_pct', $coords );
+	$has_height = array_key_exists( 'height_pct', $coords );
+	if ( $has_width || $has_height ) {
+		if ( ! $has_width || ! $has_height
+			|| ! dtb_schematic_hotspot_percent_is_valid( $coords['width_pct'] )
+			|| ! dtb_schematic_hotspot_percent_is_valid( $coords['height_pct'] )
+			|| (float) $coords['width_pct'] <= 0.0
+			|| (float) $coords['height_pct'] <= 0.0 ) {
+			return false;
+		}
 	}
-	if ( isset( $coords['r_pct_w'], $coords['r_pct_h'] ) && isset( $coords['x_pct'], $coords['y_pct'] ) ) {
-		return true;
+
+	$has_radius_w = array_key_exists( 'r_pct_w', $coords );
+	$has_radius_h = array_key_exists( 'r_pct_h', $coords );
+	if ( $has_radius_w || $has_radius_h ) {
+		if ( ! $has_radius_w || ! $has_radius_h
+			|| ! dtb_schematic_hotspot_percent_is_valid( $coords['r_pct_w'] )
+			|| ! dtb_schematic_hotspot_percent_is_valid( $coords['r_pct_h'] )
+			|| (float) $coords['r_pct_w'] <= 0.0
+			|| (float) $coords['r_pct_h'] <= 0.0 ) {
+			return false;
+		}
 	}
-	return false;
+
+	return true;
 }
 
 /**
@@ -179,6 +221,56 @@ function dtb_schematic_hotspot_dataset_make( array $data ): array {
 		'parts_catalog'  => $parts_catalog,
 		'hotspots'       => $hotspots,
 	];
+}
+
+/**
+ * Return structural integrity issues for a normalized dataset.
+ *
+ * This is intentionally pure and deterministic so migration, audits, and
+ * response generation can all enforce one contract without inventing a
+ * second hotspot authority.
+ *
+ * @param int[] $valid_page_numbers Optional authoritative page-number allowlist.
+ * @return string[] Stable issue codes.
+ */
+function dtb_schematic_hotspot_dataset_integrity_issues( array $dataset, array $valid_page_numbers = [] ): array {
+	$dataset = dtb_schematic_hotspot_dataset_make( $dataset );
+	$issues  = [];
+
+	$part_refs = [];
+	foreach ( $dataset['parts_catalog'] as $part ) {
+		$part_ref = (string) ( $part['part_ref'] ?? '' );
+		if ( '' !== $part_ref ) {
+			$part_refs[ $part_ref ] = true;
+		}
+	}
+
+	$valid_pages = array_values( array_unique( array_filter( array_map( 'intval', $valid_page_numbers ), static fn( $page ) => $page > 0 ) ) );
+	$seen_ids    = [];
+	foreach ( $dataset['hotspots'] as $hotspot ) {
+		$hotspot_id = (string) ( $hotspot['hotspot_id'] ?? '' );
+		$part_ref   = (string) ( $hotspot['part_ref'] ?? '' );
+		$page       = (int) ( $hotspot['page'] ?? 0 );
+
+		if ( '' === $hotspot_id ) {
+			$issues[] = 'hotspot_id_missing';
+		} elseif ( isset( $seen_ids[ $hotspot_id ] ) ) {
+			$issues[] = 'hotspot_id_duplicate';
+		}
+		$seen_ids[ $hotspot_id ] = true;
+
+		if ( '' === $part_ref || ! isset( $part_refs[ $part_ref ] ) ) {
+			$issues[] = 'hotspot_part_ref_dangling';
+		}
+		if ( ! dtb_schematic_hotspot_occurrence_has_valid_coordinates( $hotspot ) ) {
+			$issues[] = 'hotspot_coordinates_invalid';
+		}
+		if ( $page <= 0 || ( $valid_pages && ! in_array( $page, $valid_pages, true ) ) ) {
+			$issues[] = 'hotspot_page_invalid';
+		}
+	}
+
+	return array_values( array_unique( $issues ) );
 }
 
 /**
