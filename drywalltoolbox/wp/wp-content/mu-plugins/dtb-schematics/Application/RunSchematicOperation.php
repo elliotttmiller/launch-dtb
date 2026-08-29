@@ -81,6 +81,7 @@ function dtb_schematic_run_operation( array $args = [] ) {
 
 	try {
 		$result = dtb_schematic_operation_execute( $kind, $dry_run, $request, $run['id'] );
+		$result = dtb_schematic_converge_operation_result( $kind, $dry_run, $result );
 		$error  = ! empty( $result['fatal_error'] ) ? (string) $result['fatal_error'] : '';
 		$run    = dtb_schematic_operation_run_complete( $run, $result, $error );
 		dtb_schematic_operation_log_activity( $kind, $run );
