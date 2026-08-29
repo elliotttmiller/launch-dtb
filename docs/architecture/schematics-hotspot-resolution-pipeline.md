@@ -59,7 +59,15 @@ Each authoritative source group is classified independently:
 
 `partial` and `invalid` are fail-closed Apply blockers. A partial multi-file source must never be interpreted as authoritative because omitted source members can make legitimate persisted relationships appear absent. Structural hotspot defects must be corrected at the schematic source before mapping mutations are approved.
 
+Normalized hotspot persistence now enforces the same geometry contract consumed by the React viewer. Point/shape centers and dimensions must be numeric percentages in the `0..100` page coordinate space; polygon points must be in bounds; dimensions/radii, when present, must be positive; hotspot IDs must not duplicate; and every persisted occurrence must reference a real `parts_catalog` entry. Invalid normalized datasets fail closed at the repository boundary rather than being stored and then silently discarded by the storefront.
+
 When requested internally, the audit can expose the deterministic `projected_parts` relationship projection generated from the same normalized source dataset used by the migration/resolution path. The normal bounded audit does not carry this larger projection unnecessarily.
+
+## Storefront projection freshness
+
+WordPress remains the sole public schematic projection authority. React consumes only the public `/dtb/v1/schematics` collection/detail API and does not read source JSON or uploads as an alternate runtime authority.
+
+The public API may advertise cacheability and ETags, but the interactive storefront client explicitly revalidates schematic requests (`cache: no-cache`) and supplies its last ETag. Unchanged projections remain inexpensive through `304 Not Modified`; newly synchronized publication versions are not hidden behind a browser-fresh `max-age` entry. This keeps synchronization freshness and transport caching compatible without introducing a second client cache authority.
 
 ## Terminal unresolved dispositions
 
