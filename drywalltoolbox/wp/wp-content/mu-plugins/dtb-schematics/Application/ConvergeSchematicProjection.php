@@ -19,24 +19,31 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Build the current canonical source rows for one schematic when the source
- * package is available. An unavailable operational source package is not a
- * runtime-publication failure by itself; existing authoritative records may
- * remain publicly usable while source storage is temporarily unavailable.
+ * package is available. The manifest is resolved once per request so an
+ * all-record hotspot synchronization stays O(source + records), not O(source
+ * * records).
+ *
+ * An unavailable operational source package is not a runtime-publication
+ * failure by itself; existing authoritative records may remain publicly usable
+ * while source storage is temporarily unavailable.
  */
 function dtb_schematic_convergence_source_rows( string $canonical_id ): array {
+	static $grouped = null;
+
 	$canonical_id = sanitize_key( $canonical_id );
 	if ( '' === $canonical_id || ! function_exists( 'dtb_schematics_read_source_manifest' ) ) {
 		return [];
 	}
 
-	$manifest = dtb_schematics_read_source_manifest();
-	if ( empty( $manifest['ok'] ) || empty( $manifest['rows'] ) ) {
-		return [];
+	if ( null === $grouped ) {
+		$grouped  = [];
+		$manifest = dtb_schematics_read_source_manifest();
+		if ( ! empty( $manifest['ok'] ) && ! empty( $manifest['rows'] ) ) {
+			$rows         = (array) $manifest['rows'];
+			$resolved_all = dtb_schematic_reconcile_resolve_all_identities( $rows );
+			$grouped      = dtb_schematic_reconcile_source_rows_by_canonical_id( $rows, $resolved_all );
+		}
 	}
-
-	$rows         = (array) $manifest['rows'];
-	$resolved_all = dtb_schematic_reconcile_resolve_all_identities( $rows );
-	$grouped      = dtb_schematic_reconcile_source_rows_by_canonical_id( $rows, $resolved_all );
 
 	return (array) ( $grouped[ $canonical_id ] ?? [] );
 }
@@ -145,7 +152,7 @@ function dtb_schematic_converge_operation_result( string $kind, bool $dry_run, a
 		return $result;
 	}
 
-	$canonical_ids   = [];
+	$canonical_ids    = [];
 	$projection_dirty = in_array(
 		$kind,
 		[
@@ -199,12 +206,17 @@ function dtb_schematic_converge_operation_result( string $kind, bool $dry_run, a
 		}
 	}
 
-	$result['convergence']          = $convergence;
-	$result['convergence_failed']   = $failed;
-	$result['publication_blocked']  = max( (int) ( $result['publication_blocked'] ?? 0 ), $blocked );
+	$result['convergence']           = $convergence;
+	$result['convergence_failed']    = $failed;
+	$result['publication_blocked']   = max( (int) ( $result['publication_blocked'] ?? 0 ), $blocked );
 	$result['publication_published'] = $published;
-	if ( $failed > 0 ) {
-		$result['failed'] = (int) ( $result['failed'] ?? 0 ) + $failed;
+
+	// A readiness-blocked record means the requested synchronization did not
+	// reach a usable storefront projection. Count it as a partial operation so
+	// existing wp-admin and activity-history success criteria fail closed
+	// instead of reporting a misleading green success state.
+	if ( $failed + $blocked > 0 ) {
+		$result['failed'] = (int) ( $result['failed'] ?? 0 ) + $failed + $blocked;
 	}
 
 	return $result;
