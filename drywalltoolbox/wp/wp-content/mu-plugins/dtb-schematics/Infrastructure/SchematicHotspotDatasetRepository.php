@@ -27,9 +27,18 @@ const DTB_SCHEMATIC_HOTSPOT_DATA_META_KEY = '_dtb_schematic_hotspot_data';
 
 /**
  * Persist the normalized dataset for a schematic record.
+ *
+ * Fail closed on structurally invalid hotspot data. The migration service
+ * handles a false return by restoring the authoritative record projection,
+ * so malformed geometry or dangling relationships can never become the
+ * storefront's persisted hotspot authority.
  */
 function dtb_schematic_hotspot_dataset_repo_save( int $schematic_post_id, array $dataset ): bool {
 	$normalized = dtb_schematic_hotspot_dataset_make( $dataset );
+	if ( ! empty( dtb_schematic_hotspot_dataset_integrity_issues( $normalized ) ) ) {
+		return false;
+	}
+
 	return (bool) update_post_meta( $schematic_post_id, DTB_SCHEMATIC_HOTSPOT_DATA_META_KEY, $normalized );
 }
 
