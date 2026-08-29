@@ -14,6 +14,9 @@
  * Behavior:
  * - Sends `If-None-Match` using the last-seen ETag per URL and treats a 304
  *   response as "unchanged" (resolves with the previously cached body).
+ * - Forces HTTP revalidation instead of accepting a still-fresh browser
+ *   max-age entry. This preserves cheap ETag/304 responses while ensuring a
+ *   just-synchronized schematic projection can become visible immediately.
  * - Throws a `SchematicApiError` with an explicit `kind` for every failure
  *   mode so callers can render honest error/empty states instead of a
  *   silent placeholder.
@@ -57,7 +60,17 @@ async function requestJson(url, { signal } = {}) {
 
   let response;
   try {
-    response = await fetch(url, { method: 'GET', headers, signal, cache: 'default' });
+    response = await fetch(url, {
+      method: 'GET',
+      headers,
+      signal,
+      // The API intentionally advertises public max-age caching. For the
+      // interactive storefront client, however, use that response only after
+      // HTTP revalidation so a synchronization/publication-version change is
+      // never hidden behind a still-fresh browser cache entry. ETag handling
+      // above keeps the unchanged path bandwidth-efficient via 304.
+      cache: 'no-cache',
+    });
   } catch (err) {
     if (err?.name === 'AbortError') throw err;
     throw new SchematicApiError(
