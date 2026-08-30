@@ -31,10 +31,10 @@ const TITLE_CASE_MINOR_WORDS = new Set([
   'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'in', 'nor', 'of', 'on', 'or', 'the', 'to', 'with',
 ]);
 
-// Known schematic/catalog noun suffixes that can arrive collapsed into a
+// Known schematic-category noun suffixes that can arrive collapsed into a
 // single API display token (for example "Angleheads" or "Nailspotters").
 // These are presentation-only word boundaries; canonical ids remain unchanged.
-const COMPACT_LABEL_SUFFIXES = [
+const SCHEMATIC_CATEGORY_SUFFIXES = [
   'applicators',
   'finishers',
   'flushers',
@@ -49,48 +49,16 @@ const COMPACT_LABEL_SUFFIXES = [
 ];
 
 /**
- * Split compact identifier-like text into display words without mutating the
- * underlying identity. Handles kebab/snake case, camel/Pascal case, and the
- * collapsed noun forms used by schematic category metadata.
- *
- * @param {string} value
- * @returns {string}
- */
-function splitCompactLabel(value) {
-  let normalized = (value || '')
-    .replace(/[-_]+/g, ' ')
-    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
-    .trim();
-
-  const words = normalized.split(/\s+/).filter(Boolean);
-  normalized = words
-    .flatMap((word) => {
-      const lower = word.toLowerCase();
-      const suffix = COMPACT_LABEL_SUFFIXES.find(
-        (candidate) => lower.endsWith(candidate) && lower.length > candidate.length
-      );
-
-      if (!suffix) return [word];
-
-      const prefixLength = word.length - suffix.length;
-      return [word.slice(0, prefixLength), word.slice(prefixLength)].filter(Boolean);
-    })
-    .join(' ');
-
-  return normalized;
-}
-
-/**
- * Title-case a raw compact slug/id into a human-readable label,
- * e.g. "semi-automatic-tapers" -> "Semi Automatic Tapers",
- * "AutomaticTapers" -> "Automatic Tapers", and
- * "Angleheads" -> "Angle Heads".
+ * Title-case a raw kebab/snake-case slug/id into a human-readable label,
+ * e.g. "semi-automatic-tapers" -> "Semi Automatic Tapers".
  *
  * @param {string} slug
  * @returns {string}
  */
 export function humanizeSlug(slug) {
-  const words = splitCompactLabel(slug)
+  const words = (slug || '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
     .split(/\s+/)
     .filter(Boolean);
 
@@ -107,9 +75,9 @@ export function humanizeSlug(slug) {
  * Resolve a display label for an API entity that may only provide a raw
  * id/slug (e.g. WooCommerce term slugs surfaced as `category.id`). Prefers
  * an already human-readable `name` from the API; otherwise falls back to a
- * humanized version of the id. Identifier-shaped names are normalized before
- * rendering so compact values such as `AutomaticTapers` and `Angleheads` do
- * not leak into customer-facing UI.
+ * humanized version of the id. Also catches the case where the API "name"
+ * field is itself just the raw slug (no spaces, contains a hyphen) by
+ * humanizing that too, so a slug-shaped `name` never renders verbatim.
  *
  * @param {string} [name] - API-provided display name, if any.
  * @param {string} [id] - Fallback raw id/slug.
@@ -117,15 +85,52 @@ export function humanizeSlug(slug) {
  */
 export function humanizeLabel(name, id) {
   const trimmedName = (name || '').trim();
-  if (!trimmedName) return humanizeSlug(id || '');
+  const looksLikeRawSlug = trimmedName && !/\s/.test(trimmedName) && /[-_]/.test(trimmedName);
+  if (trimmedName && !looksLikeRawSlug) return trimmedName;
+  return humanizeSlug(trimmedName || id || '');
+}
 
-  if (/\s/.test(trimmedName)) return trimmedName;
+/**
+ * Normalize schematic category/type labels for presentation without changing
+ * the authoritative category id. This handles the compact directory-derived
+ * names used by schematic metadata, including camel/Pascal case
+ * ("AutomaticTapers") and collapsed noun forms ("Angleheads"). Already
+ * human-readable labels containing whitespace are preserved exactly.
+ *
+ * @param {string} [name] - API-provided category display name.
+ * @param {string} [id] - Fallback category id/slug.
+ * @returns {string}
+ */
+export function humanizeSchematicCategoryLabel(name, id) {
+  const trimmedName = (name || '').trim();
+  if (trimmedName && /\s/.test(trimmedName)) return trimmedName;
 
-  const normalizedName = humanizeSlug(trimmedName);
-  const compactChanged = normalizedName.toLowerCase() !== trimmedName.toLowerCase();
-  const looksLikeRawIdentifier = /[-_]/.test(trimmedName) || /[a-z0-9][A-Z]/.test(trimmedName) || compactChanged;
+  const source = trimmedName || id || '';
+  const words = source
+    .replace(/[-_]+/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .flatMap((word) => {
+      const lower = word.toLowerCase();
+      const suffix = SCHEMATIC_CATEGORY_SUFFIXES.find(
+        (candidate) => lower.endsWith(candidate) && lower.length > candidate.length
+      );
 
-  return looksLikeRawIdentifier ? normalizedName : trimmedName;
+      if (!suffix) return [word];
+
+      const prefixLength = word.length - suffix.length;
+      return [word.slice(0, prefixLength), word.slice(prefixLength)].filter(Boolean);
+    });
+
+  return words
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (index > 0 && TITLE_CASE_MINOR_WORDS.has(lower)) return lower;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
 }
 
 /**
