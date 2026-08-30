@@ -74,10 +74,18 @@ ErrorDocument 504 /staging/errors/504.html
   RewriteRule ^dtb/(.*)$ /wp/index.php?rest_route=/dtb/$1 [QSA,L]
   RewriteRule ^wc-api/?$ /wp/index.php [QSA,L]
 
-  # WooCommerce owns checkout at the domain root, never inside the React mount.
-  RewriteRule ^checkout/?$ /checkout/ [R=302,L,NE]
-  RewriteRule ^checkout/(.*)$ /checkout/$1 [R=302,L,QSA,NE]
-  RewriteRule ^order-pay/(.*)$ /checkout/order-pay/$1 [R=302,L,QSA,NE]
+  # WooCommerce remains the sole checkout authority. Keep the public staging
+  # URL mounted below /staging, but internally execute the shared WordPress
+  # checkout controller instead of redirecting the browser into production.
+  RewriteRule ^checkout/?$ /wp/index.php?pagename=checkout [QSA,L]
+  RewriteRule ^checkout/order-pay/([0-9]+)/?$ /wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
+  RewriteRule ^order-pay/([0-9]+)/?$ /wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]
+  RewriteRule ^checkout/order-received/([0-9]+)/?$ /wp/index.php?pagename=checkout&order-received=$1 [QSA,L]
+
+  # Reduced/query-string order-pay shapes must also stay in WooCommerce.
+  RewriteCond %{QUERY_STRING} (^|&)(pay_for_order=true|order-pay=[0-9]+)(&|$) [NC]
+  RewriteCond %{QUERY_STRING} (^|&)key=wc_order_ [NC]
+  RewriteRule ^checkout/?$ /wp/index.php?pagename=checkout [QSA,L]
 
   RewriteRule ^$ index.html [L]
   RewriteRule ^wp-admin/?$ /wp/wp-admin/ [R=302,L,NE]
