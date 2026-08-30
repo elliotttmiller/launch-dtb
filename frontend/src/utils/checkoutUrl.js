@@ -7,22 +7,35 @@ function buildCheckoutUrl(path) {
   return new URL(path, origin).toString();
 }
 
-/**
- * Canonical full-document WooCommerce checkout URL.
- *
- * Checkout is root-mounted on the same public origin as the React storefront.
- * No environment path or client-supplied return host is carried into the
- * WooCommerce session or order. Stripe's Universal Payment Method remains the
- * single provider-owned payment surface.
- */
-export function getWooCheckoutUrl() {
-  return buildCheckoutUrl('/checkout/');
+function getStorefrontMount() {
+  return String(process.env.PUBLIC_URL || '')
+    .trim()
+    .replace(/\/+$/, '');
 }
 
 /**
- * Direct WordPress fallback used only when the canonical root checkout route is
- * incorrectly served by the React SPA. This bypasses the SPA catch-all without
- * introducing a second checkout implementation.
+ * Canonical full-document WooCommerce checkout URL for the active storefront.
+ *
+ * Production is root-mounted and resolves to `/checkout/`. SiteGround staging
+ * is mounted at `/staging`, so its checkout entry URL is
+ * `/staging/checkout/`. Apache then internally hands that request to the one
+ * shared WordPress/WooCommerce checkout runtime; the browser is not redirected
+ * into the production storefront. WooCommerce remains the only checkout and
+ * payment authority in both environments.
+ */
+export function getWooCheckoutUrl() {
+  const mount = getStorefrontMount();
+  const checkoutPath = mount && mount !== '/'
+    ? `${mount}/checkout/`
+    : '/checkout/';
+
+  return buildCheckoutUrl(checkoutPath);
+}
+
+/**
+ * Direct shared-WordPress fallback used only when the public checkout rewrite
+ * is accidentally unavailable. This bypasses every SPA catch-all without
+ * introducing another checkout implementation.
  */
 export function getWooCheckoutFallbackUrl() {
   return buildCheckoutUrl('/wp/index.php?pagename=checkout');
