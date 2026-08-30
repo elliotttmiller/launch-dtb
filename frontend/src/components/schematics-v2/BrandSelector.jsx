@@ -4,18 +4,11 @@
  * Renders the brand grid for the schematics catalog root. Purely
  * presentational — derives everything from `brands` (see useSchematicCatalog).
  *
- * Visual language ported from the richer drywall-toolbox reference
- * (frontend/src/components/schematics/BrandSelector.jsx): each brand renders
- * its actual logo image on a white card rather than plain text, using the
- * brand mark assets already published under /public/brands/. Brand-name
- * matching is done loosely (normalized substring match) because the REST
- * `brand.name` string is server-derived and not guaranteed to equal the
- * asset folder name exactly (e.g. "Columbia" vs "Columbia Taping Tools").
+ * Brand-logo presentation is centralized here and reused by the brand
+ * category view so schematic surfaces never maintain competing logo maps.
  */
 import { ImageOff } from 'lucide-react';
 
-// Static asset imports so webpack fingerprints/bundles them like any other
-// local image — matches the pattern already used elsewhere in the app.
 import asgardLogo from '/brands/Asgard/asgard_logo.svg';
 import columbiaLogo from '/brands/Columbia/columbia_taping_tools_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
@@ -25,13 +18,6 @@ import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import surproLogo from '/brands/SurPro/surpro_logo.svg';
 import tapeTechLogo from '/brands/TapeTech/tapetech_logo.svg';
 
-// Ordered so more-specific keys ("dura-stilts") are checked before looser
-// ones. Matched against a fully punctuation-stripped (lowercased,
-// alphanumeric-only) version of the brand's REST `name` — the API name can
-// vary in spacing/hyphenation/casing from the asset folder name (e.g.
-// "Tape-Tech", "Tape Tech", "TapeTech" should all resolve the same logo), so
-// the patterns below are also alphanumeric-only (no \s/- literals) to match
-// against that normalized string.
 const BRAND_LOGO_MATCHERS = [
   { test: /durastilts?/, logo: duraStiltsLogo },
   { test: /tapetech/, logo: tapeTechLogo },
@@ -43,10 +29,27 @@ const BRAND_LOGO_MATCHERS = [
   { test: /level5/, logo: level5Logo },
 ];
 
-function resolveBrandLogo(name) {
+export function resolveSchematicBrandLogo(name) {
   const normalized = (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const match = BRAND_LOGO_MATCHERS.find(({ test }) => test.test(normalized));
   return match?.logo || null;
+}
+
+export function SchematicBrandLogo({ brand, className = '' }) {
+  const name = brand?.name || brand?.id || 'Brand';
+  const logo = resolveSchematicBrandLogo(name);
+
+  if (!logo) return null;
+
+  return (
+    <img
+      src={logo}
+      alt={`${name} logo`}
+      className={className}
+      loading="eager"
+      decoding="async"
+    />
+  );
 }
 
 export default function BrandSelector({ brands, onSelectBrand }) {
@@ -61,7 +64,7 @@ export default function BrandSelector({ brands, onSelectBrand }) {
   return (
     <div className="dtb-schematics-grid dtb-schematics-grid--brands" role="list">
       {brands.map((brand) => {
-        const logo = resolveBrandLogo(brand.name);
+        const logo = resolveSchematicBrandLogo(brand.name);
         return (
           <button
             key={brand.id}
