@@ -87,6 +87,23 @@ function HotspotCardSkeleton({ displayCode, codeLabel }) {
   );
 }
 
+function resolveHotspotProductUrl(wcProduct, fallbackUrl = '') {
+  // Variation resolution already supplies the precise parent-product deep link
+  // (`/products/{parentSlug}?variant={variationId}`), so preserve it first.
+  if (wcProduct?.product_url) return resolveStorefrontUrl(wcProduct.product_url);
+  if (wcProduct?.permalink) return resolveStorefrontUrl(wcProduct.permalink);
+
+  // Normalized simple/variable WooCommerce products expose their canonical
+  // product slug but intentionally do not carry WordPress permalink fields.
+  // The React storefront owns presentation/routing and its canonical product
+  // route is `/products/:slug`; never fall back to WordPress's legacy
+  // `?product={slug}` shape when the live product identity is available.
+  const slug = String(wcProduct?.slug || '').trim();
+  if (slug) return `/products/${encodeURIComponent(slug)}`;
+
+  return resolveStorefrontUrl(fallbackUrl);
+}
+
 export default function SchematicHotspotCard({ part, onClose, onAddToCart, addingToCart }) {
   const { addToCart } = useCart();
   const [localAdding, setLocalAdding] = useState(false);
@@ -112,8 +129,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const primaryImage = wcProduct?.images?.[0] || '';
   const parsedPrice = parseFloat(wcProduct?.price);
   const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
-  const canonicalProductUrl = wcProduct?.product_url || part.product_url || '';
-  const effectiveProductUrl = resolveStorefrontUrl(canonicalProductUrl);
+  const effectiveProductUrl = resolveHotspotProductUrl(wcProduct, part.product_url || '');
   const isUnavailable = !isLoading && !canAddToCart && !effectiveProductUrl;
   const isAdding = addingToCart === part.part_ref || localAdding;
 
@@ -149,7 +165,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
         part_number: wcProduct.sku || part.mpn || part.sku,
         sku: wcProduct.sku || part.sku || part.mpn,
         image: primaryImage,
-        permalink: resolveStorefrontUrl(wcProduct.permalink || canonicalProductUrl),
+        permalink: effectiveProductUrl,
       }, 1);
       onClose?.();
     } finally {
