@@ -105,8 +105,17 @@ if (appEnv === 'staging') {
   if (!emitted.includes('RewriteRule ^wp-json/(.*)$ /wp/index.php?rest_route=/$1 [QSA,L]')) {
     throw new Error('Staging REST aliases must route to the shared root WordPress runtime.');
   }
-  if (!emitted.includes('RewriteRule ^checkout/?$ /checkout/ [R=302,L,NE]')) {
-    throw new Error('Staging checkout must redirect to root-owned WooCommerce checkout.');
+  if (!emitted.includes('RewriteRule ^checkout/?$ /wp/index.php?pagename=checkout [QSA,L]')) {
+    throw new Error('Staging checkout must internally execute the shared WooCommerce checkout runtime.');
+  }
+  if (emitted.includes('RewriteRule ^checkout/?$ /checkout/ [R=302,L,NE]')) {
+    throw new Error('Staging checkout must not redirect the browser into the production-root checkout URL.');
+  }
+  if (!emitted.includes('RewriteRule ^checkout/order-pay/([0-9]+)/?$ /wp/index.php?pagename=checkout&order-pay=$1 [QSA,L]')) {
+    throw new Error('Staging order-pay routes must stay on the staging mount and execute through shared WordPress.');
+  }
+  if (!emitted.includes('RewriteRule ^checkout/order-received/([0-9]+)/?$ /wp/index.php?pagename=checkout&order-received=$1 [QSA,L]')) {
+    throw new Error('Staging order-received routes must stay on the staging mount and execute through shared WordPress.');
   }
   if (/RewriteRule[^\r\n]+\s+wp\/index\.php/.test(emitted)) {
     throw new Error('Staging routing must not target a nonexistent local staging wp/index.php.');
