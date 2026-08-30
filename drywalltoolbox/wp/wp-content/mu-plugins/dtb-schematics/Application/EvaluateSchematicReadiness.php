@@ -7,7 +7,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Return runtime requirements that remain unmet for a schematic record. */
+/**
+ * Return runtime requirements that remain unmet for a schematic record.
+ *
+ * Publication readiness is intentionally limited to the data required to
+ * render a truthful schematic projection. Exact WooCommerce part/product
+ * resolution is a separate catalog-completeness concern: unresolved parts
+ * remain visible to operators and are projected without a commerce target,
+ * but they do not prevent an otherwise valid diagram/hotspot projection from
+ * reaching the storefront.
+ */
 function dtb_schematic_runtime_publication_requirements( DTB_Schematic_Record_Entity $record ): array {
 	$unmet = dtb_schematic_publication_requirements( $record->to_array() );
 
@@ -32,13 +41,6 @@ function dtb_schematic_runtime_publication_requirements( DTB_Schematic_Record_En
 		$dataset = dtb_schematic_hotspot_dataset_repo_get( $record->id );
 		if ( ! $dataset || '' === trim( (string) ( $dataset['checksum'] ?? '' ) ) ) {
 			$unmet[] = 'normalized_hotspot_dataset_required';
-		}
-	}
-
-	foreach ( $record->parts as $part ) {
-		if ( DTB_SCHEMATIC_PART_STATE_UNRESOLVED === (string) ( $part['resolution_state'] ?? '' ) ) {
-			$unmet[] = 'unresolved_part_relationships';
-			break;
 		}
 	}
 
