@@ -10,7 +10,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchSchematicsCollection, SchematicApiError } from '../api/schematicsApi.js';
-import { humanizeLabel } from '../utils/string.js';
+import { humanizeLabel, humanizeSchematicCategoryLabel } from '../utils/string.js';
 
 const CATEGORY_PREVIEW_OVERRIDES = new Map([
   [
@@ -55,7 +55,10 @@ export function useSchematicCatalog() {
                 ? { ...item.brand, name: humanizeLabel(item.brand.name, item.brand.id) }
                 : item?.brand,
               category: item?.category
-                ? { ...item.category, name: humanizeLabel(item.category.name, item.category.id) }
+                ? {
+                    ...item.category,
+                    name: humanizeSchematicCategoryLabel(item.category.name, item.category.id),
+                  }
                 : item?.category,
             }))
           : [];
@@ -99,7 +102,7 @@ export function useSchematicCatalog() {
       if (!catMap.has(category.id)) {
         catMap.set(category.id, {
           id: category.id,
-          name: humanizeLabel(category.name, category.id),
+          name: humanizeSchematicCategoryLabel(category.name, category.id),
           count: 0,
           preview: CATEGORY_PREVIEW_OVERRIDES.get(`${brandId}::${category.id}`) || null,
         });
