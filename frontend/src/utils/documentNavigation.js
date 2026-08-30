@@ -13,20 +13,25 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * Rebase an internal Drywall Toolbox URL onto the active storefront mount.
+ * Convert an internal Drywall Toolbox URL into a React Router route.
  *
  * WordPress/WooCommerce may return canonical production URLs such as
- * `https://drywalltoolbox.com/?product=example`. The React storefront is
- * root-mounted in production but `/staging/`-mounted for staging. Internal
- * product links therefore need their pathname/query/hash preserved while the
- * frontend mount is applied. External URLs are returned unchanged.
+ * `https://drywalltoolbox.com/?product=example`, while a staging build is
+ * mounted below `/staging` via BrowserRouter's basename. React Router owns
+ * application of that basename; callers must therefore receive an unmounted
+ * route such as `/?product=example`, never `/staging/?product=example`.
+ *
+ * If an internal URL already contains the active PUBLIC_URL mount, strip it
+ * before returning the route. This makes the operation idempotent and prevents
+ * `/staging/staging/...` navigation. External URLs are returned unchanged.
  */
 export function resolveStorefrontUrl(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
 
   const publicUrl = String(process.env.PUBLIC_URL || '/')
-    .replace(/\/+$/, '') || '';
+    .trim()
+    .replace(/\/+$/, '');
 
   try {
     const baseOrigin = typeof window !== 'undefined'
@@ -39,13 +44,14 @@ export function resolveStorefrontUrl(value) {
       return raw;
     }
 
-    const pathname = parsed.pathname.startsWith('/') ? parsed.pathname : `/${parsed.pathname}`;
-    const alreadyMounted = publicUrl && (pathname === publicUrl || pathname.startsWith(`${publicUrl}/`));
-    const mountedPath = alreadyMounted
-      ? pathname
-      : `${publicUrl}${pathname}` || '/';
+    let pathname = parsed.pathname.startsWith('/') ? parsed.pathname : `/${parsed.pathname}`;
 
-    return `${mountedPath}${parsed.search}${parsed.hash}`;
+    if (publicUrl && publicUrl !== '/' && (pathname === publicUrl || pathname.startsWith(`${publicUrl}/`))) {
+      pathname = pathname.slice(publicUrl.length) || '/';
+      if (!pathname.startsWith('/')) pathname = `/${pathname}`;
+    }
+
+    return `${pathname || '/'}${parsed.search}${parsed.hash}`;
   } catch {
     return raw;
   }
