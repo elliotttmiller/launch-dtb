@@ -24,6 +24,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useHotspotProduct } from '../../hooks/useHotspotProduct';
+import { resolveStorefrontUrl } from '../../utils/documentNavigation';
 
 const RESOLVED_STATES = new Set(['explicit_product_id', 'exact_sku', 'exact_brand_mpn']);
 
@@ -111,7 +112,8 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const primaryImage = wcProduct?.images?.[0] || '';
   const parsedPrice = parseFloat(wcProduct?.price);
   const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
-  const effectiveProductUrl = wcProduct?.product_url || part.product_url;
+  const canonicalProductUrl = wcProduct?.product_url || part.product_url || '';
+  const effectiveProductUrl = resolveStorefrontUrl(canonicalProductUrl);
   const isUnavailable = !isLoading && !canAddToCart && !effectiveProductUrl;
   const isAdding = addingToCart === part.part_ref || localAdding;
 
@@ -147,7 +149,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
         part_number: wcProduct.sku || part.mpn || part.sku,
         sku: wcProduct.sku || part.sku || part.mpn,
         image: primaryImage,
-        permalink: wcProduct.permalink || effectiveProductUrl || '',
+        permalink: resolveStorefrontUrl(wcProduct.permalink || canonicalProductUrl),
       }, 1);
       onClose?.();
     } finally {
