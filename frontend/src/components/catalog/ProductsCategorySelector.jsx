@@ -20,6 +20,8 @@ const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'automatic-tapers': '/wp/wp-content/uploads/2026/media/columbia_tools_taper_01-scaled.webp',
   'compound_tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
   'compound-tubes': '/wp/wp-content/uploads/2026/media/columbia_tools_pcmt42_01.webp',
+  'corner_flushers': '/wp/wp-content/uploads/2026/media/columbia_tools_2_5df_01.webp',
+  'corner-flushers': '/wp/wp-content/uploads/2026/media/columbia_tools_2_5df_01.webp',
   'corner_tools': '/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',
   'corner-tools': '/wp-content/uploads/2026/media/columbia_tools_8cfb_01.webp',
   'finishing_boxes': '/wp-content/uploads/2026/media/columbia_tools_10ffba_01.webp',
