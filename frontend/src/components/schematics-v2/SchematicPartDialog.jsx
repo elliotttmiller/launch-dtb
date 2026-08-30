@@ -13,8 +13,9 @@
  *     with a `.mobile-modal-backdrop`, matching the legacy mobile behavior
  *     (CSS in mobile-schematic.css only shows these under max-width:768px).
  *
- * Renders `SchematicHotspotCard` — the exact ported card markup — inside
- * whichever wrapper is active.
+ * The dialog is an interaction boundary above the diagram/hotspot layer.
+ * Pointer events must not leak into the diagram's zoom/pan handlers while a
+ * user is interacting with the card controls.
  */
 import { useLayoutEffect, useRef, useState } from 'react';
 import SchematicHotspotCard from './SchematicHotspotCard';
@@ -53,6 +54,10 @@ function calculatePosition(hotspotRect, wrapRect, modalSize) {
   return { top, left };
 }
 
+function stopDialogPointerPropagation(event) {
+  event.stopPropagation();
+}
+
 export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobile, onClose }) {
   const cardRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
@@ -89,7 +94,10 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
           role="dialog"
           aria-modal="true"
           aria-label={dialogLabel}
-          onClick={(e) => e.stopPropagation()}
+          onClick={stopDialogPointerPropagation}
+          onPointerDown={stopDialogPointerPropagation}
+          onPointerUp={stopDialogPointerPropagation}
+          style={{ zIndex: 1002, pointerEvents: 'auto' }}
         >
           <SchematicHotspotCard part={part} onClose={onClose} />
         </div>
@@ -103,11 +111,15 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
       className="part-modal part-modal-detached"
       role="dialog"
       aria-label={dialogLabel}
-      onClick={(e) => e.stopPropagation()}
+      onClick={stopDialogPointerPropagation}
+      onPointerDown={stopDialogPointerPropagation}
+      onPointerUp={stopDialogPointerPropagation}
       style={{
         position: 'absolute',
         top: `${position.top}px`,
         left: `${position.left}px`,
+        zIndex: 1002,
+        pointerEvents: 'auto',
       }}
     >
       <SchematicHotspotCard part={part} onClose={onClose} />
