@@ -29,6 +29,7 @@ import { useSchematicCatalog } from '../hooks/useSchematicCatalog';
 import SchematicsCatalog from '../components/schematics-v2/SchematicsCatalog';
 import SchematicViewerPage from '../components/schematics-v2/SchematicViewerPage';
 import '../styles/schematics-v2.css';
+import '../styles/schematics-brand-header.css';
 import '../styles/schematic-hotspot-card-polish.css';
 import '../styles/schematics-loading.css';
 
