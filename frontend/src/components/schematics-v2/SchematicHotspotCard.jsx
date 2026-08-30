@@ -171,9 +171,10 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
       <div className="schematic-hotspot-card__info">
         {onClose && (
           <button
+            type="button"
             className="schematic-hotspot-card__close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label="Close part details"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -206,6 +207,7 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
                     <span className="schematic-hotspot-card__price">{priceLabel}</span>
                   </span>
                   <button
+                    type="button"
                     className="schematic-hotspot-card__cta"
                     disabled={isAdding}
                     onClick={handleAdd}
