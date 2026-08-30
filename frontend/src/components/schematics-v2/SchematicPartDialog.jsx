@@ -78,11 +78,19 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
 
   if (!part) return null;
 
+  const dialogLabel = part.title ? `${part.title} details` : 'Part details';
+
   if (isMobile) {
     return (
       <>
         <div className="mobile-modal-backdrop" onClick={onClose} />
-        <div className="mobile-part-modal-overlay" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="mobile-part-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={dialogLabel}
+          onClick={(e) => e.stopPropagation()}
+        >
           <SchematicHotspotCard part={part} onClose={onClose} />
         </div>
       </>
@@ -93,6 +101,8 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
     <div
       ref={cardRef}
       className="part-modal part-modal-detached"
+      role="dialog"
+      aria-label={dialogLabel}
       onClick={(e) => e.stopPropagation()}
       style={{
         position: 'absolute',
