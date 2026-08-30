@@ -14,6 +14,8 @@
  *   - the GitHub API bridge used to dispatch deploy/rollback, detect
  *     repository drift, and browse branches/commits/pull requests/workflow
  *     runs/releases/tags read-only;
+ *   - runtime deployment integrity guards for tracked WordPress application
+ *     dependencies such as the canonical DTB theme;
  *   - the Deployment/Repository/Pull Requests/Workflow Runs/Releases & Tags/
  *     Release History/Rollback/Deploy Settings tab content surfaced inside
  *     the unified System Manager console (Drywall Toolbox > System Manager),
@@ -37,6 +39,7 @@ $_dtb_deployment = __DIR__;
 require_once $_dtb_deployment . '/Domain/ReleaseStatus.php';
 
 // 2. Infrastructure.
+require_once $_dtb_deployment . '/Infrastructure/ThemeRuntimeGuard.php';
 require_once $_dtb_deployment . '/Infrastructure/ReleaseSchemaInstaller.php';
 require_once $_dtb_deployment . '/Infrastructure/ReleaseEventRepository.php';
 
