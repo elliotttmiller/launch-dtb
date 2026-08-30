@@ -8,7 +8,7 @@
 import { useMemo, useState } from 'react';
 import BackButton from '../shared/BackButton';
 import SearchBar from '../catalog/SearchBar';
-import BrandSelector from './BrandSelector';
+import BrandSelector, { SchematicBrandLogo } from './BrandSelector';
 import CategorySelector from './CategorySelector';
 import ToolSelector from './ToolSelector';
 
@@ -81,7 +81,15 @@ export default function SchematicsCatalog({ catalog, routeState }) {
       ) : !categoryId ? (
         <>
           <BackButton onClick={goToCatalogRoot} label="Brands" />
-          <h2 className="dtb-schematics-heading">{currentBrand?.name || brandId}</h2>
+          <div className="dtb-schematics-brand-header">
+            <SchematicBrandLogo
+              brand={currentBrand || { id: brandId, name: brandId }}
+              className="dtb-schematics-brand-header__logo"
+            />
+            <span className="dtb-schematics-brand-header__name">
+              {currentBrand?.name || brandId}
+            </span>
+          </div>
           <CategorySelector
             brandName={currentBrand?.name}
             categories={categories}
