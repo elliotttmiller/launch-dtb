@@ -6,6 +6,16 @@ The Hotspot Resolver is one bounded launch-remediation pipeline. `frontend/publi
 
 The repository `products/` tree remains canonical catalog source data. A deployed WordPress host is not assumed to contain a Git checkout, so production does not invent product identity from unavailable repository files. Catalog/source correction outputs identify upstream ownership without turning wp-admin into a second catalog editor.
 
+## Publication readiness and catalog completeness
+
+Storefront schematic publication and WooCommerce catalog resolution are separate readiness dimensions.
+
+A schematic may be published when its public projection is structurally truthful and renderable: canonical identity and required metadata are present, every active page resolves to an available WordPress attachment URL, and every schematic that declares an approved hotspot source has a persisted normalized hotspot dataset with a checksum. Invalid geometry, dangling hotspot references, invalid page mappings, unavailable attachments, missing required metadata, and missing required normalized datasets remain fail-closed publication blockers.
+
+Exact WooCommerce part/product resolution is not a schematic-publication requirement. Unresolved schematic parts remain explicit diagnostic state in WordPress and operator tooling. Their hotspot occurrences may still render from normalized geometry, but the public projection must not fabricate a product destination; a commerce CTA is available only when the relationship resolves to a valid live WooCommerce product or variation under the deterministic identity contract.
+
+This separation supports a geometry-first integration sequence without weakening catalog authority. Publishing a schematic does not assert that every referenced replacement part is sold, mapped, or purchasable. Later catalog reconciliation may add exact product relationships without changing schematic source identity or creating a second catalog truth.
+
 ## Single operator workflow
 
 The supported wp-admin workflow is deliberately small:
@@ -36,17 +46,7 @@ Fuzzy/title evidence, cross-brand guesses, weak numeric diagram callouts, and am
 
 The source audit reads only approved schematic-data references through the established source resolver, reader, normalization, grouping, and merge path.
 
-The canonical repository tree is `frontend/public/brands`. Frontend builds copy
-that tree without transformation to `dist/brands` for production and
-`dist-staging/brands` for staging. On SiteGround, the approved runtime root is
-`public_html/brands` when `WP_ENVIRONMENT_TYPE` is `production`, and
-`public_html/staging/brands` when it is `staging` (including a WordPress
-installation already rooted below `public_html/staging`). A nonstandard host
-layout may define the server-only absolute
-`DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT`; request URLs never select filesystem
-authority. The production and staging build validations fail unless every
-`schematic_data*.json` source is valid JSON and is emitted at the same
-case-sensitive relative path with identical bytes.
+The canonical repository tree is `frontend/public/brands`. Frontend builds copy that tree without transformation into their deployment artifacts. The shared WordPress installation uses the site-root `public_html/brands` tree as its deployed schematic-hotspot source authority for both storefront environments; staging and production storefronts consume the same normalized WordPress schematic projection rather than selecting separate source trees by request URL. A nonstandard host layout may define the server-only absolute `DTB_SCHEMATIC_HOTSPOT_SOURCE_ROOT`; request URLs never select filesystem authority. Deployment validation must ensure every `schematic_data*.json` source is valid JSON and is emitted at the same case-sensitive relative path with identical bytes.
 
 Each authoritative source group is classified independently:
 
