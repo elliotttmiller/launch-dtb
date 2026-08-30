@@ -155,6 +155,12 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
     }
   };
 
+  const handleClose = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClose?.();
+  };
+
   return (
     <div
       className={`schematic-hotspot-card${isLoading ? ' schematic-hotspot-card--resolving' : ''}`}
@@ -173,10 +179,28 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
           <button
             type="button"
             className="schematic-hotspot-card__close"
-            onClick={onClose}
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerUp={(event) => event.stopPropagation()}
+            onClick={handleClose}
             aria-label="Close part details"
+            style={{
+              zIndex: 20,
+              pointerEvents: 'auto',
+              touchAction: 'manipulation',
+            }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              aria-hidden="true"
+              focusable="false"
+              style={{ pointerEvents: 'none' }}
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
