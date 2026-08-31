@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import '../../styles/product-detail-approved-mockup.css';
 
 function getProductUrl(product) {
   const slug = product?.slug || product?.post_name || '';
