@@ -453,7 +453,7 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 28px 36px 34px;
+    padding: 0;
     background: #fff;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
@@ -834,6 +834,7 @@
   .site-header .dtb-mega-menu__products-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-bottom: 34px;
     border-top: 1px solid #e6ebf2;
     border-left: 1px solid #e6ebf2;
   }
@@ -955,7 +956,7 @@
   }
 
   .site-header .dtb-desktop-nav-dropdown__scroller {
-    padding-inline: 28px;
+    padding-inline: 0;
   }
 
   .site-header .dtb-mega-menu__products-grid {
