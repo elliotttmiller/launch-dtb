@@ -22,17 +22,19 @@
  */
 .dtb-product-page-shell .dtb-pdp-overview__editorial {
   max-width: 74rem;
-  padding: clamp(1.75rem, 3vw, 2.7rem) clamp(1.4rem, 3.2vw, 3rem);
+  padding: clamp(1.9rem, 3vw, 2.8rem) clamp(1.4rem, 3.2vw, 3rem);
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
 .dtb-product-page-shell .dtb-pdp-overview__title {
-  margin: 0 0 1rem;
-  font-size: clamp(1.25rem, 1.7vw, 1.45rem);
+  margin: 0 0 1.15rem;
+  color: #111827;
+  font-size: clamp(1.3rem, 1.7vw, 1.5rem);
   font-weight: 760;
-  letter-spacing: -.025em;
+  line-height: 1.25;
+  letter-spacing: -.028em;
 }
 
 .dtb-product-page-shell .dtb-pdp-description-content,
@@ -40,17 +42,38 @@
   max-width: 72rem;
 }
 
-.dtb-product-page-shell .dtb-pdp-description-content p,
-.dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
-  max-width: 76ch;
-  color: #34445c;
-  font-size: 1rem;
-  line-height: 1.72;
+/*
+ * Product narrative before secondary headings/features. These declarations are
+ * deliberately more specific than legacy rich-description typography so the
+ * first paragraph cannot fall back to a smaller historical style.
+ */
+.dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p,
+.dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p,
+.dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card > p,
+.dtb-product-page-shell .dtb-pdp-description-lead {
+  width: 100%;
+  max-width: 70ch;
+  margin: 0;
+  color: #334155;
+  font-size: clamp(1.04rem, .25vw + 1rem, 1.1rem) !important;
+  font-weight: 430;
+  line-height: 1.76 !important;
+  letter-spacing: -.008em;
+  text-wrap: pretty;
 }
 
-.dtb-product-page-shell .dtb-pdp-description-content p + p,
-.dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
-  margin-top: .85rem;
+.dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p,
+.dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p + p,
+.dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card + .dtb-pdp-description-card {
+  margin-top: 1rem;
+}
+
+/* Generic paragraph fallback for rich content outside the narrative lead. */
+.dtb-product-page-shell .dtb-pdp-description-content p {
+  max-width: 70ch;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 /* Remove legacy decorative heading chrome, including the blue Features square. */
@@ -68,22 +91,22 @@
  * separates it from the Overview.
  */
 .dtb-product-page-shell .dtb-pdp-description-content :is(h2, h3, h4) {
-  max-width: 76ch;
-  margin: 1.6rem 0 .55rem;
-  padding: 1.15rem 0 0;
+  max-width: 70ch;
+  margin: 1.9rem 0 .65rem;
+  padding: 1.35rem 0 0;
   border-top: 1px solid #e7ebf1;
-  color: #101828;
-  font-size: 1rem;
+  color: #111827;
+  font-size: 1.02rem;
   font-weight: 740;
   line-height: 1.4;
-  letter-spacing: -.012em;
+  letter-spacing: -.015em;
 }
 
 /* Flatten legacy feature grids/cards emitted by stored rich descriptions. */
 .dtb-product-page-shell .dtb-pdp-description-content--rich [class*="feature"],
 .dtb-product-page-shell .dtb-pdp-description-content--rich [class*="Feature"] {
   width: 100% !important;
-  max-width: 76ch !important;
+  max-width: 70ch !important;
   display: block !important;
   grid-template-columns: none !important;
   gap: 0 !important;
@@ -122,17 +145,17 @@
  * rows. Labels stay semibold; descriptions remain ordinary reading copy.
  */
 .dtb-product-page-shell .dtb-pdp-description-content--rich :is(ul, ol) {
-  max-width: 76ch;
-  margin: .4rem 0 0;
+  max-width: 70ch;
+  margin: .45rem 0 0;
   padding: 0;
   list-style: none;
 }
 
 .dtb-product-page-shell .dtb-pdp-description-content--rich li {
   display: block;
-  padding: .48rem 0;
+  padding: .5rem 0;
   border: 0;
-  color: #34445c;
+  color: #475569;
   font-size: .96rem;
   line-height: 1.58;
 }
@@ -154,24 +177,31 @@
   [class*="grid"],
   [class*="Grid"]
 ) {
-  max-width: 76ch;
+  max-width: 70ch;
   grid-template-columns: none !important;
   column-gap: 0 !important;
 }
 
 @media (max-width: 47.99rem) {
   .dtb-product-page-shell .dtb-pdp-overview__editorial {
-    padding: 1.25rem 0;
+    padding: 1.35rem 0;
   }
 
   .dtb-product-page-shell .dtb-pdp-overview__title {
-    font-size: 1.16rem;
+    margin-bottom: .9rem;
+    font-size: 1.2rem;
   }
 
-  .dtb-product-page-shell .dtb-pdp-description-content p,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p,
+  .dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p,
+  .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card > p,
+  .dtb-product-page-shell .dtb-pdp-description-lead {
+    font-size: 1rem !important;
+    line-height: 1.68 !important;
+  }
+
   .dtb-product-page-shell .dtb-pdp-description-content--rich li {
     font-size: .94rem;
-    line-height: 1.64;
+    line-height: 1.6;
   }
 }
