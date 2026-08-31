@@ -136,7 +136,7 @@ export default function SettingsTab({ user }) {
       <form className="account-settings__card account-settings__card--profile" onSubmit={handleProfileSubmit}>
         <header className="account-settings__card-header">
           <span className="is-blue"><User size={18} /></span>
-          <div><h2>Profile</h2><p>Your account and customer contact information.</p></div>
+          <div><h2>Profile</h2><p>Account and contact information.</p></div>
         </header>
         <div className="account-settings__fields">
           <label>First name<input value={profile.first_name} onChange={(e) => setProfile({ ...profile, first_name: e.target.value })} autoComplete="given-name" /></label>
@@ -170,7 +170,7 @@ export default function SettingsTab({ user }) {
       <form className="account-settings__card" onSubmit={handlePasswordSubmit}>
         <header className="account-settings__card-header">
           <span className="is-amber"><Lock size={18} /></span>
-          <div><h2>Password</h2><p>Changing your password securely signs out existing sessions.</p></div>
+          <div><h2>Password</h2><p>Update your account password.</p></div>
         </header>
         <div className="account-settings__fields">
           <label className="is-wide">Current password<input type="password" required value={passwords.current} onChange={(e) => setPasswords({ ...passwords, current: e.target.value })} autoComplete="current-password" /></label>
