@@ -73,7 +73,7 @@ export default function Home() {
       <SEOHead
         title="Drywall Toolbox"
         noSuffix
-        description="Top trusted one-stop shop for professional drywall tools. Get production-grade tools and parts at unbeatable prices with lightning-fast shipping."
+        description="Professional drywall tools, replacement parts, repair services, and tool schematics from leading drywall finishing brands."
         canonical="/"
         schema={[buildOrganizationSchema(), buildSiteLinksSearchBoxSchema()]}
       />
@@ -84,7 +84,7 @@ export default function Home() {
         <div className="dtb-home-storefront">
           <div className="dtb-container dtb-container--fluid pb-4">
 
-            {/* ── Trending / Featured Products (brand-balanced) ── */}
+            {/* ── Featured Products (brand-balanced) ── */}
             <TrendingProducts />
 
             {/* ── New Arrivals ── */}
