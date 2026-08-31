@@ -83,7 +83,7 @@ export default function FAQ() {
     <div style={{ minHeight: '100vh' }} className="page-wrapper">
       <SEOHead
         title="FAQ — Drywall Tool Repair & Maintenance"
-        description="Answers to common questions about drywall tool repair services, pricing, warranties, maintenance, parts, accounts, and shipping."
+        description="Answers about orders, shipping, returns, repairs, maintenance, and accounts."
         canonical="/faq"
       />
 
@@ -97,7 +97,7 @@ export default function FAQ() {
             Frequently Asked<br /><span style={{ color: '#93c5fd' }}>Questions</span>
           </h1>
           <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 'clamp(0.95rem, 2vw, 1.1rem)', margin: '0 auto', lineHeight: 1.6, maxWidth: '520px' }}>
-            Everything you need to know about repair services, pricing, warranties, tool maintenance, parts ordering, accounts, and shipping.
+            Find answers about orders, returns, repairs, maintenance, accounts, and shipping.
           </p>
         </div>
       </section>
