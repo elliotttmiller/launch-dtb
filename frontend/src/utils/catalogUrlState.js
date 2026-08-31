@@ -179,14 +179,17 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
 }
 
 /**
- * Serialize a CatalogQuery into a URL string.
+ * Serialize a CatalogQuery into a URL string while preserving the owning
+ * catalog surface. Product routes use `/products`; Parts passes `/parts` as
+ * `basePath` so pagination/filter/search mutations cannot cross route domains.
  *
  * @param {Partial<typeof DEFAULT_QUERY>} query
- * @param {{ brandSlug?: string, categorySlug?: string, categoryPathSlug?: string }} [pathParams]
+ * @param {{ brandSlug?: string, categorySlug?: string, categoryPathSlug?: string, basePath?: '/products'|'/parts' }} [pathParams]
  * @returns {string}
  */
 export function buildCatalogUrl(query, pathParams = {}) {
   const params = new URLSearchParams();
+  const basePath = pathParams.basePath === '/parts' ? '/parts' : '/products';
 
   if (!pathParams.brandSlug && query.brands && query.brands.length > 0) {
     params.set('brand', query.brands.map((b) => brandToSlug(b)).join(','));
@@ -219,7 +222,7 @@ export function buildCatalogUrl(query, pathParams = {}) {
   if (pathParams.brandSlug) {
     return `/products/brands/${pathParams.brandSlug}${qs}`;
   }
-  return `/products${qs}`;
+  return `${basePath}${qs}`;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
