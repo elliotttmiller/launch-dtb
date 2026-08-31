@@ -33,7 +33,11 @@ export default function ProductDetailTabs({
     { key: 'reviews', label: 'Reviews' },
   ];
 
-  const activeTabConfig = tabs.find((tab) => tab.key === activeTab) || tabs[0];
+  // `includes` was the legacy tool-set tab key. Tool-set composition now lives
+  // exclusively in Specifications, so normalize any stale caller state to the
+  // canonical Specifications tab until all legacy callers are removed.
+  const resolvedActiveTab = activeTab === 'includes' ? 'specs' : activeTab;
+  const activeTabConfig = tabs.find((tab) => tab.key === resolvedActiveTab) || tabs[0];
 
   const overviewNode = (
     <div className="dtb-pdp-overview">
@@ -87,9 +91,9 @@ export default function ProductDetailTabs({
             role="tab"
             id={`product-tab-${tab.key}`}
             aria-controls={`product-tabpanel-${tab.key}`}
-            aria-selected={activeTab === tab.key}
-            tabIndex={activeTab === tab.key ? 0 : -1}
-            className={`dtb-pdp-tabs__tab ${activeTab === tab.key ? 'is-active' : ''}`}
+            aria-selected={resolvedActiveTab === tab.key}
+            tabIndex={resolvedActiveTab === tab.key ? 0 : -1}
+            className={`dtb-pdp-tabs__tab ${resolvedActiveTab === tab.key ? 'is-active' : ''}`}
           >
             {tab.label}
           </button>
