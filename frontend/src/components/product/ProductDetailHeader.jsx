@@ -8,6 +8,20 @@ function getProductUrl(product) {
   return id ? `/product/${encodeURIComponent(id)}` : '';
 }
 
+function toPlainSummary(value = '') {
+  const compact = String(value || '')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;|&apos;/gi, "'")
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return compact;
+}
+
 export default function ProductDetailHeader({
   product,
   productUrl: productUrlOverride,
@@ -26,6 +40,7 @@ export default function ProductDetailHeader({
 }) {
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
+  const summary = toPlainSummary(product?.short_description || product?.shortDescription || '');
   const compareAtValue = Number.parseFloat(compareAt);
   const rawPriceValue = Number.parseFloat(rawPrice);
   const showCompareAt = Number.isFinite(compareAtValue)
@@ -83,6 +98,8 @@ export default function ProductDetailHeader({
           ) : null}
         </div>
       </div>
+
+      {summary ? <p className="dtb-pdp-header__summary">{summary}</p> : null}
     </header>
   );
 }
