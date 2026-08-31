@@ -174,6 +174,7 @@ export default function ShippingPolicy() {
               <div key={row.service} className="store-policy-table__row store-policy-table--rates">
                 <div className="store-policy-table__cell store-policy-table__cell--label">{row.service}</div>
                 <div className="store-policy-table__cell">{row.carrier}</div>
+                <div className="store-policy-table__cell">{row.transit}</div>
                 <div className={`store-policy-table__cell${row.highlight ? ' store-policy-table__cell--highlight' : ''}`}>
                   {row.price}
                 </div>
