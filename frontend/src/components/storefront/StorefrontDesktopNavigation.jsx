@@ -16,20 +16,12 @@ import {
   Award,
 } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
-import '../../styles/storefront-desktop-navigation-integrity.css';
 import '../../styles/storefront-navigation-taxonomy.css';
-import '../../styles/storefront-desktop-navigation-megamenu.css';
 
 const RESILIENT_DROPDOWN_IDS = new Set(['products', 'brands', 'parts', 'repairs', 'schematics']);
 const POINTER_CLOSE_DELAY_MS = 160;
 
-// Deterministic, label-derived icon selection. These are generic category
-// placeholders (no per-product-line icon asset exists in the codebase yet) —
-// see report notes for follow-up if brand/category-specific art is desired.
 const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Settings2, ShoppingBag, Award];
-// Every dropdown now uses the same borderless editorial thumbnail treatment
-// (see MegaMenuThumb below), so there's only one icon-size variant — sized
-// for the ~86px thumbnail region.
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
   <Icon key={index} size={30} strokeWidth={1.6} />
 ));
@@ -43,15 +35,6 @@ function pickEntryIconIndex(label) {
   return hash % ENTRY_ICONS.length;
 }
 
-// Unified borderless "editorial" thumbnail — used by every dropdown now
-// (All Products category rows, Brands/Parts/Schematics brand logo rows).
-// No bordered/backgrounded icon box anywhere: a bare, contain-fit image
-// floating directly on white, or a bare fallback icon (no box) if there's
-// no image. Brand logos get a wide/short region (wordmark aspect ratio);
-// category/product thumbnails get a squarer region. Falls back to the
-// generic icon (not the raw browser broken-image glyph) if the image URL
-// 404s at runtime — mirrors the onError-fallback pattern already used by
-// ProductsCategorySelector.jsx/ProductCardImage.jsx for the same assets.
 function MegaMenuThumb({ label, logo, thumbnail }) {
   const [imageFailed, setImageFailed] = useState(false);
   const imageSrc = logo || thumbnail;
