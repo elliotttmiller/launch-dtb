@@ -76,7 +76,7 @@ export default function ForgotPassword() {
         aria-labelledby="recover-password-title"
       >
         <header className="dtb-auth-template__header">
-          <h1 id="recover-password-title" className="dtb-auth-template__title">Recover Password</h1>
+          <h1 id="recover-password-title" className="dtb-auth-template__title">Reset your password</h1>
           <p className="dtb-auth-template__subtitle">Enter your email to receive a reset link</p>
         </header>
 
@@ -87,7 +87,7 @@ export default function ForgotPassword() {
               <div>
                 <strong>Check your inbox</strong>
                 <p>
-                  If <b>{email}</b> is registered, a secure password reset link is on its way.
+                  If an account exists for <b>{email}</b>, we sent a password reset link.
                 </p>
               </div>
             </div>
