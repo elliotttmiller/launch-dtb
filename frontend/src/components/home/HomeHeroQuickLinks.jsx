@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 const QUICK_LINKS = [
-  { id: 'repairs', label: 'Repairs', description: 'Expert service', to: '/repairs', Icon: Wrench },
+  { id: 'repairs', label: 'Repairs', description: 'Tool repair', to: '/repairs', Icon: Wrench },
   { id: 'products', label: 'Products', description: 'Full catalog', to: '/all-products', Icon: Package },
   { id: 'parts', label: 'Parts', description: 'Replacement parts', to: '/parts', Icon: Settings },
   { id: 'schematics', label: 'Schematics', description: 'Tool diagrams', to: '/schematics', Icon: FileChartColumn },
