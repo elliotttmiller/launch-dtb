@@ -82,7 +82,7 @@ export default function SupportTicketsTab() {
             </div>
             <div>
               <span style={{ display: 'block', fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>Support Tickets</span>
-              <span style={{ display: 'block', marginTop: '1px', fontSize: '0.72rem', color: 'rgba(15,23,42,0.48)' }}>Review conversations, status updates, and replies from our support team.</span>
+              <span style={{ display: 'block', marginTop: '1px', fontSize: '0.72rem', color: 'rgba(15,23,42,0.48)' }}>View support conversations and status.</span>
             </div>
           </div>
           <Link to="/contact" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', fontSize: '0.78rem', fontWeight: 700, color: '#f97316' }}>
