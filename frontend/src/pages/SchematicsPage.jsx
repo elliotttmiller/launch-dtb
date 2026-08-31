@@ -59,7 +59,7 @@ function SchematicsPageInner() {
     <div className={`dtb-schematics-page${isViewer ? ' dtb-schematics-page--viewer' : ''}`}>
       <SEOHead
         title="Tool Schematics & Diagrams"
-        description="Interactive exploded-view schematics and part diagrams for professional drywall finishing tools. Find replacement parts for TapeTech, Columbia, and more."
+        description="Browse exploded-view schematics and parts diagrams for professional drywall finishing tools, then identify the replacement parts you need."
         canonical="/schematics"
         schema={buildBreadcrumbSchema([
           { label: 'Home', path: '/' },
@@ -69,10 +69,10 @@ function SchematicsPageInner() {
 
       {routeState.view === 'catalog' && !routeState.brandId && (
         <PageHeroBanner
-          eyebrow="Exploded-View Library"
+          eyebrow="Parts & Schematics"
           title="Tool Schematics"
-          highlight="Find Parts With Confidence."
-          description="Browse brand schematics, drill into tool diagrams, and source exact replacement components from one streamlined parts workflow."
+          highlight="Identify the Right Part."
+          description="Choose a brand and tool to view exploded diagrams, identify components, and continue to matching replacement parts when available."
           align="left"
         />
       )}
