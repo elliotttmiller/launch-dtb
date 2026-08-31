@@ -69,7 +69,6 @@ const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
 const DRAWER_NAV_ROWS = [
   { to: '/products?sort=newest', label: 'New Arrivals' },
   // { to: '/toolset-builder', label: 'Toolset Builder' }, // DISABLED: temporarily hide Toolset Builder
-  { to: '/repairs', label: 'Repairs' },
   { to: '/calculators', label: 'Calculators' },
   { to: '/faq', label: 'FAQ' },
   { to: '/contact', label: 'Contact' },
@@ -179,6 +178,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const [expandedProductGroupKey, setExpandedProductGroupKey] = useState(null);
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [partsExpanded, setPartsExpanded] = useState(false);
+  const [repairsExpanded, setRepairsExpanded] = useState(false);
   const [schematicsExpanded, setSchematicsExpanded] = useState(false);
   const [desktopNavOpen, setDesktopNavOpen] = useState(null);
   const [, setAccountDropdownOpen] = useState(false);
@@ -207,6 +207,12 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const isActive = (path) => location.pathname === path;
   const drawerBrands = useMemo(() => mapCatalogBrands(facets?.brands), [facets]);
   const partsBrands = useMemo(() => mapCatalogBrands(partsFacets?.brands), [partsFacets]);
+  const repairPackageGroups = useMemo(() => getRepairPackageGroups().filter(({ id }) => id !== 'diagnostic'), []);
+  const drawerRepairPackages = useMemo(() => repairPackageGroups.map(({ id, label }) => ({
+    id,
+    label,
+    to: `/repairs/packages?tool=${encodeURIComponent(id)}`,
+  })), [repairPackageGroups]);
   const drawerCategoryLinks = useMemo(() => {
     const displayCategories = mergeCatalogDisplayCategories(facets?.displayCategoriesByBrand || {})
       .filter((category) => category?.slug)
@@ -328,18 +334,13 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       heading: 'Get your tools back in the field, fast.',
       size: 'wide',
       columns: 2,
-      // Repair Services rows show only bold title + description + chevron,
-      // no icon box — explicitly requested, distinct from every other
-      // dropdown (All Products/Brands/Parts/Schematics all keep icons).
       hideIcon: true,
       activePrefixes: ['/repairs'],
-      items: getRepairPackageGroups()
-        .filter(({ id }) => id !== 'diagnostic')
-        .map(({ id, label }) => ({
-          label,
-          to: `/repairs/packages?tool=${encodeURIComponent(id)}`,
-          description: `View ${label} repair packages`,
-        })),
+      items: repairPackageGroups.map(({ id, label }) => ({
+        label,
+        to: `/repairs/packages?tool=${encodeURIComponent(id)}`,
+        description: `View ${label} repair packages`,
+      })),
     },
     {
       id: 'schematics',
@@ -373,7 +374,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       activePrefixes: ['/contact'],
       items: [],
     },
-  ], [drawerBrands, partsBrands]);
+  ], [drawerBrands, partsBrands, repairPackageGroups]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeMenus = () => {
@@ -431,6 +432,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
     setExpandedProductGroupKey(null);
     setBrandsExpanded(false);
     setPartsExpanded(false);
+    setRepairsExpanded(false);
     setSchematicsExpanded(false);
   }, []);
 
@@ -611,6 +613,8 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const handleDrawerSchematicsBrandNavigate = (slug) => closeDrawerAndNavigate(buildSchematicsBrandRoute(slug));
   const handleDrawerBrandsLanding = () => closeDrawerAndNavigate('/products/brands');
   const handleDrawerPartsLanding = () => closeDrawerAndNavigate('/parts');
+  const handleDrawerRepairsLanding = () => closeDrawerAndNavigate('/repairs');
+  const handleDrawerRepairPackageNavigate = (repairPackage) => closeDrawerAndNavigate(repairPackage.to);
   const handleDrawerSchematicsLanding = () => closeDrawerAndNavigate('/schematics');
   const handleDrawerProductsLanding = () => closeDrawerAndNavigate('/products');
   const handleDrawerProductCategoryNavigate = (to) => closeDrawerAndNavigate(to);
@@ -889,6 +893,15 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             onLanding: handleDrawerPartsLanding,
             items: partsBrands,
             onBrandNavigate: handleDrawerPartsBrandNavigate,
+          })}
+          {renderDrawerListSection({
+            id: 'repairs',
+            label: 'Repair Services',
+            expanded: repairsExpanded,
+            onToggle: () => setRepairsExpanded((open) => !open),
+            onLanding: handleDrawerRepairsLanding,
+            items: drawerRepairPackages,
+            onItemNavigate: handleDrawerRepairPackageNavigate,
           })}
           {renderDrawerBrandSection({
             id: 'schematics',
