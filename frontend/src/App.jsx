@@ -135,7 +135,10 @@ function ScrollToTop() {
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
-    const routeKey = `${location.pathname}${location.search}${location.hash}`;
+    // Query parameters represent in-page state on routes such as repair
+    // package tabs and catalog filters. Only a document route or hash change
+    // should reset the viewport.
+    const routeKey = `${location.pathname}${location.hash}`;
     if (lastRouteRef.current === routeKey) return undefined;
     lastRouteRef.current = routeKey;
 
@@ -186,7 +189,7 @@ function ScrollToTop() {
       frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
       timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
     };
-  }, [location.pathname, location.search, location.hash, location.key]);
+  }, [location.pathname, location.hash]);
 
   return null;
 }
@@ -289,7 +292,7 @@ function AppRoutes() {
   if (location.pathname === '/checkout') return routes;
 
   return (
-    <PageTransition locationKey={`${location.pathname}${location.search}`}>
+    <PageTransition locationKey={location.pathname}>
       {routes}
     </PageTransition>
   );

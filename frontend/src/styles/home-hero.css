@@ -219,7 +219,37 @@
   transition: color 250ms, transform 160ms ease, box-shadow 160ms ease;
 }
 
-.home-hero__button:where(:hover, :focus) { color: #fff; }
+/* Preserve the existing CTA component and silhouette while replacing its
+   cutout collapse with a sleek, left-to-right gradient reveal. */
+.home-hero__button::after {
+  z-index: -2;
+  background: var(--bg);
+  clip-path: none;
+  transition: none;
+}
+
+.home-hero__button::before {
+  z-index: -1;
+  background: linear-gradient(
+    82.3deg,
+    var(--color-primary-400, #60a5fa) 10.8%,
+    var(--color-primary-700, #1945d8) 94.3%
+  );
+  background-size: auto;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: none;
+  transition: transform 475ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-hero__button-label,
+.home-hero__button-icon {
+  position: relative;
+  z-index: 1;
+}
+
+.home-hero__button:where(:hover, :focus-visible)::before { transform: scaleX(1); }
+.home-hero__button:where(:hover, :focus-visible) { color: #fff; }
 
 .home-hero__button:active { transform: translateY(1px) scale(0.98); }
 
@@ -239,7 +269,7 @@
   box-shadow: 0 8px 18px rgba(2, 6, 23, 0.34);
 }
 
-.home-hero__button--secondary:where(:hover, :focus) { color: var(--color-primary-700, #1945d8); }
+.home-hero__button--secondary:where(:hover, :focus-visible) { color: #fff; }
 .home-hero-nav__item:focus-visible,
 .home-hero-brands__link:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
 
@@ -806,6 +836,10 @@
     color: var(--color);
   }
 
+  .home-hero__button:where(:hover, :focus)::before {
+    transform: scaleX(0);
+  }
+
   .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon {
     color: var(--home-hero-blue);
   }
@@ -830,6 +864,7 @@
   .home-hero__button::before,
   .home-hero-nav__item::before { animation: none; }
   .home-hero__button,
+  .home-hero__button::before,
   .home-hero__button::after,
   .home-hero__button-icon,
   .home-hero-nav__item::after,
