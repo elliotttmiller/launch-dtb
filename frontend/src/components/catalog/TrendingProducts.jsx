@@ -87,7 +87,7 @@ export default function TrendingProducts() {
       setProducts(balancedSelection.slice(0, 16));
       setLoading(false);
     }).catch((err) => {
-      console.error('Error fetching trending products:', err);
+      console.error('Error fetching featured products:', err);
       if (mounted) setLoading(false);
     });
 
@@ -97,13 +97,13 @@ export default function TrendingProducts() {
   if (!loading && products.length === 0) return null;
 
   return (
-    <StorefrontSection eyebrow="Featured" title="Trending Products" viewAllHref="/products?sort=popular">
+    <StorefrontSection eyebrow="Shop Tools" title="Featured Products" viewAllHref="/products">
       <LoadingCardTransition
         loading={loading}
         skeleton={<StorefrontSkeletons count={4} variant="rail" />}
-        label="Loading trending products"
+        label="Loading featured products"
       >
-        <StorefrontRail label="Trending products" className="storefront-rail--fixed-tiles storefront-rail--equal-height">
+        <StorefrontRail label="Featured products" className="storefront-rail--fixed-tiles storefront-rail--equal-height">
           {products.map((product, index) => {
             const cardProduct = product.cardProduct || product;
 
