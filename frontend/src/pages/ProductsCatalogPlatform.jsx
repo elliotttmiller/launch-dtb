@@ -48,7 +48,7 @@ const DISPLAY_CATEGORY_LABELS = {
   smoothing_blades:      'Smoothing Blades',
   toolsets:              'Tool Sets & Kits',
   parts:                 'Parts',
-  stilts:                'Stilts',
+  stilts:                 'Stilts',
   semi_automatic_tapers: 'Semi-Automatic Tapers',
   predator_family:       'Predator Family',
 };
@@ -278,7 +278,11 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
-  const pathParams = useMemo(() => ({ brandSlug, categorySlug, categoryPathSlug }), [brandSlug, categorySlug, categoryPathSlug]);
+  const isPartsPage = isPartsFilter === 1;
+  const pathParams = useMemo(
+    () => ({ brandSlug, categorySlug, categoryPathSlug, basePath: isPartsPage ? '/parts' : '/products' }),
+    [brandSlug, categorySlug, categoryPathSlug, isPartsPage],
+  );
   const isCategoryPageRoute = Boolean(categoryPathSlug);
   const query = useMemo(() => parseCatalogQuery(new URLSearchParams(location.search), pathParams), [location.search, pathParams]);
   const selectedBrand = query.brands?.[0] || '';
@@ -358,7 +362,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     ? `${categoryScopeLabel ? `${categoryScopeLabel} ` : ''}${selectedCategoryLabel}`
     : title;
   const isCategoryProductRoute = Boolean(selectedCategoryLabel);
-  const isPartsPage = isPartsFilter === 1;
   const page = Number(pagination?.page || query.page || 1);
   const totalPages = Math.max(1, Number(pagination?.totalPages || 1));
   const total = Number(pagination?.total || mappedProducts.length || 0);
