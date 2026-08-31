@@ -7,15 +7,15 @@ export default function Calculators() {
     <>
       <SEOHead
         title="Drywall Calculators — Sheets, Tape, Corner Bead & Screws"
-        description="Free professional drywall calculators. Instantly estimate sheets, joint tape, corner bead sections, and screw boxes for any room. Trade-accurate, mobile-first."
+        description="Drywall calculators for estimating sheets, tape, compound, corner bead, and screws for project planning."
         canonical="/calculators"
       />
       <div className="page-wrapper">
         <PageHeroBanner
-          eyebrow="Pro Estimation Suite"
+          eyebrow="Project Estimating"
           title="Drywall Calculators"
-          highlight="Fast. Accurate. Field-Ready."
-          description="Estimate sheets, tape, compound, corner bead, and screws with trade-ready calculations built for real jobsite planning."
+          highlight="Plan Materials Faster."
+          description="Estimate common drywall materials for project planning."
           align="center"
         />
         <CalculatorHub />
