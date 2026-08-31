@@ -18,6 +18,7 @@ import {
   Truck,
   Wrench,
 } from 'lucide-react';
+import { getDropdownHero } from '../../utils/dropdownHeroAssets.js';
 import '../../styles/storefront-desktop-navigation.css';
 import '../../styles/storefront-navigation-taxonomy.css';
 
@@ -86,7 +87,7 @@ function MegaMenuThumb({ label, logo, thumbnail }) {
 }
 
 function MegaMenuHero({ item, onNavigate }) {
-  const heroImage = item.heroImage || item.heroMedia || '';
+  const heroImage = item.heroImage || item.heroMedia || getDropdownHero(item.id);
   const eyebrow = item.eyebrow || (item.id === 'products' ? 'Our Products' : item.label);
   const ctaLabel = item.heroCtaLabel || item.landingLabel || `View all ${String(item.label || '').toLowerCase()}`;
 
