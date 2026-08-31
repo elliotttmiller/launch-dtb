@@ -99,7 +99,6 @@ function ProductCard({ entry, onNavigate }) {
       to={entry.to}
       className="dtb-mega-menu__product-card"
       onClick={onNavigate}
-      style={{ minHeight: '104px', paddingBlock: '10px' }}
     >
       <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
       <span className="dtb-desktop-nav-row-text">
@@ -302,7 +301,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
           }
         }}
       >
-        <div className="dtb-desktop-nav-dropdown__scroller" style={{ padding: 0 }}>
+        <div className="dtb-desktop-nav-dropdown__scroller">
           <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
         </div>
       </section>
