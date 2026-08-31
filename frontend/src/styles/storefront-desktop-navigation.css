@@ -1,6 +1,34 @@
+/*
+ * Drywall Toolbox desktop navigation + mega menu
+ *
+ * SINGLE DESKTOP AUTHORITY
+ * ------------------------
+ * This file is the only stylesheet allowed to style the desktop primary
+ * navigation tabs and the five desktop mega-menu surfaces:
+ *   products, brands, parts, repairs, schematics.
+ *
+ * Mobile drawer/taxonomy styling remains isolated in
+ * storefront-navigation-taxonomy.css. Do not add downstream desktop mega-menu
+ * overrides; change this file instead.
+ */
+
 @media (min-width: 1025px) {
+  /* ------------------------------------------------------------------
+   * Header geometry
+   * ------------------------------------------------------------------ */
   .site-header {
+    isolation: isolate;
+    z-index: 10020;
     min-height: 98px;
+  }
+
+  .site-header,
+  .site-header .site-header-inner,
+  .site-header .header-desktop-layout,
+  .site-header .header-desktop-nav-row,
+  .site-header .dtb-desktop-nav,
+  .site-header .dtb-desktop-nav-menu {
+    overflow: visible !important;
   }
 
   .site-header .site-header-inner {
@@ -42,13 +70,13 @@
   .site-header .header-center--desktop-search {
     grid-column: 2 / 4;
     grid-row: 1;
+    z-index: 2;
     display: flex;
     justify-content: flex-end;
     width: 100%;
     min-width: 0;
     justify-self: stretch;
     pointer-events: none;
-    z-index: 2;
   }
 
   .site-header .dtb-desktop-search--header {
@@ -100,408 +128,837 @@
     grid-column: 2;
     grid-row: 1;
     position: relative;
+    z-index: 10025;
     display: flex;
     align-items: center;
+    width: 100%;
     min-width: 0;
     height: 100%;
-    width: 100%;
     padding: 0;
     border: 0;
     opacity: 1;
     visibility: visible;
-    transition:
-      opacity 190ms ease,
-      visibility 0s linear 0s;
+    transition: opacity 190ms ease, visibility 0s linear 0s;
   }
 
   .site-header .header-desktop-layout.is-desktop-search-open .header-desktop-nav-row {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition:
-      opacity 150ms ease,
-      visibility 0s linear 150ms;
+    transition: opacity 150ms ease, visibility 0s linear 150ms;
   }
 
-  .dtb-desktop-nav {
+  /* ------------------------------------------------------------------
+   * Primary desktop navigation tabs
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav {
+    position: relative;
+    z-index: 10025;
     display: flex;
     align-items: stretch;
     justify-content: flex-start;
-    gap: clamp(0px, 0.18vw, var(--dtb-space-1));
+    gap: clamp(0px, 0.2vw, var(--dtb-space-1));
     width: 100%;
     height: 100%;
   }
 
-  .dtb-desktop-nav-menu {
+  .site-header .dtb-desktop-nav-menu {
     position: relative;
+    z-index: 10025;
     display: flex;
     align-items: stretch;
     height: 100%;
   }
 
-  .dtb-desktop-nav-tab {
+  .site-header .dtb-desktop-nav-tab {
     position: relative;
+    z-index: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--dtb-space-1);
+    min-width: max-content;
     min-height: 100%;
     padding: 0 clamp(var(--dtb-space-1), 0.62vw, var(--dtb-space-3));
     border: 0;
-    border-radius: 0;
     background: transparent;
     color: #fff;
     font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
     font-size: clamp(0.85rem, 0.76vw, 0.95rem);
-    font-weight: 600;
+    font-weight: 650;
     line-height: 1;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.012em;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
     isolation: isolate;
-    overflow: hidden;
-    transition:
-      color 240ms cubic-bezier(0.22, 1, 0.36, 1),
-      text-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /*
-   * The active surface is a compact glass pill with a cool blue edge. It
-   * replaces the former text underline without changing header geometry.
-   */
-  .dtb-desktop-nav-tab::before {
+  .site-header .dtb-desktop-nav-tab::before {
     content: "";
     position: absolute;
     top: 50%;
     right: 2px;
     left: 2px;
-    height: 38px;
     z-index: 0;
+    height: 40px;
     border: 1px solid transparent;
-    border-radius: 11px;
-    background:
-      linear-gradient(135deg, rgba(255, 255, 255, 0.105), rgba(37, 99, 235, 0.12)) padding-box,
-      linear-gradient(120deg, rgba(255, 255, 255, 0.24), rgba(96, 165, 250, 0.34), rgba(255, 255, 255, 0.08)) border-box;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 8px 24px rgba(2, 6, 23, 0.16),
-      0 0 0 1px rgba(37, 99, 235, 0.04);
-    opacity: 0;
-    transform: translateY(-50%) scale(0.9);
-    transition:
-      opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
-      transform 360ms var(--dtb-ease-emphasized),
-      box-shadow 280ms cubic-bezier(0.22, 1, 0.36, 1);
-    pointer-events: none;
-  }
-
-  /*
-   * A quick diagonal light sweep gives pointer and open-menu interactions a
-   * polished response while remaining visually quieter than an underline.
-   */
-  .dtb-desktop-nav-tab::after {
-    content: "";
-    position: absolute;
-    z-index: 0;
-    top: 50%;
-    left: -46%;
-    width: 34%;
-    height: 38px;
     border-radius: 999px;
-    background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: var(--dtb-primary, #1457f5);
+    box-shadow: 0 8px 24px rgba(20, 87, 245, 0.2);
     opacity: 0;
-    transform: translate3d(0, -50%, 0) skewX(-14deg);
-    transition:
-      left 560ms var(--dtb-ease-emphasized),
-      opacity 180ms ease;
+    transform: translateY(-50%) scale(0.94);
+    transition: opacity 160ms ease, transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
     pointer-events: none;
   }
 
-  .dtb-desktop-nav-tab__label {
+  .site-header .dtb-desktop-nav-tab::after {
+    display: none;
+  }
+
+  .site-header .dtb-desktop-nav-tab__label,
+  .site-header .dtb-desktop-nav-tab svg {
     position: relative;
     z-index: 1;
-    display: inline-block;
   }
 
-  .dtb-desktop-nav-tab:hover,
-  .dtb-desktop-nav-tab:focus-visible,
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab {
-    background: transparent;
+  .site-header .dtb-desktop-nav-tab svg {
+    flex: 0 0 auto;
+    color: rgba(255, 255, 255, 0.82);
+    transition: transform 160ms ease, color 160ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-tab:hover,
+  .site-header .dtb-desktop-nav-tab:focus-visible,
+  .site-header .dtb-desktop-nav-tab.is-active,
+  .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab {
     color: #fff;
     outline: none;
-    text-shadow: 0 0 20px rgba(191, 219, 254, 0.2);
-    transform: translateY(-1px);
   }
 
-  .dtb-desktop-nav-tab:focus-visible {
-    box-shadow: 0 0 0 2px rgba(191, 219, 254, 0.88), 0 0 0 5px rgba(34, 85, 238, 0.24);
-  }
-
-  .dtb-desktop-nav-tab:hover::before,
-  .dtb-desktop-nav-tab:focus-visible::before,
-  .dtb-desktop-nav-tab.is-active::before,
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
+  .site-header .dtb-desktop-nav-tab:hover::before,
+  .site-header .dtb-desktop-nav-tab:focus-visible::before,
+  .site-header .dtb-desktop-nav-tab.is-active::before,
+  .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
     opacity: 1;
     transform: translateY(-50%) scale(1);
   }
 
-  .dtb-desktop-nav-tab:hover::after,
-  .dtb-desktop-nav-tab:focus-visible::after,
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::after {
-    left: 112%;
-    opacity: 1;
-  }
-
-  .dtb-desktop-nav-tab svg {
-    position: relative;
-    z-index: 1;
-    flex: 0 0 auto;
-    color: rgba(255, 255, 255, 0.78);
-    transition: transform 240ms var(--dtb-ease);
-  }
-
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab svg {
+  .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab svg {
     color: #fff;
     transform: rotate(180deg);
   }
 
-  .dtb-desktop-nav-dropdown {
+  .site-header .dtb-desktop-nav-tab:focus-visible {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 0 0 4px var(--dtb-primary, #1457f5);
+  }
+
+  /* Maintains a contiguous pointer path from tab to the viewport-centered sheet. */
+  .site-header .dtb-desktop-nav-menu.is-open::after {
+    content: "";
     position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
-    z-index: 10030;
+    top: 100%;
+    left: -10px;
+    z-index: 10035;
+    width: calc(100% + 20px);
+    height: 18px;
+    background: transparent;
+    pointer-events: auto;
+  }
+
+  /* ------------------------------------------------------------------
+   * Mega-menu surface — shared by all five approved desktop dropdowns
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown {
+    --mega-panel-width: 1120px;
+    --mega-panel-radius: 18px;
+    --mega-border: #dde5ef;
+    --mega-ink: #0b1630;
+    --mega-muted: #5f718d;
+    --mega-blue: var(--dtb-primary, #1457f5);
+    --mega-hover: #f7f9ff;
+
+    position: fixed;
+    top: calc(var(--header-height, 98px) + 10px);
+    left: 50%;
+    z-index: 10040;
     display: flex;
     flex-direction: column;
-    width: 360px;
-    max-height: min(480px, calc(100dvh - var(--header-height, 142px) - 18px));
+    width: min(var(--mega-panel-width), calc(100vw - 48px));
+    max-height: min(790px, calc(100dvh - var(--header-height, 98px) - 24px));
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 18px;
-    background:
-      linear-gradient(165deg, rgba(255, 255, 255, 0.06), transparent 40%),
-      linear-gradient(180deg, rgba(13, 26, 51, 0.78), rgba(6, 14, 30, 0.86));
-    backdrop-filter: blur(22px) saturate(150%);
-    -webkit-backdrop-filter: blur(22px) saturate(150%);
+    border: 1px solid var(--mega-border);
+    border-radius: var(--mega-panel-radius);
+    background: #fff;
     box-shadow:
-      0 24px 60px rgba(2, 6, 23, 0.32),
-      0 4px 16px rgba(2, 6, 23, 0.18),
-      inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      0 34px 90px rgba(2, 8, 23, 0.2),
+      0 10px 28px rgba(15, 23, 42, 0.09);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    filter: blur(6px);
-    transform: translateY(-6px) scale(0.97);
-    transform-origin: top left;
+    transform: translateX(-50%) translateY(-8px) scale(0.992);
+    transform-origin: top center;
     transition:
-      opacity 200ms var(--dtb-ease),
-      filter 240ms var(--dtb-ease),
-      transform 280ms var(--dtb-ease),
-      visibility 0s linear 240ms;
+      opacity 150ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 190ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 190ms;
   }
 
-  .dtb-desktop-nav-dropdown--wide {
-    width: min(560px, calc(100vw - 40px));
-  }
-
-  .dtb-desktop-nav-menu.is-open .dtb-desktop-nav-dropdown {
+  .site-header .dtb-desktop-nav-menu.is-open .dtb-desktop-nav-dropdown {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    filter: blur(0);
-    transform: translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) scale(1);
     transition-delay: 0s;
   }
 
-  .dtb-desktop-nav-dropdown__header {
-    padding: var(--dtb-space-4) var(--dtb-space-4) var(--dtb-space-3);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  .site-header .dtb-desktop-nav-dropdown--products {
+    --mega-panel-width: 1240px;
   }
 
-  .dtb-desktop-nav-dropdown__header p,
-  .dtb-desktop-nav-dropdown__header span {
-    margin: 0;
+  .site-header .dtb-desktop-nav-dropdown--brands {
+    --mega-panel-width: 1180px;
   }
 
-  .dtb-desktop-nav-dropdown__header p {
-    color: #fff;
-    font-size: 0.88rem;
-    font-weight: 800;
+  .site-header .dtb-desktop-nav-dropdown--parts {
+    --mega-panel-width: 1100px;
   }
 
-  .dtb-desktop-nav-dropdown__header span {
+  .site-header .dtb-desktop-nav-dropdown--repairs {
+    --mega-panel-width: 1060px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--schematics {
+    --mega-panel-width: 1100px;
+  }
+
+  /* ------------------------------------------------------------------
+   * Approved mockup hero/header language
+   * Existing markup uses the textual portion today; upcoming deliberate
+   * panel renderers can opt into __hero-media and __hero-cta without a
+   * second stylesheet.
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown__header,
+  .site-header .dtb-mega-menu__hero {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    min-height: 172px;
+    padding: 28px 40px 30px;
+    overflow: hidden;
+    border: 0;
+    border-bottom: 1px solid #e7ecf3;
+    background: #fff;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__eyebrow,
+  .site-header .dtb-mega-menu__eyebrow {
     display: block;
-    margin-top: var(--dtb-space-1);
-    color: rgba(203, 213, 225, 0.66);
-    font-size: 0.72rem;
+    margin: 0;
+    color: var(--mega-blue);
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__heading,
+  .site-header .dtb-mega-menu__heading {
+    max-width: 620px;
+    margin: 4px 0 0;
+    color: var(--mega-ink);
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: clamp(1.45rem, 1.7vw, 1.8rem);
+    font-weight: 780;
+    line-height: 1.14;
+    letter-spacing: -0.035em;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__subheading,
+  .site-header .dtb-mega-menu__description {
+    display: block;
+    max-width: 610px;
+    margin: 0;
+    color: var(--mega-muted);
+    font-family: var(--dtb-font-body, "Nunito", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.98rem;
+    line-height: 1.45;
+  }
+
+  .site-header .dtb-mega-menu__hero-copy {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    max-width: 55%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .site-header .dtb-mega-menu__hero-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 44px;
+    margin-top: 10px;
+    padding: 0 22px;
+    border-radius: 6px;
+    background: var(--mega-blue);
+    box-shadow: 0 7px 18px rgba(20, 87, 245, 0.2);
+    color: #fff;
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 750;
+    text-decoration: none;
+    transition: transform 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .site-header .dtb-mega-menu__hero-cta:hover,
+  .site-header .dtb-mega-menu__hero-cta:focus-visible {
+    background: #0d49d8;
+    box-shadow: 0 9px 24px rgba(20, 87, 245, 0.28);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .site-header .dtb-mega-menu__hero-media {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 50%;
+    pointer-events: none;
+  }
+
+  .site-header .dtb-mega-menu__hero-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: right center;
+  }
+
+  /* ------------------------------------------------------------------
+   * Generic content scroller
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown__scroller {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 28px 36px 34px;
+    background: #fff;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__links {
+    display: grid;
+    gap: 12px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__links.is-two-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  /* ------------------------------------------------------------------
+   * Brands / Parts / Schematics: bordered brand-card grid matching mocks
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown--brands .dtb-desktop-nav-dropdown__link,
+  .site-header .dtb-desktop-nav-dropdown--parts .dtb-desktop-nav-dropdown__link,
+  .site-header .dtb-desktop-nav-dropdown--schematics .dtb-desktop-nav-dropdown__link {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    min-width: 0;
+    min-height: 112px;
+    padding: 18px 26px;
+    border: 1px solid #dfe6ef;
+    border-radius: 12px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--brands .dtb-desktop-nav-dropdown__link:hover,
+  .site-header .dtb-desktop-nav-dropdown--brands .dtb-desktop-nav-dropdown__link:focus-visible,
+  .site-header .dtb-desktop-nav-dropdown--parts .dtb-desktop-nav-dropdown__link:hover,
+  .site-header .dtb-desktop-nav-dropdown--parts .dtb-desktop-nav-dropdown__link:focus-visible,
+  .site-header .dtb-desktop-nav-dropdown--schematics .dtb-desktop-nav-dropdown__link:hover,
+  .site-header .dtb-desktop-nav-dropdown--schematics .dtb-desktop-nav-dropdown__link:focus-visible {
+    border-color: #b9c9e3;
+    background: #fbfcff;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  /* ------------------------------------------------------------------
+   * Repair Services: editorial 2-column row matrix matching mock
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__scroller {
+    padding: 0 32px 28px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__links.is-two-column {
+    gap: 0;
+    position: relative;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__links.is-two-column::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background: #e7ecf3;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__link {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    min-height: 122px;
+    padding: 20px 30px;
+    border: 0;
+    border-bottom: 1px solid #e7ecf3;
+    border-radius: 0;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 150ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__link:nth-child(odd) {
+    padding-left: 10px;
+    padding-right: 34px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__link:nth-child(even) {
+    padding-left: 34px;
+    padding-right: 10px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__link:hover,
+  .site-header .dtb-desktop-nav-dropdown--repairs .dtb-desktop-nav-dropdown__link:focus-visible {
+    background: var(--mega-hover);
+    outline: none;
+  }
+
+  /* ------------------------------------------------------------------
+   * Shared row media/text
+   * ------------------------------------------------------------------ */
+  .dtb-desktop-nav-editorial-thumb {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 82px;
+    height: 82px;
+  }
+
+  .dtb-desktop-nav-editorial-thumb img {
+    width: auto;
+    height: auto;
+    max-width: 74px;
+    max-height: 74px;
+    object-fit: contain;
+  }
+
+  .dtb-desktop-nav-editorial-thumb--logo {
+    width: 158px;
+    height: 62px;
+  }
+
+  .dtb-desktop-nav-editorial-thumb--logo img {
+    max-width: 148px;
+    max-height: 54px;
+  }
+
+  .dtb-desktop-nav-editorial-thumb--fallback {
+    color: #8ea0b8;
+  }
+
+  .dtb-desktop-nav-row-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dtb-desktop-nav-row-title {
+    color: #10192d;
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 1rem;
+    font-weight: 720;
+    line-height: 1.25;
+    letter-spacing: -0.018em;
+  }
+
+  .dtb-desktop-nav-row-desc {
+    color: #687a96;
+    font-family: var(--dtb-font-body, "Nunito", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.88rem;
     line-height: 1.4;
   }
 
-  .dtb-desktop-nav-dropdown__scroller {
-    min-height: 0;
-    overflow-y: auto;
-    padding: var(--dtb-space-2);
-    scrollbar-width: none;
-    overscroll-behavior: contain;
-  }
-
-  .dtb-desktop-nav-dropdown__scroller::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-
-  .dtb-desktop-nav-dropdown__links {
-    display: grid;
-    gap: 3px;
-  }
-
-  .dtb-desktop-nav-dropdown__links.is-two-column {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 8px;
-  }
-
-  .dtb-desktop-nav-dropdown__link,
-  .dtb-desktop-nav-dropdown__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--dtb-space-2);
-    color: rgba(241, 245, 249, 0.94);
-    text-decoration: none;
-  }
-
-  .dtb-desktop-nav-dropdown__link {
-    min-width: 0;
-    min-height: 38px;
-    padding: var(--dtb-space-2) var(--dtb-space-2);
-    border-radius: 8px;
-    font-size: 0.78rem;
-    font-weight: 650;
-    line-height: 1.28;
-    transition: color 180ms var(--dtb-ease), background-color 180ms var(--dtb-ease), transform 220ms var(--dtb-ease);
-  }
-
-  .dtb-desktop-nav-dropdown__link span {
-    min-width: 0;
-  }
-
-  .dtb-desktop-nav-dropdown__link svg {
+  .dtb-desktop-nav-row-chevron {
     flex: 0 0 auto;
-    color: rgba(147, 197, 253, 0.55);
+    margin-left: auto;
+    color: #536987;
+    transition: color 140ms ease, transform 140ms ease;
   }
 
-  .dtb-desktop-nav-dropdown__link:hover,
-  .dtb-desktop-nav-dropdown__link:focus-visible {
-    background: rgba(34, 85, 238, 0.14);
-    color: #fff;
-    outline: none;
+  .dtb-desktop-nav-dropdown__link:hover .dtb-desktop-nav-row-chevron,
+  .dtb-desktop-nav-dropdown__link:focus-visible .dtb-desktop-nav-row-chevron {
+    color: var(--mega-blue);
     transform: translateX(2px);
   }
 
-  .dtb-desktop-nav-dropdown__footer {
-    flex: 0 0 auto;
-    min-height: 45px;
-    padding: var(--dtb-space-2) var(--dtb-space-4);
-    border-top: 1px solid rgba(96, 165, 250, 0.15);
-    background: rgba(34, 85, 238, 0.1);
-    color: #bfdbfe;
-    font-size: 0.76rem;
-    font-weight: 800;
-    transition: color 180ms var(--dtb-ease), background-color 180ms var(--dtb-ease);
+  /* ------------------------------------------------------------------
+   * Current Products taxonomy bridge. This remains visually coherent until
+   * the next refactor replaces the generic groups with the approved 4x3
+   * product-category renderer.
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown.has-taxonomy-groups {
+    display: flex;
+    flex-direction: column;
   }
 
-  .dtb-desktop-nav-dropdown__footer:hover,
-  .dtb-desktop-nav-dropdown__footer:focus-visible {
-    background: rgba(34, 85, 238, 0.2);
-    color: #fff;
+  .site-header .dtb-desktop-nav-dropdown.has-taxonomy-groups .dtb-desktop-nav-dropdown__scroller {
+    padding: 28px 44px 34px;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__links.has-taxonomy-groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 54px;
+    position: relative;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__links.has-taxonomy-groups::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 50%;
+    width: 1px;
+    background: #e7ecf3;
+  }
+
+  .dtb-desktop-nav-taxonomy-group {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+  }
+
+  .site-header .dtb-desktop-nav-taxonomy-group__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 38px;
+    margin: 0 0 10px;
+    padding: 0 4px 10px;
+    border-bottom: 1px solid #dfe6ef;
+    color: var(--mega-ink);
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.9rem;
+    font-weight: 780;
+    letter-spacing: 0.045em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .dtb-desktop-nav-taxonomy-group__children {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .site-header .dtb-desktop-nav-taxonomy-group__child {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-height: 96px;
+    padding: 7px 4px;
+    border-bottom: 1px solid #edf0f5;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 140ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-taxonomy-group__child:hover,
+  .site-header .dtb-desktop-nav-taxonomy-group__child:focus-visible {
+    background: var(--mega-hover);
     outline: none;
+  }
+
+  .site-header .dtb-desktop-nav-taxonomy-group__view-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    margin-top: 14px;
+    padding: 8px 4px;
+    color: var(--mega-blue);
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.92rem;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .site-header .dtb-desktop-nav-taxonomy-group__view-all:hover,
+  .site-header .dtb-desktop-nav-taxonomy-group__view-all:focus-visible {
+    color: #0d49d8;
+    outline: none;
+  }
+
+  /* ------------------------------------------------------------------
+   * Footer compatibility. New mockup renderers place the primary CTA in
+   * the hero; this keeps current generic panels polished during migration.
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-desktop-nav-dropdown__footer {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 12px;
+    margin: 0 36px 28px;
+    padding: 13px 16px;
+    border: 1px solid #dfe6ef;
+    border-radius: 10px;
+    background: #f8faff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 140ms ease, background-color 140ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__footer:hover,
+  .site-header .dtb-desktop-nav-dropdown__footer:focus-visible {
+    border-color: #b9c9e3;
+    background: #f2f6ff;
+    outline: none;
+  }
+
+  .dtb-desktop-nav-dropdown__footer-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: var(--mega-blue);
+    color: #fff;
+  }
+
+  .dtb-desktop-nav-dropdown__footer-text {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .dtb-desktop-nav-dropdown__footer-title {
+    color: var(--mega-ink);
+    font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
+    font-size: 0.94rem;
+    font-weight: 760;
+  }
+
+  .dtb-desktop-nav-dropdown__footer-desc {
+    color: var(--mega-muted);
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+
+  .dtb-desktop-nav-dropdown__footer-chevron {
+    flex: 0 0 auto;
+    margin-left: auto;
+    color: #536987;
+    transition: color 140ms ease, transform 140ms ease;
+  }
+
+  .site-header .dtb-desktop-nav-dropdown__footer:hover .dtb-desktop-nav-dropdown__footer-chevron,
+  .site-header .dtb-desktop-nav-dropdown__footer:focus-visible .dtb-desktop-nav-dropdown__footer-chevron {
+    color: var(--mega-blue);
+    transform: translateX(2px);
+  }
+
+  /* ------------------------------------------------------------------
+   * Approved renderer primitives for the next component refactor.
+   * Keeping them here guarantees the new JSX does not create another CSS
+   * authority when the five deliberate renderers are introduced.
+   * ------------------------------------------------------------------ */
+  .site-header .dtb-mega-menu__brand-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 28px 36px 36px;
+  }
+
+  .site-header .dtb-mega-menu__brand-card {
+    display: grid;
+    grid-template-columns: minmax(145px, 0.82fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 24px;
+    min-height: 112px;
+    padding: 18px 28px;
+    border: 1px solid #dfe6ef;
+    border-radius: 12px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+  }
+
+  .site-header .dtb-mega-menu__brand-card:hover,
+  .site-header .dtb-mega-menu__brand-card:focus-visible {
+    border-color: #b9c9e3;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.055);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  .site-header .dtb-mega-menu__products-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid #e6ebf2;
+    border-left: 1px solid #e6ebf2;
+  }
+
+  .site-header .dtb-mega-menu__product-card {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 132px;
+    padding: 18px 20px;
+    border: 0;
+    border-right: 1px solid #e6ebf2;
+    border-bottom: 1px solid #e6ebf2;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    transition: background-color 140ms ease;
+  }
+
+  .site-header .dtb-mega-menu__product-card:hover,
+  .site-header .dtb-mega-menu__product-card:focus-visible {
+    background: var(--mega-hover);
+    outline: none;
+  }
+
+  .site-header .dtb-mega-menu__repair-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 0 32px 28px;
+  }
+
+  .site-header .dtb-mega-menu__repair-card {
+    display: grid;
+    grid-template-columns: 78px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 20px;
+    min-height: 122px;
+    padding: 20px 28px;
+    border: 0;
+    border-bottom: 1px solid #e7ecf3;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .site-header .dtb-mega-menu__repair-card:nth-child(odd) {
+    border-right: 1px solid #e7ecf3;
+  }
+
+  .site-header .dtb-mega-menu__assurance-bar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border-top: 1px solid #e7ecf3;
+    background: #fff;
+  }
+
+  .site-header .dtb-mega-menu__assurance-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    min-height: 86px;
+    padding: 16px 26px;
+    border-right: 1px solid #edf0f5;
+  }
+
+  .site-header .dtb-mega-menu__assurance-item:last-child {
+    border-right: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header .dtb-desktop-nav-tab::before,
+    .site-header .dtb-desktop-nav-tab svg,
+    .site-header .dtb-desktop-nav-dropdown,
+    .site-header .dtb-desktop-nav-dropdown__link,
+    .site-header .dtb-desktop-nav-row-chevron,
+    .site-header .dtb-desktop-nav-dropdown__footer,
+    .site-header .dtb-desktop-nav-dropdown__footer-chevron,
+    .site-header .dtb-mega-menu__hero-cta,
+    .site-header .dtb-mega-menu__brand-card,
+    .site-header .dtb-mega-menu__product-card {
+      transition: none !important;
+    }
   }
 }
 
-@media (min-width: 1025px) and (max-width: 1240px) {
+@media (min-width: 1025px) and (max-width: 1365px) {
   .site-header .site-header-inner {
-    padding-right: var(--dtb-space-4) !important;
-    padding-left: var(--dtb-space-4) !important;
+    padding-inline: clamp(24px, 2.6vw, 38px) !important;
   }
 
   .site-header .header-desktop-layout {
     grid-template-columns:
-      clamp(150px, 14vw, 174px)
+      clamp(172px, 12vw, 196px)
       minmax(0, 1fr)
-      clamp(200px, 18vw, 230px)
+      clamp(255px, 19vw, 310px)
       auto;
-    gap: var(--dtb-space-2);
+    gap: clamp(8px, 1vw, 16px);
   }
 
   .site-header .logo-image {
-    width: 100%;
-    height: auto;
-    max-height: 52px;
+    max-width: 174px;
   }
 
   .site-header .dtb-desktop-nav-tab {
-    gap: 3px;
-    padding: 0 clamp(var(--dtb-space-1), 0.45vw, var(--dtb-space-2));
-    font-size: clamp(0.72rem, 0.74vw, 0.82rem);
+    padding-inline: clamp(5px, 0.5vw, 9px);
+    font-size: clamp(0.79rem, 0.73vw, 0.87rem);
   }
 
-  .site-header .dtb-desktop-nav-tab svg {
-    width: 13px;
-    height: 13px;
+  .site-header .dtb-desktop-nav-dropdown {
+    width: min(var(--mega-panel-width), calc(100vw - 32px));
   }
 
-  .site-header .dtb-desktop-search--header {
-    width: clamp(200px, 18vw, 230px);
+  .site-header .dtb-desktop-nav-dropdown__header,
+  .site-header .dtb-mega-menu__hero {
+    min-height: 156px;
+    padding-inline: 32px;
   }
 
-  .site-header .header-right {
-    gap: var(--dtb-space-3);
-  }
-}
-
-@media (min-width: 1241px) and (max-width: 1480px) {
-  .site-header .site-header-inner {
-    padding-right: clamp(var(--dtb-space-4), 1.8vw, var(--dtb-space-5)) !important;
-    padding-left: clamp(var(--dtb-space-4), 1.8vw, var(--dtb-space-5)) !important;
+  .site-header .dtb-desktop-nav-dropdown__scroller {
+    padding-inline: 28px;
   }
 
-  .site-header .header-desktop-layout {
-    grid-template-columns:
-      clamp(158px, 12vw, 190px)
-      minmax(0, 1fr)
-      clamp(220px, 19vw, 280px)
-      auto;
-    gap: clamp(var(--dtb-space-2), 1vw, var(--dtb-space-4));
+  .site-header .dtb-mega-menu__products-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-
-  .site-header .dtb-desktop-nav-tab {
-    gap: var(--dtb-space-1);
-    padding: 0 clamp(var(--dtb-space-1), 0.52vw, var(--dtb-space-2));
-    font-size: clamp(0.77rem, 0.72vw, 0.87rem);
-  }
-
-  .site-header .dtb-desktop-search--header {
-    width: clamp(220px, 19vw, 280px);
-  }
-
-  .site-header .header-right {
-    gap: clamp(var(--dtb-space-3), 1.1vw, var(--dtb-space-4));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dtb-desktop-nav-tab,
-  .dtb-desktop-nav-tab::before,
-  .dtb-desktop-nav-tab::after {
-    transition-duration: 1ms !important;
-  }
-
-  .dtb-desktop-nav-tab:hover,
-  .dtb-desktop-nav-tab:focus-visible,
-  .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab {
-    transform: none;
-  }
-
 }
