@@ -10,19 +10,19 @@ const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.loc
 const PROCESS_STEPS = [
   {
     title: 'Choose a service path',
-    description: 'Start a repair, select a service package, or request a diagnostic when the issue is unclear.',
+    description: 'Start a repair, choose a service package, or request a diagnostic.',
   },
   {
     title: 'Send us your tool',
-    description: 'Ship the tool to DTB or choose an eligible drop-off option during intake.',
+    description: 'Ship your tool to DTB or choose an eligible drop-off option.',
   },
   {
     title: 'Review and approve',
-    description: 'We inspect the tool, confirm the required work, and request approval when additional service is needed.',
+    description: 'We inspect the tool and request approval for additional work when needed.',
   },
   {
     title: 'Repair and return',
-    description: 'We complete the approved work, function-test the tool, and return it using your selected delivery method.',
+    description: 'We complete the approved work, test the tool, and return it.',
   },
 ];
 
@@ -62,7 +62,7 @@ export default function RepairLanding() {
     <div className="repair-landing page-wrapper">
       <SEOHead
         title="Drywall Tool Repair Services"
-        description="Professional drywall tool repair, rebuild, diagnostic, shipping, approval, and tracking services for automatic finishing tools."
+        description="Drywall tool repair, rebuild, diagnostics, shipping, approval, and tracking for automatic finishing tools."
         canonical="/repairs"
       />
 
@@ -75,7 +75,7 @@ export default function RepairLanding() {
               <span>Back on the Job.</span>
             </h1>
             <p className="repair-hero__lead">
-              Professional repair, rebuild, and diagnostics for automatic drywall finishing tools. Choose the service you need, approve any additional work, and track your repair through return.
+              Repair, rebuild, and diagnostic services for automatic drywall finishing tools. Start a request, approve quoted work, and track your repair.
             </p>
 
             <div className="repair-hero__actions" aria-label="Repair service actions">
@@ -129,7 +129,7 @@ export default function RepairLanding() {
           <div className="repair-section-shell repair-brands__inner">
             <div>
               <p className="repair-eyebrow">Supported Brands</p>
-              <h2 id="repair-brands-title">Service for the tools contractors rely on.</h2>
+              <h2 id="repair-brands-title">Service for leading drywall tool brands.</h2>
             </div>
             <div className="repair-brands__list" aria-label="Supported repair brands">
               {featuredBrands.map(({ brand, logo }) => (
@@ -152,9 +152,9 @@ export default function RepairLanding() {
         <div className="repair-section-shell repair-service-details__grid">
           <article className="repair-service-panel">
             <p className="repair-eyebrow">Shipping &amp; Return</p>
-            <h2>Send your tool in with a clear return plan.</h2>
+            <h2>Choose how to send and receive your tool.</h2>
             <p>
-              Choose how the tool gets to DTB and how you want it returned. Shipping and delivery details stay connected to the repair request.
+              Select inbound and return options during repair intake.
             </p>
             <ul>
               <li>Ship to DTB or choose an eligible drop-off option</li>
@@ -168,7 +168,7 @@ export default function RepairLanding() {
             <p className="repair-eyebrow">Not Sure What It Needs?</p>
             <h2>Start with a diagnostic.</h2>
             <p>
-              Choose Diagnose and Quote when the problem is unclear or does not fit a standard package. We inspect the tool and send a quote for approval before repair work begins.
+              Choose Diagnose and Quote when the issue is unclear. We inspect the tool and send a quote before repair work begins.
             </p>
             <Link className="repair-button repair-button--primary" to="/repairs/start?package=diagnose_and_quote">
               Request Diagnostic
@@ -184,7 +184,7 @@ export default function RepairLanding() {
             <p className="repair-eyebrow">Repair It Yourself?</p>
             <h2 id="repair-resources-title">Find the schematic and parts you need.</h2>
             <p>
-              Use tool schematics to identify replacement parts for straightforward repairs. For inspection, calibration, or rebuild work, start a professional repair instead.
+              Use schematics to identify replacement parts for straightforward repairs. For inspection, calibration, or rebuild work, start a repair.
             </p>
           </div>
           <div className="repair-resources__actions">
@@ -217,7 +217,7 @@ export default function RepairLanding() {
         <div className="repair-section-shell repair-closing-cta__inner">
           <div>
             <p className="repair-eyebrow">Ready to Start?</p>
-            <h2 id="repair-closing-title">Choose the right service for your tool.</h2>
+            <h2 id="repair-closing-title">Choose a service path for your tool.</h2>
           </div>
           <div className="repair-closing-cta__actions">
             <Link className="repair-button repair-button--primary" to="/repairs/start">Start a Repair <span aria-hidden="true">→</span></Link>
