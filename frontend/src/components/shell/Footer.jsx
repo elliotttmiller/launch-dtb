@@ -1,4 +1,4 @@
-import { Facebook, Instagram, Twitter } from 'lucide-react';
+import { Instagram } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import LogoWhite from '@assets/brand/dtb-logo-white.svg';
@@ -46,8 +46,6 @@ const FOOTER_GROUPS = [
 
 const SOCIAL_LINKS = [
   { label: 'Instagram', href: 'https://www.instagram.com/drywalltoolbox', Icon: Instagram },
-  { label: 'Facebook', href: 'https://facebook.com', Icon: Facebook },
-  { label: 'Twitter / X', href: 'https://twitter.com', Icon: Twitter },
 ];
 
 function FooterLinkGroup({ title, links }) {
