@@ -43,13 +43,23 @@
 }
 
 /*
- * Product narrative before secondary headings/features. These declarations are
- * deliberately more specific than legacy rich-description typography so the
- * first paragraph cannot fall back to a smaller historical style.
+ * The Overview heading is the only narrative label. Historical formatter output
+ * may still contain this kicker, but it is intentionally suppressed so the PDP
+ * presents one canonical description rather than primary/secondary tiers.
+ */
+.dtb-product-page-shell .dtb-pdp-description-kicker {
+  display: none !important;
+}
+
+/*
+ * One canonical product narrative. Every natural description paragraph before
+ * Features uses the same hierarchy, measure and rhythm. No first-paragraph or
+ * lead-paragraph treatment is allowed to imply a second description tier.
  */
 .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p,
 .dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p,
 .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card > p,
+.dtb-product-page-shell .dtb-pdp-description-content p,
 .dtb-product-page-shell .dtb-pdp-description-lead {
   width: 100%;
   max-width: 70ch;
@@ -66,14 +76,6 @@
 .dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p + p,
 .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card + .dtb-pdp-description-card {
   margin-top: 1rem;
-}
-
-/* Generic paragraph fallback for rich content outside the narrative lead. */
-.dtb-product-page-shell .dtb-pdp-description-content p {
-  max-width: 70ch;
-  color: #334155;
-  font-size: 1rem;
-  line-height: 1.7;
 }
 
 /* Remove legacy decorative heading chrome, including the blue Features square. */
@@ -195,6 +197,7 @@
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p,
   .dtb-product-page-shell .dtb-pdp-description-content--formatted .dtb-pdp-description-card > p,
   .dtb-product-page-shell .dtb-pdp-description-content--formatted > .dtb-pdp-description-card > p,
+  .dtb-product-page-shell .dtb-pdp-description-content p,
   .dtb-product-page-shell .dtb-pdp-description-lead {
     font-size: 1rem !important;
     line-height: 1.68 !important;
