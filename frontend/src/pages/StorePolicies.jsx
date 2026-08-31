@@ -87,27 +87,22 @@ export default function StorePolicies() {
     <div className="store-policy-page">
       <SEOHead
         title="Store Policies"
-        description="Drywall Toolbox store policies for returns, shipping, warranty support, order changes, payments, and customer support."
+        description="Drywall Toolbox store policies for returns, shipping, warranty support, orders, and customer support."
         canonical="/policies"
       />
 
       <section className="store-policy-hero store-policy-hero--hub">
         <div className="store-policy-hero__copy">
-          <PolicyPill>Customer support center</PolicyPill>
+          <PolicyPill>Customer Support</PolicyPill>
           <h1>Store Policies</h1>
-          <p>
-            Find shipping, return, warranty, order, and support information in one place.
-            Choose the topic that matches what you need help with.
-          </p>
+          <p>Find shipping, returns, warranty, order, and support information.</p>
         </div>
 
         <aside className="store-policy-hero__panel store-policy-hero__panel--compact" aria-label="Policy summary">
           <div className="store-policies-summary">
             <CircleHelp size={22} />
-            <strong>Need help finding the right policy?</strong>
-            <p>
-              Start with shipping or returns, or contact support if your question is tied to an active order.
-            </p>
+            <strong>Not sure where to start?</strong>
+            <p>Choose a policy below or contact support.</p>
           </div>
         </aside>
       </section>
@@ -115,12 +110,10 @@ export default function StorePolicies() {
       <main className="store-policy-content store-policies-content">
         <section className="store-policy-section store-policy-section--intro">
           <div>
-            <PolicyPill>Policy topics</PolicyPill>
+            <PolicyPill>Policies</PolicyPill>
             <h2>Choose a topic</h2>
           </div>
-          <p>
-            Policies and support options are organized by topic so you can find the relevant details and next step quickly.
-          </p>
+          <p>Find the policy or support option that matches your question.</p>
         </section>
 
         <section className="store-policies-grid" aria-label="Store policy links">
@@ -130,10 +123,8 @@ export default function StorePolicies() {
         <section className="store-policy-footer-cta">
           <LifeBuoy size={24} />
           <div>
-            <h2>Still not sure where to go?</h2>
-            <p>
-              Send your order number, when applicable, and a brief description of the issue. Our support team can direct you to the appropriate next step.
-            </p>
+            <h2>Need help?</h2>
+            <p>Contact support with your order number and a brief description when applicable.</p>
           </div>
           <Link to="/contact" className="store-policy-button store-policy-button--primary">
             Contact Support <ArrowRight size={16} />
