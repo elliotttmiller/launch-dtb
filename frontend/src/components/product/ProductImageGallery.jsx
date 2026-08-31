@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, m as Motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
@@ -84,10 +84,12 @@ function collectDefaultImageMeta(product = {}) {
     images.forEach((image) => push(image));
   };
 
-  pushArray(product?.media?.images);
+  // The WooCommerce featured image is the canonical first gallery image.
+  // Gallery arrays are appended afterward and deduplicated by normalized URL.
   push(product?.media?.image);
-  pushArray(product?.images);
   push(product?.image);
+  pushArray(product?.media?.images);
+  pushArray(product?.images);
 
   return out;
 }
@@ -186,24 +188,30 @@ function collectVariationImageMeta(product = {}) {
   const out = [];
   const seen = new Set();
   const push = (image) => pushUniqueImage(out, seen, normalizeImageMeta(image, product, out.length));
+  const pushPrimary = () => {
+    push(product?.media?.image);
+    push(product?.image);
+  };
 
   // Path 1 — explicit variation gallery from the backend (highest priority).
-  // VariationReadModelService.enrich_variation_gallery() populates these when the
-  // catalog image manifest resolves a SKU-specific image set.
+  // The variation primary image still remains image zero even when an explicit
+  // gallery is present, matching WooCommerce's featured-image contract.
   const explicitVariationImages = collectExplicitVariationImages(product);
   if (explicitVariationImages.length > 0) {
+    pushPrimary();
     explicitVariationImages.forEach((image) => pushUniqueImage(out, seen, image));
     return out;
   }
 
   // Path 2 — WooCommerce persisted images[] on the variation object itself.
-  // This is populated when dtb-media LinkImagesToProducts runs for the variation.
-  // Use these directly without pulling in anything from the parent.
+  // Keep the primary image first, then append the persisted gallery.
   if (Array.isArray(product?.images) && product.images.length > 0) {
+    pushPrimary();
     product.images.forEach((image) => push(image));
     if (out.length > 0) return out;
   }
   if (Array.isArray(product?.media?.images) && product.media.images.length > 0) {
+    pushPrimary();
     product.media.images.forEach((image) => push(image));
     if (out.length > 0) return out;
   }
@@ -216,8 +224,7 @@ function collectVariationImageMeta(product = {}) {
   const pushCandidate = (image) => pushUniqueImage(candidates, candidateSeen, normalizeImageMeta(image, product, candidates.length));
 
   // Add the variation's own primary image first, then the parent pool for matching.
-  push(product?.media?.image);
-  push(product?.image);
+  pushPrimary();
   pushCandidate(product?.media?.image);
   pushCandidate(product?.image);
 
@@ -229,20 +236,10 @@ function collectVariationImageMeta(product = {}) {
       }
     });
 
-    // Ensure the primary image is always included even if tokens didn't match it.
-    if (out.length === 0) {
-      push(product?.media?.image);
-      push(product?.image);
-    }
     return out;
   }
 
   // Path 4 — absolute fallback: just the primary image.
-  if (out.length === 0) {
-    push(product?.media?.image);
-    push(product?.image);
-  }
-
   return out;
 }
 
@@ -307,6 +304,7 @@ export default function ProductImageGallery({ product }) {
     [baseImageMeta, isVariationProduct, parentImageMeta]
   );
   const images = useMemo(() => imageMeta.map((image) => image.src), [imageMeta]);
+  const imageSetKey = useMemo(() => images.map((image) => imageIdentity(image)).join('|'), [images]);
   const resetKey = `${product?.id ?? ''}|${product?.sku ?? ''}|${parentId ?? ''}`;
   const [lastResetKey, setLastResetKey] = useState(resetKey);
 
@@ -333,6 +331,16 @@ export default function ProductImageGallery({ product }) {
 
     return () => { cancelled = true; };
   }, [baseImageMeta.length, isVariationProduct, parentId]);
+
+  // Initialize every new gallery at the featured image. Previously the rail
+  // only received a scroll operation after goTo(), which made thumbnails appear
+  // only after the shopper clicked an arrow on some browsers/layout passes.
+  useLayoutEffect(() => {
+    const rail = thumbsRef.current;
+    if (!rail || images.length <= 1) return;
+    rail.scrollTop = 0;
+    rail.scrollLeft = 0;
+  }, [imageSetKey, images.length]);
 
   const scrollThumb = useCallback((index) => {
     thumbsRef.current?.children[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -643,7 +651,7 @@ export default function ProductImageGallery({ product }) {
                     alt={`Thumbnail ${index + 1}`}
                     width={64}
                     height={64}
-                    loading="lazy"
+                    loading={index < 8 ? 'eager' : 'lazy'}
                     decoding="async"
                     className="w-full h-full object-contain bg-white p-1"
                     onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = PLACEHOLDER_IMAGE; }}
