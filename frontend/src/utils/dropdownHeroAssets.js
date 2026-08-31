@@ -1,4 +1,5 @@
 import partsHero from '@assets/media/catalog/dropdown-heroes/parts.webp';
+import schematicsHero from '@assets/media/catalog/dropdown-heroes/schematics.webp';
 
 /**
  * Canonical desktop mega-menu hero media registry.
@@ -12,6 +13,7 @@ import partsHero from '@assets/media/catalog/dropdown-heroes/parts.webp';
  */
 export const DROPDOWN_HERO_ASSETS = Object.freeze({
   parts: partsHero,
+  schematics: schematicsHero,
 });
 
 export function getDropdownHero(menuId) {
