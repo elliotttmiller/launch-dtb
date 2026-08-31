@@ -1,19 +1,22 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
+  ArrowRight,
+  Award,
+  BadgeCheck,
+  Box,
   ChevronDown,
   ChevronRight,
-  ArrowRight,
-  Wrench,
+  Hammer,
+  Headphones,
   Layers,
-  Box,
+  Package,
   PenTool,
   Ruler,
-  Hammer,
-  Package,
   Settings2,
   ShoppingBag,
-  Award,
+  Truck,
+  Wrench,
 } from 'lucide-react';
 import '../../styles/storefront-desktop-navigation.css';
 import '../../styles/storefront-navigation-taxonomy.css';
@@ -25,6 +28,33 @@ const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Setti
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
   <Icon key={index} size={30} strokeWidth={1.6} />
 ));
+
+const PRODUCT_ASSURANCE_ITEMS = [
+  {
+    id: 'professional-grade',
+    title: 'Professional Grade',
+    description: 'Built for daily jobsite performance',
+    Icon: BadgeCheck,
+  },
+  {
+    id: 'top-brands',
+    title: 'Top Brands',
+    description: 'Trusted professional tool brands',
+    Icon: Award,
+  },
+  {
+    id: 'fast-shipping',
+    title: 'Fast Shipping',
+    description: 'Quick, reliable delivery nationwide',
+    Icon: Truck,
+  },
+  {
+    id: 'expert-support',
+    title: 'Expert Support',
+    description: 'Real pros. Real answers.',
+    Icon: Headphones,
+  },
+];
 
 function pickEntryIconIndex(label) {
   const text = String(label || '');
@@ -55,72 +85,189 @@ function MegaMenuThumb({ label, logo, thumbnail }) {
   );
 }
 
-function DesktopNavEntry({ entry, onNavigate, hideIcon }) {
-  const children = Array.isArray(entry.children) ? entry.children : [];
-
-  if (children.length === 0) {
-    return (
-      <Link
-        to={entry.to}
-        className={`dtb-desktop-nav-dropdown__link${hideIcon ? ' dtb-desktop-nav-dropdown__link--no-icon' : ''}`}
-        onClick={onNavigate}
-      >
-        {hideIcon ? null : <MegaMenuThumb label={entry.label} logo={entry.logo} thumbnail={entry.thumbnail} />}
-        <span className="dtb-desktop-nav-row-text">
-          <span className="dtb-desktop-nav-row-title">{entry.label}</span>
-          {entry.description ? (
-            <span className="dtb-desktop-nav-row-desc">{entry.description}</span>
-          ) : null}
-        </span>
-        <ChevronRight size={16} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
-      </Link>
-    );
-  }
+function MegaMenuHero({ item, onNavigate }) {
+  const heroImage = item.heroImage || item.heroMedia || '';
+  const eyebrow = item.eyebrow || (item.id === 'products' ? 'Our Products' : item.label);
+  const ctaLabel = item.heroCtaLabel || item.landingLabel || `View all ${String(item.label || '').toLowerCase()}`;
 
   return (
-    <div className="dtb-desktop-nav-taxonomy-group" role="group" aria-label={entry.label}>
-      <Link
-        to={entry.to}
-        className="dtb-desktop-nav-taxonomy-group__heading"
-        onClick={onNavigate}
-      >
-        <span>{entry.label}</span>
-        <ChevronRight size={14} aria-hidden="true" />
-      </Link>
-      <div className="dtb-desktop-nav-taxonomy-group__children">
-        {children.map((child) => (
-          <Link
-            key={child.to || child.slug || child.label}
-            to={child.to}
-            className="dtb-desktop-nav-taxonomy-group__child"
-            onClick={onNavigate}
-          >
-            <MegaMenuThumb label={child.label} thumbnail={child.thumbnail} />
-            <span className="dtb-desktop-nav-row-text">
-              <span className="dtb-desktop-nav-row-title">{child.label}</span>
-              {child.description ? (
-                <span className="dtb-desktop-nav-row-desc">{child.description}</span>
-              ) : null}
-            </span>
-            <ChevronRight size={18} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
+    <div className="dtb-mega-menu__hero">
+      <div className="dtb-mega-menu__hero-copy">
+        <span className="dtb-mega-menu__eyebrow">{eyebrow}</span>
+        <p className="dtb-mega-menu__heading">{item.heading || item.label}</p>
+        {item.description ? <p className="dtb-mega-menu__description">{item.description}</p> : null}
+        {item.landingTo ? (
+          <Link to={item.landingTo} className="dtb-mega-menu__hero-cta" onClick={onNavigate}>
+            <span>{ctaLabel}</span>
+            <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
           </Link>
-        ))}
+        ) : null}
       </div>
-      {entry.viewAllTo ? (
-        <Link to={entry.viewAllTo} className="dtb-desktop-nav-taxonomy-group__view-all" onClick={onNavigate}>
-          <span>{entry.viewAllLabel || `View all ${entry.label}`}</span>
-          <ArrowRight size={13} strokeWidth={2.2} aria-hidden="true" />
-        </Link>
+
+      {heroImage ? (
+        <div className="dtb-mega-menu__hero-media" aria-hidden="true">
+          <img src={heroImage} alt="" loading="eager" />
+        </div>
       ) : null}
     </div>
   );
 }
 
+function MegaMenuEmptyState({ item }) {
+  return (
+    <div className="dtb-desktop-nav-dropdown__empty" role="status">
+      <strong>{item.emptyTitle || `${item.label} temporarily unavailable`}</strong>
+      <span>{item.emptyMessage || 'Still loading — give it a moment, or try again in a bit.'}</span>
+    </div>
+  );
+}
+
+function ProductCard({ entry, onNavigate }) {
+  return (
+    <Link to={entry.to} className="dtb-mega-menu__product-card" onClick={onNavigate}>
+      <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
+      <span className="dtb-desktop-nav-row-text">
+        <span className="dtb-desktop-nav-row-title">{entry.label}</span>
+        {entry.description ? <span className="dtb-desktop-nav-row-desc">{entry.description}</span> : null}
+      </span>
+      <ChevronRight size={16} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
+    </Link>
+  );
+}
+
+function ProductsPanelRenderer({ item, onNavigate }) {
+  const groups = Array.isArray(item.items) ? item.items : [];
+  const entries = groups.flatMap((group) => {
+    const children = Array.isArray(group.children) ? group.children : [];
+    return children.length > 0 ? children : [group];
+  });
+
+  return (
+    <>
+      <MegaMenuHero item={item} onNavigate={onNavigate} />
+      {entries.length > 0 ? (
+        <div className="dtb-mega-menu__products-grid">
+          {entries.map((entry) => (
+            <ProductCard key={entry.to || entry.slug || entry.label} entry={entry} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ) : (
+        <MegaMenuEmptyState item={item} />
+      )}
+      <div className="dtb-mega-menu__assurance-bar" aria-label="Drywall Toolbox service benefits">
+        {PRODUCT_ASSURANCE_ITEMS.map(({ id, title, description, Icon }) => (
+          <div key={id} className="dtb-mega-menu__assurance-item">
+            <span className="dtb-mega-menu__assurance-icon" aria-hidden="true">
+              <Icon size={24} strokeWidth={1.8} />
+            </span>
+            <span className="dtb-desktop-nav-row-text">
+              <span className="dtb-desktop-nav-row-title">{title}</span>
+              <span className="dtb-desktop-nav-row-desc">{description}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function BrandCard({ entry, onNavigate }) {
+  return (
+    <Link to={entry.to} className="dtb-mega-menu__brand-card" onClick={onNavigate}>
+      <MegaMenuThumb label={entry.label} logo={entry.logo} thumbnail={entry.thumbnail} />
+      <span className="dtb-desktop-nav-row-text">
+        <span className="dtb-desktop-nav-row-title">{entry.label}</span>
+        {entry.description ? <span className="dtb-desktop-nav-row-desc">{entry.description}</span> : null}
+      </span>
+      <ChevronRight size={17} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
+    </Link>
+  );
+}
+
+function BrandGridPanelRenderer({ item, onNavigate }) {
+  const entries = Array.isArray(item.items) ? item.items : [];
+
+  return (
+    <>
+      <MegaMenuHero item={item} onNavigate={onNavigate} />
+      {entries.length > 0 ? (
+        <div className="dtb-mega-menu__brand-grid">
+          {entries.map((entry) => (
+            <BrandCard key={entry.to || entry.slug || entry.label} entry={entry} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ) : (
+        <MegaMenuEmptyState item={item} />
+      )}
+    </>
+  );
+}
+
+function BrandsPanelRenderer(props) {
+  return <BrandGridPanelRenderer {...props} />;
+}
+
+function PartsPanelRenderer(props) {
+  return <BrandGridPanelRenderer {...props} />;
+}
+
+function SchematicsPanelRenderer(props) {
+  return <BrandGridPanelRenderer {...props} />;
+}
+
+function RepairCard({ entry, onNavigate }) {
+  return (
+    <Link to={entry.to} className="dtb-mega-menu__repair-card" onClick={onNavigate}>
+      <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
+      <span className="dtb-desktop-nav-row-text">
+        <span className="dtb-desktop-nav-row-title">{entry.label}</span>
+        {entry.description ? <span className="dtb-desktop-nav-row-desc">{entry.description}</span> : null}
+      </span>
+      <ChevronRight size={17} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
+    </Link>
+  );
+}
+
+function RepairsPanelRenderer({ item, onNavigate }) {
+  const entries = Array.isArray(item.items) ? item.items : [];
+
+  return (
+    <>
+      <MegaMenuHero item={item} onNavigate={onNavigate} />
+      {entries.length > 0 ? (
+        <div className="dtb-mega-menu__repair-grid">
+          {entries.map((entry) => (
+            <RepairCard key={entry.to || entry.slug || entry.label} entry={entry} onNavigate={onNavigate} />
+          ))}
+        </div>
+      ) : (
+        <MegaMenuEmptyState item={item} />
+      )}
+    </>
+  );
+}
+
+const PANEL_RENDERERS = {
+  products: ProductsPanelRenderer,
+  brands: BrandsPanelRenderer,
+  parts: PartsPanelRenderer,
+  repairs: RepairsPanelRenderer,
+  schematics: SchematicsPanelRenderer,
+};
+
+function DeliberatePanelRenderer({ item, onNavigate }) {
+  const Renderer = PANEL_RENDERERS[item.id];
+
+  if (!Renderer) {
+    return <MegaMenuEmptyState item={item} />;
+  }
+
+  return <Renderer item={item} onNavigate={onNavigate} />;
+}
+
 function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCloseImmediate, onNavigate }) {
   const triggerRef = useRef(null);
   const panelId = useId();
-  const entries = Array.isArray(item.items) ? item.items : [];
-  const hasGroupedEntries = entries.some((entry) => Array.isArray(entry.children) && entry.children.length > 0);
 
   const closeAndFocus = () => {
     triggerRef.current?.focus();
@@ -161,7 +308,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
 
       <section
         id={panelId}
-        className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.id} dtb-desktop-nav-dropdown--${item.size || 'medium'}${hasGroupedEntries ? ' has-taxonomy-groups' : ''}`}
+        className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.id} dtb-desktop-nav-dropdown--${item.size || 'medium'}`}
         aria-label={`${item.label} navigation`}
         onPointerEnter={onOpen}
         onKeyDown={(event) => {
@@ -171,46 +318,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
           }
         }}
       >
-        {!item.hideHeader ? (
-          <div className="dtb-desktop-nav-dropdown__header">
-            <span className="dtb-desktop-nav-dropdown__eyebrow">{item.label}</span>
-            <p className="dtb-desktop-nav-dropdown__heading">{item.heading || item.label}</p>
-            <span className="dtb-desktop-nav-dropdown__subheading">{item.description}</span>
-          </div>
-        ) : null}
-        <div className="dtb-desktop-nav-dropdown__scroller">
-          {entries.length > 0 ? (
-            <div className={`dtb-desktop-nav-dropdown__links${item.columns === 2 ? ' is-two-column' : ''}${hasGroupedEntries ? ' has-taxonomy-groups' : ''}`}>
-              {entries.map((entry) => (
-                <DesktopNavEntry
-                  key={entry.to || entry.slug || entry.label}
-                  entry={entry}
-                  onNavigate={onNavigate}
-                  hideIcon={item.hideIcon}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="dtb-desktop-nav-dropdown__empty" role="status">
-              <strong>{item.emptyTitle || `${item.label} temporarily unavailable`}</strong>
-              <span>{item.emptyMessage || 'Still loading — give it a moment, or try again in a bit.'}</span>
-            </div>
-          )}
-        </div>
-        {!item.hideFooter ? (
-          <Link to={item.landingTo} className="dtb-desktop-nav-dropdown__footer" onClick={onNavigate}>
-            <span className="dtb-desktop-nav-dropdown__footer-icon" aria-hidden="true">
-              <ArrowRight size={16} strokeWidth={2} />
-            </span>
-            <span className="dtb-desktop-nav-dropdown__footer-text">
-              <span className="dtb-desktop-nav-dropdown__footer-title">{item.landingLabel}</span>
-              {item.landingDescription ? (
-                <span className="dtb-desktop-nav-dropdown__footer-desc">{item.landingDescription}</span>
-              ) : null}
-            </span>
-            <ChevronRight size={16} className="dtb-desktop-nav-dropdown__footer-chevron" aria-hidden="true" />
-          </Link>
-        ) : null}
+        <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
       </section>
     </div>
   );
