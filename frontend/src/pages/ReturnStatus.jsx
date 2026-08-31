@@ -63,7 +63,7 @@ export default function ReturnStatus() {
               </div>
               <h1 className="text-3xl font-bold text-neutral-950">{ data?.return_number || `Return #${ id || '' }` }</h1>
               <p className="mt-2 max-w-2xl text-sm text-neutral-600">
-                Track approval, item receipt, and refund or exchange progress from one customer-safe view.
+                Track approval, item receipt, and refund or exchange progress in one place.
               </p>
             </div>
           </div>
