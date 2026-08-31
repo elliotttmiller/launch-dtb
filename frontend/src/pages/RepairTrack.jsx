@@ -50,7 +50,7 @@ export default function RepairTrack() {
               Track a repair
             </h1>
             <p style={{ margin: '0 0 26px', color: 'rgba(15,23,42,0.62)', fontSize: '0.95rem', lineHeight: 1.6 }}>
-              Use the repair number and tracking token from your confirmation email to view status, quote actions, shipping, and messages.
+              Enter the repair number and tracking token from your confirmation email.
             </p>
 
             <form onSubmit={handleSubmit} noValidate>
