@@ -34,13 +34,26 @@
   margin-bottom: clamp(2.25rem, 4vw, 3.75rem);
 }
 
-/* Media column */
+/* Media column: vertical thumbnails + a quiet bordered main image stage. */
 .dtb-product-page-shell .dtb-pdp-gallery {
   min-width: 0;
 }
 
 .dtb-product-page-shell .dtb-pdp-gallery > div {
   gap: .85rem;
+}
+
+.dtb-product-page-shell .dtb-pdp-gallery > div:has(.product-image-gallery__thumb-shell) {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: start;
+  gap: 1rem;
+}
+
+.dtb-product-page-shell .dtb-pdp-gallery > div:has(.product-image-gallery__thumb-shell) .product-image-gallery__main {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .dtb-product-page-shell .product-image-gallery__main {
@@ -57,18 +70,33 @@
 }
 
 .dtb-product-page-shell .product-image-gallery__thumb-shell {
+  grid-column: 1;
+  grid-row: 1;
   order: -1;
+  width: 76px;
+  max-height: 420px;
   padding: 0;
 }
 
 .dtb-product-page-shell .product-image-gallery__thumbs {
+  display: flex;
+  flex-direction: column;
   gap: .7rem;
-  padding-inline: 0;
+  max-height: 420px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0;
+  scrollbar-width: none;
+}
+
+.dtb-product-page-shell .product-image-gallery__thumbs::-webkit-scrollbar {
+  display: none;
 }
 
 .dtb-product-page-shell .product-image-gallery__thumb {
   width: 76px;
   height: 76px;
+  flex: 0 0 76px;
   border: 1px solid var(--dtb-pdp-line);
   border-radius: 7px;
   background: #fff;
@@ -210,23 +238,22 @@
   font-weight: 600;
 }
 
-/* Suppress legacy hero-only UI that is intentionally absent in the approved design. */
+.dtb-product-page-shell .dtb-pdp-header__summary {
+  max-width: 58ch;
+  margin: 1rem 0 0;
+  color: #26364f;
+  font-size: .96rem;
+  font-weight: 430;
+  line-height: 1.58;
+}
+
+/* Suppress legacy hero-only UI absent from the accepted composition. */
 .dtb-product-page-shell .dtb-pdp-header__mobile-status-row,
 .dtb-product-page-shell .dtb-pdp-header__desktop-reviews-row,
 .dtb-product-page-shell .dtb-pdp-header__reviews,
 .dtb-product-page-shell .dtb-pdp-shipping-note,
 .dtb-product-page-shell .dtb-pdp-header__meta--secondary {
   display: none !important;
-}
-
-/* Existing short-summary surfaces are kept quiet and editorial. */
-.dtb-product-page-shell .dtb-pdp__summary-region :is(.product-short-description, .dtb-pdp-short-description, .product-description-short) {
-  max-width: 55ch;
-  margin: 1rem 0 0;
-  color: #283750;
-  font-size: .96rem;
-  font-weight: 430;
-  line-height: 1.58;
 }
 
 /* Purchase controls */
@@ -522,6 +549,21 @@
     aspect-ratio: 1.08 / 1;
   }
 
+  .dtb-product-page-shell .dtb-pdp-gallery > div:has(.product-image-gallery__thumb-shell) {
+    grid-template-columns: 66px minmax(0, 1fr);
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb-shell,
+  .dtb-product-page-shell .product-image-gallery__thumb,
+  .dtb-product-page-shell .product-image-gallery__thumbs {
+    width: 66px;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb {
+    height: 66px;
+    flex-basis: 66px;
+  }
+
   .dtb-product-page-shell .dtb-pdp-header__title {
     font-size: clamp(1.7rem, 3vw, 2.05rem);
   }
@@ -538,6 +580,30 @@
     margin-bottom: 1.8rem;
   }
 
+  .dtb-product-page-shell .dtb-pdp-gallery > div:has(.product-image-gallery__thumb-shell) {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-gallery > div:has(.product-image-gallery__thumb-shell) .product-image-gallery__main {
+    order: 0;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb-shell {
+    order: 1;
+    width: 100%;
+    max-height: none;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumbs {
+    width: 100%;
+    max-height: none;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
   .dtb-product-page-shell .product-image-gallery__main {
     min-height: 0;
     aspect-ratio: 1 / 1;
@@ -546,6 +612,7 @@
   .dtb-product-page-shell .product-image-gallery__thumb {
     width: 62px;
     height: 62px;
+    flex-basis: 62px;
   }
 
   .dtb-product-page-shell .dtb-pdp__info-column {
@@ -574,6 +641,12 @@
 
   .dtb-product-page-shell .dtb-pdp-header__price-block {
     margin-top: .9rem;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-header__summary {
+    margin-top: .8rem;
+    font-size: .93rem;
+    line-height: 1.55;
   }
 
   .dtb-product-page-shell .dtb-pdp__purchase-region {
