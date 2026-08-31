@@ -40,6 +40,7 @@ export default function ProductDetailTabs({
   const overviewNode = (
     <div className="dtb-pdp-overview">
       <div className="dtb-pdp-overview__editorial">
+        <h2 className="dtb-pdp-overview__title">Overview</h2>
         {descriptionNode}
       </div>
     </div>
