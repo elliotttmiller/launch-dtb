@@ -179,11 +179,14 @@ function SchematicsPanelRenderer(props) {
 
 function RepairCard({ entry, onNavigate }) {
   return (
-    <Link to={entry.to} className="dtb-mega-menu__repair-card" onClick={onNavigate}>
-      <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
+    <Link
+      to={entry.to}
+      className="dtb-mega-menu__repair-card"
+      onClick={onNavigate}
+      style={{ gridTemplateColumns: 'minmax(0, 1fr) auto', minHeight: '76px', paddingBlock: '14px' }}
+    >
       <span className="dtb-desktop-nav-row-text">
         <span className="dtb-desktop-nav-row-title">{entry.label}</span>
-        {entry.description ? <span className="dtb-desktop-nav-row-desc">{entry.description}</span> : null}
       </span>
       <ChevronRight size={17} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
     </Link>
@@ -197,11 +200,30 @@ function RepairsPanelRenderer({ item, onNavigate }) {
     <>
       <MegaMenuHero item={item} onNavigate={onNavigate} />
       {entries.length > 0 ? (
-        <div className="dtb-mega-menu__repair-grid">
-          {entries.map((entry) => (
-            <RepairCard key={entry.to || entry.slug || entry.label} entry={entry} onNavigate={onNavigate} />
-          ))}
-        </div>
+        <>
+          <div style={{ padding: '18px 32px 12px' }}>
+            <Link
+              to="/repairs/packages"
+              onClick={onNavigate}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                color: 'var(--mega-ink)',
+                fontWeight: 760,
+                textDecoration: 'none',
+              }}
+            >
+              <span>View all repair service packages</span>
+              <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="dtb-mega-menu__repair-grid">
+            {entries.map((entry) => (
+              <RepairCard key={entry.to || entry.slug || entry.label} entry={entry} onNavigate={onNavigate} />
+            ))}
+          </div>
+        </>
       ) : (
         <MegaMenuEmptyState item={item} />
       )}
