@@ -86,7 +86,7 @@
     max-width: 100%;
     min-width: 0;
     aspect-ratio: auto !important;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .dtb-pdp--modal .dtb-pdp-gallery > div:first-child,
@@ -104,8 +104,8 @@
     aspect-ratio: 1 / 1 !important;
     height: auto;
     min-height: 0;
-    max-height: 30rem;
-    max-width: 30rem;
+    max-height: none;
+    max-width: none;
   }
 
   .dtb-pdp--modal .product-image-gallery__main img {
@@ -2261,7 +2261,7 @@
   }
 
   .dtb-pdp:not(.dtb-pdp--modal) .product-image-gallery__thumbs {
-    justify-content: center;
+    justify-content: flex-start;
     gap: var(--dtb-space-3);
     padding-inline: 42px !important;
   }

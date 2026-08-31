@@ -294,14 +294,14 @@
 }
 
 .dtb-product-page-shell .dtb-pdp-payment-methods {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
   align-items: center;
-  justify-content: center;
+  justify-items: center;
   gap: clamp(.65rem, 1.25vw, 1rem);
   width: 100%;
   margin-top: .72rem;
-  overflow: hidden;
-  white-space: nowrap;
+  overflow: visible;
 }
 
 .dtb-product-page-shell .dtb-pdp-payment-methods__logo {
@@ -309,7 +309,7 @@
   width: auto;
   height: 20px;
   max-width: 56px;
-  flex: 0 1 auto;
+  flex: none;
   object-fit: contain;
   object-position: center;
 }
@@ -535,7 +535,8 @@
   }
 
   .dtb-product-page-shell .dtb-pdp-payment-methods {
-    gap: .48rem;
+    grid-template-columns: repeat(auto-fit, minmax(42px, 1fr));
+    gap: .55rem .48rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-payment-methods__logo {

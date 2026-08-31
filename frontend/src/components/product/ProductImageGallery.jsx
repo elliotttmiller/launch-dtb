@@ -279,6 +279,7 @@ export default function ProductImageGallery({ product }) {
   const [imgLoaded, setImgLoaded] = useState({});
   const [lightbox, setLightbox] = useState({ open: false, index: 0, dir: 0 });
   const [parentImageMeta, setParentImageMeta] = useState([]);
+  const [thumbRailState, setThumbRailState] = useState({ canScrollBack: false, canScrollForward: false });
 
   const thumbsRef = useRef(null);
   const galleryRef = useRef(null);
@@ -321,6 +322,23 @@ export default function ProductImageGallery({ product }) {
   const activeIndex = images.length > 0 ? Math.min(currentIndex, images.length - 1) : 0;
   const activeLightboxIndex = images.length > 0 ? Math.min(lightbox.index, images.length - 1) : 0;
 
+  const updateThumbRailState = useCallback(() => {
+    const rail = thumbsRef.current;
+    if (!rail) return;
+
+    const maxScrollLeft = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const nextState = {
+      canScrollBack: rail.scrollLeft > 2,
+      canScrollForward: rail.scrollLeft < maxScrollLeft - 2,
+    };
+    setThumbRailState((state) => (
+      state.canScrollBack === nextState.canScrollBack
+      && state.canScrollForward === nextState.canScrollForward
+        ? state
+        : nextState
+    ));
+  }, []);
+
   useEffect(() => {
     if (isVariationProduct || !parentId || baseImageMeta.length > 1) return undefined;
 
@@ -340,7 +358,28 @@ export default function ProductImageGallery({ product }) {
     if (!rail || images.length <= 1) return;
     rail.scrollTop = 0;
     rail.scrollLeft = 0;
-  }, [imageSetKey, images.length]);
+    updateThumbRailState();
+  }, [imageSetKey, images.length, updateThumbRailState]);
+
+  useEffect(() => {
+    const rail = thumbsRef.current;
+    if (!rail || images.length <= 1) return undefined;
+
+    const handleRailChange = () => updateThumbRailState();
+    rail.addEventListener('scroll', handleRailChange, { passive: true });
+
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(handleRailChange);
+    resizeObserver?.observe(rail);
+    Array.from(rail.children).forEach((child) => resizeObserver?.observe(child));
+    handleRailChange();
+
+    return () => {
+      rail.removeEventListener('scroll', handleRailChange);
+      resizeObserver?.disconnect();
+    };
+  }, [imageSetKey, images.length, updateThumbRailState]);
 
   const scrollThumb = useCallback((index) => {
     thumbsRef.current?.children[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -632,11 +671,12 @@ export default function ProductImageGallery({ product }) {
               onClick={onThumbPrev}
               className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--prev hidden md:flex absolute left-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
               aria-label="Scroll thumbnail list backward"
+              disabled={!thumbRailState.canScrollBack}
             >
               <ChevronLeft size={17} strokeWidth={2.5} />
             </button>
 
-            <div ref={thumbsRef} className="product-image-gallery__thumbs flex gap-2 overflow-x-auto md:px-10" style={{ scrollbarWidth: 'none' }}>
+            <div ref={thumbsRef} className="product-image-gallery__thumbs flex gap-2 overflow-x-auto md:px-10" style={{ scrollbarWidth: 'none' }} aria-label="Product image thumbnails">
               {images.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
@@ -675,6 +715,7 @@ export default function ProductImageGallery({ product }) {
               onClick={onThumbNext}
               className="product-image-gallery__thumb-nav product-image-gallery__thumb-nav--next hidden md:flex absolute right-1 top-1/2 z-10 h-9 w-9 -translate-y-1/2 items-center justify-center"
               aria-label="Scroll thumbnail list forward"
+              disabled={!thumbRailState.canScrollForward}
             >
               <ChevronRight size={17} strokeWidth={2.5} />
             </button>

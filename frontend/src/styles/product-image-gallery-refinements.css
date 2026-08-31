@@ -68,7 +68,7 @@
   width: 100%;
   min-height: 0;
   padding: 2px 1px 4px;
-  overflow: hidden;
+  overflow: visible;
   overscroll-behavior: contain;
 }
 
@@ -76,6 +76,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   gap: .6rem;
   width: 100%;
   min-height: 0;
@@ -141,9 +142,36 @@
   background: #fff;
 }
 
-/* The thumbnail rail itself is directly scrollable. */
+/* Keep desktop rail controls visible whenever the rail has overflow. */
 .dtb-product-page-shell .product-image-gallery__thumb-nav {
   display: none;
+  border: 1px solid var(--dtb-gallery-line-strong);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .96);
+  color: var(--dtb-gallery-ink);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .11);
+  transition: opacity .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+@media (min-width: 768px) {
+  .dtb-product-page-shell .product-image-gallery__thumb-nav {
+    display: flex;
+  }
+}
+
+.dtb-product-page-shell .product-image-gallery__thumb-nav:hover:not(:disabled) {
+  border-color: #aebdce;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, .15);
+}
+
+.dtb-product-page-shell .product-image-gallery__thumb-nav:focus-visible {
+  outline: 3px solid rgba(31, 85, 238, .2);
+  outline-offset: 2px;
+}
+
+.dtb-product-page-shell .product-image-gallery__thumb-nav:disabled {
+  cursor: default;
+  opacity: .36;
 }
 
 /* Main previous/next controls */
