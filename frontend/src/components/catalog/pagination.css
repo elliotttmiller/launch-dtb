@@ -42,16 +42,18 @@
 
 .pgn-11__nav {
   width: 100%;
-  display: grid;
-  grid-template-columns: minmax(7rem, 1fr) auto minmax(7rem, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: clamp(0.75rem, 2vw, 1.5rem);
+  justify-content: center;
+  gap: 0.75rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--pgn-11-line);
 }
 
 .pgn-11__list {
   display: flex;
+  flex: 1 1 18rem;
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
@@ -59,6 +61,13 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.pgn-11__list::-webkit-scrollbar {
+  display: none;
 }
 
 .pgn-11__num,
@@ -81,15 +90,16 @@
 }
 
 .pgn-11__num {
+  flex: 0 0 auto;
   padding-inline: 0.5rem;
 }
 
-.pgn-11__edge--previous {
-  justify-self: start;
+.pgn-11__edge {
+  flex: 0 0 7rem;
 }
 
-.pgn-11__edge--next {
-  justify-self: end;
+.pgn-11__edge--previous {
+  order: -1;
 }
 
 .pgn-11__num:hover,
@@ -123,20 +133,13 @@
 
 .pgn-11__gap {
   display: grid;
+  flex: 0 0 1.5rem;
   place-items: end center;
   min-width: 1.5rem;
   height: 2.75rem;
   padding-bottom: 0.6rem;
   color: var(--pgn-11-muted);
   user-select: none;
-}
-
-@supports selector(:has(*)) {
-  .pgn-11__nav:has(.pgn-11__list > li:nth-child(8)) {
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
