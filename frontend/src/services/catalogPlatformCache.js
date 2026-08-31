@@ -3,7 +3,7 @@ import { brandToSlug, isAllProductsCategorySlug, parseCatalogQuery } from '../ut
 
 const FRESH_CACHE_TTL = 5 * 60 * 1000;
 const STALE_CACHE_TTL = 24 * 60 * 60 * 1000;
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const PRODUCT_STORAGE_PREFIX = `dtb:catalog-products:${CACHE_VERSION}:`;
 const FACETS_STORAGE_PREFIX = `dtb:catalog-facets:${CACHE_VERSION}:`;
 const CATALOG_SNAPSHOTS_ENABLED = /^(1|true|yes|on)$/i.test(
@@ -127,6 +127,16 @@ function isLiveOnlyCategory(value = '') {
     .includes(normalizeCategoryAlias(value));
 }
 
+/**
+ * `isParts: 1` is the only dedicated storefront scope. The general Products
+ * surface intentionally remains unconstrained so brand "All Products" views
+ * contain both tools and replacement parts. Tool display-category filters are
+ * responsible for excluding parts where the backend domain rules require it.
+ */
+function normalizePartsScope(value) {
+  return Number(value) === 1 ? '1' : null;
+}
+
 export function normalizeCatalogScope(scope = {}) {
   const normalized = {};
 
@@ -138,9 +148,9 @@ export function normalizeCatalogScope(scope = {}) {
     normalized.display_category = String(scope.displayCategory);
   }
   if (scope.productKind) normalized.product_kind = String(scope.productKind);
-  if (scope.isParts !== undefined && scope.isParts !== null && scope.isParts !== '') {
-    normalized.is_parts = String(scope.isParts);
-  }
+
+  const partsScope = normalizePartsScope(scope.isParts);
+  if (partsScope !== null) normalized.is_parts = partsScope;
 
   return normalized;
 }
@@ -195,7 +205,10 @@ export function buildCatalogProductParams(query = {}) {
   if (query.productKind) params.product_kind = query.productKind;
   if (query.builderSlot) params.builder_slot = query.builderSlot;
   if (query.workflowScope) params.workflow_scope = query.workflowScope;
-  if (typeof query.isParts === 'number') params.is_parts = query.isParts;
+
+  const partsScope = normalizePartsScope(query.isParts);
+  if (partsScope !== null) params.is_parts = Number(partsScope);
+
   if (query.search) params.search = query.search;
   if (query.page && query.page > 1) params.page = query.page;
   if (query.perPage) params.per_page = query.perPage;
@@ -215,16 +228,9 @@ function buildCatalogSnapshotUrl(query = {}) {
   if (params.search || params.tool_family || params.builder_slot || params.workflow_scope || params.product_kind) {
     return '';
   }
-  // Static snapshots are pre-built per single category — a multi-select
-  // (comma-separated) display_category has no matching snapshot file, so
-  // fall back to the live endpoint, which supports the OR-combined filter.
   if (params.display_category && params.display_category.includes(',')) {
     return '';
   }
-
-  // Compound Tube category membership is resolved by backend aliases, taxonomy, SKU,
-  // and title fallbacks. Static snapshots can be stale or incomplete for this bucket,
-  // so this category must always use the live catalog endpoint.
   if (isLiveOnlyCategory(params.display_category || params.category || '')) {
     return '';
   }
@@ -284,6 +290,12 @@ export function getRenderableCatalogProducts(query = {}) {
   return getCachedCatalogProducts(query, { allowStale: true, returnEntry: true });
 }
 
+/**
+ * Static snapshots are bootstrap-only presentation data. They are deliberately
+ * kept out of the authoritative live product cache so an old generated file can
+ * never suppress the subsequent REST refresh or become the source of pagination
+ * totals/filter truth.
+ */
 export function fetchCatalogProductSnapshot(query = {}) {
   const url = buildCatalogSnapshotUrl(query);
   if (!url) return Promise.resolve(null);
@@ -293,11 +305,6 @@ export function fetchCatalogProductSnapshot(query = {}) {
     snapshotInflight.set(
       key,
       fetchJsonIfPresent(url)
-        .then((data) => {
-          if (!data) return null;
-          setCacheEntry(productCache, sortedKey(buildCatalogProductParams(query)), PRODUCT_STORAGE_PREFIX, data);
-          return data;
-        })
         .finally(() => {
           snapshotInflight.delete(key);
         }),
@@ -307,6 +314,11 @@ export function fetchCatalogProductSnapshot(query = {}) {
   return snapshotInflight.get(key);
 }
 
+/**
+ * Fetch authoritative catalog data from the live DTB catalog endpoint.
+ * A valid live response may be cached for the short storefront TTL, but static
+ * snapshots are never returned from this function.
+ */
 export function fetchCatalogProducts(query = {}) {
   const key = sortedKey(buildCatalogProductParams(query));
   const cached = getCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX);
@@ -315,8 +327,7 @@ export function fetchCatalogProducts(query = {}) {
   if (!productInflight.has(key)) {
     productInflight.set(
       key,
-      fetchCatalogProductSnapshot(query)
-        .then((snapshot) => snapshot || apiClient(buildCatalogProductsUrl(query)))
+      apiClient(buildCatalogProductsUrl(query))
         .then((data) => setCacheEntry(productCache, key, PRODUCT_STORAGE_PREFIX, data))
         .finally(() => {
           productInflight.delete(key);

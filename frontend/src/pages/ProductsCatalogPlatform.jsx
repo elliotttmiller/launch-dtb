@@ -34,6 +34,7 @@ import {
 import { buildCategoryPageUrl, dedupeCatalogBrandEntries, normalizeDisplayCategorySlug } from '../utils/catalogFacets.js';
 import { searchProducts } from '../services/catalog.js';
 import { fetchCatalogProducts } from '../services/catalogPlatformCache.js';
+import { normalizeCatalogDisplayName } from '../utils/catalogDtoAdapters.js';
 
 // Canonical display category labels for the customer-facing filter UI.
 // Mirrors CategoryNormalizer::DISPLAY_CATEGORY_LABELS on the backend.
@@ -48,7 +49,7 @@ const DISPLAY_CATEGORY_LABELS = {
   smoothing_blades:      'Smoothing Blades',
   toolsets:              'Tool Sets & Kits',
   parts:                 'Parts',
-  stilts:                 'Stilts',
+  stilts:                'Stilts',
   semi_automatic_tapers: 'Semi-Automatic Tapers',
   predator_family:       'Predator Family',
 };
@@ -94,15 +95,10 @@ const DISPLAY_CATEGORY_ALIASES = {
   predator:                  'predator_family',
 };
 
-/**
- * Resolve a raw display category slug/key to its canonical slug.
- * Handles inconsistently stored meta values from legacy imports.
- */
 function canonicalDisplayCategoryId(raw = '') {
-  const normalized = normalizeDisplayCategorySlug(raw); // lowercase + underscores
+  const normalized = normalizeDisplayCategorySlug(raw);
   return DISPLAY_CATEGORY_ALIASES[normalized] || normalized;
 }
-import { normalizeCatalogDisplayName } from '../utils/catalogDtoAdapters.js';
 
 function toCardProduct(dto) {
   const card = dto?.cardProduct || null;
@@ -177,7 +173,6 @@ function mergeCategoryEntries(items = []) {
     if (!id) return;
 
     const existing = merged.get(id);
-    // Use the canonical label if available, else fall back to the entry's label.
     const canonicalLabel = DISPLAY_CATEGORY_LABELS[id];
     const slug = cat?.slug || String(id).replace(/_/g, '-');
     merged.set(id, {
@@ -261,7 +256,7 @@ function CatalogError({ title, message, onRetry }) {
   );
 }
 
-export default function ProductsCatalogPlatform({ forceProductGrid = false, title = 'Products', isPartsFilter = 0 } = {}) {
+export default function ProductsCatalogPlatform({ forceProductGrid = false, title = 'Products', isPartsFilter = null } = {}) {
   const location = useLocation();
   const navigate = useNavigate();
   const { brandSlug, categorySlug, categoryPathSlug } = useParams();
@@ -297,7 +292,10 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const isSelectorRoute = !forceProductGrid && (isBrandSelectorRoute || isBrandCategorySelectorRoute);
   const productsEnabled = !isSelectorRoute || Boolean(query.search);
 
-  const effectivePartsFilter = isPartsFilter === 0 && Boolean(query.search) ? null : isPartsFilter;
+  // There are two storefront catalog scopes: the general Products catalog and
+  // the dedicated Parts catalog. Products is intentionally unconstrained and
+  // may contain both tools and parts; Parts alone applies is_parts=1.
+  const effectivePartsFilter = isPartsPage ? 1 : null;
   const scopedFacets = effectivePartsFilter === null
     ? { brand: selectedBrand, category: query.category }
     : { isParts: effectivePartsFilter, brand: selectedBrand, category: query.category };
@@ -354,8 +352,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return `${labels[0]} +${labels.length - 1} more`;
   }, [brandCategoryCards, filterCategories, selectedDisplayCategories]);
 
-  // Mirrors FilterPanel's own selectedBrands/selectedCategories inputs so the
-  // toolbar badge always agrees with what the filter panel considers "active".
   const activeFilterCount = (selectedBrand ? 1 : 0) + selectedDisplayCategories.length;
   const categoryScopeLabel = selectedBrandFacet?.label || selectedBrand;
   const pageHeading = selectedCategoryLabel
@@ -372,10 +368,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   const unifiedHeadingMeta = isCategoryProductRoute
     ? `${categoryScopeLabel || 'All brands'}${total > 0 ? ` · ${total.toLocaleString()} product${total === 1 ? '' : 's'}` : ''}`
     : `${isPartsPage ? 'Replacement parts and service components' : 'All brands and categories'}${total > 0 ? ` · ${total.toLocaleString()} product${total === 1 ? '' : 's'}` : ''}`;
-  // Any URL that resolves a `category` filter (the dedicated route or a stray
-  // `?category=` query param on /products) canonicalizes onto the one
-  // dedicated category page for that product_cat slug — this is what
-  // consolidates duplicate-content URLs the sitemap and mega-menu both target.
   const canonicalCategorySlug = categoryPathSlug || query.category || '';
   const canonicalUrl = canonicalCategorySlug
     ? buildCategoryPageUrl(canonicalCategorySlug)
@@ -441,9 +433,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   useEffect(() => {
     const pendingSearch = searchInput.trim();
     if (pendingSearch === query.search) return undefined;
-
-    // 420 ms debounce — fast enough for responsive feel, slow enough to avoid
-    // hammering the catalog platform with per-keystroke API requests.
     const timer = window.setTimeout(() => commitSearch(pendingSearch), 420);
     return () => window.clearTimeout(timer);
   }, [commitSearch, query.search, searchInput]);
@@ -457,13 +446,9 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
 
-    // 280 ms debounce for suggestions — slightly faster than the commit debounce
-    // so the dropdown appears before the grid begins loading.
     const timer = window.setTimeout(async () => {
       setSearchSuggestionsLoading(true);
       try {
-        // Primary: catalog platform — same data source as the product grid.
-        // Scoped to the active brand when one is selected.
         const platformData = await fetchCatalogProducts({
           search,
           ...(selectedBrand ? { brands: [selectedBrand] } : {}),
@@ -477,7 +462,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
           setSearchSuggestions(platformItems.map(toCardProduct).filter(Boolean));
         }
       } catch {
-        // Fallback: legacy catalog cache (works even when the backend is down).
         try {
           const legacyResults = await searchProducts(search);
           const canonicalBrand = canonicalBrandLabel(selectedBrand);
@@ -535,8 +519,6 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     const next = current.includes(displayCategory)
       ? current.filter((slug) => slug !== displayCategory)
       : [...current, displayCategory];
-    // When activating a category filter, clear any active search — the backend
-    // ANDs display_category + search together which returns zero results.
     setQuery({ displayCategory: next, category: '', ...(next.length > 0 ? { search: '' } : {}) });
   };
   const resetToBrandList = () => navigate('/products/brands');
@@ -564,10 +546,18 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       </div>
 
       {mappedProducts.length > 0 && (
-        <>
-          <Pagination currentPage={page} totalPages={totalPages} onPageChange={(next) => { setQuery({ page: next }, { resetPage: false }); if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="mt-8" />
-          <p className="text-center text-sm text-gray-400 mt-2">Showing {pageStart + 1}–{Math.min(pageStart + mappedProducts.length, total)} of {total.toLocaleString()} results</p>
-        </>
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={total}
+          startItem={pageStart + 1}
+          endItem={Math.min(pageStart + mappedProducts.length, total)}
+          itemLabel="products"
+          onPageChange={(next) => {
+            setQuery({ page: next }, { resetPage: false });
+            if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        />
       )}
 
       {mappedProducts.length === 0 && !productsError && (

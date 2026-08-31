@@ -1,107 +1,110 @@
+import './pagination.css';
+
 /**
- * frontend/src/components/catalog/Pagination.jsx
+ * Stable, accessible catalog pagination.
  *
- * Reusable pagination bar used by AllProducts, Products (brand view),
- * and PartsShop.  Renders:
- *   ← Prev  [1] … [4] [5*] [6] … [12]  Next →
- *
- * Props
- * ──────
- *   currentPage   {number}   1-based current page (required)
- *   totalPages    {number}   Total number of pages (required)
- *   onPageChange  {function} Called with the new 1-based page number
- *   className     {string}   Extra class names for the wrapper (optional)
+ * The component owns pagination presentation only; callers own URL state and
+ * product data. Page tokens are windowed so large catalogs never render an
+ * unbounded row of controls.
  */
+export default function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems = null,
+  startItem = null,
+  endItem = null,
+  itemLabel = 'products',
+  className = '',
+}) {
+  const hasItemCount = Number.isFinite(totalItems)
+    && Number.isFinite(startItem)
+    && Number.isFinite(endItem)
+    && totalItems > 0;
+  const hasMultiplePages = totalPages > 1;
 
-export default function Pagination({ currentPage, totalPages, onPageChange, className = '' }) {
-  if (totalPages <= 1) return null;
+  if (!hasMultiplePages && !hasItemCount) return null;
 
-  // Build the array of page tokens to display.
-  // Tokens are either a page number (integer) or the string '…' (ellipsis).
-  function buildPageTokens() {
-    const tokens = [];
-    const WING = 2; // pages to show on each side of current page
+  const buildPageTokens = () => {
+    const pages = new Set([1, totalPages]);
+    const wing = 2;
 
-    const addPage = (p) => {
-      if (!tokens.includes(p) && p >= 1 && p <= totalPages) tokens.push(p);
-    };
-
-    // Always show first and last pages
-    addPage(1);
-    addPage(totalPages);
-
-    // Wing around current page
-    for (let i = currentPage - WING; i <= currentPage + WING; i++) addPage(i);
-
-    // Sort and insert ellipses
-    const sorted = [...tokens].sort((a, b) => a - b);
-    const withEllipsis = [];
-    for (let i = 0; i < sorted.length; i++) {
-      if (i > 0 && sorted[i] - sorted[i - 1] > 1) {
-        withEllipsis.push('…');
-      }
-      withEllipsis.push(sorted[i]);
+    for (let page = currentPage - wing; page <= currentPage + wing; page += 1) {
+      if (page >= 1 && page <= totalPages) pages.add(page);
     }
-    return withEllipsis;
-  }
 
-  const tokens = buildPageTokens();
+    const sorted = [...pages].sort((a, b) => a - b);
+    const tokens = [];
 
-  const btnBase = [
-    'inline-flex items-center justify-center',
-    'min-w-[2.25rem] h-9 px-2 rounded-lg',
-    'text-sm font-medium border transition-colors',
-  ].join(' ');
+    sorted.forEach((page, index) => {
+      if (index > 0 && page - sorted[index - 1] > 1) tokens.push('…');
+      tokens.push(page);
+    });
 
-  const activeCls  = 'bg-primary-600 border-primary-600 text-white shadow-sm';
-  const defaultCls = 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400';
-  const disabledCls = 'bg-white border-gray-200 text-gray-300 cursor-not-allowed';
+    return tokens;
+  };
+
+  const tokens = hasMultiplePages ? buildPageTokens() : [];
+
+  const changePage = (nextPage) => {
+    if (nextPage < 1 || nextPage > totalPages || nextPage === currentPage) return;
+    onPageChange(nextPage);
+  };
 
   return (
-    <nav
-      aria-label="Pagination"
-      className={`flex items-center justify-center gap-1 py-4 ${className}`}
-    >
-      {/* Previous */}
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        className={`${btnBase} ${currentPage === 1 ? disabledCls : defaultCls}`}
-        aria-label="Previous page"
-      >
-        ←
-      </button>
+    <section className={`pgn-11 ${className}`.trim()} aria-label="Catalog pagination">
+      <div className="pgn-11__stage">
+        {hasItemCount && (
+          <p className="pgn-11__count" aria-live="polite">
+            Showing <b>{startItem.toLocaleString()}–{endItem.toLocaleString()}</b> of{' '}
+            <b>{totalItems.toLocaleString()}</b> {itemLabel}
+          </p>
+        )}
 
-      {/* Page tokens */}
-      {tokens.map((token, i) =>
-        token === '…' ? (
-          <span
-            key={`ellipsis-${i}`}
-            className="inline-flex items-center justify-center min-w-[2.25rem] h-9 text-sm text-gray-400 select-none"
-          >
-            …
-          </span>
-        ) : (
-          <button
-            key={token}
-            onClick={() => onPageChange(token)}
-            aria-current={token === currentPage ? 'page' : undefined}
-            className={`${btnBase} ${token === currentPage ? activeCls : defaultCls}`}
-          >
-            {token}
-          </button>
-        )
-      )}
+        {hasMultiplePages && (
+          <nav className="pgn-11__nav" aria-label="Product pagination">
+            <button
+              className="pgn-11__edge pgn-11__edge--previous"
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => changePage(currentPage - 1)}
+              aria-label="Previous page"
+            >
+              Previous
+            </button>
 
-      {/* Next */}
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        className={`${btnBase} ${currentPage === totalPages ? disabledCls : defaultCls}`}
-        aria-label="Next page"
-      >
-        →
-      </button>
-    </nav>
+            <ol className="pgn-11__list">
+              {tokens.map((token, index) => (
+                token === '…' ? (
+                  <li key={`gap-${index}`} aria-hidden="true" className="pgn-11__gap">…</li>
+                ) : (
+                  <li key={token}>
+                    <button
+                      className="pgn-11__num"
+                      type="button"
+                      aria-current={token === currentPage ? 'page' : undefined}
+                      aria-label={`Page ${token}`}
+                      onClick={() => changePage(token)}
+                    >
+                      {token}
+                    </button>
+                  </li>
+                )
+              ))}
+            </ol>
+
+            <button
+              className="pgn-11__edge pgn-11__edge--next"
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => changePage(currentPage + 1)}
+              aria-label="Next page"
+            >
+              Next
+            </button>
+          </nav>
+        )}
+      </div>
+    </section>
   );
 }

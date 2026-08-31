@@ -45,11 +45,6 @@ const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'tool-sets-kits': '/wp-content/uploads/2026/media/columbia_tools_ts_01.webp',
 };
 
-/**
- * Brand+category image overrides.
- * Keyed by brand slug → category key/slug → image URL.
- * Used when the API returns a non-representative image for a category card.
- */
 const CATEGORY_IMAGE_OVERRIDES = {
   tapetech: {
     'automatic_tapers': '/wp-content/uploads/2026/media/tapetech_07tt_08.webp',
@@ -250,12 +245,16 @@ export default function ProductsCategorySelector({
   onSelectCategory,
   onBack,
 }) {
-  const [previewState, setPreviewState] = useState({ brand: '', images: [] });
+  const [previewState, setPreviewState] = useState({ brand: '', images: [], total: null });
   const normalizedCategories = Array.isArray(categories) ? categories : [];
-  const categoryProductCount = normalizedCategories.reduce((sum, category) => (
+  const categoryCountFallback = normalizedCategories.reduce((sum, category) => (
     sum + Number(category?.count || category?.productCount || 0)
   ), 0);
-  const allProductsImages = previewState.brand === brand ? previewState.images : [];
+  const hasAuthoritativePreview = previewState.brand === brand;
+  const allProductsImages = hasAuthoritativePreview ? previewState.images : [];
+  const allProductsCount = hasAuthoritativePreview && Number.isFinite(previewState.total)
+    ? previewState.total
+    : categoryCountFallback;
 
   useEffect(() => {
     if (!brand) return undefined;
@@ -276,9 +275,14 @@ export default function ProductsCategorySelector({
             .map(normalizePreviewImageUrl)
             .filter((src) => src && !src.endsWith('.svg')),
         )).slice(0, ALL_PRODUCTS_PREVIEW_LIMIT);
-        setPreviewState({ brand, images });
+        const total = Number(response?.pagination?.total);
+        setPreviewState({
+          brand,
+          images,
+          total: Number.isFinite(total) ? total : null,
+        });
       } catch {
-        if (!cancelled) setPreviewState({ brand, images: [] });
+        if (!cancelled) setPreviewState({ brand, images: [], total: null });
       }
     };
 
@@ -288,7 +292,7 @@ export default function ProductsCategorySelector({
 
   const allProductsCard = {
     ...ALL_PRODUCTS_CATEGORY,
-    count: categoryProductCount,
+    count: allProductsCount,
     image: '',
   };
   const displayCategories = [
