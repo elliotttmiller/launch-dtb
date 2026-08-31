@@ -76,7 +76,7 @@ export default function Contact() {
     <div style={{ minHeight: '100vh' }} className="page-wrapper">
       <SEOHead
         title="Contact Us"
-        description="Get in touch with the Drywall Toolbox team. Expert support from real people who know drywall tools."
+        description="Contact Drywall Toolbox for product, order, return, repair, and general support."
         canonical="/contact"
       />
 
@@ -118,7 +118,7 @@ export default function Contact() {
             lineHeight: 1.1,
             letterSpacing: '-0.03em'
           }}>
-            WE&apos;RE HERE TO HELP.
+            We&apos;re Here to Help
           </h1>
           <p style={{
             color: 'rgba(255,255,255,0.65)',
@@ -127,7 +127,7 @@ export default function Contact() {
             maxWidth: '500px',
             lineHeight: 1.6
           }}>
-            Technical support, bulk orders, returns, or custom tool fabrication — talk to a real person who knows the tools.
+            Support for products, orders, returns, repairs, and general questions.
           </p>
         </div>
       </section>
@@ -157,7 +157,7 @@ export default function Contact() {
               Contact Information
             </h2>
             <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.6)', margin: '0 0 32px 0', lineHeight: 1.6 }}>
-              Call us directly or use the form and we&apos;ll get back to you within one business day.
+              Call us or send a message using the form.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px' }}>
@@ -230,9 +230,9 @@ export default function Contact() {
                   </svg>
                 </div>
                 <div>
-                  <p style={{ fontWeight: 700, fontSize: '1rem', color: 'black', margin: '0 0 6px' }}>Message Sent!</p>
+                  <p style={{ fontWeight: 700, fontSize: '1rem', color: 'black', margin: '0 0 6px' }}>Message sent</p>
                   <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.6)', margin: 0 }}>
-                    Our team will get back to you within one business day.
+                    Your request has been submitted.
                   </p>
                   {tracking && (
                     <p style={{ fontSize: '0.875rem', margin: '12px 0 0' }}>
