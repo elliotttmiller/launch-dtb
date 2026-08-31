@@ -97,17 +97,6 @@ export default function AddressesTab( { user } ) {
     <div style={ { display: 'flex', flexDirection: 'column', gap: '12px' } }>
       <AddressCard type="billing"  address={ billing }  delay={ 0 } />
       <AddressCard type="shipping" address={ shipping } delay={ 0.06 } />
-
-      {/* Coming-soon multi-address placeholder */}
-      <Motion.div custom={ 0.12 } variants={ fadeUp } initial="hidden" animate="visible"
-        style={ { display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 18px', background: '#f8fafc', border: '1.5px dashed rgba(15,23,42,0.1)', borderRadius: '10px' } }
-      >
-        <Plus size={ 16 } style={ { color: 'rgba(15,23,42,0.28)', flexShrink: 0 } } />
-        <div>
-          <p style={ { margin: '0 0 1px', fontSize: '0.84rem', fontWeight: 650, color: 'rgba(15,23,42,0.45)' } }>Multiple saved addresses</p>
-          <p style={ { margin: 0, fontSize: '0.73rem', color: 'rgba(15,23,42,0.35)' } }>Support for saving multiple addresses is coming soon.</p>
-        </div>
-      </Motion.div>
     </div>
   );
 }
