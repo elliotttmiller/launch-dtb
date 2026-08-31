@@ -17,7 +17,13 @@ export default function Pagination({
   itemLabel = 'products',
   className = '',
 }) {
-  if (totalPages <= 1) return null;
+  const hasItemCount = Number.isFinite(totalItems)
+    && Number.isFinite(startItem)
+    && Number.isFinite(endItem)
+    && totalItems > 0;
+  const hasMultiplePages = totalPages > 1;
+
+  if (!hasMultiplePages && !hasItemCount) return null;
 
   const buildPageTokens = () => {
     const pages = new Set([1, totalPages]);
@@ -38,11 +44,7 @@ export default function Pagination({
     return tokens;
   };
 
-  const tokens = buildPageTokens();
-  const hasItemCount = Number.isFinite(totalItems)
-    && Number.isFinite(startItem)
-    && Number.isFinite(endItem)
-    && totalItems > 0;
+  const tokens = hasMultiplePages ? buildPageTokens() : [];
 
   const changePage = (nextPage) => {
     if (nextPage < 1 || nextPage > totalPages || nextPage === currentPage) return;
@@ -59,47 +61,49 @@ export default function Pagination({
           </p>
         )}
 
-        <nav className="pgn-11__nav" aria-label="Product pagination">
-          <button
-            className="pgn-11__edge pgn-11__edge--previous"
-            type="button"
-            disabled={currentPage === 1}
-            onClick={() => changePage(currentPage - 1)}
-            aria-label="Previous page"
-          >
-            Previous
-          </button>
+        {hasMultiplePages && (
+          <nav className="pgn-11__nav" aria-label="Product pagination">
+            <button
+              className="pgn-11__edge pgn-11__edge--previous"
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => changePage(currentPage - 1)}
+              aria-label="Previous page"
+            >
+              Previous
+            </button>
 
-          <ol className="pgn-11__list">
-            {tokens.map((token, index) => (
-              token === '…' ? (
-                <li key={`gap-${index}`} aria-hidden="true" className="pgn-11__gap">…</li>
-              ) : (
-                <li key={token}>
-                  <button
-                    className="pgn-11__num"
-                    type="button"
-                    aria-current={token === currentPage ? 'page' : undefined}
-                    aria-label={`Page ${token}`}
-                    onClick={() => changePage(token)}
-                  >
-                    {token}
-                  </button>
-                </li>
-              )
-            ))}
-          </ol>
+            <ol className="pgn-11__list">
+              {tokens.map((token, index) => (
+                token === '…' ? (
+                  <li key={`gap-${index}`} aria-hidden="true" className="pgn-11__gap">…</li>
+                ) : (
+                  <li key={token}>
+                    <button
+                      className="pgn-11__num"
+                      type="button"
+                      aria-current={token === currentPage ? 'page' : undefined}
+                      aria-label={`Page ${token}`}
+                      onClick={() => changePage(token)}
+                    >
+                      {token}
+                    </button>
+                  </li>
+                )
+              ))}
+            </ol>
 
-          <button
-            className="pgn-11__edge pgn-11__edge--next"
-            type="button"
-            disabled={currentPage === totalPages}
-            onClick={() => changePage(currentPage + 1)}
-            aria-label="Next page"
-          >
-            Next
-          </button>
-        </nav>
+            <button
+              className="pgn-11__edge pgn-11__edge--next"
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => changePage(currentPage + 1)}
+              aria-label="Next page"
+            >
+              Next
+            </button>
+          </nav>
+        )}
       </div>
     </section>
   );
