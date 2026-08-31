@@ -173,7 +173,7 @@ export default function ReturnPortal() {
     <div style={{ minHeight: '100vh' }} className="page-wrapper">
       <SEOHead
         title="Return Portal"
-        description="Start a return or exchange with Drywall Toolbox. Enter your order number and email to begin. 45-day return window, no restocking fee on unused approved returns."
+        description="Submit a return request with your order details and track its status."
         canonical="/returns"
       />
 
@@ -215,7 +215,7 @@ export default function ReturnPortal() {
             lineHeight:    1.1,
             letterSpacing: '-0.03em',
           }}>
-            RETURN PORTAL
+            Return Portal
           </h1>
           <p style={{
             color:      'rgba(255,255,255,0.65)',
@@ -224,8 +224,7 @@ export default function ReturnPortal() {
             maxWidth:   '500px',
             lineHeight: 1.6,
           }}>
-            Tell us what's going on with your order and we'll get back to you
-            within one business day with a Return ID and next steps.
+            Enter your order details and return reason to start a request.
           </p>
         </div>
       </section>
@@ -255,8 +254,8 @@ export default function ReturnPortal() {
                 marginBottom: '20px',
               }}>
                 {[
-                  { n: 1, label: 'Lookup' },
-                  { n: 2, label: 'Details' },
+                  { n: 1, label: 'Order Details' },
+                  { n: 2, label: 'Return Details' },
                 ].map(({ n, label }, i, arr) => (
                   <div key={n} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -307,11 +306,10 @@ export default function ReturnPortal() {
                 padding:      'clamp(1.5rem, 3vw, 2.5rem)',
               }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
-                  Find Your Order
+                  Enter Order Details
                 </h3>
                 <p style={{ fontSize: '0.85rem', color: 'rgba(15,23,42,0.55)', margin: '0 0 24px', lineHeight: 1.5 }}>
-                  Enter the order number from your confirmation email and the
-                  email address you used at checkout.
+                  Enter the name, order number, and email used for the order.
                 </p>
 
                 {lookupError && (
@@ -397,8 +395,8 @@ export default function ReturnPortal() {
                     style={{ color: 'var(--primary-600)', textDecoration: 'underline', fontWeight: 600 }}
                   >
                     Contact support
-                  </Link>{' '}
-                  and we&apos;ll look it up for you.
+                  </Link>
+                  .
                 </div>
               </div>
             )}
@@ -475,7 +473,7 @@ export default function ReturnPortal() {
                       rows={4}
                       value={additionalNotes}
                       onChange={(e) => setAdditionalNotes(e.target.value)}
-                      placeholder="Describe the issue, include photos if relevant, or note specific items you'd like to return…"
+                      placeholder="Describe the issue or identify the item you want to return."
                       className="machined-textarea text-black"
                       disabled={submitLoading}
                     />
@@ -559,15 +557,13 @@ export default function ReturnPortal() {
 
                 <div>
                   <h3 style={{ fontWeight: 800, fontSize: '1.15rem', color: '#0f172a', margin: '0 0 8px' }}>
-                    Return Request Submitted!
+                    Return Request Submitted
                   </h3>
                   <p style={{ fontSize: '0.875rem', color: 'rgba(15,23,42,0.6)', margin: '0 0 4px', lineHeight: 1.6 }}>
                     We received your return request for Order <strong>#{orderNumber.trim()}</strong>.
                   </p>
                   <p style={{ fontSize: '0.85rem', color: 'rgba(15,23,42,0.5)', margin: 0, lineHeight: 1.6 }}>
-                    Our team will respond to <strong>{lookupEmail.trim()}</strong> within
-                    1 business day with your Return ID and return instructions.
-                    Do not ship items back until you receive your Return ID.
+                    Your request is ready for review. Do not ship items until you receive return instructions.
                   </p>
                 </div>
 
@@ -584,10 +580,9 @@ export default function ReturnPortal() {
                 }}>
                   <strong style={{ color: '#0f172a' }}>What happens next?</strong>
                   <ol style={{ margin: '8px 0 0', paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    <li>We review your request and email your Return ID.</li>
-                    <li>Package the item securely in its original packaging.</li>
-                    <li>Ship using the carrier and address provided in the return instructions email.</li>
-                    <li>Refund is processed within 3–5 business days of receiving the item.</li>
+                    <li>We review your return request.</li>
+                    <li>If approved, follow the return instructions provided.</li>
+                    <li>Use the return status page for available updates.</li>
                   </ol>
                 </div>
 
@@ -671,8 +666,7 @@ export default function ReturnPortal() {
               Return Policy Details
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'rgba(15,23,42,0.58)', margin: '0 0 18px', lineHeight: 1.6 }}>
-              Review the full store policy before submitting a request, including return eligibility,
-              shipping responsibility, exclusions, and refund timing.
+              Review eligibility, shipping responsibility, exclusions, and refund timing before submitting.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
