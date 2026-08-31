@@ -26,13 +26,13 @@ export default function HomepageSignupCTA({ isOpen, onClose, onSignup }) {
           <div className="homepage-signup-cta__inner">
             <div className="homepage-signup-cta__eyebrow">
               <UserPlus size={ 14 } strokeWidth={ 2 } />
-              <span>Contractor account tools</span>
+              <span>Your Drywall Toolbox account</span>
             </div>
             <h2 id="homepage-signup-cta-title" className="homepage-signup-cta__headline">
-              Track orders and save your tools
+              Keep orders and service in one place
             </h2>
             <p className="homepage-signup-cta__body">
-              Create your account for order tracking, saved products, repair requests, addresses, and contractor account tools.
+              Create an account to view orders, repair requests, returns, and support tickets.
             </p>
             <button
               type="button"
