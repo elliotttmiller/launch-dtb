@@ -42,7 +42,7 @@ export default function HomeHeroBrands({ brands = [] }) {
   return (
     <section className="home-hero-brands" aria-labelledby="home-hero-brands-title">
       <h2 id="home-hero-brands-title" className="home-hero-brands__title">
-        Shop leading drywall tool brands.
+        Trusted by professionals. Powered by quality.
       </h2>
       <div className="home-hero-brands__viewport">
         <div className="home-hero-brands__track">
