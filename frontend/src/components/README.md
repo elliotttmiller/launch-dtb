@@ -21,6 +21,17 @@ This folder now has a stricter split:
 - `components/errors/`
   Error boundaries and crash containment components.
 
+## Catalog routing and pagination contract
+
+The catalog has two customer-facing listing scopes:
+
+- `/products` is the general catalog and is intentionally not constrained by `is_parts`; brand-level **All Products** views include every product for the selected brand, including replacement parts.
+- `/parts` is the dedicated parts catalog and is the only storefront scope that applies `is_parts=1`.
+
+`ProductsCatalogPlatform.jsx` owns catalog route state and passes the owning surface to `buildCatalogUrl()`. Query mutations such as pagination, sorting, search, brand filters, and category filters must preserve that surface instead of defaulting to `/products`.
+
+`catalog/Pagination.jsx` owns pagination presentation only. Product totals and route mutation remain owned by the catalog page. Static catalog snapshots are bootstrap-only presentation data; the live `/dtb/v1/catalog/products` response remains authoritative for items, totals, page counts, and filter truth.
+
 ## Current UI primitives
 
 Use these first before adding a new standalone component:
