@@ -154,7 +154,7 @@ export default function OverviewTab( { user, orders, repairs = [], returns = [],
         { [
           { icon: ShoppingCart, label: 'Browse Products', to: '/products',  color: '#2255ee', bg: '#eff6ff' },
           { icon: ShoppingCart, label: 'View Cart',        to: '/cart',      color: '#ea580c', bg: '#fff7ed' },
-          { icon: Wrench,       label: 'Book a Repair',    to: '/repairs',   color: '#16a34a', bg: '#f0fdf4' },
+          { icon: Wrench,       label: 'Start a Repair',   to: '/repairs',   color: '#16a34a', bg: '#f0fdf4' },
         ].map( ( action ) => (
           <Link key={ action.to } to={ action.to } style={ { textDecoration: 'none' } }>
             <div style={ {
