@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
 import { SCHEMATIC_DEFINITIONS } from '../data/schematicMappings';
+import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/repair-landing.css';
 import '../styles/repair-landing-responsive.css';
 
@@ -22,21 +23,6 @@ const PROCESS_STEPS = [
   {
     title: 'Repair, test, and return',
     description: 'The tool is serviced, function-tested, and returned using your selected delivery preference with repair tracking available.',
-  },
-];
-
-const ASSURANCES = [
-  {
-    title: 'Quote approval',
-    description: 'Choose quote-first approval or set an eligible pre-approval limit before additional work is performed.',
-  },
-  {
-    title: 'Flexible shipping',
-    description: 'Use supported inbound shipping or an eligible drop-off path, then choose your preferred return option.',
-  },
-  {
-    title: 'Repair tracking',
-    description: 'Keep the repair request, status, and next steps connected from intake through return shipment.',
   },
 ];
 
@@ -68,7 +54,9 @@ const FAQ_ITEMS = [
 ];
 
 export default function RepairLanding() {
-  const featuredBrands = SUPPORTED_BRANDS.slice(0, 8);
+  const featuredBrands = SUPPORTED_BRANDS.slice(0, 8)
+    .map((brand) => ({ brand, logo: getBrandLogo(brand) }))
+    .filter(({ logo }) => Boolean(logo));
 
   return (
     <div className="repair-landing page-wrapper">
@@ -136,24 +124,6 @@ export default function RepairLanding() {
         </div>
       </section>
 
-      <section className="repair-assurance" aria-labelledby="repair-assurance-title">
-        <div className="repair-section-shell">
-          <div className="repair-section-heading">
-            <p className="repair-eyebrow">Professional Service</p>
-            <h2 id="repair-assurance-title">Clear decisions. No hidden repair path.</h2>
-          </div>
-
-          <div className="repair-assurance__grid">
-            {ASSURANCES.map((item) => (
-              <article className="repair-assurance__item" key={item.title}>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {featuredBrands.length > 0 && (
         <section className="repair-brands" aria-labelledby="repair-brands-title">
           <div className="repair-section-shell repair-brands__inner">
@@ -162,8 +132,16 @@ export default function RepairLanding() {
               <h2 id="repair-brands-title">Built around the tools contractors actually use.</h2>
             </div>
             <div className="repair-brands__list" aria-label="Supported repair brands">
-              {featuredBrands.map((brand) => (
-                <span key={brand}>{brand}</span>
+              {featuredBrands.map(({ brand, logo }) => (
+                <span key={brand} title={brand}>
+                  <img
+                    src={logo}
+                    alt={brand}
+                    loading="lazy"
+                    decoding="async"
+                    style={{ width: '150px', maxWidth: '100%', height: '44px', objectFit: 'contain' }}
+                  />
+                </span>
               ))}
             </div>
           </div>
