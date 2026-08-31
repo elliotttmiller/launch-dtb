@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import '../../styles/product-detail-approved-mockup.css';
 import '../../styles/product-detail-overview-refinements.css';
+import '../../styles/product-detail-brand-refinements.css';
 
 function getProductUrl(product) {
   const slug = product?.slug || product?.post_name || '';
