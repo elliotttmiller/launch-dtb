@@ -16,7 +16,10 @@ const QUICK_LINKS = [
 export default function HomeHeroQuickLinks() {
   return (
     <nav className="home-hero-nav" aria-label="Explore Drywall Toolbox">
-      <div className="home-hero-nav__track">
+      <div
+        className="home-hero-nav__track"
+        style={{ gridTemplateColumns: `repeat(${QUICK_LINKS.length}, minmax(0, 1fr))` }}
+      >
         {QUICK_LINKS.map(({ id, label, description, to, Icon }) => (
           <Link
             key={id}
