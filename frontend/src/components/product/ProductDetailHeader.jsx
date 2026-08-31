@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import '../../styles/product-detail-approved-mockup.css';
+import '../../styles/product-detail-overview-refinements.css';
 
 function getProductUrl(product) {
   const slug = product?.slug || product?.post_name || '';
@@ -22,6 +23,18 @@ function toPlainSummary(value = '') {
   return compact;
 }
 
+function toFinitePrice(value) {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function getExplicitSalePrice(product) {
+  const priceObject = product?.price && typeof product.price === 'object' ? product.price : null;
+  return [product?.sale_price, product?.salePrice, priceObject?.sale]
+    .map(toFinitePrice)
+    .find((value) => value != null && value > 0) ?? null;
+}
+
 export default function ProductDetailHeader({
   product,
   productUrl: productUrlOverride,
@@ -41,12 +54,26 @@ export default function ProductDetailHeader({
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
   const summary = toPlainSummary(product?.short_description || product?.shortDescription || '');
-  const compareAtValue = Number.parseFloat(compareAt);
-  const rawPriceValue = Number.parseFloat(rawPrice);
-  const showCompareAt = Number.isFinite(compareAtValue)
+  const compareAtValue = toFinitePrice(compareAt);
+  const rawPriceValue = toFinitePrice(rawPrice);
+  const explicitSalePrice = getExplicitSalePrice(product);
+  const isVariableParent = Boolean(product?.is_variable || product?.type === 'variable');
+
+  // WooCommerce remains price authority. For simple products, prefer an explicit
+  // valid sale price over a stale/regular `price` projection. Selected variations
+  // remain driven by ProductDetail's resolved variation price (`rawPrice`).
+  const primaryPriceValue = !isVariableParent
+    && explicitSalePrice != null
+    && compareAtValue != null
+    && explicitSalePrice < compareAtValue
+    ? explicitSalePrice
+    : rawPriceValue;
+
+  const showCompareAt = compareAtValue != null
     && compareAtValue > 0
-    && Number.isFinite(rawPriceValue)
-    && compareAtValue > rawPriceValue;
+    && primaryPriceValue != null
+    && compareAtValue > primaryPriceValue;
+  const primaryPrice = primaryPriceValue != null ? money(primaryPriceValue) : displayPrice;
 
   return (
     <header className="dtb-pdp-header">
@@ -89,7 +116,7 @@ export default function ProductDetailHeader({
       <div className="dtb-pdp-header__price-block">
         <div className="dtb-pdp-header__price-row" aria-live="polite" aria-atomic="true">
           <span className="dtb-pdp-header__price">
-            {pricePrefix}{displayPrice}
+            {pricePrefix}{primaryPrice}
           </span>
           {showCompareAt ? (
             <span className="dtb-pdp-header__compare-at">
