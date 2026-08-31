@@ -319,7 +319,9 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
           }
         }}
       >
-        <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
+        <div className="dtb-desktop-nav-dropdown__scroller" style={{ padding: 0 }}>
+          <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
+        </div>
       </section>
     </div>
   );
