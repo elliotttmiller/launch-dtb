@@ -125,11 +125,15 @@ function MegaMenuEmptyState({ item }) {
 
 function ProductCard({ entry, onNavigate }) {
   return (
-    <Link to={entry.to} className="dtb-mega-menu__product-card" onClick={onNavigate}>
+    <Link
+      to={entry.to}
+      className="dtb-mega-menu__product-card"
+      onClick={onNavigate}
+      style={{ minHeight: '104px', paddingBlock: '10px' }}
+    >
       <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
       <span className="dtb-desktop-nav-row-text">
         <span className="dtb-desktop-nav-row-title">{entry.label}</span>
-        {entry.description ? <span className="dtb-desktop-nav-row-desc">{entry.description}</span> : null}
       </span>
       <ChevronRight size={16} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
     </Link>
