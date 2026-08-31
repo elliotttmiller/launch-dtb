@@ -167,7 +167,7 @@ export default function OrderConfirmation() {
             </span>
             <p className="dtb-order-eyebrow">Secure order</p>
             <h1 className="dtb-order-title">Loading order</h1>
-            <p className="dtb-order-subtitle">Retrieving your order summary and tracking details.</p>
+            <p className="dtb-order-subtitle">Loading your order details.</p>
           </div>
         </div>
       </div>
@@ -232,7 +232,7 @@ export default function OrderConfirmation() {
                 <p className="dtb-order-eyebrow">Order summary</p>
                 <h1 id="order-title" className="dtb-order-title">Order #{id}</h1>
                 <p className="dtb-order-subtitle">
-                  Review your order details and current payment or fulfillment status below.
+                  Review your order details and current status.
                 </p>
               </>
             )}
@@ -338,7 +338,7 @@ export default function OrderConfirmation() {
                   <Truck size={20} /> Tracking
                 </h2>
                 <p className="dtb-order-card-copy">
-                  Shipment and fulfillment updates will appear on your tracking page as they become available.
+                  Shipping updates appear on your tracking page when available.
                 </p>
               </div>
               <Link to={trackingUrl} className="dtb-order-button dtb-order-button--secondary">
