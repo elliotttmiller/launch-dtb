@@ -24,12 +24,10 @@ export default function ProductDetailTabs({
   descriptionNode,
   specsNode,
   reviewsNode,
-  hasIncludes = false,
 }) {
   const tabRefs = useRef([]);
   const tabs = [
     { key: 'description', label: 'Overview' },
-    ...(hasIncludes ? [{ key: 'includes', label: "What's Included" }] : []),
     { key: 'specs', label: 'Specifications' },
     { key: 'shipping', label: 'Shipping & Returns' },
     { key: 'reviews', label: 'Reviews' },
@@ -48,7 +46,6 @@ export default function ProductDetailTabs({
 
   const contentByTab = {
     description: overviewNode,
-    includes: specsNode,
     specs: specsNode,
     shipping: <ShippingReturnsPanel />,
     reviews: reviewsNode,
