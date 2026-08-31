@@ -1,10 +1,10 @@
 import { Headphones, ShieldCheck, Tag, Truck } from 'lucide-react';
 
 const TRUST_ITEMS = [
-  { id: 'quality', Icon: ShieldCheck, lines: ['Professional', 'Tools'] },
-  { id: 'shipping', Icon: Truck, lines: ['Shipping &', 'Tracking'] },
-  { id: 'support', Icon: Headphones, lines: ['Product', 'Support'] },
-  { id: 'pricing', Icon: Tag, lines: ['Clear', 'Pricing'] },
+  { id: 'quality', Icon: ShieldCheck, lines: ['Professional', 'Quality'] },
+  { id: 'shipping', Icon: Truck, lines: ['Fast & Reliable', 'Shipping'] },
+  { id: 'support', Icon: Headphones, lines: ['Expert', 'Support'] },
+  { id: 'pricing', Icon: Tag, lines: ['Unbeatable', 'Prices'] },
 ];
 
 export default function HomeHeroTrustBar() {
