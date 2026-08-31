@@ -1,4 +1,5 @@
 import partsHero from '@assets/media/catalog/dropdown-heroes/parts.webp';
+import repairsHero from '@assets/media/catalog/dropdown-heroes/repairs.webp';
 import schematicsHero from '@assets/media/catalog/dropdown-heroes/schematics.webp';
 
 /**
@@ -13,6 +14,7 @@ import schematicsHero from '@assets/media/catalog/dropdown-heroes/schematics.web
  */
 export const DROPDOWN_HERO_ASSETS = Object.freeze({
   parts: partsHero,
+  repairs: repairsHero,
   schematics: schematicsHero,
 });
 
