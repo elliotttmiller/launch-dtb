@@ -4,6 +4,7 @@ import { AnimatePresence, m as Motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
 import { apiClient } from '../../api/client.js';
+import '../../styles/product-image-gallery-refinements.css';
 
 const LIGHTBOX_Z_INDEX = 10010;
 const parentGalleryCache = new Map();
