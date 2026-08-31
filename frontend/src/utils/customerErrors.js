@@ -27,7 +27,7 @@ export const CUSTOMER_ERROR_CONTENT = {
   408: {
     eyebrow: 'Request timed out',
     title: 'That took longer than expected',
-    message: 'Your connection may have been interrupted. Refresh the page to safely try again.',
+    message: 'Your connection may have been interrupted. Refresh the page and try again.',
   },
   409: {
     eyebrow: 'Update conflict',
@@ -57,7 +57,7 @@ export const CUSTOMER_ERROR_CONTENT = {
   500: {
     eyebrow: 'Unexpected error',
     title: 'Something went wrong on our side',
-    message: 'Your information is safe. Refresh the page, or return to the store while we recover.',
+    message: 'Refresh the page and try again. If the issue continues, return to the store or contact support.',
   },
   502: {
     eyebrow: 'Service interruption',
