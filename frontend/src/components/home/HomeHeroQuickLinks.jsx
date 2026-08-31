@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import {
-  Calculator,
   FileChartColumn,
   Package,
   Settings,
@@ -10,20 +9,19 @@ import {
 const QUICK_LINKS = [
   { id: 'repairs', label: 'Repairs', description: 'Expert service', to: '/repairs', Icon: Wrench },
   { id: 'products', label: 'Products', description: 'Full catalog', to: '/all-products', Icon: Package },
-  { id: 'parts', label: 'Parts', description: 'Replacement parts', to: '/parts', Icon: Settings, featured: true },
+  { id: 'parts', label: 'Parts', description: 'Replacement parts', to: '/parts', Icon: Settings },
   { id: 'schematics', label: 'Schematics', description: 'Tool diagrams', to: '/schematics', Icon: FileChartColumn },
-  { id: 'calculators', label: 'Calculators', description: 'Estimate materials', to: '/calculators', Icon: Calculator },
 ];
 
 export default function HomeHeroQuickLinks() {
   return (
     <nav className="home-hero-nav" aria-label="Explore Drywall Toolbox">
       <div className="home-hero-nav__track">
-        {QUICK_LINKS.map(({ id, label, description, to, Icon, featured }) => (
+        {QUICK_LINKS.map(({ id, label, description, to, Icon }) => (
           <Link
             key={id}
             to={to}
-            className={`home-hero-cutout home-hero-nav__item${featured ? ' home-hero-nav__item--featured' : ''}`}
+            className="home-hero-cutout home-hero-nav__item"
           >
             <span className="home-hero-nav__icon" aria-hidden="true">
               <Icon size={30} strokeWidth={1.9} />
