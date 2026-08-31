@@ -96,19 +96,17 @@ export default function StorePolicies() {
           <PolicyPill>Customer support center</PolicyPill>
           <h1>Store Policies</h1>
           <p>
-            Find the policy or support path you need without digging through a long
-            legal document. Returns, shipping, warranty help, order changes, and
-            support are organized below.
+            Find shipping, return, warranty, order, and support information in one place.
+            Choose the topic that matches what you need help with.
           </p>
         </div>
 
         <aside className="store-policy-hero__panel store-policy-hero__panel--compact" aria-label="Policy summary">
           <div className="store-policies-summary">
             <CircleHelp size={22} />
-            <strong>Need a fast answer?</strong>
+            <strong>Need help finding the right policy?</strong>
             <p>
-              Start with the return or shipping policy, or contact us if your issue
-              involves an active order.
+              Start with shipping or returns, or contact support if your question is tied to an active order.
             </p>
           </div>
         </aside>
@@ -117,12 +115,11 @@ export default function StorePolicies() {
       <main className="store-policy-content store-policies-content">
         <section className="store-policy-section store-policy-section--intro">
           <div>
-            <PolicyPill>Popular policies</PolicyPill>
-            <h2>Choose what you need</h2>
+            <PolicyPill>Policy topics</PolicyPill>
+            <h2>Choose a topic</h2>
           </div>
           <p>
-            Each policy page is written for customers first: short, direct, and
-            focused on what to do next.
+            Policies and support options are organized by topic so you can find the relevant details and next step quickly.
           </p>
         </section>
 
@@ -135,8 +132,7 @@ export default function StorePolicies() {
           <div>
             <h2>Still not sure where to go?</h2>
             <p>
-              Send us your order number and a short description. We will route it
-              to the right support workflow.
+              Send your order number, when applicable, and a brief description of the issue. Our support team can direct you to the appropriate next step.
             </p>
           </div>
           <Link to="/contact" className="store-policy-button store-policy-button--primary">
