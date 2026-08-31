@@ -22,7 +22,7 @@ const RETURN_STEPS = [
   },
   {
     title: 'Wait for return approval',
-    text: 'We send your Return ID and return instructions by email, usually within 1 business day.',
+    text: 'If approved, we send your Return ID and return instructions by email.',
   },
   {
     title: 'Pack and ship',
@@ -93,12 +93,9 @@ export default function ReturnPolicy() {
 
       <section className="store-policy-hero">
         <div className="store-policy-hero__copy">
-          <PolicyPill>Returns made straightforward</PolicyPill>
+          <PolicyPill>Returns</PolicyPill>
           <h1>Return Policy</h1>
-          <p>
-            We want the right tools in your hands. If something is wrong, damaged,
-            or simply not the right fit, start here and we will help you get it handled.
-          </p>
+          <p>Review return eligibility, exclusions, and next steps before submitting a request.</p>
           <div className="store-policy-hero__actions">
             <Link to="/returns" className="store-policy-button store-policy-button--primary">
               Start a return <ArrowRight size={16} />
@@ -114,10 +111,7 @@ export default function ReturnPolicy() {
             <h2>45-day return window. No restocking fee for unused approved returns.</h2>
           </div>
           <p>
-            Returns are accepted within 45 days of invoice date. Items must be
-            unused, in like-new condition, and include original packaging,
-            accessories, documentation, warranty cards, and your receipt or order
-            confirmation.
+            Returns are accepted within 45 days of invoice date. Items must be unused, in like-new condition, and include original packaging, accessories, documentation, warranty cards, and your receipt or order confirmation.
           </p>
         </section>
 
@@ -134,8 +128,7 @@ export default function ReturnPolicy() {
           <div className="store-policy-alert">
             <AlertCircle size={18} />
             <p>
-              Do not ship returns directly to a manufacturer or without a Return ID.
-              Returns without a valid Return ID may be refused or delayed.
+              Do not ship returns directly to a manufacturer or without a Return ID. Returns without a valid Return ID may be refused or delayed.
             </p>
           </div>
         </section>
@@ -144,10 +137,7 @@ export default function ReturnPolicy() {
           <div>
             <PolicyPill>Before you ship</PolicyPill>
             <h2>Items that cannot be returned</h2>
-            <p>
-              These limits keep return handling fair and keep used or incomplete
-              products out of contractor orders.
-            </p>
+            <p>Review these exclusions before submitting a return.</p>
           </div>
           <ul className="store-policy-checklist">
             {NOT_RETURNABLE.map((item) => (
@@ -173,11 +163,7 @@ export default function ReturnPolicy() {
           <RotateCcw size={24} />
           <div>
             <h2>Need help with a return?</h2>
-            <p>
-              Start online or email our support team. Include your order number,
-              photos if the item arrived damaged, and a short description of what
-              happened.
-            </p>
+            <p>Include your order number and a brief description. Add photos if the item arrived damaged.</p>
           </div>
           <Link to="/returns" className="store-policy-button store-policy-button--primary">
             Open Return Portal <ArrowRight size={16} />
