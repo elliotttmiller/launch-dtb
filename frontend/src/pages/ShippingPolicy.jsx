@@ -28,7 +28,7 @@ import '../styles/store-policies.css';
 const QUICK_FACTS = [
   { Icon: Clock3, label: 'Same-day processing', text: 'In-stock orders placed before 12:00 PM CST ship the same day.' },
   { Icon: PackageCheck, label: 'Free shipping $75+', text: 'Standard ground shipping is free on qualifying orders.' },
-  { Icon: CheckCircle2, label: 'Tracked every step', text: 'A tracking number is emailed the moment your order ships.' },
+  { Icon: CheckCircle2, label: 'Shipment tracking', text: 'A tracking number is emailed when your order ships.' },
 ];
 
 /* ─── Shipping rate table data ───────────────────────────────────────────── */
@@ -95,10 +95,10 @@ const SHIPPING_FAQS = [
 ];
 
 const CTA_LINKS = [
-  { Icon: RotateCcw, title: 'Start a Return', text: 'Initiate a return or exchange request', to: '/returns', action: 'Start a return' },
-  { Icon: LifeBuoy, title: 'Contact Support', text: 'Questions about your shipment? We’re here.', to: '/contact', action: 'Get help' },
-  { Icon: FileText, title: 'Full FAQ', text: 'Shipping, warranty, repairs & more', to: '/faq', action: 'Read FAQ' },
-  { Icon: ShieldCheck, title: 'Return Policy', text: 'Returns, warranty, cancellations & payment', to: '/return-policy', action: 'View policy' },
+  { Icon: RotateCcw, title: 'Start a Return', text: 'Submit a return request', to: '/returns', action: 'Start a return' },
+  { Icon: LifeBuoy, title: 'Contact Support', text: 'Questions about a shipment', to: '/contact', action: 'Get help' },
+  { Icon: FileText, title: 'Full FAQ', text: 'Shipping, returns, repairs, and more', to: '/faq', action: 'Read FAQ' },
+  { Icon: ShieldCheck, title: 'Return Policy', text: 'Eligibility, exclusions, and refunds', to: '/return-policy', action: 'View policy' },
 ];
 
 function PolicyPill({ children }) {
@@ -143,12 +143,9 @@ export default function ShippingPolicy() {
 
       <section className="store-policy-hero">
         <div className="store-policy-hero__copy">
-          <PolicyPill>Shipping information</PolicyPill>
+          <PolicyPill>Shipping</PolicyPill>
           <h1>Shipping Policy</h1>
-          <p>
-            Everything you need to know about how we pack, ship, and track your
-            Drywall Toolbox orders — from processing times to delivery.
-          </p>
+          <p>Processing, delivery, tracking, freight, and international shipping information.</p>
         </div>
 
         <aside className="store-policy-hero__panel" aria-label="Shipping policy highlights">
@@ -162,8 +159,7 @@ export default function ShippingPolicy() {
             <PolicyPill>Service levels</PolicyPill>
             <h2>Service Levels & Carriers</h2>
             <p>
-              Carrier is selected automatically based on package size, weight, and destination.
-              UPS, FedEx, USPS, and LTL freight carriers are used.
+              Carrier is selected automatically based on package size, weight, and destination. UPS, FedEx, USPS, and LTL freight carriers are used.
             </p>
           </div>
 
@@ -178,7 +174,6 @@ export default function ShippingPolicy() {
               <div key={row.service} className="store-policy-table__row store-policy-table--rates">
                 <div className="store-policy-table__cell store-policy-table__cell--label">{row.service}</div>
                 <div className="store-policy-table__cell">{row.carrier}</div>
-                <div className="store-policy-table__cell">{row.transit}</div>
                 <div className={`store-policy-table__cell${row.highlight ? ' store-policy-table__cell--highlight' : ''}`}>
                   {row.price}
                 </div>
@@ -219,7 +214,7 @@ export default function ShippingPolicy() {
           <div className="store-policy-section__header">
             <PolicyPill>High-value orders</PolicyPill>
             <h2>Signature Requirements</h2>
-            <p>To protect your order, signature confirmation may be required for high-value shipments.</p>
+            <p>Signature confirmation may be required for high-value shipments.</p>
           </div>
 
           <div className="store-policy-table">
@@ -231,8 +226,7 @@ export default function ShippingPolicy() {
             ))}
           </div>
           <p style={{ margin: '14px 0 0', color: '#64748b', fontSize: '0.82rem', lineHeight: 1.6 }}>
-            We recommend using UPS My Choice or FedEx Delivery Manager to manage delivery windows and redirect
-            packages as needed. Shipments must go to a valid physical address — no PO Boxes.
+            We recommend using UPS My Choice or FedEx Delivery Manager to manage delivery windows and redirect packages as needed. Shipments must go to a valid physical address — no PO Boxes.
           </p>
         </section>
 
@@ -254,13 +248,11 @@ export default function ShippingPolicy() {
         <div className="store-policy-alert">
           <AlertCircle size={18} />
           <p>
-            All outbound shipments are insured and photographed before sealing. If your order arrives
-            damaged or contains the wrong item, photograph the packaging and contents immediately and{' '}
+            If your order arrives damaged or contains the wrong item, photograph the packaging and contents and{' '}
             <Link to="/contact" style={{ color: 'inherit', textDecoration: 'underline' }}>
               contact us within 72 hours
             </Link>
-            . We will file the carrier claim and dispatch a replacement — you will not be asked to
-            return a damaged item.
+            . We will review the issue and coordinate next steps.
           </p>
         </div>
 
