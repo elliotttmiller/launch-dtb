@@ -8,9 +8,9 @@ import '../styles/order-pages.css';
 export default function CheckoutReturn({ fallbackState = 'complete' }) {
 	const { id } = useParams();
 	const failed = fallbackState === 'failed' || fallbackState === 'cancelled';
-	const title = failed ? 'Checkout was not completed' : 'Checkout status';
+	const title = failed ? 'Checkout incomplete' : 'Checkout status';
 	const description = failed
-		? 'Return to checkout to try your payment again.'
+		? 'Return to checkout to complete your payment.'
 		: 'Use your account dashboard or order email for final order details.';
 
 	if (!failed) {
