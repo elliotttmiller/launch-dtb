@@ -1,5 +1,4 @@
-import { Minus, Plus } from 'lucide-react';
-import ProductBuyNow from './ProductBuyNow.jsx';
+import { Minus, Plus, ShieldCheck } from 'lucide-react';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
 
 export default function ProductPurchasePanel({
@@ -8,9 +7,6 @@ export default function ProductPurchasePanel({
   onIncrease,
   onQuantityChange,
   onAddToCart,
-  onBuyNow,
-  buyNowState = 'idle',
-  canBuyNow,
   canAddToCart,
   isOutOfStock,
   needsVariation,
@@ -26,19 +22,12 @@ export default function ProductPurchasePanel({
     }
   };
 
-  const addToCartPending = addToCartState === 'adding' || addToCartState === 'added';
-  const isBuyNowPending = buyNowState === 'pending' || buyNowState === 'confirmed';
-  const purchaseBusy = addToCartPending || isBuyNowPending;
+  const purchaseBusy = addToCartState === 'adding' || addToCartState === 'added';
   const addToCartLabel = isOutOfStock
     ? 'Out of Stock'
     : needsVariation && !hasCompleteSelection
       ? 'Select Options'
       : 'Add to Cart';
-  const buyNowDisabledReason = isOutOfStock
-    ? 'This product is currently out of stock.'
-    : needsVariation && !hasCompleteSelection
-      ? 'Select all required product options before continuing to secure checkout.'
-      : '';
   const includedItemCount = Number.isInteger(setSummary?.itemCount) && setSummary.itemCount > 0
     ? setSummary.itemCount
     : 0;
@@ -80,7 +69,7 @@ export default function ProductPurchasePanel({
             className="dtb-pdp-qty-btn"
             aria-label="Decrease quantity"
           >
-            <Minus size={14} strokeWidth={2.5} />
+            <Minus size={15} strokeWidth={2.4} />
           </button>
           <input
             type="number"
@@ -99,14 +88,13 @@ export default function ProductPurchasePanel({
             className="dtb-pdp-qty-btn"
             aria-label="Increase quantity"
           >
-            <Plus size={14} strokeWidth={2.5} />
+            <Plus size={15} strokeWidth={2.4} />
           </button>
         </div>
 
         <AddToCartButton
           onClick={onAddToCart}
           disabled={!canAddToCart || purchaseBusy}
-          suspended={canAddToCart && isBuyNowPending}
           className="dtb-pdp-add-to-cart"
           size="wide"
           label={addToCartLabel}
@@ -115,13 +103,10 @@ export default function ProductPurchasePanel({
         />
       </div>
 
-      <ProductBuyNow
-        onBuyNow={onBuyNow}
-        status={buyNowState}
-        disabled={!canBuyNow || addToCartPending}
-        suspended={canBuyNow && addToCartPending}
-        disabledReason={buyNowDisabledReason}
-      />
+      <div className="dtb-pdp-secure-checkout" role="note" aria-label="Secure checkout">
+        <ShieldCheck size={18} strokeWidth={2} aria-hidden="true" />
+        <span>Secure Checkout</span>
+      </div>
     </div>
   );
 }
