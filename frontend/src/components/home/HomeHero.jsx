@@ -5,9 +5,9 @@ import HomeHeroTrustBar from './HomeHeroTrustBar';
 import homeHeroUrl from '@assets/media/home/home-hero.webp';
 
 const HERO_COPY = {
-  eyebrow: 'Professional Drywall Tools',
-  titleLines: ['Built for', 'the Work.', 'Ready for the Job.'],
-  description: 'Shop professional drywall tools and replacement parts from leading brands, with repair support and schematics when you need them.',
+  eyebrow: 'Pro Quality. Pro Results.',
+  titleLines: ['A New', 'Standard in', 'Drywall.'],
+  description: 'Professional-grade tools that help you work faster, finish better, and build your reputation.',
 };
 
 export default function HomeHero({ brands = [] }) {
