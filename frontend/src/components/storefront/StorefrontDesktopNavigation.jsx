@@ -326,7 +326,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
 }
 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
-  const desktopItems = items.filter((item) => item.id !== 'support');
+  const desktopItems = items.filter((item) => item.id !== 'support' && item.id !== 'new-arrivals');
   const closeTimerRef = useRef(null);
 
   const cancelPendingClose = () => {
