@@ -59,7 +59,7 @@ function SchematicsPageInner() {
     <div className={`dtb-schematics-page${isViewer ? ' dtb-schematics-page--viewer' : ''}`}>
       <SEOHead
         title="Tool Schematics & Diagrams"
-        description="Browse exploded-view schematics and parts diagrams for professional drywall finishing tools, then identify the replacement parts you need."
+        description="Browse drywall tool schematics and identify replacement parts."
         canonical="/schematics"
         schema={buildBreadcrumbSchema([
           { label: 'Home', path: '/' },
@@ -71,8 +71,8 @@ function SchematicsPageInner() {
         <PageHeroBanner
           eyebrow="Parts & Schematics"
           title="Tool Schematics"
-          highlight="Identify the Right Part."
-          description="Choose a brand and tool to view exploded diagrams, identify components, and continue to matching replacement parts when available."
+          highlight="Find the Right Part."
+          description="Choose a brand and tool to view diagrams and matching parts when available."
           align="left"
         />
       )}
