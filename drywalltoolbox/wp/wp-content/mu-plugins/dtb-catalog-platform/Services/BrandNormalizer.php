@@ -78,11 +78,7 @@ final class DTB_BrandNormalizer {
 	 *   3. Case-insensitive alias/canonical scan.
 	 *   4. Unknown brand → derive slug from sanitize_title().
 	 *
-	 * Aliases intentionally run before canonical lookup so imported brand labels
-	 * such as "Columbia" collapse to the customer-facing canonical label
-	 * "Columbia Tools" rather than creating a second frontend brand.
-	 *
-	 * @param  string $raw  Raw brand string.
+	 * @param  string $raw Raw brand string.
 	 * @return array{ key: string, label: string, slug: string }
 	 */
 	public static function normalize( string $raw ): array {
@@ -91,20 +87,17 @@ final class DTB_BrandNormalizer {
 			return [ 'key' => '', 'label' => '', 'slug' => '' ];
 		}
 
-		// 1. Alias → canonical label.
 		if ( isset( self::BRAND_ALIASES[ $raw ] ) ) {
 			$canonical = self::BRAND_ALIASES[ $raw ];
 			$slug      = self::BRAND_TO_SLUG[ $canonical ] ?? sanitize_title( $canonical );
 			return [ 'key' => $slug, 'label' => $canonical, 'slug' => $slug ];
 		}
 
-		// 2. Exact canonical label.
 		if ( isset( self::BRAND_TO_SLUG[ $raw ] ) ) {
 			$slug = self::BRAND_TO_SLUG[ $raw ];
 			return [ 'key' => $slug, 'label' => $raw, 'slug' => $slug ];
 		}
 
-		// 3. Case-insensitive alias/canonical scan.
 		$lower = strtolower( $raw );
 		foreach ( self::BRAND_ALIASES as $alias => $canonical ) {
 			if ( strtolower( $alias ) === $lower ) {
@@ -118,36 +111,80 @@ final class DTB_BrandNormalizer {
 			}
 		}
 
-		// 4. Unknown brand — return as-is with derived slug.
 		$slug = sanitize_title( $raw );
 		return [ 'key' => $slug, 'label' => $raw, 'slug' => $slug ];
 	}
 
 	/**
-	 * Normalize a URL brand slug (e.g. "tapetech") to the canonical label.
+	 * Normalize a URL brand slug to the canonical label.
 	 *
 	 * @param  string $slug
-	 * @return string  Canonical label, or empty string if not found.
+	 * @return string Canonical label, or empty string if not found.
 	 */
 	public static function label_from_slug( string $slug ): string {
-		$slug = strtolower( trim( $slug ) );
-		if ( isset( self::SLUG_ALIASES[ $slug ] ) ) {
-			$slug = self::SLUG_ALIASES[ $slug ];
-		}
-		foreach ( self::BRAND_TO_SLUG as $label => $s ) {
-			if ( $s === $slug ) {
+		$slug = self::canonical_slug( $slug );
+		foreach ( self::BRAND_TO_SLUG as $label => $canonical_slug ) {
+			if ( $canonical_slug === $slug ) {
 				return $label;
 			}
 		}
 		return '';
 	}
 
+	/**
+	 * Return every bounded metadata value accepted as the same canonical brand.
+	 *
+	 * This is a read-compatibility contract for catalog queries. Canonical writes
+	 * still use the single canonical key/label; legacy aliases are only included
+	 * so older imported records are not silently omitted from brand storefronts.
+	 *
+	 * @param string $slug URL/canonical brand slug.
+	 * @return array{ keys: string[], labels: string[] }
+	 */
+	public static function query_identity_values( string $slug ): array {
+		$canonical_slug  = self::canonical_slug( $slug );
+		$canonical_label = self::label_from_slug( $canonical_slug );
+
+		if ( '' === $canonical_label ) {
+			return [
+				'keys'   => '' !== $canonical_slug ? [ $canonical_slug ] : [],
+				'labels' => [],
+			];
+		}
+
+		$keys   = [ $canonical_slug ];
+		$labels = [ $canonical_label ];
+
+		foreach ( self::SLUG_ALIASES as $alias_slug => $target_slug ) {
+			if ( $target_slug === $canonical_slug ) {
+				$keys[] = $alias_slug;
+			}
+		}
+
+		foreach ( self::BRAND_ALIASES as $alias => $target_label ) {
+			if ( $target_label !== $canonical_label ) {
+				continue;
+			}
+			$labels[] = $alias;
+			$alias_slug = sanitize_title( $alias );
+			if ( '' !== $alias_slug ) {
+				$keys[] = $alias_slug;
+			}
+		}
+
+		return [
+			'keys'   => array_values( array_unique( array_filter( $keys ) ) ),
+			'labels' => array_values( array_unique( array_filter( $labels ) ) ),
+		];
+	}
+
 	/** Returns true when $slug is a known canonical brand slug. */
 	public static function is_known_slug( string $slug ): bool {
+		return in_array( self::canonical_slug( $slug ), array_values( self::BRAND_TO_SLUG ), true );
+	}
+
+	private static function canonical_slug( string $slug ): string {
 		$slug = strtolower( trim( $slug ) );
-		if ( isset( self::SLUG_ALIASES[ $slug ] ) ) {
-			$slug = self::SLUG_ALIASES[ $slug ];
-		}
-		return in_array( $slug, array_values( self::BRAND_TO_SLUG ), true );
+		return self::SLUG_ALIASES[ $slug ] ?? $slug;
 	}
 }
