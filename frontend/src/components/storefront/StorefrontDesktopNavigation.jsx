@@ -3,19 +3,16 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Award,
-  BadgeCheck,
   Box,
   ChevronDown,
   ChevronRight,
   Hammer,
-  Headphones,
   Layers,
   Package,
   PenTool,
   Ruler,
   Settings2,
   ShoppingBag,
-  Truck,
   Wrench,
 } from 'lucide-react';
 import { getDropdownHero } from '../../utils/dropdownHeroAssets.js';
@@ -29,33 +26,6 @@ const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Setti
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
   <Icon key={index} size={30} strokeWidth={1.6} />
 ));
-
-const PRODUCT_ASSURANCE_ITEMS = [
-  {
-    id: 'professional-grade',
-    title: 'Professional Grade',
-    description: 'Built for daily jobsite performance',
-    Icon: BadgeCheck,
-  },
-  {
-    id: 'top-brands',
-    title: 'Top Brands',
-    description: 'Trusted professional tool brands',
-    Icon: Award,
-  },
-  {
-    id: 'fast-shipping',
-    title: 'Fast Shipping',
-    description: 'Quick, reliable delivery nationwide',
-    Icon: Truck,
-  },
-  {
-    id: 'expert-support',
-    title: 'Expert Support',
-    description: 'Real pros. Real answers.',
-    Icon: Headphones,
-  },
-];
 
 function pickEntryIconIndex(label) {
   const text = String(label || '');
@@ -159,19 +129,6 @@ function ProductsPanelRenderer({ item, onNavigate }) {
       ) : (
         <MegaMenuEmptyState item={item} />
       )}
-      <div className="dtb-mega-menu__assurance-bar" aria-label="Drywall Toolbox service benefits">
-        {PRODUCT_ASSURANCE_ITEMS.map(({ id, title, description, Icon }) => (
-          <div key={id} className="dtb-mega-menu__assurance-item">
-            <span className="dtb-mega-menu__assurance-icon" aria-hidden="true">
-              <Icon size={24} strokeWidth={1.8} />
-            </span>
-            <span className="dtb-desktop-nav-row-text">
-              <span className="dtb-desktop-nav-row-title">{title}</span>
-              <span className="dtb-desktop-nav-row-desc">{description}</span>
-            </span>
-          </div>
-        ))}
-      </div>
     </>
   );
 }
