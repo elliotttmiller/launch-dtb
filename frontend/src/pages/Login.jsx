@@ -133,7 +133,7 @@ export default function Login() {
             <UserRound size={20} strokeWidth={1.9} />
           </span>
           <h1 id="signin-title" className="dtb-auth-template__title">Welcome back</h1>
-          <p className="dtb-auth-template__subtitle">Sign in to access your orders and services</p>
+          <p className="dtb-auth-template__subtitle">Sign in to view orders, repairs, and support</p>
         </header>
 
         <AnimatePresence initial={false}>
