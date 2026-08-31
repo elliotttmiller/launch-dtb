@@ -326,21 +326,22 @@
 .repair-brands__list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  border-top: 1px solid var(--repair-line);
-  border-left: 1px solid var(--repair-line);
+  column-gap: clamp(20px, 3vw, 42px);
+  row-gap: 24px;
+  align-items: center;
 }
 
 .repair-brands__list span {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 72px;
-  padding: 14px;
-  border-right: 1px solid var(--repair-line);
-  border-bottom: 1px solid var(--repair-line);
+  min-width: 0;
+  min-height: 58px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
   color: #273449;
-  font-size: 0.82rem;
-  font-weight: 800;
   text-align: center;
 }
 
