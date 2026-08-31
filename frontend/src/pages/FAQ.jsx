@@ -57,7 +57,7 @@ const FAQ_CATEGORIES = [
     id: 'account',
     label: 'Account',
     questions: [
-      { q: 'Do I need an account to place an order?', a: 'No — guest checkout is available. Creating an account gives you order history, tracking, saved addresses, saved products, and repair request access.' },
+      { q: 'Do I need an account to place an order?', a: 'No — guest checkout is available. An account gives you access to orders, repair requests, returns, and support tickets in one place.' },
       { q: 'How do I view my past orders?', a: 'Log in and go to your Account Dashboard. Orders, invoices, repair requests, and tracking details are listed there when available.' },
       { q: 'Can I save addresses for future checkout?', a: 'Yes. Registered customers can manage saved addresses from the Account Dashboard.' },
       { q: 'Can I manage repair requests in my account?', a: 'Yes. Repair requests and status updates are available from the Account Dashboard for logged-in customers.' },
@@ -142,7 +142,7 @@ export default function FAQ() {
       <section style={{ padding: 'clamp(3rem, 6vw, 4rem) clamp(1.5rem, 5vw, 3rem)', background: 'white', borderTop: '1px solid var(--machined-border)' }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 12px 0', letterSpacing: '-0.02em' }}>Still have questions?</h2>
-          <p style={{ color: 'rgba(15,23,42,0.55)', fontSize: 'clamp(0.875rem, 2vw, 1rem)', margin: '0 0 32px 0', lineHeight: 1.6 }}>Our team is ready to help. Reach out directly or submit a repair request and we will be in touch within one business day.</p>
+          <p style={{ color: 'rgba(15,23,42,0.55)', fontSize: 'clamp(0.875rem, 2vw, 1rem)', margin: '0 0 32px 0', lineHeight: 1.6 }}>Contact support or start a repair request.</p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/contact" style={{ display: 'inline-block', background: 'var(--primary-600)', color: 'white', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em', textTransform: 'uppercase', padding: '12px 28px', borderRadius: '6px', textDecoration: 'none' }}>Contact Us</Link>
             <Link to="/repairs" style={{ display: 'inline-block', background: 'white', color: 'var(--primary-700)', fontWeight: 800, fontSize: '0.875rem', letterSpacing: '0.04em', textTransform: 'uppercase', padding: '12px 28px', borderRadius: '6px', border: '1.5px solid rgba(34,85,238,0.3)', textDecoration: 'none' }}>Repair Services</Link>
