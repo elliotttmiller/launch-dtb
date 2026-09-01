@@ -37,7 +37,7 @@ function getExplicitSalePrice(product) {
   const priceObject = getPriceObject(product);
   return [product?.sale_price, product?.salePrice, priceObject?.sale]
     .map(toFinitePrice)
-    .find((value) => value != null && value > 0) ?? null;
+    .find((value) => value != null) ?? null;
 }
 
 function getExplicitRegularPrice(product) {
@@ -50,7 +50,7 @@ function getExplicitRegularPrice(product) {
     priceObject?.regular,
   ]
     .map(toFinitePrice)
-    .find((value) => value != null && value > 0) ?? null;
+    .find((value) => value != null) ?? null;
 }
 
 export default function ProductDetailHeader({
@@ -75,22 +75,8 @@ export default function ProductDetailHeader({
   const rawPriceValue = toFinitePrice(rawPrice);
   const explicitSalePrice = getExplicitSalePrice(product);
   const explicitRegularPrice = getExplicitRegularPrice(product);
-  const resolvedRegularPrice = toFinitePrice(compareAt) ?? explicitRegularPrice;
-  const isVariableParent = Boolean(product?.is_variable || product?.type === 'variable');
-
-  // WooCommerce remains the pricing authority. The detail header receives the
-  // resolved variation price from ProductDetail, while simple products can also
-  // carry explicit sale/regular values on the product DTO. Resolve those shapes
-  // here so quick view and full PDP use the same sale-price semantics as cards.
-  const hasExplicitSimpleSale = !isVariableParent
-    && explicitSalePrice != null
-    && resolvedRegularPrice != null
-    && explicitSalePrice < resolvedRegularPrice;
-  const primaryPriceValue = hasExplicitSimpleSale ? explicitSalePrice : rawPriceValue;
-  const showCompareAt = resolvedRegularPrice != null
-    && resolvedRegularPrice > 0
-    && primaryPriceValue != null
-    && resolvedRegularPrice > primaryPriceValue;
+  const resolvedRegularPrice = explicitRegularPrice ?? toFinitePrice(compareAt);
+  const primaryPriceValue = explicitSalePrice ?? rawPriceValue;
   const primaryPrice = primaryPriceValue != null ? money(primaryPriceValue) : displayPrice;
 
   return (
@@ -136,7 +122,7 @@ export default function ProductDetailHeader({
           <span className="dtb-pdp-header__price">
             {pricePrefix}{primaryPrice}
           </span>
-          {showCompareAt ? (
+          {resolvedRegularPrice != null ? (
             <span className="dtb-pdp-header__compare-at">
               ${money(resolvedRegularPrice)}
             </span>
