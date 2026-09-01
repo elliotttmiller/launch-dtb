@@ -198,6 +198,8 @@
   width: 100%;
   max-width: 70ch;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   margin: .7rem 0 0;
   padding: 0;
   border-top: 1px solid #e3e9f1;
@@ -217,6 +219,13 @@
   font-size: clamp(.94rem, .2vw + .91rem, 1rem);
   font-weight: 430;
   line-height: 1.58;
+  background: transparent;
+  transition: none;
+}
+
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li:hover {
+  background: transparent;
 }
 
 .dtb-product-page-shell .dtb-pdp-description-content--rich
