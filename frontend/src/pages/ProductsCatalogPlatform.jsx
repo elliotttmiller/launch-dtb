@@ -31,7 +31,12 @@ import {
   canonicalBrandLabel,
   parseCatalogQuery,
 } from '../utils/catalogUrlState.js';
-import { buildCategoryPageUrl, dedupeCatalogBrandEntries, normalizeDisplayCategorySlug } from '../utils/catalogFacets.js';
+import {
+  buildCategoryPageUrl,
+  dedupeCatalogBrandEntries,
+  normalizeCatalogNavigationGroups,
+  normalizeDisplayCategorySlug,
+} from '../utils/catalogFacets.js';
 import { searchProducts } from '../services/catalog.js';
 import { fetchCatalogProducts } from '../services/catalogPlatformCache.js';
 import { normalizeCatalogDisplayName } from '../utils/catalogDtoAdapters.js';
@@ -40,6 +45,8 @@ import { normalizeCatalogDisplayName } from '../utils/catalogDtoAdapters.js';
 // Mirrors CategoryNormalizer::DISPLAY_CATEGORY_LABELS on the backend.
 const DISPLAY_CATEGORY_LABELS = {
   automatic_tapers:      'Automatic Tapers',
+  automatic_angle_heads: 'Angle Heads',
+  automatic_corner_finishers: 'Corner Finishers',
   automatic_compound_tubes: 'Compound Tubes',
   automatic_compound_applicators: 'Compound Applicators',
   automatic_corner_flushers: 'Corner Flushers',
@@ -65,6 +72,12 @@ const DISPLAY_CATEGORY_LABELS = {
 const DISPLAY_CATEGORY_ALIASES = {
   automatic_taping_tools:    'automatic_tapers',
   automatic_tapers:          'automatic_tapers',
+  automatic_angle_heads:     'automatic_angle_heads',
+  automatic_corner_finishers: 'automatic_corner_finishers',
+  angle_heads:                'automatic_angle_heads',
+  angle_head:                 'automatic_angle_heads',
+  corner_finishers:           'automatic_corner_finishers',
+  corner_finisher:            'automatic_corner_finishers',
   automatic_taper:           'automatic_tapers',
   taper:                     'automatic_tapers',
   automatic_compound_tubes: 'automatic_compound_tubes',
@@ -97,7 +110,6 @@ const DISPLAY_CATEGORY_ALIASES = {
   mud_pans_and_pumps:        'pumps',
   corner_tools:              'corner_tools',
   corner_tool:               'corner_tools',
-  corner_finisher:           'corner_tools',
   accessories:               'accessories',
   smoothing_blades:          'smoothing_blades',
   smoothing_blade:           'smoothing_blades',
@@ -307,6 +319,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
 
   const isBrandSelectorRoute = location.pathname === '/products/brands';
   const isBrandCategorySelectorRoute = Boolean(brandSlug) && !categorySlug && location.pathname.startsWith('/products/brands/');
+  const isAllProductsRoute = location.pathname === '/products';
   const isSelectorRoute = !forceProductGrid && (isBrandSelectorRoute || isBrandCategorySelectorRoute);
   const productsEnabled = !isSelectorRoute || Boolean(query.search);
 
@@ -414,6 +427,27 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       .filter((child) => child.name && child.slug && child.count > 0),
     [categoryMeta],
   );
+
+  const allProductsToolTypes = useMemo(
+    () => normalizeCatalogNavigationGroups(facets?.navigationGroups)
+      .map((group) => ({
+        ...group,
+        name: group.label,
+      }))
+      .filter((group) => group.name && group.slug && group.count > 0),
+    [facets?.navigationGroups],
+  );
+
+  const allProductsHero = useMemo(() => ({
+    label: 'All Products',
+    description: 'Browse our complete collection of professional drywall tools, finishing systems, accessories, and replacement parts.',
+    heroImage: mappedProducts.find((product) => product.image)?.image || '',
+  }), [mappedProducts]);
+
+  const allProductsBreadcrumbs = useMemo(() => [
+    { label: 'Home', path: '/' },
+    { label: 'All Products', path: '/products' },
+  ], []);
 
   const categorySeoTitle = isCategoryPageRoute
     ? (categoryMeta?.label || (categoryMetaError ? 'Category not found' : 'Loading category…'))
@@ -616,7 +650,16 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
           )
         )}
 
-        {!isCategoryPageRoute && !showCategoryLanding && !showBrandLanding && (
+        {isAllProductsRoute && !showCategoryLanding && !showBrandLanding && (
+          <>
+            <CategoryHero category={allProductsHero} breadcrumbs={allProductsBreadcrumbs} />
+            {allProductsToolTypes.length > 0 && (
+              <ShopByToolType categories={allProductsToolTypes} onOpenFilters={() => setShowFilters(true)} />
+            )}
+          </>
+        )}
+
+        {!isCategoryPageRoute && !isAllProductsRoute && !showCategoryLanding && !showBrandLanding && (
           <div className="mb-5 sm:mb-8">
             <div className={`dtb-listing-heading${isCategoryProductRoute ? '' : ' dtb-listing-heading--standard'}`}>
               {isCategoryProductRoute && (

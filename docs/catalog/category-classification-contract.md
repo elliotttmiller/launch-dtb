@@ -27,11 +27,12 @@ Automatic Taping Tools
     and drive a corner finisher or applicator head
 
   Compound Tubes
-    tube-style compound delivery bodies, including powered/gas-assisted tubes
+    passive tube-style compound delivery bodies
 
   Compound Applicators
-    applicator heads/mud heads and other applicating tools that
-    receive compound from a compatible tube/body or apply a defined bead/profile
+    complete powered or pressure-assisted applicators such as MiniShot and
+    MudRunner, plus applicator heads/mud heads and other tools that apply a
+    defined bead/profile
 ```
 
 A Corner Applicator Box is not a Compound Applicator Head. A product must not cross those families because both happen to apply joint compound.
@@ -49,15 +50,20 @@ Product title keywords alone are insufficient where terminology overlaps.
 
 ## Current reviewed corrections
 
-The following corrections are manufacturer-evidenced and supersede historical path migration:
+The following reviewed functional corrections supersede historical path migration:
 
-- `4-772` — LEVEL5 MiniShot: Compound Tube, not Compound Applicator.
+- `4-772` — LEVEL5 MiniShot: Compound Applicator.
 - `COL-THROTTLE-CORNER-FLUSHER-BOX` — Columbia ThrottleBox: Angle Boxes & Corner Applicators.
+- `COL-ANGLE-HEAD` — Columbia Angle Head: Angle Heads.
+- `CTA01TT` — TapeTech Compound Tube Filler Adapter: Goosenecks & Box Fillers.
 - `LV5-CORNER-APPLICATOR` — LEVEL5 Corner Applicator Box: Angle Boxes & Corner Applicators.
+- `LV5-CORNER-FINISHER` — LEVEL5 Corner Finisher: Corner Finishers.
 - `MRX01TT` — TapeTech MudRunner Pro Extension: Handles & Extensions.
 - `PT-CA8` — Platinum 8-inch Corner Applicator: Angle Boxes & Corner Applicators.
+- `PT-CF` — Platinum Angle Head Corner Finisher: Corner Finishers.
 - `TT-CORNER-APPLICATOR` — TapeTech Corner Applicator: Angle Boxes & Corner Applicators.
-- `TT-MUDRUNNER` — TapeTech MudRunner: Angle Boxes & Corner Applicators.
+- `TT-CORNER-FINISHER` — TapeTech Corner Finisher: Corner Finishers.
+- `TT-MUDRUNNER` — TapeTech MudRunner: Compound Applicator.
 
 `Automatic Taping Tools` is the industry system umbrella. `Semi-Automatic`
 remains a distinct tool/set classification where applicable, but it does not

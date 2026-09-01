@@ -103,6 +103,10 @@ function Assert-BuildOutput {
         'site.webmanifest'
     )
 
+    if ($Environment -eq 'Production') {
+        $requiredOutputs += 'storefront.html'
+    }
+
     foreach ($relativePath in $requiredOutputs) {
         $outputPath = Join-Path $OutputRoot $relativePath
         if (-not (Test-Path -LiteralPath $outputPath -PathType Leaf)) {

@@ -28,6 +28,7 @@ const routingFilename = appEnv === 'staging'
 const sourcePath = path.join(repositoryRoot, 'drywalltoolbox', routingFilename);
 const manifestPath = path.join(outputRoot, 'asset-manifest.json');
 const robotsPath = path.join(outputRoot, 'robots.txt');
+const storefrontShellPath = path.join(outputRoot, 'storefront.html');
 const schematicSourceRoot = path.join(frontendRoot, 'public', 'brands');
 const schematicOutputRoot = path.join(outputRoot, 'brands');
 
@@ -93,6 +94,45 @@ if (appEnv === 'production' && /^\s*RewriteRule\s+\^cart/m.test(emitted)) {
 
 if (appEnv === 'production' && !/^\s*RewriteRule\s+\^checkout\/\?\$\s+wp\/index\.php\?pagename=checkout\s+\[QSA,L\]$/m.test(emitted)) {
   throw new Error('The emitted .htaccess does not route native /checkout/ to WordPress.');
+}
+
+if (appEnv === 'production') {
+  if (!fs.existsSync(storefrontShellPath)) {
+    throw new Error('The production build is missing the pre-launch storefront.html React shell.');
+  }
+  if (!emitted.includes('RewriteRule ^order-tracking/[0-9]+/?$ storefront.html [QSA,L]')) {
+    throw new Error('Production order-tracking routes must use storefront.html while index.html remains pre-launch.');
+  }
+}
+
+const stripeReturnCondition = 'RewriteCond %{QUERY_STRING} (^|&)_stripe_payment_method=stripe_[^&]+(&|$) [NC]';
+const stripeReturnTarget = appEnv === 'staging'
+  ? 'RewriteRule ^$ /wp/index.php [QSA,L]'
+  : 'RewriteRule ^$ wp/index.php [QSA,L]';
+const homepageRule = 'RewriteRule ^$ index.html [L]';
+const stripeReturnPosition = emitted.indexOf(stripeReturnCondition);
+const stripeReturnTargetPosition = emitted.indexOf(stripeReturnTarget, stripeReturnPosition);
+const homepagePosition = emitted.indexOf(homepageRule);
+
+if (
+  stripeReturnPosition < 0 ||
+  stripeReturnTargetPosition < stripeReturnPosition ||
+  homepagePosition < 0 ||
+  stripeReturnTargetPosition > homepagePosition
+) {
+  throw new Error('Stripe query-string payment returns must reach WordPress before the SPA homepage rule.');
+}
+
+const orderReceivedCondition = 'RewriteCond %{QUERY_STRING} (^|&)order-received=[0-9]+(&|$) [NC]';
+const orderReceivedPosition = emitted.indexOf(orderReceivedCondition);
+const orderReceivedTargetPosition = emitted.indexOf(stripeReturnTarget, orderReceivedPosition);
+
+if (
+  orderReceivedPosition < 0 ||
+  orderReceivedTargetPosition < orderReceivedPosition ||
+  orderReceivedTargetPosition > homepagePosition
+) {
+  throw new Error('Plain-permalink WooCommerce order-received returns must reach WordPress before the SPA homepage rule.');
 }
 
 if (appEnv === 'staging') {

@@ -60,6 +60,8 @@ const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
     viewAllLabel: 'View all Automatic Tools',
     items: [
       { slug: 'semi-automatic-tools', label: 'Semi-Automatic Tools', description: 'Manual control with production efficiency' },
+      { slug: 'angle-heads', label: 'Angle Heads', description: 'Precision heads for inside-corner finishing' },
+      { slug: 'corner-finishers', label: 'Corner Finishers', description: 'Feather and finish internal corners' },
       { slug: 'corner-flushers', label: 'Corner Flushers', description: 'Finish inside corners consistently' },
       { slug: 'automatic-handles-extensions', label: 'Handles & Extensions', description: 'Compatible control and support handles' },
       { slug: 'automatic-tool-sets', label: 'Tool Sets', description: 'Complete matched finishing systems' },

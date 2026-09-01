@@ -19,7 +19,8 @@ Taping & Finishing Tools
   Automatic Taping Tools
     Automatic Tapers
     Flat Boxes
-    Angle Heads & Corner Finishers
+    Angle Heads
+    Corner Finishers
     Angle Boxes & Corner Applicators
     Compound Tubes
     Compound Applicators

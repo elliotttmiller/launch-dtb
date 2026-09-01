@@ -1,16 +1,16 @@
 ﻿sku,taxon_key,position,evidence,review_status
 COL-180-GRIP-FLAT-BOX-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-COL-ANGLE-HEAD,automatic_angle_heads_corner_finishers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers,approved
+COL-ANGLE-HEAD,automatic_angle_heads,10,DTB approved functional classification: this owner family is explicitly sold as Columbia Angle Heads.,approved
 COL-AUTOMATIC-FAT-BOY-BOX,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 COL-AUTOMATIC-FLAT-BOX,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 COL-AUTOMATIC-TAPER,automatic_tapers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers,approved
 PTAPER,automatic_tapers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers,approved
-COL-BILLET-MUD-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
+COL-BILLET-MUD-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
 COL-BOX-FILLER,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
-COL-CAM-LOCK-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
-COL-COMBO-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
-COL-COMPOUND-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
-COL-DIRECT-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
+COL-CAM-LOCK-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
+COL-COMBO-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
+COL-COMPOUND-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
+COL-DIRECT-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
 COL-FAT-BOY-FLAT-BOX,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 COL-FLAT-FINISHER-BOX,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 COL-GOOSENECK,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
@@ -21,12 +21,12 @@ COL-ONE-HANDLE,automatic_handles_extensions,10,approved migration from exact pat
 COL-OUTSIDE-CORNER-ROLLER,automatic_corner_rollers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers,approved
 COL-PREDATOR-MATRIX-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 COL-PREDATOR-ONE-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-COL-STANDARD-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
+COL-STANDARD-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
 COL-THROTTLE-CORNER-FLUSHER-BOX,automatic_angle_boxes_corner_applicators,10,Columbia manufacturer catalog identifies the ThrottleBox as a Corner Box with automatic capabilities used with angle heads or applicator heads: https://www.columbiatools.com/wp-content/uploads/2022/03/2021_Columbia_Catalogue.pdf,approved
 TCS,tool_storage_cases,10,approved migration from exact path: Taping & Finishing Tools > Tool Storage & Cases,approved
 RC,tool_storage_cases,10,approved migration from exact path: Taping & Finishing Tools > Tool Storage & Cases,approved
-COL-UHMW-MUD-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
-SACS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets,approved
+COL-UHMW-MUD-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
+SACS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 CPFP,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved
 CPFGN,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 FA280,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
@@ -173,10 +173,10 @@ FA292,replacement_parts,10,approved migration from exact path: Replacement Parts
 HNS4,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 FA311,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 FA315,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
-PCLT42,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
-PCMT42,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
+PCLT42,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
+PCMT42,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
 PHMP,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved
-SAT,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,approved
+SAT,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools,approved
 CFB5B,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 CT132,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 MH7,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
@@ -352,9 +352,9 @@ HH10A,replacement_parts,10,approved migration from exact path: Replacement Parts
 BH5,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 HH2,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
 HNS20,replacement_parts,10,approved migration from exact path: Replacement Parts,approved
-LV5-CORNER-FINISHER,automatic_angle_heads_corner_finishers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers,approved
+LV5-CORNER-FINISHER,automatic_corner_finishers,10,DTB approved functional classification: this owner family is explicitly sold as LEVEL5 Corner Finishers.,approved
 LV5-CORNER-HANDLE-FINISHER-EXT,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-LV5-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
+LV5-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
 LV5-FLAT-BOX-MEGA,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 LV5-FLAT-BOX-STANDARD,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 LV5-FLAT-BOX-HANDLE-EXT,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
@@ -369,23 +369,23 @@ LV5-FIXED-HANDLE-50,automatic_handles_extensions,10,approved migration from exac
 4-760,automatic_tapers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers,approved
 4-715,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 4-771,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved
-4-741,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
+4-741,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
 4-707,automatic_corner_rollers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers,approved
-5-311,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,approved
-PT-CF,automatic_angle_heads_corner_finishers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers,approved
-PT-CT,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
+5-311,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools,approved
+PT-CF,automatic_corner_finishers,10,DTB approved functional classification: the Platinum Angle Head Corner Finisher family is merchandised as Corner Finishers.,approved
+PT-CT,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
 PT-BH,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 PT-FB,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 4-714,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
-4-772,automatic_compound_tubes,10,LEVEL5 manufacturer identifies SKU 4-772 as the MiniShot Gas-Assisted Compound Tube within its Automatic Tools system: https://www.level5tools.com/minishot/,approved
+4-772,automatic_compound_applicators,10,DTB approved classification: the LEVEL5 MiniShot is a complete powered compound applicator rather than a passive compound tube.,approved
 4-773,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 4-746,automatic_corner_rollers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers,approved
 PT-NS,automatic_nail_spotters,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Nail Spotters,approved
-PT-SSCF,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
+PT-SSCF,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
 PT-CORNER-HANDLE-50,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-PT-90-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
+PT-90-APPLICATOR,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
 PT-CORNER-ROLLER,automatic_corner_rollers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers,approved
-PT-FA,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
+PT-FA,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
 PT-CA8,automatic_angle_boxes_corner_applicators,10,Platinum manufacturer lists the 8in Corner Applicator in its Corner Applicators product family and separately lists Flat Applicators as a different tool type: https://platinumdrywalltools.com/product-category/corner-applicator/,approved
 PT-BF,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 PT-CP,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved
@@ -399,30 +399,30 @@ SP-S1X-M,stilts,10,approved migration from exact path: Stilts & Accessories > St
 SP-S2-A,stilts,10,approved migration from exact path: Stilts & Accessories > Stilts,approved
 SP-S2-M,stilts,10,approved migration from exact path: Stilts & Accessories > Stilts,approved
 PT-MNBH,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-PT-AICA,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
-PT-TP,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers,approved
+PT-AICA,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
+PT-TP,semi_automatic_tools,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools,approved
 PT-GN,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 SP-S2X-A,stilts,10,approved migration from exact path: Stilts & Accessories > Stilts,approved
 SP-S2X-M,stilts,10,approved migration from exact path: Stilts & Accessories > Stilts,approved
-TT-APPLICATOR-HEAD,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
+TT-APPLICATOR-HEAD,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
 TT-BRAKELESS-BOX-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-TTPFB,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets,approved
+TTPFB,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTBTS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTPPS-EF,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTSFS-2,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
-TTCFS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets,approved
+TTCFS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTSFS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTPPS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTPSS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
 TTBBS,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
-TTCFS-M,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets,approved
-TT-COMBO-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
-TT-COMPOUND-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
+TTCFS-M,automatic_tool_sets,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Tool Sets,approved
+TT-COMBO-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
+TT-COMPOUND-TUBE,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes,approved
 TT-CORNER-APPLICATOR,automatic_angle_boxes_corner_applicators,10,TapeTech manufacturer identifies CA07TT and CA08TT as Corner Applicators filled through a loading pump and used with Corner Finishers or Applicator Heads: https://tapetech.com/product/8-corner-applicator/,approved
-TT-CORNER-FINISHER,automatic_angle_heads_corner_finishers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers,approved
+TT-CORNER-FINISHER,automatic_corner_finishers,10,DTB approved functional classification: this owner family is explicitly sold as TapeTech Corner Finishers.,approved
 TT-CORNER-ROLLER,automatic_corner_rollers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers,approved
-TT-COVE-APPLICATOR-HEAD,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators,approved
-TT-DIRECT-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers,approved
+TT-COVE-APPLICATOR-HEAD,automatic_compound_applicators,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators,approved
+TT-DIRECT-CORNER-FLUSHER,automatic_corner_flushers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers,approved
 TT-EASYCLEAN-AUTOMATIC-TAPER,automatic_tapers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers,approved
 TT-EASYCLEAN-FINISHING-BOX,flat_boxes,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes,approved
 TT-EASYCLEAN-PUMP,automatic_loading_pumps,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Loading Pumps,approved
@@ -437,8 +437,8 @@ TT-QUICKBOX-QSX-FINISHING-BOX,flat_boxes,10,approved migration from exact path: 
 TT-SUPPORT-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 TT-SUPPORT-HANDLE-ADAPTER,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
 TT-WIZARD-COMPACT-FINISHING-BOX-HANDLE,automatic_handles_extensions,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions,approved
-TT-MUDRUNNER,automatic_angle_boxes_corner_applicators,10,TapeTech identifies the MudRunner as a power-assisted corner applicator and All-Wall merchandises it with angle boxes and corner applicators: https://tapetech.com/wp-content/uploads/2022/07/14TT_OG.pdf,approved
-CTA01TT,automatic_compound_tubes,10,approved migration from exact path: Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes,approved
+TT-MUDRUNNER,automatic_compound_applicators,10,DTB approved classification: the TapeTech MudRunner is a complete powered compound applicator rather than an angle box.,approved
+CTA01TT,automatic_goosenecks_box_fillers,10,DTB approved functional classification: this sellable item is a compound tube filler adapter rather than a compound-holding tube.,approved
 MRX01TT,automatic_handles_extensions,10,TapeTech manufacturer identifies MRX01TT as the MudRunner Pro Extension rather than an applicator head or box: https://tapetech.com/product/tapetech-mudrunner-pro-extension/,approved
 90T,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved
 GSR-TT,automatic_goosenecks_box_fillers,10,approved migration from exact path: Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers,approved

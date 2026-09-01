@@ -15,7 +15,8 @@ Taping & Finishing Tools
 ├── Automatic Taping Tools
 │   ├── Automatic Tapers
 │   ├── Flat Boxes
-│   ├── Angle Heads & Corner Finishers
+│   ├── Angle Heads
+│   ├── Corner Finishers
 │   ├── Angle Boxes & Corner Applicators
 │   ├── Corner Rollers
 │   ├── Nail Spotters
@@ -89,7 +90,7 @@ WooCommerce owns commerce and runtime product records. Veeqo owns inventory, all
 - Commerce modes must have one enforced vocabulary and matching Woo purchasability behavior.
 - Toolsets remain one customer-facing Woo line and one exact Veeqo kit SKU.
 - Automatic/semi-automatic and set type are explicit structured properties even when category paths also expose them.
-- Combined labels such as `Angle Heads & Corner Finishers` are customer presentation labels, not two product identities.
+- `Angle Heads` and `Corner Finishers` are separate customer-facing functional taxa. Historical combined paths are migration inputs only and require exact owner-SKU review.
 
 ## Mutation safety
 

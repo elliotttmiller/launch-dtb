@@ -239,6 +239,27 @@ module.exports = (envFlags, argv) => {
     : fs.readFileSync(path.resolve(__dirname, 'error-page.html'), 'utf8')
         .replaceAll('__PUBLIC_URL__', PUBLIC_URL);
 
+  const htmlMinifyOptions = isDev ? false : {
+    removeComments:                true,
+    collapseWhitespace:            true,
+    removeRedundantAttributes:     true,
+    useShortDoctype:               true,
+    removeEmptyAttributes:         true,
+    removeStyleLinkTypeAttributes: true,
+    keepClosingSlash:              true,
+    minifyJS:                      true,
+    minifyCSS:                     true,
+    minifyURLs:                    true,
+  };
+
+  const htmlPluginOptions = {
+    template: './index.html',
+    publicPath,
+    siteUrl,
+    inject: 'body',
+    minify: htmlMinifyOptions,
+  };
+
   const EmitServerErrorPagesPlugin = {
     apply(compiler) {
       compiler.hooks.thisCompilation.tap('EmitServerErrorPagesPlugin', (compilation) => {
@@ -372,24 +393,14 @@ module.exports = (envFlags, argv) => {
     plugins: [
       new webpack.DefinePlugin(defines),
 
-      new HtmlWebpackPlugin({
-        template:  './index.html',
-        publicPath,
-        siteUrl,
-        inject:    'body',
-        minify: isDev ? false : {
-          removeComments:                true,
-          collapseWhitespace:            true,
-          removeRedundantAttributes:     true,
-          useShortDoctype:               true,
-          removeEmptyAttributes:         true,
-          removeStyleLinkTypeAttributes: true,
-          keepClosingSlash:              true,
-          minifyJS:                      true,
-          minifyCSS:                     true,
-          minifyURLs:                    true,
-        },
-      }),
+      new HtmlWebpackPlugin(htmlPluginOptions),
+
+      // During pre-launch, production-root index.html remains the public
+      // coming-soon document. Customer-owned routes can use this equivalent
+      // React shell without launching or replacing the homepage.
+      ...(!isDev && appEnv === 'production'
+        ? [new HtmlWebpackPlugin({ ...htmlPluginOptions, filename: 'storefront.html' })]
+        : []),
 
       new CopyWebpackPlugin({
         patterns: [

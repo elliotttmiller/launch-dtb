@@ -16,14 +16,16 @@ class RoutingContractTests(unittest.TestCase):
             REPOSITORY_ROOT / "frontend" / "webpack.config.cjs"
         ).read_text(encoding="utf-8")
 
-        self.assertIn(
-            "path.resolve(__dirname, '..', 'drywalltoolbox', '.htaccess')",
+        self.assertRegex(
             webpack_config,
+            re.compile(
+                r"from:\s*path\.resolve\(\s*__dirname,\s*'\.\.',\s*"
+                r"'drywalltoolbox',[\s\S]*?:\s*'\.htaccess',\s*\)",
+            ),
         )
-        self.assertIn("from: htaccessSource", webpack_config)
 
     def test_frontend_build_keeps_cart_in_the_spa(self) -> None:
-        htaccess = (REPOSITORY_ROOT / "frontend" / "public" / ".htaccess").read_text(
+        htaccess = (REPOSITORY_ROOT / "drywalltoolbox" / ".htaccess").read_text(
             encoding="utf-8"
         )
 
@@ -40,7 +42,7 @@ class RoutingContractTests(unittest.TestCase):
         )
 
     def test_frontend_build_routes_native_checkout_to_wordpress(self) -> None:
-        htaccess = (REPOSITORY_ROOT / "frontend" / "public" / ".htaccess").read_text(
+        htaccess = (REPOSITORY_ROOT / "drywalltoolbox" / ".htaccess").read_text(
             encoding="utf-8"
         )
 
@@ -62,6 +64,55 @@ class RoutingContractTests(unittest.TestCase):
                 re.MULTILINE,
             ),
         )
+
+    def test_stripe_query_string_returns_reach_wordpress_before_the_spa(self) -> None:
+        htaccess = (REPOSITORY_ROOT / "drywalltoolbox" / ".htaccess").read_text(
+            encoding="utf-8"
+        )
+
+        stripe_condition = (
+            "RewriteCond %{QUERY_STRING} "
+            "(^|&)_stripe_payment_method=stripe_[^&]+(&|$) [NC]"
+        )
+        wordpress_rule = "RewriteRule ^$ wp/index.php [QSA,L]"
+        homepage_rule = "RewriteRule ^$ index.html [L]"
+
+        self.assertIn(stripe_condition, htaccess)
+        self.assertIn(wordpress_rule, htaccess)
+        self.assertLess(htaccess.index(stripe_condition), htaccess.index(homepage_rule))
+        self.assertLess(htaccess.index(wordpress_rule, htaccess.index(stripe_condition)), htaccess.index(homepage_rule))
+
+    def test_plain_order_received_returns_reach_wordpress_before_the_spa(self) -> None:
+        htaccess = (REPOSITORY_ROOT / "drywalltoolbox" / ".htaccess").read_text(
+            encoding="utf-8"
+        )
+
+        order_received_condition = (
+            "RewriteCond %{QUERY_STRING} (^|&)order-received=[0-9]+(&|$) [NC]"
+        )
+        order_key_condition = (
+            "RewriteCond %{QUERY_STRING} (^|&)key=wc_order_[^&]+(&|$) [NC]"
+        )
+        wordpress_rule = "RewriteRule ^$ wp/index.php [QSA,L]"
+        homepage_rule = "RewriteRule ^$ index.html [L]"
+        return_position = htaccess.index(order_received_condition)
+
+        self.assertGreaterEqual(return_position, 0)
+        self.assertGreater(htaccess.index(order_key_condition, return_position), return_position)
+        self.assertLess(htaccess.index(wordpress_rule, return_position), htaccess.index(homepage_rule))
+
+    def test_prelaunch_order_tracking_uses_the_react_storefront_shell(self) -> None:
+        htaccess = (REPOSITORY_ROOT / "drywalltoolbox" / ".htaccess").read_text(
+            encoding="utf-8"
+        )
+
+        tracking_rule = (
+            "RewriteRule ^order-tracking/[0-9]+/?$ storefront.html [QSA,L]"
+        )
+        homepage_rule = "RewriteRule ^$ index.html [L]"
+
+        self.assertIn(tracking_rule, htaccess)
+        self.assertLess(htaccess.index(tracking_rule), htaccess.index(homepage_rule))
 
 
 if __name__ == "__main__":

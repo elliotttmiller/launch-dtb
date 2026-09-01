@@ -29,6 +29,14 @@ def test_legacy_labels_normalize_to_approved_customer_labels():
         assert taxon.path.endswith(leaf)
 
 
+def test_angle_heads_and_corner_finishers_are_distinct_taxa():
+    angle_head = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Angle Heads")
+    corner_finisher = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Corner Finishers")
+    assert angle_head and angle_head.display_key == "automatic_angle_heads"
+    assert corner_finisher and corner_finisher.display_key == "automatic_corner_finishers"
+    assert angle_head != corner_finisher
+
+
 def test_legacy_semi_handle_path_collapses_to_automatic_handle_identity():
     automatic = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions")
     semi = taxon_for_path("Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions")

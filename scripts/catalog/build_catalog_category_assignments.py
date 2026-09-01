@@ -18,7 +18,8 @@ DEFAULT_COVERAGE = ROOT / "docs/_working/catalog-rebuild-brand-category-coverage
 CURRENT_PATH_TO_TAXON = {
     "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers": "automatic_tapers",
     "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes": "flat_boxes",
-    "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_angle_heads_corner_finishers",
+    "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_angle_heads",
+    "Drywall Finishing Tools > Automatic Taping Tools > Corner Finishers": "automatic_corner_finishers",
     "Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes": "automatic_angle_boxes_corner_applicators",
     "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers": "automatic_corner_rollers",
     "Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters": "automatic_nail_spotters",
@@ -41,7 +42,8 @@ CURRENT_PATH_TO_TAXON = {
 CURRENT_PATH_TO_TAXON.update({
     "Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers": "automatic_tapers",
     "Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes": "flat_boxes",
-    "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers": "automatic_angle_heads_corner_finishers",
+    "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_angle_heads",
+    "Taping & Finishing Tools > Automatic Taping Tools > Corner Finishers": "automatic_corner_finishers",
     "Taping & Finishing Tools > Automatic Taping Tools > Angle Boxes & Corner Applicators": "automatic_angle_boxes_corner_applicators",
     "Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes": "automatic_compound_tubes",
     "Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators": "automatic_compound_applicators",
@@ -52,6 +54,7 @@ CURRENT_PATH_TO_TAXON.update({
     "Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers": "automatic_goosenecks_box_fillers",
     "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions": "automatic_handles_extensions",
     "Taping & Finishing Tools > Automatic Taping Tools > Tool Sets": "automatic_tool_sets",
+    "Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools": "semi_automatic_tools",
     "Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers": "semi_automatic_tools",
     "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes": "automatic_compound_tubes",
     "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators": "automatic_compound_applicators",

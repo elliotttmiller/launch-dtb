@@ -42,7 +42,7 @@ def test_manufacturer_reviewed_override_wins_over_historical_category_path():
     assert "TapeTech manufacturer" in assignments[0]["evidence"]
 
 
-def test_compound_tube_override_does_not_follow_legacy_applicator_assignment():
+def test_minishot_override_classifies_complete_tool_as_compound_applicator():
     taxa = load_taxa(TAXONOMY)
     overrides = selected_overrides("4-772")
     rows = [
@@ -52,7 +52,34 @@ def test_compound_tube_override_does_not_follow_legacy_applicator_assignment():
         )
     ]
     assignments = build(rows, taxa, overrides)
-    assert assignments[0]["taxon_key"] == "automatic_compound_tubes"
+    assert assignments[0]["taxon_key"] == "automatic_compound_applicators"
+
+
+def test_mudrunner_override_classifies_complete_tool_as_compound_applicator():
+    taxa = load_taxa(TAXONOMY)
+    overrides = selected_overrides("TT-MUDRUNNER")
+    rows = [
+        owner(
+            "TT-MUDRUNNER",
+            "Taping & Finishing Tools > Automatic Taping Tools > Angle Boxes & Corner Applicators",
+        )
+    ]
+    assignments = build(rows, taxa, overrides)
+    assert assignments[0]["taxon_key"] == "automatic_compound_applicators"
+
+
+def test_angle_heads_and_corner_finishers_have_distinct_owner_assignments():
+    taxa = load_taxa(TAXONOMY)
+    overrides = selected_overrides("COL-ANGLE-HEAD", "TT-CORNER-FINISHER")
+    rows = [
+        owner("COL-ANGLE-HEAD", "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers"),
+        owner("TT-CORNER-FINISHER", "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers"),
+    ]
+    assignments = build(rows, taxa, overrides)
+    assert [assignment["taxon_key"] for assignment in assignments] == [
+        "automatic_angle_heads",
+        "automatic_corner_finishers",
+    ]
 
 
 def test_unreviewed_product_still_uses_exact_path_migration():
