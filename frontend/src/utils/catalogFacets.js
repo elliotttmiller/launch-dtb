@@ -1,4 +1,4 @@
-import { brandToSlug, canonicalBrandLabel, sortBrandsBy } from './catalogUrlState.js';
+import { brandToSlug, canonicalBrandLabel, canonicalDisplayCategorySlug, sortBrandsBy } from './catalogUrlState.js';
 
 const LEGACY_CATEGORY_SLUG_ALIASES = {
   'automatic-taping-tool-sets': 'automatic-tool-sets',
@@ -113,14 +113,14 @@ export function mergeCatalogDisplayCategories(displayCategoriesByBrand = {}) {
   Object.values(displayCategoriesByBrand || {}).forEach((items) => {
     if (!Array.isArray(items)) return;
     items.forEach((item) => {
-      const slug = item?.slug || item?.key;
+      const slug = canonicalDisplayCategorySlug(item?.slug || item?.key);
       if (!slug) return;
       const count = Number(item?.productCount || item?.count || 0);
       const existing = merged.get(slug);
       merged.set(slug, {
         slug,
         label: item?.label || item?.name || item?.key || slug,
-        count: (existing?.count || 0) + count,
+        count: Math.max(existing?.count || 0, count),
       });
     });
   });

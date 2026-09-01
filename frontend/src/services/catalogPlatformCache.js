@@ -1,9 +1,14 @@
 import { apiClient } from '../api/client.js';
-import { brandToSlug, isAllProductsCategorySlug, parseCatalogQuery } from '../utils/catalogUrlState.js';
+import {
+  brandToSlug,
+  canonicalDisplayCategorySlug,
+  isAllProductsCategorySlug,
+  parseCatalogQuery,
+} from '../utils/catalogUrlState.js';
 
 const FRESH_CACHE_TTL = 5 * 60 * 1000;
 const STALE_CACHE_TTL = 24 * 60 * 60 * 1000;
-const CACHE_VERSION = 'v12';
+const CACHE_VERSION = 'v13';
 const PRODUCT_STORAGE_PREFIX = `dtb:catalog-products:${CACHE_VERSION}:`;
 const FACETS_STORAGE_PREFIX = `dtb:catalog-facets:${CACHE_VERSION}:`;
 const CATALOG_SNAPSHOTS_ENABLED = /^(1|true|yes|on)$/i.test(
@@ -198,7 +203,11 @@ export function buildCatalogProductParams(query = {}) {
   }
   if (query.category) params.category = query.category;
   if (!query.search && Array.isArray(query.displayCategory) && query.displayCategory.length > 0) {
-    const slugs = query.displayCategory.filter((slug) => !isAllProductsCategorySlug(slug));
+    const slugs = Array.from(new Set(
+      query.displayCategory
+        .map(canonicalDisplayCategorySlug)
+        .filter((slug) => slug && !isAllProductsCategorySlug(slug))
+    ));
     if (slugs.length > 0) params.display_category = slugs.join(',');
   }
   if (query.toolFamily) params.tool_family = query.toolFamily;

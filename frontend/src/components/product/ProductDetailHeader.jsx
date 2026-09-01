@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { decodeHtmlEntities } from '../../utils/string';
 import '../../styles/product-detail-approved-mockup.css';
 import '../../styles/product-detail-overview-refinements.css';
 import '../../styles/product-detail-brand-refinements.css';
@@ -11,13 +12,9 @@ function getProductUrl(product) {
 }
 
 function toPlainSummary(value = '') {
-  const compact = String(value || '')
+  const compact = decodeHtmlEntities(String(value || ''))
     .replace(/<br\s*\/?>/gi, ' ')
     .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/gi, ' ')
-    .replace(/&amp;/gi, '&')
-    .replace(/&quot;/gi, '"')
-    .replace(/&#039;|&apos;/gi, "'")
     .replace(/\s+/g, ' ')
     .trim();
 

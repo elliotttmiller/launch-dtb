@@ -78,6 +78,29 @@ export function isAllProductsCategorySlug(value = '') {
   return ['all-products', 'all-products-category', 'all'].includes(normalized);
 }
 
+const DISPLAY_CATEGORY_ALIASES = {
+  'semi-compound-tubes': 'automatic-compound-tubes',
+  'compound-tubes': 'automatic-compound-tubes',
+  'semi-compound-applicators': 'automatic-compound-applicators',
+  'compound-applicators': 'automatic-compound-applicators',
+  'semi-corner-flushers': 'automatic-corner-flushers',
+  'corner-flushers': 'automatic-corner-flushers',
+  'semi-handles-extensions': 'automatic-handles-extensions',
+  'semi-automatic-handles-extensions': 'automatic-handles-extensions',
+  'semi-tool-sets': 'automatic-tool-sets',
+  'semi-automatic-tool-sets': 'automatic-tool-sets',
+  'semi-automatic-tapers': 'semi-automatic-tools',
+};
+
+export function canonicalDisplayCategorySlug(value = '') {
+  const slug = String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[_\s]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return DISPLAY_CATEGORY_ALIASES[slug] || slug;
+}
+
 // ── DTB category key → display label ─────────────────────────────────────────
 
 export const CATEGORY_LABELS = {
@@ -149,6 +172,7 @@ export function parseCatalogQuery(searchParams, pathParams = {}) {
     : (searchParams.get('display_category') || '')
       .split(',')
       .map((slug) => decodeURIComponent(slug.trim()))
+      .map(canonicalDisplayCategorySlug)
       .filter(Boolean);
 
   const search = searchParams.get('search')
@@ -198,7 +222,11 @@ export function buildCatalogUrl(query, pathParams = {}) {
   // mutually exclusive.  Search takes priority. The synthetic All Products
   // selector is only a route/view state and must not become a filter param.
   if (!pathParams.categorySlug && query.displayCategory?.length > 0 && !query.search) {
-    const slugs = query.displayCategory.filter((slug) => !isAllProductsCategorySlug(slug));
+    const slugs = Array.from(new Set(
+      query.displayCategory
+        .map(canonicalDisplayCategorySlug)
+        .filter((slug) => slug && !isAllProductsCategorySlug(slug))
+    ));
     if (slugs.length > 0) params.set('display_category', slugs.join(','));
   }
   if (!pathParams.categoryPathSlug && query.category) params.set('category', query.category);

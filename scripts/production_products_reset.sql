@@ -1,9 +1,9 @@
 -- =============================================================================
 -- DTB WooCommerce — PRODUCTION CATALOG + MEDIA FULL RESET v2
 -- Database:  dbb5qa8fmosn28
--- Prefix:    vaa_
+-- Prefix:    kf5_
 -- WordPress/WooCommerce versions: verify in the target runtime before execution
--- HPOS:      enabled
+-- HPOS tables: present; legacy and HPOS order storage are both preserved
 -- Revised:   2026-08-31
 --
 -- DESTRUCTIVE SCOPE
@@ -16,7 +16,7 @@
 --
 -- IMPORTANT
 --   1. Export a complete database backup before running.
---   2. This script is hard-coded for database dbb5qa8fmosn28 and prefix vaa_.
+--   2. This script is hard-coded for database dbb5qa8fmosn28 and prefix kf5_.
 --   3. Execute STEP 0 first and stop unless every required table is PRESENT.
 --   4. Run steps in order. Helper tables intentionally persist between executions.
 --   5. SQL does not delete files from wp-content/uploads.
@@ -29,7 +29,7 @@
 -- =============================================================================
 -- STEP 0 — DATABASE / PREFIX / REQUIRED-TABLE PREFLIGHT
 -- Expected database: dbb5qa8fmosn28
--- Expected prefix:   vaa_
+-- Expected prefix:   kf5_
 -- STOP if the database differs or any required table reports MISSING.
 -- =============================================================================
 
@@ -49,21 +49,28 @@ SELECT
     actual.ENGINE,
     actual.TABLE_COLLATION
 FROM (
-    SELECT 'vaa_posts' AS expected_table
-    UNION ALL SELECT 'vaa_postmeta'
-    UNION ALL SELECT 'vaa_comments'
-    UNION ALL SELECT 'vaa_commentmeta'
-    UNION ALL SELECT 'vaa_terms'
-    UNION ALL SELECT 'vaa_termmeta'
-    UNION ALL SELECT 'vaa_term_taxonomy'
-    UNION ALL SELECT 'vaa_term_relationships'
-    UNION ALL SELECT 'vaa_options'
-    UNION ALL SELECT 'vaa_wc_product_meta_lookup'
-    UNION ALL SELECT 'vaa_wc_product_attributes_lookup'
-    UNION ALL SELECT 'vaa_wc_category_lookup'
-    UNION ALL SELECT 'vaa_wc_download_log'
-    UNION ALL SELECT 'vaa_woocommerce_downloadable_product_permissions'
-    UNION ALL SELECT 'vaa_woocommerce_attribute_taxonomies'
+    SELECT 'kf5_posts' AS expected_table
+    UNION ALL SELECT 'kf5_postmeta'
+    UNION ALL SELECT 'kf5_comments'
+    UNION ALL SELECT 'kf5_commentmeta'
+    UNION ALL SELECT 'kf5_terms'
+    UNION ALL SELECT 'kf5_termmeta'
+    UNION ALL SELECT 'kf5_term_taxonomy'
+    UNION ALL SELECT 'kf5_term_relationships'
+    UNION ALL SELECT 'kf5_options'
+    UNION ALL SELECT 'kf5_wc_product_meta_lookup'
+    UNION ALL SELECT 'kf5_wc_product_attributes_lookup'
+    UNION ALL SELECT 'kf5_wc_category_lookup'
+    UNION ALL SELECT 'kf5_wc_download_log'
+    UNION ALL SELECT 'kf5_woocommerce_downloadable_product_permissions'
+    UNION ALL SELECT 'kf5_woocommerce_attribute_taxonomies'
+    UNION ALL SELECT 'kf5_woocommerce_order_items'
+    UNION ALL SELECT 'kf5_woocommerce_order_itemmeta'
+    UNION ALL SELECT 'kf5_actionscheduler_actions'
+    UNION ALL SELECT 'kf5_wc_orders'
+    UNION ALL SELECT 'kf5_wc_orders_meta'
+    UNION ALL SELECT 'kf5_wc_order_addresses'
+    UNION ALL SELECT 'kf5_wc_order_operational_data'
 ) required
 LEFT JOIN information_schema.TABLES actual
     ON actual.TABLE_SCHEMA = DATABASE()
@@ -81,17 +88,25 @@ ORDER BY detected_prefix;
 -- =============================================================================
 -- STEP 0.5 — PROTECTED DATA SNAPSHOT
 -- Save these values. STEP 25 must report the same values.
+-- The verified target schema contains all four WooCommerce HPOS tables.
 -- =============================================================================
 
 SELECT
-    (SELECT COUNT(*) FROM vaa_wc_orders) AS hpos_orders_before,
-    (SELECT COUNT(*) FROM vaa_wc_orders_meta) AS hpos_order_meta_before,
-    (SELECT COUNT(*) FROM vaa_woocommerce_order_items) AS order_items_before,
-    (SELECT COUNT(*) FROM vaa_woocommerce_order_itemmeta) AS order_item_meta_before,
-    (SELECT COUNT(*) FROM vaa_actionscheduler_actions) AS scheduled_actions_before,
+    (SELECT COUNT(*) FROM kf5_wc_orders) AS hpos_orders_before,
+    (SELECT COUNT(*) FROM kf5_wc_orders_meta) AS hpos_order_meta_before,
+    (SELECT COUNT(*) FROM kf5_wc_order_addresses) AS hpos_order_addresses_before,
+    (SELECT COUNT(*) FROM kf5_wc_order_operational_data) AS hpos_operational_data_before,
+    (SELECT COUNT(*) FROM kf5_posts
+      WHERE post_type IN ('shop_order', 'shop_order_refund')) AS legacy_order_posts_before,
+    (SELECT COUNT(*) FROM kf5_postmeta pm
+      INNER JOIN kf5_posts p ON p.ID = pm.post_id
+      WHERE p.post_type IN ('shop_order', 'shop_order_refund')) AS legacy_order_meta_before,
+    (SELECT COUNT(*) FROM kf5_woocommerce_order_items) AS order_items_before,
+    (SELECT COUNT(*) FROM kf5_woocommerce_order_itemmeta) AS order_item_meta_before,
+    (SELECT COUNT(*) FROM kf5_actionscheduler_actions) AS scheduled_actions_before,
     (SELECT COUNT(*) FROM information_schema.TABLES
      WHERE TABLE_SCHEMA = DATABASE()
-       AND TABLE_NAME LIKE 'vaa_dtb\_%') AS dtb_tables_before;
+       AND TABLE_NAME LIKE 'kf5_dtb\_%') AS dtb_tables_before;
 
 
 -- =============================================================================
@@ -112,23 +127,23 @@ DROP TABLE IF EXISTS _dtb_reset_term_taxonomy_ids;
 -- =============================================================================
 
 SELECT
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'product') AS products,
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'product_variation') AS product_variations,
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'attachment') AS registered_attachments,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'product') AS products,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'product_variation') AS product_variations,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'attachment') AS registered_attachments,
     (SELECT COUNT(*)
-       FROM vaa_comments c
-       INNER JOIN vaa_posts p ON p.ID = c.comment_post_ID
+       FROM kf5_comments c
+       INNER JOIN kf5_posts p ON p.ID = c.comment_post_ID
       WHERE p.post_type IN ('product', 'product_variation')) AS product_comments,
-    (SELECT COUNT(*) FROM vaa_wc_product_meta_lookup) AS product_meta_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_wc_product_attributes_lookup) AS attribute_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_wc_category_lookup) AS category_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy = 'product_cat') AS product_categories,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy = 'product_tag') AS product_tags,
+    (SELECT COUNT(*) FROM kf5_wc_product_meta_lookup) AS product_meta_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_wc_product_attributes_lookup) AS attribute_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_wc_category_lookup) AS category_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy = 'product_cat') AS product_categories,
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy = 'product_tag') AS product_tags,
     (SELECT COUNT(*)
-       FROM vaa_term_taxonomy
+       FROM kf5_term_taxonomy
       WHERE taxonomy IN ('pa_brand', 'product_brand', 'pwb-brand', 'yith_product_brand')) AS brand_terms,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy LIKE 'pa\_%') AS attribute_terms,
-    (SELECT COUNT(*) FROM vaa_woocommerce_attribute_taxonomies) AS global_attribute_definitions;
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy LIKE 'pa\_%') AS attribute_terms,
+    (SELECT COUNT(*) FROM kf5_woocommerce_attribute_taxonomies) AS global_attribute_definitions;
 
 
 -- =============================================================================
@@ -142,7 +157,7 @@ CREATE TABLE _dtb_reset_product_ids (
 
 INSERT INTO _dtb_reset_product_ids (ID)
 SELECT ID
-FROM vaa_posts
+FROM kf5_posts
 WHERE post_type IN ('product', 'product_variation');
 
 SELECT COUNT(*) AS staged_products_and_variations
@@ -161,7 +176,7 @@ CREATE TABLE _dtb_reset_attachment_ids (
 
 INSERT INTO _dtb_reset_attachment_ids (ID)
 SELECT ID
-FROM vaa_posts
+FROM kf5_posts
 WHERE post_type = 'attachment';
 
 SELECT COUNT(*) AS staged_attachments
@@ -169,7 +184,7 @@ FROM _dtb_reset_attachment_ids;
 
 
 -- =============================================================================
--- STEP 5 — STAGE PRODUCT COMMENT / REVIEW IDS
+-- STEP 5 — STAGE PRODUCT AND ATTACHMENT COMMENT / REVIEW IDS
 -- =============================================================================
 
 CREATE TABLE _dtb_reset_comment_ids (
@@ -179,11 +194,16 @@ CREATE TABLE _dtb_reset_comment_ids (
 
 INSERT INTO _dtb_reset_comment_ids (comment_ID)
 SELECT c.comment_ID
-FROM vaa_comments c
+FROM kf5_comments c
 INNER JOIN _dtb_reset_product_ids p
-    ON p.ID = c.comment_post_ID;
+    ON p.ID = c.comment_post_ID
+UNION
+SELECT c.comment_ID
+FROM kf5_comments c
+INNER JOIN _dtb_reset_attachment_ids a
+    ON a.ID = c.comment_post_ID;
 
-SELECT COUNT(*) AS staged_product_comments
+SELECT COUNT(*) AS staged_product_and_attachment_comments
 FROM _dtb_reset_comment_ids;
 
 
@@ -198,7 +218,7 @@ CREATE TABLE _dtb_reset_download_permission_ids (
 
 INSERT INTO _dtb_reset_download_permission_ids (permission_id)
 SELECT dp.permission_id
-FROM vaa_woocommerce_downloadable_product_permissions dp
+FROM kf5_woocommerce_downloadable_product_permissions dp
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = dp.product_id;
 
@@ -209,7 +229,7 @@ FROM _dtb_reset_download_permission_ids;
 -- =============================================================================
 -- STEP 7 — STAGE CATALOG-OWNED TAXONOMY ROWS
 -- Preserves product_type and product_visibility.
--- Preserves global attribute definitions in vaa_woocommerce_attribute_taxonomies.
+-- Preserves global attribute definitions in kf5_woocommerce_attribute_taxonomies.
 -- =============================================================================
 
 CREATE TABLE _dtb_reset_term_taxonomy_ids (
@@ -233,7 +253,7 @@ SELECT
     term_taxonomy_id,
     term_id,
     taxonomy
-FROM vaa_term_taxonomy
+FROM kf5_term_taxonomy
 WHERE taxonomy IN (
     'product_cat',
     'product_tag',
@@ -256,12 +276,12 @@ ORDER BY taxonomy;
 -- =============================================================================
 
 DELETE cm
-FROM vaa_commentmeta cm
+FROM kf5_commentmeta cm
 INNER JOIN _dtb_reset_comment_ids c
     ON c.comment_ID = cm.comment_id;
 
 SELECT COUNT(*) AS remaining_staged_comment_meta
-FROM vaa_commentmeta cm
+FROM kf5_commentmeta cm
 INNER JOIN _dtb_reset_comment_ids c
     ON c.comment_ID = cm.comment_id;
 
@@ -271,12 +291,12 @@ INNER JOIN _dtb_reset_comment_ids c
 -- =============================================================================
 
 DELETE c
-FROM vaa_comments c
+FROM kf5_comments c
 INNER JOIN _dtb_reset_comment_ids staged
     ON staged.comment_ID = c.comment_ID;
 
 SELECT COUNT(*) AS remaining_staged_comments
-FROM vaa_comments c
+FROM kf5_comments c
 INNER JOIN _dtb_reset_comment_ids staged
     ON staged.comment_ID = c.comment_ID;
 
@@ -286,12 +306,12 @@ INNER JOIN _dtb_reset_comment_ids staged
 -- =============================================================================
 
 DELETE pm
-FROM vaa_postmeta pm
+FROM kf5_postmeta pm
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = pm.post_id;
 
 SELECT COUNT(*) AS remaining_product_postmeta
-FROM vaa_postmeta pm
+FROM kf5_postmeta pm
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = pm.post_id;
 
@@ -301,12 +321,12 @@ INNER JOIN _dtb_reset_product_ids p
 -- =============================================================================
 
 DELETE tr
-FROM vaa_term_relationships tr
+FROM kf5_term_relationships tr
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = tr.object_id;
 
 SELECT COUNT(*) AS remaining_product_term_relationships
-FROM vaa_term_relationships tr
+FROM kf5_term_relationships tr
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = tr.object_id;
 
@@ -316,29 +336,29 @@ INNER JOIN _dtb_reset_product_ids p
 -- =============================================================================
 
 DELETE lookup
-FROM vaa_wc_product_meta_lookup lookup
+FROM kf5_wc_product_meta_lookup lookup
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = lookup.product_id;
 
 DELETE lookup
-FROM vaa_wc_product_attributes_lookup lookup
+FROM kf5_wc_product_attributes_lookup lookup
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = lookup.product_id
     OR p.ID = lookup.product_or_parent_id;
 
 -- Fully derived from catalog taxonomy relationships.
-DELETE FROM vaa_wc_category_lookup;
+DELETE FROM kf5_wc_category_lookup;
 
 SELECT
     (SELECT COUNT(*)
-       FROM vaa_wc_product_meta_lookup lookup
+       FROM kf5_wc_product_meta_lookup lookup
        INNER JOIN _dtb_reset_product_ids p ON p.ID = lookup.product_id) AS remaining_product_lookup,
     (SELECT COUNT(*)
-       FROM vaa_wc_product_attributes_lookup lookup
+       FROM kf5_wc_product_attributes_lookup lookup
        INNER JOIN _dtb_reset_product_ids p
           ON p.ID = lookup.product_id
           OR p.ID = lookup.product_or_parent_id) AS remaining_attribute_lookup,
-    (SELECT COUNT(*) FROM vaa_wc_category_lookup) AS remaining_category_lookup;
+    (SELECT COUNT(*) FROM kf5_wc_category_lookup) AS remaining_category_lookup;
 
 
 -- =============================================================================
@@ -346,17 +366,17 @@ SELECT
 -- =============================================================================
 
 DELETE log_row
-FROM vaa_wc_download_log log_row
+FROM kf5_wc_download_log log_row
 INNER JOIN _dtb_reset_download_permission_ids p
     ON p.permission_id = log_row.permission_id;
 
 DELETE permission_row
-FROM vaa_woocommerce_downloadable_product_permissions permission_row
+FROM kf5_woocommerce_downloadable_product_permissions permission_row
 INNER JOIN _dtb_reset_download_permission_ids p
     ON p.permission_id = permission_row.permission_id;
 
 SELECT COUNT(*) AS remaining_staged_download_permissions
-FROM vaa_woocommerce_downloadable_product_permissions permission_row
+FROM kf5_woocommerce_downloadable_product_permissions permission_row
 INNER JOIN _dtb_reset_download_permission_ids p
     ON p.permission_id = permission_row.permission_id;
 
@@ -366,12 +386,12 @@ INNER JOIN _dtb_reset_download_permission_ids p
 -- =============================================================================
 
 DELETE post_row
-FROM vaa_posts post_row
+FROM kf5_posts post_row
 INNER JOIN _dtb_reset_product_ids p
     ON p.ID = post_row.ID;
 
 SELECT COUNT(*) AS remaining_products_and_variations
-FROM vaa_posts
+FROM kf5_posts
 WHERE post_type IN ('product', 'product_variation');
 
 
@@ -384,7 +404,7 @@ WHERE post_type IN ('product', 'product_variation');
 -- =============================================================================
 
 DELETE pm
-FROM vaa_postmeta pm
+FROM kf5_postmeta pm
 INNER JOIN _dtb_reset_attachment_ids a
     ON CAST(pm.meta_value AS UNSIGNED) = a.ID
 WHERE pm.meta_key = '_thumbnail_id';
@@ -397,21 +417,21 @@ SELECT ROW_COUNT() AS surviving_thumbnail_references_deleted;
 -- =============================================================================
 
 DELETE pm
-FROM vaa_postmeta pm
+FROM kf5_postmeta pm
 INNER JOIN _dtb_reset_attachment_ids a
     ON a.ID = pm.post_id;
 
 DELETE tr
-FROM vaa_term_relationships tr
+FROM kf5_term_relationships tr
 INNER JOIN _dtb_reset_attachment_ids a
     ON a.ID = tr.object_id;
 
 SELECT
     (SELECT COUNT(*)
-       FROM vaa_postmeta pm
+       FROM kf5_postmeta pm
        INNER JOIN _dtb_reset_attachment_ids a ON a.ID = pm.post_id) AS remaining_attachment_meta,
     (SELECT COUNT(*)
-       FROM vaa_term_relationships tr
+       FROM kf5_term_relationships tr
        INNER JOIN _dtb_reset_attachment_ids a ON a.ID = tr.object_id) AS remaining_attachment_relationships;
 
 
@@ -421,12 +441,12 @@ SELECT
 -- =============================================================================
 
 DELETE post_row
-FROM vaa_posts post_row
+FROM kf5_posts post_row
 INNER JOIN _dtb_reset_attachment_ids a
     ON a.ID = post_row.ID;
 
 SELECT COUNT(*) AS remaining_registered_attachments
-FROM vaa_posts
+FROM kf5_posts
 WHERE post_type = 'attachment';
 
 
@@ -435,29 +455,47 @@ WHERE post_type = 'attachment';
 -- =============================================================================
 
 DELETE tr
-FROM vaa_term_relationships tr
+FROM kf5_term_relationships tr
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_taxonomy_id = tr.term_taxonomy_id;
 
 SELECT COUNT(*) AS remaining_staged_taxonomy_relationships
-FROM vaa_term_relationships tr
+FROM kf5_term_relationships tr
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_taxonomy_id = tr.term_taxonomy_id;
 
 
 -- =============================================================================
--- STEP 19 — DELETE TERM META FOR STAGED CATALOG TERMS
+-- STEP 19 — DELETE TERM META FOR EXCLUSIVELY CATALOG-OWNED TERMS
+-- If a term is also registered to a surviving non-catalog taxonomy, its metadata
+-- is preserved to avoid modifying unrelated WordPress content.
 -- =============================================================================
 
 DELETE tm
-FROM vaa_termmeta tm
+FROM kf5_termmeta tm
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
-    ON staged.term_id = tm.term_id;
+    ON staged.term_id = tm.term_id
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM kf5_term_taxonomy surviving
+    LEFT JOIN _dtb_reset_term_taxonomy_ids staged_taxonomy
+        ON staged_taxonomy.term_taxonomy_id = surviving.term_taxonomy_id
+    WHERE surviving.term_id = tm.term_id
+      AND staged_taxonomy.term_taxonomy_id IS NULL
+);
 
-SELECT COUNT(*) AS remaining_staged_termmeta
-FROM vaa_termmeta tm
+SELECT COUNT(*) AS remaining_exclusively_catalog_owned_termmeta
+FROM kf5_termmeta tm
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
-    ON staged.term_id = tm.term_id;
+    ON staged.term_id = tm.term_id
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM kf5_term_taxonomy surviving
+    LEFT JOIN _dtb_reset_term_taxonomy_ids staged_taxonomy
+        ON staged_taxonomy.term_taxonomy_id = surviving.term_taxonomy_id
+    WHERE surviving.term_id = tm.term_id
+      AND staged_taxonomy.term_taxonomy_id IS NULL
+);
 
 
 -- =============================================================================
@@ -465,12 +503,12 @@ INNER JOIN _dtb_reset_term_taxonomy_ids staged
 -- =============================================================================
 
 DELETE tt
-FROM vaa_term_taxonomy tt
+FROM kf5_term_taxonomy tt
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_taxonomy_id = tt.term_taxonomy_id;
 
 SELECT COUNT(*) AS remaining_staged_term_taxonomy_rows
-FROM vaa_term_taxonomy tt
+FROM kf5_term_taxonomy tt
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_taxonomy_id = tt.term_taxonomy_id;
 
@@ -481,18 +519,18 @@ INNER JOIN _dtb_reset_term_taxonomy_ids staged
 -- =============================================================================
 
 DELETE term_row
-FROM vaa_terms term_row
+FROM kf5_terms term_row
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_id = term_row.term_id
-LEFT JOIN vaa_term_taxonomy surviving
+LEFT JOIN kf5_term_taxonomy surviving
     ON surviving.term_id = term_row.term_id
 WHERE surviving.term_id IS NULL;
 
 SELECT COUNT(*) AS remaining_orphaned_staged_terms
-FROM vaa_terms term_row
+FROM kf5_terms term_row
 INNER JOIN _dtb_reset_term_taxonomy_ids staged
     ON staged.term_id = term_row.term_id
-LEFT JOIN vaa_term_taxonomy surviving
+LEFT JOIN kf5_term_taxonomy surviving
     ON surviving.term_id = term_row.term_id
 WHERE surviving.term_id IS NULL;
 
@@ -509,7 +547,7 @@ SELECT
     attribute_type,
     attribute_orderby,
     attribute_public
-FROM vaa_woocommerce_attribute_taxonomies
+FROM kf5_woocommerce_attribute_taxonomies
 ORDER BY attribute_id;
 
 
@@ -517,7 +555,7 @@ ORDER BY attribute_id;
 -- STEP 23 — RESET PRESERVED WC SYSTEM TAXONOMY COUNTS
 -- =============================================================================
 
-UPDATE vaa_term_taxonomy
+UPDATE kf5_term_taxonomy
 SET count = 0
 WHERE taxonomy IN ('product_type', 'product_visibility');
 
@@ -525,8 +563,8 @@ SELECT
     tt.taxonomy,
     t.name,
     tt.count
-FROM vaa_term_taxonomy tt
-INNER JOIN vaa_terms t
+FROM kf5_term_taxonomy tt
+INNER JOIN kf5_terms t
     ON t.term_id = tt.term_id
 WHERE tt.taxonomy IN ('product_type', 'product_visibility')
 ORDER BY tt.taxonomy, t.name;
@@ -540,7 +578,7 @@ ORDER BY tt.taxonomy, t.name;
 -- and the WooCommerce attribute-taxonomy cache option are removed.
 -- =============================================================================
 
-DELETE FROM vaa_options
+DELETE FROM kf5_options
 WHERE option_name LIKE '\_transient\_wc\_%'
    OR option_name LIKE '\_transient\_timeout\_wc\_%'
    OR option_name LIKE '\_transient\_woocommerce\_%'
@@ -567,34 +605,41 @@ SELECT ROW_COUNT() AS cache_option_rows_deleted;
 -- =============================================================================
 
 SELECT
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'product') AS remaining_products,
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'product_variation') AS remaining_variations,
-    (SELECT COUNT(*) FROM vaa_posts WHERE post_type = 'attachment') AS remaining_attachments,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'product') AS remaining_products,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'product_variation') AS remaining_variations,
+    (SELECT COUNT(*) FROM kf5_posts WHERE post_type = 'attachment') AS remaining_attachments,
     (SELECT COUNT(*)
-       FROM vaa_comments c
-       INNER JOIN vaa_posts p ON p.ID = c.comment_post_ID
+       FROM kf5_comments c
+       INNER JOIN kf5_posts p ON p.ID = c.comment_post_ID
       WHERE p.post_type IN ('product', 'product_variation')) AS remaining_product_comments,
-    (SELECT COUNT(*) FROM vaa_wc_product_meta_lookup) AS remaining_product_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_wc_product_attributes_lookup) AS remaining_attribute_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_wc_category_lookup) AS remaining_category_lookup_rows,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy = 'product_cat') AS remaining_categories,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy = 'product_tag') AS remaining_tags,
+    (SELECT COUNT(*) FROM kf5_wc_product_meta_lookup) AS remaining_product_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_wc_product_attributes_lookup) AS remaining_attribute_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_wc_category_lookup) AS remaining_category_lookup_rows,
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy = 'product_cat') AS remaining_categories,
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy = 'product_tag') AS remaining_tags,
     (SELECT COUNT(*)
-       FROM vaa_term_taxonomy
+       FROM kf5_term_taxonomy
       WHERE taxonomy IN ('pa_brand', 'product_brand', 'pwb-brand', 'yith_product_brand')) AS remaining_brand_terms,
-    (SELECT COUNT(*) FROM vaa_term_taxonomy WHERE taxonomy LIKE 'pa\_%') AS remaining_attribute_terms,
-    (SELECT COUNT(*) FROM vaa_woocommerce_attribute_taxonomies) AS preserved_attribute_definitions,
+    (SELECT COUNT(*) FROM kf5_term_taxonomy WHERE taxonomy LIKE 'pa\_%') AS remaining_attribute_terms,
+    (SELECT COUNT(*) FROM kf5_woocommerce_attribute_taxonomies) AS preserved_attribute_definitions,
     (SELECT COUNT(*)
-       FROM vaa_term_taxonomy
+       FROM kf5_term_taxonomy
       WHERE taxonomy IN ('product_type', 'product_visibility')) AS preserved_system_terms,
-    (SELECT COUNT(*) FROM vaa_wc_orders) AS hpos_orders_after,
-    (SELECT COUNT(*) FROM vaa_wc_orders_meta) AS hpos_order_meta_after,
-    (SELECT COUNT(*) FROM vaa_woocommerce_order_items) AS order_items_after,
-    (SELECT COUNT(*) FROM vaa_woocommerce_order_itemmeta) AS order_item_meta_after,
-    (SELECT COUNT(*) FROM vaa_actionscheduler_actions) AS scheduled_actions_after,
+    (SELECT COUNT(*) FROM kf5_wc_orders) AS hpos_orders_after,
+    (SELECT COUNT(*) FROM kf5_wc_orders_meta) AS hpos_order_meta_after,
+    (SELECT COUNT(*) FROM kf5_wc_order_addresses) AS hpos_order_addresses_after,
+    (SELECT COUNT(*) FROM kf5_wc_order_operational_data) AS hpos_operational_data_after,
+    (SELECT COUNT(*) FROM kf5_posts
+      WHERE post_type IN ('shop_order', 'shop_order_refund')) AS legacy_order_posts_after,
+    (SELECT COUNT(*) FROM kf5_postmeta pm
+      INNER JOIN kf5_posts p ON p.ID = pm.post_id
+      WHERE p.post_type IN ('shop_order', 'shop_order_refund')) AS legacy_order_meta_after,
+    (SELECT COUNT(*) FROM kf5_woocommerce_order_items) AS order_items_after,
+    (SELECT COUNT(*) FROM kf5_woocommerce_order_itemmeta) AS order_item_meta_after,
+    (SELECT COUNT(*) FROM kf5_actionscheduler_actions) AS scheduled_actions_after,
     (SELECT COUNT(*) FROM information_schema.TABLES
      WHERE TABLE_SCHEMA = DATABASE()
-       AND TABLE_NAME LIKE 'vaa_dtb\_%') AS dtb_tables_after;
+       AND TABLE_NAME LIKE 'kf5_dtb\_%') AS dtb_tables_after;
 
 
 -- =============================================================================

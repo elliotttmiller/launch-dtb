@@ -156,12 +156,13 @@
 }
 
 .dtb-product-page-shell .dtb-pdp-header__summary {
-  max-width: 58ch;
-  margin: 1rem 0 0;
+  max-width: 60ch;
+  margin: 1.2rem 0 0;
   color: #26364f;
-  font-size: .96rem;
-  font-weight: 430;
-  line-height: 1.58;
+  font-size: 1rem;
+  font-weight: 450;
+  line-height: 1.65;
+  text-wrap: pretty;
 }
 
 /* Suppress legacy hero-only UI absent from the accepted composition. */

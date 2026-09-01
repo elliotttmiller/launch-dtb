@@ -191,6 +191,53 @@
   font-weight: 700;
 }
 
+/* Feature lists are definition rows: every label and description shares the
+ * same alignment, measure and vertical rhythm without becoming a card grid. */
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) {
+  width: 100%;
+  max-width: 70ch;
+  display: grid;
+  margin: .7rem 0 0;
+  padding: 0;
+  border-top: 1px solid #e3e9f1;
+  list-style: none;
+}
+
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li {
+  display: grid;
+  grid-template-columns: minmax(10.5rem, 13rem) minmax(0, 1fr);
+  column-gap: clamp(1.25rem, 2.5vw, 2.25rem);
+  align-items: start;
+  margin: 0;
+  padding: .9rem 0;
+  border-bottom: 1px solid #e3e9f1;
+  color: #40516a;
+  font-size: clamp(.94rem, .2vw + .91rem, 1rem);
+  font-weight: 430;
+  line-height: 1.58;
+}
+
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li::before,
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li::marker {
+  content: none !important;
+  display: none !important;
+}
+
+.dtb-product-page-shell .dtb-pdp-description-content--rich
+  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li > :is(strong, b):first-child {
+  display: block;
+  margin: 0;
+  color: #172033;
+  font-size: inherit;
+  font-weight: 720;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
 .dtb-pdp-description-content :is(table, .ts-table-shell) {
   width: 100%;
   margin-top: 1rem;
@@ -318,6 +365,15 @@
     color: #34445c;
     font-size: .93rem;
     line-height: 1.55;
+  }
+
+  .dtb-product-page-shell .dtb-pdp-description-content--rich
+    .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: .3rem;
+    padding: .8rem 0;
+    font-size: .94rem;
+    line-height: 1.58;
   }
 
   .dtb-product-page-shell .dtb-pdp-policy-panel {
