@@ -26,12 +26,11 @@ Automatic Taping Tools
     compound-holding corner/angle boxes that are filled from a loading system
     and drive a corner finisher or applicator head
 
-Semi-Automatic Taping Tools
   Compound Tubes
     tube-style compound delivery bodies, including powered/gas-assisted tubes
 
   Compound Applicators
-    applicator heads/mud heads and other semi-automatic applicating tools that
+    applicator heads/mud heads and other applicating tools that
     receive compound from a compatible tube/body or apply a defined bead/profile
 ```
 
@@ -58,6 +57,12 @@ The following corrections are manufacturer-evidenced and supersede historical pa
 - `MRX01TT` — TapeTech MudRunner Pro Extension: Handles & Extensions.
 - `PT-CA8` — Platinum 8-inch Corner Applicator: Angle Boxes & Corner Applicators.
 - `TT-CORNER-APPLICATOR` — TapeTech Corner Applicator: Angle Boxes & Corner Applicators.
+- `TT-MUDRUNNER` — TapeTech MudRunner: Angle Boxes & Corner Applicators.
+
+`Automatic Taping Tools` is the industry system umbrella. `Semi-Automatic`
+remains a distinct tool/set classification where applicable, but it does not
+own duplicate Compound Tubes, Compound Applicators, Corner Flushers, Handles,
+or Tool Sets branches.
 
 The remaining products in `Compound Applicators` are not automatically reclassified by name. Applicator heads, flat applicators, inside/outside applicator heads, mud heads, and powered applicating bodies require their exact manufacturer-supported functional classification.
 

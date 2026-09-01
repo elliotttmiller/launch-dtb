@@ -15,34 +15,26 @@ Brand and product family are orthogonal dimensions. Brand names and family names
 ## Canonical hierarchy
 
 ```text
-Drywall Finishing Tools
+Taping & Finishing Tools
   Automatic Taping Tools
     Automatic Tapers
-    Angle Heads
-    Angle Boxes
-    Box Fillers
-    Compound Applicators
+    Flat Boxes
+    Angle Heads & Corner Finishers
+    Angle Boxes & Corner Applicators
     Compound Tubes
+    Compound Applicators
     Corner Flushers
     Corner Rollers
-    Corner Tool Handles
-    Extendable Handles
-    Flat Boxes
-    Goosenecks
-    Flat Box Handles
     Nail Spotters
     Loading Pumps
-    Tool Cases
-    Automatic Taping Tool Sets
-    Taping Tool Accessories
-  Semi-Automatic Tools
-    Compound Applicators
-    Compound Tubes
-    Corner Flushers
-    Semi-Automatic Taping Tool Sets
-    Semi-Automatic Tapers
-    Semi-Automatic Taping Tool Accessories
-  Parts
+    Goosenecks & Box Fillers
+    Continuous Flow Tools
+    Handles & Extensions
+    Tool Sets
+    Semi-Automatic Tools
+  Tool Storage & Cases
+
+Replacement Parts
 
 Stilts & Accessories
   Stilts
@@ -68,16 +60,15 @@ Classification rules:
 
 - classify by tool function, never by brand, product family, material, or marketing series;
 - use `Angle Boxes` for compound-fed corner boxes and reserve `Flat Boxes` for flat-joint finishing boxes;
-- use `Corner Tool Handles` for fixed/interchangeable corner-system handles and their dedicated adapters;
-- use `Extendable Handles` only when the sellable family is consistently an extendable-handle product;
-- use `Box Fillers`, `Goosenecks`, and `Loading Pumps` as distinct loading-system functions;
+- consolidate fixed, extendable, corner-tool, and flat-box handles under `Handles & Extensions`;
+- consolidate `Box Fillers` and `Goosenecks` while keeping `Loading Pumps` distinct;
 - use `Taping Tool Accessories` only when no more specific functional leaf applies;
-- keep true semi-automatic products under the separate Semi-Automatic Tools branch.
+- keep `Semi-Automatic Tools` as a functional leaf inside the industry-standard Automatic Taping Tools system, not a competing duplicate hierarchy.
 
 Every catalog category is a hierarchy of separate terms. System names are
 parents and product classes are leaves; they must not be flattened into a
-single label. For example, use `Semi-Automatic Tools > Compound Tubes`, never
-`Semi-Automatic Compound Tubes`.
+single label. Every owner product resolves to one functional leaf and every
+variation inherits the exact parent tuple.
 
 The Semi-Automatic Tools branch is DTB's curated universal structure.
 CSR collection pages are supporting evidence for the named functional classes,

@@ -380,7 +380,7 @@ final class DTB_CatalogFacetsController {
 			return [ 'key' => 'parts', 'label' => 'Parts', 'slug' => 'parts' ];
 		}
 		if ( function_exists( 'dtb_catalog_product_is_compound_tube' ) && dtb_catalog_product_is_compound_tube( $dto ) ) {
-			return [ 'key' => 'compound_tubes', 'label' => 'Compound Tubes', 'slug' => 'compound-tubes' ];
+			return [ 'key' => 'automatic_compound_tubes', 'label' => 'Compound Tubes', 'slug' => 'compound-tubes' ];
 		}
 		return is_array( $dto['displayCategory'] ?? null ) ? $dto['displayCategory'] : [];
 	}

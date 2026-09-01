@@ -74,7 +74,7 @@ def compatibility_keys(taxon_key: str, taxa: dict[str, dict[str, object]]) -> tu
     if taxon_key == "tool_storage_cases":
         return "accessories", "tool_storage_cases"
     parent = str(taxa[taxon_key].get("parent_key") or "")
-    if parent in {"automatic_taping_tools", "semi_automatic_taping_tools"}:
+    if parent == "automatic_taping_tools":
         return parent, taxon_key
     return taxon_key, taxon_key
 

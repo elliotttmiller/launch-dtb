@@ -29,23 +29,22 @@ def test_legacy_labels_normalize_to_approved_customer_labels():
         assert taxon.path.endswith(leaf)
 
 
-def test_same_labels_have_distinct_parent_scoped_identities():
+def test_legacy_semi_handle_path_collapses_to_automatic_handle_identity():
     automatic = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions")
     semi = taxon_for_path("Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions")
     assert automatic and automatic.display_key == "automatic_handles_extensions"
-    assert semi and semi.display_key == "semi_handles_extensions"
-    assert taxon_for_path("Handles & Extensions") is None
+    assert semi == automatic
 
 
-def test_multiple_approved_paths_are_retained_as_an_ordered_set():
+def test_duplicate_legacy_handle_paths_resolve_once():
     raw = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions, Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions"
-    assert [taxon.display_key for taxon in taxons_for_path(raw)] == ["automatic_handles_extensions", "semi_handles_extensions"]
-    assert taxon_for_path(raw) is None
+    assert [taxon.display_key for taxon in taxons_for_path(raw)] == ["automatic_handles_extensions"]
+    assert taxon_for_path(raw) is not None
 
 
-def test_semi_automatic_toolset_path_wins_over_kind_fallback():
+def test_legacy_semi_automatic_toolset_path_migrates_to_unified_toolsets():
     values = canonical_values(row(kind="toolset", categories="Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets"))
-    assert values and values["Meta: _dtb_display_category_key"] == "semi_tool_sets"
+    assert values and values["Meta: _dtb_display_category_key"] == "automatic_tool_sets"
 
 
 def test_part_and_stilt_domains_are_separate():
@@ -58,7 +57,7 @@ def test_part_and_stilt_domains_are_separate():
 def test_variation_inherits_parent_taxonomy():
     parent = row(sku="PARENT", type_="variable", categories="Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes")
     child = row(sku="CHILD", type_="variation", kind="variation", parent="PARENT")
-    assert canonical_values(child, parent) == {"Categories": parent["Categories"], "Meta: _dtb_category_key": "semi_automatic_taping_tools", "Meta: _dtb_display_category_key": "semi_compound_tubes"}
+    assert canonical_values(child, parent) == {"Categories": "Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": "automatic_compound_tubes"}
 
 
 def test_unknown_leaf_never_guesses():

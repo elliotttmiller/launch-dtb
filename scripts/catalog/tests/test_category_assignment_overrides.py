@@ -23,9 +23,14 @@ def owner(sku: str, categories: str) -> dict[str, str]:
     }
 
 
+def selected_overrides(*skus: str) -> dict[str, dict[str, str]]:
+    overrides = load_overrides(OVERRIDES, load_taxa(TAXONOMY))
+    return {sku: overrides[sku] for sku in skus}
+
+
 def test_manufacturer_reviewed_override_wins_over_historical_category_path():
     taxa = load_taxa(TAXONOMY)
-    overrides = load_overrides(OVERRIDES, taxa)
+    overrides = selected_overrides("TT-CORNER-APPLICATOR")
     rows = [
         owner(
             "TT-CORNER-APPLICATOR",
@@ -39,7 +44,7 @@ def test_manufacturer_reviewed_override_wins_over_historical_category_path():
 
 def test_compound_tube_override_does_not_follow_legacy_applicator_assignment():
     taxa = load_taxa(TAXONOMY)
-    overrides = load_overrides(OVERRIDES, taxa)
+    overrides = selected_overrides("4-772")
     rows = [
         owner(
             "4-772",
@@ -47,12 +52,12 @@ def test_compound_tube_override_does_not_follow_legacy_applicator_assignment():
         )
     ]
     assignments = build(rows, taxa, overrides)
-    assert assignments[0]["taxon_key"] == "semi_compound_tubes"
+    assert assignments[0]["taxon_key"] == "automatic_compound_tubes"
 
 
 def test_unreviewed_product_still_uses_exact_path_migration():
     taxa = load_taxa(TAXONOMY)
-    overrides = load_overrides(OVERRIDES, taxa)
+    overrides = {}
     rows = [
         owner(
             "UNREVIEWED-SKU",

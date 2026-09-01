@@ -213,7 +213,7 @@ final class DTB_CatalogProductRepository {
 						[ $display_category_key, $display_category_slug, $hyphen_form, $space_form, $title_form ]
 					) ) ) );
 
-					$is_compound_selection = 'compound_tubes' === $canonical;
+					$is_compound_selection = 'automatic_compound_tubes' === $canonical;
 					$is_legacy_tube_category = in_array(
 						$canonical,
 						[ 'automatic_tapers', 'semi_automatic_tapers', 'corner_tools', 'predator_family' ],
@@ -407,7 +407,7 @@ final class DTB_CatalogProductRepository {
 			[ $display_category_key, $display_category_slug, $hyphen_form, $space_form, $title_form ]
 		) ) ) );
 
-		$is_compound_selection    = 'compound_tubes' === $canonical;
+		$is_compound_selection    = 'automatic_compound_tubes' === $canonical;
 		$is_legacy_tube_category  = in_array(
 			$canonical,
 			[ 'automatic_tapers', 'semi_automatic_tapers', 'corner_tools', 'predator_family' ],
@@ -496,7 +496,7 @@ final class DTB_CatalogProductRepository {
 		}
 
 		$ids       = [];
-		$raw_forms = DTB_CategoryNormalizer::display_category_raw_forms( 'compound_tubes' );
+		$raw_forms = DTB_CategoryNormalizer::display_category_raw_forms( 'automatic_compound_tubes' );
 		$base_args = [
 			'post_type'              => 'product',
 			'post_status'            => 'publish',

@@ -64,12 +64,12 @@ function dtb_catalog_product_finalize( array $dto ): array {
 
 	if ( dtb_catalog_product_is_compound_tube( $dto ) ) {
 		$dto['category'] = [
-			'key'   => 'corner',
-			'label' => 'Corner Tools',
-			'slug'  => 'corner',
+			'key'   => 'automatic_taping_tools',
+			'label' => 'Automatic Taping Tools',
+			'slug'  => 'automatic-taping-tools',
 		];
 		$dto['displayCategory'] = [
-			'key'   => 'compound_tubes',
+			'key'   => 'automatic_compound_tubes',
 			'label' => 'Compound Tubes',
 			'slug'  => 'compound-tubes',
 		];

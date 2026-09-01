@@ -57,7 +57,6 @@ class TaxonomyExpectation:
 DRYWALL_ROOT = "Taping & Finishing Tools"
 STILT_ROOT = "Stilts & Accessories"
 AUTOMATIC = "Automatic Taping Tools"
-SEMI_AUTOMATIC = "Semi-Automatic Taping Tools"
 
 
 def _t(root: str, group: str, leaf: str, category: str, display: str) -> NavigationTaxon:
@@ -69,19 +68,17 @@ NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
     _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "automatic_taping_tools", "flat_boxes"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads & Corner Finishers", "automatic_taping_tools", "automatic_angle_heads_corner_finishers"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Angle Boxes & Corner Applicators", "automatic_taping_tools", "automatic_angle_boxes_corner_applicators"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Tubes", "automatic_taping_tools", "automatic_compound_tubes"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Applicators", "automatic_taping_tools", "automatic_compound_applicators"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "automatic_taping_tools", "automatic_corner_rollers"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Flushers", "automatic_taping_tools", "automatic_corner_flushers"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "automatic_taping_tools", "automatic_nail_spotters"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "automatic_taping_tools", "automatic_loading_pumps"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks & Box Fillers", "automatic_taping_tools", "automatic_goosenecks_box_fillers"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Continuous Flow Tools", "automatic_taping_tools", "automatic_continuous_flow_tools"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Handles & Extensions", "automatic_taping_tools", "automatic_handles_extensions"),
     _t(DRYWALL_ROOT, AUTOMATIC, "Tool Sets", "automatic_taping_tools", "automatic_tool_sets"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Semi-Automatic Tapers", "semi_automatic_taping_tools", "semi_automatic_tapers"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Tubes", "semi_automatic_taping_tools", "semi_compound_tubes"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Compound Applicators", "semi_automatic_taping_tools", "semi_compound_applicators"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Corner Flushers", "semi_automatic_taping_tools", "semi_corner_flushers"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Handles & Extensions", "semi_automatic_taping_tools", "semi_handles_extensions"),
-    _t(DRYWALL_ROOT, SEMI_AUTOMATIC, "Tool Sets", "semi_automatic_taping_tools", "semi_tool_sets"),
+    _t(DRYWALL_ROOT, AUTOMATIC, "Semi-Automatic Tools", "automatic_taping_tools", "semi_automatic_tools"),
     _t(DRYWALL_ROOT, "Tool Storage & Cases", "", "accessories", "tool_storage_cases"),
     _t("Replacement Parts", "", "", "parts", "parts"),
     _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
@@ -120,14 +117,14 @@ PATH_ALIASES: dict[str, str] = {
     normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"),
     normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
     normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Semi-Automatic Tapers"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Compound Tubes"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Compound Applicators"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Corner Flushers"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {SEMI_AUTOMATIC} > Tool Sets"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Semi-Automatic Tools"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Compound Tubes"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Compound Applicators"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Flushers"),
+    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"),
     normalize_key("Drywall Finishing Tools > Parts"): normalize_key("Replacement Parts"),
 }
-GROUP_ALIASES = {"semi_automatic_taping_tools": normalize_key(SEMI_AUTOMATIC)}
+GROUP_ALIASES = {}
 LEAF_ALIASES = {
     "finishing_boxes": "flat_boxes",
     "flat_finishing_boxes": "flat_boxes",
