@@ -29,11 +29,28 @@ function toFinitePrice(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function getPriceObject(product) {
+  return product?.price && typeof product.price === 'object' ? product.price : null;
+}
+
 function getExplicitSalePrice(product) {
-  const priceObject = product?.price && typeof product.price === 'object' ? product.price : null;
+  const priceObject = getPriceObject(product);
   return [product?.sale_price, product?.salePrice, priceObject?.sale]
     .map(toFinitePrice)
-    .find((value) => value != null && value > 0) ?? null;
+    .find((value) => value != null) ?? null;
+}
+
+function getExplicitRegularPrice(product) {
+  const priceObject = getPriceObject(product);
+  return [
+    product?.regular_price,
+    product?.regularPrice,
+    product?.compare_at_price,
+    product?.compareAtPrice,
+    priceObject?.regular,
+  ]
+    .map(toFinitePrice)
+    .find((value) => value != null) ?? null;
 }
 
 export default function ProductDetailHeader({
@@ -55,25 +72,11 @@ export default function ProductDetailHeader({
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
   const summary = toPlainSummary(product?.short_description || product?.shortDescription || '');
-  const compareAtValue = toFinitePrice(compareAt);
   const rawPriceValue = toFinitePrice(rawPrice);
   const explicitSalePrice = getExplicitSalePrice(product);
-  const isVariableParent = Boolean(product?.is_variable || product?.type === 'variable');
-
-  // WooCommerce remains price authority. For simple products, prefer an explicit
-  // valid sale price over a stale/regular `price` projection. Selected variations
-  // remain driven by ProductDetail's resolved variation price (`rawPrice`).
-  const primaryPriceValue = !isVariableParent
-    && explicitSalePrice != null
-    && compareAtValue != null
-    && explicitSalePrice < compareAtValue
-    ? explicitSalePrice
-    : rawPriceValue;
-
-  const showCompareAt = compareAtValue != null
-    && compareAtValue > 0
-    && primaryPriceValue != null
-    && compareAtValue > primaryPriceValue;
+  const explicitRegularPrice = getExplicitRegularPrice(product);
+  const resolvedRegularPrice = explicitRegularPrice ?? toFinitePrice(compareAt);
+  const primaryPriceValue = explicitSalePrice ?? rawPriceValue;
   const primaryPrice = primaryPriceValue != null ? money(primaryPriceValue) : displayPrice;
 
   return (
@@ -119,9 +122,9 @@ export default function ProductDetailHeader({
           <span className="dtb-pdp-header__price">
             {pricePrefix}{primaryPrice}
           </span>
-          {showCompareAt ? (
+          {resolvedRegularPrice != null ? (
             <span className="dtb-pdp-header__compare-at">
-              ${money(compareAtValue)}
+              ${money(resolvedRegularPrice)}
             </span>
           ) : null}
         </div>
