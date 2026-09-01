@@ -1,11 +1,10 @@
 -- =============================================================================
 -- DTB WooCommerce — PRODUCTION CATALOG + MEDIA FULL RESET v2
--- Database:  dbavvmb8ooygix
+-- Database:  dbb5qa8fmosn28
 -- Prefix:    vaa_
--- WordPress: 7.0.2
--- WooCommerce: 10.9.4
+-- WordPress/WooCommerce versions: verify in the target runtime before execution
 -- HPOS:      enabled
--- Generated: 2026-07-26
+-- Revised:   2026-08-31
 --
 -- DESTRUCTIVE SCOPE
 --   Deletes all WooCommerce products and variations.
@@ -17,7 +16,7 @@
 --
 -- IMPORTANT
 --   1. Export a complete database backup before running.
---   2. This script is hard-coded for database dbavvmb8ooygix and prefix vaa_.
+--   2. This script is hard-coded for database dbb5qa8fmosn28 and prefix vaa_.
 --   3. Execute STEP 0 first and stop unless every required table is PRESENT.
 --   4. Run steps in order. Helper tables intentionally persist between executions.
 --   5. SQL does not delete files from wp-content/uploads.
@@ -29,16 +28,18 @@
 
 -- =============================================================================
 -- STEP 0 — DATABASE / PREFIX / REQUIRED-TABLE PREFLIGHT
--- Expected database: dbavvmb8ooygix
+-- Expected database: dbb5qa8fmosn28
 -- Expected prefix:   vaa_
 -- STOP if the database differs or any required table reports MISSING.
 -- =============================================================================
+
+USE `dbb5qa8fmosn28`;
 
 SELECT DATABASE() AS current_database;
 
 SELECT
     CASE
-        WHEN DATABASE() = 'dbavvmb8ooygix' THEN 'PASS'
+        WHEN DATABASE() = 'dbb5qa8fmosn28' THEN 'PASS'
         ELSE 'STOP - WRONG DATABASE'
     END AS database_guard;
 
