@@ -29,9 +29,26 @@ function toFinitePrice(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function getPriceObject(product) {
+  return product?.price && typeof product.price === 'object' ? product.price : null;
+}
+
 function getExplicitSalePrice(product) {
-  const priceObject = product?.price && typeof product.price === 'object' ? product.price : null;
+  const priceObject = getPriceObject(product);
   return [product?.sale_price, product?.salePrice, priceObject?.sale]
+    .map(toFinitePrice)
+    .find((value) => value != null && value > 0) ?? null;
+}
+
+function getExplicitRegularPrice(product) {
+  const priceObject = getPriceObject(product);
+  return [
+    product?.regular_price,
+    product?.regularPrice,
+    product?.compare_at_price,
+    product?.compareAtPrice,
+    priceObject?.regular,
+  ]
     .map(toFinitePrice)
     .find((value) => value != null && value > 0) ?? null;
 }
@@ -55,25 +72,25 @@ export default function ProductDetailHeader({
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
   const summary = toPlainSummary(product?.short_description || product?.shortDescription || '');
-  const compareAtValue = toFinitePrice(compareAt);
   const rawPriceValue = toFinitePrice(rawPrice);
   const explicitSalePrice = getExplicitSalePrice(product);
+  const explicitRegularPrice = getExplicitRegularPrice(product);
+  const resolvedRegularPrice = toFinitePrice(compareAt) ?? explicitRegularPrice;
   const isVariableParent = Boolean(product?.is_variable || product?.type === 'variable');
 
-  // WooCommerce remains price authority. For simple products, prefer an explicit
-  // valid sale price over a stale/regular `price` projection. Selected variations
-  // remain driven by ProductDetail's resolved variation price (`rawPrice`).
-  const primaryPriceValue = !isVariableParent
+  // WooCommerce remains the pricing authority. The detail header receives the
+  // resolved variation price from ProductDetail, while simple products can also
+  // carry explicit sale/regular values on the product DTO. Resolve those shapes
+  // here so quick view and full PDP use the same sale-price semantics as cards.
+  const hasExplicitSimpleSale = !isVariableParent
     && explicitSalePrice != null
-    && compareAtValue != null
-    && explicitSalePrice < compareAtValue
-    ? explicitSalePrice
-    : rawPriceValue;
-
-  const showCompareAt = compareAtValue != null
-    && compareAtValue > 0
+    && resolvedRegularPrice != null
+    && explicitSalePrice < resolvedRegularPrice;
+  const primaryPriceValue = hasExplicitSimpleSale ? explicitSalePrice : rawPriceValue;
+  const showCompareAt = resolvedRegularPrice != null
+    && resolvedRegularPrice > 0
     && primaryPriceValue != null
-    && compareAtValue > primaryPriceValue;
+    && resolvedRegularPrice > primaryPriceValue;
   const primaryPrice = primaryPriceValue != null ? money(primaryPriceValue) : displayPrice;
 
   return (
@@ -121,7 +138,7 @@ export default function ProductDetailHeader({
           </span>
           {showCompareAt ? (
             <span className="dtb-pdp-header__compare-at">
-              ${money(compareAtValue)}
+              ${money(resolvedRegularPrice)}
             </span>
           ) : null}
         </div>
