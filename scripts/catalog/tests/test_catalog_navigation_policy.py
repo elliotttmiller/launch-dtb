@@ -16,65 +16,76 @@ def row(*, sku="SKU", type_="simple", kind="tool", categories="", category="", d
 
 
 def test_cross_brand_flat_boxes_share_universal_navigation_identity():
-    expected = {"Categories": "Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": "flat_boxes"}
+    expected = {"Categories": "Taping & Finishing Tools > Flat Boxes", "Meta: _dtb_category_key": "finishing", "Meta: _dtb_display_category_key": "flat_boxes"}
     assert canonical_values(row(categories=expected["Categories"])) == expected
     assert canonical_values(row(categories="Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes")) == expected
 
 
-def test_legacy_labels_normalize_to_approved_customer_labels():
-    cases = {"Drywall Finishing Tools > Automatic Taping Tools > Finishing Boxes": "Flat Boxes", "Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes": "Angle Boxes & Corner Applicators", "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles": "Handles & Extensions", "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases": "Tool Storage & Cases"}
+def test_legacy_labels_normalize_to_current_customer_labels():
+    cases = {
+        "Drywall Finishing Tools > Automatic Taping Tools > Finishing Boxes": "Flat Boxes",
+        "Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes": "Corner Applicators & Angle Boxes",
+        "Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles": "Handles & Extensions",
+        "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases": "Tool Storage & Cases",
+    }
     for legacy, leaf in cases.items():
         taxon = taxon_for_path(legacy)
         assert taxon is not None
         assert taxon.path.endswith(leaf)
 
 
-def test_angle_heads_and_corner_finishers_are_distinct_taxa():
+def test_angle_heads_and_corner_finishers_normalize_to_one_taxon():
     angle_head = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Angle Heads")
     corner_finisher = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Corner Finishers")
-    assert angle_head and angle_head.display_key == "automatic_angle_heads"
-    assert corner_finisher and corner_finisher.display_key == "automatic_corner_finishers"
-    assert angle_head != corner_finisher
+    assert angle_head and angle_head.display_key == "corner_finishers"
+    assert corner_finisher and corner_finisher.display_key == "corner_finishers"
+    assert angle_head == corner_finisher
+    assert angle_head.path == "Taping & Finishing Tools > Corner Finishers"
 
 
-def test_legacy_semi_handle_path_collapses_to_automatic_handle_identity():
+def test_legacy_handle_paths_collapse_to_handles_identity():
     automatic = taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions")
-    semi = taxon_for_path("Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions")
-    assert automatic and automatic.display_key == "automatic_handles_extensions"
-    assert semi == automatic
+    assert automatic and automatic.display_key == "handles"
+    assert automatic.path == "Taping & Finishing Tools > Handles & Extensions"
 
 
 def test_duplicate_legacy_handle_paths_resolve_once():
-    raw = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions, Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions"
-    assert [taxon.display_key for taxon in taxons_for_path(raw)] == ["automatic_handles_extensions"]
+    raw = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions, Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles"
+    assert [taxon.display_key for taxon in taxons_for_path(raw)] == ["handles"]
     assert taxon_for_path(raw) is not None
 
 
 def test_legacy_semi_automatic_toolset_path_migrates_to_unified_toolsets():
     values = canonical_values(row(kind="toolset", categories="Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets"))
-    assert values and values["Meta: _dtb_display_category_key"] == "automatic_tool_sets"
+    assert values and values["Categories"] == "Taping & Finishing Tools > Tool Sets & Kits"
+    assert values["Meta: _dtb_category_key"] == "taping"
+    assert values["Meta: _dtb_display_category_key"] == "toolsets"
 
 
 def test_part_and_stilt_domains_are_separate():
-    part = canonical_values(row(kind="part", categories="Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes"))
+    part = canonical_values(row(kind="part", categories="Taping & Finishing Tools > Flat Boxes"))
     stilt = canonical_values(row(kind="stilt", categories="Stilts & Accessories > Stilts"))
     assert part and part["Categories"] == "Replacement Parts"
     assert stilt and stilt["Categories"] == "Stilts & Accessories > Stilts"
 
 
 def test_variation_inherits_parent_taxonomy():
-    parent = row(sku="PARENT", type_="variable", categories="Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes")
+    parent = row(sku="PARENT", type_="variable", categories="Taping & Finishing Tools > Compound Tubes")
     child = row(sku="CHILD", type_="variation", kind="variation", parent="PARENT")
-    assert canonical_values(child, parent) == {"Categories": "Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": "automatic_compound_tubes"}
+    assert canonical_values(child, parent) == {"Categories": "Taping & Finishing Tools > Compound Tubes", "Meta: _dtb_category_key": "corner", "Meta: _dtb_display_category_key": "compound_tubes"}
+
+
+def test_ambiguous_legacy_compound_applicator_path_is_not_guessed():
+    assert taxon_for_path("Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators") is None
 
 
 def test_unknown_leaf_never_guesses():
-    assert navigation_for_row(row(categories="Taping & Finishing Tools > Automatic Taping Tools > Future Mystery Tool")) is None
+    assert navigation_for_row(row(categories="Taping & Finishing Tools > Future Mystery Tool")) is None
 
 
 def test_taxonomy_validator_rejects_variation_drift():
-    parent = row(sku="PARENT", type_="variable", categories="Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes", category="automatic_taping_tools", display="flat_boxes")
-    child = row(sku="CHILD", type_="variation", kind="variation", categories="", category="automatic_taping_tools", display="flat_boxes", parent="PARENT")
+    parent = row(sku="PARENT", type_="variable", categories="Taping & Finishing Tools > Flat Boxes", category="finishing", display="flat_boxes")
+    child = row(sku="CHILD", type_="variation", kind="variation", categories="", category="finishing", display="flat_boxes", parent="PARENT")
     child["Parent"] = "PARENT"
     try:
         validate_taxonomy_rows([parent, child])
