@@ -1,5 +1,8 @@
 const CATEGORY_THUMBNAIL_ROOT = '/wp-content/uploads/2026/categories/thumbnails';
 
+// Existing media filenames are retained as assets. Canonical taxonomy slugs
+// resolve to the closest current image without making media filenames a
+// classification authority.
 const CATEGORY_THUMBNAIL_SLUGS = new Set([
   'angle-heads',
   'automatic-tapers',
@@ -33,20 +36,34 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
 ]);
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
+  'corner-finishers': 'angle-heads',
+  'corner-applicators-angle-boxes': 'corner-boxes',
+  'compound-tubes': 'compound-tubes',
+  'powered-compound-applicators': 'compound-applicators',
+  'applicator-heads': 'compound-applicators',
+  'corner-flushers': 'corner-flushers',
+  'corner-rollers': 'corner-rollers',
+  'loading-compound-pumps': 'loading-pumps',
+  'goosenecks-box-fillers-adapters': 'box-fillers',
+  'handles-extensions': 'extendable-handles',
+  'tool-sets-kits': 'automatic-taping-tool-sets',
+  'tool-storage-cases': 'automatic-taping-tool-cases',
+  'semi-automatic-tapers-banjos': 'semi-automatic-tapers',
+
+  // Historical URL/term compatibility.
   'angle-boxes': 'corner-boxes',
   'angle-boxes-corner-applicators': 'corner-boxes',
   'angle-heads-corner-finishers': 'angle-heads',
-  'corner-finishers': 'angle-heads',
   'automatic-tool-sets': 'automatic-taping-tool-sets',
   'corner-tool-handles': 'fixed-handles',
   'goosenecks-box-fillers': 'box-fillers',
-  'handles-extensions': 'extendable-handles',
   'semi-automatic-taping-tool-accessories': 'semi-automatic-accessories',
   'semi-automatic-tool-sets': 'semi-automatic-taping-tool-sets',
-  'semi-automatic-tools': 'semi-automatic-taping-tools',
+  'semi-automatic-tools': 'semi-automatic-tapers',
+  'semi-automatic-taping-tools': 'semi-automatic-tapers',
   'taping-tool-accessories': 'semi-automatic-accessories',
   'tool-cases': 'automatic-taping-tool-cases',
-  'tool-sets': 'semi-automatic-taping-tool-sets',
+  'tool-sets': 'automatic-taping-tool-sets',
   'tool-sets-automatic-taping-tools': 'automatic-taping-tool-sets',
 };
 
