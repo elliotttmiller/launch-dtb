@@ -15,10 +15,38 @@ DEFAULT_OVERRIDES = ROOT / "products/catalog/source/product_category_overrides.c
 DEFAULT_OUTPUT = ROOT / "products/catalog/source/product_categories.csv"
 DEFAULT_COVERAGE = ROOT / "docs/_working/catalog-rebuild-brand-category-coverage.csv"
 
-CURRENT_PATH_TO_TAXON = {
+FIELDS = ("sku", "taxon_key", "position", "evidence", "review_status")
+OVERRIDE_FIELDS = ("sku", "taxon_key", "evidence", "review_status")
+POWERED_APPLICATOR_SKUS = {"4-772", "TT-MUDRUNNER"}
+
+# Exact current and historical paths are migration inputs only. The canonical
+# hierarchy itself is defined in products/catalog/source/taxonomy.json.
+PATH_TO_TAXON = {
+    "Taping & Finishing Tools > Automatic Tapers": "automatic_tapers",
+    "Taping & Finishing Tools > Semi-Automatic Tapers & Banjos": "semi_automatic_tapers_banjos",
+    "Taping & Finishing Tools > Flat Boxes": "flat_boxes",
+    "Taping & Finishing Tools > Corner Finishers": "automatic_corner_finishers",
+    "Taping & Finishing Tools > Corner Applicators & Angle Boxes": "automatic_angle_boxes_corner_applicators",
+    "Taping & Finishing Tools > Compound Tubes": "automatic_compound_tubes",
+    "Taping & Finishing Tools > Powered Compound Applicators": "powered_compound_applicators",
+    "Taping & Finishing Tools > Applicator Heads": "applicator_heads",
+    "Taping & Finishing Tools > Corner Flushers": "automatic_corner_flushers",
+    "Taping & Finishing Tools > Corner Rollers": "automatic_corner_rollers",
+    "Taping & Finishing Tools > Nail Spotters": "automatic_nail_spotters",
+    "Taping & Finishing Tools > Loading & Compound Pumps": "automatic_loading_pumps",
+    "Taping & Finishing Tools > Goosenecks, Box Fillers & Adapters": "automatic_goosenecks_box_fillers",
+    "Taping & Finishing Tools > Handles & Extensions": "automatic_handles_extensions",
+    "Taping & Finishing Tools > Continuous Flow Tools": "automatic_continuous_flow_tools",
+    "Taping & Finishing Tools > Tool Sets & Kits": "automatic_tool_sets",
+    "Taping & Finishing Tools > Tool Storage & Cases": "tool_storage_cases",
+    "Replacement Parts": "replacement_parts",
+    "Stilts & Accessories > Stilts": "stilts",
+}
+
+LEGACY_PATH_TO_TAXON = {
     "Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers": "automatic_tapers",
     "Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes": "flat_boxes",
-    "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_angle_heads",
+    "Drywall Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_corner_finishers",
     "Drywall Finishing Tools > Automatic Taping Tools > Corner Finishers": "automatic_corner_finishers",
     "Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes": "automatic_angle_boxes_corner_applicators",
     "Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers": "automatic_corner_rollers",
@@ -30,23 +58,20 @@ CURRENT_PATH_TO_TAXON = {
     "Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles": "automatic_handles_extensions",
     "Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles": "automatic_handles_extensions",
     "Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets": "automatic_tool_sets",
-    "Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers": "semi_automatic_tools",
+    "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases": "tool_storage_cases",
+    "Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers": "semi_automatic_tapers_banjos",
     "Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes": "automatic_compound_tubes",
-    "Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators": "automatic_compound_applicators",
     "Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers": "automatic_corner_flushers",
     "Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets": "automatic_tool_sets",
-    "Drywall Finishing Tools > Automatic Taping Tools > Tool Cases": "tool_storage_cases",
     "Drywall Finishing Tools > Parts": "replacement_parts",
-    "Stilts & Accessories > Stilts": "stilts",
 }
-CURRENT_PATH_TO_TAXON.update({
+LEGACY_PATH_TO_TAXON.update({
     "Taping & Finishing Tools > Automatic Taping Tools > Automatic Tapers": "automatic_tapers",
     "Taping & Finishing Tools > Automatic Taping Tools > Flat Boxes": "flat_boxes",
-    "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_angle_heads",
+    "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads": "automatic_corner_finishers",
     "Taping & Finishing Tools > Automatic Taping Tools > Corner Finishers": "automatic_corner_finishers",
     "Taping & Finishing Tools > Automatic Taping Tools > Angle Boxes & Corner Applicators": "automatic_angle_boxes_corner_applicators",
     "Taping & Finishing Tools > Automatic Taping Tools > Compound Tubes": "automatic_compound_tubes",
-    "Taping & Finishing Tools > Automatic Taping Tools > Compound Applicators": "automatic_compound_applicators",
     "Taping & Finishing Tools > Automatic Taping Tools > Corner Flushers": "automatic_corner_flushers",
     "Taping & Finishing Tools > Automatic Taping Tools > Corner Rollers": "automatic_corner_rollers",
     "Taping & Finishing Tools > Automatic Taping Tools > Nail Spotters": "automatic_nail_spotters",
@@ -54,19 +79,8 @@ CURRENT_PATH_TO_TAXON.update({
     "Taping & Finishing Tools > Automatic Taping Tools > Goosenecks & Box Fillers": "automatic_goosenecks_box_fillers",
     "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions": "automatic_handles_extensions",
     "Taping & Finishing Tools > Automatic Taping Tools > Tool Sets": "automatic_tool_sets",
-    "Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools": "semi_automatic_tools",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Semi-Automatic Tapers": "semi_automatic_tools",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Tubes": "automatic_compound_tubes",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Compound Applicators": "automatic_compound_applicators",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Corner Flushers": "automatic_corner_flushers",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Handles & Extensions": "automatic_handles_extensions",
-    "Taping & Finishing Tools > Semi-Automatic Taping Tools > Tool Sets": "automatic_tool_sets",
-    "Taping & Finishing Tools > Tool Storage & Cases": "tool_storage_cases",
-    "Replacement Parts": "replacement_parts",
+    "Taping & Finishing Tools > Automatic Taping Tools > Semi-Automatic Tools": "semi_automatic_tapers_banjos",
 })
-
-FIELDS = ("sku", "taxon_key", "position", "evidence", "review_status")
-OVERRIDE_FIELDS = ("sku", "taxon_key", "evidence", "review_status")
 
 
 def load_catalog(path: Path) -> list[dict[str, str]]:
@@ -102,29 +116,23 @@ def load_overrides(path: Path, taxa: dict[str, dict[str, object]]) -> dict[str, 
             taxon_key = row["taxon_key"].strip()
             evidence = row["evidence"].strip()
             review_status = row["review_status"].strip()
-            if not sku:
-                raise ValueError("category override has no SKU")
-            if sku in overrides:
-                raise ValueError(f"duplicate category override for {sku}")
+            if not sku or sku in overrides:
+                raise ValueError(f"invalid or duplicate category override for {sku!r}")
             if taxon_key not in taxa:
                 raise ValueError(f"{sku}: override references unknown taxon {taxon_key}")
-            if review_status != "approved":
-                raise ValueError(f"{sku}: category override is not approved")
-            if not evidence:
-                raise ValueError(f"{sku}: category override requires evidence")
-            overrides[sku] = {
-                "taxon_key": taxon_key,
-                "evidence": evidence,
-                "review_status": review_status,
-            }
+            if review_status != "approved" or not evidence:
+                raise ValueError(f"{sku}: category override requires approved evidence")
+            overrides[sku] = dict(row)
         return overrides
 
 
-def build(
-    rows: list[dict[str, str]],
-    taxa: dict[str, dict[str, object]],
-    overrides: dict[str, dict[str, str]],
-) -> list[dict[str, str]]:
+def infer_taxon(sku: str, current: str) -> str | None:
+    if current.endswith(" > Compound Applicators"):
+        return "powered_compound_applicators" if sku in POWERED_APPLICATOR_SKUS else "applicator_heads"
+    return PATH_TO_TAXON.get(current) or LEGACY_PATH_TO_TAXON.get(current)
+
+
+def build(rows: list[dict[str, str]], taxa: dict[str, dict[str, object]], overrides: dict[str, dict[str, str]]) -> list[dict[str, str]]:
     assignments: list[dict[str, str]] = []
     owners = [row for row in rows if row.get("Type") != "variation"]
     owner_skus = {row.get("SKU", "").strip() for row in owners}
@@ -137,19 +145,17 @@ def build(
         current = row.get("Categories", "").strip()
         if not sku:
             raise ValueError("owner row has no SKU")
-
         override = overrides.get(sku)
         if override:
-            taxon_key = override["taxon_key"]
-            evidence = override["evidence"]
+            taxon_key = override["taxon_key"].strip()
+            evidence = override["evidence"].strip()
         else:
-            taxon_key = CURRENT_PATH_TO_TAXON.get(current)
+            taxon_key = infer_taxon(sku, current)
             if not taxon_key:
                 raise ValueError(f"no exact mapping for {sku}: {current}")
             evidence = f"approved migration from exact path: {current}"
-
         if taxon_key not in taxa:
-            raise ValueError(f"mapping references missing taxon {taxon_key}")
+            raise ValueError(f"{sku}: mapping references missing taxon {taxon_key}")
         assignments.append({
             "sku": sku,
             "taxon_key": taxon_key,
@@ -157,8 +163,9 @@ def build(
             "evidence": evidence,
             "review_status": "approved",
         })
+
     if len({row["sku"] for row in assignments}) != len(owners):
-        raise ValueError("every owner must have exactly one bootstrapped assignment")
+        raise ValueError("every owner must have exactly one assignment")
     return assignments
 
 
@@ -202,6 +209,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--coverage", type=Path, default=DEFAULT_COVERAGE)
     args = parser.parse_args()
+
     rows = load_catalog(args.catalog.resolve())
     taxa = load_taxa(args.taxonomy.resolve())
     overrides = load_overrides(args.overrides.resolve(), taxa)
