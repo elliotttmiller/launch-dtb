@@ -39,6 +39,8 @@ require_once $_dtb_cp . '/Services/CategoryNormalizer.php';
 require_once $_dtb_cp . '/Services/ToolFamilyResolver.php';
 require_once $_dtb_cp . '/Services/CatalogProductNormalizer.php';
 require_once $_dtb_cp . '/Infrastructure/CatalogCache.php';
+require_once $_dtb_cp . '/Services/CatalogNavigationService.php';
+require_once $_dtb_cp . '/Infrastructure/CatalogTaxonomyMigration.php';
 require_once $_dtb_cp . '/Infrastructure/CatalogProductRepository.php';
 require_once $_dtb_cp . '/Infrastructure/CatalogHealthRepository.php';
 require_once $_dtb_cp . '/Infrastructure/WooProductRepository.php';

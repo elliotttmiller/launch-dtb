@@ -9,14 +9,17 @@ import {
 const FRESH_CACHE_TTL = 5 * 60 * 1000;
 const STALE_CACHE_TTL = 24 * 60 * 60 * 1000;
 const CACHE_VERSION = 'v13';
+export const CATALOG_FACETS_CONTRACT_VERSION = '2.0';
+const FACETS_CACHE_VERSION = 'v14-contract-2';
+const CATEGORY_CACHE_VERSION = 'v14-contract-2';
 const PRODUCT_STORAGE_PREFIX = `dtb:catalog-products:${CACHE_VERSION}:`;
-const FACETS_STORAGE_PREFIX = `dtb:catalog-facets:${CACHE_VERSION}:`;
+const FACETS_STORAGE_PREFIX = `dtb:catalog-facets:${FACETS_CACHE_VERSION}:`;
 const CATALOG_SNAPSHOTS_ENABLED = /^(1|true|yes|on)$/i.test(
   String(process.env.REACT_APP_CATALOG_SNAPSHOTS_ENABLED || '').trim(),
 );
 const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '').replace(/\/+$/, '');
 
-const CATEGORY_STORAGE_PREFIX = `dtb:catalog-category:${CACHE_VERSION}:`;
+const CATEGORY_STORAGE_PREFIX = `dtb:catalog-category:${CATEGORY_CACHE_VERSION}:`;
 
 const productCache = new Map();
 const productInflight = new Map();
@@ -173,20 +176,28 @@ export function getCachedCatalogFacets(scope = {}, options = {}) {
     FACETS_STORAGE_PREFIX,
     options,
   );
+  if (entry?.data?.contractVersion !== CATALOG_FACETS_CONTRACT_VERSION) {
+    const key = sortedKey(normalizeCatalogScope(scope));
+    facetsCache.delete(key);
+    removePersistent(FACETS_STORAGE_PREFIX, key);
+    return null;
+  }
   return options.returnEntry ? entry : entry?.data || null;
 }
 
 export function fetchCatalogFacets(scope = {}) {
   const normalized = normalizeCatalogScope(scope);
   const key = sortedKey(normalized);
-  const cached = getCacheEntry(facetsCache, key, FACETS_STORAGE_PREFIX);
+  const cached = getCachedCatalogFacets(normalized, { returnEntry: true });
   if (cached?.data) return Promise.resolve(cached.data);
 
   if (!facetsInflight.has(key)) {
     facetsInflight.set(
       key,
       apiClient(buildCatalogFacetsUrl(normalized))
-        .then((data) => setCacheEntry(facetsCache, key, FACETS_STORAGE_PREFIX, data))
+        .then((data) => data?.contractVersion === CATALOG_FACETS_CONTRACT_VERSION
+          ? setCacheEntry(facetsCache, key, FACETS_STORAGE_PREFIX, data)
+          : data)
         .finally(() => {
           facetsInflight.delete(key);
         }),
@@ -386,7 +397,7 @@ export function invalidateCatalogPlatformCache() {
 
   try {
     Object.keys(window.localStorage)
-      .filter((key) => key.startsWith(PRODUCT_STORAGE_PREFIX) || key.startsWith(FACETS_STORAGE_PREFIX) || key.startsWith(CATEGORY_STORAGE_PREFIX))
+      .filter((key) => key.startsWith(PRODUCT_STORAGE_PREFIX) || key.startsWith('dtb:catalog-facets:') || key.startsWith('dtb:catalog-category:'))
       .forEach((key) => window.localStorage.removeItem(key));
   } catch {
     // Non-critical cleanup.

@@ -11,6 +11,8 @@ add_action( 'init', static function (): void {
 	DTB_ToolsetData::maybe_seed();
 }, 5 );
 
+add_action( 'init', [ DTB_CatalogTaxonomyMigration::class, 'maybe_run' ], 30 );
+
 add_action( 'dtb_product_cache_invalidated', static function (): void {
 	dtb_catalog_cache_invalidate_facets();
 } );
@@ -69,3 +71,7 @@ add_action( 'woocommerce_product_import_inserted_product_object', 'dtb_catalog_m
 add_action( 'shutdown', 'dtb_catalog_flush_import_caches', 20 );
 add_action( 'woocommerce_trash_product', 'dtb_catalog_invalidate_all_caches', 20 );
 add_action( 'woocommerce_untrash_product', 'dtb_catalog_invalidate_all_caches', 20 );
+
+foreach ( [ 'created_product_cat', 'edited_product_cat', 'delete_product_cat' ] as $taxonomy_hook ) {
+	add_action( $taxonomy_hook, 'dtb_catalog_cache_invalidate_all', 20 );
+}

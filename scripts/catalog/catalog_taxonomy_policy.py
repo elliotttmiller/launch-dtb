@@ -33,12 +33,38 @@ def split_category_paths(raw: object) -> list[list[str]]:
     text = str(raw or "").strip()
     if not text:
         return []
+    candidates: list[str] = []
+    current: list[str] = []
+    escaped = False
+    for character in text:
+        if escaped:
+            current.append(character)
+            escaped = False
+        elif character == "\\":
+            escaped = True
+        elif character == ",":
+            candidates.append("".join(current))
+            current = []
+        else:
+            current.append(character)
+    if escaped:
+        current.append("\\")
+    candidates.append("".join(current))
+
     paths: list[list[str]] = []
-    for candidate in text.split(","):
+    for candidate in candidates:
         parts = [part.strip() for part in candidate.split(">") if part.strip()]
         if parts:
             paths.append(parts)
     return paths
+
+
+def escape_woocommerce_category_term(value: object) -> str:
+    return str(value or "").replace("\\", "\\\\").replace(",", "\\,")
+
+
+def woocommerce_category_path(parts: list[str] | tuple[str, ...]) -> str:
+    return " > ".join(escape_woocommerce_category_term(part) for part in parts if part)
 
 
 @dataclass(frozen=True)
@@ -53,6 +79,10 @@ class NavigationTaxon:
     @property
     def path(self) -> str:
         return " > ".join(part for part in (self.root, self.group, self.leaf) if part)
+
+    @property
+    def csv_path(self) -> str:
+        return woocommerce_category_path(tuple(part for part in (self.root, self.group, self.leaf) if part))
 
 
 @dataclass(frozen=True)
@@ -253,6 +283,7 @@ def navigation_for_row(row: dict[str, str], parent: dict[str, str] | None = None
             for parts in split_category_paths(row.get("Categories")):
                 if parts and normalize_key(parts[0]) == normalize_key(STILT_ROOT):
                     return NavigationTaxon("stilt_parts", STILT_ROOT, "Parts", "", "parts", "parts")
+            return default
         explicit = taxon_for_path(row.get("Categories"))
         return explicit or default
     return taxon_for_path(row.get("Categories"))
@@ -262,7 +293,7 @@ def canonical_values(row: dict[str, str], parent: dict[str, str] | None = None) 
     taxon = navigation_for_row(row, parent)
     if not taxon:
         return None
-    return {"Categories": taxon.path, CATEGORY_FIELD: taxon.category_key, DISPLAY_FIELD: taxon.display_key}
+    return {"Categories": taxon.csv_path, CATEGORY_FIELD: taxon.category_key, DISPLAY_FIELD: taxon.display_key}
 
 
 def expected_taxonomy(product_kind: str, display_category_key: str) -> TaxonomyExpectation | None:

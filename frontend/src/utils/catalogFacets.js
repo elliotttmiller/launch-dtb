@@ -118,15 +118,22 @@ export function mergeCatalogDisplayCategories(displayCategoriesByBrand = {}) {
 }
 
 export function normalizeCatalogNavigationGroups(rawGroups = []) {
+  const seenGroups = new Set();
+  const seenChildren = new Set();
+
   return (Array.isArray(rawGroups) ? rawGroups : [])
     .map((rawGroup) => {
       const label = rawGroup?.label || rawGroup?.name || '';
       const slug = canonicalCatalogCategorySlug(rawGroup?.slug || rawGroup?.key || '');
+      if (!label || !slug || seenGroups.has(slug)) return null;
+      seenGroups.add(slug);
+
       const children = (Array.isArray(rawGroup?.children) ? rawGroup.children : [])
         .map((rawChild) => {
           const childLabel = rawChild?.label || rawChild?.name || '';
           const childSlug = canonicalCatalogCategorySlug(rawChild?.slug || rawChild?.key || '');
-          if (!childLabel || !childSlug) return null;
+          if (!childLabel || !childSlug || seenChildren.has(childSlug)) return null;
+          seenChildren.add(childSlug);
           return {
             ...rawChild,
             label: childLabel,
@@ -135,9 +142,7 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
             to: buildCategoryPageUrl(childSlug),
           };
         })
-        .filter(Boolean)
-        .sort((a, b) => String(a.label).localeCompare(String(b.label)));
-      if (!label || !slug) return null;
+        .filter(Boolean);
       return {
         ...rawGroup,
         label,

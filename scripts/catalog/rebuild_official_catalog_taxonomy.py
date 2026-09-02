@@ -12,6 +12,8 @@ import shutil
 import tempfile
 from pathlib import Path
 
+from catalog_taxonomy_policy import woocommerce_category_path
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "products/launch/official/dtb_official_catalog.csv"
 DEFAULT_TAXONOMY = ROOT / "products/catalog/source/taxonomy.json"
@@ -77,7 +79,7 @@ def path_for(key: str, taxa: dict[str, dict[str, object]]) -> str:
         labels.append(str(item["label"]))
         parent = item.get("parent_key")
         current = str(parent) if parent is not None else None
-    return " > ".join(reversed(labels))
+    return woocommerce_category_path(list(reversed(labels)))
 
 
 def canonical_assignment_key(sku: str, key: str) -> str:

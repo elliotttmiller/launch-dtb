@@ -8,6 +8,8 @@
 
 `scripts/catalog/catalog_taxonomy_policy.py` derives deterministic validation and compatibility metadata from `taxonomy.json`; it must not maintain a second independent hierarchy.
 
+`drywalltoolbox/wp/wp-content/mu-plugins/dtb-catalog-platform/Resources/catalog-taxonomy.json` is the deployment projection of that registry. It must remain byte-identical to the canonical source. `scripts/catalog/sync_catalog_runtime_taxonomy.py` checks or atomically refreshes the projection; contract tests reject drift.
+
 The React storefront consumes backend navigation/facet contracts. It must not classify products from names, SKU patterns, brands, product families, or a parallel hardcoded category tree.
 
 `Meta: _dtb_category_key` and `Meta: _dtb_display_category_key` are compatibility/filter facets. They are not alternate product-category authorities.
@@ -169,6 +171,8 @@ Variation-specific category drift is invalid. If choices require materially diff
 
 `GET /wp-json/dtb/v1/catalog/facets` derives `navigationGroups` from active WooCommerce `product_cat` ancestry.
 
+The response contract is version `2.0`. Primary `navigationGroups` are read through `DTB_CatalogNavigationService` using one bounded query restricted to registered taxonomy slugs. WooCommerce owns term existence, ancestry, counts, descriptions, and media; the deployed registry projection supplies the canonical allowlist and `sort` order. Scoped brand/display facets may still scan the bounded paginated product projection, but primary navigation must never be rebuilt by scanning every product.
+
 Supported customer navigation roots are ordered:
 
 1. `Taping & Finishing Tools`
@@ -176,7 +180,11 @@ Supported customer navigation roots are ordered:
 
 Replacement Parts remain a dedicated storefront navigation surface.
 
-The frontend renders backend-owned groups and children. Historical URL aliases may redirect old category slugs to deterministic new equivalents, but frontend compatibility code must not become a taxonomy authority.
+The frontend renders the same backend-owned groups and children for desktop and mobile navigation, preserves backend order, and defensively deduplicates canonical slugs. Historical URL aliases may redirect old category slugs to deterministic new equivalents, but frontend compatibility code must not become a taxonomy authority. Facet and category caches are namespaced to the response contract version; responses with a different contract version are not persisted.
+
+WooCommerce treats unescaped commas in `Categories` as separators between separate terms. Canonical category labels containing a comma must therefore escape it as `\,` in the official CSV. The canonical Goosenecks path is serialized as `Taping & Finishing Tools > Goosenecks\, Box Fillers & Adapters` while its human-facing term name remains `Goosenecks, Box Fillers & Adapters`.
+
+Runtime taxonomy migration version `1` idempotently renames the historical `goosenecks` child, merges product relationships and media from any pre-existing canonical/legacy terms, removes the accidental top-level `box-fillers-adapters` split term, and invalidates catalog caches. The migration version is recorded only after every required mutation succeeds.
 
 ## Runtime compatibility
 

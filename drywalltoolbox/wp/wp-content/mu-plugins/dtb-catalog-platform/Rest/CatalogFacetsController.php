@@ -12,12 +12,6 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_CatalogFacetsController {
 
-	/** Canonical customer navigation roots in intentional storefront order. */
-	private const NAVIGATION_GROUP_SLUGS = [
-		'taping-finishing-tools',
-		'stilts-accessories',
-	];
-
 	public static function register_routes(): void {
 		register_rest_route( 'dtb/v1', '/catalog/facets', [
 			'methods'             => 'GET',
@@ -70,24 +64,27 @@ final class DTB_CatalogFacetsController {
 			}
 		}
 
-		$children_terms = get_terms( [
-			'taxonomy'   => 'product_cat',
-			'parent'     => $term->term_id,
-			'hide_empty' => false,
-		] );
-		$children = [];
-		if ( is_array( $children_terms ) ) {
-			foreach ( $children_terms as $child_term ) {
-				if ( ! $child_term instanceof WP_Term ) {
-					continue;
+		$canonical_group = DTB_CatalogNavigationService::get_group( $slug );
+		$children        = is_array( $canonical_group ) ? (array) ( $canonical_group['children'] ?? [] ) : [];
+		if ( null === $canonical_group ) {
+			$children_terms = get_terms( [
+				'taxonomy'   => 'product_cat',
+				'parent'     => $term->term_id,
+				'hide_empty' => false,
+				'number'     => 100,
+			] );
+			if ( is_array( $children_terms ) ) {
+				foreach ( $children_terms as $child_term ) {
+					if ( $child_term instanceof WP_Term ) {
+						$children[] = array_merge(
+							self::term_to_navigation_dto( $child_term ),
+							[ 'productCount' => absint( $child_term->count ) ]
+						);
+					}
 				}
-				$children[] = array_merge(
-					self::term_to_navigation_dto( $child_term ),
-					[ 'productCount' => absint( $child_term->count ) ]
-				);
 			}
+			usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 		}
-		usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 
 		$hero_image        = '';
 		$hero_image_srcset = '';
@@ -104,6 +101,7 @@ final class DTB_CatalogFacetsController {
 		}
 
 		return new WP_REST_Response( [
+			'contractVersion'  => DTB_CatalogNavigationService::CONTRACT_VERSION,
 			'slug'            => $dto['slug'],
 			'label'           => $dto['label'],
 			'description'     => $dto['description'],
@@ -145,7 +143,6 @@ final class DTB_CatalogFacetsController {
 		$brands            = [];
 		$categories        = [];
 		$display_by_brand  = [];
-		$navigation_groups = [];
 		$page              = 1;
 		$per_page          = 100;
 
@@ -231,38 +228,6 @@ final class DTB_CatalogFacetsController {
 					unset( $entry );
 				}
 
-				if ( empty( $dto['isParts'] ) ) {
-					$navigation = self::canonical_navigation_membership( (array) ( $raw['categories'] ?? [] ) );
-					if ( null !== $navigation ) {
-						$group      = $navigation['group'];
-						$child      = $navigation['child'];
-						$group_slug = $group['slug'];
-
-						$navigation_groups[ $group_slug ] ??= [
-							'key'          => $group_slug,
-							'label'        => $group['label'],
-							'slug'         => $group_slug,
-							'description'  => $group['description'] ?? '',
-							'image'        => $group['image'] ?? '',
-							'productCount' => 0,
-							'children'     => [],
-						];
-						$navigation_groups[ $group_slug ]['productCount']++;
-
-						if ( null !== $child ) {
-							$child_slug = $child['slug'];
-							$navigation_groups[ $group_slug ]['children'][ $child_slug ] ??= [
-								'key'          => $child_slug,
-								'label'        => $child['label'],
-								'slug'         => $child_slug,
-								'description'  => $child['description'] ?? '',
-								'image'        => $child['image'] ?? '',
-								'productCount' => 0,
-							];
-							$navigation_groups[ $group_slug ]['children'][ $child_slug ]['productCount']++;
-						}
-					}
-				}
 			}
 
 			$page++;
@@ -280,22 +245,12 @@ final class DTB_CatalogFacetsController {
 			usort( $display_result[ $brand_key ], static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 		}
 
-		$navigation_result = [];
-		foreach ( self::NAVIGATION_GROUP_SLUGS as $group_slug ) {
-			if ( ! isset( $navigation_groups[ $group_slug ] ) ) {
-				continue;
-			}
-			$group = $navigation_groups[ $group_slug ];
-			$group['children'] = array_values( $group['children'] );
-			usort( $group['children'], static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
-			$navigation_result[] = $group;
-		}
-
 		return [
+			'contractVersion'          => DTB_CatalogNavigationService::CONTRACT_VERSION,
 			'brands'                   => $brands,
 			'categories'               => $categories,
 			'displayCategoriesByBrand' => $display_result,
-			'navigationGroups'         => $navigation_result,
+			'navigationGroups'         => DTB_CatalogNavigationService::get_groups(),
 		];
 	}
 
@@ -329,77 +284,10 @@ final class DTB_CatalogFacetsController {
 		return is_array( $dto['displayCategory'] ?? null ) ? $dto['displayCategory'] : [];
 	}
 
-	private static function navigation_label( string $label, string $slug ): string {
-		if ( 'stilts-accessories' === $slug ) {
-			return 'Stilts';
-		}
-		return sanitize_text_field( wp_specialchars_decode( $label, ENT_QUOTES ) );
-	}
-
-	/**
-	 * Resolve a product's navigation membership from its Woo product_cat path.
-	 * The recognized groups are canonical taxonomy roots, not compatibility
-	 * metadata or hardcoded functional subtrees.
-	 *
-	 * @param array<int,array<string,mixed>> $raw_categories
-	 * @return array{group:array<string,mixed>,child:?array<string,mixed>}|null
-	 */
-	private static function canonical_navigation_membership( array $raw_categories ): ?array {
-		$best = null;
-		foreach ( $raw_categories as $raw_category ) {
-			$term_id = absint( $raw_category['id'] ?? 0 );
-			if ( ! $term_id ) {
-				continue;
-			}
-			$path = self::product_category_path( $term_id );
-			if ( count( $path ) < 2 ) {
-				continue;
-			}
-			foreach ( $path as $index => $term ) {
-				if ( ! in_array( $term['slug'], self::NAVIGATION_GROUP_SLUGS, true ) ) {
-					continue;
-				}
-				$candidate = [
-					'group' => $term,
-					'child' => $path[ $index + 1 ] ?? null,
-					'depth' => count( $path ),
-				];
-				if ( null === $best || $candidate['depth'] > $best['depth'] ) {
-					$best = $candidate;
-				}
-				break;
-			}
-		}
-		return null === $best ? null : [ 'group' => $best['group'], 'child' => $best['child'] ];
-	}
-
-	/** @return array<int,array{label:string,slug:string,description:string,image:string}> */
-	private static function product_category_path( int $term_id ): array {
-		static $path_cache = [];
-		if ( isset( $path_cache[ $term_id ] ) ) {
-			return $path_cache[ $term_id ];
-		}
-		$term = get_term( $term_id, 'product_cat' );
-		if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
-			$path_cache[ $term_id ] = [];
-			return [];
-		}
-		$ancestor_ids = array_reverse( array_map( 'absint', get_ancestors( $term_id, 'product_cat', 'taxonomy' ) ) );
-		$path = [];
-		foreach ( array_merge( $ancestor_ids, [ $term_id ] ) as $path_term_id ) {
-			$path_term = get_term( $path_term_id, 'product_cat' );
-			if ( $path_term instanceof WP_Term && ! is_wp_error( $path_term ) ) {
-				$path[] = self::term_to_navigation_dto( $path_term );
-			}
-		}
-		$path_cache[ $term_id ] = $path;
-		return $path;
-	}
-
 	/** @return array{label:string,slug:string,description:string,image:string} */
 	private static function term_to_navigation_dto( WP_Term $term ): array {
 		$slug        = sanitize_title( $term->slug );
-		$label       = self::navigation_label( (string) $term->name, $slug );
+		$label       = sanitize_text_field( wp_specialchars_decode( (string) $term->name, ENT_QUOTES ) );
 		$description = sanitize_text_field( wp_specialchars_decode( wp_strip_all_tags( (string) $term->description ), ENT_QUOTES ) );
 		$image        = '';
 		$thumbnail_id = absint( get_term_meta( $term->term_id, 'thumbnail_id', true ) );

@@ -7,7 +7,7 @@ CATALOG_DIR = Path(__file__).resolve().parents[1]
 if str(CATALOG_DIR) not in sys.path:
     sys.path.insert(0, str(CATALOG_DIR))
 
-from catalog_taxonomy_policy import canonical_values, navigation_for_row, taxon_for_path, taxons_for_path
+from catalog_taxonomy_policy import canonical_values, navigation_for_row, split_category_paths, taxon_for_path, taxons_for_path
 from official_catalog_schema import CatalogValidationError, validate_taxonomy_rows
 
 
@@ -53,6 +53,13 @@ def test_duplicate_legacy_handle_paths_resolve_once():
     raw = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions, Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles"
     assert [taxon.display_key for taxon in taxons_for_path(raw)] == ["handles"]
     assert taxon_for_path(raw) is not None
+
+
+def test_escaped_comma_remains_inside_one_woocommerce_category_term():
+    raw = r"Taping & Finishing Tools > Goosenecks\, Box Fillers & Adapters"
+    assert split_category_paths(raw) == [["Taping & Finishing Tools", "Goosenecks, Box Fillers & Adapters"]]
+    values = canonical_values(row(categories=raw))
+    assert values and values["Categories"] == raw
 
 
 def test_legacy_semi_automatic_toolset_path_migrates_to_unified_toolsets():

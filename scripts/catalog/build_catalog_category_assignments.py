@@ -8,6 +8,8 @@ import csv
 import json
 from pathlib import Path
 
+from catalog_taxonomy_policy import taxon_for_path
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "products/launch/official/dtb_official_catalog.csv"
 DEFAULT_TAXONOMY = ROOT / "products/catalog/source/taxonomy.json"
@@ -129,7 +131,8 @@ def load_overrides(path: Path, taxa: dict[str, dict[str, object]]) -> dict[str, 
 def infer_taxon(sku: str, current: str) -> str | None:
     if current.endswith(" > Compound Applicators"):
         return "powered_compound_applicators" if sku in POWERED_APPLICATOR_SKUS else "applicator_heads"
-    return PATH_TO_TAXON.get(current) or LEGACY_PATH_TO_TAXON.get(current)
+    resolved = taxon_for_path(current)
+    return resolved.key if resolved else PATH_TO_TAXON.get(current) or LEGACY_PATH_TO_TAXON.get(current)
 
 
 def build(rows: list[dict[str, str]], taxa: dict[str, dict[str, object]], overrides: dict[str, dict[str, str]]) -> list[dict[str, str]]:

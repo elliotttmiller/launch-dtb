@@ -99,8 +99,8 @@ def test_compatibility_research_is_family_level_not_variation_level() -> None:
 
 def test_toolset_policy_is_universal_and_brand_independent() -> None:
     rows = [
-        make_row(SKU="SET-A", Brands="Brand A", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": "automatic_tool_sets"}),
-        make_row(SKU="SET-B", Brands="Brand B", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": "automatic_tool_sets"}),
+        make_row(SKU="SET-A", Brands="Brand A", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": "toolsets"}),
+        make_row(SKU="SET-B", Brands="Brand B", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": "toolsets"}),
     ]
     findings = remediation_findings(audit_rows(rows))
     assert "taxonomy_deterministic_mismatch" not in findings
@@ -109,8 +109,8 @@ def test_toolset_policy_is_universal_and_brand_independent() -> None:
 
 def test_taxonomy_findings_split_by_mutation_safety() -> None:
     rows = [
-        make_row(SKU="BROAD", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "toolsets", "Meta: _dtb_display_category_key": "automatic_tool_sets"}),
-        make_row(SKU="DISPLAY", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "automatic_taping_tools", "Meta: _dtb_display_category_key": ""}),
+        make_row(SKU="BROAD", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "toolsets", "Meta: _dtb_display_category_key": "toolsets"}),
+        make_row(SKU="DISPLAY", **{"Meta: _dtb_product_kind": "toolset", "Meta: _dtb_category_key": "taping", "Meta: _dtb_display_category_key": ""}),
         make_row(SKU="AMBIG", **{"Meta: _dtb_product_kind": "drywall-finishing-tool", "Meta: _dtb_category_key": "handles", "Meta: _dtb_display_category_key": "predator_family"}),
     ]
     report = audit_rows(rows)

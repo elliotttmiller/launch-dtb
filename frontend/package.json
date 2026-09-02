@@ -12,6 +12,7 @@
     "clean:build-cache": "node scripts/clean-build-artifacts.cjs cache",
     "reviews-server": "node server/index.js",
     "lint": "eslint src",
+    "test:catalog-navigation": "node --test tests/catalogNavigationContract.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production"
   },
   "dependencies": {

@@ -32,43 +32,6 @@ const SEARCH_OVERLAY_EXIT_MS = 360;
 const MOBILE_SEARCH_DELAY_MS = 220;
 const MAX_SEARCH_PRODUCTS = 6;
 
-// The desktop "All Products" mega menu is a deliberately curated, fixed
-// top-level menu (two intentionally compact groups) matching the approved
-// mockup — it intentionally does NOT render the full live product-category
-// taxonomy (that full list still powers the mobile drawer's "All Products"
-// section via `drawerProductNavigation` below). Slugs must match real
-// WooCommerce category slugs so links/thumbnails resolve correctly; see
-// frontend/src/utils/categoryThumbnailImages.js for the canonical slug list.
-const CURATED_DESKTOP_PRODUCT_TAXONOMY = [
-  {
-    slug: 'automatic-taping-tools',
-    label: 'Automatic Taping Tools',
-    viewAllLabel: 'View all Automatic Tools',
-    items: [
-      { slug: 'automatic-tapers', label: 'Automatic Tapers', description: 'High-speed taping with consistent results' },
-      { slug: 'tool-sets-automatic-taping-tools', label: 'Tool Sets', description: 'Complete matched automatic finishing systems' },
-      { slug: 'angle-boxes-corner-applicators', label: 'Angle Boxes', description: 'Apply compound to inside corners' },
-      { slug: 'flat-boxes', label: 'Flat Boxes', description: 'Finishing flat joints with precision' },
-      { slug: 'compound-tubes', label: 'Compound Tubes', description: 'Controlled compound delivery systems' },
-      { slug: 'compound-applicators', label: 'Compound Applicators', description: 'Applicator and mud heads' },
-      { slug: 'nail-spotters', label: 'Nail Spotters', description: 'Quick nail & screw head coverage' },
-    ],
-  },
-  {
-    slug: 'automatic-taping-tools',
-    label: 'Finishing Tools & Accessories',
-    viewAllLabel: 'View all Automatic Tools',
-    items: [
-      { slug: 'semi-automatic-tools', label: 'Semi-Automatic Tools', description: 'Manual control with production efficiency' },
-      { slug: 'angle-heads', label: 'Angle Heads', description: 'Precision heads for inside-corner finishing' },
-      { slug: 'corner-finishers', label: 'Corner Finishers', description: 'Feather and finish internal corners' },
-      { slug: 'corner-flushers', label: 'Corner Flushers', description: 'Finish inside corners consistently' },
-      { slug: 'automatic-handles-extensions', label: 'Handles & Extensions', description: 'Compatible control and support handles' },
-      { slug: 'automatic-tool-sets', label: 'Tool Sets', description: 'Complete matched finishing systems' },
-    ],
-  },
-];
-
 const DRAWER_NAV_ROWS = [
   { to: '/products?sort=newest', label: 'New Arrivals' },
   // { to: '/toolset-builder', label: 'Toolset Builder' }, // DISABLED: temporarily hide Toolset Builder
@@ -244,10 +207,25 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       .sort((a, b) => String(a.label).localeCompare(String(b.label)));
   }, [facets]);
 
-  const drawerProductNavigation = useMemo(() => {
-    const canonicalGroups = normalizeCatalogNavigationGroups(facets?.navigationGroups);
-    return canonicalGroups.length > 0 ? canonicalGroups : drawerCategoryLinks;
-  }, [facets, drawerCategoryLinks]);
+  const canonicalProductNavigation = useMemo(
+    () => normalizeCatalogNavigationGroups(facets?.navigationGroups),
+    [facets],
+  );
+
+  const drawerProductNavigation = useMemo(
+    () => canonicalProductNavigation.length > 0 ? canonicalProductNavigation : drawerCategoryLinks,
+    [canonicalProductNavigation, drawerCategoryLinks],
+  );
+
+  const desktopProductNavigation = useMemo(() => canonicalProductNavigation.map((group) => ({
+    ...group,
+    to: buildCategoryPageUrl(group.slug),
+    children: (Array.isArray(group.children) ? group.children : []).map((child) => ({
+      ...child,
+      to: buildCategoryPageUrl(child.slug),
+      thumbnail: resolveCategoryThumbnail(child),
+    })),
+  })), [canonicalProductNavigation]);
 
   const desktopNavItems = useMemo(() => [
     {
@@ -261,28 +239,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       size: 'wide',
       columns: 2,
       activePrefixes: ['/products'],
-      // Curated fixed menu (see CURATED_DESKTOP_PRODUCT_TAXONOMY) — not the
-      // full live taxonomy, and no shared "View all products" footer card;
-      // each column gets its own "View all {Group}" link instead. The
-      // intro eyebrow/heading/subheading block is also removed for this
-      // panel specifically — not part of the approved mockup, which starts
-      // directly with the column headers.
-      hideFooter: true,
-      hideHeader: true,
-      items: CURATED_DESKTOP_PRODUCT_TAXONOMY.map((group) => ({
-        label: group.label,
-        to: buildCategoryPageUrl(group.slug),
-        slug: group.slug,
-        viewAllLabel: group.viewAllLabel,
-        viewAllTo: buildCategoryPageUrl(group.slug),
-        children: group.items.map((child) => ({
-          label: child.label,
-          to: buildCategoryPageUrl(child.slug),
-          slug: child.slug,
-          description: child.description,
-          thumbnail: resolveCategoryThumbnail({ slug: child.slug, key: child.slug }),
-        })),
-      })),
+      items: desktopProductNavigation,
     },
     {
       id: 'brands',
@@ -377,7 +334,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       activePrefixes: ['/contact'],
       items: [],
     },
-  ], [drawerBrands, partsBrands, repairPackageGroups]);
+  ], [desktopProductNavigation, drawerBrands, partsBrands, repairPackageGroups]);
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const closeMenus = () => {

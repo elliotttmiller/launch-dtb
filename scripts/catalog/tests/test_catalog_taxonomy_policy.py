@@ -12,10 +12,10 @@ from normalize_official_taxonomy import build_changes, parse_assignments
 
 
 def test_toolset_product_kind_is_deterministic_across_brands() -> None:
-    expected = expected_taxonomy(product_kind="toolset", display_category_key="automatic_tool_sets")
+    expected = expected_taxonomy(product_kind="toolset", display_category_key="toolsets")
     assert expected is not None
-    assert expected.category_key == "automatic_taping_tools"
-    assert expected.display_category_key == "automatic_tool_sets"
+    assert expected.category_key == "taping"
+    assert expected.display_category_key == "toolsets"
 
 
 def test_part_policy_is_identical_for_every_brand() -> None:
@@ -31,7 +31,7 @@ def test_only_functional_display_categories_derive_broad_category() -> None:
         "finishing_boxes": "finishing",
         "handles": "handles",
         "pumps": "mudboxes",
-        "corner_tools": "corner",
+        "corner_finishers": "corner",
         "compound_tubes": "corner",
         "parts": "parts",
         "stilts": "stilts",
@@ -44,7 +44,7 @@ def test_only_functional_display_categories_derive_broad_category() -> None:
 
 
 def test_cross_cutting_display_categories_do_not_invent_broad_taxonomy() -> None:
-    for display in ("predator_family", "toolsets", "accessories"):
+    for display in ("predator_family", "accessories"):
         assert expected_taxonomy(
             product_kind="drywall-finishing-tool",
             display_category_key=display,
@@ -99,17 +99,27 @@ def test_normalizer_writes_complete_canonical_tuples_and_reports_unknown_paths()
         },
     ]
     changes, unresolved = build_changes(rows)
-    assert [(change["sku"], change["field"], change["expected"]) for change in changes] == [
-        ("BROAD", "Meta: _dtb_category_key", "automatic_taping_tools"),
-        ("DISPLAY-ONLY", "Meta: _dtb_display_category_key", "automatic_tool_sets"),
-    ]
+    changes_by_sku = {
+        sku: {(change["field"], change["expected"]) for change in changes if change["sku"] == sku}
+        for sku in ("BROAD", "DISPLAY-ONLY")
+    }
+    assert changes_by_sku["BROAD"] == {
+        ("Categories", "Taping & Finishing Tools > Tool Sets & Kits"),
+        ("Meta: _dtb_category_key", "taping"),
+        ("Meta: _dtb_display_category_key", "toolsets"),
+    }
+    assert changes_by_sku["DISPLAY-ONLY"] == {
+        ("Categories", "Taping & Finishing Tools > Tool Sets & Kits"),
+        ("Meta: _dtb_category_key", "taping"),
+        ("Meta: _dtb_display_category_key", "toolsets"),
+    }
     assert [item["sku"] for item in unresolved] == ["AMBIGUOUS"]
 
 
 def test_reviewed_assignment_requires_an_exact_owner_path() -> None:
     owner = {"SKU": "OWNER", "Type": "variable"}
     by_sku = {"OWNER": owner}
-    path = "Taping & Finishing Tools > Automatic Taping Tools > Handles & Extensions"
+    path = "Taping & Finishing Tools > Handles & Extensions"
     assert parse_assignments([f"OWNER={path}"], by_sku) == {"OWNER": path}
 
 
@@ -124,6 +134,6 @@ def test_taxonomy_state_reports_raw_and_normalized_values() -> None:
     assert state["raw_display_category_key"] == "Tool Sets"
     assert state["category_key"] == "tool_sets"
     assert state["display_category_key"] == "tool_sets"
-    assert state["expected_category_key"] == "automatic_taping_tools"
-    assert state["expected_display_category_key"] == "automatic_tool_sets"
+    assert state["expected_category_key"] == "taping"
+    assert state["expected_display_category_key"] == "toolsets"
     assert "brand" not in state

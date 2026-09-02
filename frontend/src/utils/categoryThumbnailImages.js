@@ -1,5 +1,9 @@
 const CATEGORY_THUMBNAIL_ROOT = '/wp-content/uploads/2026/categories/thumbnails';
 
+const CATEGORY_THUMBNAIL_URL_BY_SLUG = {
+  'powered-compound-applicators': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_14tt_01.webp',
+};
+
 // Existing media filenames are retained as assets. Canonical taxonomy slugs
 // resolve to the closest current image without making media filenames a
 // classification authority.
@@ -39,7 +43,6 @@ const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
   'corner-finishers': 'angle-heads',
   'corner-applicators-angle-boxes': 'corner-boxes',
   'compound-tubes': 'compound-tubes',
-  'powered-compound-applicators': 'compound-applicators',
   'applicator-heads': 'compound-applicators',
   'corner-flushers': 'corner-flushers',
   'corner-rollers': 'corner-rollers',
@@ -72,6 +75,10 @@ export function resolveCategoryThumbnail(category) {
     .trim()
     .toLowerCase()
     .replace(/_/g, '-');
+
+  if (CATEGORY_THUMBNAIL_URL_BY_SLUG[slug]) {
+    return CATEGORY_THUMBNAIL_URL_BY_SLUG[slug];
+  }
 
   const thumbnailSlug = CATEGORY_THUMBNAIL_FILE_BY_SLUG[slug] || slug;
   if (CATEGORY_THUMBNAIL_SLUGS.has(thumbnailSlug)) {
