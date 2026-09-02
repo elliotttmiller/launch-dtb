@@ -2,109 +2,148 @@
 
 ## Authority
 
-WooCommerce `product_cat` is the runtime source of truth for customer-facing product navigation hierarchy.
+`products/catalog/source/taxonomy.json` is the canonical machine-readable catalog taxonomy registry.
 
-`products/launch/official/dtb_official_catalog.csv` is the **only canonical launch catalog CSV**. It defines the WooCommerce import hierarchy and preserves commerce/product identity. WooCommerce owns the resulting runtime products and category terms.
+`products/launch/official/dtb_official_catalog.csv` is the canonical launch catalog CSV. It assigns products and variations to the registered WooCommerce hierarchy and preserves protected catalog identity. WooCommerce owns the resulting runtime products, variations, and `product_cat` terms after import.
 
-The React storefront consumes backend navigation/facet contracts. It must not classify products into systems/categories from product names, SKU patterns, brands, product families, or an independent hardcoded category map.
+`scripts/catalog/catalog_taxonomy_policy.py` derives deterministic validation and compatibility metadata from `taxonomy.json`; it must not maintain a second independent hierarchy.
 
-`Meta: _dtb_category_key` and `Meta: _dtb_display_category_key` are compatibility/merchandising facets derived from the canonical navigation identity. They are not parallel primary taxonomies.
+The React storefront consumes backend navigation/facet contracts. It must not classify products from names, SKU patterns, brands, product families, or a parallel hardcoded category tree.
 
-Brand and product family are orthogonal dimensions. Brand names and family names such as Predator must never be inserted as `product_cat` hierarchy nodes.
+`Meta: _dtb_category_key` and `Meta: _dtb_display_category_key` are compatibility/filter facets. They are not alternate product-category authorities.
+
+Brand and product family are orthogonal dimensions and must not become `product_cat` hierarchy nodes.
+
+## Classification basis
+
+DTB normalizes current cross-brand drywall-tool terminology by physical/function class rather than copying any one manufacturer or retailer navigation tree.
+
+The governing rules are:
+
+- classify by what the sellable product physically/functionally is;
+- keep automation/system membership separate from the primary functional class when a tool class spans workflows;
+- normalize manufacturer synonyms to one cross-brand class when they describe the same tool function;
+- do not use brand, marketing series, material, or product family as category ancestry;
+- use exact SKU evidence for genuinely ambiguous products rather than name heuristics;
+- variable parents own classification and every variation inherits the exact parent tuple.
 
 ## Canonical hierarchy
 
 ```text
 Taping & Finishing Tools
-  Automatic Taping Tools
-    Automatic Tapers
-    Flat Boxes
-    Angle Heads
-    Corner Finishers
-    Angle Boxes & Corner Applicators
-    Compound Tubes
-    Compound Applicators
-    Corner Flushers
-    Corner Rollers
-    Nail Spotters
-    Loading Pumps
-    Goosenecks & Box Fillers
-    Continuous Flow Tools
-    Handles & Extensions
-    Tool Sets
-    Semi-Automatic Tools
+  Automatic Tapers
+  Semi-Automatic Tapers & Banjos
+  Flat Boxes
+  Corner Finishers
+  Corner Applicators & Angle Boxes
+  Compound Tubes
+  Powered Compound Applicators
+  Applicator Heads
+  Corner Flushers
+  Corner Rollers
+  Nail Spotters
+  Loading & Compound Pumps
+  Goosenecks, Box Fillers & Adapters
+  Handles & Extensions
+  Continuous Flow Tools
+  Tool Sets & Kits
   Tool Storage & Cases
 
 Replacement Parts
 
 Stilts & Accessories
   Stilts
-  Accessories
-    Extension Tubes & Clamps
-    Legs & Brackets
-    Hardware
-    Springs & Bearings
-    Straps & Buckles
-    Soles & Floor Plates
-  Parts
 ```
 
-The universal registry for this hierarchy is `scripts/catalog/catalog_taxonomy_policy.py`. It is brand-independent. A new manufacturer using an existing functional product class requires no taxonomy code change.
+The current launch catalog has no sellable stilt-accessory leaves beyond complete Stilts. New leaves must be added only when actual catalog inventory and evidence justify them.
 
-The Automatic Taping Tools branch is DTB's universal cross-brand structure.
-Specialist retailers and manufacturer documentation are supporting evidence for
-product function only; their navigation trees are not copied as DTB taxonomy.
+## Important normalization decisions
 
-Reference: <https://www.alstapingtools.com/shop-by-product/automatic-taping-tools/automatic-tapers/>
+### Corner Finishers / Angle Heads
 
-Classification rules:
+`Corner Finishers` is the canonical product class. `Angle Head` and `Anglehead` are manufacturer/search aliases, not separate taxonomy leaves.
 
-- classify by tool function, never by brand, product family, material, or marketing series;
-- use `Angle Boxes` for compound-fed corner boxes and reserve `Flat Boxes` for flat-joint finishing boxes;
-- consolidate fixed, extendable, corner-tool, and flat-box handles under `Handles & Extensions`;
-- consolidate `Box Fillers` and `Goosenecks` while keeping `Loading Pumps` distinct;
-- use `Taping Tool Accessories` only when no more specific functional leaf applies;
-- keep `Semi-Automatic Tools` as a functional leaf inside the industry-standard Automatic Taping Tools system, not a competing duplicate hierarchy.
+### Corner Applicators / Angle Boxes / Corner Boxes
 
-Every catalog category is a hierarchy of separate terms. System names are
-parents and product classes are leaves; they must not be flattened into a
-single label. Every owner product resolves to one functional leaf and every
-variation inherits the exact parent tuple.
+`Corner Applicators & Angle Boxes` is the canonical cross-brand class for reservoir-style corner applicator boxes. `Corner Box` remains an alias.
 
-The Semi-Automatic Tools branch is DTB's curated universal structure.
-CSR collection pages are supporting evidence for the named functional classes,
-not an authority whose complete navigation tree is copied into DTB.
+### Compound delivery versus applicator heads
 
-References:
+Passive applicator/mud heads and complete compound-delivery tools are separate product classes:
 
-- <https://csrtools.com/en-us/collections/compound-applicators>
-- <https://csrtools.com/en-us/collections/compound-tubes>
-- <https://csrtools.com/en-us/collections/corner-flushers>
-- <https://csrtools.com/en-us/collections/semi-automatic-taping-tool-sets>
+- `Compound Tubes` — compound-holding/delivery tubes;
+- `Powered Compound Applicators` — complete powered or gas-assisted compound-delivery/applicator tools;
+- `Applicator Heads` — passive heads attached to a compatible tube/applicator/delivery tool.
 
-## Canonical metadata derivation
+The retired `Compound Applicators` leaf is ambiguous and must not be used as a new canonical assignment.
 
-Each canonical navigation taxon defines exactly one compatibility tuple:
+### Semi-automatic tapers
+
+Semi-automatic tapers/banjos are a functional product class directly under `Taping & Finishing Tools`. They are not children of an automatic-tool hierarchy.
+
+### Tool sets
+
+`Tool Sets & Kits` is cross-functional. Sets may contain automatic, semi-automatic, flat-joint, corner-finishing, bead, or mixed equipment, so set classification must not imply one automation system.
+
+### Handles
+
+Fixed, extendable, box, corner-tool, and related compatible handles remain consolidated under `Handles & Extensions`. Handle type/compatibility belongs in facets/attributes rather than duplicate category leaves.
+
+### Replacement parts
+
+`Replacement Parts` remains a dedicated top-level catalog surface. Part discovery should primarily use compatibility relationships such as brand, compatible tool/model, schematic, assembly, and part type rather than creating hardware-type product-category branches.
+
+## Canonical compatibility facets
+
+The official CSV currently derives compatibility/filter keys from the functional category. Representative tuples are:
 
 ```text
-Woo product_cat path
-  -> Meta: _dtb_category_key
-  -> Meta: _dtb_display_category_key
+Taping & Finishing Tools > Automatic Tapers
+  -> _dtb_category_key = taping
+  -> _dtb_display_category_key = automatic_tapers
+
+Taping & Finishing Tools > Flat Boxes
+  -> finishing
+  -> flat_boxes
+
+Taping & Finishing Tools > Corner Finishers
+  -> corner
+  -> corner_finishers
+
+Taping & Finishing Tools > Compound Tubes
+  -> corner
+  -> compound_tubes
+
+Taping & Finishing Tools > Powered Compound Applicators
+  -> corner
+  -> powered_compound_applicators
+
+Taping & Finishing Tools > Applicator Heads
+  -> corner
+  -> applicator_heads
+
+Taping & Finishing Tools > Handles & Extensions
+  -> handles
+  -> handles
+
+Taping & Finishing Tools > Tool Sets & Kits
+  -> taping
+  -> toolsets
+
+Taping & Finishing Tools > Semi-Automatic Tapers & Banjos
+  -> taping
+  -> semi_automatic_tapers_banjos
+
+Replacement Parts
+  -> parts
+  -> parts
+
+Stilts & Accessories > Stilts
+  -> stilts
+  -> stilts
 ```
 
-Examples:
-
-```text
-... > Flat Boxes          -> finishing -> finishing_boxes
-... > Flat Box Handles    -> handles   -> handles
-... > Angle Heads         -> corner    -> corner_tools
-... > Loading Pumps       -> mudboxes  -> pumps
-... > Compound Tubes      -> corner    -> compound_tubes
-... > Parts               -> parts     -> parts
-Stilts & Accessories > Stilts -> stilts -> stilts
-```
-
-Metadata slugs use lowercase snake_case. Hyphenated historical values such as `corner-tools`, `finishing-boxes`, and `nail-spotters` are migration inputs, not canonical outputs.
+Compatibility metadata uses lowercase snake_case. Historical values remain aliases only where a deterministic one-to-one migration exists. The old `automatic_compound_applicators` value is intentionally retained as a legacy read value because that historical class split into two canonical product classes and therefore cannot be safely rewritten without SKU-level evidence.
 
 ## Parent / variation contract
 
@@ -114,35 +153,37 @@ A variable parent owns navigation classification. Every variation inherits the p
 - `Meta: _dtb_category_key`
 - `Meta: _dtb_display_category_key`
 
-Variation-specific category drift is invalid. If two choices require materially different navigation identities, they are not valid variations of one product family.
+Variation-specific category drift is invalid. If choices require materially different functional product classes, they must not be modeled as variations of one product family.
 
-## Legacy secondary catalog artifacts
+## Assignment and rebuild workflow
 
-`products/launch/official/dtb_official_catalog_content_seo.csv` is a legacy secondary artifact and **must not be used as a catalog authority or mutation source**. The prior consolidation workflow has been retired because it duplicated identity/taxonomy mutation logic outside the supported catalog runner.
+`products/catalog/source/product_category_overrides.csv` stores reviewed exact-SKU exceptions/evidence.
 
-Until that legacy file is archived or removed in a separately reviewed data-retention change:
+`products/catalog/source/product_categories.csv` is the generated/approved owner-SKU assignment projection. Historical taxon keys in that file are migration inputs only and are normalized by the supported rebuild path.
 
-- do not import products from it;
-- do not copy protected identity, taxonomy, pricing, inventory, media, compatibility, or schematic fields from it;
-- do not treat its presence as evidence that a second official catalog exists;
-- use `dtb_official_catalog.csv` plus the supported review/evidence workflows for all new catalog work.
+`scripts/catalog/build_catalog_category_assignments.py` generates assignments from exact canonical/historical paths plus approved overrides.
+
+`scripts/catalog/rebuild_official_catalog_taxonomy.py` projects those assignments into the official CSV, derives compatibility keys, forces exact parent/variation inheritance, and creates a hash-verified sibling `.bak` before an applied mutation.
 
 ## Facets API and frontend
 
-`GET /wp-json/dtb/v1/catalog/facets` derives `navigationGroups` from active WooCommerce `product_cat` ancestry. Replacement parts remain a separate storefront navigation surface.
+`GET /wp-json/dtb/v1/catalog/facets` derives `navigationGroups` from active WooCommerce `product_cat` ancestry.
 
-Supported navigation groups are ordered:
+Supported customer navigation roots are ordered:
 
-1. Automatic Taping Tools
-2. Semi-Automatic Tools
-3. Stilts & Accessories
+1. `Taping & Finishing Tools`
+2. `Stilts & Accessories` (displayed as `Stilts` while the launch catalog contains only complete stilt products)
 
-The frontend renders these backend-owned groups unchanged. Any CSV parser or legacy category mapper is a compatibility transport only and must prefer explicit canonical DTB metadata; it must not become a semantic taxonomy authority.
+Replacement Parts remain a dedicated storefront navigation surface.
 
-## Runtime fallback
+The frontend renders backend-owned groups and children. Historical URL aliases may redirect old category slugs to deterministic new equivalents, but frontend compatibility code must not become a taxonomy authority.
 
-`DTB_CategoryNormalizer` resolves explicit `_dtb_category_key` first. Its Woo category-name map is intentionally conservative and contains functional leaf names only. Generic labels such as `Accessories`, `Tool Sets`, and family labels such as `Predator Family` do not infer an unrelated broad category.
+## Runtime compatibility
+
+`DTB_CategoryNormalizer` resolves explicit compatibility metadata first and uses Woo category names only as a conservative legacy fallback. It recognizes the revised precise display keys and deterministic historical aliases.
+
+Historical `Angle Heads` normalize to `Corner Finishers`. Historical automatic/semi handle and tool-set display values normalize to `handles` and `toolsets`. Ambiguous historical `Compound Applicators` remain a compatibility value until SKU-level catalog migration supplies either `applicator_heads` or `powered_compound_applicators`.
 
 ## Security and ownership
 
-This taxonomy contract changes catalog classification only. It does not modify order, payment, pricing, tax, inventory, fulfillment, accounting, authentication, REST authorization, or provider ownership boundaries.
+This contract changes catalog classification and navigation only. It does not modify order creation, payment, pricing, tax, inventory, fulfillment, accounting, authentication, REST authorization, queue ownership, or provider security boundaries.
