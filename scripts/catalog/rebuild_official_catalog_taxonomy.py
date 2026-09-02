@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project the universal taxonomy assignments into the official Woo CSV."""
+"""Project approved SKU taxonomy assignments into the official Woo CSV."""
 
 from __future__ import annotations
 
@@ -17,6 +17,34 @@ DEFAULT_CATALOG = ROOT / "products/launch/official/dtb_official_catalog.csv"
 DEFAULT_TAXONOMY = ROOT / "products/catalog/source/taxonomy.json"
 DEFAULT_ASSIGNMENTS = ROOT / "products/catalog/source/product_categories.csv"
 
+POWERED_APPLICATOR_SKUS = {"4-772", "TT-MUDRUNNER"}
+LEGACY_TAXON_ALIASES = {
+    "automatic_angle_heads": "automatic_corner_finishers",
+    "semi_automatic_tools": "semi_automatic_tapers_banjos",
+}
+
+COMPATIBILITY_KEYS = {
+    "automatic_tapers": ("taping", "automatic_tapers"),
+    "semi_automatic_tapers_banjos": ("taping", "semi_automatic_tapers_banjos"),
+    "flat_boxes": ("finishing", "flat_boxes"),
+    "automatic_corner_finishers": ("corner", "corner_finishers"),
+    "automatic_angle_boxes_corner_applicators": ("corner", "automatic_angle_boxes_corner_applicators"),
+    "automatic_compound_tubes": ("corner", "compound_tubes"),
+    "powered_compound_applicators": ("corner", "powered_compound_applicators"),
+    "applicator_heads": ("corner", "applicator_heads"),
+    "automatic_corner_flushers": ("corner", "automatic_corner_flushers"),
+    "automatic_corner_rollers": ("corner", "automatic_corner_rollers"),
+    "automatic_nail_spotters": ("taping", "automatic_nail_spotters"),
+    "automatic_loading_pumps": ("mudboxes", "automatic_loading_pumps"),
+    "automatic_goosenecks_box_fillers": ("mudboxes", "automatic_goosenecks_box_fillers"),
+    "automatic_continuous_flow_tools": ("taping", "automatic_continuous_flow_tools"),
+    "automatic_handles_extensions": ("handles", "handles"),
+    "automatic_tool_sets": ("taping", "toolsets"),
+    "tool_storage_cases": ("accessories", "tool_storage_cases"),
+    "replacement_parts": ("parts", "parts"),
+    "stilts": ("stilts", "stilts"),
+}
+
 
 def digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -30,7 +58,11 @@ def load_csv(path: Path) -> tuple[list[str], list[dict[str, str]]]:
 
 def load_taxa(path: Path) -> dict[str, dict[str, object]]:
     data = json.loads(path.read_text(encoding="utf-8"))
-    return {str(item["key"]): item for item in data["taxa"]}
+    taxa = {str(item["key"]): item for item in data["taxa"]}
+    slugs = [str(item["slug"]) for item in data["taxa"]]
+    if len(taxa) != len(data["taxa"]) or len(slugs) != len(set(slugs)):
+        raise ValueError("taxonomy registry contains duplicate keys or slugs")
+    return taxa
 
 
 def path_for(key: str, taxa: dict[str, dict[str, object]]) -> str:
@@ -43,8 +75,15 @@ def path_for(key: str, taxa: dict[str, dict[str, object]]) -> str:
         seen.add(current)
         item = taxa[current]
         labels.append(str(item["label"]))
-        current = item.get("parent_key")  # type: ignore[assignment]
+        parent = item.get("parent_key")
+        current = str(parent) if parent is not None else None
     return " > ".join(reversed(labels))
+
+
+def canonical_assignment_key(sku: str, key: str) -> str:
+    if key == "automatic_compound_applicators":
+        return "powered_compound_applicators" if sku in POWERED_APPLICATOR_SKUS else "applicator_heads"
+    return LEGACY_TAXON_ALIASES.get(key, key)
 
 
 def load_assignments(path: Path, taxa: dict[str, dict[str, object]]) -> dict[str, list[tuple[int, str]]]:
@@ -52,7 +91,7 @@ def load_assignments(path: Path, taxa: dict[str, dict[str, object]]) -> dict[str
     result: dict[str, list[tuple[int, str]]] = {}
     for row in rows:
         sku = row["sku"].strip()
-        key = row["taxon_key"].strip()
+        key = canonical_assignment_key(sku, row["taxon_key"].strip())
         if row["review_status"].strip() != "approved":
             raise ValueError(f"{sku}/{key}: category assignment is not approved")
         if key not in taxa:
@@ -66,17 +105,11 @@ def load_assignments(path: Path, taxa: dict[str, dict[str, object]]) -> dict[str
     return result
 
 
-def compatibility_keys(taxon_key: str, taxa: dict[str, dict[str, object]]) -> tuple[str, str]:
-    if taxon_key == "replacement_parts":
-        return "parts", "parts"
-    if taxon_key == "stilts":
-        return "stilts", "stilts"
-    if taxon_key == "tool_storage_cases":
-        return "accessories", "tool_storage_cases"
-    parent = str(taxa[taxon_key].get("parent_key") or "")
-    if parent == "automatic_taping_tools":
-        return parent, taxon_key
-    return taxon_key, taxon_key
+def compatibility_keys(taxon_key: str) -> tuple[str, str]:
+    try:
+        return COMPATIBILITY_KEYS[taxon_key]
+    except KeyError as exc:
+        raise ValueError(f"taxon {taxon_key} has no compatibility-facet contract") from exc
 
 
 def rebuild(rows: list[dict[str, str]], assignments: dict[str, list[tuple[int, str]]], taxa: dict[str, dict[str, object]]) -> tuple[list[dict[str, str]], dict[str, int]]:
@@ -85,12 +118,14 @@ def rebuild(rows: list[dict[str, str]], assignments: dict[str, list[tuple[int, s
         missing = sorted(set(owners) - set(assignments))
         extra = sorted(set(assignments) - set(owners))
         raise ValueError(f"assignment coverage mismatch; missing={missing[:10]}, extra={extra[:10]}")
+
     changes = {"Categories": 0, "Meta: _dtb_category_key": 0, "Meta: _dtb_display_category_key": 0}
     owner_paths = {
         sku: ", ".join(path_for(key, taxa) for _, key in assignments[sku])
         for sku in owners
     }
     owner_primary = {sku: assignments[sku][0][1] for sku in owners}
+
     for row in rows:
         if row["Type"].strip() == "variation":
             parent = row["Parent"].strip()
@@ -102,7 +137,8 @@ def rebuild(rows: list[dict[str, str]], assignments: dict[str, list[tuple[int, s
             sku = row["SKU"].strip()
             expected = owner_paths[sku]
             primary = owner_primary[sku]
-        category_key, display_key = compatibility_keys(primary, taxa)
+
+        category_key, display_key = compatibility_keys(primary)
         expected_fields = {
             "Categories": expected,
             "Meta: _dtb_category_key": category_key,
@@ -136,6 +172,7 @@ def main() -> int:
     parser.add_argument("--assignments", type=Path, default=DEFAULT_ASSIGNMENTS)
     parser.add_argument("--apply", action="store_true")
     args = parser.parse_args()
+
     catalog = args.catalog.resolve()
     fields, rows = load_csv(catalog)
     taxa = load_taxa(args.taxonomy.resolve())
@@ -143,8 +180,15 @@ def main() -> int:
     rows, changes = rebuild(rows, assignments, taxa)
     before = digest(catalog)
     total_changes = sum(changes.values())
-    output_fields = fields
-    result = {"rows": len(rows), "columns": len(output_fields), "field_changes": changes, "total_field_changes": total_changes, "before_sha256": before, "applied": False}
+    result = {
+        "rows": len(rows),
+        "columns": len(fields),
+        "field_changes": changes,
+        "total_field_changes": total_changes,
+        "before_sha256": before,
+        "applied": False,
+    }
+
     if args.apply and total_changes:
         backup = catalog.with_name(catalog.name + ".bak")
         temp_backup = backup.with_name(backup.name + ".tmp")
@@ -152,8 +196,14 @@ def main() -> int:
         os.replace(temp_backup, backup)
         if digest(backup) != before:
             raise RuntimeError("backup hash does not match mutation input")
-        write_atomic(catalog, output_fields, rows)
-        result.update({"applied": True, "backup": str(backup), "backup_sha256": digest(backup), "after_sha256": digest(catalog)})
+        write_atomic(catalog, fields, rows)
+        result.update({
+            "applied": True,
+            "backup": str(backup),
+            "backup_sha256": digest(backup),
+            "after_sha256": digest(catalog),
+        })
+
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
 
