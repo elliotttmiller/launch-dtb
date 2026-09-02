@@ -1,11 +1,20 @@
 import { brandToSlug, canonicalBrandLabel, canonicalDisplayCategorySlug, sortBrandsBy } from './catalogUrlState.js';
 
 const LEGACY_CATEGORY_SLUG_ALIASES = {
-  'automatic-taping-tool-sets': 'automatic-tool-sets',
-  'semi-automatic-tools': 'semi-automatic-taping-tools',
-  'semi-automatic-taping-tool-sets': 'semi-automatic-tool-sets',
-  'tool-sets': 'semi-automatic-tool-sets',
-  'tool-sets-automatic-taping-tools': 'automatic-tool-sets',
+  'automatic-taping-tools': 'taping-finishing-tools',
+  'automatic-taping-tool-sets': 'tool-sets-kits',
+  'automatic-tool-sets': 'tool-sets-kits',
+  'tool-sets': 'tool-sets-kits',
+  'tool-sets-automatic-taping-tools': 'tool-sets-kits',
+  'semi-automatic-tools': 'semi-automatic-tapers-banjos',
+  'semi-automatic-taping-tools': 'semi-automatic-tapers-banjos',
+  'semi-automatic-taping-tool-sets': 'tool-sets-kits',
+  'semi-automatic-tool-sets': 'tool-sets-kits',
+  'angle-heads': 'corner-finishers',
+  'angle-boxes-corner-applicators': 'corner-applicators-angle-boxes',
+  'loading-pumps': 'loading-compound-pumps',
+  'goosenecks-box-fillers': 'goosenecks-box-fillers-adapters',
+  'automatic-handles-extensions': 'handles-extensions',
 };
 
 export function canonicalCatalogCategorySlug(value) {
@@ -28,24 +37,10 @@ export function buildDisplayCategoryUrl(slug) {
   return `/products?display_category=${encodeURIComponent(slug)}`;
 }
 
-/**
- * Build a URL against the canonical WooCommerce product category taxonomy.
- * `category` is resolved server-side as a product_cat slug (including child
- * terms) before the legacy metadata fallback is considered. Known historical
- * storefront aliases are normalized here so stale callers cannot emit links
- * to terms that no longer exist in the canonical taxonomy.
- */
 export function buildCatalogCategoryUrl(slug) {
   return `/products?category=${encodeURIComponent(canonicalCatalogCategorySlug(slug))}`;
 }
 
-/**
- * Build a URL against the dedicated category landing page route. This is
- * what the storefront nav and sitemap should point at — `/category/:slug`
- * renders the same catalog engine as `/products` plus category hero/SEO
- * treatment. `buildCatalogCategoryUrl` is kept for any legacy callers that
- * still need the query-param form.
- */
 export function buildCategoryPageUrl(slug) {
   return `/category/${encodeURIComponent(canonicalCatalogCategorySlug(slug))}`;
 }
@@ -56,7 +51,6 @@ export function normalizeCatalogBrandEntry(rawBrand = {}) {
   const slug = brandToSlug(label);
   if (!slug) return null;
   const productCount = Number(rawBrand.productCount || rawBrand.count || 0);
-
   return {
     ...rawBrand,
     key: slug,
@@ -70,19 +64,14 @@ export function normalizeCatalogBrandEntry(rawBrand = {}) {
 
 export function dedupeCatalogBrandEntries(rawBrands = []) {
   const bySlug = new Map();
-
   (Array.isArray(rawBrands) ? rawBrands : []).forEach((rawBrand) => {
     const brand = normalizeCatalogBrandEntry(rawBrand);
     if (!brand) return;
-
     const existing = bySlug.get(brand.slug);
     if (!existing) {
       bySlug.set(brand.slug, brand);
       return;
     }
-
-    // Alias facets frequently describe the same product set. Preserve the
-    // canonical entry and use the highest reported count, not a summed count.
     const productCount = Math.max(existing.productCount || 0, brand.productCount || 0);
     bySlug.set(brand.slug, {
       ...existing,
@@ -93,7 +82,6 @@ export function dedupeCatalogBrandEntries(rawBrands = []) {
       count: productCount,
     });
   });
-
   return sortBrandsBy(Array.from(bySlug.values()), 'label');
 }
 
@@ -129,11 +117,6 @@ export function mergeCatalogDisplayCategories(displayCategoriesByBrand = {}) {
     .sort((a, b) => (b.count - a.count) || a.label.localeCompare(b.label));
 }
 
-/**
- * Normalize backend-owned WooCommerce product category navigation groups.
- * The backend supplies parent/child taxonomy structure; the frontend only
- * adapts the contract into links and never re-classifies products itself.
- */
 export function normalizeCatalogNavigationGroups(rawGroups = []) {
   return (Array.isArray(rawGroups) ? rawGroups : [])
     .map((rawGroup) => {
@@ -154,7 +137,6 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
         })
         .filter(Boolean)
         .sort((a, b) => String(a.label).localeCompare(String(b.label)));
-
       if (!label || !slug) return null;
       return {
         ...rawGroup,
