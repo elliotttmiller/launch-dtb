@@ -2,40 +2,34 @@
 
 ## Authority
 
-WooCommerce `product_cat` is the runtime storefront navigation authority. The canonical catalog sources under `products/` own the approved product-to-category classification that is projected into WooCommerce.
+The durable taxonomy/navigation contract is defined in `docs/catalog-navigation-contract.md` and the machine-readable hierarchy is defined in `products/catalog/source/taxonomy.json`.
 
-Historical category paths are migration inputs only. They are not proof that a product was functionally classified correctly.
+This document defines only the **classification decision process** for assigning an exact sellable SKU to that hierarchy. It must not duplicate or redefine the taxonomy tree.
 
-When an exact SKU has manufacturer evidence that conflicts with its historical category path, the reviewed SKU-level classification wins. Reviewed exceptions are stored in:
+WooCommerce `product_cat` is the runtime storefront navigation authority. Canonical catalog sources under `products/` own the approved product-to-category classification projected into WooCommerce.
+
+Historical category paths are migration inputs only. They are not evidence that a product was previously classified correctly.
+
+Reviewed exact-SKU exceptions are stored in:
 
 ```text
 products/catalog/source/product_category_overrides.csv
 ```
 
-The override registry is intentionally small and allowlisted. It must not become a fuzzy classifier or a second general taxonomy.
+The override registry is bounded and evidence-backed. It must not become a fuzzy classifier or a second general taxonomy.
 
 ## Functional classification rule
 
-Classify by the physical sellable tool and its operating role, not by a generic word in the product name.
+Classify by the physical sellable product and its operating role, not by a generic word in the product name, manufacturer terminology, brand, series, or historical storefront location.
 
-In particular, `applicator` is ambiguous and must never be treated as one universal product family.
+Manufacturer synonyms that describe the same physical/function class normalize to one canonical taxon. For example, `Angle Head` / `Anglehead` normalizes to `Corner Finishers`.
 
-```text
-Automatic Taping Tools
-  Angle Boxes & Corner Applicators
-    compound-holding corner/angle boxes that are filled from a loading system
-    and drive a corner finisher or applicator head
+Ambiguous terminology must be resolved using exact SKU evidence. In particular, the retired historical `Compound Applicators` class is not safe to infer from its name because it previously mixed:
 
-  Compound Tubes
-    passive tube-style compound delivery bodies
+- complete powered/pressure-assisted compound-delivery tools; and
+- passive applicator/mud heads attached to another delivery tool.
 
-  Compound Applicators
-    complete powered or pressure-assisted applicators such as MiniShot and
-    MudRunner, plus applicator heads/mud heads and other tools that apply a
-    defined bead/profile
-```
-
-A Corner Applicator Box is not a Compound Applicator Head. A product must not cross those families because both happen to apply joint compound.
+Those products now resolve to `Powered Compound Applicators` or `Applicator Heads` only after exact functional review.
 
 ## Evidence order
 
@@ -44,47 +38,44 @@ For a disputed or ambiguous SKU, use this evidence order:
 1. current manufacturer product page or current manufacturer catalog;
 2. manufacturer operation/maintenance guide or schematic;
 3. manufacturer-defined compatible system and required upstream/downstream tools;
-4. specialist retailer evidence only as secondary confirmation.
+4. specialist retailer evidence as secondary confirmation.
 
-Product title keywords alone are insufficient where terminology overlaps.
+Product-title keywords alone are insufficient where terminology overlaps.
 
 ## Current reviewed corrections
 
-The following reviewed functional corrections supersede historical path migration:
+The reviewed exceptions currently include:
 
-- `4-772` — LEVEL5 MiniShot: Compound Applicator.
-- `COL-THROTTLE-CORNER-FLUSHER-BOX` — Columbia ThrottleBox: Angle Boxes & Corner Applicators.
-- `COL-ANGLE-HEAD` — Columbia Angle Head: Angle Heads.
-- `CTA01TT` — TapeTech Compound Tube Filler Adapter: Goosenecks & Box Fillers.
-- `LV5-CORNER-APPLICATOR` — LEVEL5 Corner Applicator Box: Angle Boxes & Corner Applicators.
-- `LV5-CORNER-FINISHER` — LEVEL5 Corner Finisher: Corner Finishers.
-- `MRX01TT` — TapeTech MudRunner Pro Extension: Handles & Extensions.
-- `PT-CA8` — Platinum 8-inch Corner Applicator: Angle Boxes & Corner Applicators.
-- `PT-CF` — Platinum Angle Head Corner Finisher: Corner Finishers.
-- `TT-CORNER-APPLICATOR` — TapeTech Corner Applicator: Angle Boxes & Corner Applicators.
-- `TT-CORNER-FINISHER` — TapeTech Corner Finisher: Corner Finishers.
-- `TT-MUDRUNNER` — TapeTech MudRunner: Compound Applicator.
+- `4-772` — LEVEL5 MiniShot: `Powered Compound Applicators`.
+- `COL-ANGLE-HEAD` — Columbia Angle Head: `Corner Finishers`.
+- `COL-THROTTLE-CORNER-FLUSHER-BOX` — Columbia ThrottleBox: `Corner Applicators & Angle Boxes`.
+- `CTA01TT` — TapeTech Compound Tube Filler Adapter: `Goosenecks, Box Fillers & Adapters`.
+- `LV5-CORNER-APPLICATOR` — LEVEL5 Corner Applicator Box: `Corner Applicators & Angle Boxes`.
+- `LV5-CORNER-FINISHER` — LEVEL5 Corner Finisher: `Corner Finishers`.
+- `MRX01TT` — TapeTech MudRunner Pro Extension: `Handles & Extensions`.
+- `PT-CA8` — Platinum Corner Applicator: `Corner Applicators & Angle Boxes`.
+- `PT-CF` — Platinum Angle Head Corner Finisher: `Corner Finishers`.
+- `TT-CORNER-APPLICATOR` — TapeTech Corner Applicator: `Corner Applicators & Angle Boxes`.
+- `TT-CORNER-FINISHER` — TapeTech Corner Finisher: `Corner Finishers`.
+- `TT-MUDRUNNER` — TapeTech MudRunner: `Powered Compound Applicators`.
 
-`Automatic Taping Tools` is the industry system umbrella. `Semi-Automatic`
-remains a distinct tool/set classification where applicable, but it does not
-own duplicate Compound Tubes, Compound Applicators, Corner Flushers, Handles,
-or Tool Sets branches.
-
-The remaining products in `Compound Applicators` are not automatically reclassified by name. Applicator heads, flat applicators, inside/outside applicator heads, mud heads, and powered applicating bodies require their exact manufacturer-supported functional classification.
+The exact evidence URLs and approval state live in `product_category_overrides.csv`; this prose list is descriptive, not a competing assignment registry.
 
 ## Pipeline contract
 
 `scripts/catalog/build_catalog_category_assignments.py` performs deterministic category assignment in this order:
 
-1. load and validate taxonomy;
-2. load reviewed SKU overrides;
-3. for each owner SKU, apply an approved exact SKU override when present;
-4. otherwise migrate from an exact approved historical/current category path;
+1. load and validate `products/catalog/source/taxonomy.json`;
+2. load reviewed exact-SKU overrides;
+3. apply an approved exact SKU override when present;
+4. otherwise migrate from an exact recognized canonical/historical path;
 5. reject unknown SKUs, duplicate overrides, unapproved overrides, missing evidence, and unknown taxa;
-6. write the explicit assignment registry and brand/category coverage report.
+6. write the explicit owner-SKU assignment projection and coverage report.
 
-The subsequent official-catalog rebuild projects those explicit assignments into the canonical WooCommerce import fields. Runtime code and the React storefront must not infer or repair category ownership from product names.
+`scripts/catalog/rebuild_official_catalog_taxonomy.py` then projects approved assignments into the official WooCommerce CSV fields, derives compatibility metadata, forces exact parent/variation inheritance, and creates a verified rollback backup before an applied write.
+
+Runtime PHP and React code must consume the projected/backend-owned classification. They must not repair product category ownership from names.
 
 ## Non-goals
 
-This contract does not change SKU, MPN, GTIN, product/variation identity, pricing, inventory, fulfillment, orders, payments, refunds, Veeqo, QuickBooks, or compatibility identity.
+This contract does not change SKU, MPN, GTIN, product/variation identity, pricing, inventory, fulfillment, orders, payments, refunds, Veeqo, QuickBooks, schematic identity, or compatibility identity.
