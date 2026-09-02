@@ -79,17 +79,19 @@ export function isAllProductsCategorySlug(value = '') {
 }
 
 const DISPLAY_CATEGORY_ALIASES = {
-  'semi-compound-tubes': 'automatic-compound-tubes',
-  'compound-tubes': 'automatic-compound-tubes',
-  'semi-compound-applicators': 'automatic-compound-applicators',
-  'compound-applicators': 'automatic-compound-applicators',
-  'semi-corner-flushers': 'automatic-corner-flushers',
-  'corner-flushers': 'automatic-corner-flushers',
-  'semi-handles-extensions': 'automatic-handles-extensions',
-  'semi-automatic-handles-extensions': 'automatic-handles-extensions',
-  'semi-tool-sets': 'automatic-tool-sets',
-  'semi-automatic-tool-sets': 'automatic-tool-sets',
-  'semi-automatic-tapers': 'semi-automatic-tools',
+  'automatic-angle-heads': 'corner-finishers',
+  'automatic-corner-finishers': 'corner-finishers',
+  'angle-heads': 'corner-finishers',
+  'automatic-compound-tubes': 'compound-tubes',
+  'semi-compound-tubes': 'compound-tubes',
+  'semi-handles-extensions': 'handles',
+  'semi-automatic-handles-extensions': 'handles',
+  'automatic-handles-extensions': 'handles',
+  'semi-tool-sets': 'toolsets',
+  'semi-automatic-tool-sets': 'toolsets',
+  'automatic-tool-sets': 'toolsets',
+  'semi-automatic-tools': 'semi-automatic-tapers-banjos',
+  'semi-automatic-tapers': 'semi-automatic-tapers-banjos',
 };
 
 export function canonicalDisplayCategorySlug(value = '') {
@@ -104,11 +106,12 @@ export function canonicalDisplayCategorySlug(value = '') {
 // ── DTB category key → display label ─────────────────────────────────────────
 
 export const CATEGORY_LABELS = {
-  taping: 'Automatic Taping Tools',
+  taping: 'Taping Tools',
   finishing: 'Finishing Tools',
   corner: 'Corner Tools',
   handles: 'Handles & Extensions',
-  mudboxes: 'Mud Boxes & Pumps',
+  mudboxes: 'Pumps & Loading',
+  accessories: 'Accessories',
   sanding: 'Sanding Tools',
   stilts: 'Stilts',
   texture: 'Texture Tools',
