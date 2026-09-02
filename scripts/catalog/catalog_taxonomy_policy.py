@@ -1,21 +1,28 @@
 #!/usr/bin/env python3
-"""Universal DTB catalog navigation/taxonomy policy.
+"""DTB catalog taxonomy policy derived from the canonical taxonomy registry.
 
-WooCommerce product_cat paths (`Categories` in the official import CSV) are the
-primary storefront navigation authority. DTB category/display metadata are
-compatibility facets derived from that navigation identity. Brand and product
-family are orthogonal and must never create navigation branches.
+`products/catalog/source/taxonomy.json` owns the product-category tree.
+This module adds deterministic compatibility metadata and legacy migration
+aliases; it does not maintain a second copy of the hierarchy.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+from pathlib import Path
 import re
+
+ROOT = Path(__file__).resolve().parents[2]
+TAXONOMY_PATH = ROOT / "products" / "catalog" / "source" / "taxonomy.json"
 
 CATEGORY_FIELD = "Meta: _dtb_category_key"
 DISPLAY_FIELD = "Meta: _dtb_display_category_key"
 KIND_FIELD = "Meta: _dtb_product_kind"
 PARENT_FIELD = "Meta: _dtb_parent_product_sku"
+
+DRYWALL_ROOT = "Taping & Finishing Tools"
+STILT_ROOT = "Stilts & Accessories"
 
 
 def normalize_key(value: object) -> str:
@@ -36,6 +43,7 @@ def split_category_paths(raw: object) -> list[list[str]]:
 
 @dataclass(frozen=True)
 class NavigationTaxon:
+    key: str
     root: str
     group: str
     leaf: str
@@ -54,119 +62,160 @@ class TaxonomyExpectation:
     reason: str
 
 
-DRYWALL_ROOT = "Taping & Finishing Tools"
-STILT_ROOT = "Stilts & Accessories"
-AUTOMATIC = "Automatic Taping Tools"
+def _load_registry() -> tuple[dict[str, dict[str, object]], list[str]]:
+    payload = json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+    taxa = {str(item["key"]): item for item in payload["taxa"]}
+    if len(taxa) != len(payload["taxa"]):
+        raise ValueError("taxonomy registry contains duplicate keys")
+    slugs = [str(item["slug"]) for item in payload["taxa"]]
+    if len(slugs) != len(set(slugs)):
+        raise ValueError("taxonomy registry contains duplicate slugs")
+    return taxa, [str(key) for key in payload.get("root_taxa", [])]
 
 
-def _t(root: str, group: str, leaf: str, category: str, display: str) -> NavigationTaxon:
-    return NavigationTaxon(root, group, leaf, category, display)
+REGISTRY, ROOT_TAXA = _load_registry()
 
 
-NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = (
-    _t(DRYWALL_ROOT, AUTOMATIC, "Automatic Tapers", "automatic_taping_tools", "automatic_tapers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Flat Boxes", "automatic_taping_tools", "flat_boxes"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Heads", "automatic_taping_tools", "automatic_angle_heads"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Finishers", "automatic_taping_tools", "automatic_corner_finishers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Angle Boxes & Corner Applicators", "automatic_taping_tools", "automatic_angle_boxes_corner_applicators"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Tubes", "automatic_taping_tools", "automatic_compound_tubes"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Compound Applicators", "automatic_taping_tools", "automatic_compound_applicators"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Rollers", "automatic_taping_tools", "automatic_corner_rollers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Corner Flushers", "automatic_taping_tools", "automatic_corner_flushers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Nail Spotters", "automatic_taping_tools", "automatic_nail_spotters"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Loading Pumps", "automatic_taping_tools", "automatic_loading_pumps"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Goosenecks & Box Fillers", "automatic_taping_tools", "automatic_goosenecks_box_fillers"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Continuous Flow Tools", "automatic_taping_tools", "automatic_continuous_flow_tools"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Handles & Extensions", "automatic_taping_tools", "automatic_handles_extensions"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Tool Sets", "automatic_taping_tools", "automatic_tool_sets"),
-    _t(DRYWALL_ROOT, AUTOMATIC, "Semi-Automatic Tools", "automatic_taping_tools", "semi_automatic_tools"),
-    _t(DRYWALL_ROOT, "Tool Storage & Cases", "", "accessories", "tool_storage_cases"),
-    _t("Replacement Parts", "", "", "parts", "parts"),
-    _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
-    _t(STILT_ROOT, "Accessories", "", "accessories", "accessories"),
-    _t(STILT_ROOT, "Parts", "", "parts", "parts"),
-    _t(STILT_ROOT, "Accessories", "Extension Tubes & Clamps", "accessories", "accessories"),
-    _t(STILT_ROOT, "Accessories", "Legs & Brackets", "accessories", "accessories"),
-    _t(STILT_ROOT, "Accessories", "Hardware", "accessories", "accessories"),
-    _t(STILT_ROOT, "Accessories", "Springs & Bearings", "accessories", "accessories"),
-    _t(STILT_ROOT, "Accessories", "Straps & Buckles", "accessories", "accessories"),
-    _t(STILT_ROOT, "Accessories", "Soles & Floor Plates", "accessories", "accessories"),
+def _path_labels(key: str) -> list[str]:
+    labels: list[str] = []
+    seen: set[str] = set()
+    current: str | None = key
+    while current is not None:
+        if current in seen or current not in REGISTRY:
+            raise ValueError(f"invalid taxonomy ancestry at {current}")
+        seen.add(current)
+        item = REGISTRY[current]
+        labels.append(str(item["label"]))
+        parent = item.get("parent_key")
+        current = str(parent) if parent is not None else None
+    return list(reversed(labels))
+
+
+# Compatibility facets are intentionally separate from product_cat taxonomy.
+# Values match the revised official catalog migration.
+COMPATIBILITY_BY_TAXON: dict[str, tuple[str, str]] = {
+    "automatic_tapers": ("taping", "automatic_tapers"),
+    "semi_automatic_tapers_banjos": ("taping", "semi_automatic_tapers_banjos"),
+    "flat_boxes": ("finishing", "flat_boxes"),
+    "automatic_corner_finishers": ("corner", "corner_finishers"),
+    "automatic_angle_boxes_corner_applicators": ("corner", "automatic_angle_boxes_corner_applicators"),
+    "automatic_compound_tubes": ("corner", "compound_tubes"),
+    "powered_compound_applicators": ("corner", "powered_compound_applicators"),
+    "applicator_heads": ("corner", "applicator_heads"),
+    "automatic_corner_flushers": ("corner", "automatic_corner_flushers"),
+    "automatic_corner_rollers": ("corner", "automatic_corner_rollers"),
+    "automatic_nail_spotters": ("taping", "automatic_nail_spotters"),
+    "automatic_loading_pumps": ("mudboxes", "automatic_loading_pumps"),
+    "automatic_goosenecks_box_fillers": ("mudboxes", "automatic_goosenecks_box_fillers"),
+    "automatic_continuous_flow_tools": ("taping", "automatic_continuous_flow_tools"),
+    "automatic_handles_extensions": ("handles", "handles"),
+    "automatic_tool_sets": ("taping", "toolsets"),
+    "tool_storage_cases": ("accessories", "tool_storage_cases"),
+    "replacement_parts": ("parts", "parts"),
+    "stilts": ("stilts", "stilts"),
+}
+
+
+def _navigation_taxon(key: str) -> NavigationTaxon:
+    labels = _path_labels(key)
+    category_key, display_key = COMPATIBILITY_BY_TAXON[key]
+    if len(labels) == 1:
+        root, group, leaf = labels[0], "", ""
+    elif len(labels) == 2:
+        root, group, leaf = labels[0], labels[1], ""
+    else:
+        root, group, leaf = labels[0], labels[1], labels[-1]
+    return NavigationTaxon(key, root, group, leaf, category_key, display_key)
+
+
+NAVIGATION_TAXA: tuple[NavigationTaxon, ...] = tuple(
+    _navigation_taxon(key) for key in COMPATIBILITY_BY_TAXON
 )
-
 BY_PATH = {normalize_key(t.path): t for t in NAVIGATION_TAXA}
 BY_LEAF: dict[str, tuple[NavigationTaxon, ...]] = {}
 for _taxon in NAVIGATION_TAXA:
-    _leaf_key = normalize_key(_taxon.leaf or _taxon.group)
+    _leaf_key = normalize_key(_taxon.leaf or _taxon.group or _taxon.root)
     BY_LEAF[_leaf_key] = (*BY_LEAF.get(_leaf_key, ()), _taxon)
 
-PATH_ALIASES: dict[str, str] = {
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Automatic Tapers"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Flat Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Flat Boxes"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Finishing Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Flat Boxes"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Angle Heads"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Heads"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Finishers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Finishers"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Angle Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes & Corner Applicators"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Boxes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Angle Boxes & Corner Applicators"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Rollers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Rollers"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Nail Spotters"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Nail Spotters"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Loading Pumps"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Loading Pumps"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Goosenecks"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Goosenecks & Box Fillers"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Box Fillers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Goosenecks & Box Fillers"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Corner Tool Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Fixed Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Extendable Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Flat Box Handles"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Handles & Extensions"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
-    normalize_key("Drywall Finishing Tools > Automatic Taping Tools > Automatic Taping Tool Cases"): normalize_key(f"{DRYWALL_ROOT} > Tool Storage & Cases"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Tapers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Semi-Automatic Tools"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Tubes"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Compound Tubes"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Compound Applicators"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Compound Applicators"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Corner Flushers"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Corner Flushers"),
-    normalize_key("Drywall Finishing Tools > Semi-Automatic Tools > Semi-Automatic Taping Tool Sets"): normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets"),
-    normalize_key("Drywall Finishing Tools > Parts"): normalize_key("Replacement Parts"),
+
+# Historical paths are migration inputs only. Ambiguous historical Compound
+# Applicators are intentionally not mapped here because that former leaf now
+# splits between passive Applicator Heads and Powered Compound Applicators.
+LEGACY_PATH_TARGETS = {
+    "automatic taping tools > automatic tapers": "automatic_tapers",
+    "automatic taping tools > flat boxes": "flat_boxes",
+    "automatic taping tools > finishing boxes": "flat_boxes",
+    "automatic taping tools > angle heads": "automatic_corner_finishers",
+    "automatic taping tools > corner finishers": "automatic_corner_finishers",
+    "automatic taping tools > angle boxes": "automatic_angle_boxes_corner_applicators",
+    "automatic taping tools > angle boxes & corner applicators": "automatic_angle_boxes_corner_applicators",
+    "automatic taping tools > corner boxes": "automatic_angle_boxes_corner_applicators",
+    "automatic taping tools > compound tubes": "automatic_compound_tubes",
+    "automatic taping tools > corner flushers": "automatic_corner_flushers",
+    "automatic taping tools > corner rollers": "automatic_corner_rollers",
+    "automatic taping tools > nail spotters": "automatic_nail_spotters",
+    "automatic taping tools > loading pumps": "automatic_loading_pumps",
+    "automatic taping tools > goosenecks": "automatic_goosenecks_box_fillers",
+    "automatic taping tools > goosenecks & box fillers": "automatic_goosenecks_box_fillers",
+    "automatic taping tools > box fillers": "automatic_goosenecks_box_fillers",
+    "automatic taping tools > handles & extensions": "automatic_handles_extensions",
+    "automatic taping tools > corner tool handles": "automatic_handles_extensions",
+    "automatic taping tools > fixed handles": "automatic_handles_extensions",
+    "automatic taping tools > extendable handles": "automatic_handles_extensions",
+    "automatic taping tools > flat box handles": "automatic_handles_extensions",
+    "automatic taping tools > tool sets": "automatic_tool_sets",
+    "automatic taping tools > automatic taping tool sets": "automatic_tool_sets",
+    "automatic taping tools > semi-automatic tools": "semi_automatic_tapers_banjos",
+    "semi-automatic tools > semi-automatic tapers": "semi_automatic_tapers_banjos",
+    "semi-automatic taping tools > semi-automatic tapers": "semi_automatic_tapers_banjos",
+    "automatic taping tools > tool cases": "tool_storage_cases",
+    "parts": "replacement_parts",
 }
-GROUP_ALIASES = {}
+
+PATH_ALIASES: dict[str, str] = {}
+for legacy_suffix, target_key in LEGACY_PATH_TARGETS.items():
+    target = _navigation_taxon(target_key)
+    for legacy_root in ("Drywall Finishing Tools", DRYWALL_ROOT):
+        PATH_ALIASES[normalize_key(f"{legacy_root} > {legacy_suffix}")] = normalize_key(target.path)
+PATH_ALIASES[normalize_key("Drywall Finishing Tools > Parts")] = normalize_key("Replacement Parts")
+
 LEAF_ALIASES = {
+    "angle_heads": "corner_finishers",
+    "angle_head": "corner_finishers",
+    "anglehead": "corner_finishers",
     "finishing_boxes": "flat_boxes",
     "flat_finishing_boxes": "flat_boxes",
-    "box_handles": "flat_box_handles",
-    "taping_tool_sets": "automatic_taping_tool_sets",
-    "tool_sets": "automatic_taping_tool_sets",
-    "tool_sets_kits": "automatic_taping_tool_sets",
-    "corner_finisher": "corner_finishers",
-    "drywall_pumps": "loading_pumps",
-    "pumps": "loading_pumps",
-    "compound_pumps": "loading_pumps",
-    "mud_pumps": "loading_pumps",
+    "compound_pumps": "loading_compound_pumps",
+    "loading_pumps": "loading_compound_pumps",
+    "mud_pumps": "loading_compound_pumps",
     "drywall_stilts": "stilts",
 }
 FAMILY_ONLY_KEYS = {"predator", "predator_family"}
 
 PRODUCT_KIND_DEFAULTS = {
-    "part": BY_PATH[normalize_key("Replacement Parts")],
-    "toolset": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets")],
-    "kit": BY_PATH[normalize_key(f"{DRYWALL_ROOT} > {AUTOMATIC} > Tool Sets")],
-    "stilt": _t(STILT_ROOT, "Stilts", "", "stilts", "stilts"),
+    "part": _navigation_taxon("replacement_parts"),
+    "toolset": _navigation_taxon("automatic_tool_sets"),
+    "kit": _navigation_taxon("automatic_tool_sets"),
+    "stilt": _navigation_taxon("stilts"),
 }
 
-# Metadata-only mapping retained for the legacy audit/normalizer API. Generic
-# merchandising values intentionally remain ambiguous here even though an
-# explicit navigation path may resolve them in canonical_values().
 DISPLAY_TO_CATEGORY_KEY = {
-    "automatic_tapers": "taping",
-    "semi_automatic_tapers": "taping",
+    display: category for category, display in COMPATIBILITY_BY_TAXON.values()
+}
+# Retain recognized historical compatibility slugs for audit-only reads.
+DISPLAY_TO_CATEGORY_KEY.update({
+    "automatic_angle_heads": "corner",
+    "automatic_corner_finishers": "corner",
+    "automatic_compound_tubes": "corner",
+    "automatic_compound_applicators": "corner",
+    "automatic_handles_extensions": "handles",
+    "automatic_tool_sets": "taping",
+    "semi_automatic_tools": "taping",
     "nail_spotters": "taping",
     "finishing_boxes": "finishing",
-    "smoothing_blades": "finishing",
-    "handles": "handles",
     "pumps": "mudboxes",
-    "corner_tools": "corner",
-    "compound_tubes": "corner",
-    "parts": "parts",
-    "stilts": "stilts",
-}
-AMBIGUOUS_DISPLAY_KEYS = {"predator_family", "toolsets", "accessories"}
+})
+AMBIGUOUS_DISPLAY_KEYS = {"predator_family", "accessories"}
 
 
 def taxons_for_path(raw_path: object) -> tuple[NavigationTaxon, ...]:
@@ -175,19 +224,14 @@ def taxons_for_path(raw_path: object) -> tuple[NavigationTaxon, ...]:
         normalized_parts = [normalize_key(part) for part in parts]
         if any(part in FAMILY_ONLY_KEYS for part in normalized_parts):
             continue
-        normalized_path_parts = [GROUP_ALIASES.get(part, part) for part in normalized_parts]
-        path_key = normalize_key(" > ".join(normalized_path_parts))
+        path_key = normalize_key(" > ".join(parts))
         direct = BY_PATH.get(PATH_ALIASES.get(path_key, path_key))
         if direct:
             candidates.append(direct)
             continue
         leaf_key = LEAF_ALIASES.get(normalize_key(parts[-1]), normalize_key(parts[-1]))
         leaf_candidates = BY_LEAF.get(leaf_key, ())
-        group_keys = {normalize_key(part) for part in parts[:-1]}
-        grouped = [taxon for taxon in leaf_candidates if normalize_key(taxon.group) in group_keys]
-        if len(grouped) == 1:
-            candidates.append(grouped[0])
-        elif len(leaf_candidates) == 1:
+        if len(leaf_candidates) == 1:
             candidates.append(leaf_candidates[0])
     unique = {item.path: item for item in candidates}
     return tuple(unique.values())
@@ -203,19 +247,15 @@ def navigation_for_row(row: dict[str, str], parent: dict[str, str] | None = None
         return navigation_for_row(parent, None) if parent else None
 
     kind = normalize_key(row.get(KIND_FIELD))
-    if kind == "part":
-        for parts in split_category_paths(row.get("Categories")):
-            if parts and normalize_key(parts[0]) == normalize_key(STILT_ROOT):
-                return _t(STILT_ROOT, "Parts", "", "parts", "parts")
-        return PRODUCT_KIND_DEFAULTS["part"]
-    if kind == "stilt":
-        return PRODUCT_KIND_DEFAULTS["stilt"]
-    explicit = taxon_for_path(row.get("Categories"))
-    if explicit:
-        return explicit
-    if kind in {"toolset", "kit"}:
-        return PRODUCT_KIND_DEFAULTS[kind]
-    return None
+    if kind in PRODUCT_KIND_DEFAULTS:
+        default = PRODUCT_KIND_DEFAULTS[kind]
+        if kind == "part":
+            for parts in split_category_paths(row.get("Categories")):
+                if parts and normalize_key(parts[0]) == normalize_key(STILT_ROOT):
+                    return NavigationTaxon("stilt_parts", STILT_ROOT, "Parts", "", "parts", "parts")
+        explicit = taxon_for_path(row.get("Categories"))
+        return explicit or default
+    return taxon_for_path(row.get("Categories"))
 
 
 def canonical_values(row: dict[str, str], parent: dict[str, str] | None = None) -> dict[str, str] | None:
