@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { decodeHtmlEntities } from '../../utils/string';
-import '../../styles/product-detail-approved-mockup.css';
 import '../../styles/product-detail-overview-refinements.css';
 import '../../styles/product-detail-brand-refinements.css';
 

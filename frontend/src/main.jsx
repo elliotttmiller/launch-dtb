@@ -42,6 +42,7 @@ import './styles/global-typography.css';
 import './styles/product-detail-typography.css';
 import './styles/product-detail-production.css';
 import './styles/product-detail-desktop-polish.css';
+import './styles/product-detail-approved-mockup.css';
 /* Product description/tabs are a feature presentation authority and load after
  * the PDP production layers so their narrow-screen component rules can replace
  * legacy grid-tab behavior without escalating specificity. */

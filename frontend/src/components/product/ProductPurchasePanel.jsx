@@ -9,7 +9,7 @@ const PDP_PAYMENT_METHODS = Object.freeze([
   PAYMENT_CARD_NETWORK_ASSETS.visa,
   PAYMENT_CARD_NETWORK_ASSETS.mastercard,
   PAYMENT_CARD_NETWORK_ASSETS.americanExpress,
-  ...EXPRESS_CHECKOUT_METHODS.filter(({ id }) => id !== 'paypal'),
+  ...EXPRESS_CHECKOUT_METHODS.filter(({ id }) => id !== 'paypal' && id !== 'afterpay'),
 ].filter(Boolean));
 
 export default function ProductPurchasePanel({

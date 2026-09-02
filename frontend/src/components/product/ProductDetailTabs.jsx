@@ -1,5 +1,13 @@
-import { useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { FileText, ListChecks, Star, Truck } from 'lucide-react';
+
+const DETAIL_TABS = [
+  { key: 'description', label: 'Overview', Icon: FileText },
+  { key: 'specs', label: 'Specifications', Icon: ListChecks },
+  { key: 'shipping', label: 'Shipping & Returns', Icon: Truck },
+  { key: 'reviews', label: 'Reviews', Icon: Star },
+];
 
 function ShippingReturnsPanel() {
   return (
@@ -25,19 +33,50 @@ export default function ProductDetailTabs({
   specsNode,
   reviewsNode,
 }) {
+  const tabsRef = useRef(null);
+  const pillRef = useRef(null);
   const tabRefs = useRef([]);
-  const tabs = [
-    { key: 'description', label: 'Overview' },
-    { key: 'specs', label: 'Specifications' },
-    { key: 'shipping', label: 'Shipping & Returns' },
-    { key: 'reviews', label: 'Reviews' },
-  ];
 
   // `includes` was the legacy tool-set tab key. Tool-set composition now lives
   // exclusively in Specifications, so normalize any stale caller state to the
   // canonical Specifications tab until all legacy callers are removed.
   const resolvedActiveTab = activeTab === 'includes' ? 'specs' : activeTab;
-  const activeTabConfig = tabs.find((tab) => tab.key === resolvedActiveTab) || tabs[0];
+  const activeTabConfig = DETAIL_TABS.find((tab) => tab.key === resolvedActiveTab) || DETAIL_TABS[0];
+
+  useLayoutEffect(() => {
+    const tabsNode = tabsRef.current;
+    const pillNode = pillRef.current;
+    const activeIndex = DETAIL_TABS.findIndex((tab) => tab.key === activeTabConfig.key);
+    const activeTabNode = tabRefs.current[activeIndex];
+
+    if (!tabsNode || !pillNode || !activeTabNode) return undefined;
+
+    let frame = 0;
+    const repositionPill = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        pillNode.style.transform = `translateX(${activeTabNode.offsetLeft}px)`;
+        pillNode.style.width = `${activeTabNode.offsetWidth}px`;
+        pillNode.classList.add('is-ready');
+      });
+    };
+
+    repositionPill();
+
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(repositionPill)
+      : null;
+    resizeObserver?.observe(tabsNode);
+    resizeObserver?.observe(activeTabNode);
+    window.addEventListener('resize', repositionPill);
+    document.fonts?.ready.then(repositionPill).catch(() => {});
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      window.removeEventListener('resize', repositionPill);
+    };
+  }, [activeTabConfig.key]);
 
   const overviewNode = (
     <div className="dtb-pdp-overview">
@@ -67,21 +106,30 @@ export default function ProductDetailTabs({
   const handleTabKeyDown = (event, index) => {
     let nextIndex = null;
 
-    if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
-    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
+    if (event.key === 'ArrowRight') nextIndex = (index + 1) % DETAIL_TABS.length;
+    if (event.key === 'ArrowLeft') nextIndex = (index - 1 + DETAIL_TABS.length) % DETAIL_TABS.length;
     if (event.key === 'Home') nextIndex = 0;
-    if (event.key === 'End') nextIndex = tabs.length - 1;
+    if (event.key === 'End') nextIndex = DETAIL_TABS.length - 1;
 
     if (nextIndex === null) return;
 
     event.preventDefault();
-    activateTab(tabs[nextIndex].key, nextIndex, { focus: true });
+    activateTab(DETAIL_TABS[nextIndex].key, nextIndex, { focus: true });
   };
 
   return (
     <div className="dtb-pdp-sections">
-      <div className="dtb-pdp-tabs" role="tablist" aria-label="Product details">
-        {tabs.map((tab, index) => (
+      <div
+        ref={tabsRef}
+        className="dtb-pdp-tabs"
+        role="tablist"
+        aria-label="Product details"
+        aria-orientation="horizontal"
+      >
+        <span ref={pillRef} className="dtb-pdp-tabs__pill" aria-hidden="true" />
+        {DETAIL_TABS.map((tab, index) => {
+          const Icon = tab.Icon;
+          return (
           <button
             key={tab.key}
             ref={(node) => { tabRefs.current[index] = node; }}
@@ -95,9 +143,11 @@ export default function ProductDetailTabs({
             tabIndex={resolvedActiveTab === tab.key ? 0 : -1}
             className={`dtb-pdp-tabs__tab ${resolvedActiveTab === tab.key ? 'is-active' : ''}`}
           >
-            {tab.label}
+            <Icon className="dtb-pdp-tabs__icon" aria-hidden="true" strokeWidth={1.9} />
+            <span className="dtb-pdp-tabs__label">{tab.label}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       <section className="dtb-pdp-section" aria-live="polite">
