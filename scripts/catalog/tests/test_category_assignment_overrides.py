@@ -42,7 +42,7 @@ def test_manufacturer_reviewed_override_wins_over_historical_category_path():
     assert "TapeTech manufacturer" in assignments[0]["evidence"]
 
 
-def test_minishot_override_classifies_complete_tool_as_compound_applicator():
+def test_minishot_override_classifies_complete_tool_as_powered_compound_applicator():
     taxa = load_taxa(TAXONOMY)
     overrides = selected_overrides("4-772")
     rows = [
@@ -52,10 +52,10 @@ def test_minishot_override_classifies_complete_tool_as_compound_applicator():
         )
     ]
     assignments = build(rows, taxa, overrides)
-    assert assignments[0]["taxon_key"] == "automatic_compound_applicators"
+    assert assignments[0]["taxon_key"] == "powered_compound_applicators"
 
 
-def test_mudrunner_override_classifies_complete_tool_as_compound_applicator():
+def test_mudrunner_override_classifies_complete_tool_as_powered_compound_applicator():
     taxa = load_taxa(TAXONOMY)
     overrides = selected_overrides("TT-MUDRUNNER")
     rows = [
@@ -65,19 +65,19 @@ def test_mudrunner_override_classifies_complete_tool_as_compound_applicator():
         )
     ]
     assignments = build(rows, taxa, overrides)
-    assert assignments[0]["taxon_key"] == "automatic_compound_applicators"
+    assert assignments[0]["taxon_key"] == "powered_compound_applicators"
 
 
-def test_angle_heads_and_corner_finishers_have_distinct_owner_assignments():
+def test_angle_head_and_corner_finisher_share_one_owner_taxon():
     taxa = load_taxa(TAXONOMY)
     overrides = selected_overrides("COL-ANGLE-HEAD", "TT-CORNER-FINISHER")
     rows = [
-        owner("COL-ANGLE-HEAD", "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers"),
-        owner("TT-CORNER-FINISHER", "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads & Corner Finishers"),
+        owner("COL-ANGLE-HEAD", "Taping & Finishing Tools > Automatic Taping Tools > Angle Heads"),
+        owner("TT-CORNER-FINISHER", "Taping & Finishing Tools > Automatic Taping Tools > Corner Finishers"),
     ]
     assignments = build(rows, taxa, overrides)
     assert [assignment["taxon_key"] for assignment in assignments] == [
-        "automatic_angle_heads",
+        "automatic_corner_finishers",
         "automatic_corner_finishers",
     ]
 
