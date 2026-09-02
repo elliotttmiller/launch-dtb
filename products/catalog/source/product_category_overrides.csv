@@ -1,13 +1,13 @@
 sku,taxon_key,evidence,review_status
-4-772,automatic_compound_applicators,DTB approved classification: the LEVEL5 MiniShot is a complete powered compound applicator rather than a passive compound tube.,approved
-COL-ANGLE-HEAD,automatic_angle_heads,DTB approved functional classification: this owner family is explicitly sold as Columbia Angle Heads.,approved
+4-772,powered_compound_applicators,LEVEL5 manufacturer identifies MiniShot as a gas-assisted compound tube / powered compound-delivery tool rather than a passive applicator head: https://www.level5tools.com/minishot/,approved
+COL-ANGLE-HEAD,automatic_corner_finishers,LEVEL5 identifies a corner finisher as also called an Anglehead; Columbia Angle Heads therefore normalize to the cross-brand Corner Finishers class: https://www.level5tools.com/3-drywall-corner-finisher/,approved
 COL-THROTTLE-CORNER-FLUSHER-BOX,automatic_angle_boxes_corner_applicators,Columbia manufacturer catalog identifies the ThrottleBox as a Corner Box with automatic capabilities used with angle heads or applicator heads: https://www.columbiatools.com/wp-content/uploads/2022/03/2021_Columbia_Catalogue.pdf,approved
-CTA01TT,automatic_goosenecks_box_fillers,DTB approved functional classification: this sellable item is a compound tube filler adapter rather than a compound-holding tube.,approved
-LV5-CORNER-APPLICATOR,automatic_angle_boxes_corner_applicators,LEVEL5 manufacturer identifies its 7in and 8in products as Drywall Corner Applicator Boxes in the automatic finishing system: https://www.level5tools.com/automatic-finishing/corner-applicators/,approved
-LV5-CORNER-FINISHER,automatic_corner_finishers,DTB approved functional classification: this owner family is explicitly sold as LEVEL5 Corner Finishers.,approved
+CTA01TT,automatic_goosenecks_box_fillers,TapeTech compound tube filler adapter belongs with pump-loading attachments rather than compound-holding tubes.,approved
+LV5-CORNER-APPLICATOR,automatic_angle_boxes_corner_applicators,LEVEL5 manufacturer identifies its products as Drywall Corner Applicator Boxes: https://www.level5tools.com/automatic-finishing/corner-applicators/,approved
+LV5-CORNER-FINISHER,automatic_corner_finishers,LEVEL5 manufacturer identifies this owner family as Corner Finishers / Angleheads: https://www.level5tools.com/3-drywall-corner-finisher/,approved
 MRX01TT,automatic_handles_extensions,TapeTech manufacturer identifies MRX01TT as the MudRunner Pro Extension rather than an applicator head or box: https://tapetech.com/product/tapetech-mudrunner-pro-extension/,approved
-PT-CA8,automatic_angle_boxes_corner_applicators,Platinum manufacturer lists the 8in Corner Applicator in its Corner Applicators product family and separately lists Flat Applicators as a different tool type: https://platinumdrywalltools.com/product-category/corner-applicator/,approved
-PT-CF,automatic_corner_finishers,DTB approved functional classification: the Platinum Angle Head Corner Finisher family is merchandised as Corner Finishers.,approved
-TT-CORNER-APPLICATOR,automatic_angle_boxes_corner_applicators,TapeTech manufacturer identifies CA07TT and CA08TT as Corner Applicators filled through a loading pump and used with Corner Finishers or Applicator Heads: https://tapetech.com/product/8-corner-applicator/,approved
-TT-CORNER-FINISHER,automatic_corner_finishers,DTB approved functional classification: this owner family is explicitly sold as TapeTech Corner Finishers.,approved
-TT-MUDRUNNER,automatic_compound_applicators,DTB approved classification: the TapeTech MudRunner is a complete powered compound applicator rather than an angle box.,approved
+PT-CA8,automatic_angle_boxes_corner_applicators,Platinum manufacturer lists the 8in Corner Applicator in its Corner Applicators family: https://platinumdrywalltools.com/product-category/corner-applicator/,approved
+PT-CF,automatic_corner_finishers,Platinum merchandises its Angle Head Corner Finisher family as the same corner-finishing class.,approved
+TT-CORNER-APPLICATOR,automatic_angle_boxes_corner_applicators,TapeTech manufacturer identifies CA07TT and CA08TT as Corner Applicators used with Corner Finishers or Applicator Heads: https://tapetech.com/product/8-corner-applicator/,approved
+TT-CORNER-FINISHER,automatic_corner_finishers,TapeTech manufacturer identifies this family as Corner Finishers.,approved
+TT-MUDRUNNER,powered_compound_applicators,TapeTech manufacturer identifies MudRunner as a complete compound-delivery/corner-applicator tool rather than a passive Applicator Head: https://tapetech.com/product/mudrunner/,approved
