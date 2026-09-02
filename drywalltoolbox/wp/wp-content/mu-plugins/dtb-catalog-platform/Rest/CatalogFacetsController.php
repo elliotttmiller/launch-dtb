@@ -1,12 +1,9 @@
 <?php
 /**
- * DTB_CatalogFacetsController
+ * Catalog facets and product-category navigation endpoints.
  *
- * Handles GET /wp-json/dtb/v1/catalog/facets.
- *
- * Public storefront facets are built in-process from the canonical WordPress
- * product index plus WooCommerce product objects. They must not depend on a
- * self-HTTP Woo REST call or server consumer credentials.
+ * WooCommerce product_cat is the runtime navigation authority. Facets are
+ * built locally from the indexed catalog and WooCommerce product objects.
  *
  * @package drywall-toolbox
  */
@@ -15,9 +12,9 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_CatalogFacetsController {
 
+	/** Canonical customer navigation roots in intentional storefront order. */
 	private const NAVIGATION_GROUP_SLUGS = [
-		'automatic-taping-tools',
-		'semi-automatic-taping-tools',
+		'taping-finishing-tools',
 		'stilts-accessories',
 	];
 
@@ -29,10 +26,6 @@ final class DTB_CatalogFacetsController {
 			'args'                => [
 				'brand'            => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'category'         => [ 'sanitize_callback' => 'sanitize_key' ],
-				// sanitize_key() would strip commas, breaking the comma-separated
-				// multi-select display_category filter. Use sanitize_text_field
-				// (matching /catalog/products) so multi-value scoping works; each
-				// slug is still sanitize_title()'d downstream in the repository.
 				'display_category' => [ 'sanitize_callback' => 'sanitize_text_field' ],
 				'product_kind'     => [ 'sanitize_callback' => 'sanitize_key' ],
 				'is_parts'         => [ 'sanitize_callback' => 'sanitize_text_field' ],
@@ -49,21 +42,6 @@ final class DTB_CatalogFacetsController {
 		] );
 	}
 
-	/**
-	 * GET /dtb/v1/catalog/category?slug=<product_cat slug>
-	 *
-	 * Returns per-category storefront metadata (label, description, image,
-	 * product count, immediate parent, immediate children) sourced entirely
-	 * from the native `product_cat` taxonomy. No self-HTTP or Woo REST call.
-	 *
-	 * `productCount` uses the native `$term->count` (WordPress core
-	 * `term_taxonomy.count`, maintained by `wp_update_term_count()`). This
-	 * counts only products directly assigned to that exact term — it is
-	 * NOT descendant-inclusive, unlike `DTB_CatalogProductRepository`'s
-	 * `category` filter, which resolves descendant term IDs before
-	 * querying. Callers that need a descendant-inclusive count should use
-	 * the `/catalog/facets` or `/catalog/products` endpoints instead.
-	 */
 	public static function handle_category( WP_REST_Request $request ): WP_REST_Response {
 		if ( ! dtb_check_origin() ) {
 			return new WP_REST_Response( dtb_error_envelope( 'forbidden_origin', 'Origin not allowed.', 403 ), 403 );
@@ -79,14 +57,13 @@ final class DTB_CatalogFacetsController {
 			return new WP_REST_Response( dtb_error_envelope( 'not_found', 'Category not found.', 404 ), 404 );
 		}
 
-		$dto = self::term_to_navigation_dto( $term );
-
+		$dto    = self::term_to_navigation_dto( $term );
 		$parent = null;
 		if ( $term->parent > 0 ) {
 			$parent_term = get_term( $term->parent, 'product_cat' );
 			if ( $parent_term instanceof WP_Term && ! is_wp_error( $parent_term ) ) {
 				$parent_dto = self::term_to_navigation_dto( $parent_term );
-				$parent     = [
+				$parent = [
 					'slug'  => $parent_dto['slug'],
 					'label' => $parent_dto['label'],
 				];
@@ -98,7 +75,6 @@ final class DTB_CatalogFacetsController {
 			'parent'     => $term->term_id,
 			'hide_empty' => false,
 		] );
-
 		$children = [];
 		if ( is_array( $children_terms ) ) {
 			foreach ( $children_terms as $child_term ) {
@@ -113,30 +89,14 @@ final class DTB_CatalogFacetsController {
 		}
 		usort( $children, static fn ( $a, $b ): int => strcmp( (string) $a['label'], (string) $b['label'] ) );
 
-		// Hero banner image is a distinct term-meta field (`dtb_hero_image_id`,
-		// set via Admin/CategoryHeroImageField.php) from `image` above (the
-		// WooCommerce `thumbnail_id` field, used for subcategory tiles). Only
-		// resolved here — the single-category detail response — not inside
-		// `term_to_navigation_dto()`, since that helper also builds
-		// `product_category_path()` breadcrumbs in a per-product loop where an
-		// extra term-meta lookup per call would add avoidable overhead.
-		//
-		// Served at DTB_CATEGORY_HERO_IMAGE_SIZE ('dtb_category_hero': soft
-		// resize, longest side capped at 1920px — see
-		// Application/RegisterCategoryHeroImageSize.php) rather than 'large'
-		// (WP core default, capped at 1024px) so the banner isn't upscaled and
-		// blurry at full viewport width on desktop. The srcset lets the
-		// browser pick a smaller generated size on narrow viewports instead
-		// of always downloading the 1920px file.
-		$hero_image         = '';
-		$hero_image_srcset  = '';
-		$hero_image_id      = absint( get_term_meta( $term->term_id, 'dtb_hero_image_id', true ) );
+		$hero_image        = '';
+		$hero_image_srcset = '';
+		$hero_image_id     = absint( get_term_meta( $term->term_id, 'dtb_hero_image_id', true ) );
 		if ( $hero_image_id > 0 ) {
 			$hero_image_url = wp_get_attachment_image_url( $hero_image_id, DTB_CATEGORY_HERO_IMAGE_SIZE );
 			if ( is_string( $hero_image_url ) && '' !== $hero_image_url ) {
 				$hero_image = esc_url_raw( $hero_image_url );
 			}
-
 			$srcset = wp_get_attachment_image_srcset( $hero_image_id, DTB_CATEGORY_HERO_IMAGE_SIZE );
 			if ( is_string( $srcset ) && '' !== $srcset ) {
 				$hero_image_srcset = esc_attr( $srcset );
@@ -152,7 +112,7 @@ final class DTB_CatalogFacetsController {
 			'heroImageSrcset' => $hero_image_srcset,
 			'productCount'    => absint( $term->count ),
 			'parent'          => $parent,
-			'children'     => $children,
+			'children'        => $children,
 		], 200 );
 	}
 
@@ -177,16 +137,10 @@ final class DTB_CatalogFacetsController {
 				$status
 			);
 		}
-
 		return new WP_REST_Response( $facets, 200 );
 	}
 
-	/**
-	 * Build scoped facets without self-HTTP or credential-bearing proxy calls.
-	 *
-	 * @param array<string,mixed> $scope
-	 * @return array<string,mixed>|WP_Error
-	 */
+	/** @return array<string,mixed>|WP_Error */
 	private static function build_local_facets( array $scope ) {
 		$brands            = [];
 		$categories        = [];
@@ -239,42 +193,36 @@ final class DTB_CatalogFacetsController {
 				$display  = self::customer_display_category( $dto );
 
 				if ( '' !== $brand['key'] ) {
-					if ( ! isset( $brands[ $brand['key'] ] ) ) {
-						$brands[ $brand['key'] ] = [
-							'key'          => $brand['key'],
-							'label'        => $brand['label'],
-							'slug'         => $brand['slug'],
-							'productCount' => 0,
-						];
-					}
+					$brands[ $brand['key'] ] ??= [
+						'key'          => $brand['key'],
+						'label'        => $brand['label'],
+						'slug'         => $brand['slug'],
+						'productCount' => 0,
+					];
 					$brands[ $brand['key'] ]['productCount']++;
 				}
 
 				$category_key = sanitize_key( (string) ( $category['key'] ?? '' ) );
 				if ( '' !== $category_key ) {
-					if ( ! isset( $categories[ $category_key ] ) ) {
-						$categories[ $category_key ] = [
-							'key'          => $category_key,
-							'label'        => sanitize_text_field( (string) ( $category['label'] ?? $category_key ) ),
-							'slug'         => sanitize_title( (string) ( $category['slug'] ?? $category_key ) ),
-							'productCount' => 0,
-						];
-					}
+					$categories[ $category_key ] ??= [
+						'key'          => $category_key,
+						'label'        => sanitize_text_field( (string) ( $category['label'] ?? $category_key ) ),
+						'slug'         => sanitize_title( (string) ( $category['slug'] ?? $category_key ) ),
+						'productCount' => 0,
+					];
 					$categories[ $category_key ]['productCount']++;
 				}
 
 				$display_key = sanitize_key( (string) ( $display['key'] ?? '' ) );
 				if ( '' !== $brand['key'] && '' !== $display_key ) {
 					$display_by_brand[ $brand['key'] ] ??= [];
-					if ( ! isset( $display_by_brand[ $brand['key'] ][ $display_key ] ) ) {
-						$display_by_brand[ $brand['key'] ][ $display_key ] = [
-							'key'          => $display_key,
-							'label'        => sanitize_text_field( (string) ( $display['label'] ?? $display_key ) ),
-							'slug'         => sanitize_title( (string) ( $display['slug'] ?? $display_key ) ),
-							'productCount' => 0,
-							'image'        => '',
-						];
-					}
+					$display_by_brand[ $brand['key'] ][ $display_key ] ??= [
+						'key'          => $display_key,
+						'label'        => sanitize_text_field( (string) ( $display['label'] ?? $display_key ) ),
+						'slug'         => sanitize_title( (string) ( $display['slug'] ?? $display_key ) ),
+						'productCount' => 0,
+						'image'        => '',
+					];
 					$entry =& $display_by_brand[ $brand['key'] ][ $display_key ];
 					$entry['productCount']++;
 					if ( '' === $entry['image'] && empty( $dto['isParts'] ) ) {
@@ -290,31 +238,27 @@ final class DTB_CatalogFacetsController {
 						$child      = $navigation['child'];
 						$group_slug = $group['slug'];
 
-						if ( ! isset( $navigation_groups[ $group_slug ] ) ) {
-							$navigation_groups[ $group_slug ] = [
-								'key'          => $group_slug,
-								'label'        => $group['label'],
-								'slug'         => $group_slug,
-								'description'  => $group['description'] ?? '',
-								'image'        => $group['image'] ?? '',
-								'productCount' => 0,
-								'children'     => [],
-							];
-						}
-
+						$navigation_groups[ $group_slug ] ??= [
+							'key'          => $group_slug,
+							'label'        => $group['label'],
+							'slug'         => $group_slug,
+							'description'  => $group['description'] ?? '',
+							'image'        => $group['image'] ?? '',
+							'productCount' => 0,
+							'children'     => [],
+						];
 						$navigation_groups[ $group_slug ]['productCount']++;
+
 						if ( null !== $child ) {
 							$child_slug = $child['slug'];
-							if ( ! isset( $navigation_groups[ $group_slug ]['children'][ $child_slug ] ) ) {
-								$navigation_groups[ $group_slug ]['children'][ $child_slug ] = [
-									'key'          => $child_slug,
-									'label'        => $child['label'],
-									'slug'         => $child_slug,
-									'description'  => $child['description'] ?? '',
-									'image'        => $child['image'] ?? '',
-									'productCount' => 0,
-								];
-							}
+							$navigation_groups[ $group_slug ]['children'][ $child_slug ] ??= [
+								'key'          => $child_slug,
+								'label'        => $child['label'],
+								'slug'         => $child_slug,
+								'description'  => $child['description'] ?? '',
+								'image'        => $child['image'] ?? '',
+								'productCount' => 0,
+							];
 							$navigation_groups[ $group_slug ]['children'][ $child_slug ]['productCount']++;
 						}
 					}
@@ -380,124 +324,83 @@ final class DTB_CatalogFacetsController {
 			return [ 'key' => 'parts', 'label' => 'Parts', 'slug' => 'parts' ];
 		}
 		if ( function_exists( 'dtb_catalog_product_is_compound_tube' ) && dtb_catalog_product_is_compound_tube( $dto ) ) {
-			return [ 'key' => 'automatic_compound_tubes', 'label' => 'Compound Tubes', 'slug' => 'compound-tubes' ];
+			return [ 'key' => 'compound_tubes', 'label' => 'Compound Tubes', 'slug' => 'compound-tubes' ];
 		}
 		return is_array( $dto['displayCategory'] ?? null ) ? $dto['displayCategory'] : [];
 	}
 
-	/**
-	 * Normalize a taxonomy label before exposing it through navigationGroups.
-	 * WordPress term names can already contain HTML entities (for example
-	 * "&amp;"). React renders API strings as text, so decode once at the API
-	 * boundary and then sanitize the resulting plain-text label.
-	 */
 	private static function navigation_label( string $label, string $slug ): string {
 		if ( 'stilts-accessories' === $slug ) {
 			return 'Stilts';
 		}
-
 		return sanitize_text_field( wp_specialchars_decode( $label, ENT_QUOTES ) );
 	}
 
 	/**
-	 * Resolve a product's customer navigation membership from the authoritative
-	 * WooCommerce product_cat hierarchy. This deliberately ignores legacy
-	 * `_dtb_display_category_key` values so storefront navigation cannot drift
-	 * into a parallel taxonomy.
+	 * Resolve a product's navigation membership from its Woo product_cat path.
+	 * The recognized groups are canonical taxonomy roots, not compatibility
+	 * metadata or hardcoded functional subtrees.
 	 *
 	 * @param array<int,array<string,mixed>> $raw_categories
-	 * @return array{group:array{label:string,slug:string},child:?array{label:string,slug:string}}|null
+	 * @return array{group:array<string,mixed>,child:?array<string,mixed>}|null
 	 */
 	private static function canonical_navigation_membership( array $raw_categories ): ?array {
 		$best = null;
-
 		foreach ( $raw_categories as $raw_category ) {
 			$term_id = absint( $raw_category['id'] ?? 0 );
 			if ( ! $term_id ) {
 				continue;
 			}
-
 			$path = self::product_category_path( $term_id );
 			if ( count( $path ) < 2 ) {
 				continue;
 			}
-
 			foreach ( $path as $index => $term ) {
 				if ( ! in_array( $term['slug'], self::NAVIGATION_GROUP_SLUGS, true ) ) {
 					continue;
 				}
-
-				$child = $path[ $index + 1 ] ?? null;
 				$candidate = [
 					'group' => $term,
-					'child' => $child,
+					'child' => $path[ $index + 1 ] ?? null,
 					'depth' => count( $path ),
 				];
-
 				if ( null === $best || $candidate['depth'] > $best['depth'] ) {
 					$best = $candidate;
 				}
 				break;
 			}
 		}
-
-		if ( null === $best ) {
-			return null;
-		}
-
-		return [
-			'group' => $best['group'],
-			'child' => $best['child'],
-		];
+		return null === $best ? null : [ 'group' => $best['group'], 'child' => $best['child'] ];
 	}
 
-	/**
-	 * Return a root-to-leaf product_cat path with request-local term caching.
-	 *
-	 * @return array<int,array{label:string,slug:string,description:string,image:string}>
-	 */
+	/** @return array<int,array{label:string,slug:string,description:string,image:string}> */
 	private static function product_category_path( int $term_id ): array {
 		static $path_cache = [];
 		if ( isset( $path_cache[ $term_id ] ) ) {
 			return $path_cache[ $term_id ];
 		}
-
 		$term = get_term( $term_id, 'product_cat' );
 		if ( ! $term instanceof WP_Term || is_wp_error( $term ) ) {
 			$path_cache[ $term_id ] = [];
 			return [];
 		}
-
 		$ancestor_ids = array_reverse( array_map( 'absint', get_ancestors( $term_id, 'product_cat', 'taxonomy' ) ) );
-		$term_ids     = array_merge( $ancestor_ids, [ $term_id ] );
-		$path         = [];
-
-		foreach ( $term_ids as $path_term_id ) {
+		$path = [];
+		foreach ( array_merge( $ancestor_ids, [ $term_id ] ) as $path_term_id ) {
 			$path_term = get_term( $path_term_id, 'product_cat' );
-			if ( ! $path_term instanceof WP_Term || is_wp_error( $path_term ) ) {
-				continue;
+			if ( $path_term instanceof WP_Term && ! is_wp_error( $path_term ) ) {
+				$path[] = self::term_to_navigation_dto( $path_term );
 			}
-			$path[] = self::term_to_navigation_dto( $path_term );
 		}
-
 		$path_cache[ $term_id ] = $path;
 		return $path;
 	}
 
-	/**
-	 * Map a product_cat WP_Term to the shared navigation DTO shape used by
-	 * both navigationGroups (facets) and the dedicated /catalog/category
-	 * endpoint. Sourced purely from native term fields: name, description,
-	 * and the standard WooCommerce `thumbnail_id` term-meta key (no ACF, no
-	 * new taxonomy or term meta).
-	 *
-	 * @return array{label:string,slug:string,description:string,image:string}
-	 */
+	/** @return array{label:string,slug:string,description:string,image:string} */
 	private static function term_to_navigation_dto( WP_Term $term ): array {
 		$slug        = sanitize_title( $term->slug );
 		$label       = self::navigation_label( (string) $term->name, $slug );
 		$description = sanitize_text_field( wp_specialchars_decode( wp_strip_all_tags( (string) $term->description ), ENT_QUOTES ) );
-
 		$image        = '';
 		$thumbnail_id = absint( get_term_meta( $term->term_id, 'thumbnail_id', true ) );
 		if ( $thumbnail_id > 0 ) {
@@ -506,7 +409,6 @@ final class DTB_CatalogFacetsController {
 				$image = esc_url_raw( $image_url );
 			}
 		}
-
 		return [
 			'label'       => $label,
 			'slug'        => $slug,
