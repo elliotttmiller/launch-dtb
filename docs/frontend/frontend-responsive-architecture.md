@@ -50,6 +50,8 @@ Do not add another global mobile, tablet, desktop, fix, patch, mockup, polish, c
 
 Use `Container` or `.dtb-container` instead of recreating page padding and `max-width` declarations. Supported sizes are `narrow`, `default`, `wide`, `full`, and `fluid`.
 
+Horizontal card rails must remain inside the owning container gutter. Shared `StorefrontRail` instances must not use negative inline margins or persistent edge masks that visually cover the first or last card. Navigation controls belong inside the rail shell, while the scroll viewport keeps a small internal safety inset for borders, focus rings, and scroll snapping. Product image thumbnail rails follow the same edge-safety principle inside both the full PDP and quick-view modal.
+
 ### Vertical composition
 
 Use `Section` for route sections and `Stack` for vertical rhythm. Spacing should come from `--dtb-space-*` tokens, not unrelated page-specific values.
@@ -77,13 +79,14 @@ Reusable components should respond to their allocated width. Apply `dtb-componen
 3. Horizontal scrolling exists only inside explicit rails, selectors, drawers, or data regions.
 4. Root overflow containment is defensive only; components must still constrain their own width and dynamic content.
 5. Page gutters and maximum widths come from shared tokens and containers.
-6. Forms preserve a minimum 16px mobile text size without broad descendant `!important` rules.
-7. Hover treatment is enabled only for devices that support hover and fine pointing.
-8. Reduced-motion preferences remove nonessential transitions and animation.
-9. Mobile and desktop use the same semantic component and domain state unless the interaction model is materially different.
-10. Feature styles may refine a component but must not redefine the global viewport, root, body, or application shell.
-11. Checkout rules are presentation-only and never alter WooCommerce, payment-provider, order, pricing, inventory, tax, shipping, or session ownership.
-12. Schematic responsive rules must preserve image bounds and hotspot coordinate ownership.
+6. Horizontal rails preserve the parent container's visible inline edge; their first and last interactive cards must not be shifted underneath negative-margin bleed, fades, or off-canvas controls.
+7. Forms preserve a minimum 16px mobile text size without broad descendant `!important` rules.
+8. Hover treatment is enabled only for devices that support hover and fine pointing.
+9. Reduced-motion preferences remove nonessential transitions and animation.
+10. Mobile and desktop use the same semantic component and domain state unless the interaction model is materially different.
+11. Feature styles may refine a component but must not redefine the global viewport, root, body, or application shell.
+12. Checkout rules are presentation-only and never alter WooCommerce, payment-provider, order, pricing, inventory, tax, shipping, or session ownership.
+13. Schematic responsive rules must preserve image bounds and hotspot coordinate ownership.
 
 ## Domain sections in the unified authority
 
