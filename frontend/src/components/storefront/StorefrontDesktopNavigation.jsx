@@ -21,7 +21,11 @@ import '../../styles/storefront-navigation-taxonomy.css';
 
 const RESILIENT_DROPDOWN_IDS = new Set(['products', 'brands', 'parts', 'repairs', 'schematics']);
 const CATALOG_BACKED_DROPDOWN_IDS = new Set(['products', 'brands', 'parts']);
-const POINTER_CLOSE_DELAY_MS = 160;
+const POINTER_OPEN_INTENT_MS = 85;
+const POINTER_SWITCH_INTENT_MS = 42;
+const POINTER_CLOSE_DELAY_MS = 210;
+const CONTENT_EXIT_MS = 92;
+const SHELL_EXIT_MS = 285;
 
 const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Settings2, ShoppingBag, Award];
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
@@ -207,11 +211,7 @@ function ProductCard({ entry, onNavigate }) {
   const productCount = Number(entry.count || entry.productCount || 0);
 
   return (
-    <Link
-      to={entry.to}
-      className="dtb-mega-menu__product-card"
-      onClick={onNavigate}
-    >
+    <Link to={entry.to} className="dtb-mega-menu__product-card" onClick={onNavigate}>
       <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
       <span className="dtb-desktop-nav-row-text dtb-mega-menu__product-card-copy">
         <span className="dtb-desktop-nav-row-title">{entry.label}</span>
@@ -359,17 +359,11 @@ const PANEL_RENDERERS = {
 
 function DeliberatePanelRenderer({ item, onNavigate }) {
   const Renderer = PANEL_RENDERERS[item.id];
-
-  if (!Renderer) {
-    return <MegaMenuDeferredState item={item} />;
-  }
-
-  return <Renderer item={item} onNavigate={onNavigate} />;
+  return Renderer ? <Renderer item={item} onNavigate={onNavigate} /> : <MegaMenuDeferredState item={item} />;
 }
 
-function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCloseImmediate, onNavigate }) {
+function DesktopNavTrigger({ item, isOpen, active, panelId, onOpen, onToggle, onCloseImmediate }) {
   const triggerRef = useRef(null);
-  const panelId = useId();
 
   const closeAndFocus = () => {
     triggerRef.current?.focus();
@@ -377,15 +371,7 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
   };
 
   return (
-    <div
-      className={`dtb-desktop-nav-menu${isOpen ? ' is-open' : ''}`}
-      onPointerEnter={onOpen}
-      onPointerLeave={onRequestClose}
-      onFocus={onOpen}
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) onCloseImmediate();
-      }}
-    >
+    <div className={`dtb-desktop-nav-menu${isOpen ? ' is-open' : ''}`} onPointerEnter={onOpen}>
       <button
         ref={triggerRef}
         type="button"
@@ -393,10 +379,8 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
         aria-haspopup="true"
         aria-expanded={isOpen}
         aria-controls={panelId}
-        onClick={() => {
-          if (!isOpen) onOpen();
-          else onCloseImmediate();
-        }}
+        onClick={onToggle}
+        onFocus={() => onOpen(true)}
         onKeyDown={(event) => {
           if (event.key === 'Escape') {
             event.preventDefault();
@@ -407,75 +391,183 @@ function DesktopNavDropdown({ item, isOpen, active, onOpen, onRequestClose, onCl
         <span className="dtb-desktop-nav-tab__label">{item.label}</span>
         <ChevronDown size={14} aria-hidden="true" />
       </button>
-
-      <section
-        id={panelId}
-        className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--${item.id} dtb-desktop-nav-dropdown--${item.size || 'medium'}`}
-        aria-label={`${item.label} navigation`}
-        aria-busy={CATALOG_BACKED_DROPDOWN_IDS.has(item.id) && !item.items?.length ? true : undefined}
-        onPointerEnter={onOpen}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            closeAndFocus();
-          }
-        }}
-      >
-        <div className="dtb-desktop-nav-dropdown__scroller">
-          <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
-        </div>
-      </section>
     </div>
   );
 }
 
 export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen, onClose, onNavigate, isItemActive }) {
+  const reducedMotion = usePrefersReducedMotion();
+  const panelId = useId();
   const desktopItems = items.filter((item) => item.id !== 'support' && item.id !== 'new-arrivals');
+  const dropdownItems = desktopItems.filter((item) => item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length);
+  const dropdownItemsById = new Map(dropdownItems.map((item) => [item.id, item]));
+  const [renderedMenuId, setRenderedMenuId] = useState(() => openMenuId || null);
+  const [contentVisible, setContentVisible] = useState(() => Boolean(openMenuId));
+  const openTimerRef = useRef(null);
   const closeTimerRef = useRef(null);
+  const switchTimerRef = useRef(null);
+  const unmountTimerRef = useRef(null);
+  const frameRef = useRef(null);
 
-  const cancelPendingClose = () => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
-      closeTimerRef.current = null;
+  const renderedItem = renderedMenuId ? dropdownItemsById.get(renderedMenuId) : null;
+  const shellOpen = Boolean(openMenuId && renderedItem);
+
+  const clearTimer = (ref) => {
+    if (ref.current !== null) {
+      window.clearTimeout(ref.current);
+      ref.current = null;
     }
   };
 
-  const openMenu = (id) => {
+  const clearFrame = () => {
+    if (frameRef.current !== null) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+  };
+
+  const cancelPendingClose = () => {
+    clearTimer(closeTimerRef);
+    clearTimer(unmountTimerRef);
+  };
+
+  const revealContent = () => {
+    clearFrame();
+    if (reducedMotion) {
+      setContentVisible(true);
+      return;
+    }
+    frameRef.current = window.requestAnimationFrame(() => {
+      frameRef.current = window.requestAnimationFrame(() => {
+        frameRef.current = null;
+        setContentVisible(true);
+      });
+    });
+  };
+
+  const commitOpen = (id) => {
     cancelPendingClose();
-    onOpen(id);
+    clearTimer(switchTimerRef);
+
+    if (!renderedMenuId || renderedMenuId === id || reducedMotion) {
+      setRenderedMenuId(id);
+      onOpen(id);
+      setContentVisible(reducedMotion ? true : false);
+      revealContent();
+      return;
+    }
+
+    setContentVisible(false);
+    switchTimerRef.current = window.setTimeout(() => {
+      switchTimerRef.current = null;
+      setRenderedMenuId(id);
+      onOpen(id);
+      revealContent();
+    }, CONTENT_EXIT_MS);
+  };
+
+  const requestOpen = (id, immediate = false) => {
+    cancelPendingClose();
+    clearTimer(openTimerRef);
+    if (renderedMenuId === id && openMenuId === id) return;
+
+    const delay = immediate || reducedMotion
+      ? 0
+      : renderedMenuId
+        ? POINTER_SWITCH_INTENT_MS
+        : POINTER_OPEN_INTENT_MS;
+
+    if (delay === 0) {
+      commitOpen(id);
+      return;
+    }
+
+    openTimerRef.current = window.setTimeout(() => {
+      openTimerRef.current = null;
+      commitOpen(id);
+    }, delay);
   };
 
   const closeImmediately = () => {
-    cancelPendingClose();
+    clearTimer(openTimerRef);
+    clearTimer(switchTimerRef);
+    clearTimer(closeTimerRef);
+    setContentVisible(true);
     onClose();
   };
 
   const requestPointerClose = () => {
-    cancelPendingClose();
+    clearTimer(openTimerRef);
+    clearTimer(closeTimerRef);
     closeTimerRef.current = window.setTimeout(() => {
       closeTimerRef.current = null;
       onClose();
-    }, POINTER_CLOSE_DELAY_MS);
+    }, reducedMotion ? 0 : POINTER_CLOSE_DELAY_MS);
   };
 
-  useEffect(() => () => {
-    if (closeTimerRef.current !== null) {
-      window.clearTimeout(closeTimerRef.current);
+  useEffect(() => {
+    if (openMenuId) {
+      clearTimer(unmountTimerRef);
+      if (!renderedMenuId) {
+        setRenderedMenuId(openMenuId);
+        setContentVisible(true);
+      }
+      return undefined;
     }
+
+    if (!renderedMenuId) return undefined;
+    unmountTimerRef.current = window.setTimeout(() => {
+      unmountTimerRef.current = null;
+      setRenderedMenuId(null);
+      setContentVisible(false);
+    }, reducedMotion ? 0 : SHELL_EXIT_MS);
+
+    return () => clearTimer(unmountTimerRef);
+  }, [openMenuId, renderedMenuId, reducedMotion]);
+
+  useEffect(() => () => {
+    clearTimer(openTimerRef);
+    clearTimer(closeTimerRef);
+    clearTimer(switchTimerRef);
+    clearTimer(unmountTimerRef);
+    clearFrame();
   }, []);
 
+  const shellTransition = reducedMotion
+    ? 'none'
+    : shellOpen
+      ? 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 285ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0s'
+      : 'opacity 190ms cubic-bezier(0.4, 0, 1, 1), transform 230ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 230ms';
+
+  const contentTransition = reducedMotion
+    ? 'none'
+    : contentVisible
+      ? 'opacity 190ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1)'
+      : `opacity ${CONTENT_EXIT_MS}ms ease-out, transform ${CONTENT_EXIT_MS}ms ease-out`;
+
   return (
-    <nav className="dtb-desktop-nav" aria-label="Primary navigation">
+    <nav
+      className={`dtb-desktop-nav${shellOpen ? ' is-mega-menu-open' : ''}`}
+      aria-label="Primary navigation"
+      onPointerEnter={cancelPendingClose}
+      onPointerLeave={requestPointerClose}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) requestPointerClose();
+      }}
+    >
       {desktopItems.map((item) => (item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length) ? (
-        <DesktopNavDropdown
+        <DesktopNavTrigger
           key={item.id}
           item={item}
+          panelId={panelId}
           isOpen={openMenuId === item.id}
           active={isItemActive(item)}
-          onOpen={() => openMenu(item.id)}
-          onRequestClose={requestPointerClose}
+          onOpen={(immediate = false) => requestOpen(item.id, immediate)}
+          onToggle={() => {
+            if (openMenuId === item.id) closeImmediately();
+            else requestOpen(item.id, true);
+          }}
           onCloseImmediate={closeImmediately}
-          onNavigate={onNavigate}
         />
       ) : (
         <Link
@@ -488,6 +580,53 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
           <span className="dtb-desktop-nav-tab__label">{item.label}</span>
         </Link>
       ))}
+
+      {renderedItem ? (
+        <div
+          className="dtb-desktop-nav-menu dtb-desktop-nav-menu--shared"
+          style={{ position: 'relative', width: 0, minWidth: 0, height: '100%' }}
+        >
+          <section
+            id={panelId}
+            className={`dtb-desktop-nav-dropdown dtb-desktop-nav-dropdown--shared dtb-desktop-nav-dropdown--${renderedItem.id} dtb-desktop-nav-dropdown--${renderedItem.size || 'medium'}`}
+            aria-label={`${renderedItem.label} navigation`}
+            aria-busy={CATALOG_BACKED_DROPDOWN_IDS.has(renderedItem.id) && !renderedItem.items?.length ? true : undefined}
+            onPointerEnter={cancelPendingClose}
+            onPointerLeave={requestPointerClose}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                closeImmediately();
+              }
+            }}
+            style={{
+              '--mega-panel-width': '1240px',
+              opacity: shellOpen ? 1 : 0,
+              visibility: shellOpen ? 'visible' : 'hidden',
+              pointerEvents: shellOpen ? 'auto' : 'none',
+              transform: shellOpen
+                ? 'translateX(-50%) translateY(0) scale(1)'
+                : 'translateX(-50%) translateY(-5px) scale(0.996)',
+              transition: shellTransition,
+              willChange: reducedMotion ? 'auto' : 'opacity, transform',
+            }}
+          >
+            <div className="dtb-desktop-nav-dropdown__scroller">
+              <div
+                key={renderedItem.id}
+                style={{
+                  opacity: contentVisible ? 1 : 0,
+                  transform: contentVisible ? 'translateY(0)' : 'translateY(4px)',
+                  transition: contentTransition,
+                  willChange: reducedMotion ? 'auto' : 'opacity, transform',
+                }}
+              >
+                <DeliberatePanelRenderer item={renderedItem} onNavigate={onNavigate} />
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </nav>
   );
 }
