@@ -7,6 +7,26 @@ import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
 import level5Logo from '/brands/Level5/Level5.svg';
 
+/*
+ * Product brand discovery intentionally preserves the exact asset mapping that
+ * existed before selector presentation was centralized. Products and
+ * schematics share selector-card presentation, not preview-image ownership.
+ */
+const PRODUCT_BRAND_LOGOS = {
+  TapeTech: tapeTechLogo,
+  'Columbia Taping Tools': columbiaLogo,
+  'Columbia Tools': columbiaLogo,
+  Columbia: columbiaLogo,
+  SurPro: surproLogo,
+  Asgard: asgardLogo,
+  Graco: gracoLogo,
+  'Platinum Drywall Tools': platinumLogo,
+  Platinum: platinumLogo,
+  'Dura-Stilts': duraStiltsLogo,
+  Level5: level5Logo,
+  'Level 5': level5Logo,
+};
+
 const BRAND_LOGO_MATCHERS = [
   { test: /durastilts?/, logo: duraStiltsLogo },
   { test: /tapetech/, logo: tapeTechLogo },
@@ -25,6 +45,23 @@ export function normalizeBrandAssetKey(value = '') {
     .replace(/[^a-z0-9]/g, '');
 }
 
+/**
+ * Exact resolver for the product Brands selector. This intentionally mirrors
+ * the pre-centralization Product selector contract so its preview asset URLs
+ * cannot drift to Schematics' fuzzy brand-name mapping.
+ */
+export function resolveProductBrandLogo(brand = {}) {
+  if (!brand || typeof brand !== 'object') return '';
+  return brand.logo
+    || PRODUCT_BRAND_LOGOS[brand.label]
+    || PRODUCT_BRAND_LOGOS[brand.key]
+    || '';
+}
+
+/**
+ * Flexible resolver retained for schematics and other non-product consumers,
+ * where REST brand names can vary in punctuation and casing.
+ */
 export function resolveBrandLogo(brandOrName) {
   if (brandOrName && typeof brandOrName === 'object' && brandOrName.logo) {
     return brandOrName.logo;
