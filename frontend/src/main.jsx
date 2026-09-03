@@ -54,6 +54,7 @@ import './styles/unified-responsive.css';
 
 import App from './App.jsx';
 import ErrorBoundary from './components/system/AppErrorBoundary.jsx';
+import GlobalMotionProvider from './components/motion/GlobalMotionProvider.jsx';
 import { installRepairPackageSelectionRuntime } from './utils/repairPackageSelectionRuntime.js';
 import { installCustomerFacingCopyRuntime } from './utils/customerFacingCopyRuntime.js';
 import { prewarmCatalog } from './services/catalog.js';
@@ -101,12 +102,14 @@ function AppBootMarker() {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
-      <>
-        <AppBootMarker />
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </>
+      <GlobalMotionProvider>
+        <>
+          <AppBootMarker />
+          <ErrorBoundary>
+            <App />
+          </ErrorBoundary>
+        </>
+      </GlobalMotionProvider>
     </HelmetProvider>
   </StrictMode>,
 );
