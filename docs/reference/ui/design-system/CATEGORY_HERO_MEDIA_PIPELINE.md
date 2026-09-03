@@ -42,11 +42,19 @@ Examples:
 - `flat-boxes.webp`
 - `corner-finishers.webp`
 - `compound-applicators.webp`
-- `loading-pumps.webp`
+- `loading-compound-pumps.webp`
 
 The filename is the mapping key. When this convention is followed, adding or replacing a hero requires no React import, no resolver map entry, and no frontend rebuild merely to change the binary.
 
-The current `compound-applicator.webp` filename is a legacy singular filename. `frontend/src/utils/categoryHeroImages.js` contains one narrow compatibility alias from the category slug `compound-applicators` to `compound-applicator`. New hero files must not expand this alias pattern; use the exact category slug.
+### Legacy live filename compatibility
+
+The live media library currently contains a small number of historical filenames that predate the canonical taxonomy slugs. `frontend/src/utils/categoryHeroImages.js` contains narrow compatibility aliases so those deployed files continue to resolve without creating a second category identity:
+
+- category slug `compound-applicators` -> live filename `compound-applicator.webp`;
+- category slug `corner-applicators-angle-boxes` -> live filename `corner-applicators.webp`;
+- category slug `loading-compound-pumps` -> live filename `loading-pumps.webp`.
+
+These aliases are delivery compatibility only. New or replacement files should use the exact canonical WooCommerce category slug and should not expand this alias pattern.
 
 ## Frontend resolution
 
@@ -88,6 +96,8 @@ No JavaScript mapping change should be required.
 ## Updating an existing hero
 
 To replace an existing hero, upload the revised WebP over the existing live filename. Because the public path remains stable, no frontend component or resolver change is required.
+
+For a legacy alias, prefer migrating the live binary to the exact canonical slug filename during the next controlled media maintenance operation, then remove the alias in the same release after verifying the canonical URL. Do not rename the WooCommerce category merely to match an old media filename.
 
 If aggressive browser/CDN caching is enabled for this directory, purge that specific asset or apply the site's normal cache invalidation procedure after replacement. Do not change category slugs merely to force cache invalidation.
 
