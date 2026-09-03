@@ -230,7 +230,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
   const desktopNavItems = useMemo(() => [
     {
       id: 'products',
-      label: 'All Products',
+      label: 'Shop',
       landingTo: '/products',
       landingLabel: 'View all products',
       landingDescription: 'Browse our complete collection of professional finishing tools.',
@@ -834,7 +834,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
         <nav className="storefront-mobile-drawer__nav" aria-label="Mobile navigation">
           {renderDrawerListSection({
             id: 'products',
-            label: 'All Products',
+            label: 'Shop',
             expanded: productsExpanded,
             onToggle: () => {
               if (productsExpanded) setExpandedProductGroupKey(null);
