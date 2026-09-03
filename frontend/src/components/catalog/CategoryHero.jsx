@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
@@ -50,18 +50,20 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
     setHeroReady(!heroCacheKey || READY_CATEGORY_HERO_IMAGES.has(heroCacheKey));
   }, [heroCacheKey]);
 
+  const handleHeroReady = useCallback((readySrc) => {
+    if (readySrc) {
+      READY_CATEGORY_HERO_IMAGES.add(readySrc);
+      if (heroCacheKey) READY_CATEGORY_HERO_IMAGES.add(heroCacheKey);
+    }
+    setHeroReady(true);
+  }, [heroCacheKey]);
+
   if (!category) return <CategoryHeroSkeleton />;
 
   const { label, description, parent } = category;
   const displayDescription = description
     || `Browse our full selection of ${label} for professional drywall work.`;
   const eyebrow = parent?.label || '';
-
-  const handleHeroReady = (readySrc) => {
-    if (readySrc) READY_CATEGORY_HERO_IMAGES.add(readySrc);
-    if (heroCacheKey) READY_CATEGORY_HERO_IMAGES.add(heroCacheKey);
-    setHeroReady(true);
-  };
 
   return (
     <div className={`dtb-category-hero mb-5 sm:mb-6${heroReady ? ' is-ready' : ' is-loading'}`}>
