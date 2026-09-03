@@ -45,28 +45,50 @@ const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'tool-sets-kits': '/wp-content/uploads/2026/media/columbia_tools_ts_01.webp',
 };
 
+const LEVEL5_CATEGORY_IMAGE_OVERRIDES = {
+  'automatic_tapers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_4_760_07.webp',
+  'compound_tubes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_4_741_01.webp',
+  'corner_finishers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_4_733_01.webp',
+  'flat_boxes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_4_766_01.webp',
+  'powered_compound_applicators': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_4_772_01.webp',
+  'semi_automatic_tapers_banjos': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_5_311_01.webp',
+};
+
 const CATEGORY_IMAGE_OVERRIDES = {
+  level5: LEVEL5_CATEGORY_IMAGE_OVERRIDES,
   tapetech: {
-    'automatic_tapers': '/wp-content/uploads/2026/media/tapetech_07tt_08.webp',
-    'automatic-tapers': '/wp-content/uploads/2026/media/tapetech_07tt_08.webp',
+    'applicator_heads': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_16tt_02.webp',
+    'automatic_corner_flushers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_cf25tt_01.webp',
+    'automatic_goosenecks_box_fillers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_85t_01.webp',
+    'automatic_nail_spotters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ns02tt_02.webp',
+    'automatic_tapers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_07tt_02.webp',
+    'automatic-tapers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_07tt_02.webp',
     'compound_tubes': '/wp-content/uploads/2026/media/tapetech_ct42tt_01.webp',
     'compound-tubes': '/wp-content/uploads/2026/media/tapetech_ct42tt_01.webp',
     'corner_tools': '/wp-content/uploads/2026/media/tapetech_ca08tt_01.webp',
     'corner-tools': '/wp-content/uploads/2026/media/tapetech_ca08tt_01.webp',
-    'finishing_boxes': '/wp-content/uploads/2026/media/tapetech_ez07tt_01.webp',
-    'finishing-boxes': '/wp-content/uploads/2026/media/tapetech_ez07tt_01.webp',
+    'corner_flushers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_cf25tt_01.webp',
+    'finishing_boxes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ez15tt_03.webp',
+    'finishing-boxes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ez15tt_03.webp',
+    'flat_boxes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ez15tt_03.webp',
+    'goosenecks_box_fillers_adapters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_85t_01.webp',
     'handles': '/wp-content/uploads/2026/media/tapetech_88tte_03.webp',
     'handles_extensions': '/wp-content/uploads/2026/media/tapetech_88tte_03.webp',
     'handles-extensions': '/wp-content/uploads/2026/media/tapetech_88tte_03.webp',
     'pumps': '/wp-content/uploads/2026/media/tapetech_76ttca_01.webp',
-    'nail_spotters': '/wp-content/uploads/2026/media/tapetech_ns03tt_02.webp',
-    'nail-spotters': '/wp-content/uploads/2026/media/tapetech_ns03tt_02.webp',
+    'nail_spotters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ns02tt_02.webp',
+    'nail-spotters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_ns02tt_02.webp',
   },
   'columbia-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'columbia-taping-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'platinum-drywall-tools': {
-    'handles': '/wp-content/uploads/2026/media/platinum_pt_bh34_01.webp',
-    'handles-extensions': '/wp-content/uploads/2026/media/platinum_pt_bh34_01.webp',
+    'automatic_goosenecks_box_fillers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
+    'goosenecks_box_fillers_adapters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
+    'handles': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+    'handles_extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+    'handles-extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+    'semi_automatic_tapers_banjos': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
+    'semi_automatic_tools': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
   },
 };
 
