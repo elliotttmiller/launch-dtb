@@ -52,6 +52,12 @@ Use `Container` or `.dtb-container` instead of recreating page padding and `max-
 
 Horizontal card rails must remain inside the owning container gutter. Shared `StorefrontRail` instances must not use negative inline margins or persistent edge masks that visually cover the first or last card. Navigation controls belong inside the rail shell, while the scroll viewport keeps a small internal safety inset for borders, focus rings, and scroll snapping. Product image thumbnail rails follow the same edge-safety principle inside both the full PDP and quick-view modal.
 
+### Category hero loading
+
+`frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css` own the dedicated `/category/:slug` hero loading and reveal lifecycle. Category metadata loading must reserve the final hero footprint rather than rendering a small placeholder that later expands into the hero. The loading state uses the same responsive card geometry as the resolved state, with breadcrumb, copy, and media skeleton structure aligned to the final layout.
+
+The resolved hero stays covered by that structural shimmer until its selected hero image has loaded and completed its decode attempt. The skeleton then fades away while breadcrumb/copy and media use restrained opacity and small translate/scale reveal motion. Successfully loaded hero image URLs are remembered for the lifetime of the frontend session so revisiting a category can reveal immediately without replaying an unnecessary shimmer. Failed media must remain retryable and must not be cached as successfully ready. Reduced-motion preference disables shimmer and transition motion while preserving layout reservation and functional rendering.
+
 ### Vertical composition
 
 Use `Section` for route sections and `Stack` for vertical rhythm. Spacing should come from `--dtb-space-*` tokens, not unrelated page-specific values.
