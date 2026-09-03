@@ -29,6 +29,8 @@ Pointer interaction uses explicit hover intent. Opening a closed mega menu waits
 
 Initial sheet opening uses a restrained opacity plus small translate/scale settle motion. Cross-tab transitions keep the outer shell stationary and fade/translate only the inner content. The shared shell uses one stable desktop width rather than resizing between Products, Brands, Parts, Repairs, and Schematics. This continuity is intentional and must not be replaced with per-tab mount/unmount animation or instantaneous visibility changes.
 
+Primary desktop nav tabs use a single pseudo-element overlay interaction. The tab itself is an 8px-radius, overflow-clipped interaction surface. Its `::before` overlay covers the entire tab, uses `rgba(166, 166, 166, 0.2)`, begins at `opacity: 0` and `scale(0)`, and expands to `opacity: 1` and `scale(1)` over 0.4 seconds. Hover, keyboard focus, the active route, and an open dropdown use the same expanded overlay state so there is only one tab-hover visual authority. The former centered 40px bordered/shadowed pill animation must not be reintroduced.
+
 All navigation motion is suppressed when `prefers-reduced-motion: reduce` is active. Interaction state and accessibility semantics remain functional without animation.
 
 ## Desktop mega-menu loading presentation
