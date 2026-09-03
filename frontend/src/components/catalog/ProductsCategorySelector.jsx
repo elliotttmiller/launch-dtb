@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
 import { brandToSlug } from '../../utils/catalogUrlState.js';
 import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
+import { MediaSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import './products-selector.css';
-import './products-selector-slideshow.css';
 
 const ALL_PRODUCTS_CATEGORY = {
   key: 'all-products',
@@ -16,6 +16,11 @@ const ALL_PRODUCTS_CATEGORY = {
 const ALL_PRODUCTS_PREVIEW_LIMIT = 8;
 const ALL_PRODUCTS_SLIDE_INTERVAL_MS = 3800;
 
+/*
+ * Product discovery owns brand/category preview selection. These mappings are
+ * deliberately retained here while card geometry/presentation is shared with
+ * the schematics selector system.
+ */
 const COLUMBIA_CATEGORY_IMAGE_OVERRIDES = {
   'automatic_tapers': '/wp/wp-content/uploads/2026/media/columbia_tools_taper_01-scaled.webp',
   'automatic-tapers': '/wp/wp-content/uploads/2026/media/columbia_tools_taper_01-scaled.webp',
@@ -125,11 +130,6 @@ function withUrlParam(src, key, value) {
   }
 }
 
-function toCssUrl(src = '') {
-  if (!src) return undefined;
-  return `url("${String(src).replace(/"/g, '%22')}")`;
-}
-
 function resolvePreviewImageMeta(src = '') {
   const normalizedSrc = normalizePreviewImageUrl(src);
   if (!normalizedSrc || normalizedSrc.endsWith('.svg')) {
@@ -188,7 +188,7 @@ function AllProductsSlideshow({ images }) {
   if (availableImages.length === 0) return null;
 
   return (
-    <div className="product-category-card__slideshow" aria-hidden="true">
+    <span className="dtb-selector-card__slideshow" aria-hidden="true">
       {availableImages.map((src, index) => {
         const preview = resolvePreviewImageMeta(src);
         return (
@@ -198,7 +198,7 @@ function AllProductsSlideshow({ images }) {
             srcSet={preview.srcSet}
             sizes={preview.sizes}
             alt=""
-            className={`product-category-card__slide${index === activeIndex % availableImages.length ? ' is-active' : ''}`}
+            className={`dtb-selector-card__slide${index === activeIndex % availableImages.length ? ' is-active' : ''}`}
             width={640}
             height={427}
             loading={index === 0 ? 'eager' : 'lazy'}
@@ -208,7 +208,7 @@ function AllProductsSlideshow({ images }) {
           />
         );
       })}
-    </div>
+    </span>
   );
 }
 
@@ -221,44 +221,36 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory, allProd
   const cardImage = failedImage.key === imageKey && failedImage.src === previewImage.src ? '' : previewImage.src;
   const hasSlideshow = isAllProducts && allProductsImages.length > 0;
   const slideshowKey = `${brandToSlug(brand)}:${allProductsImages.join('|')}`;
-  const cardClassName = `product-category-card${cardImage || hasSlideshow ? '' : ' product-category-card--no-image'}${isAllProducts ? ' product-category-card--all-products' : ''}`;
-  const cardStyle = {
-    animationDelay: `${(index + 1) * 0.07}s`,
-    ...(cardImage ? { '--selector-card-image': toCssUrl(cardImage) } : {}),
-  };
+
+  let media;
+  if (hasSlideshow) {
+    media = <AllProductsSlideshow key={slideshowKey} images={allProductsImages} />;
+  } else if (cardImage) {
+    media = (
+      <img
+        src={cardImage}
+        srcSet={previewImage.srcSet}
+        sizes={previewImage.sizes}
+        alt=""
+        className="dtb-selector-card__image"
+        width={640}
+        height={427}
+        loading={index < 4 ? 'eager' : 'lazy'}
+        fetchPriority={index < 4 ? 'high' : 'auto'}
+        decoding="async"
+        onError={() => setFailedImage({ key: imageKey, src: previewImage.src })}
+      />
+    );
+  }
 
   return (
-    <button
-      type="button"
-      className={cardClassName}
-      style={cardStyle}
+    <MediaSelectorCard
+      title={category.name}
+      meta={`${category.count} product${category.count === 1 ? '' : 's'}`}
+      media={media}
+      className={isAllProducts ? 'dtb-selector-card--all-products' : ''}
       onClick={() => onSelectCategory(category)}
-    >
-      {hasSlideshow && <AllProductsSlideshow key={slideshowKey} images={allProductsImages} />}
-      {cardImage && (
-        <img
-          src={cardImage}
-          srcSet={previewImage.srcSet}
-          sizes={previewImage.sizes}
-          alt={category.name}
-          className="product-category-card__image"
-          width={640}
-          height={427}
-          loading={index < 4 ? 'eager' : 'lazy'}
-          fetchPriority={index < 4 ? 'high' : 'auto'}
-          decoding="async"
-          onError={() => setFailedImage({ key: imageKey, src: previewImage.src })}
-        />
-      )}
-      <div className="product-category-card__scrim" />
-      <div className="product-category-card__content">
-        <div className="product-category-card__text">
-          <h3 className="product-category-card__name">{category.name}</h3>
-          <span className="product-category-card__count">{category.count} product{category.count !== 1 ? 's' : ''}</span>
-        </div>
-        <ChevronRight className="product-category-card__chevron" size={18} />
-      </div>
-    </button>
+    />
   );
 }
 
@@ -347,7 +339,7 @@ export default function ProductsCategorySelector({
         </div>
       </div>
 
-      <div className="product-categories-grid">
+      <SelectorGrid variant="categories">
         {displayCategories.map((category, index) => (
           <ProductCategoryCard
             key={category.key || category.slug || category.name}
@@ -358,7 +350,7 @@ export default function ProductsCategorySelector({
             allProductsImages={category.isAllProducts ? allProductsImages : []}
           />
         ))}
-      </div>
+      </SelectorGrid>
     </div>
   );
 }
