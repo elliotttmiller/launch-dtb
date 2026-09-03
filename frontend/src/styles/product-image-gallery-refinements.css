@@ -1,16 +1,16 @@
 /*
- * Canonical full-PDP image-gallery presentation authority.
+ * Canonical product-detail image-gallery presentation authority.
  *
  * ProductImageGallery owns image identity, ordering, selection, navigation and
  * lightbox behavior. unified-responsive.css owns cross-route containment and
- * responsive safety. This file owns the full product-detail gallery's visual
- * sizing and horizontal thumbnail presentation only.
+ * responsive safety. This file owns the shared full-PDP and quick-view gallery
+ * visual sizing and horizontal thumbnail presentation.
  *
  * The DOM contract is intentionally simple and stable:
  *   main viewer -> horizontal thumbnail rail
  *
- * Quick View is not scoped by .dtb-product-page-shell and retains its own
- * presentation contract.
+ * Both the full product route and ProductModal render inside
+ * .dtb-product-page-shell, so edge-safety rules here intentionally stay shared.
  */
 
 .dtb-product-page-shell .dtb-pdp-gallery {
@@ -63,7 +63,7 @@
 .dtb-product-page-shell .product-image-gallery__thumb-shell {
   width: 100%;
   min-height: 0;
-  padding: 1px 0 3px;
+  padding: 1px 6px 3px;
   overflow: visible;
   overscroll-behavior: contain;
 }
@@ -76,10 +76,11 @@
   gap: .52rem;
   width: 100%;
   min-height: 0;
-  padding: 1px 0 2px;
+  padding: 1px 2px 2px;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
+  scroll-padding-inline: 2px;
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-behavior: smooth;
@@ -151,6 +152,14 @@
 @media (min-width: 768px) {
   .dtb-product-page-shell .product-image-gallery__thumb-nav {
     display: flex;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb-nav--prev {
+    left: 10px;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb-nav--next {
+    right: 10px;
   }
 }
 
@@ -237,11 +246,13 @@
   }
 
   .dtb-product-page-shell .product-image-gallery__thumb-shell {
-    padding-bottom: 1px;
+    padding: 1px 4px;
   }
 
   .dtb-product-page-shell .product-image-gallery__thumbs {
     gap: .42rem;
+    padding-inline: 1px;
+    scroll-padding-inline: 1px;
   }
 
   .dtb-product-page-shell .product-image-gallery__thumb {
