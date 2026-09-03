@@ -75,8 +75,13 @@
 .storefront-section__view-all { display:inline-flex; align-items:center; gap:4px; font-size:.82rem; font-weight:700; color:var(--dtb-primary); text-decoration:none; letter-spacing:.02em; white-space:nowrap; flex-shrink:0; padding:6px 0; transition:color 120ms ease; }
 .storefront-section__view-all:hover { color:var(--dtb-primary-strong); }
 
-.storefront-rail-shell { position:relative; isolation:isolate; }
-.storefront-rail { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); align-items:start; gap:var(--dtb-space-2,.75rem); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-behavior:smooth; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding:0 16px 4px; margin:0 -16px; }
+/* Horizontal storefront rails must stay inside the owning page/container
+   gutter. Previous negative inline margins plus desktop edge fades caused the
+   first/last card to render beneath an artificial mask and visually fall off
+   the page edge. Keep a tiny internal safety inset for card borders/focus rings
+   while allowing the scroll viewport itself to remain fully fluid. */
+.storefront-rail-shell { position:relative; isolation:isolate; min-width:0; }
+.storefront-rail { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); align-items:start; gap:var(--dtb-space-2,.75rem); max-width:100%; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-behavior:smooth; scroll-padding-inline:2px; scrollbar-width:none; -webkit-overflow-scrolling:touch; padding:2px 2px 6px; margin:0; }
 .storefront-rail::-webkit-scrollbar { display:none; }
 .storefront-rail>* { scroll-snap-align:start; }
 .storefront-rail-arrow { display:none; }
@@ -87,17 +92,15 @@
 .storefront-rail--equal-height > .dtb-product-card { height:100%; align-self:stretch; }
 
 @media (min-width:1024px) {
-  .storefront-rail-shell::before,.storefront-rail-shell::after { content:''; position:absolute; top:0; bottom:4px; z-index:2; width:72px; pointer-events:none; }
-  .storefront-rail-shell::before { left:-18px; background:linear-gradient(90deg,var(--dtb-page-bg,#ffffff) 0%,rgba(255,255,255,0) 100%); }
-  .storefront-rail-shell::after { right:-18px; background:linear-gradient(270deg,var(--dtb-page-bg,#ffffff) 0%,rgba(255,255,255,0) 100%); }
+  .storefront-rail-shell::before,.storefront-rail-shell::after { display:none; }
   .storefront-rail-arrow { position:absolute; top:50%; z-index:3; display:inline-flex; align-items:center; justify-content:center; width:42px; height:42px; border:1px solid rgba(148,163,184,.34); border-radius:999px; background:rgba(255,255,255,.94); color:#0f172a; box-shadow:0 18px 42px rgba(15,23,42,.16); cursor:pointer; transform:translateY(-50%); transition:opacity 140ms ease,transform 140ms ease,border-color 140ms ease,box-shadow 140ms ease,background 140ms ease; -webkit-tap-highlight-color:transparent; }
   .storefront-rail-arrow:hover:not(:disabled) { border-color:rgba(34,85,238,.45); background:#fff; color:var(--dtb-primary,#2255ee); box-shadow:0 22px 50px rgba(34,85,238,.18); }
   .storefront-rail-arrow:active:not(:disabled) { transform:translateY(-50%) scale(.96); }
   .storefront-rail-arrow:focus-visible { outline:3px solid rgba(34,85,238,.34); outline-offset:3px; }
   .storefront-rail-arrow:disabled { opacity:0; pointer-events:none; }
   .storefront-rail-arrow span { display:block; margin-top:-2px; font-size:32px; font-weight:400; line-height:1; }
-  .storefront-rail-arrow--prev { left:-22px; }
-  .storefront-rail-arrow--next { right:-22px; }
+  .storefront-rail-arrow--prev { left:8px; }
+  .storefront-rail-arrow--next { right:8px; }
 }
 
 .storefront-rail--fixed-tiles { grid-auto-columns:var(--dtb-rail-tile-w,clamp(162px,44vw,188px)); }
