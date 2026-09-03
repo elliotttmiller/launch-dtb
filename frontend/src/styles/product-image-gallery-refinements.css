@@ -22,7 +22,7 @@
 }
 
 .dtb-product-page-shell .dtb-pdp-gallery > div {
-  gap: .8rem;
+  gap: .7rem;
 }
 
 /* Main media stage */
@@ -30,11 +30,11 @@
   position: relative;
   isolation: isolate;
   width: 100%;
-  min-height: 420px;
+  min-height: 400px;
   aspect-ratio: 1.42 / 1;
   overflow: hidden;
   border: 1px solid var(--dtb-gallery-line);
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fff;
   box-shadow: none;
   transition: border-color .18s ease, box-shadow .18s ease;
@@ -42,7 +42,7 @@
 
 .dtb-product-page-shell .product-image-gallery__main:hover {
   border-color: var(--dtb-gallery-line-strong);
-  box-shadow: 0 12px 36px rgba(15, 23, 42, .055);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, .045);
 }
 
 .dtb-product-page-shell .product-image-gallery__main:focus-visible {
@@ -51,7 +51,7 @@
 }
 
 .dtb-product-page-shell .product-image-gallery__image {
-  padding: clamp(1rem, 2.4vw, 2rem);
+  padding: clamp(.85rem, 2vw, 1.65rem);
   background: #fff;
 }
 
@@ -59,15 +59,11 @@
   background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
 }
 
-/*
- * Horizontal thumbnail rail. The shell is containment only; the inner rail is
- * the single scroll owner. This avoids nested scrollbars and keeps the main
- * media column compact regardless of gallery length.
- */
+/* Horizontal thumbnail rail ------------------------------------------ */
 .dtb-product-page-shell .product-image-gallery__thumb-shell {
   width: 100%;
   min-height: 0;
-  padding: 2px 1px 4px;
+  padding: 1px 0 3px;
   overflow: visible;
   overscroll-behavior: contain;
 }
@@ -77,10 +73,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: .6rem;
+  gap: .52rem;
   width: 100%;
   min-height: 0;
-  padding: 1px 1px 3px;
+  padding: 1px 0 2px;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -99,17 +95,17 @@
 
 .dtb-product-page-shell .product-image-gallery__thumb {
   position: relative;
-  width: 68px;
-  height: 68px;
-  min-width: 68px;
-  flex: 0 0 68px;
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  flex: 0 0 64px;
   scroll-snap-align: start;
   overflow: hidden;
   border: 1px solid var(--dtb-gallery-line);
-  border-radius: 9px;
+  border-radius: 8px;
   background: #fff;
   box-shadow: none;
-  opacity: .82;
+  opacity: .84;
   transition:
     border-color .16s ease,
     box-shadow .16s ease,
@@ -137,12 +133,11 @@
 .dtb-product-page-shell .product-image-gallery__thumb img {
   width: 100%;
   height: 100%;
-  padding: 5px;
+  padding: 4px;
   object-fit: contain;
   background: #fff;
 }
 
-/* Keep desktop rail controls visible whenever the rail has overflow. */
 .dtb-product-page-shell .product-image-gallery__thumb-nav {
   display: none;
   border: 1px solid var(--dtb-gallery-line-strong);
@@ -174,25 +169,24 @@
   opacity: .36;
 }
 
-/* Main previous/next controls */
+/* Main previous/next controls ----------------------------------------- */
 .dtb-product-page-shell .product-image-gallery__nav-btn {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border: 1px solid rgba(203, 213, 225, .9);
   border-radius: 999px;
   background: rgba(255, 255, 255, .92);
   color: var(--dtb-gallery-ink);
-  box-shadow: 0 5px 18px rgba(15, 23, 42, .09);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .08);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  opacity: .88;
+  opacity: .9;
   transition: opacity .16s ease, transform .16s ease, border-color .16s ease, box-shadow .16s ease;
 }
 
 .dtb-product-page-shell .product-image-gallery__nav-btn:hover {
   opacity: 1;
   border-color: #b8c4d4;
-  box-shadow: 0 7px 22px rgba(15, 23, 42, .13);
 }
 
 .dtb-product-page-shell .product-image-gallery__nav-btn:focus-visible {
@@ -201,16 +195,16 @@
 }
 
 .dtb-product-page-shell .product-image-gallery__counter {
-  min-height: 28px;
-  padding: 0 .6rem;
+  min-height: 26px;
+  padding: 0 .55rem;
   border: 1px solid rgba(203, 213, 225, .85);
   border-radius: 999px;
   background: rgba(255, 255, 255, .9);
   color: #475569;
-  box-shadow: 0 3px 12px rgba(15, 23, 42, .06);
+  box-shadow: 0 2px 9px rgba(15, 23, 42, .05);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  font-size: .75rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -222,43 +216,55 @@
 }
 
 .dtb-product-page-shell .product-image-gallery__dot--active {
-  width: 16px;
+  width: 15px;
   background: var(--dtb-gallery-blue);
 }
 
+/* Compact-density phone gallery. The stage remains fully fluid and keeps the
+ * existing responsive image behavior; only surrounding chrome/density changes. */
 @media (max-width: 767px) {
   .dtb-product-page-shell .dtb-pdp-gallery > div {
-    gap: .65rem;
+    gap: .48rem;
   }
 
   .dtb-product-page-shell .product-image-gallery__main {
-    min-height: min(78vw, 430px);
-    border-radius: 10px;
+    min-height: min(72vw, 390px);
+    border-radius: 7px;
   }
 
   .dtb-product-page-shell .product-image-gallery__image {
-    padding: 1rem;
+    padding: .7rem;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb-shell {
+    padding-bottom: 1px;
   }
 
   .dtb-product-page-shell .product-image-gallery__thumbs {
-    gap: .5rem;
+    gap: .42rem;
   }
 
   .dtb-product-page-shell .product-image-gallery__thumb {
-    width: 60px;
-    height: 60px;
-    min-width: 60px;
-    flex-basis: 60px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    flex-basis: 52px;
+    border-radius: 6px;
+  }
+
+  .dtb-product-page-shell .product-image-gallery__thumb img {
+    padding: 3px;
   }
 
   .dtb-product-page-shell .product-image-gallery__nav-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
   }
 
   .dtb-product-page-shell .product-image-gallery__counter {
-    min-height: 26px;
-    font-size: .72rem;
+    min-height: 24px;
+    padding-inline: .48rem;
+    font-size: .69rem;
   }
 }
 
