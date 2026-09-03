@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   buildCategoryPageUrl,
   canonicalCatalogCategorySlug,
+  flattenCatalogNavigationGroups,
   normalizeCatalogNavigationGroups,
 } from '../src/utils/catalogFacets.js';
 
@@ -73,6 +74,19 @@ test('legacy aliases and repeated backend rows cannot create duplicate desktop d
     group.children.map(({ slug }) => slug),
     [...new Set(rawChildren.map(({ slug }) => canonicalCatalogCategorySlug(slug)))],
   );
+});
+
+test('All Products flattens navigation roots into the same populated tool-type entries', async () => {
+  const { root, children } = await canonicalPopulatedChildren();
+  const entries = flattenCatalogNavigationGroups([{
+    key: root.key,
+    label: root.label,
+    slug: root.slug,
+    children,
+  }]);
+
+  assert.deepEqual(entries.map(({ slug }) => slug), children.map(({ slug }) => slug));
+  assert.ok(!entries.some(({ slug }) => slug === root.slug));
 });
 
 test('StorefrontHeader has no parallel hardcoded desktop category authority', async () => {

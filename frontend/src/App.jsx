@@ -245,6 +245,7 @@ function AppRoutes() {
         <Route path="/all-products" element={<RedirectToProducts />} />
         <Route path="/parts" element={<Parts />} />
         <Route path="/product/:partNumber" element={<Product />} />
+        <Route path="/category/taping-finishing-tools" element={<RedirectToProducts />} />
         <Route path="/category/:categoryPathSlug" element={<CategoryLandingPage />} />
         <Route path="/schematics" element={<Schematics />} />
         <Route path="/repairs" element={<Repairs />} />

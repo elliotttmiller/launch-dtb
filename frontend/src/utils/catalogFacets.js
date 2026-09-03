@@ -155,6 +155,13 @@ export function normalizeCatalogNavigationGroups(rawGroups = []) {
     .filter(Boolean);
 }
 
+export function flattenCatalogNavigationGroups(rawGroups = []) {
+  return normalizeCatalogNavigationGroups(rawGroups).flatMap((group) => {
+    const children = Array.isArray(group.children) ? group.children : [];
+    return children.length > 0 ? children : [group];
+  });
+}
+
 export function normalizeCatalogCategoryEntry(category) {
   if (typeof category === 'string') {
     return {

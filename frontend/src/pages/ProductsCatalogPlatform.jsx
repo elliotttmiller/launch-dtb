@@ -16,6 +16,7 @@ import ProductsBrandSelector from '../components/catalog/ProductsBrandSelector.j
 import ProductsCategorySelector from '../components/catalog/ProductsCategorySelector.jsx';
 import CategoryHero from '../components/catalog/CategoryHero.jsx';
 import ShopByToolType from '../components/catalog/ShopByToolType.jsx';
+import Breadcrumb from '../components/shared/Breadcrumb.jsx';
 import LoadingCardTransition from '../components/shared/LoadingCardTransition.jsx';
 import { SORT_OPTIONS } from '../constants/sortOptions';
 import { useCatalogFacets } from '../hooks/useCatalogFacets';
@@ -34,7 +35,7 @@ import {
 import {
   buildCategoryPageUrl,
   dedupeCatalogBrandEntries,
-  normalizeCatalogNavigationGroups,
+  flattenCatalogNavigationGroups,
   normalizeDisplayCategorySlug,
 } from '../utils/catalogFacets.js';
 import { searchProducts } from '../services/catalog.js';
@@ -429,20 +430,14 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   );
 
   const allProductsToolTypes = useMemo(
-    () => normalizeCatalogNavigationGroups(facets?.navigationGroups)
-      .map((group) => ({
-        ...group,
-        name: group.label,
+    () => flattenCatalogNavigationGroups(facets?.navigationGroups)
+      .map((category) => ({
+        ...category,
+        name: category.label,
       }))
-      .filter((group) => group.name && group.slug && group.count > 0),
+      .filter((category) => category.name && category.slug && category.count > 0),
     [facets?.navigationGroups],
   );
-
-  const allProductsHero = useMemo(() => ({
-    label: 'All Products',
-    description: 'Browse our complete collection of professional drywall tools, finishing systems, accessories, and replacement parts.',
-    heroImage: mappedProducts.find((product) => product.image)?.image || '',
-  }), [mappedProducts]);
 
   const allProductsBreadcrumbs = useMemo(() => [
     { label: 'Home', path: '/' },
@@ -652,7 +647,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
 
         {isAllProductsRoute && !showCategoryLanding && !showBrandLanding && (
           <>
-            <CategoryHero category={allProductsHero} breadcrumbs={allProductsBreadcrumbs} />
+            <Breadcrumb items={allProductsBreadcrumbs} />
             {allProductsToolTypes.length > 0 && (
               <ShopByToolType categories={allProductsToolTypes} onOpenFilters={() => setShowFilters(true)} />
             )}

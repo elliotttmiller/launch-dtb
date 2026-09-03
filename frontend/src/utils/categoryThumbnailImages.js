@@ -37,6 +37,7 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
   'semi-automatic-taping-tools',
   'semi-automatic-tools',
   'semi-automatic-tool-cases',
+  'stilts',
 ]);
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
