@@ -6,12 +6,11 @@ const CATEGORY_THUMBNAIL_URL_BY_SLUG = {
 };
 
 // Keep decoded category thumbnails resident for the lifetime of the storefront
-// session. Desktop navigation panels are intentionally mounted/unmounted as the
-// mega-menu shell changes state; relying on <img loading="lazy"> alone can make
-// those remounts visibly decode/paint again even when the HTTP response is in
-// the browser cache. Warming the resolved URLs once gives every subsequent
-// renderer the same already-fetched/decoded image resource without introducing
-// a second catalog/image authority.
+// session. The mega-menu keeps visited renderers mounted, but the same thumbnail
+// resolver is also used by other storefront surfaces and can still create fresh
+// <img> elements. Warming each resolved URL once avoids repeated fetch/decode
+// work and gives subsequent renderers an already-resident browser image without
+// introducing a second catalog or media authority.
 const CATEGORY_THUMBNAIL_PRELOADS = new Map();
 
 function warmCategoryThumbnail(url) {
