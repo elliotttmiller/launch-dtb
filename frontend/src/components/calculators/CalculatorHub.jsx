@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { m as Motion, AnimatePresence } from 'framer-motion'
+import { m as Motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { CheckCircle2 } from 'lucide-react'
 import SheetCalculator from './SheetCalculator'
 import MudCalculator from './MudCalculator'
@@ -7,6 +7,13 @@ import TapeCalculator from './TapeCalculator'
 import CornerBeadCalculator from './CornerBeadCalculator'
 import ScrewCalculator from './ScrewCalculator'
 import SummaryView from './SummaryView'
+import {
+  contentVariants,
+  reducedContentVariants,
+  dtbSpring,
+  dtbTransition,
+  reducedTransition,
+} from '../../motion/dtbMotion.js'
 
 const TABS = [
   { id: 'sheets', label: 'Drywall Sheets', shortLabel: 'Sheets', gradient: 'from-primary-500 to-primary-600', bgGradient: 'from-primary-500/10 to-primary-600/10' },
@@ -20,11 +27,7 @@ const TABS = [
 const HUB_STORAGE_KEY = 'dwCalc_state'
 const HUB_STORAGE_VERSION = 2
 const DEFAULT_SUMMARY_DATA = {
-  sheets: {},
-  mud: {},
-  tape: {},
-  bead: {},
-  screws: {},
+  sheets: {}, mud: {}, tape: {}, bead: {}, screws: {},
   project: { jobName: '', jobAddress: '', contractorName: '', estimatorName: '', notes: '' },
 }
 
@@ -51,19 +54,14 @@ function loadSummaryData() {
   }
 }
 
-const pageTransition = {
-  initial: { opacity: 0, scale: 0.98 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.25, ease: [0.4, 0, 0.2, 1] } },
-  exit: { opacity: 0, scale: 0.98, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } },
-}
-
 const toastVariants = {
-  initial: { opacity: 0, y: -50, scale: 0.9 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 500, damping: 30 } },
-  exit: { opacity: 0, y: -20, scale: 0.9, transition: { duration: 0.2 } },
+  initial: { opacity: 0, y: -18, scale: 0.97 },
+  animate: { opacity: 1, y: 0, scale: 1, transition: dtbSpring.responsive },
+  exit: { opacity: 0, y: -8, scale: 0.985, transition: dtbTransition.exit },
 }
 
 export default function CalculatorHub() {
+  const reduceMotion = useReducedMotion()
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = Number(loadHubState().activeTab)
     return Number.isInteger(savedTab) && savedTab >= 0 && savedTab < TABS.length ? savedTab : 0
@@ -106,6 +104,7 @@ export default function CalculatorHub() {
   void showToastMessage
 
   const currentTab = TABS[activeTab]
+  const panelVariants = reduceMotion ? reducedContentVariants : contentVariants
 
   useEffect(() => {
     localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify({
@@ -120,7 +119,13 @@ export default function CalculatorHub() {
     <div className="w-full">
       <AnimatePresence>
         {showToast && (
-          <Motion.div variants={toastVariants} initial="initial" animate="animate" exit="exit" className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
+          <Motion.div
+            variants={reduceMotion ? reducedContentVariants : toastVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="fixed top-6 left-1/2 -translate-x-1/2 z-50"
+          >
             <div className="bg-primary-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl border border-primary-500/30">
               <CheckCircle2 className="w-5 h-5" />
               <span className="font-medium">{toastMessage}</span>
@@ -139,9 +144,10 @@ export default function CalculatorHub() {
                   <Motion.button
                     key={tab.id}
                     onClick={() => changeTab(index)}
-                    whileTap={{ scale: 0.94 }}
+                    whileTap={reduceMotion ? undefined : { scale: 0.975 }}
+                    transition={reduceMotion ? reducedTransition : dtbSpring.responsive}
                     style={{ scrollSnapAlign: 'start' }}
-                    className={`relative flex items-center px-3.5 py-1.5 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-all duration-200 ${isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
+                    className={`relative flex items-center px-3.5 py-1.5 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-[background-color,color,box-shadow] duration-[var(--dtb-motion-duration-fast)] ${isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
                     {tab.shortLabel}
                   </Motion.button>
@@ -155,8 +161,15 @@ export default function CalculatorHub() {
       <div className="w-full px-4 pb-8">
         <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 100%, 1200px)' }}>
           <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative">
-            <AnimatePresence mode="wait">
-              <Motion.div key={activeTab} variants={pageTransition} initial="initial" animate="animate" exit="exit" className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              <Motion.div
+                key={activeTab}
+                variants={panelVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden"
+              >
                 <div className={`h-px w-10 bg-linear-to-r ${currentTab.gradient} rounded-full mb-5`} />
                 {activeTab === 0 && <SheetCalculator onUpdate={handleSheetUpdate} />}
                 {activeTab === 1 && <MudCalculator onUpdate={handleMudUpdate} sheetData={summaryData.sheets} />}
