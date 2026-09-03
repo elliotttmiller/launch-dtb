@@ -121,6 +121,8 @@ export const contentVariants = {
 export const reducedContentVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { duration: dtbDuration.instant } },
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: dtbDuration.instant } },
   exit: { opacity: 0, transition: { duration: dtbDuration.instant } },
 };
 
