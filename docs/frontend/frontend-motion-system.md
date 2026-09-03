@@ -13,6 +13,14 @@ The motion system has two canonical authorities:
 
 `frontend/src/components/motion/GlobalMotionProvider.jsx` applies the application-wide Framer Motion default and `reducedMotion="user"` for the complete React tree.
 
+## Application-shell boundary
+
+`GlobalMotionProvider` is mounted in `frontend/src/main.jsx` above `App`, `AppErrorBoundary`, routing, header, footer, cart/sidebar surfaces, route content, dialogs, drawers, and other application UI. This is the canonical global motion boundary. React portals created from inside the application remain descendants of that React context, so portal-based dialogs and notifications inherit the same Motion configuration as in-flow components.
+
+The persistent shell itself should remain visually stable during route navigation. Route content animates inside the shell through `PageTransition`; the header/footer should not remount or replay entrance motion on every navigation. This distinction gives the customer one continuous application surface instead of making the entire viewport repeatedly fade or slide.
+
+Checkout and payment-provider UI remain inside the global motion configuration, but provider-owned payment controls must never be wrapped in transforms or transitions that could interfere with their rendering, focus, authentication, or payment integrity. Presentation motion may occur around the page shell without taking ownership of provider UI.
+
 ## Motion language
 
 DTB uses one motion language across desktop, tablet, and mobile. It does not use one literal animation for every interaction. The semantic classes are deliberately limited:
@@ -61,7 +69,7 @@ Springs do not receive a CSS easing function. Spring physics and timed easing ar
 
 Motion behavior is not duplicated for mobile and desktop. The same semantic tokens and variants apply at every breakpoint. Mobile differences are limited to geometry where the interaction itself differs—for example, a sheet can travel by a percentage while a desktop modal uses a small pixel offset.
 
-Mobile navigation and drawers must use the shared low-bounce spring and the CSS motion tokens. Horizontally scrollable tab rails may use native smooth scrolling when motion is allowed and `auto` scrolling when reduced motion is requested.
+Mobile navigation and drawers use the shared low-bounce spring and the CSS motion tokens. The outer mobile-drawer shell is structural only; `MotionBackdrop` and `MotionDrawer` own the actual entrance/exit animation so the interface never receives a second CSS translate/fade on top of the physical drawer motion. Horizontally scrollable tab rails may use native smooth scrolling when motion is allowed and `auto` scrolling when reduced motion is requested.
 
 ## Accessibility
 
@@ -78,6 +86,8 @@ Do not build separate reduced-motion component trees unless the interaction sema
 - Avoid long-running animation except structural loading shimmer where progress is genuinely unresolved.
 - Route transitions must not delay data fetching or hide component-level loading states.
 - Loading skeletons must reserve final component geometry to prevent layout jumps.
+- Persistent shell components stay mounted during route transitions; animate the changing route/content surface rather than the complete viewport chrome.
+- Avoid stacking CSS and Framer Motion transforms on the same interaction surface.
 
 ## Implementation rules
 
