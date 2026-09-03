@@ -2,7 +2,7 @@
 
 ## Ownership
 
-`frontend/` owns customer-facing routing, rendering, responsive layout, accessibility, interaction state, design primitives, and API presentation. It does not own authoritative commerce state, pricing, inventory, orders, payments, refunds, tax, shipping, or fulfillment.
+`frontend/` owns customer-facing routing, rendering, responsive layout, accessibility, interaction state, design primitives, motion, and API presentation. It does not own authoritative commerce state, pricing, inventory, orders, payments, refunds, tax, shipping, or fulfillment.
 
 ## Rendering hierarchy
 
@@ -26,9 +26,13 @@ Each layer has one responsibility. The application shell owns document flow and 
 ## Canonical files
 
 - `frontend/src/styles/storefront-tokens.css`: brand, semantic, spacing, typography, content-width, motion, safe-area, and layer tokens.
+- `frontend/src/motion/dtbMotion.js`: canonical Framer Motion durations, easing, physical spring response, semantic variants, and reduced-motion variants.
+- `frontend/src/components/motion/GlobalMotionProvider.jsx`: application-wide Motion configuration and user reduced-motion policy.
+- `frontend/src/styles/storefront-motion.css`: cross-component CSS timing/easing authority. It owns shared motion timing only, never component geometry or visual design.
+- `docs/frontend/frontend-motion-system.md`: durable motion contract for route, content, surface, loading, and direct-manipulation transitions.
 - `frontend/src/styles/responsive-foundation.css`: document normalization, intrinsic media behavior, accessibility, app sizing, and reusable layout primitives.
-- `frontend/src/styles/storefront-shell.css`: header offset, main flow, surfaces, and shared shell motion.
-- `frontend/src/styles/unified-responsive.css`: the only global cross-route responsive authority. It owns viewport geometry, responsive stacking, touch density, safe areas, overflow containment, and domain breakpoint behavior.
+- `frontend/src/styles/storefront-shell.css`: header offset, main flow, surfaces, and shared shell presentation.
+- `frontend/src/styles/unified-responsive.css`: the only global cross-route responsive geometry authority. It owns viewport geometry, responsive stacking, touch density, safe areas, overflow containment, and domain breakpoint behavior.
 - `frontend/src/styles/storefront-visibility.css`: stable storefront visibility decisions that are not responsive layout rules.
 - `frontend/src/components/layout/LayoutPrimitives.jsx`: React composition API for page frames, containers, sections, stacks, clusters, grids, split layouts, and sidebars.
 
@@ -39,10 +43,11 @@ Each layer has one responsibility. The application shell owns document flow and 
 1. utilities and document base;
 2. design tokens and responsive foundation;
 3. feature/component base styles;
-4. typography authorities;
-5. `unified-responsive.css` as the final and exclusive responsive layer.
+4. typography and feature presentation authorities;
+5. `storefront-motion.css` as the shared timing/easing authority;
+6. `unified-responsive.css` as the final and exclusive responsive geometry layer.
 
-Do not add another global mobile, tablet, desktop, fix, patch, mockup, polish, cleanup, or final-authority stylesheet. Add stable base appearance to the owning feature stylesheet. Add cross-route viewport behavior to the correct section of `unified-responsive.css`.
+Do not add another global mobile, tablet, desktop, fix, patch, mockup, polish, cleanup, or final-authority stylesheet. Stable component appearance belongs to the owning feature stylesheet. Shared motion timing belongs to `storefront-motion.css` and `dtbMotion.js`. Cross-route viewport behavior belongs to the correct section of `unified-responsive.css`.
 
 ## Layout contracts
 
@@ -57,6 +62,12 @@ Horizontal card rails must remain inside the owning container gutter. Shared `St
 `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css` own the dedicated `/category/:slug` hero loading and reveal lifecycle. Category metadata loading must reserve the final hero footprint rather than rendering a small placeholder that later expands into the hero. The loading state uses the same responsive card geometry as the resolved state, with breadcrumb, copy, and media skeleton structure aligned to the final layout.
 
 The resolved hero stays covered by that structural shimmer until its selected hero image has loaded and completed its decode attempt. The skeleton then fades away while breadcrumb/copy and media use restrained opacity and small translate/scale reveal motion. Successfully loaded hero image URLs are remembered for the lifetime of the frontend session so revisiting a category can reveal immediately without replaying an unnecessary shimmer. Failed media must remain retryable and must not be cached as successfully ready. Reduced-motion preference disables shimmer and transition motion while preserving layout reservation and functional rendering.
+
+### Motion and device consistency
+
+Desktop, tablet, and mobile share one semantic motion system. Do not create device-specific easing curves or arbitrary mobile durations. Device-specific motion differences are limited to geometry required by the interaction—for example, a mobile drawer can travel by a percentage while a desktop surface uses a small pixel offset.
+
+Framer Motion components inherit the application-wide low-bounce spring from `GlobalMotionProvider`. Route/content/loading transitions that require deterministic timing use the semantic variants exported by `dtbMotion.js`. CSS transitions use the matching `--dtb-motion-*` tokens. `prefers-reduced-motion` and Motion's `reducedMotion="user"` must disable nonessential movement consistently at every breakpoint.
 
 ### Vertical composition
 
@@ -89,8 +100,8 @@ Reusable components should respond to their allocated width. Apply `dtb-componen
 7. Forms preserve a minimum 16px mobile text size without broad descendant `!important` rules.
 8. Hover treatment is enabled only for devices that support hover and fine pointing.
 9. Reduced-motion preferences remove nonessential transitions and animation.
-10. Mobile and desktop use the same semantic component and domain state unless the interaction model is materially different.
-11. Feature styles may refine a component but must not redefine the global viewport, root, body, or application shell.
+10. Mobile and desktop use the same semantic component, domain state, and motion language unless the interaction model is materially different.
+11. Feature styles may refine a component but must not redefine the global viewport, root, body, application shell, or global motion tokens.
 12. Checkout rules are presentation-only and never alter WooCommerce, payment-provider, order, pricing, inventory, tax, shipping, or session ownership.
 13. Schematic responsive rules must preserve image bounds and hotspot coordinate ownership.
 
@@ -118,6 +129,7 @@ Do not add:
 - wildcard class selectors such as `[class*="drawer"]`;
 - universal descendant overrides such as `.component *` for sizing;
 - `transition: all`;
+- arbitrary local easing curves or motion durations when a `--dtb-motion-*` token applies;
 - arbitrary `z-index` escalation;
 - fixed content heights for dynamic text;
 - negative margins for primary page layout;
@@ -132,8 +144,8 @@ When changing responsive UI:
 
 1. Identify the owning component and its feature stylesheet.
 2. Keep base appearance in the feature stylesheet.
-3. Use shared tokens and layout primitives for new composition.
-4. Place only cross-route viewport behavior in `unified-responsive.css`.
+3. Use shared tokens, motion semantics, and layout primitives for new composition.
+4. Place shared motion timing in `storefront-motion.css` / `dtbMotion.js`; place cross-route viewport behavior in `unified-responsive.css`.
 5. Preserve accessibility, safe-area, reduced-motion, checkout ownership, schematic coordinates, and dynamic-content overflow behavior.
-6. Remove superseded selectors instead of adding a later override.
-7. Update this document when the cascade, ownership, or domain boundaries change.
+6. Remove superseded selectors instead of adding a later visual override.
+7. Update this document and `frontend-motion-system.md` when the responsive or motion contract changes.
