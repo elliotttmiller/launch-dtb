@@ -25,7 +25,6 @@ const POINTER_OPEN_INTENT_MS = 85;
 const POINTER_SWITCH_INTENT_MS = 42;
 const POINTER_CLOSE_DELAY_MS = 210;
 const CONTENT_EXIT_MS = 92;
-const SHELL_EXIT_MS = 285;
 
 const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Settings2, ShoppingBag, Award];
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
@@ -80,7 +79,7 @@ function MegaMenuThumb({ label, logo, thumbnail }) {
   if (imageSrc && !imageFailed) {
     return (
       <span className={`dtb-desktop-nav-editorial-thumb${logo ? ' dtb-desktop-nav-editorial-thumb--logo' : ''}`}>
-        <img src={imageSrc} alt="" loading="lazy" onError={() => setImageFailed(true)} />
+        <img src={imageSrc} alt="" loading="eager" decoding="async" onError={() => setImageFailed(true)} />
       </span>
     );
   }
@@ -402,14 +401,15 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const dropdownItems = desktopItems.filter((item) => item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length);
   const dropdownItemsById = new Map(dropdownItems.map((item) => [item.id, item]));
   const [renderedMenuId, setRenderedMenuId] = useState(() => openMenuId || null);
+  const [mountedMenuIds, setMountedMenuIds] = useState(() => new Set(openMenuId ? [openMenuId] : []));
   const [contentVisible, setContentVisible] = useState(() => Boolean(openMenuId));
   const openTimerRef = useRef(null);
   const closeTimerRef = useRef(null);
   const switchTimerRef = useRef(null);
-  const unmountTimerRef = useRef(null);
   const frameRef = useRef(null);
 
   const renderedItem = renderedMenuId ? dropdownItemsById.get(renderedMenuId) : null;
+  const mountedItems = dropdownItems.filter((item) => mountedMenuIds.has(item.id));
   const shellOpen = Boolean(openMenuId && renderedItem);
 
   const clearTimer = (ref) => {
@@ -426,9 +426,17 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     }
   };
 
+  const rememberMountedMenu = (id) => {
+    setMountedMenuIds((current) => {
+      if (current.has(id)) return current;
+      const next = new Set(current);
+      next.add(id);
+      return next;
+    });
+  };
+
   const cancelPendingClose = () => {
     clearTimer(closeTimerRef);
-    clearTimer(unmountTimerRef);
   };
 
   const revealContent = () => {
@@ -448,6 +456,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const commitOpen = (id, immediate = false) => {
     cancelPendingClose();
     clearTimer(switchTimerRef);
+    rememberMountedMenu(id);
 
     if (immediate) {
       clearFrame();
@@ -514,30 +523,18 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   };
 
   useEffect(() => {
-    if (openMenuId) {
-      clearTimer(unmountTimerRef);
-      if (!renderedMenuId) {
-        setRenderedMenuId(openMenuId);
-        setContentVisible(true);
-      }
-      return undefined;
+    if (!openMenuId) return;
+    rememberMountedMenu(openMenuId);
+    if (!renderedMenuId) {
+      setRenderedMenuId(openMenuId);
+      setContentVisible(true);
     }
-
-    if (!renderedMenuId) return undefined;
-    unmountTimerRef.current = window.setTimeout(() => {
-      unmountTimerRef.current = null;
-      setRenderedMenuId(null);
-      setContentVisible(false);
-    }, reducedMotion ? 0 : SHELL_EXIT_MS);
-
-    return () => clearTimer(unmountTimerRef);
-  }, [openMenuId, renderedMenuId, reducedMotion]);
+  }, [openMenuId, renderedMenuId]);
 
   useEffect(() => () => {
     clearTimer(openTimerRef);
     clearTimer(closeTimerRef);
     clearTimer(switchTimerRef);
-    clearTimer(unmountTimerRef);
     clearFrame();
   }, []);
 
@@ -589,7 +586,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
         </Link>
       ))}
 
-      {renderedItem ? (
+      {renderedItem && mountedItems.length > 0 ? (
         <div
           className="dtb-desktop-nav-menu dtb-desktop-nav-menu--shared"
           style={{ position: 'relative', width: 0, minWidth: 0, height: '100%' }}
@@ -620,17 +617,24 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
             }}
           >
             <div className="dtb-desktop-nav-dropdown__scroller">
-              <div
-                key={renderedItem.id}
-                style={{
-                  opacity: contentVisible ? 1 : 0,
-                  transform: contentVisible ? 'translateY(0)' : 'translateY(4px)',
-                  transition: contentTransition,
-                  willChange: reducedMotion ? 'auto' : 'opacity, transform',
-                }}
-              >
-                <DeliberatePanelRenderer item={renderedItem} onNavigate={onNavigate} />
-              </div>
+              {mountedItems.map((item) => {
+                const isRendered = item.id === renderedItem.id;
+                return (
+                  <div
+                    key={item.id}
+                    hidden={!isRendered}
+                    aria-hidden={!isRendered ? true : undefined}
+                    style={{
+                      opacity: isRendered && contentVisible ? 1 : 0,
+                      transform: isRendered && contentVisible ? 'translateY(0)' : 'translateY(4px)',
+                      transition: isRendered ? contentTransition : 'none',
+                      willChange: isRendered && !reducedMotion ? 'opacity, transform' : 'auto',
+                    }}
+                  >
+                    <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
