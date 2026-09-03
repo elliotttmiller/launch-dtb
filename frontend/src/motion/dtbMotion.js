@@ -36,6 +36,24 @@ export const dtbDistance = {
   large: 16,
 };
 
+// Low-bounce physical response for direct manipulation: tab indicators,
+// toggles, drawers and other controls whose geometry is visibly changing.
+// Timed route/content reveals intentionally remain deterministic tweens.
+export const dtbSpring = {
+  responsive: {
+    type: 'spring',
+    stiffness: 360,
+    damping: 34,
+    mass: 0.82,
+  },
+  gentle: {
+    type: 'spring',
+    stiffness: 300,
+    damping: 32,
+    mass: 0.9,
+  },
+};
+
 export const dtbTransition = {
   instant: { duration: dtbDuration.instant, ease: dtbEase.standard },
   fast: { duration: dtbDuration.fast, ease: dtbEase.standard },
@@ -45,6 +63,11 @@ export const dtbTransition = {
   slow: { duration: dtbDuration.slow, ease: dtbEase.emphasized },
   exit: { duration: dtbDuration.fast, ease: dtbEase.exit },
 };
+
+// MotionConfig's application-wide default. Explicit semantic transitions are
+// used where deterministic timing matters; everything else inherits this
+// restrained physical response on desktop, tablet and mobile alike.
+export const motionConfigTransition = dtbSpring.responsive;
 
 export const routeVariants = {
   initial: {
@@ -154,18 +177,15 @@ export const backdropTransition = { duration: dtbDuration.fast, ease: dtbEase.ex
 export const panelTransition = dtbTransition.standard;
 export const reducedTransition = { duration: dtbDuration.instant, ease: 'linear' };
 export const collapseTransition = dtbTransition.standard;
-export const indicatorTransition = dtbTransition.emphasized;
-export const microInteractionTransition = dtbTransition.fast;
+export const indicatorTransition = dtbSpring.responsive;
+export const microInteractionTransition = dtbSpring.responsive;
 
-export const mobileSheetTransition = {
-  type: 'tween',
-  ...dtbTransition.standard,
-};
+export const mobileSheetTransition = dtbSpring.gentle;
 
 export const mobileSheetVariants = {
-  hidden: { opacity: 0, y: '12%', scale: 0.992 },
+  hidden: { opacity: 0, y: '10%', scale: 0.994 },
   visible: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: '8%', scale: 0.995 },
+  exit: { opacity: 0, y: '7%', scale: 0.996 },
 };
 
 export const productModalTransition = {
@@ -190,12 +210,12 @@ export const productModalDesktopVariants = {
 };
 
 export const productModalMobileVariants = {
-  hidden: { opacity: 0, y: '14%', scale: 0.992 },
+  hidden: { opacity: 0, y: '12%', scale: 0.994 },
   visible: { opacity: 1, y: 0, scale: 1 },
   exit: {
     opacity: 0,
-    y: '10%',
-    scale: 0.994,
+    y: '8%',
+    scale: 0.996,
     transition: dtbTransition.exit,
   },
 };
