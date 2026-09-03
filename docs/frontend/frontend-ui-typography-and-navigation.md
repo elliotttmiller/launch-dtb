@@ -21,9 +21,15 @@ The interaction combines a measured sliding active surface with a dark feature-t
 
 ## Desktop primary navigation animation
 
-`frontend/src/styles/storefront-desktop-navigation.css` owns the desktop tab and mega-menu sheet transition. The dropdown sheet opens with the existing opacity/translate/scale motion without changing header geometry. Hover, keyboard focus, the current route, and an open mega menu expose the tab's active visual state.
+`frontend/src/components/storefront/StorefrontDesktopNavigation.jsx` owns the desktop mega-menu interaction lifecycle and timing. `frontend/src/styles/storefront-desktop-navigation.css` remains the visual styling authority for the tabs, sheet surface, cards, and content primitives.
 
-All navigation motion is disabled when `prefers-reduced-motion: reduce` is active.
+The five desktop dropdowns (`products`, `brands`, `parts`, `repairs`, and `schematics`) behave as one persistent viewport-centered mega-menu surface. Moving between dropdown tabs does not destroy and recreate the outer sheet. The shell remains mounted and stable while only the inner renderer changes, preventing the flash caused by independent dropdown surfaces becoming visible and hidden in the same interaction.
+
+Pointer interaction uses explicit hover intent. Opening a closed mega menu waits briefly before committing so incidental pointer travel does not flash a sheet. Switching between dropdown tabs while the sheet is already engaged uses a shorter intent delay. Leaving the combined navigation/sheet interaction region uses a longer forgiving close delay that is cancelled when the pointer re-enters. Keyboard focus and explicit click/toggle interactions do not inherit the pointer-intent delay.
+
+Initial sheet opening uses a restrained opacity plus small translate/scale settle motion. Cross-tab transitions keep the outer shell stationary and fade/translate only the inner content. The shared shell uses one stable desktop width rather than resizing between Products, Brands, Parts, Repairs, and Schematics. This continuity is intentional and must not be replaced with per-tab mount/unmount animation or instantaneous visibility changes.
+
+All navigation motion is suppressed when `prefers-reduced-motion: reduce` is active. Interaction state and accessibility semantics remain functional without animation.
 
 ## Desktop mega-menu loading presentation
 
