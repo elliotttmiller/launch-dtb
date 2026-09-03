@@ -6,7 +6,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { m as Motion, useReducedMotion } from 'framer-motion';
 import { X, CheckCircle, AlertCircle, Info, ShoppingCart, AlertTriangle } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { dtbSpring, dtbTransition, reducedTransition } from '../../motion/dtbMotion.js';
+import { dtbSpring, reducedTransition } from '../../motion/dtbMotion.js';
 
 const CONFIG = {
   success: { icon: CheckCircle, accent: '#16a34a', bg: '#f0fdf4', iconColor: '#16a34a', text: '#14532d' },
