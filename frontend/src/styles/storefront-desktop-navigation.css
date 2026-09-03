@@ -195,7 +195,7 @@
     white-space: nowrap;
     cursor: pointer;
     isolation: isolate;
-    transition: 0.4s;
+    transition: all 0.4s;
   }
 
   .site-header .dtb-desktop-nav-tab::before {
@@ -210,7 +210,6 @@
     opacity: 0;
     border-radius: 8px;
     transform: scale(0);
-    transform-origin: center;
     transition: all 0.4s;
     pointer-events: none;
   }
@@ -240,9 +239,7 @@
   }
 
   .site-header .dtb-desktop-nav-tab:hover::before,
-  .site-header .dtb-desktop-nav-tab:focus-visible::before,
-  .site-header .dtb-desktop-nav-tab.is-active::before,
-  .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
+  .site-header .dtb-desktop-nav-tab:focus-visible::before {
     opacity: 1;
     transform: scale(1);
   }
