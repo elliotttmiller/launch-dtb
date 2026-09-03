@@ -1,15 +1,12 @@
 /*
  * Drywall Toolbox selector card presentation authority
  * ---------------------------------------------------
- * Shared by product/brand selectors and schematics selectors. Domain modules
- * continue to own their data, routing, counts, preview-image resolution, and
- * business semantics; this file owns selector grid/card presentation only.
+ * Product brand/category discovery and Schematics brand/category discovery use
+ * these same primitives. Domain modules retain data, routing, counts, preview
+ * selection, and business semantics; this file owns selector presentation only.
  */
 
-.dtb-selector-grid,
-.dtb-schematics-grid,
-.products-brand-grid,
-.product-categories-grid {
+.dtb-selector-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: clamp(0.75rem, 0.6rem + 0.6vw, 1.5rem);
@@ -18,16 +15,9 @@
   margin-top: var(--dtb-space-3);
 }
 
-.product-categories-grid {
-  margin-bottom: var(--dtb-space-6);
-}
-
-.dtb-selector-card,
-.dtb-schematics-card,
-.product-category-card {
+.dtb-selector-card {
   position: relative;
   display: flex;
-  align-items: stretch;
   width: 100%;
   min-width: 0;
   min-height: var(--dtb-touch-target);
@@ -41,7 +31,6 @@
   text-align: left;
   cursor: pointer;
   isolation: isolate;
-  animation: none;
   transform: translateZ(0);
   transition:
     box-shadow var(--dtb-motion-standard),
@@ -49,25 +38,20 @@
     border-color var(--dtb-motion-fast);
 }
 
-.dtb-selector-card:focus-visible,
-.dtb-schematics-card:focus-visible,
-.product-category-card:focus-visible,
-.products-brand-card:focus-visible {
+.dtb-selector-card:focus-visible {
   outline: 3px solid var(--dtb-focus, var(--dtb-primary));
   outline-offset: 3px;
 }
 
-.dtb-selector-card--media,
-.dtb-schematics-card--category,
-.product-category-card {
+/* Landscape selector card used for product categories and schematic categories. */
+.dtb-selector-card--media {
+  align-items: stretch;
   aspect-ratio: 3 / 2;
   background: #f8fafc;
 }
 
 .dtb-selector-card__image,
-.dtb-schematics-card__bg-image,
-.product-category-card__image:not(.product-category-card__image--logo),
-.product-category-card__slide {
+.dtb-selector-card__slide {
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -79,6 +63,9 @@
   background: #f8fafc;
   backface-visibility: hidden;
   transform: scale(1.001);
+}
+
+.dtb-selector-card__image {
   transition: transform var(--dtb-motion-overlay);
 }
 
@@ -92,9 +79,29 @@
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
 }
 
-.dtb-selector-card__scrim,
-.dtb-schematics-card__scrim,
-.product-category-card__scrim {
+/* Products keep their All Products preview-image slideshow data source, but the
+   slideshow renders inside the same shared media card and follows its geometry. */
+.dtb-selector-card__slideshow {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.dtb-selector-card__slide {
+  opacity: 0;
+  transition:
+    opacity var(--dtb-motion-duration-slow) var(--dtb-motion-ease-standard),
+    transform var(--dtb-motion-overlay);
+  will-change: opacity;
+}
+
+.dtb-selector-card__slide.is-active {
+  opacity: 1;
+}
+
+.dtb-selector-card__scrim {
   position: absolute;
   inset: 0;
   z-index: 3;
@@ -108,9 +115,7 @@
   transition: background var(--dtb-motion-standard);
 }
 
-.dtb-selector-card__overlay,
-.dtb-schematics-card__overlay,
-.product-category-card__content {
+.dtb-selector-card__overlay {
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -121,18 +126,14 @@
   padding: clamp(10px, 2.5vw, 16px) clamp(12px, 2.5vw, 18px);
 }
 
-.dtb-selector-card__text,
-.dtb-schematics-card__overlay-text,
-.product-category-card__text {
+.dtb-selector-card__text {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.dtb-selector-card__title,
-.dtb-schematics-card--category .dtb-schematics-card__title,
-.product-category-card__name {
+.dtb-selector-card--media .dtb-selector-card__title {
   margin: 0;
   color: #fff;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
@@ -144,9 +145,7 @@
   overflow-wrap: anywhere;
 }
 
-.dtb-selector-card__meta,
-.dtb-schematics-card--category .dtb-schematics-card__meta,
-.product-category-card__count {
+.dtb-selector-card__meta {
   margin: 0;
   color: rgba(255, 255, 255, 0.75);
   font-size: clamp(0.62rem, 1.5vw, 0.74rem);
@@ -154,88 +153,30 @@
   line-height: 1.3;
 }
 
-.dtb-selector-card__chevron,
-.dtb-schematics-card--category .dtb-schematics-card__chevron,
-.product-category-card__chevron {
+.dtb-selector-card__chevron {
   position: static;
   align-self: flex-end;
   flex: 0 0 auto;
   margin-bottom: 1px;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.78);
   transition:
     transform var(--dtb-motion-fast),
     color var(--dtb-motion-fast);
 }
 
-.product-category-card--no-image {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-}
-
-/* The products selector keeps its existing All Products slideshow/media
-   authority while using the same card shell, scrim, typography and geometry. */
-.product-category-card--all-products,
-.product-category-card--all-products:hover {
-  border-color: rgba(15, 23, 42, 0.1);
-  background: #f8fafc;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-}
-
-.product-category-card--all-products .product-category-card__scrim,
-.product-category-card--all-products:hover .product-category-card__scrim {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.82) 0%,
-    rgba(0, 0, 0, 0.4) 48%,
-    rgba(0, 0, 0, 0.06) 100%
-  );
-}
-
-.product-category-card--all-products .product-category-card__name,
-.product-category-card--all-products:hover .product-category-card__name {
-  color: #fff;
-}
-
-.product-category-card--all-products .product-category-card__count,
-.product-category-card--all-products .product-category-card__chevron,
-.product-category-card--all-products:hover .product-category-card__count,
-.product-category-card--all-products:hover .product-category-card__chevron {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-/* Shared brand selector cards. Products and schematics keep their own brand
-   data/count semantics but use one geometry and logo presentation system. */
-.dtb-selector-card--brand,
-.dtb-schematics-card--brand,
-.products-brand-card {
-  display: flex;
+/* Square brand selectors use the same geometry in Products and Schematics. */
+.dtb-selector-card--brand {
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--dtb-space-2);
-  width: 100%;
-  min-width: 0;
   aspect-ratio: 1 / 1;
   padding: clamp(1rem, 4vw, 1.5rem);
-  overflow: hidden;
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: clamp(10px, 1.6vw, 14px);
   background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   text-align: center;
-  cursor: pointer;
-  transition:
-    box-shadow var(--dtb-motion-standard),
-    transform var(--dtb-motion-standard),
-    border-color var(--dtb-motion-fast);
 }
 
-.products-brand-card__logo-frame {
-  display: contents;
-}
-
-.dtb-selector-card__brand-logo,
-.dtb-schematics-card__brand-logo,
-.products-brand-card__logo {
+.dtb-selector-card__brand-logo {
   width: auto;
   height: clamp(4rem, 12vw, 6rem);
   max-width: 88%;
@@ -249,10 +190,7 @@
   color: var(--dtb-muted);
 }
 
-.products-brand-card__name,
-.products-brand-card__fallback-label,
-.dtb-selector-card--brand .dtb-selector-card__title,
-.dtb-schematics-card--brand .dtb-schematics-card__title--sr-fallback {
+.dtb-selector-card--brand .dtb-selector-card__title {
   margin: 0;
   color: var(--dtb-text-soft);
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
@@ -260,7 +198,6 @@
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
-  text-shadow: none;
 }
 
 .dtb-selector-card__title--visually-hidden {
@@ -275,43 +212,30 @@
   border: 0;
 }
 
-.dtb-selector-card__brand-meta,
-.dtb-schematics-card--brand .dtb-schematics-card__meta {
+.dtb-selector-card__brand-meta {
   color: var(--dtb-muted);
   font-size: clamp(0.68rem, 1.6vw, 0.78rem);
   line-height: 1.3;
 }
 
-.products-brand-card__name {
-  margin-top: var(--dtb-space-2);
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .dtb-selector-card:hover,
-  .dtb-schematics-card--category:hover,
-  .product-category-card:hover {
+  .dtb-selector-card--media:hover {
     border-color: rgba(15, 23, 42, 0.16);
     box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
     transform: translateY(-4px);
   }
 
   .dtb-selector-card--media:hover .dtb-selector-card__image,
-  .dtb-schematics-card--category:hover .dtb-schematics-card__bg-image,
-  .product-category-card:hover .product-category-card__image:not(.product-category-card__image--logo),
-  .product-category-card:hover .product-category-card__slide {
+  .dtb-selector-card--media:hover .dtb-selector-card__slide {
     transform: scale(1.045);
   }
 
-  .dtb-selector-card:hover .dtb-selector-card__chevron,
-  .dtb-schematics-card--category:hover .dtb-schematics-card__chevron,
-  .product-category-card:hover .product-category-card__chevron {
+  .dtb-selector-card--media:hover .dtb-selector-card__chevron {
     color: #fff;
     transform: translateX(4px);
   }
 
-  .dtb-selector-card--brand:hover,
-  .dtb-schematics-card--brand:hover,
-  .products-brand-card:hover {
+  .dtb-selector-card--brand:hover {
     border-color: rgba(34, 85, 238, 0.35);
     box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
     transform: translateY(-3px);
@@ -319,49 +243,28 @@
 }
 
 @media (min-width: 40rem) {
-  .dtb-selector-grid,
-  .dtb-schematics-grid,
-  .products-brand-grid,
-  .product-categories-grid {
+  .dtb-selector-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 64rem) {
   .dtb-selector-grid--brands,
-  .dtb-selector-grid--categories,
-  .dtb-schematics-grid--brands,
-  .dtb-schematics-grid--categories,
-  .products-brand-grid,
-  .product-categories-grid {
+  .dtb-selector-grid--categories {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 39.99rem) {
-  .products-brand-selector,
-  .product-selector,
-  .dtb-schematics-page__content {
-    min-width: 0;
-  }
-
-  .products-brand-grid,
-  .product-categories-grid,
-  .dtb-schematics-grid--brands,
-  .dtb-schematics-grid--categories,
   .dtb-selector-grid {
     gap: clamp(0.625rem, 2.8vw, 0.8rem);
   }
 
-  .product-category-card,
-  .dtb-schematics-card--category,
   .dtb-selector-card--media {
     min-width: 0;
     border-radius: 14px;
   }
 
-  .product-category-card__content,
-  .dtb-schematics-card__overlay,
   .dtb-selector-card__overlay {
     padding: 10px 11px 11px;
   }
@@ -369,18 +272,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-selector-card,
-  .dtb-schematics-card,
-  .product-category-card,
-  .products-brand-card,
   .dtb-selector-card__image,
-  .dtb-schematics-card__bg-image,
-  .product-category-card__image,
-  .product-category-card__slide,
-  .dtb-selector-card__chevron,
-  .dtb-schematics-card__chevron,
-  .product-category-card__chevron {
+  .dtb-selector-card__slide,
+  .dtb-selector-card__chevron {
     transition-duration: 1ms !important;
     transition-delay: 0ms !important;
-    animation: none !important;
   }
 }
