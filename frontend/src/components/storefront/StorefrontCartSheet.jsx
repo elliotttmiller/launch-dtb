@@ -280,6 +280,7 @@ export default function StorefrontCartSheet({
   }, [handleRemove, isClearing, removingKey, scheduleQuantitySync]);
 
   useEffect(() => {
+    let cancelled = false;
     const next = {};
     const activeSyncKeys = syncingKeysRef.current;
 
@@ -293,7 +294,10 @@ export default function StorefrontCartSheet({
     }
 
     localQuantitiesRef.current = next;
-    setLocalQuantities(next);
+    window.queueMicrotask(() => {
+      if (!cancelled) setLocalQuantities(next);
+    });
+    return () => { cancelled = true; };
   }, [cartItems]);
 
   useEffect(() => () => {
@@ -308,11 +312,13 @@ export default function StorefrontCartSheet({
       return;
     }
 
-    closeProductModal();
-
-    if (previouslyFocusedRef.current?.focus) {
-      previouslyFocusedRef.current.focus();
-    }
+    let cancelled = false;
+    window.queueMicrotask(() => {
+      if (cancelled) return;
+      closeProductModal();
+      previouslyFocusedRef.current?.focus?.();
+    });
+    return () => { cancelled = true; };
   }, [isOpen, closeProductModal]);
 
   useEffect(() => {

@@ -1135,7 +1135,17 @@ export function RepairStartExperience() {
   useEffect(() => {
     if (!formData.pricingTierId) return;
     if (servicePackageOptions.some((pkg) => pkg.id === formData.pricingTierId)) return;
-    setFormData((prev) => ({ ...prev, serviceType: '', pricingTierId: '', packageId: '' }));
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setFormData((prev) => ({ ...prev, serviceType: '', pricingTierId: '', packageId: '' }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [formData.pricingTierId, servicePackageOptions]);
 
   // Service type selection helper
@@ -1215,19 +1225,37 @@ export function RepairStartExperience() {
     if (brandIsCustom || !selectedPackageCategory || !formData.toolBrand) return;
     if (availableBrands.includes(formData.toolBrand)) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      toolBrand: '',
-      toolCategory: selectedPackageCategory,
-      toolModel: '',
-    }));
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setFormData((prev) => ({
+          ...prev,
+          toolBrand: '',
+          toolCategory: selectedPackageCategory,
+          toolModel: '',
+        }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [availableBrands, brandIsCustom, formData.toolBrand, selectedPackageCategory]);
 
   useEffect(() => {
     if (categoryIsCustom || !formData.toolCategory) return;
     if (availableCategories.includes(formData.toolCategory)) return;
 
-    setFormData((prev) => ({ ...prev, toolCategory: '', toolModel: '' }));
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setFormData((prev) => ({ ...prev, toolCategory: '', toolModel: '' }));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [availableCategories, categoryIsCustom, formData.toolCategory]);
 
   const fallbackModelOptions = useMemo(

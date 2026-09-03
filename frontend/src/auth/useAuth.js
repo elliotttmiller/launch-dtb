@@ -185,7 +185,6 @@ export function useAuth() {
   useEffect(() => {
     let cancelled = false;
     const epoch = ++epochRef.current;
-    setIsLoading(true);
     validateSession({ epoch })
       .catch(() => { if (!cancelled && epochRef.current === epoch) setUser(null); })
       .finally(() => { if (!cancelled && epochRef.current === epoch) setIsLoading(false); });

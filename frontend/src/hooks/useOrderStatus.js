@@ -32,6 +32,7 @@ export function useOrderStatus( orderId, orderKey = '' ) {
 
   const timerRef     = useRef( null );
   const cancelledRef = useRef( false );
+  const fetchStatusRef = useRef( null );
   const dataRef      = useRef( null );
 
   const clearTimer = () => {
@@ -72,7 +73,7 @@ export function useOrderStatus( orderId, orderKey = '' ) {
       if ( ! isTerminal( result ) ) {
         clearTimer();
         timerRef.current = setTimeout( () => {
-          if ( ! cancelledRef.current ) fetchStatus( false );
+          if ( ! cancelledRef.current ) fetchStatusRef.current?.( false );
         }, POLL_INTERVAL_MS );
       }
     } catch ( err ) {
@@ -83,12 +84,16 @@ export function useOrderStatus( orderId, orderKey = '' ) {
       if ( ! isTerminal( dataRef.current ) ) {
         clearTimer();
         timerRef.current = setTimeout( () => {
-          if ( ! cancelledRef.current ) fetchStatus( false );
+          if ( ! cancelledRef.current ) fetchStatusRef.current?.( false );
         }, POLL_INTERVAL_MS );
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ orderId, orderKey ] );
+
+  useEffect( () => {
+    fetchStatusRef.current = fetchStatus;
+  }, [ fetchStatus ] );
 
   useEffect( () => {
     cancelledRef.current = false;

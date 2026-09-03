@@ -1,6 +1,7 @@
 const CATEGORY_THUMBNAIL_ROOT = '/wp-content/uploads/2026/categories/thumbnails';
 
 const CATEGORY_THUMBNAIL_URL_BY_SLUG = {
+  'corner-finishers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/categories/thumbnails/corner-finishers.webp',
   'powered-compound-applicators': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_14tt_01.webp',
 };
 
@@ -41,7 +42,6 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
 ]);
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
-  'corner-finishers': 'angle-heads',
   'corner-applicators-angle-boxes': 'corner-boxes',
   'compound-tubes': 'compound-tubes',
   'applicator-heads': 'compound-applicators',

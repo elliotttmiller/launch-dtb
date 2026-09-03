@@ -397,7 +397,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogin, onRegi
     } catch {
       // Read state is presentation-only; account history remains available without storage.
     }
-  }, [notificationKeys, user?.id]);
+  }, [notificationKeys, user]);
 
   return (
     <div

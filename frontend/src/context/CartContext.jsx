@@ -361,7 +361,6 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     let mounted = true;
-    setIsLoading(true);
     initCart()
       .then((serverCart) => {
         if (!mounted) return;

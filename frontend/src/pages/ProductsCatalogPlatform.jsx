@@ -371,7 +371,10 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return mergeCategoryEntries(byBrand);
   }, [brandSlug, facets, selectedBrand, selectedBrandFacet]);
 
-  const selectedDisplayCategories = query.displayCategory || [];
+  const selectedDisplayCategories = useMemo(
+    () => query.displayCategory || [],
+    [query.displayCategory],
+  );
 
   const selectedCategoryLabel = useMemo(() => {
     if (selectedDisplayCategories.length === 0) return '';

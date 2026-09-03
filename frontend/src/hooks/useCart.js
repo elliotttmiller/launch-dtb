@@ -29,7 +29,6 @@ export function useCart() {
   // Initialise cart session on mount.
   useEffect( () => {
     let cancelled = false;
-    setIsLoading( true );
     initCart()
       .then( ( data ) => { if ( ! cancelled ) setCart( data ); } )
       .catch( ( err ) => { if ( ! cancelled ) setError( err.message || 'Failed to load cart.' ); } )

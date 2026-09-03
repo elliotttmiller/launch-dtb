@@ -398,7 +398,11 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
 
   useEffect(() => {
     if (mobileMenuOpen) return;
-    resetDrawerExpansions();
+    let cancelled = false;
+    window.queueMicrotask(() => {
+      if (!cancelled) resetDrawerExpansions();
+    });
+    return () => { cancelled = true; };
   }, [mobileMenuOpen, resetDrawerExpansions]);
 
   useEffect(() => {
@@ -511,13 +515,17 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
     searchOverlayRequestIdRef.current = requestId;
 
     if (!query) {
-      setMobileSearchResults([]);
-      setSearchLoading(false);
-      return undefined;
+      let cancelled = false;
+      window.queueMicrotask(() => {
+        if (cancelled || searchOverlayRequestIdRef.current !== requestId) return;
+        setMobileSearchResults([]);
+        setSearchLoading(false);
+      });
+      return () => { cancelled = true; };
     }
 
-    setSearchLoading(true);
     const t = window.setTimeout(async () => {
+      setSearchLoading(true);
       try {
         const products = (await searchProducts(query))
           .slice(0, MAX_SEARCH_PRODUCTS)

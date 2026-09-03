@@ -6,7 +6,7 @@ import WasteSelector from './shared/WasteSelector'
 import { calculateScrews } from '../../lib/calculators'
 
 const LS_KEY = 'dwCalc_screws'
-const spacingOptions = [16, 24].map((value) => ({ value, label: `${value}\" on center`, description: `${value}-in framing spacing` }))
+const spacingOptions = [16, 24].map((value) => ({ value, label: `${value}" on center`, description: `${value}-in framing spacing` }))
 const applicationOptions = [
   { value: 'wall', label: 'Walls', description: 'Conventional wall planning estimate' },
   { value: 'ceiling', label: 'Ceilings', description: 'Conventional ceiling planning estimate' },

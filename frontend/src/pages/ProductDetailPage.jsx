@@ -87,19 +87,24 @@ export default function ProductDetailPage() {
   );
 
   useEffect(() => {
-    if (!Array.isArray(variations) || variations.length === 0) {
-      setLocallySelectedVariation(null);
-      return;
-    }
-
-    setLocallySelectedVariation((previous) => {
-      if (urlVariantId != null) return resolvedInitialVariation;
-      if (previous?.id) {
-        const stillValid = variations.find((variation) => variation.id === previous.id);
-        if (stillValid) return stillValid;
+    let cancelled = false;
+    window.queueMicrotask(() => {
+      if (cancelled) return;
+      if (!Array.isArray(variations) || variations.length === 0) {
+        setLocallySelectedVariation(null);
+        return;
       }
-      return resolvedInitialVariation;
+
+      setLocallySelectedVariation((previous) => {
+        if (urlVariantId != null) return resolvedInitialVariation;
+        if (previous?.id) {
+          const stillValid = variations.find((variation) => variation.id === previous.id);
+          if (stillValid) return stillValid;
+        }
+        return resolvedInitialVariation;
+      });
     });
+    return () => { cancelled = true; };
   }, [product?.id, resolvedInitialVariation, urlVariantId, variations]);
 
   const selectedVariation = locallySelectedVariation || resolvedInitialVariation;

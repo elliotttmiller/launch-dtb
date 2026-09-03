@@ -31,6 +31,7 @@ export function useRepairStatus( repairId, token ) {
 
   const timerRef     = useRef( null );
   const cancelledRef = useRef( false );
+  const fetchStatusRef = useRef( null );
   // Track latest data in a ref to avoid stale closures inside fetchStatus
   const dataRef      = useRef( null );
 
@@ -74,7 +75,7 @@ export function useRepairStatus( repairId, token ) {
       if ( ! isTerminal( result ) ) {
         clearTimer();
         timerRef.current = setTimeout( () => {
-          if ( ! cancelledRef.current ) fetchStatus( false );
+          if ( ! cancelledRef.current ) fetchStatusRef.current?.( false );
         }, POLL_INTERVAL_MS );
       }
     } catch ( err ) {
@@ -86,12 +87,16 @@ export function useRepairStatus( repairId, token ) {
       if ( ! isTerminal( dataRef.current ) ) {
         clearTimer();
         timerRef.current = setTimeout( () => {
-          if ( ! cancelledRef.current ) fetchStatus( false );
+          if ( ! cancelledRef.current ) fetchStatusRef.current?.( false );
         }, POLL_INTERVAL_MS );
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ repairId, token ] );
+
+  useEffect( () => {
+    fetchStatusRef.current = fetchStatus;
+  }, [ fetchStatus ] );
 
   useEffect( () => {
     cancelledRef.current = false;
