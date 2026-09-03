@@ -1,10 +1,62 @@
 /* Category page hero ("/category/:slug") + Shop by Tool Type row.
    Built from the shared design tokens in storefront-tokens.css. */
 
+.dtb-category-hero {
+  --dtb-category-hero-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dtb-category-hero-fade: 320ms;
+  --dtb-category-hero-reveal: 420ms;
+}
+
+.dtb-category-hero__breadcrumb-stage {
+  position: relative;
+  min-height: 27px;
+}
+
+.dtb-category-hero__breadcrumb-content,
+.dtb-category-hero__breadcrumb-loading {
+  transition:
+    opacity var(--dtb-category-hero-fade) ease,
+    transform var(--dtb-category-hero-reveal) var(--dtb-category-hero-ease);
+}
+
+.dtb-category-hero__breadcrumb-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.dtb-category-hero.is-loading .dtb-category-hero__breadcrumb-content {
+  opacity: 0;
+  transform: translateY(3px);
+}
+
+.dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dtb-category-hero.is-loading .dtb-category-hero__breadcrumb-loading {
+  opacity: 1;
+}
+
+.dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-loading {
+  opacity: 0;
+  transform: translateY(-2px);
+}
+
+.dtb-category-hero__breadcrumb-skeleton {
+  display: flex;
+  min-height: 27px;
+  align-items: center;
+}
+
 /* The hero owns one restrained white/silver surface across both content and
    media. Category artwork is expected to be isolated/transparent so the same
    surface remains continuous behind title copy and tools. */
 .dtb-category-hero-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -22,6 +74,29 @@
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
 }
 
+.dtb-category-hero-card__loading-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 1;
+  transition:
+    opacity var(--dtb-category-hero-fade) ease,
+    visibility 0s linear var(--dtb-category-hero-fade);
+}
+
+.dtb-category-hero.is-ready .dtb-category-hero-card__loading-layer {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.dtb-category-hero-card__loading-layer > .dtb-category-hero-card--skeleton {
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+  box-shadow: none;
+}
+
 .dtb-category-hero-card__content {
   display: flex;
   min-width: 0;
@@ -29,6 +104,16 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1.25rem 1.25rem 1.2rem;
+  opacity: 0;
+  transform: translateY(7px);
+  transition:
+    opacity var(--dtb-category-hero-fade) ease 70ms,
+    transform var(--dtb-category-hero-reveal) var(--dtb-category-hero-ease) 40ms;
+}
+
+.dtb-category-hero.is-ready .dtb-category-hero-card__content {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dtb-category-hero-card__eyebrow {
@@ -88,6 +173,113 @@
   max-height: none;
   object-fit: contain;
   object-position: 50% 50%;
+  opacity: 0;
+  transform: translateY(5px) scale(0.992);
+  transition:
+    opacity 360ms ease 45ms,
+    transform 480ms var(--dtb-category-hero-ease) 20ms;
+}
+
+.dtb-category-hero-card__image.is-ready {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Full-footprint loading state. The skeleton deliberately occupies the exact
+   hero geometry so metadata resolution never causes the page to jump from a
+   pair of bars into a large card. */
+.dtb-category-hero-card--skeleton {
+  isolation: isolate;
+  box-shadow: none;
+}
+
+.dtb-category-hero-card__skeleton-content,
+.dtb-category-hero-card__skeleton-media {
+  position: relative;
+  z-index: 1;
+}
+
+.dtb-category-hero-card__skeleton-content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.72rem;
+  padding: 1.25rem 1.25rem 1.2rem;
+}
+
+.dtb-category-hero-card__skeleton-media {
+  order: -1;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  align-items: center;
+  justify-content: center;
+  padding: 1.1rem;
+}
+
+.dtb-category-hero-shimmer {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eef5;
+}
+
+.dtb-category-hero-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-115%);
+  background: linear-gradient(
+    100deg,
+    transparent 18%,
+    rgba(255, 255, 255, 0.42) 40%,
+    rgba(255, 255, 255, 0.78) 50%,
+    rgba(255, 255, 255, 0.42) 60%,
+    transparent 82%
+  );
+  animation: dtb-category-hero-shimmer 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.dtb-category-hero-shimmer--breadcrumb {
+  width: clamp(150px, 18vw, 230px);
+  height: 11px;
+}
+
+.dtb-category-hero-shimmer--eyebrow {
+  width: min(42%, 170px);
+  height: 10px;
+}
+
+.dtb-category-hero-shimmer--title {
+  width: min(82%, 410px);
+  height: clamp(28px, 3vw, 38px);
+  border-radius: 10px;
+}
+
+.dtb-category-hero-shimmer--copy {
+  width: min(86%, 430px);
+  height: 12px;
+}
+
+.dtb-category-hero-shimmer--copy-short {
+  width: min(62%, 310px);
+  height: 12px;
+}
+
+.dtb-category-hero-shimmer--media {
+  width: 84%;
+  height: 76%;
+  border-radius: 18px;
+  background: rgba(221, 228, 238, 0.72);
+}
+
+@keyframes dtb-category-hero-shimmer {
+  100% {
+    transform: translateX(115%);
+  }
 }
 
 /* The category navigation row deliberately has tighter vertical rhythm than
@@ -208,7 +400,8 @@
     min-height: 0;
   }
 
-  .dtb-category-hero-card__content {
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
     grid-column: 1;
     grid-row: 1;
     gap: 0.48rem;
@@ -219,7 +412,8 @@
     font-size: clamp(1.95rem, 2.8vw, 2.55rem);
   }
 
-  .dtb-category-hero-card__media {
+  .dtb-category-hero-card__media,
+  .dtb-category-hero-card__skeleton-media {
     order: initial;
     grid-column: 2;
     grid-row: 1;
@@ -230,6 +424,11 @@
     padding: 0.2rem clamp(0.6rem, 1.15vw, 1rem) 0.2rem 0;
   }
 
+  .dtb-category-hero-shimmer--media {
+    width: 88%;
+    height: 72%;
+  }
+
   .dtb-tool-type-rail {
     grid-auto-columns: clamp(168px, 14vw, 198px);
     gap: 0.86rem;
@@ -237,7 +436,8 @@
 }
 
 @media (min-width: 1280px) {
-  .dtb-category-hero-card__content {
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
     padding-left: clamp(2.35rem, 4vw, 3.8rem);
     padding-right: clamp(1.8rem, 2.7vw, 2.7rem);
   }
@@ -259,11 +459,13 @@
 }
 
 @media (max-width: 767px) {
-  .dtb-category-hero-card__content {
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
     order: 1;
   }
 
-  .dtb-category-hero-card__media {
+  .dtb-category-hero-card__media,
+  .dtb-category-hero-card__skeleton-media {
     padding: 0.65rem 0.8rem 0;
   }
 
@@ -273,8 +475,23 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dtb-category-hero__breadcrumb-content,
+  .dtb-category-hero__breadcrumb-loading,
+  .dtb-category-hero-card__loading-layer,
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__image,
   .dtb-tool-type-tile {
     transition: none;
+  }
+
+  .dtb-category-hero-shimmer::after {
+    animation: none;
+  }
+
+  .dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-content,
+  .dtb-category-hero.is-ready .dtb-category-hero-card__content,
+  .dtb-category-hero-card__image.is-ready {
+    transform: none;
   }
 
   .dtb-tool-type-tile:hover {
