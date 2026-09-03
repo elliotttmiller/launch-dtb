@@ -207,7 +207,7 @@ export function buildCalculatorReport(data = {}, generatedAt = new Date()) {
         ],
       }),
     ],
-    disclaimer: 'Planning estimate only. This report is provided for informational purposes and is not a bid, quote, engineering document, construction specification, or guarantee of quantities or results. Calculations depend on user-supplied inputs and assumptions. Before purchasing or installing materials, the user is solely responsible for verifying measurements, quantities, waste allowances, product suitability, manufacturer instructions, project requirements, and applicable codes with qualified professionals. To the fullest extent permitted by law, Drywall Toolbox disclaims all warranties concerning this report and shall not be liable for any loss, cost, shortage, overage, delay, or damage arising from its use or reliance.',
+    disclaimer: 'Results are provided for planning and informational purposes only, may be inaccurate, and are used at your own risk; verify all quantities before purchase or installation.',
   }
 }
 

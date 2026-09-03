@@ -7,15 +7,17 @@ const SITE_HOST = new URL(PUBLIC_SITE_URL).host
 
 export default function CalculatorReport({ report }) {
   const projectMeta = [
-    { label: 'Job name', value: report.project.jobName, emphasis: true },
-    { label: 'Job address', value: report.project.jobAddress },
-    { label: 'Estimate date', value: report.generatedDateLabel },
     report.project.contractorName && { label: 'Contractor', value: report.project.contractorName },
     report.project.estimatorName && { label: 'Estimator', value: report.project.estimatorName },
   ].filter(Boolean)
+  const hasProjectContext = projectMeta.length > 0 || Boolean(report.project.notes)
 
   return (
     <article className="dtb-calculator-report" aria-label="Drywall Toolbox material estimate report">
+      <div className="dtb-report-disclosure dtb-report-disclosure--print" role="note" aria-label="Estimate disclosure">
+        <p>{report.disclaimer}</p>
+      </div>
+
       <header className="dtb-report-header">
         <div className="dtb-report-brand">
           <img
@@ -26,28 +28,33 @@ export default function CalculatorReport({ report }) {
             decoding="sync"
           />
           <div className="dtb-report-brand-copy">
-            <span>Professional Estimation Suite</span>
-            <strong>Material planning built for the field.</strong>
+            <span>Professional Material Planning</span>
+            <strong>Clear takeoffs for confident project preparation.</strong>
           </div>
         </div>
         <div className="dtb-report-title-block">
           <span className="dtb-report-kicker">Material Estimate</span>
           <strong>{report.project.jobName}</strong>
+          {report.project.jobAddress !== '—' && (
+            <span className="dtb-report-job-address">{report.project.jobAddress}</span>
+          )}
           <small>{report.generatedDateLabel}</small>
         </div>
       </header>
 
-      <section className={`dtb-report-project-card dtb-report-project-card--${projectMeta.length}`} aria-label="Project details">
-        {projectMeta.map((item) => (
-          <ReportMeta key={item.label} {...item} />
-        ))}
-        {report.project.notes && (
-          <div className="dtb-report-notes">
-            <span>Project notes</span>
-            <p>{report.project.notes}</p>
-          </div>
-        )}
-      </section>
+      {hasProjectContext && (
+        <section className={`dtb-report-project-card dtb-report-project-card--${projectMeta.length}`} aria-label="Additional project details">
+          {projectMeta.map((item) => (
+            <ReportMeta key={item.label} {...item} />
+          ))}
+          {report.project.notes && (
+            <div className="dtb-report-notes">
+              <span>Project notes</span>
+              <p>{report.project.notes}</p>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="dtb-report-summary-section">
         <SectionHeading
@@ -103,14 +110,15 @@ export default function CalculatorReport({ report }) {
         </div>
       </section>
 
-      <footer className="dtb-report-footer">
+      <footer className="dtb-report-final-brand">
         <div className="dtb-report-footer-brand">
           <img src={dtbLogoWhite} alt="Drywall Toolbox" />
           <span>{SITE_HOST}</span>
         </div>
-        <strong className="dtb-report-footer-label">Planning Estimate · Limitation of Reliance</strong>
-        <p>{report.disclaimer}</p>
       </footer>
+      <div className="dtb-report-disclosure dtb-report-disclosure--preview" role="note" aria-label="Estimate disclosure">
+        <p>{report.disclaimer}</p>
+      </div>
     </article>
   )
 }

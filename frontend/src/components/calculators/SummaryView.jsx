@@ -63,7 +63,9 @@ export default function SummaryView({ data, onProjectUpdate }) {
           <ProjectField label="Contractor" value={projectDraft.contractorName} onChange={handleProjectField('contractorName')} placeholder="Company or crew name" optional />
           <ProjectField label="Estimator" value={projectDraft.estimatorName} onChange={handleProjectField('estimatorName')} placeholder="Estimator name" optional />
           <label className="sm:col-span-2 block">
-            <span className="block text-xs font-medium text-gray-600 mb-1.5">Project notes</span>
+            <span className="block text-xs font-medium text-gray-600 mb-1.5">
+              Project notes<span className="font-normal text-gray-400"> (optional)</span>
+            </span>
             <textarea value={projectDraft.notes} onChange={handleProjectField('notes')} rows={3} placeholder="Optional scope, assumptions, or field notes" className="w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-white text-gray-900 text-sm leading-snug focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition resize-y" />
           </label>
         </div>

@@ -126,8 +126,18 @@
   letter-spacing: -0.035em;
 }
 
+.dtb-report-job-address {
+  max-width: 280px;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.25;
+}
+
 .dtb-report-title-block small {
-  margin-top: var(--dtb-space-2);
+  margin-top: 5px;
   font-size: 8.5px;
   font-weight: 600;
   opacity: 0.78;
@@ -146,18 +156,14 @@
 }
 
 .dtb-report-meta {
-  grid-column: span 2;
+  grid-column: span 3;
   min-height: 62px;
   padding: var(--dtb-space-2) var(--dtb-space-3);
   background: #fff;
 }
 
-.dtb-report-project-card--4 .dtb-report-meta {
-  grid-column: span 3;
-}
-
-.dtb-report-project-card--5 .dtb-report-meta:nth-child(n + 4) {
-  grid-column: span 3;
+.dtb-report-project-card--1 .dtb-report-meta {
+  grid-column: 1 / -1;
 }
 
 .dtb-report-meta--emphasis {
@@ -438,13 +444,10 @@
   text-align: right;
 }
 
-.dtb-report-footer {
+.dtb-report-final-brand {
   margin-top: var(--dtb-space-4);
-  padding: var(--dtb-space-3) var(--dtb-space-4) 0;
+  padding: var(--dtb-space-3) var(--dtb-space-4);
   border-top: 1px solid var(--line-strong);
-  color: var(--muted);
-  font-size: 7.6px;
-  line-height: 1.45;
   text-align: center;
 }
 
@@ -471,19 +474,20 @@
   font-weight: 650;
 }
 
-.dtb-report-footer p {
-  max-width: 680px;
-  margin: 5px auto 0;
+.dtb-report-disclosure {
+  margin-top: var(--dtb-space-2);
+  color: var(--muted);
+  font-size: 6.4px;
+  line-height: 1.25;
+  text-align: center;
 }
 
-.dtb-report-footer-label {
-  display: block;
-  margin-top: 4px;
-  color: var(--ink-soft);
-  font-size: 7.2px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.dtb-report-disclosure--print {
+  display: none;
+}
+
+.dtb-report-disclosure p {
+  margin: 0;
 }
 
 .dtb-report-preview-modal {
@@ -655,7 +659,7 @@
 
 @page dtb-calculator-report {
   size: Letter portrait;
-  margin: 0.42in 0 0.85in;
+  margin: 0.42in 0 0.24in;
 }
 
 @page dtb-calculator-report:first {
@@ -706,52 +710,56 @@
   body.dtb-calculator-report-printing .dtb-report-project-card,
   body.dtb-calculator-report-printing .dtb-report-summary-section,
   body.dtb-calculator-report-printing .dtb-report-detail-section,
-  body.dtb-calculator-report-printing .dtb-report-footer {
+  body.dtb-calculator-report-printing .dtb-report-final-brand {
     margin-inline: 0.42in;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-footer {
+  body.dtb-calculator-report-printing .dtb-report-disclosure--preview {
+    display: none;
+  }
+
+  body.dtb-calculator-report-printing .dtb-report-disclosure--print {
+    display: block;
     position: fixed;
-    right: 0.42in;
-    bottom: -0.69in;
-    left: 0.42in;
+    right: 0.28in;
+    bottom: 0;
+    left: 0.28in;
     z-index: 2;
     margin: 0;
-    padding: 0.08in 0 0;
+    padding: 0.025in 0 0;
+    border-top: 1px solid var(--line);
     background: #fff;
-    font-size: 6.7px;
-    line-height: 1.32;
+    font-size: 5px;
+    line-height: 1;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-footer-brand {
+  body.dtb-calculator-report-printing .dtb-report-final-brand {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand {
     gap: 5px;
-    margin-bottom: 2px;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-footer-brand img {
+  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand img {
     width: 72px;
     height: 21px;
     padding: 3px 6px;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-footer-brand span {
+  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand span {
     font-size: 6.5px;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-footer-label {
-    margin: 0 0 2px;
-    font-size: 6.8px;
-  }
-
-  body.dtb-calculator-report-printing .dtb-report-footer p {
-    max-width: none;
+  body.dtb-calculator-report-printing .dtb-report-disclosure--print p {
     margin: 0;
+    white-space: nowrap;
   }
 
   body.dtb-calculator-report-printing .dtb-report-project-card,
   body.dtb-calculator-report-printing .dtb-report-summary-section,
-  body.dtb-calculator-report-printing .dtb-report-material-section,
-  body.dtb-calculator-report-printing .dtb-report-footer {
+  body.dtb-calculator-report-printing .dtb-report-material-section {
     break-inside: avoid;
     page-break-inside: avoid;
   }
