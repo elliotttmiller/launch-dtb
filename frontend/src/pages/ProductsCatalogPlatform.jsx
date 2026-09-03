@@ -641,10 +641,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
               </p>
             </div>
           ) : (
-            <div className="mb-6 sm:mb-8" aria-hidden="true">
-              <div className="h-4 w-40 rounded-full dtb-loading-bar mb-3" />
-              <div className="h-8 w-72 rounded-xl dtb-loading-bar" />
-            </div>
+            <CategoryHero category={null} />
           )
         )}
 
