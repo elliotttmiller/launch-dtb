@@ -48,6 +48,9 @@ import './styles/product-detail-approved-mockup.css';
  * legacy grid-tab behavior without escalating specificity. */
 import './styles/product-detail-description.css';
 import './components/catalog/products-selector-overrides.css';
+/* Selector grids/cards are shared presentation across product brand/category
+ * discovery and schematics. Domain modules continue to own data and routing. */
+import './styles/selector-cards.css';
 
 /* Shared timing/easing authority loads after feature appearance styles so
  * component geometry remains local while transition behavior stays global. */
