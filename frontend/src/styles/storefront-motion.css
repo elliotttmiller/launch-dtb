@@ -64,12 +64,27 @@
   }
 }
 
-/* Mobile/tablet navigation uses the same motion language, with physical drawer
-   movement supplied by MotionDrawer and deterministic CSS state transitions. */
+/*
+ * Mobile/tablet navigation
+ * ------------------------
+ * StorefrontMobileDrawer already mounts MotionBackdrop + MotionDrawer inside
+ * AnimatePresence. The outer fixed shell is therefore structural only. Keeping
+ * a second opacity/translate animation on the outer shell would double-animate
+ * every mobile navigation open/close and make the motion feel delayed or soft.
+ */
+.storefront-mobile-drawer,
+.storefront-mobile-drawer[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
 .storefront-mobile-drawer {
-  transition:
-    opacity var(--dtb-motion-fast),
-    transform var(--dtb-motion-standard);
+  pointer-events: none;
+}
+
+.storefront-mobile-drawer[data-open="true"] {
+  pointer-events: auto;
 }
 
 .storefront-mobile-drawer__row-toggle {
@@ -158,7 +173,6 @@
   .site-header .dtb-desktop-nav-tab::before,
   .site-header .dtb-desktop-nav-tab svg,
   .site-header .dtb-desktop-nav-dropdown,
-  .storefront-mobile-drawer,
   .storefront-mobile-drawer__row-toggle,
   .storefront-mobile-drawer__row-toggle svg,
   .storefront-mobile-drawer__chevron,
