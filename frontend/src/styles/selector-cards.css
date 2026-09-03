@@ -82,6 +82,16 @@
   transition: transform var(--dtb-motion-overlay);
 }
 
+.dtb-selector-card__image-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+}
+
 .dtb-selector-card__scrim,
 .dtb-schematics-card__scrim,
 .product-category-card__scrim {
@@ -233,6 +243,12 @@
   object-fit: contain;
 }
 
+.dtb-selector-card__brand-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--dtb-muted);
+}
+
 .products-brand-card__name,
 .products-brand-card__fallback-label,
 .dtb-selector-card--brand .dtb-selector-card__title,
@@ -244,6 +260,26 @@
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
+  text-shadow: none;
+}
+
+.dtb-selector-card__title--visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dtb-selector-card__brand-meta,
+.dtb-schematics-card--brand .dtb-schematics-card__meta {
+  color: var(--dtb-muted);
+  font-size: clamp(0.68rem, 1.6vw, 0.78rem);
+  line-height: 1.3;
 }
 
 .products-brand-card__name {
@@ -312,7 +348,8 @@
   .products-brand-grid,
   .product-categories-grid,
   .dtb-schematics-grid--brands,
-  .dtb-schematics-grid--categories {
+  .dtb-schematics-grid--categories,
+  .dtb-selector-grid {
     gap: clamp(0.625rem, 2.8vw, 0.8rem);
   }
 
