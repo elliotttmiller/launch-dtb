@@ -96,8 +96,8 @@ export function buildCalculatorReport(data = {}, generatedAt = new Date()) {
     project: {
       jobName: safeText(project.jobName, 'Untitled project'),
       jobAddress: safeText(project.jobAddress),
-      contractorName: safeText(project.contractorName),
-      estimatorName: safeText(project.estimatorName),
+      contractorName: safeText(project.contractorName, ''),
+      estimatorName: safeText(project.estimatorName, ''),
       notes: String(project.notes ?? '').trim(),
     },
     summaryItems: [
@@ -207,7 +207,7 @@ export function buildCalculatorReport(data = {}, generatedAt = new Date()) {
         ],
       }),
     ],
-    disclaimer: 'Material quantities are planning estimates based on the dimensions, selections, and waste factors entered in the Drywall Toolbox calculators. Verify field measurements, project specifications, manufacturer requirements, and applicable local code before purchasing or installing materials.',
+    disclaimer: 'Planning estimate only. This report is provided for informational purposes and is not a bid, quote, engineering document, construction specification, or guarantee of quantities or results. Calculations depend on user-supplied inputs and assumptions. Before purchasing or installing materials, the user is solely responsible for verifying measurements, quantities, waste allowances, product suitability, manufacturer instructions, project requirements, and applicable codes with qualified professionals. To the fullest extent permitted by law, Drywall Toolbox disclaims all warranties concerning this report and shall not be liable for any loss, cost, shortage, overage, delay, or damage arising from its use or reliance.',
   }
 }
 

@@ -6,6 +6,14 @@ import { PUBLIC_SITE_URL } from '../../../utils/siteUrl.js'
 const SITE_HOST = new URL(PUBLIC_SITE_URL).host
 
 export default function CalculatorReport({ report }) {
+  const projectMeta = [
+    { label: 'Job name', value: report.project.jobName, emphasis: true },
+    { label: 'Job address', value: report.project.jobAddress },
+    { label: 'Estimate date', value: report.generatedDateLabel },
+    report.project.contractorName && { label: 'Contractor', value: report.project.contractorName },
+    report.project.estimatorName && { label: 'Estimator', value: report.project.estimatorName },
+  ].filter(Boolean)
+
   return (
     <article className="dtb-calculator-report" aria-label="Drywall Toolbox material estimate report">
       <header className="dtb-report-header">
@@ -29,13 +37,10 @@ export default function CalculatorReport({ report }) {
         </div>
       </header>
 
-      <section className="dtb-report-project-card" aria-label="Project details">
-        <ReportMeta label="Job name" value={report.project.jobName} emphasis />
-        <ReportMeta label="Job address" value={report.project.jobAddress} />
-        <ReportMeta label="Contractor" value={report.project.contractorName} />
-        <ReportMeta label="Estimator" value={report.project.estimatorName} />
-        <ReportMeta label="Estimate date" value={report.generatedDateLabel} />
-        <ReportMeta label="Report ID" value={`DTB-${report.generatedDate.replaceAll('-', '')}`} />
+      <section className={`dtb-report-project-card dtb-report-project-card--${projectMeta.length}`} aria-label="Project details">
+        {projectMeta.map((item) => (
+          <ReportMeta key={item.label} {...item} />
+        ))}
         {report.project.notes && (
           <div className="dtb-report-notes">
             <span>Project notes</span>
@@ -100,9 +105,10 @@ export default function CalculatorReport({ report }) {
 
       <footer className="dtb-report-footer">
         <div className="dtb-report-footer-brand">
-          <strong>Drywall Toolbox</strong>
+          <img src={dtbLogoWhite} alt="Drywall Toolbox" />
           <span>{SITE_HOST}</span>
         </div>
+        <strong className="dtb-report-footer-label">Planning Estimate · Limitation of Reliance</strong>
         <p>{report.disclaimer}</p>
       </footer>
     </article>
