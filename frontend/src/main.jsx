@@ -49,6 +49,10 @@ import './styles/product-detail-approved-mockup.css';
 import './styles/product-detail-description.css';
 import './components/catalog/products-selector-overrides.css';
 
+/* Shared timing/easing authority loads after feature appearance styles so
+ * component geometry remains local while transition behavior stays global. */
+import './styles/storefront-motion.css';
+
 /* Final and exclusive cross-route responsive authority. */
 import './styles/unified-responsive.css';
 
