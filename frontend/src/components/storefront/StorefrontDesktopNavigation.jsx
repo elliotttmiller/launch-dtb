@@ -371,7 +371,7 @@ function DesktopNavTrigger({ item, isOpen, active, panelId, onOpen, onToggle, on
   };
 
   return (
-    <div className={`dtb-desktop-nav-menu${isOpen ? ' is-open' : ''}`} onPointerEnter={onOpen}>
+    <div className={`dtb-desktop-nav-menu${isOpen ? ' is-open' : ''}`} onPointerEnter={() => onOpen(false)}>
       <button
         ref={triggerRef}
         type="button"
