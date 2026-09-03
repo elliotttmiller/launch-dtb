@@ -2,9 +2,9 @@
 """Generate transparent storefront category thumbnails from canonical media.
 
 Category media owns only the isolated product/tool pixels. The storefront owns
-its white surface, viewport geometry, padding, and responsive fitment. Outputs
-therefore preserve each tool's natural aspect ratio instead of padding every
-asset into a fixed 348x128 white canvas.
+its surface treatment and responsive fitment. Outputs use a consistent square,
+transparent canvas so every category card receives predictable media geometry
+without cropping or distorting the tool's natural aspect ratio.
 """
 
 from pathlib import Path
@@ -16,13 +16,11 @@ ROOT = Path(__file__).resolve().parents[2]
 SOURCE_ROOT = ROOT / "products" / "launch" / "media" / "media"
 OUTPUT_ROOT = ROOT / "products" / "launch" / "media" / "categories" / "thumbnails"
 
-# Keep enough source resolution for ~2x rendering in the category rails and
-# desktop mega menu without pointlessly shipping full product-photo sizes.
-MAX_LONG_EDGE = 800
-TRANSPARENT_PADDING_RATIO = 0.06
-MIN_TRANSPARENT_PADDING = 8
-MAX_TRANSPARENT_PADDING = 48
-WEBP_QUALITY = 88
+# 512px supplies more than 4x source pixels for the desktop mega menu's 92px
+# media bay while remaining small enough for navigation-critical downloads.
+OUTPUT_SIZE = 512
+TRANSPARENT_PADDING_RATIO = 0.075
+WEBP_QUALITY = 86
 
 # Background removal is deliberately conservative. Only near-background pixels
 # connected to an image edge are removed, which protects light/chrome detail
@@ -36,7 +34,7 @@ ALPHA_BOUNDS_THRESHOLD = 16
 # the strongest representative product composition in the canonical media set.
 SELECTIONS = {
     "angle-heads": "columbia_tools_ah_all_sizes_02.webp",
-    "automatic-tapers": "tapetech_07tt_07.webp",
+    "automatic-tapers": "columbia_tools_staper_03.webp",
     "automatic-taping-tool-cases": "columbia_tools_tcs_02.webp",
     "automatic-taping-tool-sets": "columbia_tools_pts_01.webp",
     "automatic-taping-tools": "columbia_tools_taper_02.webp",
@@ -56,7 +54,7 @@ SELECTIONS = {
     "semi-automatic-accessories": "tapetech_fhtt_02.webp",
     "semi-automatic-tapers": "columbia_tools_sat_01.webp",
     "semi-automatic-taping-tool-sets": "columbia_tools_tcs_01.webp",
-    "semi-automatic-taping-tools": "../semi.webp",
+    "semi-automatic-taping-tools": "columbia_tools_sat_01.webp",
     "semi-automatic-tool-cases": "columbia_tools_sacs_01.webp",
 }
 
@@ -140,7 +138,7 @@ def isolate_foreground(image: Image.Image) -> Image.Image:
 
 
 def crop_to_visible_content(image: Image.Image) -> Image.Image:
-    """Crop to meaningful alpha, then add proportional transparent safety space."""
+    """Crop to meaningful alpha and center it on a square transparent canvas."""
     alpha = image.getchannel("A")
     bounds_mask = alpha.point(
         lambda value: 255 if value >= ALPHA_BOUNDS_THRESHOLD else 0,
@@ -152,28 +150,24 @@ def crop_to_visible_content(image: Image.Image) -> Image.Image:
 
     cropped = image.crop(bounds)
 
-    # Downscale only. Never enlarge a low-resolution canonical source.
-    longest_edge = max(cropped.size)
-    content_limit = max(1, MAX_LONG_EDGE - (2 * MAX_TRANSPARENT_PADDING))
-    if longest_edge > content_limit:
-        scale = content_limit / longest_edge
-        cropped = cropped.resize(
-            (
-                max(1, round(cropped.width * scale)),
-                max(1, round(cropped.height * scale)),
-            ),
-            Image.Resampling.LANCZOS,
-            reducing_gap=3.0,
-        )
-
-    padding = round(max(cropped.size) * TRANSPARENT_PADDING_RATIO)
-    padding = max(MIN_TRANSPARENT_PADDING, min(MAX_TRANSPARENT_PADDING, padding))
-    canvas = Image.new(
-        "RGBA",
-        (cropped.width + (2 * padding), cropped.height + (2 * padding)),
-        (0, 0, 0, 0),
+    padding = round(OUTPUT_SIZE * TRANSPARENT_PADDING_RATIO)
+    content_limit = OUTPUT_SIZE - (2 * padding)
+    scale = min(content_limit / cropped.width, content_limit / cropped.height)
+    rendered = cropped.resize(
+        (
+            max(1, round(cropped.width * scale)),
+            max(1, round(cropped.height * scale)),
+        ),
+        Image.Resampling.LANCZOS,
+        reducing_gap=3.0 if scale < 0.5 else None,
     )
-    canvas.alpha_composite(cropped, (padding, padding))
+
+    canvas = Image.new("RGBA", (OUTPUT_SIZE, OUTPUT_SIZE), (0, 0, 0, 0))
+    offset = (
+        (OUTPUT_SIZE - rendered.width) // 2,
+        (OUTPUT_SIZE - rendered.height) // 2,
+    )
+    canvas.alpha_composite(rendered, offset)
     return canvas
 
 
@@ -189,8 +183,8 @@ def verify_output(image: Image.Image, slug: str) -> None:
             f"alpha_range=({alpha_min}, {alpha_max})"
         )
 
-    if max(image.size) > MAX_LONG_EDGE:
-        raise RuntimeError(f"{slug}: output exceeds {MAX_LONG_EDGE}px long-edge limit: {image.size}")
+    if image.size != (OUTPUT_SIZE, OUTPUT_SIZE):
+        raise RuntimeError(f"{slug}: expected {OUTPUT_SIZE}px square output, got {image.size}")
 
 
 def generate(slug: str, source_name: str) -> tuple[int, int]:
@@ -233,7 +227,7 @@ def main() -> None:
         for slug, (width, height) in sorted(generated_sizes.items())
     )
     print(
-        f"generated={len(SELECTIONS)} transparent=true max_long_edge={MAX_LONG_EDGE} "
+        f"generated={len(SELECTIONS)} transparent=true size={OUTPUT_SIZE}x{OUTPUT_SIZE} "
         f"output={OUTPUT_ROOT} dimensions=[{dimensions}]"
     )
 

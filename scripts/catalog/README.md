@@ -115,7 +115,13 @@ Manufacturer research may validate or reject a claim, but generated/researched t
 
 ## Category thumbnail background removal
 
-Use `remove_category_thumbnail_backgrounds.py` for a reviewed bulk migration of category thumbnails from baked studio backgrounds to transparent WebP assets. It uses `rembg` with the `isnet-general-use` model by default, reuses one ONNX inference session across the batch, enables alpha matting for metallic/tool edges, trims exterior transparency, preserves each tool's natural aspect ratio, writes files atomically, and emits a JSON QA report.
+Use `generate-category-thumbnails.py` to rebuild the canonical storefront assets from the selected high-resolution product media. It removes edge-connected studio backgrounds conservatively, trims excess source canvas, preserves each tool's natural aspect ratio, and centers the result on an optimized 512×512 transparent WebP canvas for predictable category-card fitment.
+
+```powershell
+python .\scripts\catalog\generate-category-thumbnails.py
+```
+
+Use `remove_category_thumbnail_backgrounds.py` only for a reviewed migration of other baked-background inputs. It uses `rembg` with the `isnet-general-use` model by default, reuses one ONNX inference session across the batch, enables alpha matting for metallic/tool edges, trims exterior transparency, preserves each tool's natural aspect ratio, writes files atomically, and emits a JSON QA report.
 
 Install the isolated runtime dependencies:
 

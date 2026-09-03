@@ -94,6 +94,8 @@ function MegaMenuEmptyState({ item }) {
 }
 
 function ProductCard({ entry, onNavigate }) {
+  const productCount = Number(entry.count || entry.productCount || 0);
+
   return (
     <Link
       to={entry.to}
@@ -101,10 +103,17 @@ function ProductCard({ entry, onNavigate }) {
       onClick={onNavigate}
     >
       <MegaMenuThumb label={entry.label} thumbnail={entry.thumbnail} />
-      <span className="dtb-desktop-nav-row-text">
+      <span className="dtb-desktop-nav-row-text dtb-mega-menu__product-card-copy">
         <span className="dtb-desktop-nav-row-title">{entry.label}</span>
+        {productCount > 0 ? (
+          <span className="dtb-mega-menu__product-card-meta">
+            {productCount} {productCount === 1 ? 'product' : 'products'}
+          </span>
+        ) : null}
       </span>
-      <ChevronRight size={16} className="dtb-desktop-nav-row-chevron" aria-hidden="true" />
+      <span className="dtb-mega-menu__product-card-action" aria-hidden="true">
+        <ChevronRight size={17} strokeWidth={2.35} />
+      </span>
     </Link>
   );
 }
