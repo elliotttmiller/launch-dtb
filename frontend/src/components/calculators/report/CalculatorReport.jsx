@@ -1,9 +1,6 @@
 import './calculator-report.css'
 
 import dtbLogoWhite from '@assets/brand/dtb-logo-white.svg'
-import { PUBLIC_SITE_URL } from '../../../utils/siteUrl.js'
-
-const SITE_HOST = new URL(PUBLIC_SITE_URL).host
 
 export default function CalculatorReport({ report }) {
   const projectMeta = [
@@ -110,15 +107,6 @@ export default function CalculatorReport({ report }) {
         </div>
       </section>
 
-      <footer className="dtb-report-final-brand">
-        <div className="dtb-report-footer-brand">
-          <img src={dtbLogoWhite} alt="Drywall Toolbox" />
-          <span>{SITE_HOST}</span>
-        </div>
-      </footer>
-      <div className="dtb-report-disclosure dtb-report-disclosure--preview" role="note" aria-label="Estimate disclosure">
-        <p>{report.disclaimer}</p>
-      </div>
     </article>
   )
 }

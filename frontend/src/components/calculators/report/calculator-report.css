@@ -444,46 +444,17 @@
   text-align: right;
 }
 
-.dtb-report-final-brand {
-  margin-top: var(--dtb-space-4);
-  padding: var(--dtb-space-3) var(--dtb-space-4);
-  border-top: 1px solid var(--line-strong);
-  text-align: center;
-}
-
-.dtb-report-footer-brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.dtb-report-footer-brand img {
-  display: block;
-  width: 82px;
-  height: 25px;
-  padding: 4px 7px;
-  border-radius: 4px;
-  background: #101828;
-  object-fit: contain;
-}
-
-.dtb-report-footer-brand span {
-  color: var(--ink-soft);
-  font-size: 7.4px;
-  font-weight: 650;
-}
-
 .dtb-report-disclosure {
-  margin-top: var(--dtb-space-2);
-  color: var(--muted);
-  font-size: 6.4px;
-  line-height: 1.25;
+  color: #98a2b3;
+  font-size: 5px;
+  line-height: 1;
   text-align: center;
 }
 
-.dtb-report-disclosure--print {
-  display: none;
+@media screen {
+  .dtb-report-disclosure--print {
+    display: none;
+  }
 }
 
 .dtb-report-disclosure p {
@@ -659,7 +630,7 @@
 
 @page dtb-calculator-report {
   size: Letter portrait;
-  margin: 0.42in 0 0.24in;
+  margin: 0.42in 0 0.18in;
 }
 
 @page dtb-calculator-report:first {
@@ -709,47 +680,27 @@
 
   body.dtb-calculator-report-printing .dtb-report-project-card,
   body.dtb-calculator-report-printing .dtb-report-summary-section,
-  body.dtb-calculator-report-printing .dtb-report-detail-section,
-  body.dtb-calculator-report-printing .dtb-report-final-brand {
+  body.dtb-calculator-report-printing .dtb-report-detail-section {
     margin-inline: 0.42in;
   }
 
-  body.dtb-calculator-report-printing .dtb-report-disclosure--preview {
-    display: none;
-  }
-
   body.dtb-calculator-report-printing .dtb-report-disclosure--print {
-    display: block;
-    position: fixed;
-    right: 0.28in;
-    bottom: 0;
-    left: 0.28in;
+    display: block !important;
+    position: fixed !important;
+    right: 0.34in;
+    bottom: -0.11in;
+    left: 0.34in;
     z-index: 2;
     margin: 0;
-    padding: 0.025in 0 0;
-    border-top: 1px solid var(--line);
-    background: #fff;
-    font-size: 5px;
+    padding: 0;
+    overflow: hidden;
+    color: #98a2b3 !important;
+    background: transparent;
+    font-size: 4.75px;
+    font-weight: 450;
+    letter-spacing: 0.01em;
     line-height: 1;
-  }
-
-  body.dtb-calculator-report-printing .dtb-report-final-brand {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-
-  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand {
-    gap: 5px;
-  }
-
-  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand img {
-    width: 72px;
-    height: 21px;
-    padding: 3px 6px;
-  }
-
-  body.dtb-calculator-report-printing .dtb-report-final-brand .dtb-report-footer-brand span {
-    font-size: 6.5px;
+    text-align: center;
   }
 
   body.dtb-calculator-report-printing .dtb-report-disclosure--print p {
