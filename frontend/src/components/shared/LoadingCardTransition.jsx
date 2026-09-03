@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
+import { dtbDurationMs } from '../../motion/dtbMotion.js';
 
-const CROSSFADE_DURATION_MS = 460;
-const SKELETON_REMOVAL_BUFFER_MS = 80;
+const CROSSFADE_DURATION_MS = dtbDurationMs.slow;
+const SKELETON_REMOVAL_BUFFER_MS = 60;
 
 /**
  * Keeps the outgoing skeleton and incoming content mounted together long enough
@@ -30,9 +31,7 @@ export default function LoadingCardTransition({
       });
     } else {
       firstFrame = window.requestAnimationFrame(() => {
-        secondFrame = window.requestAnimationFrame(() => {
-          setReady(true);
-        });
+        secondFrame = window.requestAnimationFrame(() => setReady(true));
       });
 
       removalTimer = window.setTimeout(() => {
