@@ -445,9 +445,17 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     });
   };
 
-  const commitOpen = (id) => {
+  const commitOpen = (id, immediate = false) => {
     cancelPendingClose();
     clearTimer(switchTimerRef);
+
+    if (immediate) {
+      clearFrame();
+      setRenderedMenuId(id);
+      onOpen(id);
+      setContentVisible(true);
+      return;
+    }
 
     if (!renderedMenuId || renderedMenuId === id || reducedMotion) {
       setRenderedMenuId(id);
@@ -478,13 +486,13 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
         : POINTER_OPEN_INTENT_MS;
 
     if (delay === 0) {
-      commitOpen(id);
+      commitOpen(id, immediate || reducedMotion);
       return;
     }
 
     openTimerRef.current = window.setTimeout(() => {
       openTimerRef.current = null;
-      commitOpen(id);
+      commitOpen(id, false);
     }, delay);
   };
 
