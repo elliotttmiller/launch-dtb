@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
+import { brandToSlug } from '../../utils/catalogUrlState.js';
 import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import './products-selector.css';
 import './products-selector-slideshow.css';
@@ -54,6 +55,19 @@ const LEVEL5_CATEGORY_IMAGE_OVERRIDES = {
   'semi_automatic_tapers_banjos': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/level5_5_311_01.webp',
 };
 
+const PLATINUM_CATEGORY_IMAGE_OVERRIDES = {
+  'applicator_heads': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_aica_01.webp',
+  'automatic_compound_tubes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ct42_01.webp',
+  'automatic_goosenecks_box_fillers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
+  'compound_tubes': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ct42_01.webp',
+  'goosenecks_box_fillers_adapters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
+  'handles': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+  'handles_extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+  'handles-extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
+  'semi_automatic_tapers_banjos': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
+  'semi_automatic_tools': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
+};
+
 const CATEGORY_IMAGE_OVERRIDES = {
   level5: LEVEL5_CATEGORY_IMAGE_OVERRIDES,
   tapetech: {
@@ -81,23 +95,11 @@ const CATEGORY_IMAGE_OVERRIDES = {
   },
   'columbia-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'columbia-taping-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
-  'platinum-drywall-tools': {
-    'automatic_goosenecks_box_fillers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
-    'goosenecks_box_fillers_adapters': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_gn_01.webp',
-    'handles': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
-    'handles_extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
-    'handles-extensions': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_ebh_01.webp',
-    'semi_automatic_tapers_banjos': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
-    'semi_automatic_tools': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/platinum_pt_tp_01.webp',
-  },
+  platinum: PLATINUM_CATEGORY_IMAGE_OVERRIDES,
 };
 
-function toBrandSlug(brandLabel = '') {
-  return brandLabel.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-}
-
 function resolveCategoryImage(brand, category) {
-  const slug = toBrandSlug(brand);
+  const slug = brandToSlug(brand);
   const catKey = (category.key || category.slug || '').toLowerCase();
   const normalizedCatKey = catKey.replace(/_/g, '-');
   const underscoredCatKey = catKey.replace(/-/g, '_');
@@ -215,10 +217,10 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory, allProd
   const resolvedImage = isAllProducts ? '' : resolveCategoryImage(brand, category);
   const [failedImage, setFailedImage] = useState({ key: '', src: '' });
   const previewImage = resolvePreviewImageMeta(resolvedImage);
-  const imageKey = `${toBrandSlug(brand)}:${category.key || category.slug || category.name}:${previewImage.src}`;
+  const imageKey = `${brandToSlug(brand)}:${category.key || category.slug || category.name}:${previewImage.src}`;
   const cardImage = failedImage.key === imageKey && failedImage.src === previewImage.src ? '' : previewImage.src;
   const hasSlideshow = isAllProducts && allProductsImages.length > 0;
-  const slideshowKey = `${toBrandSlug(brand)}:${allProductsImages.join('|')}`;
+  const slideshowKey = `${brandToSlug(brand)}:${allProductsImages.join('|')}`;
   const cardClassName = `product-category-card${cardImage || hasSlideshow ? '' : ' product-category-card--no-image'}${isAllProducts ? ' product-category-card--all-products' : ''}`;
   const cardStyle = {
     animationDelay: `${(index + 1) * 0.07}s`,
