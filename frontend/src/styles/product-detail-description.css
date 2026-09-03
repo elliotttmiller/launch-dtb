@@ -1,129 +1,119 @@
-/* Product description/tab presentation authority.
- * WooCommerce remains the product-content authority. This layer owns only
- * semantic presentation and interaction polish for the shared PDP/quick view. */
+/*
+ * Product description and tab presentation authority.
+ *
+ * WooCommerce remains the product-content authority. This layer only presents
+ * the canonical ProductDetail sections. The visual contract is deliberately
+ * compact and document-like: simple tab navigation, restrained typography and
+ * no dashboard/card chrome. Full-page mobile presentation mirrors a dense
+ * professional retail PDP while retaining accessible touch targets.
+ */
 
 .dtb-pdp-sections {
-  padding-top: clamp(.85rem, 1.5vw, 1.25rem);
+  padding-top: clamp(.65rem, 1.25vw, 1rem);
 }
 
+/* Tabs ----------------------------------------------------------------- */
 .dtb-product-page-shell .dtb-pdp-tabs {
   position: relative;
   display: flex;
+  align-items: stretch;
+  gap: clamp(1.15rem, 3vw, 2.2rem);
   width: 100%;
-  align-items: center;
-  gap: 3px;
-  padding: 5px;
+  min-width: 0;
+  min-height: 46px;
+  margin: 0;
+  padding: 0;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
-  scroll-snap-type: x proximity;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  border: 1px solid var(--dtb-border, #dbe3f1);
-  border-radius: 13px;
-  background: var(--dtb-surface, #ffffff);
+  border: 0;
+  border-bottom: 1px solid var(--dtb-border, #dbe3f1);
+  border-radius: 0;
+  background: transparent;
   box-shadow: none;
-  isolation: isolate;
 }
 
-.dtb-pdp-tabs::-webkit-scrollbar {
+.dtb-product-page-shell .dtb-pdp-tabs::-webkit-scrollbar {
   display: none;
 }
 
+/* Legacy animated pill is intentionally retired for the compact retail tab
+ * pattern. Active state is communicated by text color and an underline. */
 .dtb-product-page-shell .dtb-pdp-tabs__pill {
-  position: absolute;
-  z-index: 0;
-  top: 5px;
-  left: 0;
-  height: calc(100% - 10px);
-  width: 0;
-  border-radius: 9px;
-  background: var(--dtb-primary, #2255ee);
-  box-shadow: 0 2px 6px rgba(34, 85, 238, .2);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateX(5px);
-  transition:
-    transform 480ms cubic-bezier(.65, 0, .35, 1),
-    width 480ms cubic-bezier(.65, 0, .35, 1),
-    opacity var(--dtb-fast, 160ms) ease;
-  will-change: transform, width;
-}
-
-.dtb-pdp-tabs__pill.is-ready {
-  opacity: 1;
+  display: none;
 }
 
 .dtb-product-page-shell .dtb-pdp-tabs__tab {
   position: relative;
-  z-index: 1;
-  flex: 1 1 0;
+  flex: 0 0 auto;
   display: inline-flex;
   min-width: 0;
-  min-height: 44px;
+  min-height: 46px;
   align-items: center;
   justify-content: center;
-  gap: clamp(.38rem, .6vw, .55rem);
-  padding: .68rem clamp(.72rem, 1.5vw, 1.1rem);
-  scroll-snap-align: center;
+  gap: .38rem;
+  padding: .72rem 0 .66rem;
   border: 0;
-  border-radius: 9px;
+  border-radius: 0;
   background: transparent;
-  color: #56657a;
+  color: #607087;
   font-family: var(--dtb-font-ui, inherit);
-  font-size: clamp(.79rem, .45vw + .7rem, .9rem);
-  font-weight: 640;
+  font-size: clamp(.8rem, .35vw + .74rem, .9rem);
+  font-weight: 650;
   letter-spacing: -.006em;
-  line-height: 1;
+  line-height: 1.1;
   text-align: center;
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dtb-normal, 280ms) ease, background-color var(--dtb-fast, 160ms) ease;
+  transition: color var(--dtb-fast, 160ms) ease;
 }
 
 .dtb-product-page-shell .dtb-pdp-tabs__tab::after {
-  content: none;
-}
-
-.dtb-product-page-shell .dtb-pdp-tabs__icon {
-  flex: 0 0 auto;
-  width: 17px;
-  height: 17px;
-  transition: transform var(--dtb-normal, 280ms) var(--dtb-ease, cubic-bezier(.22, 1, .36, 1));
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: transparent;
+  transition: background-color var(--dtb-fast, 160ms) ease;
 }
 
 .dtb-product-page-shell .dtb-pdp-tabs__tab:hover:not(.is-active) {
-  background: #eef2f7;
   color: #26364e;
 }
 
 .dtb-product-page-shell .dtb-pdp-tabs__tab.is-active {
-  background: transparent;
-  border-bottom-color: transparent;
-  color: #ffffff;
-  font-weight: 680;
-  box-shadow: none;
+  color: #172033;
+  font-weight: 740;
 }
 
-.dtb-product-page-shell .dtb-pdp-tabs__tab.is-active .dtb-pdp-tabs__icon {
-  transform: scale(1.04);
+.dtb-product-page-shell .dtb-pdp-tabs__tab.is-active::after {
+  background: var(--dtb-primary, #2255ee);
 }
 
 .dtb-product-page-shell .dtb-pdp-tabs__tab:focus-visible {
   outline: 2px solid rgba(34, 85, 238, .5);
-  outline-offset: 2px;
+  outline-offset: -2px;
 }
 
+.dtb-product-page-shell .dtb-pdp-tabs__icon {
+  display: none;
+}
+
+/* Panels --------------------------------------------------------------- */
 .dtb-pdp-section {
-  padding-top: clamp(1.15rem, 2vw, 1.65rem);
+  padding-top: clamp(.85rem, 1.7vw, 1.25rem);
 }
 
 .dtb-pdp-section__content--transitioning {
-  animation: dtb-pdp-panel-enter 190ms cubic-bezier(.2, .7, .2, 1) both;
+  animation: dtb-pdp-panel-enter 160ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
 @keyframes dtb-pdp-panel-enter {
-  from { opacity: 0; transform: translateY(5px); }
+  from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -147,26 +137,25 @@
 }
 
 .dtb-pdp-overview__editorial {
-  width: min(100%, 980px);
+  width: min(100%, 920px);
   min-width: 0;
 }
 
-/* Editorial product description: deliberately simple and commerce-oriented.
- * Avoid cards, numbered feature grids, decorative rails and dashboard styling. */
+/* Editorial product description --------------------------------------- */
 .dtb-pdp-description-content {
   width: 100%;
   color: #30415b;
-  font-size: clamp(.94rem, .3vw + .88rem, 1.02rem);
-  line-height: 1.66;
+  font-size: clamp(.9rem, .22vw + .87rem, .98rem);
+  line-height: 1.58;
 }
 
 .dtb-pdp-description-kicker {
   display: block;
-  margin: 0 0 .8rem;
+  margin: 0 0 .58rem;
   color: #101828;
-  font-size: clamp(1rem, .4vw + .94rem, 1.12rem);
+  font-size: clamp(.96rem, .3vw + .91rem, 1.05rem);
   font-weight: 760;
-  letter-spacing: -.018em;
+  letter-spacing: -.015em;
   line-height: 1.25;
 }
 
@@ -184,22 +173,22 @@
 }
 
 .dtb-pdp-description-card + .dtb-pdp-description-card {
-  margin-top: .8rem;
+  margin-top: .62rem;
 }
 
 .dtb-pdp-description-content p,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
-  max-width: 92ch;
+  max-width: 88ch;
   margin: 0;
   color: #34445d;
   font-size: inherit;
   font-weight: 430;
-  line-height: 1.68;
+  line-height: 1.6;
 }
 
 .dtb-pdp-description-content p + p,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
-  margin-top: .8rem;
+  margin-top: .62rem;
 }
 
 .dtb-pdp-description-lead,
@@ -207,40 +196,40 @@
   color: #25344d;
   font-size: inherit;
   font-weight: 450;
-  line-height: 1.68;
+  line-height: 1.6;
 }
 
 .dtb-pdp-description-content :is(h1, h2, h3, h4),
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(h2, h3, h4) {
-  margin: 1.15rem 0 .42rem;
+  margin: .95rem 0 .35rem;
   padding: 0;
   color: #101828;
-  font-size: clamp(.96rem, .32vw + .91rem, 1.08rem);
+  font-size: clamp(.94rem, .28vw + .9rem, 1.04rem);
   font-weight: 740;
-  line-height: 1.3;
-  letter-spacing: -.012em;
+  line-height: 1.28;
+  letter-spacing: -.01em;
 }
 
 .dtb-pdp-description-content :is(ul, ol),
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) {
   display: block;
-  margin: .55rem 0 0;
-  padding-left: 1.2rem;
+  margin: .42rem 0 0;
+  padding-left: 1.08rem;
 }
 
 .dtb-pdp-description-content li,
 .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li {
-  margin: 0 0 .42rem;
+  margin: 0 0 .34rem;
   padding: 0;
   border: 0;
   color: #34445d;
   font-size: inherit;
   font-weight: 430;
-  line-height: 1.6;
+  line-height: 1.54;
 }
 
 .dtb-pdp-description-content li::marker {
-  color: #2255ee;
+  color: #334155;
 }
 
 .dtb-pdp-description-content li strong,
@@ -249,8 +238,7 @@
   font-weight: 700;
 }
 
-/* Feature lists are definition rows: every label and description shares the
- * same alignment, measure and vertical rhythm without becoming a card grid. */
+/* Feature lists use clean definition rows rather than cards. */
 .dtb-product-page-shell .dtb-pdp-description-content--rich
   .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) {
   width: 100%;
@@ -258,7 +246,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
-  margin: .7rem 0 0;
+  margin: .55rem 0 0;
   padding: 0;
   border-top: 1px solid #e3e9f1;
   list-style: none;
@@ -267,22 +255,16 @@
 .dtb-product-page-shell .dtb-pdp-description-content--rich
   .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li {
   display: grid;
-  grid-template-columns: minmax(10.5rem, 13rem) minmax(0, 1fr);
-  column-gap: clamp(1.25rem, 2.5vw, 2.25rem);
+  grid-template-columns: minmax(10rem, 12.5rem) minmax(0, 1fr);
+  column-gap: clamp(1.1rem, 2.2vw, 2rem);
   align-items: start;
   margin: 0;
-  padding: .9rem 0;
+  padding: .72rem 0;
   border-bottom: 1px solid #e3e9f1;
   color: #40516a;
-  font-size: clamp(.94rem, .2vw + .91rem, 1rem);
+  font-size: clamp(.9rem, .18vw + .88rem, .96rem);
   font-weight: 430;
-  line-height: 1.58;
-  background: transparent;
-  transition: none;
-}
-
-.dtb-product-page-shell .dtb-pdp-description-content--rich
-  .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li:hover {
+  line-height: 1.52;
   background: transparent;
 }
 
@@ -301,78 +283,58 @@
   color: #172033;
   font-size: inherit;
   font-weight: 720;
-  line-height: 1.45;
+  line-height: 1.42;
   text-wrap: balance;
 }
 
 .dtb-pdp-description-content :is(table, .ts-table-shell) {
   width: 100%;
-  margin-top: 1rem;
+  margin-top: .8rem;
 }
 
 .dtb-pdp-policy-panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
+  gap: .85rem;
 }
 
 @media (min-width: 1024px) {
   .dtb-product-page-shell .dtb-pdp-section__content {
-    padding: 1.6rem 0 .5rem;
+    padding: 1.25rem 0 .4rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-overview__editorial {
-    width: min(100%, 900px);
+    width: min(100%, 880px);
   }
 
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-overview__editorial {
-    width: min(100%, 860px);
+    width: min(100%, 840px);
   }
 }
 
-/* Mobile / narrow PDP authority. */
+/* Compact mobile/narrow PDP ------------------------------------------- */
 @media (max-width: 47.99rem) {
   .dtb-product-page-shell .dtb-pdp-sections {
-    margin-top: .25rem;
-    padding-top: .25rem;
+    margin-top: .45rem;
+    padding-top: 0;
   }
 
   .dtb-product-page-shell .dtb-pdp-tabs {
-    width: 100%;
-    min-height: 0;
-    margin-inline: 0;
-    padding: 5px;
-    gap: 2px;
-    scroll-padding-inline: 5px;
+    gap: 1.35rem;
+    min-height: 44px;
+    scroll-padding-inline: 0;
   }
 
   .dtb-product-page-shell .dtb-pdp-tabs__tab {
-    flex: 0 0 auto;
     min-width: max-content;
-    min-height: 42px;
-    padding: .66rem .78rem;
-    color: #56657a;
-    font-size: .78rem;
-    font-weight: 640;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-tabs__tab.is-active {
-    color: #ffffff;
-    font-weight: 680;
-  }
-
-  .dtb-product-page-shell .dtb-pdp-tabs__pill {
-    top: 5px;
-    height: calc(100% - 10px);
-  }
-
-  .dtb-product-page-shell .dtb-pdp-tabs__icon {
-    width: 16px;
-    height: 16px;
+    min-height: 44px;
+    padding: .62rem 0 .56rem;
+    font-size: .79rem;
+    font-weight: 650;
   }
 
   .dtb-product-page-shell .dtb-pdp-section {
-    padding-top: .82rem;
+    padding-top: .68rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-section__content {
@@ -384,80 +346,71 @@
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content {
-    padding: 0 .05rem;
+    padding: 0;
     color: #33445d;
-    font-size: .94rem;
-    line-height: 1.58;
+    font-size: clamp(.88rem, 3.65vw, .94rem);
+    line-height: 1.54;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-kicker {
-    margin-bottom: .62rem;
-    font-size: .98rem;
+    margin-bottom: .5rem;
+    font-size: .94rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-card + .dtb-pdp-description-card {
-    margin-top: .68rem;
+    margin-top: .55rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content p,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p {
     max-width: none;
-    color: #33445d;
-    font-size: .94rem;
-    line-height: 1.6;
+    font-size: inherit;
+    line-height: 1.56;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content p + p,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p + p {
-    margin-top: .68rem;
+    margin-top: .55rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-lead,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > p:first-child {
-    color: #263650;
-    font-size: .95rem;
-    font-weight: 450;
-    line-height: 1.6;
+    font-size: inherit;
+    line-height: 1.56;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content :is(h1, h2, h3, h4),
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(h2, h3, h4) {
-    margin: 1rem 0 .35rem;
-    padding: 0;
-    color: #101828;
-    font-size: .95rem;
-    font-weight: 740;
-    line-height: 1.3;
+    margin: .82rem 0 .3rem;
+    font-size: .92rem;
+    line-height: 1.28;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content :is(ul, ol),
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) {
-    margin-top: .45rem;
-    padding-left: 1.1rem;
+    margin-top: .35rem;
+    padding-left: 1rem;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content li,
   .dtb-product-page-shell .dtb-pdp-description-content--rich .dtb-pdp-description-card > :is(ul, ol) > li {
-    margin-bottom: .38rem;
-    padding: 0;
-    border: 0;
-    color: #34445c;
-    font-size: .93rem;
-    line-height: 1.55;
+    margin-bottom: .3rem;
+    font-size: inherit;
+    line-height: 1.5;
   }
 
   .dtb-product-page-shell .dtb-pdp-description-content--rich
     .dtb-pdp-description-card > :is(h2, h3, h4) + :is(ul, ol) > li {
     grid-template-columns: minmax(0, 1fr);
-    row-gap: .3rem;
-    padding: .8rem 0;
-    font-size: .94rem;
-    line-height: 1.58;
+    row-gap: .22rem;
+    padding: .62rem 0;
+    font-size: inherit;
+    line-height: 1.52;
   }
 
   .dtb-product-page-shell .dtb-pdp-policy-panel {
     grid-template-columns: minmax(0, 1fr);
-    gap: .75rem;
+    gap: .6rem;
   }
 }
 
@@ -467,9 +420,7 @@
   }
 
   .dtb-pdp-tabs,
-  .dtb-pdp-tabs__tab,
-  .dtb-pdp-tabs__pill,
-  .dtb-pdp-tabs__icon {
+  .dtb-pdp-tabs__tab {
     scroll-behavior: auto;
     transition: none;
   }
