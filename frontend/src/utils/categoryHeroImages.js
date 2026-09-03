@@ -20,8 +20,10 @@
 const CATEGORY_HERO_UPLOAD_BASE = '/wp-content/uploads/2026/categories/heroes';
 
 const CATEGORY_HERO_FILENAME_ALIASES = {
-  // Legacy live filename. New files must use the exact category slug.
+  // Legacy live filenames. New files must use the exact category slug.
   'compound-applicators': 'compound-applicator',
+  'corner-applicators-angle-boxes': 'corner-applicators',
+  'loading-compound-pumps': 'loading-pumps',
 };
 
 function getHeroFilename(slug) {
