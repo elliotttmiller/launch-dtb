@@ -180,7 +180,9 @@
     min-width: max-content;
     min-height: 100%;
     padding: 0 clamp(var(--dtb-space-1), 0.62vw, var(--dtb-space-3));
+    overflow: hidden;
     border: 0;
+    border-radius: 8px;
     background: transparent;
     color: #fff;
     font-family: var(--dtb-font-display, "Geist", ui-sans-serif, system-ui, sans-serif);
@@ -192,23 +194,22 @@
     white-space: nowrap;
     cursor: pointer;
     isolation: isolate;
+    transition: 0.4s;
   }
 
   .site-header .dtb-desktop-nav-tab::before {
     content: "";
     position: absolute;
-    top: 50%;
-    right: 2px;
-    left: 2px;
+    top: 0;
+    left: 0;
     z-index: 0;
-    height: 40px;
-    border: 1px solid rgba(248, 250, 252, 0.14);
-    border-radius: 10px;
-    background: rgba(248, 250, 252, 0.12);
-    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
+    width: 100%;
+    height: 100%;
+    background-color: rgba(166, 166, 166, 0.2);
     opacity: 0;
-    transform: translateY(-50%) scale(0.94);
-    transition: opacity 160ms ease, transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+    border-radius: 8px;
+    transform: scale(0);
+    transition: all 0.4s;
     pointer-events: none;
   }
 
@@ -241,7 +242,7 @@
   .site-header .dtb-desktop-nav-tab.is-active::before,
   .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab::before {
     opacity: 1;
-    transform: translateY(-50%) scale(1);
+    transform: scale(1);
   }
 
   .site-header .dtb-desktop-nav-menu.is-open > .dtb-desktop-nav-tab svg {
@@ -1003,6 +1004,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .site-header .dtb-desktop-nav-tab,
     .site-header .dtb-desktop-nav-tab::before,
     .site-header .dtb-desktop-nav-tab svg,
     .site-header .dtb-desktop-nav-dropdown,
