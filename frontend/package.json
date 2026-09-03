@@ -13,6 +13,7 @@
     "reviews-server": "node server/index.js",
     "lint": "eslint src",
     "test:catalog-navigation": "node --test tests/catalogNavigationContract.test.mjs",
+    "test:calculators": "node --test tests/calculators/calculators.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production"
   },
   "dependencies": {
@@ -59,7 +60,7 @@
     "postcss-loader": "^8.2.1",
     "style-loader": "^4.0.0",
     "tailwindcss": "^4.1.18",
-    "terser-webpack-plugin": "^5.4.0",
+    "terser-webpack-plugin": "^5.3.0",
     "webpack": "^5.106.1",
     "webpack-bundle-analyzer": "^5.3.0",
     "webpack-cli": "^5.1.4",

@@ -6,28 +6,40 @@ This directory owns the customer-facing Calculator Hub report/export presentatio
 
 `calculatorReportModel.js` is the canonical presentation mapper from `CalculatorHub` summary state into the report model. The Summary tab and printable report must consume that model rather than maintaining separate label maps or export-specific calculations.
 
-Each calculator report section exposes semantic groups (for example project/specification inputs and calculated/material results). `CalculatorReport.jsx` renders those groups as structured report tables; the report template must not recalculate quantities.
+Authoritative arithmetic lives in `frontend/src/lib/calculators/index.js`. The report layer may normalize labels, units, dates and grouping, but it must never recalculate quantities.
 
-`CalculatorReport.jsx` resolves the report logo and displayed host from the shared public-site authority, which currently points at `https://elliottm4.sg-host.com`. The document typography uses a rounded system-first font stack so export/print does not depend on a third-party font service.
+The report model is schema version 3 and reflects the revised calculator contract:
 
-`calculator-report.css` owns the Letter-size preview and print rules. Print isolation is activated only while `body.dtb-calculator-report-printing` is present. During calculator printing, the normal application root is removed from print layout so hidden SPA content cannot create trailing blank PDF pages.
+- installed/required quantities are distinguished from purchase quantities;
+- user purchasing allowances are displayed as estimator choices;
+- Compound package size is no longer hard-coded as a 5-gal bucket;
+- Level 5 skim material is reported separately when supplied;
+- Tape separates field joints, vertical inside corners and ceiling perimeter;
+- Screws report required fasteners separately from purchase fasteners and consume installed sheet quantity;
+- stale dynamic-waste and generic coat-count fields are not reported.
+
+`CalculatorReport.jsx` renders report groups as structured tables and must not introduce calculation logic.
+
+`calculator-report.css` owns Letter-size preview and print rules. Print isolation is activated only while `body.dtb-calculator-report-printing` is present, preventing hidden SPA layout from generating trailing report pages.
 
 ## Save as PDF / print flow
 
-1. User completes calculator inputs and opens Summary.
-2. Project metadata is stored with `dwCalc_state` alongside calculator summary data.
-3. `buildCalculatorReport()` normalizes labels, units, local report date, grouped calculator sections, and all five material summaries.
+1. User completes one or more calculator tabs and opens Summary.
+2. Project metadata remains browser-local with `dwCalc_state`.
+3. `buildCalculatorReport()` maps calculator outputs into the canonical report model.
 4. **Export / Save PDF** opens the dedicated report preview.
-5. **Save / Print PDF** invokes the browser print dialog using the dedicated print-only report root. Selecting **Save as PDF** produces the PDF; selecting a printer produces the same formatted document.
+5. **Save / Print PDF** invokes the browser print dialog using the dedicated print-only report root.
 6. The temporary print body class and document title are restored after printing.
 
-No calculator report data is sent to WordPress or an external PDF service. The workflow adds no public render endpoint, server-side PDF dependency, or integration credential surface.
+No calculator report data is sent to WordPress or an external PDF service.
 
 ## Invariants
 
-- Supported sheet sizes are 4×8, 4×10, and 4×12.
-- Joint Compound must appear in the visible summary and report.
-- Print styling must be scoped to calculator report print mode.
-- Report values must come from calculator outputs; the report layer may format but must not change calculation authority.
-- Calculator sections must preserve semantic grouping rather than flattening all values into an undifferentiated list.
-- Keep project/report state backward-compatible with existing `dwCalc_state` data.
+- Supported conventional sheet sizes are 4×8, 4×10 and 4×12.
+- Joint Compound appears in the visible summary and report.
+- Required/installed and purchase quantities must not be conflated.
+- Purchasing allowances must not be described as GA/ASTM requirements.
+- Report values must come from calculator outputs.
+- Calculator sections preserve semantic grouping.
+- Existing `dwCalc_state` project/report metadata remains backward compatible.
+- The report disclaimer must preserve the calculator's conventional-planning scope and tell users to verify manufacturer and tested/listed assembly requirements where applicable.

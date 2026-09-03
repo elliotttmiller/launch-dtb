@@ -1,307 +1,136 @@
-# Drywall Toolbox Pro Calculators - React Implementation
+# Drywall Toolbox Calculator Hub
 
-Complete React conversion of the professional drywall calculator suite with all enhanced features.
+The Calculator Hub is a lightweight storefront utility for conventional drywall material planning. It is intentionally **not** a standalone estimating application, assembly-design system, or code-compliance engine.
 
-## 🎯 Features Implemented
+## Runtime ownership
 
-### ✅ Core Calculators
-- **Sheets Calculator** - Multi-wall input, room presets, waste factors, exact deductions
-- **Tape Calculator** - Industry-standard formulas (area/3.8), separate corner calculations
-- **Corner Bead Calculator** - Straight vs. arch separation, stock length matching
-- **Screws Calculator** - IRC-compliant spacing, application-specific calculations
+- React UI: `frontend/src/components/calculators/`
+- Pure calculation utilities: `frontend/src/lib/calculators/index.js`
+- Regression tests: `frontend/tests/calculators/calculators.test.mjs`
+- Report presentation model: `frontend/src/components/calculators/report/calculatorReportModel.js`
 
-### ✅ Enhanced Features
-- **Data Persistence** - Auto-save to localStorage with timestamps
-- **Template System** - Save/load job configurations
-- **Material Summary** - Unified view of all calculator results
-- **Export Functionality** - Generate downloadable text estimates
-- **Mobile Optimization** - Touch gestures, responsive grids, swipe navigation
-- **Room Presets** - Quick setup for common room sizes
-- **Share Links** - URL-based project sharing
+Calculator components collect inputs and render results. Authoritative arithmetic belongs in the pure calculation utilities so it can be regression-tested independently of React. The Summary and PDF report consume calculator outputs and must not recalculate quantities.
 
-## 📦 Component Structure
+## Active calculators
 
-```
-src/components/calculators/
-├── CalculatorHub.jsx           # Main container with tabs & state
-├── SheetCalculator.jsx         # Drywall sheets calculator
-├── TapeCalculator.jsx          # Joint tape calculator
-├── CornerBeadCalculator.jsx    # Corner bead calculator
-├── ScrewCalculator.jsx         # Screws calculator
-├── SummaryView.jsx             # Complete job summary
-├── index.js                    # Export barrel
-└── shared/
-    ├── ResultCard.jsx          # Reusable result display
-    ├── InfoBox.jsx             # Contextual tips/warnings
-    ├── WasteSelector.jsx       # Waste factor toggle buttons
-    └── RoomPresets.jsx         # Quick room size presets
+1. Drywall Sheets
+2. Joint Compound
+3. Joint Tape
+4. Corner Bead
+5. Drywall Screws
+6. Project Summary / PDF
+
+Each calculator remains usable independently. When the Sheets tab has useful upstream data, downstream calculators may synchronize from it:
+
+```text
+Sheets
+├── net finishable area -> Compound
+├── field-joint footage / ceiling perimeter -> Tape
+└── installed sheet count / sheet size -> Screws
 ```
 
-## 🚀 Quick Start
+Downstream purchasing calculations must consume **installed/required quantities**, not another calculator's already waste-adjusted purchase quantity.
 
-### 1. Import in Your App
+## Calculation principles
 
-```jsx
-import { CalculatorHub } from './components/calculators'
+### Required vs purchase quantity
 
-function App() {
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <CalculatorHub />
-    </div>
-  )
-}
+Where applicable the UI distinguishes:
+
+```text
+required / installed quantity
+        +
+user-selected purchasing allowance
+        =
+purchase quantity
+        -> package rounding
 ```
 
-### 2. Or Use Individual Calculators
+Purchasing allowances are estimator choices. They are not presented as ASTM or Gypsum Association requirements.
 
-```jsx
-import { SheetCalculator, TapeCalculator } from './components/calculators'
+### Sheets
 
-function MyPage() {
-  const handleSheetUpdate = (data) => {
-    console.log('Sheets needed:', data.sheets)
-  }
+- Supports conventional 4×8, 4×10 and 4×12 sheets.
+- Uses a basic rectangular layout estimate for horizontal or vertical wall orientation.
+- Opening deductions reduce finishable area but do not automatically create whole-sheet savings.
+- Ceiling layout selects the lower-sheet-count rectangular orientation; this is a takeoff optimization, not an installation specification.
+- The former seam-count-based "dynamic waste" heuristic has been removed.
 
-  return (
-    <div>
-      <SheetCalculator onUpdate={handleSheetUpdate} />
-      <TapeCalculator onUpdate={(data) => console.log(data)} />
-    </div>
-  )
-}
+### Joint Compound
+
+- GA Levels 0–5 remain finish-specification choices.
+- The calculator no longer uses a universal gallons-per-finish-level table.
+- Standard ready-mix planning coverage is approximately 10 gal/1,000 sq ft.
+- Lightweight ready-mix planning coverage is approximately 9 gal/1,000 sq ft.
+- These are manufacturer planning values and actual product coverage varies.
+- Level 5 is represented as Level 4 joint treatment plus a separate full-surface skim coat. Because primary guidance does not define one universal skim thickness or gallons-per-area factor, skim material is included only when a project/product planning rate is supplied.
+
+### Joint Tape
+
+- Uses layout-derived field-joint footage when Sheets data is available.
+- Manual fallback is approximately 0.37 linear ft per sq ft (370 ft/1,000 sq ft).
+- Vertical inside corners and wall-to-ceiling perimeter are calculated separately.
+- The former 15% fiberglass-mesh "stretch" multiplier has been removed.
+- Fiberglass mesh is accompanied by a compatibility warning for setting-type compound where required by the manufacturer.
+
+### Corner Bead
+
+- Straight outside corners are calculated from count × height.
+- Curved/arch bead uses measured linear footage rather than assuming every arch is a semicircle.
+- Stock-section output remains a simple purchasing estimate; contractors should verify individual long runs and offcut reuse.
+- Attachment rules are deliberately not generalized across metal, vinyl, bullnose and flexible products because manufacturer instructions differ.
+
+### Screws
+
+- Uses **installed sheet count**, not waste-adjusted sheet purchases.
+- Supports conventional wall or ceiling planning modes and 16/24-in framing spacing.
+- Walls use a conventional 16-in planning spacing along framing lines; ceilings use 12-in planning spacing.
+- The former universal edge/field formula and wall+ceiling arithmetic average have been removed.
+- Screw type/length is not asserted universally; users must verify panel, framing and assembly requirements.
+- Rated, multilayer, specialty and tested/listed assemblies are outside the generic calculator scope.
+
+## Persistence
+
+The Hub currently preserves the existing browser-local storage model for compatibility:
+
+- `dwCalc_state`
+- `dwCalc_sheet`
+- `dwCalc_mud`
+- `dwCalc_tape`
+- `dwCalc_bead`
+- `dwCalc_screws`
+- `dwCalc_presets`
+
+This is intentionally local-only. Calculator state is not an authoritative customer, order, inventory, or project record.
+
+## Report / PDF
+
+`calculatorReportModel.js` is the canonical presentation mapper. The report displays required/purchase distinctions, estimator allowances, synchronization sources, and the Calculator Hub scope disclaimer.
+
+PDF export remains browser-local through the dedicated print preview and browser **Save as PDF** workflow. No calculator data is sent to WordPress or an external PDF service.
+
+## Tests
+
+Run:
+
+```bash
+npm run test:calculators
 ```
 
-## 🎨 Styling
+The regression suite covers:
 
-All components use **Tailwind CSS** utility classes. If you're not using Tailwind:
+- installed vs purchase sheet quantities;
+- purchasing-allowance invariants;
+- the 0.37 tape fallback;
+- separated tape geometry;
+- manufacturer-based compound planning coverage;
+- separate Level 5 skim allowance;
+- measured arch bead footage;
+- installed-sheet fastener calculations;
+- wall vs ceiling fastener density.
 
-1. **Add Tailwind to your project:**
-   ```bash
-   npm install -D tailwindcss postcss autoprefixer
-   npx tailwindcss init -p
-   ```
+## Scope boundary
 
-2. **Configure `tailwind.config.js`:**
-   ```js
-   module.exports = {
-     content: ['./src/**/*.{js,jsx,ts,tsx}'],
-     darkMode: 'class',
-     theme: { extend: {} },
-     plugins: [],
-   }
-   ```
+The Calculator Hub is intended for rapid material planning for ordinary drywall work. It does not replace project drawings, manufacturer instructions, GA/ASTM installation requirements, local code, or tested/listed assembly documentation.
 
-3. **Import in your CSS:**
-   ```css
-   @tailwind base;
-   @tailwind components;
-   @tailwind utilities;
-   ```
-
-## 💾 Data Persistence
-
-### Auto-Save
-Every change is automatically saved to `localStorage`:
-- Current project state: `dwCalc_state`
-- Saved templates: `dwCalc_templates`
-
-### Template Management
-```jsx
-// Save current configuration as template
-const saveTemplate = () => {
-  // User prompted for template name
-  // Stored in localStorage with timestamp
-}
-
-// Load saved template
-const loadTemplate = () => {
-  // Shows list of saved templates
-  // User selects which to load
-}
-```
-
-### Share Links
-Projects can be shared via URL parameters:
-```
-https://yoursite.com/calculators?data=eyJwcm9qZWN0...
-```
-
-## 📱 Mobile Features
-
-### Touch Gestures
-- **Swipe left** - Next tab
-- **Swipe right** - Previous tab
-- **Minimum swipe distance** - 50px to prevent accidental triggers
-
-### Responsive Breakpoints
-- **Mobile** (`< 768px`) - Single column layout, stacked cards
-- **Tablet** (`768px - 1024px`) - Two-column grids
-- **Desktop** (`> 1024px`) - Full multi-column layout
-
-## 🔧 API / Integration
-
-Each calculator accepts an `onUpdate` callback that fires when results change:
-
-```jsx
-<SheetCalculator 
-  onUpdate={(data) => {
-    // data = {
-    //   sheets: 24,
-    //   sheetSize: 48,
-    //   hangDir: 'horizontal',
-    //   gross: 1200,
-    //   net: 1140,
-    //   wastePct: 0.10,
-    //   numWalls: 4,
-    //   doors: 1,
-    //   windows: 2
-    // }
-  }}
-/>
-```
-
-This allows you to:
-- Sync with external state management (Redux, Zustand, etc.)
-- Send analytics events
-- Update cost estimates in real-time
-- Trigger API calls to save to database
-
-## 🧪 Testing Notes
-
-### Key Testing Scenarios
-
-1. **Wall Management**
-   - Add/remove walls maintains correct IDs
-   - Calculations update immediately
-   - Minimum 1 wall always present
-
-2. **Calculation Accuracy**
-   - Sheet count always rounds up
-   - Tape formula: `area / 3.8 + corners * height`
-   - Corner bead: separate standard vs. arch
-   - Screws: IRC-compliant spacing enforced
-
-3. **Persistence**
-   - Auto-save on every change
-   - Correct timestamp formatting
-   - Template save/load cycle
-
-4. **Mobile UX**
-   - Swipe gestures work smoothly
-   - No accidental tab switches
-   - Inputs remain touch-friendly (min 44px hit areas)
-
-## 🎓 React Patterns Used
-
-### useMemo for Calculations
-All calculations live in `useMemo` hooks:
-```jsx
-const results = useMemo(() => {
-  // Expensive calculations here
-  return { sheets, net, gross, withWaste }
-}, [walls, ceilHeight, sheetSize, doors, windows, wastePct])
-```
-
-**Why:** Only recalculates when dependencies actually change.
-
-### useCallback for Update Handlers
-Parent-to-child callbacks use `useCallback`:
-```jsx
-const handleSheetUpdate = useCallback((data) => {
-  setSummaryData(prev => ({ ...prev, sheets: data }))
-}, [])
-```
-
-**Why:** Prevents unnecessary re-renders of child components.
-
-### Unique IDs with Date.now()
-Wall objects use timestamp-based IDs:
-```jsx
-{ id: Date.now(), length: 10 }
-```
-
-**Why:** React keys must be stable and unique. Array indices fail when items are removed from the middle.
-
-## 📊 Export Formats
-
-### Text File Export
-```
-DRYWALL MATERIAL ESTIMATE
-Project: Kitchen Remodel
-Date: 4/8/2026
-==================================================
-
-DRYWALL SHEETS
-  Quantity: 24 sheets
-  Size: 4×12 ft
-  Direction: Horizontal
-  Wall Area: 1200 sq ft
-
-JOINT TAPE
-  Quantity: 2 rolls
-  Type: Paper tape
-  Roll Size: 500 ft
-  Total Footage: 340 ft
-
-...
-```
-
-### Share Link Format
-Base64-encoded JSON state in URL parameter.
-
-## 🔐 Privacy & Security
-
-- **All data stored locally** - No server calls
-- **No tracking or analytics** - Privacy-first
-- **Share links contain full project data** - Be mindful when sharing
-
-## 🛠️ Customization
-
-### Add New Room Presets
-Edit `shared/RoomPresets.jsx`:
-```jsx
-const presets = [
-  { name: 'Custom Office', width: 14, length: 16 },
-  // ... add more
-]
-```
-
-### Change Waste Factor Options
-Edit `shared/WasteSelector.jsx`:
-```jsx
-const wasteLevels = [
-  { label: '3% minimal', value: 0.03 },
-  { label: '7% standard', value: 0.07 },
-  // ... customize
-]
-```
-
-### Modify Calculation Formulas
-Each calculator's `useMemo` block contains the pure calculation logic - easy to modify and test.
-
-## 🐛 Known Limitations
-
-1. **Print styling** - Basic implementation, can be enhanced
-2. **No cost estimation** - Material quantities only (add pricing module if needed)
-3. **Single project at a time** - No multi-project workspace (could add project selector)
-4. **URL share links can be long** - Consider backend storage for production
-
-## 📈 Future Enhancements
-
-- [ ] Cost estimation with pricing database
-- [ ] PDF export with formatting
-- [ ] Multi-project management
-- [ ] Cloud sync (optional)
-- [ ] Material supplier API integration
-- [ ] Photo upload for measurements
-- [ ] Undo/redo functionality
-
-## 📄 License
-
-Part of the Drywall Toolbox project. See main repository for license.
-
----
-
-**Built with React + Tailwind CSS**  
-Industry-accurate calculations • Mobile-first design • Privacy-focused
+For fire-rated, sound-rated, multilayer, specialty, proprietary or otherwise engineered assemblies, follow the applicable assembly/system specification.
