@@ -5,16 +5,31 @@ export default function BackButton({
   label = 'Back',
   className = '',
   hideLabelOnMobile = false,
+  iconOnly = false,
 }) {
+  const classes = [
+    'back-button',
+    hideLabelOnMobile ? 'back-button--mobile-icon-only' : '',
+    iconOnly ? 'back-button--icon-only' : '',
+    className,
+  ].filter(Boolean).join(' ');
+
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`back-button ${className}`}
+      className={classes}
       aria-label={label}
       title={label}
     >
-      <ArrowLeft size={20} />
-      <span className={hideLabelOnMobile ? 'hidden sm:inline' : ''}>{label}</span>
+      <ArrowLeft
+        size={iconOnly ? 16 : 20}
+        strokeWidth={iconOnly ? 2 : undefined}
+        aria-hidden="true"
+      />
+      {!iconOnly && (
+        <span className={hideLabelOnMobile ? 'hidden sm:inline' : ''}>{label}</span>
+      )}
     </button>
   );
 }
