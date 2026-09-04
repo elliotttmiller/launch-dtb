@@ -80,7 +80,12 @@ export default function SchematicsCatalog({ catalog, routeState }) {
         <BrandSelector brands={brands} onSelectBrand={goToBrand} />
       ) : !categoryId ? (
         <>
-          <BackButton onClick={goToCatalogRoot} label="Brands" />
+          <BackButton
+            onClick={goToCatalogRoot}
+            label="Back to brands"
+            className="dtb-selector-nav-back"
+            iconOnly
+          />
           <div className="dtb-schematics-brand-header">
             <SchematicBrandLogo
               brand={currentBrand || { id: brandId, name: brandId }}
@@ -98,7 +103,12 @@ export default function SchematicsCatalog({ catalog, routeState }) {
         </>
       ) : (
         <>
-          <BackButton onClick={() => goToCategory(brandId, null)} label="Categories" />
+          <BackButton
+            onClick={() => goToCategory(brandId, null)}
+            label="Back to categories"
+            className="dtb-selector-nav-back"
+            iconOnly
+          />
           <h2 className="dtb-schematics-heading">{currentCategory?.name || categoryId}</h2>
           <ToolSelector
             categoryName={currentCategory?.name}
