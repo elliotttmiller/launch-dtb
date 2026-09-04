@@ -15,6 +15,48 @@
   margin-top: var(--dtb-space-3);
 }
 
+/* Shared compact navigation affordance for selector drill-down pages. The
+ * control is visually identical across Products and Schematics while the
+ * owning route retains navigation semantics and state. */
+.dtb-selector-nav-back {
+  display: inline-grid;
+  place-items: center;
+  width: var(--dtb-touch-target);
+  min-width: var(--dtb-touch-target);
+  height: var(--dtb-touch-target);
+  min-height: var(--dtb-touch-target);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--dtb-border);
+  border-radius: 10px;
+  background: var(--dtb-surface);
+  box-shadow: none;
+  color: var(--dtb-text-soft);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color var(--dtb-motion-fast),
+    background-color var(--dtb-motion-fast),
+    color var(--dtb-motion-fast),
+    transform var(--dtb-motion-fast);
+}
+
+.dtb-selector-nav-back:hover,
+.dtb-selector-nav-back:focus-visible {
+  border-color: color-mix(in srgb, var(--dtb-primary) 40%, var(--dtb-border));
+  background: color-mix(in srgb, var(--dtb-primary) 6%, var(--dtb-surface));
+  color: var(--dtb-primary);
+}
+
+.dtb-selector-nav-back:focus-visible {
+  outline: 3px solid var(--dtb-focus, var(--dtb-primary));
+  outline-offset: 3px;
+}
+
+.dtb-selector-nav-back:active {
+  transform: scale(0.97);
+}
+
 .dtb-selector-card {
   position: relative;
   display: flex;
@@ -271,6 +313,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dtb-selector-nav-back,
   .dtb-selector-card,
   .dtb-selector-card__image,
   .dtb-selector-card__slide,
