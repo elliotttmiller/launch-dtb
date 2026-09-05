@@ -14,6 +14,18 @@ This directory does **not** create a new pricing system of record.
 
 All copied evidence files below reuse the exact Git blob from their original repository path. Their content is byte-identical at the audited commit; the source path remains the provenance record.
 
+## Human pricing review package
+
+`review/` contains a nontechnical review experience for checking the temporary pricing extract product-by-product.
+
+Primary files:
+
+- `review/dtb_catalog_pricing_review.html` — browser-based sequential review interface with search, brand/status filters, review progress, deterministic pricing warnings, print support, local review annotations, and JSON export/import.
+- `review/README.md` — reviewer instructions and regeneration rules.
+- `generate_pricing_review.py` — deterministic standard-library generator that validates the current seven-column CSV and can produce a fully self-contained HTML review book plus an `.xlsx` review workbook.
+
+The review interface and generated workbook are **human-review derivatives only**. Reviewer decisions and notes never mutate WooCommerce, the canonical launch catalog, or `temp/dtb_official_catalog_pricing_only.csv`.
+
 ## Included files
 
 ### Canonical catalog snapshot
@@ -49,16 +61,19 @@ All copied evidence files below reuse the exact Git blob from their original rep
 
 ### Temporary pricing-only working extract
 
-`temp/dtb_official_catalog_pricing_only.csv` is a temporary, non-authoritative price-owner view derived from the canonical launch catalog through the committed pricing audit. It intentionally omits variable parent rows that do not independently own prices and keeps only pricing/economic fields plus the identity and inheritance context required to interpret them.
+`temp/dtb_official_catalog_pricing_only.csv` is the temporary human-review pricing projection currently used by the review package. It is non-authoritative and intentionally contains only seven columns:
 
-Source lineage:
+`Brand, Name, SKU, COG, Regular Price, Sale, MAP Price`
 
-- Canonical source: `products/launch/official/dtb_official_catalog.csv` (`c1da3a5755f026717d31ea17ab6e4f13ba8715ec`).
-- Deterministic projection source: `scripts/supplier-catalog/results/audit/pricing-data-gaps.csv` (`d776d56ada440097467c63b569d3260cb9aa53ac`).
-- The temporary file reuses that validated projection blob byte-for-byte; no prices, costs, MAP values, product identities, or audit flags are modified.
-- Included fields are `sku`, `name`, `type`, `parent`, `brand`, `effective_categories`, `regular_price`, `sale_price`, `cogs`, `map_price`, `missing_fields`, `map_violation`, and `regular_price_below_cogs`.
-- The current projection contains the canonical catalog's 650 price-owning rows. Variable parents remain represented through each price owner's `parent`, effective brand, and effective category context rather than as separate non-priced records.
-- This file is for temporary review/filtering only. It must be regenerated from the canonical catalog/audit when pricing data changes and must never be hand-maintained as an independent price source.
+Current working-state characteristics:
+
+- It contains 651 product/SKU rows at repository head `c6e62b7c68981bf6bd9f8110f61caeb7073fd0f5`.
+- Blank COG, Sale, and MAP cells remain blank; the review tooling does not infer missing values.
+- The checkpoint at that head added `LEVEL5 Entry to Automatic Finishing Set` (`LV5-ENTRY-FINISHING-SET`) with blank pricing fields.
+- `temp/dtb_official_catalog_pricing_only.csv.bak` preserves the prior 650-row seven-column snapshot. It is historical backup material, not the active review source.
+- The working extract is for human validation/filtering only and must not become an independent pricing system of record.
+
+Canonical lineage remains anchored in `products/launch/official/dtb_official_catalog.csv`. Validated pricing audit files under `validated/` remain evidence/audit surfaces. If a human review identifies a correction, that correction must be applied through the owning catalog/WooCommerce pricing workflow rather than by treating the review document as runtime truth.
 
 ## Evaluated but intentionally excluded
 
@@ -71,10 +86,18 @@ Source lineage:
 
 ## Audit observations
 
-At the audited repository state, the committed pricing-category audit reports 650 price-owning rows: 650 with regular price, 270 with COGS, 157 with configured MAP, and 140 with both MAP and COGS. It reports 493 rows missing MAP and 380 missing COGS. Those gaps are evidence gaps, not permission to infer values.
+At the audited repository state, the committed pricing-category audit reports 650 price-owning rows: 650 with regular price, 270 with COGS, 157 with configured MAP, and 140 with both MAP and COGS. It reports 493 rows missing MAP and 380 missing COGS. Those counts describe the committed audit snapshot, not the later 651-row temporary working extract.
 
 The committed margin-policy analysis explicitly restricts policy evidence to price-owning rows with both positive COGS and configured MAP. The production pricing documentation similarly states that missing MAP is never inferred and that WooCommerce remains runtime price authority.
 
 ## Maintenance rule
 
-When a source file changes, do not hand-edit its copy here. Re-copy the exact reviewed source blob and update this manifest SHA/classification. If a source becomes stale or superseded, preserve provenance in Git history and replace the manifest entry with the current reviewed source rather than creating competing truth.
+When a copied source-evidence file changes, do not hand-edit its evidence copy here. Re-copy the exact reviewed source blob and update this manifest SHA/classification.
+
+When the temporary seven-column pricing review CSV changes, regenerate the human-review artifacts with:
+
+```bash
+python docs/catalog_prices/generate_pricing_review.py
+```
+
+Generated HTML/XLSX review artifacts remain derivatives. Reviewer annotations must remain separate from price authority and must never be used as a parallel mutation path for commerce data.
