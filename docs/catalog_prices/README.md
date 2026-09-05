@@ -47,6 +47,19 @@ All copied evidence files below reuse the exact Git blob from their original rep
 | `validated/margin-policy-analysis.json` | `scripts/supplier-catalog/results/margin/margin-policy-analysis.json` | Evidence-bounded category/brand margin-policy analysis using only rows with positive COGS + configured MAP | `9034f8e32f46d3b99c52b8593423e95ed23af9c7` |
 | `validated/map-pricing-optimization-report.json` | `scripts/supplier-catalog/results/map/map-pricing-optimization-report.json` | Deterministic MAP/margin optimization run report; useful as an audit snapshot, not source pricing truth | `585bbd26f064f90c1ee47f8c4c722f7288219f60` |
 
+### Temporary pricing-only working extract
+
+`temp/dtb_official_catalog_pricing_only.csv` is a temporary, non-authoritative price-owner view derived from the canonical launch catalog through the committed pricing audit. It intentionally omits variable parent rows that do not independently own prices and keeps only pricing/economic fields plus the identity and inheritance context required to interpret them.
+
+Source lineage:
+
+- Canonical source: `products/launch/official/dtb_official_catalog.csv` (`c1da3a5755f026717d31ea17ab6e4f13ba8715ec`).
+- Deterministic projection source: `scripts/supplier-catalog/results/audit/pricing-data-gaps.csv` (`d776d56ada440097467c63b569d3260cb9aa53ac`).
+- The temporary file reuses that validated projection blob byte-for-byte; no prices, costs, MAP values, product identities, or audit flags are modified.
+- Included fields are `sku`, `name`, `type`, `parent`, `brand`, `effective_categories`, `regular_price`, `sale_price`, `cogs`, `map_price`, `missing_fields`, `map_violation`, and `regular_price_below_cogs`.
+- The current projection contains the canonical catalog's 650 price-owning rows. Variable parents remain represented through each price owner's `parent`, effective brand, and effective category context rather than as separate non-priced records.
+- This file is for temporary review/filtering only. It must be regenerated from the canonical catalog/audit when pricing data changes and must never be hand-maintained as an independent price source.
+
 ## Evaluated but intentionally excluded
 
 - `docs/catalog/competitor-price-research.md` and competitor research outputs: useful market research, but competitor prices are not authoritative DTB supplier/MAP/cost evidence.
