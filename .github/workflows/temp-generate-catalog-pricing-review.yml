@@ -1,0 +1,36 @@
+name: Generate catalog pricing review artifacts
+
+on:
+  push:
+    branches:
+      - docs/catalog-pricing-review-ui-20260905
+    paths:
+      - docs/catalog_prices/generate_pricing_review.py
+      - docs/catalog_prices/temp/dtb_official_catalog_pricing_only.csv
+      - .github/workflows/temp-generate-catalog-pricing-review.yml
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: docs/catalog-pricing-review-ui-20260905
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate review artifacts
+        run: python docs/catalog_prices/generate_pricing_review.py
+      - name: Commit generated artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/catalog_prices/review/dtb_catalog_pricing_review.html docs/catalog_prices/review/dtb_catalog_pricing_review.xlsx
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Generate catalog pricing review artifacts"
+          git push origin HEAD:docs/catalog-pricing-review-ui-20260905
