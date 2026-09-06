@@ -18,6 +18,7 @@ export const BRAND_TO_SLUG = {
   'Platinum Drywall Tools': 'platinum',
   'Dura-Stilts': 'dura-stilts',
   'Level 5': 'level5',
+  'USG Sheetrock® Tools': 'usg-sheetrock-tools',
 };
 
 export const BRAND_ALIASES = {
@@ -58,6 +59,12 @@ export const BRAND_ALIASES = {
   'level 5': 'Level 5',
   'Level-5': 'Level 5',
   'level-5': 'Level 5',
+  USG: 'USG Sheetrock® Tools',
+  usg: 'USG Sheetrock® Tools',
+  'USG Sheetrock Tools': 'USG Sheetrock® Tools',
+  'usg sheetrock tools': 'USG Sheetrock® Tools',
+  'USG Sheetrock® Tools': 'USG Sheetrock® Tools',
+  'usg-sheetrock-tools': 'USG Sheetrock® Tools',
 };
 
 const NORMALIZED_BRAND_ALIASES = Object.fromEntries(
