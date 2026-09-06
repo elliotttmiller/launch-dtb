@@ -30,7 +30,7 @@ const manifestPath = path.join(outputRoot, 'asset-manifest.json');
 const robotsPath = path.join(outputRoot, 'robots.txt');
 const storefrontShellPath = path.join(outputRoot, 'storefront.html');
 const schematicSourceRoot = path.join(frontendRoot, 'public', 'brands');
-const schematicOutputRoot = path.join(outputRoot, 'brands');
+const sharedBrandsOutputRoot = path.join(outputRoot, 'brands');
 
 function collectSchematicDatasets(root) {
   const datasets = new Map();
@@ -58,27 +58,20 @@ const expected = fs.readFileSync(sourcePath, 'utf8');
 const emitted = fs.readFileSync(emittedPath, 'utf8');
 
 const sourceSchematicDatasets = collectSchematicDatasets(schematicSourceRoot);
-const emittedSchematicDatasets = collectSchematicDatasets(schematicOutputRoot);
-
 if (sourceSchematicDatasets.size === 0) {
   throw new Error('frontend/public/brands contains no schematic_data*.json source datasets.');
 }
-if (emittedSchematicDatasets.size !== sourceSchematicDatasets.size) {
-  throw new Error(
-    `The build emitted ${emittedSchematicDatasets.size} schematic hotspot datasets, ` +
-    `but frontend/public/brands contains ${sourceSchematicDatasets.size}.`
-  );
-}
 for (const [relativePath, sourceContent] of sourceSchematicDatasets) {
-  const emittedContent = emittedSchematicDatasets.get(relativePath);
-  if (!emittedContent || !sourceContent.equals(emittedContent)) {
-    throw new Error(`The emitted schematic hotspot dataset is missing or changed: brands/${relativePath}.`);
-  }
   try {
     JSON.parse(sourceContent.toString('utf8'));
   } catch (error) {
     throw new Error(`Invalid schematic hotspot JSON at frontend/public/brands/${relativePath}: ${error.message}`);
   }
+}
+if (fs.existsSync(sharedBrandsOutputRoot)) {
+  throw new Error(
+    'The build artifact contains brands/, but shared brand and schematic assets must remain at public_html/brands.'
+  );
 }
 
 if (emitted !== expected) {
@@ -240,5 +233,5 @@ if (appEnv === 'staging') {
 process.stdout.write(
   `Routing contract verified: ${path.relative(repositoryRoot, emittedPath)} ` +
   `matches ${path.relative(repositoryRoot, sourcePath)}; ` +
-  `${emittedSchematicDatasets.size} schematic hotspot datasets were preserved byte-for-byte.\n`
+  `${sourceSchematicDatasets.size} source schematic hotspot datasets are valid and brands/ was excluded.\n`
 );

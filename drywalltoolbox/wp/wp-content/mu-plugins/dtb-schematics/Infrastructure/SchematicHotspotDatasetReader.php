@@ -47,10 +47,7 @@ function dtb_schematics_hotspot_source_roots(): array {
 
 	$wp_root = untrailingslashit( ABSPATH );
 	$public_root = dirname( $wp_root );
-	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-	$runtime_root = 'staging' === $environment && 'staging' !== strtolower( basename( $public_root ) )
-		? $public_root . '/staging/brands'
-		: $public_root . '/brands';
+	$runtime_root = $public_root . '/brands';
 
 	$roots = [];
 	// An absolute server-only override supports nonstandard layouts without

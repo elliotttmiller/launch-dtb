@@ -27,29 +27,11 @@ function removeDirectory(parent, candidate) {
   process.stdout.write(`Removed ${path.relative(repositoryRoot, resolvedCandidate)}\n`);
 }
 
-function removeWebpackCaches(prefix) {
-  if (!fs.existsSync(webpackCacheRoot)) return;
-
-  for (const entry of fs.readdirSync(webpackCacheRoot, { withFileTypes: true })) {
-    if (entry.isDirectory() && entry.name.startsWith(prefix)) {
-      removeDirectory(webpackCacheRoot, path.resolve(webpackCacheRoot, entry.name));
-    }
-  }
-}
-
 switch (target) {
-  case 'production':
-    removeDirectory(repositoryRoot, path.resolve(repositoryRoot, 'dist'));
-    removeWebpackCaches('production-production-');
-    break;
-  case 'staging':
-    removeDirectory(repositoryRoot, path.resolve(repositoryRoot, 'dist-staging'));
-    removeWebpackCaches('production-staging-');
-    break;
   case 'cache':
     removeDirectory(cacheRoot, path.resolve(cacheRoot, 'babel-loader'));
     removeDirectory(cacheRoot, webpackCacheRoot);
     break;
   default:
-    throw new Error('Expected cleanup target: production, staging, or cache.');
+    throw new Error('Expected cleanup target: cache.');
 }

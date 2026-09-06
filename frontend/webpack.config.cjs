@@ -103,7 +103,10 @@ module.exports = (envFlags, argv) => {
   if (deployTarget !== 'siteground') {
     throw new Error(`Unsupported DTB_DEPLOY_TARGET "${deployTarget}". Expected siteground.`);
   }
-  const useFilesystemCache = isDev || env('DTB_WEBPACK_FS_CACHE') === '1';
+  // Production builds are frequent and deterministic, so keep Webpack's
+  // dependency-aware cache enabled by default. Set DTB_WEBPACK_FS_CACHE=0 only
+  // for diagnosis; `npm run clean:build-cache` remains the explicit reset path.
+  const useFilesystemCache = env('DTB_WEBPACK_FS_CACHE') !== '0';
   const emitSourceMaps = isDev || env('DTB_SOURCE_MAPS') === '1';
 
   // Production is root-mounted; staging is served from /staging/.
@@ -425,6 +428,9 @@ module.exports = (envFlags, argv) => {
                 '**/scripts/**',
                 // Scraped product data — source files only, not for dist
                 '**/scraped_results/**',
+                // Shared runtime assets are deployed once at public_html/brands.
+                // Imported brand logos are still emitted as hashed module assets.
+                '**/brands/**',
               ],
             },
           },

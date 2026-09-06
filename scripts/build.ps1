@@ -127,11 +127,13 @@ function Invoke-FrontendBuild {
         $outputRoot = Join-Path $repositoryRoot 'dist'
     }
 
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Host ''
     Write-BuildMessage "Starting $Environment build."
     Invoke-Npm -Arguments @('run', $npmScript)
     Assert-BuildOutput -Environment $Environment -OutputRoot $outputRoot
-    Write-BuildMessage "$Environment build complete: $outputRoot"
+    $stopwatch.Stop()
+    Write-BuildMessage "$Environment build complete in $([math]::Round($stopwatch.Elapsed.TotalSeconds, 1))s: $outputRoot"
 }
 
 try {
@@ -143,6 +145,7 @@ try {
     Assert-RequiredFile (Join-Path $repositoryRoot 'drywalltoolbox\.htaccess')
 
     $selectedTarget = Resolve-BuildTarget
+    $totalStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     Set-Location -LiteralPath $frontendRoot
 
     $nodeModulesPath = Join-Path $frontendRoot 'node_modules'
@@ -161,8 +164,9 @@ try {
         default { throw "Unsupported build target: $selectedTarget" }
     }
 
+    $totalStopwatch.Stop()
     Write-Host ''
-    Write-BuildMessage "Selected build target completed successfully: $selectedTarget"
+    Write-BuildMessage "Selected build target completed successfully in $([math]::Round($totalStopwatch.Elapsed.TotalSeconds, 1))s: $selectedTarget"
 }
 catch {
     Write-Error "Build failed: $($_.Exception.Message)"
