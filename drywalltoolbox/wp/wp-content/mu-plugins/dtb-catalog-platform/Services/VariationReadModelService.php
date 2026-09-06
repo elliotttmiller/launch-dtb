@@ -97,6 +97,36 @@ final class DTB_VariationReadModelService {
 	}
 
 	/**
+	 * Normalize one variation by its authoritative WooCommerce variation ID.
+	 *
+	 * This is the bounded cross-module read used when another DTB domain already
+	 * owns an exact variation relationship and needs the same effective media,
+	 * price, and inventory projection as the PDP.
+	 */
+	public static function get_normalized_by_id( int $variation_id ): ?array {
+		static $parent_cache = [];
+
+		$product = wc_get_product( $variation_id );
+		if ( ! $product instanceof WC_Product_Variation ) {
+			return null;
+		}
+
+		$parent_id = (int) $product->get_parent_id();
+		if ( ! array_key_exists( $parent_id, $parent_cache ) ) {
+			$parent_cache[ $parent_id ] = dtb_catalog_wc_fetch_product_by_id( $parent_id );
+		}
+		$parent_wc = $parent_cache[ $parent_id ];
+		if ( ! is_array( $parent_wc ) ) {
+			return null;
+		}
+
+		$raw = self::wc_product_to_rest_array( $product, $parent_wc );
+		$dto = dtb_catalog_normalize_product( $raw, $parent_wc );
+
+		return self::enrich_variation_gallery( $dto, (string) ( $parent_wc['sku'] ?? '' ) );
+	}
+
+	/**
 	 * Add the full SKU-specific variation gallery when the catalog image manifest
 	 * knows about more images than WooCommerce persists on variation products.
 	 * Variations explicitly configured to inherit always resolve the parent's

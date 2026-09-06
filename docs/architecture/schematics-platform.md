@@ -30,6 +30,8 @@ SiteGround wp-content/uploads/2026/schematics/
 
 The live public API is limited to the collection and detail routes above. The private CPT is not public REST storage, and the frontend does not decide availability or publication.
 
+The detail response resolves exact schematic product relationships in one bounded server request. Each resolved part carries a compact read-only WooCommerce projection keyed by its stored product or variation ID: product identity, effective images, price, stock state, purchasability, and canonical destination. `dtb-catalog-platform` owns construction of that commerce projection; `dtb-schematics` owns attaching it to the stored relationship. React consumes it directly and uses SKU lookup only as backward compatibility for an older response. This prevents per-hotspot request waterfalls and keeps variation image inheritance aligned with the product-detail read model.
+
 Schematic brand IDs use one canonical contract across API records, generated links, header navigation, and route state: `columbia`, `tape-tech`, `sur-pro`, `platinum`, `dura-stilts`, and `level5`. Customer-facing names are stored separately. Legacy route aliases such as `columbia-taping-tools`, `tapetech`, `surpro`, `platinum-drywall-tools`, `durastilts`, and `level-5` are accepted only as inbound compatibility values and are replaced with their canonical query value in the browser.
 
 Hotspot source JSON is read from the approved `frontend/public/brands/**/schematic_data*.json` repository source or its deployment-equivalent `/brands` root. The hotspot reader validates references against those fixed roots, enforces file/part/occurrence bounds, understands legacy and v2 source schemas, normalizes geometry, and never fabricates missing coordinates.

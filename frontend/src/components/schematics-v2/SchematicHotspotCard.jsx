@@ -7,26 +7,19 @@
  * `schematic-hotspot-card-polish.css` under the `.schematic-hotspot-card*`
  * selectors — do not rename these classes without updating both files.
  *
- * Data wiring: the static dtb-schematics REST payload
+ * Data wiring: the dtb-schematics REST payload
  * (`GET /wp-json/dtb/v1/schematics/{id}`, see `frontend/src/api/schematicsApi.js`)
- * only carries reference data (part_ref, title, brand, mpn, sku,
- * resolution_method, resolution_state, product_url, occurrence_count,
- * available) — it never includes image or price. Matching the legacy
- * behavior, this card fires a live per-SKU WooCommerce lookup
- * (`useHotspotProduct`, mirroring legacy's `getProductBySku` effect) the
- * moment a part with a SKU is shown, and merges the result on top of the
- * static part data: the static title/SKU render immediately (no blank
- * flash), while image/price/stock come from the live product once resolved.
- * Parts with no SKU, or SKUs the live lookup can't resolve, fall back to the
- * static `resolution_state`/`available`/`product_url` fields.
+ * carries the stored schematic relationship plus a compact, live
+ * WooCommerce product/variation projection. That projection is the primary
+ * image/price/stock source and avoids one request per opened hotspot. The
+ * SKU lookup remains only as backward compatibility while an older backend
+ * response may still be cached or deployed.
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useHotspotProduct } from '../../hooks/useHotspotProduct';
 import { resolveStorefrontUrl } from '../../utils/documentNavigation';
-
-const RESOLVED_STATES = new Set(['explicit_product_id', 'exact_sku', 'exact_brand_mpn']);
 
 function getTitleFitStyle(name = '') {
   const value = String(name || '').trim();
@@ -108,8 +101,11 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const { addToCart } = useCart();
   const [localAdding, setLocalAdding] = useState(false);
 
-  const { product: wcProduct, stockStatus: liveStockStatus, isLoading } =
-    useHotspotProduct(part?.sku);
+  const projectedProduct = part?.product && typeof part.product === 'object'
+    ? part.product
+    : null;
+  const { product: fetchedProduct, stockStatus: liveStockStatus, isLoading } =
+    useHotspotProduct(projectedProduct ? null : part?.sku);
 
   if (!part) return null;
 
@@ -117,18 +113,22 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const displayCode = part.sku || part.mpn || '';
   const codeLabel = 'SKU';
 
-  const isStaticResolved = RESOLVED_STATES.has(part.resolution_state);
+  const wcProduct = projectedProduct || fetchedProduct;
+  const isStaticResolved = part.resolution_state === 'resolved';
   const isStaticAvailable = part.available !== false;
   const staticStockStatus = isStaticResolved && isStaticAvailable ? 'instock' : 'unknown';
 
   const hasLiveProduct = Boolean(wcProduct?.id);
   const stockStatus = isLoading
     ? null
-    : hasLiveProduct ? liveStockStatus : staticStockStatus;
+    : hasLiveProduct ? (wcProduct.stock_status || liveStockStatus || 'unknown') : staticStockStatus;
 
   const primaryImage = wcProduct?.images?.[0] || '';
   const parsedPrice = parseFloat(wcProduct?.price);
-  const canAddToCart = hasLiveProduct && Number.isFinite(parsedPrice);
+  const canAddToCart = hasLiveProduct
+    && Number.isFinite(parsedPrice)
+    && wcProduct?.purchasable !== false
+    && stockStatus !== 'outofstock';
   const effectiveProductUrl = resolveHotspotProductUrl(wcProduct, part.product_url || '');
   const isUnavailable = !isLoading && !canAddToCart && !effectiveProductUrl;
   const isAdding = addingToCart === part.part_ref || localAdding;

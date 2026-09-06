@@ -186,7 +186,8 @@ function dtb_schematics_public_api_order_and_annotate_pages( array $pages, int $
 function dtb_schematics_public_api_annotate_parts( array $parts ): array {
 	return array_map(
 		static function ( array $part ) {
-			$part['available'] = DTB_SCHEMATIC_PART_STATE_RESOLVED === ( $part['resolution_state'] ?? '' );
+			$part['available'] = DTB_SCHEMATIC_PART_STATE_RESOLVED === ( $part['resolution_state'] ?? '' )
+				&& is_array( $part['product'] ?? null );
 			return $part;
 		},
 		$parts
@@ -293,7 +294,7 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 		// Include the response-contract revision so a deployment that adds a
 		// projection cannot receive a stale 304 solely because record content
 		// and publication_version did not change.
-		'detail:v2:' . $record->canonical_id . ':' . $record->publication_version . ':' . md5( wp_json_encode( $body['variant_options'] ?? [] ) )
+		'detail:v3:' . $record->canonical_id . ':' . $record->publication_version . ':' . md5( wp_json_encode( $body['parts'] ?? [] ) )
 	);
 
 	if ( $is_not_modified ) {

@@ -51,3 +51,58 @@ function dtb_catalog_lookup_product_detail_by_id( int $product_id ): ?array {
 
 	return dtb_catalog_lookup_normalize_product( $wc_product );
 }
+
+/**
+ * Fetch compact storefront projections keyed by exact WooCommerce entity ID.
+ * Supports both top-level products and child variations without SKU searching.
+ *
+ * @param int[] $ids
+ * @return array<int,array<string,mixed>>
+ */
+function dtb_catalog_lookup_storefront_projections_by_ids( array $ids ): array {
+	$ids = array_values( array_unique( array_filter( array_map( 'absint', $ids ) ) ) );
+	$products = [];
+	$top_level_ids = [];
+
+	foreach ( $ids as $id ) {
+		$product = wc_get_product( $id );
+		if ( ! $product || 'publish' !== $product->get_status() ) {
+			continue;
+		}
+		$products[ $id ] = $product;
+		if ( ! $product instanceof WC_Product_Variation ) {
+			$top_level_ids[] = $id;
+		}
+	}
+
+	$top_level_dtos = [];
+	foreach ( dtb_catalog_lookup_products_by_ids( $top_level_ids ) as $dto ) {
+		if ( (int) ( $dto['id'] ?? 0 ) > 0 ) {
+			$top_level_dtos[ (int) $dto['id'] ] = $dto;
+		}
+	}
+
+	$projections = [];
+	foreach ( $products as $id => $product ) {
+		$dto = $product instanceof WC_Product_Variation
+			? DTB_VariationReadModelService::get_normalized_by_id( $id )
+			: ( $top_level_dtos[ $id ] ?? null );
+		if ( ! is_array( $dto ) ) {
+			continue;
+		}
+
+		$projections[ $id ] = [
+			'id'          => (int) ( $dto['id'] ?? $id ),
+			'parent_id'   => (int) ( $dto['parentId'] ?? 0 ),
+			'type'        => sanitize_key( (string) ( $dto['type'] ?? $product->get_type() ) ),
+			'name'        => sanitize_text_field( (string) ( $dto['name'] ?? $product->get_name() ) ),
+			'sku'         => sanitize_text_field( (string) ( $dto['sku'] ?? $product->get_sku() ) ),
+			'price'       => isset( $dto['price']['value'] ) ? (float) $dto['price']['value'] : null,
+			'stock_status'=> sanitize_key( (string) ( $dto['inventory']['stockStatus'] ?? 'unknown' ) ),
+			'purchasable' => true === ( $dto['inventory']['purchasable'] ?? false ),
+			'images'      => array_values( array_filter( array_map( 'esc_url_raw', (array) ( $dto['media']['images'] ?? [] ) ) ) ),
+		];
+	}
+
+	return $projections;
+}

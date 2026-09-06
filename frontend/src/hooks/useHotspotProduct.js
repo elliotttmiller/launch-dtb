@@ -5,12 +5,9 @@
  * the legacy `Schematics.jsx` hotspot-product effect
  * (docs/_working/frontend-legacy/frontend/src/pages/Schematics.jsx ~L3154-3203).
  *
- * The static schematic REST payload (`GET /wp-json/dtb/v1/schematics/{id}`)
- * only carries reference data (part_ref, title, brand, mpn, sku,
- * resolution_method, resolution_state, product_url, occurrence_count,
- * available) — it never includes image or price. Legacy resolved those by
- * doing a live `getProductBySku` lookup the moment a hotspot was opened, and
- * this hook reproduces that exact contract: same module-level cache (so
+ * Current schematic responses include a compact product projection. This
+ * lookup is retained for backward compatibility with older cached/deployed
+ * responses that only carry relationship fields. It uses a module-level cache (so
  * re-opening the same hotspot resolves synchronously with no loading
  * flicker), the same 10s timeout guard against a stalled/failing bootstrap,
  * and the same three-state stock resolution.

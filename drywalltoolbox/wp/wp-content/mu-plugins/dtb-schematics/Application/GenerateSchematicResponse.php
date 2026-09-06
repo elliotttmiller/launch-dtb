@@ -217,9 +217,20 @@ function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $re
 		}
 	}
 
+	$product_ids = [];
+	foreach ( $record->parts as $part ) {
+		if ( (int) ( $part['product_id'] ?? 0 ) > 0 && DTB_SCHEMATIC_PART_STATE_RESOLVED === ( $part['resolution_state'] ?? '' ) ) {
+			$product_ids[] = (int) $part['product_id'];
+		}
+	}
+	$product_projections = function_exists( 'dtb_catalog_lookup_storefront_projections_by_ids' )
+		? dtb_catalog_lookup_storefront_projections_by_ids( $product_ids )
+		: [];
+
 	$parts = [];
 	foreach ( $record->parts as $part ) {
 		$product_url = '';
+		$product_id  = (int) ( $part['product_id'] ?? 0 );
 		if ( $part['product_id'] > 0 && DTB_SCHEMATIC_PART_STATE_RESOLVED === $part['resolution_state'] ) {
 			$permalink = get_permalink( $part['product_id'] );
 			$product_url = $permalink ? (string) $permalink : '';
@@ -234,6 +245,7 @@ function dtb_schematic_generate_detail_response( DTB_Schematic_Record_Entity $re
 			'resolution_method' => $part['resolution_method'],
 			'resolution_state'  => $part['resolution_state'],
 			'product_url'       => $product_url,
+			'product'           => $product_projections[ $product_id ] ?? null,
 			'occurrence_count'  => $part['occurrence_count'],
 		];
 	}
