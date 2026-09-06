@@ -27,6 +27,7 @@ final class DTB_BrandNormalizer {
 		'Platinum Drywall Tools' => 'platinum',
 		'Dura-Stilts'            => 'dura-stilts',
 		'Level 5'                => 'level5',
+		'USG Sheetrock® Tools'   => 'usg-sheetrock-tools',
 	];
 
 	/**
@@ -58,6 +59,11 @@ final class DTB_BrandNormalizer {
 		'ASGARD'                  => 'Asgard',
 		'Platinum'                => 'Platinum Drywall Tools',
 		'PLATINUM'                => 'Platinum Drywall Tools',
+		'USG'                     => 'USG Sheetrock® Tools',
+		'usg'                     => 'USG Sheetrock® Tools',
+		'USG Sheetrock Tools'     => 'USG Sheetrock® Tools',
+		'usg sheetrock tools'     => 'USG Sheetrock® Tools',
+		'usg-sheetrock-tools'     => 'USG Sheetrock® Tools',
 	];
 
 	/**
