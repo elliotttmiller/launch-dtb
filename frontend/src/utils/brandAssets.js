@@ -6,6 +6,7 @@ import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
 import gracoLogo from '/brands/Graco/graco_logo.svg';
 import level5Logo from '/brands/Level5/Level5.svg';
+import usgSheetrockToolsLogo from '/brands/USG-Sheetrock-Tools/usg-sheetrock-tools.svg';
 import { brandToSlug, canonicalBrandLabel } from './catalogUrlState.js';
 
 export const BRAND_LOGOS_BY_LABEL = {
@@ -22,6 +23,9 @@ export const BRAND_LOGOS_BY_LABEL = {
   'Dura Stilts': duraStiltsLogo,
   'Level 5': level5Logo,
   Level5: level5Logo,
+  'USG Sheetrock® Tools': usgSheetrockToolsLogo,
+  'USG Sheetrock Tools': usgSheetrockToolsLogo,
+  USG: usgSheetrockToolsLogo,
 };
 
 export const BRAND_LOGOS_BY_SLUG = {
@@ -37,6 +41,8 @@ export const BRAND_LOGOS_BY_SLUG = {
   'dura-stilts': duraStiltsLogo,
   level5: level5Logo,
   'level-5': level5Logo,
+  'usg-sheetrock-tools': usgSheetrockToolsLogo,
+  usg: usgSheetrockToolsLogo,
 };
 
 export function getBrandLogo(value) {
