@@ -56,6 +56,7 @@ BRAND_PREFIXES = {
     "TapeTech": ("TTT", "AME"),
     "Dura-Stilts": ("DSS",),
     "SurPro": ("SUR",),
+    "USG Sheetrock® Tools": ("USG",),
 }
 GLOBAL_EXCLUDE_NAME_CONTAINS = (
     "kit",
@@ -375,250 +376,187 @@ def load_checkpoint(path: Path, fingerprint: str) -> dict[str, dict[str, object]
             f"Progress checkpoint {path} does not match the current source configuration; "
             "move it aside before starting a new catalog definition"
         )
-    records = payload.get("records")
-    if not isinstance(records, dict):
-        raise ScrapeError(f"Progress checkpoint {path} has an invalid records object")
-    print(f"Resuming from {path}: {len(records)} completed product(s)")
-    return records
+    raw_items = payload.get("items")
+    if not isinstance(raw_items, dict):
+        raise ScrapeError(f"Progress checkpoint {path} is missing its items object")
+    items: dict[str, dict[str, object]] = {}
+    for key, item in raw_items.items():
+        if not isinstance(key, str) or not isinstance(item, dict):
+            raise ScrapeError(f"Progress checkpoint {path} contains invalid item data")
+        status = item.get("status")
+        if status not in {"included", "excluded"}:
+            raise ScrapeError(f"Progress checkpoint {path} contains invalid status {status!r}")
+        row = item.get("row")
+        if status == "included" and not isinstance(row, dict):
+            raise ScrapeError(f"Progress checkpoint {path} has an included item without a row")
+        items[key] = item
+    return items
 
 
-def write_checkpoint_atomic(
-    path: Path, fingerprint: str, records: dict[str, dict[str, object]]
-) -> None:
+def write_json_atomic(path: Path, payload: object) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", newline="\n", delete=False,
-        dir=path.parent, prefix=path.name + ".", suffix=".tmp"
-    )
-    temp_path = Path(handle.name)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
-        with handle:
-            json.dump(
-                {"schema_version": CHECKPOINT_SCHEMA_VERSION, "config_sha256": fingerprint, "records": records},
-                handle, ensure_ascii=False, indent=2, sort_keys=True,
-            )
+        with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as handle:
+            json.dump(payload, handle, indent=2, ensure_ascii=False)
             handle.write("\n")
-        os.replace(temp_path, path)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_name, path)
     except Exception:
-        temp_path.unlink(missing_ok=True)
+        try:
+            os.unlink(temp_name)
+        except OSError:
+            pass
         raise
 
 
-def included_checkpoint_rows(progress: dict[str, dict[str, object]]) -> list[dict[str, str]]:
-    rows: list[dict[str, str]] = []
-    for key, record in progress.items():
-        if record.get("status") != "included":
-            continue
-        row = record.get("row")
-        if not isinstance(row, dict) or any(field not in row for field in FIELDNAMES):
-            raise ScrapeError(f"Checkpoint contains an invalid included row for {key}")
-        rows.append({field: str(row[field]) for field in FIELDNAMES})
-    rows.sort(
-        key=lambda row: (
-            row["source_name"].casefold(),
-            row["brand"].casefold(),
-            row["sku"].casefold(),
-        )
+def save_checkpoint(path: Path, fingerprint: str, items: dict[str, dict[str, object]]) -> None:
+    write_json_atomic(
+        path,
+        {
+            "schema_version": CHECKPOINT_SCHEMA_VERSION,
+            "config_sha256": fingerprint,
+            "updated_at_utc": datetime.now(timezone.utc).isoformat(),
+            "items": items,
+        },
     )
-    return rows
 
 
-def scrape_brand(
-    page: Page,
-    brand: Brand,
-    timeout_ms: int,
-    delay: float,
-    progress: dict[str, dict[str, object]],
-    save_progress,
-) -> list[dict[str, str]]:
-    scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
-    refs: list[ProductRef] = []
-    total_pages: int | None = None
-    page_number = 1
-    while total_pages is None or page_number <= total_pages:
-        url = with_page(brand.url, page_number)
-        page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-        if not is_logged_in(page):
-            raise ScrapeError(f"TSW session is not authenticated while loading {brand.name}")
-        page.wait_for_selector(".cp-product", timeout=timeout_ms)
-        observed_pages = page_count(page)
-        if total_pages is None:
-            total_pages = observed_pages
-            print(f"{brand.name}: {total_pages} page(s)")
-        elif observed_pages != total_pages:
-            raise ScrapeError(f"Page count changed for {brand.name}: {total_pages} to {observed_pages}")
-        page_refs = discover_product_refs(page, page_number)
-        refs.extend(page_refs)
-        print(f"  catalog page {page_number}/{total_pages}: discovered {len(page_refs)} products")
-        page_number += 1
-    duplicate_urls = len(refs) - len({ref.url for ref in refs})
-    if duplicate_urls:
-        raise ScrapeError(f"{brand.name} catalog contains {duplicate_urls} duplicate product URLs")
-    print(f"{brand.name}: opening {len(refs)} individual product pages")
-    rows: list[dict[str, str]] = []
-    excluded = 0
-    for index, product in enumerate(refs, start=1):
-        key = checkpoint_key(brand.source_name, product.listing_sku)
-        completed = progress.get(key)
-        if completed:
-            if completed.get("status") == "included" and isinstance(completed.get("row"), dict):
-                rows.append(completed["row"])
-            elif completed.get("status") == "excluded":
-                excluded += 1
-            else:
-                raise ScrapeError(f"Invalid checkpoint record for {brand.source_name}:{product.listing_sku}")
-            print(f"  product {index}/{len(refs)}: resumed {product.listing_sku}")
-            continue
-        row = scrape_product_detail(page, brand, product, timeout_ms, scraped_at)
-        folded_name = row["product_name"].casefold()
-        excluded_terms = GLOBAL_EXCLUDE_NAME_CONTAINS + brand.exclude_name_contains
-        matched = next((term for term in excluded_terms if term.casefold() in folded_name), None)
-        if matched is not None:
-            excluded += 1
-            progress[key] = {"status": "excluded", "product_name": row["product_name"]}
-            print(f"  product {index}/{len(refs)}: excluded {row['sku']} - {row['product_name']} (contains {matched!r})")
-        else:
-            rows.append(row)
-            progress[key] = {"status": "included", "row": row}
-            print(f"  product {index}/{len(refs)}: {row['sku']} - {row['product_name']}")
-        save_progress()
-        if index < len(refs) and delay:
-            page.wait_for_timeout(round(delay * 1000))
-    if excluded:
-        print(f"{brand.source_name}: excluded {excluded} product(s) by name")
-    return rows
+def compact_csv_text(value: object) -> str:
+    return " ".join(str(value or "").replace("\r", " ").replace("\n", " ").split())
 
 
-def validate_rows(rows: list[dict[str, str]], allow_missing: bool) -> None:
-    seen: dict[str, dict[str, str]] = {}
-    conflicts: list[str] = []
-    missing: list[str] = []
-    for row in rows:
-        key = f"{row['source_name'].casefold()}\0{row['sku'].casefold()}"
-        if key in seen:
-            prior = seen[key]
-            if prior["product_name"] != row["product_name"] or prior["price_display"] != row["price_display"]:
-                conflicts.append(f"{row['source_name']}:{row['sku']}")
-            else:
-                conflicts.append(f"{row['source_name']}:{row['sku']} (duplicate)")
-        seen[key] = row
-        display = row["price_display"].casefold()
-        if not row["supplier_cost"] and "call" not in display:
-            missing.append(row["sku"])
-    if conflicts:
-        raise ScrapeError(f"Duplicate/conflicting SKUs found: {', '.join(conflicts[:20])}")
-    if missing and not allow_missing:
-        raise ScrapeError(
-            f"{len(missing)} products have no numeric or call-for-price result: " + ", ".join(missing[:20])
-        )
-    if missing:
-        print(f"WARNING: exporting {len(missing)} products with unresolved prices", file=sys.stderr)
-
-
-def collapse_overlapping_sources(rows: list[dict[str, str]]) -> list[dict[str, str]]:
-    """Collapse overlapping source catalogs without losing commercial conflicts."""
-    grouped: dict[tuple[str, str], list[dict[str, str]]] = {}
-    for row in rows:
-        key = (row["brand"].casefold(), row["sku"].casefold())
-        grouped.setdefault(key, []).append(row)
-
-    collapsed: list[dict[str, str]] = []
-    for key, candidates in grouped.items():
-        costs = {(row["supplier_cost"], row["currency"]) for row in candidates}
-        if len(costs) != 1:
-            evidence = ", ".join(
-                f"{row['source_name']}={row['supplier_cost']} {row['currency']}" for row in candidates
-            )
-            raise ScrapeError(f"Conflicting overlapping supplier rows for {key}: {evidence}")
-        collapsed.append(max(candidates, key=lambda row: (row["scraped_at_utc"], row["source_name"].casefold())))
-    return collapsed
-
-
-def write_csv_atomic(path: Path, rows: list[dict[str, str]]) -> None:
+def write_output_atomic(path: Path, rows: list[dict[str, object]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    handle = tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8-sig", newline="", delete=False, dir=path.parent, prefix=path.name + ".", suffix=".tmp"
-    )
-    temp_path = Path(handle.name)
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     try:
-        with handle:
+        with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(
                 handle,
                 fieldnames=OUTPUT_FIELDS,
-                lineterminator="\r\n",
+                extrasaction="ignore",
                 quoting=csv.QUOTE_NONNUMERIC,
+                lineterminator="\n",
             )
             writer.writeheader()
-            output_rows = []
-            for row in collapse_overlapping_sources(rows):
-                output_row = {
-                    field: re.sub(r"[\r\n]+", " ", str(row.get(field, ""))).strip()
-                    for field in OUTPUT_FIELDS
-                }
-                output_row["supplier_cost"] = Decimal(output_row["supplier_cost"])
-                output_rows.append(output_row)
-            writer.writerows(output_rows)
-        os.replace(temp_path, path)
+            for row in rows:
+                exported = {field: compact_csv_text(row.get(field, "")) for field in OUTPUT_FIELDS}
+                cost = exported["supplier_cost"]
+                if cost:
+                    exported["supplier_cost"] = float(Decimal(cost).quantize(Decimal("0.01")))
+                writer.writerow(exported)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temp_name, path)
     except Exception:
-        temp_path.unlink(missing_ok=True)
+        try:
+            os.unlink(temp_name)
+        except OSError:
+            pass
         raise
+
+
+def excluded_by_name(brand: Brand, name: str) -> bool:
+    lowered = name.casefold()
+    exclusions = GLOBAL_EXCLUDE_NAME_CONTAINS + tuple(value.casefold() for value in brand.exclude_name_contains)
+    return any(value in lowered for value in exclusions)
+
+
+def included_rows(items: dict[str, dict[str, object]]) -> list[dict[str, object]]:
+    rows = [item["row"] for item in items.values() if item.get("status") == "included"]
+    return sorted(rows, key=lambda row: (str(row.get("brand", "")).casefold(), str(row.get("sku", "")).casefold()))
+
+
+def validate_rows(rows: list[dict[str, object]], allow_missing_prices: bool) -> None:
+    seen: dict[tuple[str, str], dict[str, object]] = {}
+    missing: list[str] = []
+    for row in rows:
+        brand = str(row.get("brand", ""))
+        sku = str(row.get("sku", ""))
+        key = (brand.casefold(), sku.casefold())
+        existing = seen.get(key)
+        if existing:
+            same_cost = str(existing.get("supplier_cost", "")) == str(row.get("supplier_cost", ""))
+            same_currency = str(existing.get("currency", "")) == str(row.get("currency", ""))
+            if not same_cost or not same_currency:
+                raise ScrapeError(f"Conflicting duplicate supplier cost for {brand} {sku}")
+        else:
+            seen[key] = row
+        if not str(row.get("supplier_cost", "")).strip() and "call for" not in str(row.get("price_display", "")).casefold():
+            missing.append(f"{brand} {sku}")
+    if missing and not allow_missing_prices:
+        preview = ", ".join(missing[:10])
+        suffix = " ..." if len(missing) > 10 else ""
+        raise ScrapeError(f"Supplier prices unresolved for {len(missing)} products: {preview}{suffix}")
 
 
 def main() -> int:
     args = parse_args()
-    timeout_ms = round(args.timeout_seconds * 1000)
-    try:
-        with sync_playwright() as playwright:
-            context = playwright.chromium.launch_persistent_context(
-                str(args.profile_dir.resolve()),
-                headless=False if args.login else not args.headed,
-                viewport={"width": 1440, "height": 1000},
-            )
-            try:
-                page = context.pages[0] if context.pages else context.new_page()
-                page.set_default_timeout(timeout_ms)
-                if args.login:
-                    login(page, timeout_ms)
-                    return 0
-                brands = load_brands(args.brands_file)
-                output_path = args.output.resolve()
-                progress_path = checkpoint_path(output_path)
-                fingerprint = config_fingerprint(args.brands_file.resolve())
-                progress = load_checkpoint(progress_path, fingerprint)
-                def save_progress() -> None:
-                    write_checkpoint_atomic(progress_path, fingerprint, progress)
-                    live_rows = included_checkpoint_rows(progress)
-                    write_csv_atomic(output_path, live_rows)
+    timeout_ms = int(args.timeout_seconds * 1000)
+    fingerprint = config_fingerprint(args.brands_file)
+    checkpoint = checkpoint_path(args.output)
+    brands = load_brands(args.brands_file)
+    items = load_checkpoint(checkpoint, fingerprint)
 
-                if progress:
-                    write_csv_atomic(output_path, included_checkpoint_rows(progress))
-                rows: list[dict[str, str]] = []
-                for brand in brands:
-                    rows.extend(
-                        scrape_brand(
-                            page, brand, timeout_ms, args.delay_seconds, progress, save_progress
-                        )
-                    )
-                validate_rows(rows, args.allow_missing_prices)
-                rows = collapse_overlapping_sources(rows)
-                rows.sort(
-                    key=lambda row: (
-                        row["source_name"].casefold(),
-                        row["brand"].casefold(),
-                        row["sku"].casefold(),
-                    )
-                )
-                write_csv_atomic(output_path, rows)
-                progress_path.unlink(missing_ok=True)
-                call_count = sum("call" in row["price_display"].casefold() for row in rows)
-                print(f"Wrote {len(rows)} products to {output_path} ({call_count} call-for-price)")
+    with sync_playwright() as playwright:
+        context = playwright.chromium.launch_persistent_context(
+            str(args.profile_dir),
+            headless=not (args.login or args.headed),
+        )
+        page = context.pages[0] if context.pages else context.new_page()
+        try:
+            if args.login:
+                login(page, timeout_ms)
                 return 0
-            finally:
-                context.close()
-    except (ScrapeError, PlaywrightTimeoutError) as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
+            page.goto(BASE_URL, wait_until="domcontentloaded", timeout=timeout_ms)
+            if not is_logged_in(page):
+                raise ScrapeError("TSW session is not authenticated; run this script with --login first")
+
+            scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            for brand in brands:
+                print(f"Scraping {brand.source_name} ...")
+                page.goto(with_page(brand.url, 1), wait_until="domcontentloaded", timeout=timeout_ms)
+                if not is_logged_in(page):
+                    raise ScrapeError(f"TSW session expired while loading {brand.url}")
+                total_pages = page_count(page)
+                for page_number in range(1, total_pages + 1):
+                    catalog_url = with_page(brand.url, page_number)
+                    if page_number != 1:
+                        page.goto(catalog_url, wait_until="domcontentloaded", timeout=timeout_ms)
+                    refs = discover_product_refs(page, page_number)
+                    for product in refs:
+                        key = checkpoint_key(brand.source_name, product.listing_sku)
+                        if key in items:
+                            continue
+                        print(f"  {product.listing_sku}")
+                        row = scrape_product_detail(page, brand, product, timeout_ms, scraped_at)
+                        if excluded_by_name(brand, str(row["product_name"])):
+                            items[key] = {"status": "excluded", "row": None}
+                        else:
+                            items[key] = {"status": "included", "row": row}
+                        save_checkpoint(checkpoint, fingerprint, items)
+                        write_output_atomic(args.output, included_rows(items))
+                        if args.delay_seconds:
+                            page.wait_for_timeout(int(args.delay_seconds * 1000))
+                        page.goto(catalog_url, wait_until="domcontentloaded", timeout=timeout_ms)
+        finally:
+            context.close()
+
+    rows = included_rows(items)
+    validate_rows(rows, args.allow_missing_prices)
+    write_output_atomic(args.output, rows)
+    try:
+        checkpoint.unlink()
+    except FileNotFoundError:
+        pass
+    print(f"Wrote {len(rows)} supplier-cost rows to {args.output}")
+    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except ScrapeError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        raise SystemExit(1)
