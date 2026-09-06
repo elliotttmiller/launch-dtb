@@ -15,13 +15,40 @@
   background: var(--dtb-shell, #0a1020);
 }
 
+/* Full-bleed responsive artwork authority. The <picture> element selects the
+   mobile or desktop composition; CSS only controls crop/focal positioning. */
+.home-hero__media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+  pointer-events: none;
+}
+
+.home-hero__media-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 68% 50%;
+}
+
+/* Atmospheric lighting remains presentation-only and no longer replaces the
+   photographic background. */
 .home-hero__ambient {
   position: absolute;
+  z-index: 1;
   inset: 0;
+  overflow: hidden;
+  pointer-events: none;
   background:
-    radial-gradient(circle at 12% 22%, rgba(34, 85, 238, 0.22) 0%, rgba(34, 85, 238, 0) 46%),
-    radial-gradient(circle at 46% 78%, rgba(18, 26, 47, 0.5) 0%, rgba(18, 26, 47, 0) 48%),
-    linear-gradient(115deg, #060b18 0%, var(--dtb-shell, #0a1020) 46%, var(--dtb-shell-2, #121a2f) 100%);
+    radial-gradient(circle at 12% 22%, rgba(34, 85, 238, 0.13) 0%, rgba(34, 85, 238, 0) 46%),
+    radial-gradient(circle at 46% 78%, rgba(18, 26, 47, 0.16) 0%, rgba(18, 26, 47, 0) 48%);
 }
 
 .home-hero__ambient::before,
@@ -38,7 +65,7 @@
   height: 72%;
   left: -8%;
   top: -18%;
-  background: rgba(61, 109, 255, 0.16);
+  background: rgba(61, 109, 255, 0.1);
 }
 
 .home-hero__ambient::after {
@@ -46,42 +73,32 @@
   height: 66%;
   left: 26%;
   bottom: -28%;
-  background: rgba(18, 26, 47, 0.6);
+  background: rgba(18, 26, 47, 0.3);
   animation-delay: -7s;
   animation-direction: alternate-reverse;
 }
 
-.home-hero__media {
+/* Text-legibility treatment is owned by the UI, not baked into the artwork.
+   The gradient preserves the bright tool and wall while protecting copy. */
+.home-hero__scrim {
   position: absolute;
-  z-index: 1;
-  top: 50%;
-  right: clamp(-24px, -0.8vw, -8px);
-  display: block;
-  width: auto;
-  height: 92%;
-  max-width: none;
-  object-fit: contain;
-  transform: translateY(-50%);
-  transform-origin: right center;
-  user-select: none;
+  z-index: 2;
+  inset: 0;
   pointer-events: none;
-  /* Fade stops shifted left (was fully opaque by 56%, transparent-to-8% by
-     12%) so more of the tool extends toward the middle of the hero instead
-     of fading out just past the right edge — closes up the blank gap
-     between the copy and the product photo. */
-  -webkit-mask-image:
-    linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.08) 4%, rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.82) 22%, #000 34%, #000 100%),
-    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.62) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.62) 95%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.08) 4%, rgba(0, 0, 0, 0.38) 12%, rgba(0, 0, 0, 0.82) 22%, #000 34%, #000 100%),
-    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.62) 5%, #000 11%, #000 89%, rgba(0, 0, 0, 0.62) 95%, transparent 100%);
-  mask-composite: intersect;
+  background: linear-gradient(
+    90deg,
+    rgba(4, 13, 30, 0.94) 0%,
+    rgba(5, 22, 48, 0.88) 22%,
+    rgba(9, 39, 74, 0.68) 42%,
+    rgba(15, 57, 96, 0.36) 60%,
+    rgba(15, 57, 96, 0.08) 78%,
+    transparent 100%
+  );
 }
 
 .home-hero__content {
   position: absolute;
-  z-index: 2;
+  z-index: 3;
   top: clamp(64px, 4.6vw, 88px);
   left: clamp(42px, 4.75vw, 92px);
   width: min(470px, 34vw);
@@ -189,6 +206,7 @@
   --blur: 30px;
   --bg: linear-gradient(135deg, var(--color-primary-600, #2255ee) 0%, #173fb5 100%);
   --color: #ffffff;
+
   color: var(--color);
   cursor: pointer;
   position: relative;
@@ -219,8 +237,6 @@
   transition: color 250ms, transform 160ms ease, box-shadow 160ms ease;
 }
 
-/* Preserve the existing CTA component and silhouette while replacing its
-   cutout collapse with a sleek, left-to-right gradient reveal. */
 .home-hero__button::after {
   z-index: -2;
   background: var(--bg);
@@ -250,7 +266,6 @@
 
 .home-hero__button:where(:hover, :focus-visible)::before { transform: scaleX(1); }
 .home-hero__button:where(:hover, :focus-visible) { color: #fff; }
-
 .home-hero__button:active { transform: translateY(1px) scale(0.98); }
 
 .home-hero__button-icon { transition: transform 200ms ease; }
@@ -272,13 +287,10 @@
 .home-hero__button--secondary:where(:hover, :focus-visible) { color: #fff; }
 .home-hero-nav__item:focus-visible,
 .home-hero-brands__link:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
-
 .home-hero__button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
-/* ── Trust bar: dark card overlapping the bottom edge of the hero stage.
-   Lives outside .home-hero__stage (not a descendant) because the stage has
-   overflow:hidden for the product-photo mask crop — nesting an overlapping
-   element inside it would get silently clipped at the stage's own edge. ── */
+/* Trust bar remains outside .home-hero__stage because the stage clips its
+   full-bleed artwork. Keeping the overlap outside avoids silent clipping. */
 .home-hero-trustbar {
   position: relative;
   z-index: 4;
@@ -302,7 +314,6 @@
 }
 
 .home-hero-trustbar__item:last-child { border-right: 0; }
-
 .home-hero-trustbar__icon { flex: none; color: #fff; }
 
 .home-hero-trustbar__label {
@@ -347,9 +358,7 @@
   transition: transform 160ms var(--dtb-ease), box-shadow 160ms var(--dtb-ease);
 }
 
-.home-hero-nav__item:where(:hover, :focus) {
-  box-shadow: var(--dtb-shadow-elevated);
-}
+.home-hero-nav__item:where(:hover, :focus) { box-shadow: var(--dtb-shadow-elevated); }
 
 .home-hero-nav__icon {
   width: 42px;
@@ -360,9 +369,28 @@
   color: var(--home-hero-blue);
 }
 
-.home-hero-nav__copy { min-width: 0; display: flex; flex-direction: column; gap: 7px; }
-.home-hero-nav__label { color: #111827; font-size: 15px; font-weight: 750; line-height: 1; white-space: nowrap; }
-.home-hero-nav__description { color: #63708a; font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; }
+.home-hero-nav__copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.home-hero-nav__label {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.home-hero-nav__description {
+  color: #63708a;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
 
 .home-hero-brands {
   min-height: 218px;
@@ -429,10 +457,17 @@
   to { transform: translate3d(5%, 4%, 0) scale(1.08); }
 }
 
+@media (min-width: 1200px) {
+  .home-hero__media-image { object-position: 68% 50%; }
+}
+
 @media (max-width: 1199px) {
-  .home-hero__content { left: clamp(36px, 5vw, 64px); width: min(510px, 52vw); }
-  .home-hero__title { font-size: clamp(48px, 5.4vw, 62px); }
-  .home-hero__media { height: 78%; right: -8%; }
+  .home-hero__content {
+    left: clamp(36px, 5vw, 64px);
+    width: min(470px, 48vw);
+  }
+
+  .home-hero__title { font-size: clamp(42px, 4.9vw, 56px); }
 
   .home-hero-trustbar {
     position: relative;
@@ -448,7 +483,13 @@
     margin-top: var(--dtb-space-6);
   }
 
-  .home-hero-nav__track { display: flex; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .home-hero-nav__track {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+
   .home-hero-nav__track::-webkit-scrollbar { display: none; }
   .home-hero-nav__item { flex: 0 0 190px; padding-inline: 18px; }
   .home-hero-brands { padding-inline: 32px; }
@@ -456,6 +497,7 @@
 }
 
 @media (min-width: 901px) and (max-width: 1199px) {
+  .home-hero__media-image { object-position: 72% 50%; }
   .home-hero-nav__arrow { display: none; }
 
   .home-hero-nav__track {
@@ -467,7 +509,7 @@
   .home-hero-nav__item {
     width: auto;
     min-height: 82px;
-    padding: var(--dtb-space-2) var(--dtb-space-2);
+    padding: var(--dtb-space-2);
     flex: none;
     gap: var(--dtb-space-2);
   }
@@ -478,16 +520,36 @@
     flex-basis: 32px;
   }
 
-  .home-hero-nav__icon svg {
-    width: 25px;
-    height: 25px;
-  }
-
+  .home-hero-nav__icon svg { width: 25px; height: 25px; }
   .home-hero-nav__label { font-size: 13px; }
   .home-hero-nav__description { display: none; }
 }
 
 @media (min-width: 641px) and (max-width: 900px) {
+  .home-hero__stage { height: clamp(430px, 57vw, 500px); }
+
+  .home-hero__media-image { object-position: 73% 50%; }
+
+  .home-hero__scrim {
+    background: linear-gradient(
+      90deg,
+      rgba(4, 13, 30, 0.94) 0%,
+      rgba(5, 22, 48, 0.87) 28%,
+      rgba(9, 39, 74, 0.62) 48%,
+      rgba(15, 57, 96, 0.28) 68%,
+      transparent 100%
+    );
+  }
+
+  .home-hero__content {
+    top: clamp(48px, 7vw, 64px);
+    left: clamp(30px, 5vw, 44px);
+    width: min(380px, 48vw);
+  }
+
+  .home-hero__title { font-size: clamp(38px, 5.7vw, 48px); }
+  .home-hero__description { max-width: 320px; }
+
   .home-hero-nav {
     width: calc(100% - 32px);
     margin: var(--dtb-space-6) auto 0;
@@ -560,11 +622,33 @@
 }
 
 @media (max-width: 640px) {
-  /* Same overlay composition as desktop/tablet (content and photo layered
-     in one dark stage, not stacked into separate blocks) — scaled down
-     for the narrower column. The one structural difference at this size
-     is the CTA row switching from side-by-side to stacked. */
   .home-hero__stage { height: clamp(350px, 94vw, 400px); }
+
+  /* The mobile <source> supplies purpose-built portrait artwork. It remains
+     full-bleed; object-position only protects the tool's focal point. */
+  .home-hero__media {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .home-hero__media-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 64% 50%;
+  }
+
+  .home-hero__scrim {
+    background: linear-gradient(
+      90deg,
+      rgba(3, 12, 29, 0.92) 0%,
+      rgba(5, 24, 52, 0.82) 30%,
+      rgba(10, 44, 80, 0.56) 52%,
+      rgba(17, 62, 102, 0.2) 74%,
+      transparent 100%
+    );
+  }
 
   .home-hero__content {
     top: clamp(20px, 6vw, 30px);
@@ -573,7 +657,12 @@
     width: auto;
   }
 
-  .home-hero__eyebrow { margin-bottom: 10px; font-size: 9.5px; gap: 7px; }
+  .home-hero__eyebrow {
+    margin-bottom: 10px;
+    font-size: 9.5px;
+    gap: 7px;
+  }
+
   .home-hero__eyebrow-bar { height: 12px; }
 
   .home-hero__title {
@@ -604,32 +693,6 @@
     font-size: 12.5px;
   }
 
-  /* Split-panel photo filling the right side of the stage top-to-bottom
-     (matching the mockup's two-tone composition), with a wide feathered
-     seam — plus a soft scrim over the image itself — so the two halves
-     read as one continuous surface instead of a hard-cut edge. Swapped
-     for a purpose-shot mobile crop once that asset exists. */
-  .home-hero__media {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: auto;
-    width: 58%;
-    height: 100%;
-    max-width: none;
-    object-fit: cover;
-    object-position: 58% center;
-    transform: none;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
-    mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.14) 18%, rgba(0, 0, 0, 0.55) 30%, #000 46%);
-    -webkit-mask-composite: source-in;
-    mask-composite: intersect;
-  }
-
-  /* Flush, edge-to-edge continuation of the dark stage — no floating-card
-     treatment (radius/shadow/gutter) at this size, per the mockup, which
-     reads the badge row as part of the same hero surface, not a card
-     overlapping it. */
   .home-hero-trustbar {
     position: relative;
     left: auto;
@@ -731,9 +794,6 @@
   to { transform: translateX(-50%); }
 }
 
-/* Guarantees the ticker runs across the full mobile/tablet range (closes the
-   901–1199px gap between the two breakpoint blocks above, which only style
-   grid geometry, not the marquee mechanics). */
 @media (max-width: 1199px) {
   .home-hero-brands__viewport {
     display: block;
@@ -752,16 +812,10 @@
   }
 
   .home-hero-brands__link--clone { display: flex; }
-
   .home-hero-brands__link { flex: 0 0 auto; }
 }
 
-/* Shared mobile/tablet cosmetic refresh for quick links — layout stays in the breakpoint blocks above.
-   Elevation/radius vocabulary matches storefront-product-card.css (idle 0 12px 28px rgba(15,23,42,.06),
-   hover 0 20px 40px rgba(15,23,42,.12), border rgba(15,23,42,.08), border-radius var(--dtb-radius-lg)). */
 @media (max-width: 900px) {
-  /* Always 4-across, never a 2x2 stack — items go vertical (icon over
-     label) below the width a horizontal icon+label pair can fit. */
   .home-hero-trustbar__item {
     flex-direction: column;
     justify-content: center;
@@ -832,25 +886,11 @@
     transition: none;
   }
 
-  .home-hero__button:where(:hover, :focus) {
-    color: var(--color);
-  }
-
-  .home-hero__button:where(:hover, :focus)::before {
-    transform: scaleX(0);
-  }
-
-  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon {
-    color: var(--home-hero-blue);
-  }
-
-  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__label {
-    color: #111827;
-  }
-
-  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__description {
-    color: #63708a;
-  }
+  .home-hero__button:where(:hover, :focus) { color: var(--color); }
+  .home-hero__button:where(:hover, :focus)::before { transform: scaleX(0); }
+  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon { color: var(--home-hero-blue); }
+  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__label { color: #111827; }
+  .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__description { color: #63708a; }
 
   .home-hero-brands__link:hover {
     opacity: 0.98;
@@ -863,6 +903,7 @@
   .home-hero__ambient::after,
   .home-hero__button::before,
   .home-hero-nav__item::before { animation: none; }
+
   .home-hero__button,
   .home-hero__button::before,
   .home-hero__button::after,
@@ -873,17 +914,10 @@
   .home-hero-nav__description,
   .home-hero-brands__link { transition: none; }
 
-  /* Pause, don't offer manual scroll: the previous fallback here set
-     `overflow-x: auto` on the track, which — combined with `animation:
-     none` — is exactly the "static row with a native horizontal
-     scrollbar" symptom this file's own base rules are designed to
-     prevent. A reduced-motion user should see a single, still frame of
-     the brand row, not a scrollable strip they have to drag themselves;
-     `overflow: hidden` (matching the parent `__viewport`'s own clipping)
-     removes that scroll affordance entirely. */
   .home-hero-brands__track {
     animation: none;
     overflow: hidden;
   }
+
   .home-hero-brands__link--clone { display: none; }
 }
