@@ -2,7 +2,8 @@ import HomeHeroBrands from './HomeHeroBrands';
 import HomeHeroButton from './HomeHeroButton';
 import HomeHeroQuickLinks from './HomeHeroQuickLinks';
 import HomeHeroTrustBar from './HomeHeroTrustBar';
-import homeHeroUrl from '@assets/media/home/home-hero.webp';
+import homeHeroDesktopUrl from '@assets/media/home/home-hero-desktop.webp';
+import homeHeroMobileUrl from '@assets/media/home/home-hero-mobile.webp';
 
 const HERO_COPY = {
   eyebrow: 'Pro Quality. Pro Results.',
@@ -16,15 +17,19 @@ export default function HomeHero({ brands = [] }) {
   return (
     <section className="home-hero" aria-labelledby="home-hero-title">
       <div className="home-hero__stage">
-        <div className="home-hero__ambient" aria-hidden="true" />
+        <picture className="home-hero__media" aria-hidden="true">
+          <source media="(max-width: 640px)" srcSet={homeHeroMobileUrl} />
+          <img
+            className="home-hero__media-image"
+            src={homeHeroDesktopUrl}
+            alt=""
+            decoding="async"
+            fetchPriority="high"
+          />
+        </picture>
 
-        <img
-          className="home-hero__media"
-          src={homeHeroUrl}
-          alt=""
-          decoding="async"
-          fetchPriority="high"
-        />
+        <div className="home-hero__ambient" aria-hidden="true" />
+        <div className="home-hero__scrim" aria-hidden="true" />
 
         <div className="home-hero__content">
           <p className="home-hero__eyebrow">
