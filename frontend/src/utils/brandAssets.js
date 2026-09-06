@@ -6,8 +6,9 @@ import platinumLogo from '/brands/Platinum/platinum_logo.svg';
 import duraStiltsLogo from '/brands/Dura-Stilts/dura-stilts-logo.svg';
 import gracoLogo from '/brands/Graco/graco_logo.svg';
 import level5Logo from '/brands/Level5/Level5.svg';
-import usgSheetrockToolsLogo from '/brands/USG-Sheetrock-Tools/usg-sheetrock-tools.svg';
 import { brandToSlug, canonicalBrandLabel } from './catalogUrlState.js';
+
+const USG_SHEETROCK_TOOLS_LOGO = '/logos/usg-sheetrock-tools.svg';
 
 export const BRAND_LOGOS_BY_LABEL = {
   TapeTech: tapeTechLogo,
@@ -23,9 +24,9 @@ export const BRAND_LOGOS_BY_LABEL = {
   'Dura Stilts': duraStiltsLogo,
   'Level 5': level5Logo,
   Level5: level5Logo,
-  'USG Sheetrock® Tools': usgSheetrockToolsLogo,
-  'USG Sheetrock Tools': usgSheetrockToolsLogo,
-  USG: usgSheetrockToolsLogo,
+  'USG Sheetrock® Tools': USG_SHEETROCK_TOOLS_LOGO,
+  'USG Sheetrock Tools': USG_SHEETROCK_TOOLS_LOGO,
+  USG: USG_SHEETROCK_TOOLS_LOGO,
 };
 
 export const BRAND_LOGOS_BY_SLUG = {
@@ -41,8 +42,8 @@ export const BRAND_LOGOS_BY_SLUG = {
   'dura-stilts': duraStiltsLogo,
   level5: level5Logo,
   'level-5': level5Logo,
-  'usg-sheetrock-tools': usgSheetrockToolsLogo,
-  usg: usgSheetrockToolsLogo,
+  'usg-sheetrock-tools': USG_SHEETROCK_TOOLS_LOGO,
+  usg: USG_SHEETROCK_TOOLS_LOGO,
 };
 
 export function getBrandLogo(value) {
