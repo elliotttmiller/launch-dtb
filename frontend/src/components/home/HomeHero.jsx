@@ -18,13 +18,19 @@ export default function HomeHero({ brands = [] }) {
     <section className="home-hero" aria-labelledby="home-hero-title">
       <div className="home-hero__stage">
         <picture className="home-hero__media" aria-hidden="true">
-          <source media="(max-width: 640px)" srcSet={homeHeroMobileUrl} />
+          <source
+            media="(max-width: 640px)"
+            srcSet={homeHeroMobileUrl}
+            type="image/webp"
+          />
           <img
             className="home-hero__media-image"
             src={homeHeroDesktopUrl}
             alt=""
             decoding="async"
+            loading="eager"
             fetchPriority="high"
+            draggable="false"
           />
         </picture>
 
