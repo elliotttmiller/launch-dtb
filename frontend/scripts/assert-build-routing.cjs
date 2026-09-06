@@ -187,13 +187,13 @@ for (const logicalName of ['main.js', 'main.css', 'runtime.js']) {
   }
 }
 
-const emittedHomeHero = Object.values(manifest.files || {}).find(
-  (assetPath) => /\/assets\/images\/home-hero\.[a-f0-9]{8}\.webp$/i.test(assetPath),
+const emittedHomeHeroAssets = Object.values(manifest.files || {}).filter(
+  (assetPath) => /\/assets\/images\/home-hero(?:-[a-z]+)?\.[a-f0-9]{8}\.webp$/i.test(assetPath),
 );
-if (!emittedHomeHero) {
+if (emittedHomeHeroAssets.length === 0) {
   throw new Error('The asset manifest is missing the content-hashed home hero image.');
 }
-if (appEnv === 'staging' && !emittedHomeHero.startsWith('/staging/')) {
+if (appEnv === 'staging' && emittedHomeHeroAssets.some((p) => !p.startsWith('/staging/'))) {
   throw new Error('The staging home hero asset must be emitted below /staging/.');
 }
 
