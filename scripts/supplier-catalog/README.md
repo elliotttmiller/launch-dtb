@@ -31,9 +31,9 @@ scripts\supplier-catalog\.venv\Scripts\python -m playwright install chromium
 ```
 
 The tracked `catalog-sources.json` contains the requested Columbia Tools,
-TapeTech, Dura-Stilts, SurPro, and filtered TapeTech EasyClean Automatic Taper
-Parts sources. Each source has a stable `source_name`, an exported `brand`, and
-the complete TSW category `url`.
+TapeTech, Dura-Stilts, SurPro, USG Sheetrock® Tools, and filtered TapeTech
+EasyClean Automatic Taper Parts sources. Each source has a stable `source_name`,
+an exported `brand`, and the complete TSW category `url`.
 
 `exclude_name_contains` is an optional array of case-insensitive product-name
 substrings. The EasyClean source uses `["Kit"]`; filtering happens only after
@@ -105,11 +105,20 @@ namespace prefixes into canonical product identifiers.
 The scraper removes TSW distributor namespace prefixes before writing the CSV.
 Prefix removal is allowlisted by exported brand, never inferred:
 `CTT` for Columbia Tools, `TTT` for current TapeTech products, `AME` for legacy
-AMES products grouped into TSW's TapeTech category, `DSS` for Dura-Stilts, and
-`SUR` for SurPro. The supplier CSV therefore stores manufacturer part numbers,
-and the catalog analyzer never mutates canonical SKU or MPN values. Cost evidence
-is projected only through confirmed catalog mappings; it is not authority for
-retail price, product identity, inventory, or fulfillment.
+AMES products grouped into TSW's TapeTech category, `DSS` for Dura-Stilts,
+`SUR` for SurPro, and `USG` for USG Sheetrock® Tools. The supplier CSV therefore
+stores manufacturer part numbers, and the catalog analyzer never mutates canonical
+SKU or MPN values. Cost evidence is projected only through confirmed catalog
+mappings; it is not authority for retail price, product identity, inventory, or
+fulfillment.
+
+TSW currently exposes USG Sheetrock Tools through the dedicated
+`https://www.tswfast.com/category/brand_USG` catalog route. Supplier listing
+identifiers use the `USG` distributor namespace (for example `USG340506`), so
+the cost export normalizes that evidence to the manufacturer identifier
+(`340506`) before catalog matching. The global product-name exclusions still
+apply; adding the USG source does not make knives, trowels, sanding products,
+kits, sponges, or smoothing blades eligible for the cost export.
 
 ## Launch catalog matching analysis
 
