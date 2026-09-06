@@ -23,6 +23,7 @@ from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, sy
 
 BASE_URL = "https://www.tswfast.com"
 CHECKPOINT_SCHEMA_VERSION = 6
+DEFAULT_COOKIES = Path(__file__).resolve().parent / ".tsw-cookies.json"
 DEFAULT_PROFILE = Path(__file__).resolve().parent / ".browser-profile"
 DEFAULT_SOURCES = Path(__file__).resolve().parent / "catalog-sources.json"
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "results" / "cost" / "tsw-costs.csv"
@@ -108,6 +109,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--login", action="store_true", help="open TSW login and save a local browser session")
     parser.add_argument("--brands-file", type=Path, default=DEFAULT_SOURCES, help="JSON catalog source configuration")
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--cookies-file", type=Path, default=DEFAULT_COOKIES)
     parser.add_argument("--profile-dir", type=Path, default=DEFAULT_PROFILE)
     parser.add_argument("--headed", action="store_true", help="show Chromium during scraping")
     parser.add_argument("--delay-seconds", type=float, default=0.5, help="pause between individual product requests")
@@ -183,13 +185,16 @@ def is_logged_in(page: Page) -> bool:
     )
 
 
-def login(page: Page, timeout_ms: int) -> None:
+def login(page: Page, timeout_ms: int, cookies_file: Path) -> None:
     page.goto(f"{BASE_URL}/spcu/login", wait_until="domcontentloaded", timeout=timeout_ms)
     print("Sign in to TSW in the opened browser. Waiting for the authenticated session ...")
     deadline = time.monotonic() + max(timeout_ms / 1000, 300)
     while time.monotonic() < deadline:
         try:
             if is_logged_in(page):
+                page.wait_for_load_state("networkidle", timeout=timeout_ms)
+                cookies = page.context.cookies()
+                write_json_atomic(cookies_file, cookies)
                 print("Authenticated TSW session saved in the local browser profile.")
                 return
         except Exception:
@@ -491,6 +496,18 @@ def validate_rows(rows: list[dict[str, object]], allow_missing_prices: bool) -> 
         raise ScrapeError(f"Supplier prices unresolved for {len(missing)} products: {preview}{suffix}")
 
 
+def load_cookies(path: Path) -> list[dict]:
+    if not path.exists():
+        raise ScrapeError("TSW session is not authenticated; run this script with --login first")
+    try:
+        cookies = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ScrapeError(f"Cannot read cookies file {path}: {exc}") from exc
+    if not isinstance(cookies, list) or not cookies:
+        raise ScrapeError("Cookies file is empty or invalid; run this script with --login first")
+    return cookies
+
+
 def main() -> int:
     args = parse_args()
     timeout_ms = int(args.timeout_seconds * 1000)
@@ -500,17 +517,27 @@ def main() -> int:
     items = load_checkpoint(checkpoint, fingerprint)
 
     with sync_playwright() as playwright:
-        context = playwright.chromium.launch_persistent_context(
-            str(args.profile_dir),
-            headless=not (args.login or args.headed),
-        )
-        page = context.pages[0] if context.pages else context.new_page()
+        if args.login:
+            context = playwright.chromium.launch_persistent_context(
+                str(args.profile_dir),
+                headless=False,
+            )
+            page = context.pages[0] if context.pages else context.new_page()
+            try:
+                login(page, timeout_ms, args.cookies_file)
+            finally:
+                context.close()
+            return 0
+
+        cookies = load_cookies(args.cookies_file)
+        context = playwright.chromium.launch(
+            headless=not args.headed
+        ).new_context()
+        context.add_cookies(cookies)
+        page = context.new_page()
         try:
-            if args.login:
-                login(page, timeout_ms)
-                return 0
-            page.goto(BASE_URL, wait_until="domcontentloaded", timeout=timeout_ms)
-            if not is_logged_in(page):
+            page.goto(f"{BASE_URL}/account/orders", wait_until="networkidle", timeout=timeout_ms)
+            if "/login" in page.url or "/spcu/" in page.url:
                 raise ScrapeError("TSW session is not authenticated; run this script with --login first")
 
             scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
