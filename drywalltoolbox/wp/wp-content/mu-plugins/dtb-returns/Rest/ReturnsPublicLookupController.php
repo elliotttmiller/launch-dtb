@@ -23,7 +23,7 @@ function dtb_returns_public_lookup_register_route(): void {
 			'callback'            => 'dtb_returns_rest_public_lookup',
 			'permission_callback' => '__return_true',
 			'args'                => [
-				'order_number'  => [
+				'order_number'   => [
 					'type'              => 'string',
 					'required'          => false,
 					'sanitize_callback' => 'sanitize_text_field',
@@ -266,7 +266,7 @@ function dtb_returns_rest_public_lookup( WP_REST_Request $request ): WP_REST_Res
 	}
 	set_transient( $rate_key, $rate_count + 1, 10 * MINUTE_IN_SECONDS );
 
-	$order_number  = sanitize_text_field( (string) $request->get_param( 'order_number' ) );
+	$order_number   = sanitize_text_field( (string) $request->get_param( 'order_number' ) );
 	$customer_email = sanitize_email( (string) $request->get_param( 'customer_email' ) );
 	$customer_name  = sanitize_text_field( (string) $request->get_param( 'customer_name' ) );
 
@@ -291,7 +291,7 @@ function dtb_returns_rest_public_lookup( WP_REST_Request $request ): WP_REST_Res
 			$date = $order->get_date_created();
 			return [
 				'order_number' => (string) $order->get_order_number(),
-				'date'         => $date ? $date->date_i18n( get_option( 'date_format' ) ) : '',
+				'date'         => $date ? wc_format_datetime( $date, get_option( 'date_format' ) ) : '',
 				'item_count'   => (int) $order->get_item_count(),
 				'status'       => wc_get_order_status_name( $order->get_status() ),
 				'lookup_token' => dtb_returns_create_public_lookup_token( $order ),
