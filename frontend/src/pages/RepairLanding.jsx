@@ -148,36 +148,6 @@ export default function RepairLanding() {
         </section>
       )}
 
-      <section className="repair-service-details" aria-label="Repair service details">
-        <div className="repair-section-shell repair-service-details__grid">
-          <article className="repair-service-panel">
-            <p className="repair-eyebrow">Shipping &amp; Return</p>
-            <h2>Send your tool in with a clear return plan.</h2>
-            <p>
-              Choose how the tool gets to DTB and how you want it returned. Shipping and delivery details stay connected to the repair request.
-            </p>
-            <ul>
-              <li>Ship to DTB or choose an eligible drop-off option</li>
-              <li>Select an available return delivery preference</li>
-              <li>Keep repair and shipping details tied to one request</li>
-            </ul>
-            <Link to="/repairs/start">Start repair intake <span aria-hidden="true">→</span></Link>
-          </article>
-
-          <article className="repair-service-panel repair-service-panel--diagnostic">
-            <p className="repair-eyebrow">Not Sure What It Needs?</p>
-            <h2>Start with a diagnostic.</h2>
-            <p>
-              Choose Diagnose and Quote when the problem is unclear or does not fit a standard package. We inspect the tool and send a quote for approval before repair work begins.
-            </p>
-            <Link className="repair-button repair-button--primary" to="/repairs/start?package=diagnose_and_quote">
-              Request Diagnostic
-              <span aria-hidden="true">→</span>
-            </Link>
-          </article>
-        </div>
-      </section>
-
       <section className="repair-resources" aria-labelledby="repair-resources-title">
         <div className="repair-section-shell repair-resources__grid">
           <div className="repair-resources__copy">

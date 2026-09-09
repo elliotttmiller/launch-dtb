@@ -101,6 +101,9 @@ const CATEGORY_IMAGE_OVERRIDES = {
   'columbia-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   'columbia-taping-tools': COLUMBIA_CATEGORY_IMAGE_OVERRIDES,
   platinum: PLATINUM_CATEGORY_IMAGE_OVERRIDES,
+  'usg-sheetrock-tools': {
+    'stilts': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/09/ChatGPT-Image-Sep-5-2026-09_38_49-AM-2.png',
+  },
 };
 
 function resolveCategoryImage(brand, category) {
