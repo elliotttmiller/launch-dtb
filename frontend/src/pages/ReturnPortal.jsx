@@ -1,8 +1,8 @@
 /**
  * frontend/src/pages/ReturnPortal.jsx
  *
- * Customer return portal.
- * WooCommerce order lookup is performed server-side through DTB Returns.
+ * Customer return portal. WooCommerce remains the order authority; this page
+ * only sends lookup criteria and short-lived lookup tokens to DTB Returns.
  */
 
 import { useState } from 'react';
@@ -20,6 +20,8 @@ import {
 import SEOHead from '../components/shared/SEOHead';
 import { apiClient } from '../api/client';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const RETURN_REASONS = [
   'Arrived damaged',
   'Wrong item received',
@@ -32,127 +34,52 @@ const RETURN_REASONS = [
 ];
 
 const POLICY_LINKS = [
-  {
-    Icon: CheckCircle,
-    to: '/return-policy',
-    title: 'Return policy',
-    body: 'Review eligibility, the 45-day return window, and refund timing.',
-  },
-  {
-    Icon: Package,
-    to: '/return-policy',
-    title: 'Return shipping',
-    body: 'See how shipping is handled for damaged, defective, warranty, and customer-error returns.',
-  },
-  {
-    Icon: AlertCircle,
-    to: '/return-policy',
-    title: 'Non-returnable items',
-    body: 'Review exclusions for used, final-sale, special-order, direct-ship, and consumable items.',
-  },
+  ['Return policy', 'Eligibility, the 45-day return window, and refund timing.', CheckCircle],
+  ['Return shipping', 'Shipping rules for damaged, defective, warranty, and customer-error returns.', Package],
+  ['Non-returnable items', 'Used, final-sale, special-order, direct-ship, and consumable-item exclusions.', AlertCircle],
 ];
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function InlineAlert({ children, tone = 'error' }) {
-  const error = tone === 'error';
+function Notice({ children }) {
   return (
-    <div
-      role={error ? 'alert' : 'status'}
-      aria-live="polite"
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 10,
-        padding: '12px 14px',
-        borderRadius: 6,
-        border: `1px solid ${error ? '#fecaca' : '#bfdbfe'}`,
-        background: error ? '#fef2f2' : '#eff6ff',
-        color: error ? '#991b1b' : '#1e3a8a',
-        fontSize: '0.85rem',
-        lineHeight: 1.5,
-        marginBottom: 18,
-      }}
-    >
-      {error ? <AlertCircle size={16} aria-hidden="true" /> : <CheckCircle size={16} aria-hidden="true" />}
+    <div className="returns-notice" role="alert" aria-live="polite">
+      <AlertCircle size={16} aria-hidden="true" />
       <span>{children}</span>
     </div>
   );
 }
 
-function StepIndicator({ step }) {
+function Steps({ step }) {
   return (
-    <ol
-      aria-label="Return request progress"
-      style={{
-        display: 'flex',
-        gap: 8,
-        listStyle: 'none',
-        margin: '0 0 20px',
-        padding: 0,
-      }}
-    >
+    <ol className="returns-steps" aria-label="Return request progress">
       {[
-        { n: 1, label: 'Find order' },
-        { n: 2, label: 'Return details' },
-      ].map(({ n, label }, index) => (
-        <li key={n} style={{ display: 'flex', alignItems: 'center', flex: index === 0 ? 1 : 'initial', gap: 8 }}>
-          <span
-            aria-current={step === n ? 'step' : undefined}
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              fontSize: '0.72rem',
-              fontWeight: 800,
-              color: step >= n ? '#fff' : '#64748b',
-              background: step >= n ? 'var(--primary-600)' : '#e2e8f0',
-            }}
-          >
-            {step > n ? <CheckCircle size={14} aria-hidden="true" /> : n}
+        [1, 'Find order'],
+        [2, 'Return details'],
+      ].map(([number, label], index) => (
+        <li key={number}>
+          <span className={`returns-step-dot ${step >= number ? 'is-active' : ''}`} aria-current={step === number ? 'step' : undefined}>
+            {step > number ? <CheckCircle size={14} aria-hidden="true" /> : number}
           </span>
-          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: step >= n ? '#0f172a' : '#64748b' }}>
-            {label}
-          </span>
-          {index === 0 && <span aria-hidden="true" style={{ height: 1, flex: 1, minWidth: 24, background: '#dbe2ea' }} />}
+          <span className="returns-step-label">{label}</span>
+          {index === 0 && <span className="returns-step-line" aria-hidden="true" />}
         </li>
       ))}
     </ol>
   );
 }
 
-function OrderResult({ order, selected, onSelect }) {
+function OrderChoice({ order, selected, onSelect }) {
   return (
     <button
       type="button"
+      className={`returns-order-choice ${selected ? 'is-selected' : ''}`}
       onClick={() => onSelect(order)}
       aria-pressed={selected}
-      style={{
-        width: '100%',
-        display: 'grid',
-        gridTemplateColumns: '1fr auto',
-        gap: 16,
-        alignItems: 'center',
-        textAlign: 'left',
-        padding: '16px 18px',
-        borderRadius: 7,
-        border: selected ? '2px solid var(--primary-600)' : '1px solid #dbe2ea',
-        background: selected ? '#f8fbff' : '#fff',
-        color: '#0f172a',
-        cursor: 'pointer',
-      }}
     >
       <span>
-        <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 800 }}>Order #{order.order_number}</span>
-        <span style={{ display: 'block', marginTop: 5, color: '#64748b', fontSize: '0.8rem' }}>
-          {order.date || 'Order date unavailable'} · {order.item_count} {order.item_count === 1 ? 'item' : 'items'}
-        </span>
+        <strong>Order #{order.order_number}</strong>
+        <small>{order.date || 'Order date unavailable'} · {order.item_count} {order.item_count === 1 ? 'item' : 'items'}</small>
       </span>
-      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>{order.status}</span>
+      <span className="returns-order-status">{order.status}</span>
     </button>
   );
 }
@@ -178,16 +105,15 @@ export default function ReturnPortal() {
     setLookupResults([]);
     setSelectedOrder(null);
 
-    const trimmedOrder = orderNumber.trim();
-    const trimmedEmail = lookupEmail.trim().toLowerCase();
-    const trimmedName = lookupName.trim();
+    const order = orderNumber.trim();
+    const email = lookupEmail.trim().toLowerCase();
+    const name = lookupName.trim();
 
-    if (!trimmedOrder && !trimmedEmail && !trimmedName) {
+    if (!order && !email && !name) {
       setLookupError('Enter at least one detail so we can search for your order.');
       return;
     }
-
-    if (trimmedEmail && !EMAIL_RE.test(trimmedEmail)) {
+    if (email && !EMAIL_RE.test(email)) {
       setLookupError('Enter a valid email address or leave the email field blank.');
       return;
     }
@@ -197,17 +123,14 @@ export default function ReturnPortal() {
       const response = await apiClient('/wp-json/dtb/v1/returns/lookup', {
         method: 'POST',
         body: JSON.stringify({
-          order_number: trimmedOrder,
-          customer_email: trimmedEmail,
-          customer_name: trimmedName,
+          order_number: order,
+          customer_email: email,
+          customer_name: name,
         }),
       });
-
       const orders = Array.isArray(response?.orders) ? response.orders : [];
       setLookupResults(orders);
-      if (orders.length === 1) {
-        setSelectedOrder(orders[0]);
-      }
+      setSelectedOrder(orders.length === 1 ? orders[0] : null);
       if (!orders.length) {
         setLookupError('No matching order was found. Check the detail you entered or add another detail to narrow the search.');
       }
@@ -251,7 +174,6 @@ export default function ReturnPortal() {
           notes: additionalNotes.trim(),
         }),
       });
-
       setReturnTracking(
         response?.return_id && response?.public_token
           ? { id: response.return_id, token: response.public_token }
@@ -283,112 +205,138 @@ export default function ReturnPortal() {
   };
 
   return (
-    <div className="page-wrapper" style={{ minHeight: '100vh', background: '#f8fafc' }}>
+    <div className="page-wrapper returns-portal">
       <SEOHead
         title="Return Portal"
         description="Find an order and start a return or exchange with Drywall Toolbox. Search using an order number, checkout email, or customer name."
         canonical="/returns"
       />
 
-      <section style={{ background: '#0f172a', padding: 'clamp(42px, 7vw, 72px) clamp(1.25rem, 5vw, 3rem)' }}>
-        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <div style={{ color: '#93c5fd', fontSize: '0.72rem', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            Returns &amp; exchanges
-          </div>
-          <h1 style={{ margin: '10px 0 0', color: '#fff', fontSize: 'clamp(2rem, 5vw, 3.4rem)', lineHeight: 1.05, letterSpacing: '-0.035em' }}>
-            Start a return
-          </h1>
-          <p style={{ maxWidth: 620, margin: '14px 0 0', color: '#cbd5e1', fontSize: 'clamp(0.92rem, 2vw, 1.03rem)', lineHeight: 1.65 }}>
-            Find the order with any detail you have, choose the matching order, and tell us what you need help with.
-          </p>
+      <style>{`
+        .returns-portal { min-height: 100vh; background: #f8fafc; color: #0f172a; }
+        .returns-hero { background: #0f172a; padding: clamp(42px, 7vw, 72px) clamp(1.25rem, 5vw, 3rem); }
+        .returns-shell { width: min(1180px, 100%); margin: 0 auto; }
+        .returns-eyebrow { color: #93c5fd; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+        .returns-hero h1 { margin: 10px 0 0; color: #fff; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -.035em; }
+        .returns-hero p { max-width: 620px; margin: 14px 0 0; color: #cbd5e1; font-size: clamp(.92rem, 2vw, 1.03rem); line-height: 1.65; }
+        .returns-main { padding: clamp(28px, 5vw, 56px) clamp(1.25rem, 5vw, 3rem) 72px; }
+        .returns-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, .8fr); gap: clamp(28px, 5vw, 54px); align-items: start; }
+        .returns-card { background: #fff; border: 1px solid #dbe2ea; border-radius: 8px; padding: clamp(22px, 4vw, 36px); box-shadow: 0 8px 24px rgba(15, 23, 42, .04); }
+        .returns-card h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.02em; }
+        .returns-help { margin: 8px 0 24px; color: #64748b; font-size: .9rem; line-height: 1.6; }
+        .returns-fields { display: grid; gap: 18px; }
+        .returns-fields .form-group { margin: 0; }
+        .returns-notice { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid #fecaca; border-radius: 6px; background: #fef2f2; color: #991b1b; font-size: .85rem; line-height: 1.5; }
+        .returns-notice svg { flex: 0 0 auto; margin-top: 2px; }
+        .returns-steps { display: flex; gap: 8px; list-style: none; margin: 0 0 20px; padding: 0; }
+        .returns-steps li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .returns-steps li:first-child { flex: 1; }
+        .returns-step-dot { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #64748b; font-size: .72rem; font-weight: 800; }
+        .returns-step-dot.is-active { background: var(--primary-600); color: #fff; }
+        .returns-step-label { white-space: nowrap; color: #475569; font-size: .75rem; font-weight: 700; }
+        .returns-step-line { height: 1px; flex: 1; min-width: 18px; background: #dbe2ea; }
+        .returns-results { margin-top: 28px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
+        .returns-results h3 { margin: 0; font-size: 1rem; }
+        .returns-results > p { margin: 6px 0 14px; color: #64748b; font-size: .82rem; }
+        .returns-result-list { display: grid; gap: 10px; }
+        .returns-order-choice { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; border: 1px solid #dbe2ea; border-radius: 7px; background: #fff; color: #0f172a; text-align: left; cursor: pointer; }
+        .returns-order-choice.is-selected { border: 2px solid var(--primary-600); background: #f8fbff; }
+        .returns-order-choice strong, .returns-order-choice small { display: block; }
+        .returns-order-choice strong { font-size: .95rem; }
+        .returns-order-choice small { margin-top: 5px; color: #64748b; font-size: .8rem; }
+        .returns-order-status { color: #475569; font-size: .75rem; font-weight: 700; }
+        .returns-summary { margin: 16px 0 24px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 7px; background: #f8fafc; }
+        .returns-summary strong, .returns-summary span { display: block; }
+        .returns-summary strong { font-size: .9rem; }
+        .returns-summary span { margin-top: 4px; color: #64748b; font-size: .8rem; }
+        .returns-back, .returns-reset { border: 0; background: transparent; color: var(--primary-600); font-size: .82rem; font-weight: 700; cursor: pointer; }
+        .returns-back { display: inline-flex; align-items: center; gap: 6px; padding: 0; margin-bottom: 20px; }
+        .returns-success { text-align: center; padding: 10px 0; }
+        .returns-success-icon { width: 54px; height: 54px; margin: 0 auto 16px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: #ecfdf5; color: #047857; }
+        .returns-success p { max-width: 520px; margin: 10px auto 0; color: #64748b; font-size: .9rem; line-height: 1.65; }
+        .returns-id { display: inline-block; margin-top: 20px; padding: 12px 18px; border: 1px solid #bfdbfe; border-radius: 7px; background: #eff6ff; color: #1e3a8a; font-weight: 800; }
+        .returns-help-link { margin: 16px 0 0; color: #64748b; font-size: .82rem; line-height: 1.6; }
+        .returns-help-link a { color: var(--primary-600); font-weight: 700; }
+        .returns-sidebar { display: grid; gap: 14px; }
+        .returns-sidebar-card { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; padding: 16px 18px; border: 1px solid #dbe2ea; border-radius: 8px; background: #fff; color: inherit; text-decoration: none; }
+        .returns-sidebar-card.is-intro { display: block; padding: 18px 20px; }
+        .returns-sidebar-card h2, .returns-sidebar-card strong { margin: 0; color: #0f172a; font-size: .9rem; }
+        .returns-sidebar-card p, .returns-sidebar-card span { display: block; margin: 6px 0 0; color: #64748b; font-size: .8rem; line-height: 1.55; }
+        .returns-sidebar-card svg { color: var(--primary-600); }
+        .returns-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 22px; }
+        .returns-results .returns-primary { margin-top: 16px; }
+        .returns-track { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; }
+        .returns-reset { display: block; margin: 22px auto 0; }
+        @media (max-width: 820px) {
+          .returns-grid { grid-template-columns: minmax(0, 1fr); }
+          .returns-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .returns-sidebar-card.is-intro { grid-column: 1 / -1; }
+        }
+        @media (max-width: 560px) {
+          .returns-main { padding-left: 1rem; padding-right: 1rem; }
+          .returns-hero { padding-left: 1rem; padding-right: 1rem; }
+          .returns-sidebar { grid-template-columns: minmax(0, 1fr); }
+          .returns-sidebar-card.is-intro { grid-column: auto; }
+          .returns-order-choice { grid-template-columns: minmax(0,1fr); gap: 8px; }
+          .returns-order-status { justify-self: start; }
+          .returns-step-label { font-size: .7rem; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .returns-portal * { scroll-behavior: auto !important; }
+        }
+      `}</style>
+
+      <header className="returns-hero">
+        <div className="returns-shell">
+          <div className="returns-eyebrow">Returns &amp; exchanges</div>
+          <h1>Start a return</h1>
+          <p>Find the order with any detail you have, choose the matching order, and tell us what you need help with.</p>
         </div>
-      </section>
+      </header>
 
-      <main style={{ maxWidth: 1180, margin: '0 auto', padding: 'clamp(28px, 5vw, 56px) clamp(1.25rem, 5vw, 3rem) 72px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.6fr) minmax(260px, 0.8fr)', gap: 'clamp(28px, 5vw, 54px)', alignItems: 'start' }}>
+      <main className="returns-shell returns-main">
+        <div className="returns-grid">
           <section aria-labelledby="return-form-heading">
-            {step < 3 && <StepIndicator step={step} />}
+            {step < 3 && <Steps step={step} />}
 
-            <div style={{ background: '#fff', border: '1px solid #dbe2ea', borderRadius: 8, padding: 'clamp(22px, 4vw, 36px)', boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)' }}>
+            <div className="returns-card">
               {step === 1 && (
                 <>
-                  <h2 id="return-form-heading" style={{ margin: 0, color: '#0f172a', fontSize: '1.35rem', letterSpacing: '-0.02em' }}>
-                    Find your order
-                  </h2>
-                  <p id="lookup-help" style={{ margin: '8px 0 24px', color: '#64748b', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                  <h2 id="return-form-heading">Find your order</h2>
+                  <p id="lookup-help" className="returns-help">
                     Enter <strong>any one</strong> of the details below. Adding more details can narrow the results.
                   </p>
-
-                  {lookupError && <InlineAlert>{lookupError}</InlineAlert>}
+                  {lookupError && <Notice>{lookupError}</Notice>}
 
                   <form onSubmit={handleLookup} noValidate>
-                    <div style={{ display: 'grid', gap: 18 }}>
-                      <div className="form-group" style={{ margin: 0 }}>
+                    <div className="returns-fields">
+                      <div className="form-group">
                         <label className="machined-label text-blue-600" htmlFor="return-order-number">Order number</label>
-                        <input
-                          id="return-order-number"
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={orderNumber}
-                          onChange={(event) => setOrderNumber(event.target.value)}
-                          placeholder="e.g. 10042"
-                          className="machined-input text-black"
-                          aria-describedby="lookup-help"
-                        />
+                        <input id="return-order-number" type="text" inputMode="numeric" autoComplete="off" value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} placeholder="e.g. 10042" className="machined-input text-black" aria-describedby="lookup-help" />
                       </div>
-
-                      <div className="form-group" style={{ margin: 0 }}>
+                      <div className="form-group">
                         <label className="machined-label text-blue-600" htmlFor="return-email">Checkout email</label>
-                        <input
-                          id="return-email"
-                          type="email"
-                          autoComplete="email"
-                          value={lookupEmail}
-                          onChange={(event) => setLookupEmail(event.target.value)}
-                          placeholder="you@example.com"
-                          className="machined-input text-black"
-                          aria-describedby="lookup-help"
-                        />
+                        <input id="return-email" type="email" autoComplete="email" value={lookupEmail} onChange={(event) => setLookupEmail(event.target.value)} placeholder="you@example.com" className="machined-input text-black" aria-describedby="lookup-help" />
                       </div>
-
-                      <div className="form-group" style={{ margin: 0 }}>
+                      <div className="form-group">
                         <label className="machined-label text-blue-600" htmlFor="return-name">Customer name</label>
-                        <input
-                          id="return-name"
-                          type="text"
-                          autoComplete="name"
-                          value={lookupName}
-                          onChange={(event) => setLookupName(event.target.value)}
-                          placeholder="Full name used at checkout"
-                          className="machined-input text-black"
-                          aria-describedby="lookup-help"
-                        />
+                        <input id="return-name" type="text" autoComplete="name" value={lookupName} onChange={(event) => setLookupName(event.target.value)} placeholder="Full name used at checkout" className="machined-input text-black" aria-describedby="lookup-help" />
                       </div>
                     </div>
 
-                    <button
-                      type="submit"
-                      className="alloy-button w-full justify-center"
-                      disabled={lookupLoading}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 22 }}
-                    >
+                    <button type="submit" className="alloy-button returns-primary" disabled={lookupLoading}>
                       {lookupLoading ? <Loader size={16} className="animate-spin" aria-hidden="true" /> : <Search size={16} aria-hidden="true" />}
                       {lookupLoading ? 'Searching…' : 'Find order'}
                     </button>
                   </form>
 
                   {lookupResults.length > 0 && (
-                    <div aria-live="polite" style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid #e2e8f0' }}>
-                      <h3 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>
-                        {lookupResults.length === 1 ? 'Order found' : `${lookupResults.length} matching orders`}
-                      </h3>
-                      <p style={{ margin: '6px 0 14px', color: '#64748b', fontSize: '0.82rem' }}>
-                        Select the order you want to return.
-                      </p>
-                      <div style={{ display: 'grid', gap: 10 }}>
+                    <div className="returns-results" aria-live="polite">
+                      <h3>{lookupResults.length === 1 ? 'Order found' : `${lookupResults.length} matching orders`}</h3>
+                      <p>Select the order you want to return.</p>
+                      <div className="returns-result-list">
                         {lookupResults.map((order) => (
-                          <OrderResult
+                          <OrderChoice
                             key={`${order.order_number}-${order.lookup_token}`}
                             order={order}
                             selected={selectedOrder?.lookup_token === order.lookup_token}
@@ -396,13 +344,7 @@ export default function ReturnPortal() {
                           />
                         ))}
                       </div>
-                      <button
-                        type="button"
-                        className="alloy-button w-full justify-center"
-                        disabled={!selectedOrder}
-                        onClick={continueWithOrder}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 16 }}
-                      >
+                      <button type="button" className="alloy-button returns-primary" disabled={!selectedOrder} onClick={continueWithOrder}>
                         Start return <ArrowRight size={16} aria-hidden="true" />
                       </button>
                     </div>
@@ -412,60 +354,29 @@ export default function ReturnPortal() {
 
               {step === 2 && selectedOrder && (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, border: 0, background: 'transparent', padding: 0, marginBottom: 20, color: 'var(--primary-600)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
-                  >
+                  <button type="button" className="returns-back" onClick={() => setStep(1)}>
                     <ArrowLeft size={15} aria-hidden="true" /> Change order
                   </button>
-
-                  <h2 id="return-form-heading" style={{ margin: 0, color: '#0f172a', fontSize: '1.35rem', letterSpacing: '-0.02em' }}>
-                    Return details
-                  </h2>
-                  <div style={{ margin: '16px 0 24px', padding: '14px 16px', borderRadius: 7, background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                    <strong style={{ display: 'block', color: '#0f172a', fontSize: '0.9rem' }}>Order #{selectedOrder.order_number}</strong>
-                    <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: '0.8rem' }}>
-                      {selectedOrder.date} · {selectedOrder.item_count} {selectedOrder.item_count === 1 ? 'item' : 'items'} · {selectedOrder.status}
-                    </span>
+                  <h2 id="return-form-heading">Return details</h2>
+                  <div className="returns-summary">
+                    <strong>Order #{selectedOrder.order_number}</strong>
+                    <span>{selectedOrder.date} · {selectedOrder.item_count} {selectedOrder.item_count === 1 ? 'item' : 'items'} · {selectedOrder.status}</span>
                   </div>
-
-                  {submitError && <InlineAlert>{submitError}</InlineAlert>}
+                  {submitError && <Notice>{submitError}</Notice>}
 
                   <form onSubmit={handleSubmit}>
                     <div className="form-group">
                       <label className="machined-label text-blue-600" htmlFor="return-reason">Reason for return</label>
-                      <select
-                        id="return-reason"
-                        value={returnReason}
-                        onChange={(event) => setReturnReason(event.target.value)}
-                        className="machined-input text-black"
-                        required
-                      >
+                      <select id="return-reason" value={returnReason} onChange={(event) => setReturnReason(event.target.value)} className="machined-input text-black" required>
                         <option value="">Select a reason</option>
                         {RETURN_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
                       </select>
                     </div>
-
                     <div className="form-group">
                       <label className="machined-label text-blue-600" htmlFor="return-notes">Additional details <span style={{ color: '#64748b', fontWeight: 500 }}>(optional)</span></label>
-                      <textarea
-                        id="return-notes"
-                        value={additionalNotes}
-                        onChange={(event) => setAdditionalNotes(event.target.value)}
-                        placeholder="Tell us what happened, what condition the item is in, or anything else that will help us review the request."
-                        className="machined-input text-black"
-                        rows={5}
-                        style={{ resize: 'vertical', minHeight: 120 }}
-                      />
+                      <textarea id="return-notes" value={additionalNotes} onChange={(event) => setAdditionalNotes(event.target.value)} placeholder="Tell us what happened, what condition the item is in, or anything else that will help us review the request." className="machined-input text-black" rows={5} style={{ resize: 'vertical', minHeight: 120 }} />
                     </div>
-
-                    <button
-                      type="submit"
-                      className="alloy-button w-full justify-center"
-                      disabled={submitLoading}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                    >
+                    <button type="submit" className="alloy-button returns-primary" disabled={submitLoading}>
                       {submitLoading ? <Loader size={16} className="animate-spin" aria-hidden="true" /> : <RotateCcw size={16} aria-hidden="true" />}
                       {submitLoading ? 'Submitting…' : 'Submit return request'}
                     </button>
@@ -474,69 +385,39 @@ export default function ReturnPortal() {
               )}
 
               {step === 3 && (
-                <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                  <span style={{ width: 54, height: 54, margin: '0 auto 16px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ecfdf5', color: '#047857' }}>
-                    <CheckCircle size={28} aria-hidden="true" />
-                  </span>
-                  <h2 id="return-form-heading" style={{ margin: 0, color: '#0f172a', fontSize: '1.45rem' }}>Request received</h2>
-                  <p style={{ maxWidth: 520, margin: '10px auto 0', color: '#64748b', fontSize: '0.9rem', lineHeight: 1.65 }}>
-                    We received your return request and will review it. Keep your Return ID for reference and wait for return instructions before shipping anything back.
-                  </p>
-
-                  {returnTracking?.id && (
-                    <div style={{ display: 'inline-block', marginTop: 20, padding: '12px 18px', borderRadius: 7, border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1e3a8a', fontWeight: 800 }}>
-                      Return ID: {returnTracking.id}
-                    </div>
-                  )}
-
+                <div className="returns-success">
+                  <span className="returns-success-icon"><CheckCircle size={28} aria-hidden="true" /></span>
+                  <h2 id="return-form-heading">Request received</h2>
+                  <p>We received your return request and will review it. Keep your Return ID for reference and wait for return instructions before shipping anything back.</p>
+                  {returnTracking?.id && <div className="returns-id">Return ID: {returnTracking.id}</div>}
                   {returnTracking?.id && returnTracking?.token && (
-                    <div style={{ marginTop: 20 }}>
-                      <Link
-                        to={`/returns/status/${returnTracking.id}?token=${encodeURIComponent(returnTracking.token)}`}
-                        className="alloy-button"
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}
-                      >
+                    <div>
+                      <Link to={`/returns/status/${returnTracking.id}?token=${encodeURIComponent(returnTracking.token)}`} className="alloy-button returns-track">
                         Track return <ArrowRight size={15} aria-hidden="true" />
                       </Link>
                     </div>
                   )}
-
-                  <button
-                    type="button"
-                    onClick={resetAll}
-                    style={{ display: 'block', margin: '22px auto 0', border: 0, background: 'transparent', color: 'var(--primary-600)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}
-                  >
-                    Start another return
-                  </button>
+                  <button type="button" className="returns-reset" onClick={resetAll}>Start another return</button>
                 </div>
               )}
             </div>
 
             {step === 1 && (
-              <p style={{ margin: '16px 0 0', color: '#64748b', fontSize: '0.82rem', lineHeight: 1.6 }}>
-                Still can&apos;t find the order? <Link to="/contact" style={{ color: 'var(--primary-600)', fontWeight: 700 }}>Contact support</Link> and we can help locate it.
-              </p>
+              <p className="returns-help-link">Still can&apos;t find the order? <Link to="/contact">Contact support</Link> and we can help locate it.</p>
             )}
           </section>
 
-          <aside aria-label="Return information" style={{ display: 'grid', gap: 14 }}>
-            <div style={{ padding: '18px 20px', borderRadius: 8, background: '#fff', border: '1px solid #dbe2ea' }}>
-              <h2 style={{ margin: 0, fontSize: '1rem', color: '#0f172a' }}>Before you start</h2>
-              <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '0.83rem', lineHeight: 1.6 }}>
-                You do not need every order detail. One matching field is enough to search. Do not ship a product back until you receive return instructions.
-              </p>
+          <aside className="returns-sidebar" aria-label="Return information">
+            <div className="returns-sidebar-card is-intro">
+              <h2>Before you start</h2>
+              <p>You do not need every order detail. One matching field is enough to search. Do not ship a product back until you receive return instructions.</p>
             </div>
-
-            {POLICY_LINKS.map(({ Icon, to, title, body }) => (
-              <Link
-                key={title}
-                to={to}
-                style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 12, padding: '16px 18px', borderRadius: 8, background: '#fff', border: '1px solid #dbe2ea', color: 'inherit', textDecoration: 'none' }}
-              >
-                <Icon size={18} color="var(--primary-600)" aria-hidden="true" />
+            {POLICY_LINKS.map(([title, body, Icon]) => (
+              <Link key={title} to="/return-policy" className="returns-sidebar-card">
+                <Icon size={18} aria-hidden="true" />
                 <span>
-                  <strong style={{ display: 'block', color: '#0f172a', fontSize: '0.86rem' }}>{title}</strong>
-                  <span style={{ display: 'block', marginTop: 4, color: '#64748b', fontSize: '0.78rem', lineHeight: 1.5 }}>{body}</span>
+                  <strong>{title}</strong>
+                  <span>{body}</span>
                 </span>
               </Link>
             ))}
