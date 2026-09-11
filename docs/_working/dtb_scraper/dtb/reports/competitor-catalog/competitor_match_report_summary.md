@@ -3,15 +3,15 @@
 ## Executive Summary
 
 - Sellable DTB pricing targets evaluated: **651**
-- Products with at least one verified competitor identity and price: **514**
+- Products with at least one verified competitor identity and price: **497**
 - Products with an established observed market price: **48**
-- Market prices verified by all three competitors: **15**
-- Market prices verified by two of three competitors: **33**
-- Products with verified competitor price conflicts: **249**
-- Products with only one verified competitor price: **217**
-- Products with review candidates but no verified priced evidence: **29**
-- Products with no candidate evidence: **108**
-- Review queue rows: **471**
+- Market prices verified by all three competitors: **13**
+- Market prices verified by two of three competitors: **35**
+- Products with verified competitor price conflicts: **243**
+- Products with only one verified competitor price: **206**
+- Products with review candidates but no verified priced evidence: **33**
+- Products with no candidate evidence: **121**
+- Review queue rows: **425**
 
 ## Product Scope
 
@@ -45,14 +45,14 @@ Identical retailer prices are observed market evidence only; the workflow does n
 
 ## Status Breakdown
 
-- **Identity Review Required:** 29
-- **No Market Evidence:** 108
-- **Price Conflict - Review Required:** 249
-- **Single-Source Evidence:** 154
-- **Single-Source Evidence + Review Candidates:** 63
-- **Verified Market Price - 2/3:** 27
+- **Identity Review Required:** 33
+- **No Market Evidence:** 121
+- **Price Conflict - Review Required:** 243
+- **Single-Source Evidence:** 150
+- **Single-Source Evidence + Review Candidates:** 56
+- **Verified Market Price - 2/3:** 29
 - **Verified Market Price - 2/3 + Review Candidates:** 6
-- **Verified Market Price - 3/3:** 15
+- **Verified Market Price - 3/3:** 13
 
 
 ## Report Usage
