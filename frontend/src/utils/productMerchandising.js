@@ -1,14 +1,12 @@
 const TOOL_SET_CATEGORY_KEYS = new Set([
   'automatic-tool-sets',
-  'automatic_tool_sets',
   'toolsets',
   'tool-sets-kits',
   'tool-sets-and-kits',
-  'tool_sets_and_kits',
 ]);
 
 function normalizeCategoryKey(value = '') {
-  return String(value || '').trim().toLowerCase().replace(/\s+/g, '-');
+  return String(value || '').trim().toLowerCase().replace(/[_\s]+/g, '-');
 }
 
 function productMetaItems(product = {}) {
