@@ -139,7 +139,11 @@ def main() -> int:
             )
             if price is not None
         ]
-        market = market_price_decision(verified_site_prices)
+        has_site_conflict = any(
+            resolved.get("quality", "").startswith("conflicting_")
+            for resolved in site_resolved.values()
+        )
+        market = market_price_decision(verified_site_prices, has_conflict=has_site_conflict)
         first = records[0]
         row = {
             "Identity Key": key,
