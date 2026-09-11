@@ -3,8 +3,8 @@ import SEOHead from '../components/shared/SEOHead';
 import { SCHEMATIC_DEFINITIONS } from '../data/schematicMappings';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/repair-landing.css';
-import '../styles/repair-landing-responsive.css';
 import '../styles/repair-merchandising.css';
+import '../styles/repair-landing-responsive.css';
 
 const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.localeCompare(b));
 
