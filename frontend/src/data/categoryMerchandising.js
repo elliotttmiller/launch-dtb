@@ -2,7 +2,7 @@ const CATEGORY_INTENT_CONFIG = {
   'automatic-tools': {
     eyebrow: 'Shop by workflow',
     title: 'Build the system around the work.',
-    description: 'Move from the task you need to complete into the authoritative product category. These links organize discovery only; WooCommerce remains the catalog authority.',
+    description: 'Move from the task you need to complete into the matching product category.',
     intents: [
       { label: 'Tape', description: 'Apply tape and compound in a single pass.', targetSlugs: ['automatic-tapers', 'automatic-taping-tools'] },
       { label: 'Load', description: 'Move compound into tapers, boxes, and corner tools.', targetSlugs: ['pumps', 'mud-pans-and-pumps'] },
@@ -33,21 +33,21 @@ const CATEGORY_INTENT_CONFIG = {
   'automatic-tool-sets': {
     eyebrow: 'Choose a system',
     title: 'Start with the work your crew performs.',
-    description: 'Use these buying intents to narrow the set you need, then compare the actual products, included tools, price, and availability in the catalog below.',
+    description: 'Use these buying contexts to understand the type of set that fits your workflow, then review the actual products, included tools, price, and availability in the catalog below.',
     intents: [
-      { label: 'Complete automatic systems', description: 'Taping, loading, flat finishing, and corner finishing in one coordinated setup.', filterHint: 'complete-system' },
-      { label: 'Taping sets', description: 'Automatic taper plus the equipment required to load and run it.', filterHint: 'taping' },
-      { label: 'Flat finishing sets', description: 'Finishing boxes, compatible handles, and loading equipment.', filterHint: 'flat-finishing' },
-      { label: 'Corner finishing sets', description: 'Rollers, applicators, corner finishers, and compatible handles.', filterHint: 'corner-finishing' },
-      { label: 'Starter / upgrade sets', description: 'Focused systems for contractors moving beyond hand tools.', filterHint: 'starter' },
-      { label: 'Production crew sets', description: 'Broader systems for high-volume professional finishing.', filterHint: 'production' },
+      { label: 'Complete automatic systems', description: 'Taping, loading, flat finishing, and corner finishing in one coordinated setup.' },
+      { label: 'Taping sets', description: 'Automatic taper plus the equipment required to load and run it.' },
+      { label: 'Flat finishing sets', description: 'Finishing boxes, compatible handles, and loading equipment.' },
+      { label: 'Corner finishing sets', description: 'Rollers, applicators, corner finishers, and compatible handles.' },
+      { label: 'Starter / upgrade sets', description: 'Focused systems for contractors moving beyond hand tools.' },
+      { label: 'Production crew sets', description: 'Broader systems for high-volume professional finishing.' },
     ],
     guide: {
-      title: 'Compare sets on what is actually included',
+      title: 'Evaluate sets by what is actually included',
       items: [
-        { label: 'System coverage', detail: 'Taper, pump, boxes, corner tools, handles, cases, and required adapters.' },
-        { label: 'Working range', detail: 'Box sizes, corner-finisher sizes, and fixed or extendable handle ranges.' },
-        { label: 'Commerce facts', detail: 'Current price, availability, warranty, and any real set savings should come from authoritative product data.' },
+        { label: 'System coverage', detail: 'Review the taper, pump, boxes, corner tools, handles, cases, and required adapters included with each product.' },
+        { label: 'Working range', detail: 'Check box sizes, corner-finisher sizes, and fixed or extendable handle ranges on the product details.' },
+        { label: 'Commerce facts', detail: 'Use the live product listing and product details for current price, availability, warranty, and any real set savings.' },
       ],
     },
   },
