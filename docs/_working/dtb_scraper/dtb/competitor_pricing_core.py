@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Shared identity, normalization, matching, and market aggregation primitives.
+"""Shared identity, matching, and observed-market-price primitives.
 
-This module is deliberately deterministic and side-effect free. It provides the
-single product-identity contract used by all competitor pricing reports:
+This module is deterministic and side-effect free. Product identity is always
+manufacturer scoped:
 
     identity_key = canonical_brand + "::" + canonical_identifier
 
-Identifiers are never treated as globally unique without a manufacturer/brand
-namespace. Unknown brands can participate in review candidates, but can never
-produce an automatic exact-identifier acceptance.
+Market price is never averaged or median-derived. It is established only when
+multiple independently verified competitor sites expose the same price for the
+same verified manufacturer product. Conflicting prices remain explicit review
+evidence and do not synthesize a market price.
 """
 from __future__ import annotations
 
@@ -159,25 +160,22 @@ class SiteEvidence:
     observations: list[dict[str, str]] = field(default_factory=list)
     verified: bool = False
     price: Decimal | None = None
-    price_low: Decimal | None = None
-    price_high: Decimal | None = None
     duplicate_count: int = 0
     quality: str = ""
     product_name: str = ""
     identifier: str = ""
     identity_key: str = ""
+    observed_prices: tuple[Decimal, ...] = ()
 
 
 @dataclass(frozen=True)
-class PriceConsensus:
+class MarketPriceDecision:
     status: str
-    source_count: int
+    verified_source_count: int
     distinct_price_count: int
-    consensus_price: Decimal | None
-    low: Decimal | None
-    high: Decimal | None
-    median: Decimal | None
-    spread: Decimal | None
+    market_price: Decimal | None
+    observed_prices: tuple[Decimal, ...]
+    price_spread: Decimal | None
 
 
 def normalize_words(value: str) -> str:
@@ -252,6 +250,10 @@ def money(value: Decimal | None) -> str:
     return "" if value is None else f"{value:.2f}"
 
 
+def percent(value: Decimal | None) -> str:
+    return "" if value is None else f"{value:.2f}"
+
+
 def effective_dtb_price(row: Mapping[str, str]) -> tuple[Decimal | None, str, tuple[str, ...]]:
     regular = decimal_price(row.get("Regular price", ""))
     sale = decimal_price(row.get("Sale price", ""))
@@ -266,17 +268,17 @@ def effective_dtb_price(row: Mapping[str, str]) -> tuple[Decimal | None, str, tu
 
 
 def is_pricing_target(row: Mapping[str, str]) -> bool:
-    """Exclude WooCommerce variable parent containers from SKU-level price research.
+    """Return whether a canonical DTB row may participate in SKU-level pricing.
 
-    Simple products, variations, and other non-variable sellable rows remain in scope.
-    Variable parents are product-family containers whose purchasable prices belong to
-    their child variations; including them creates false unmatched/no-price noise.
+    WooCommerce variable parents are family containers and are always excluded.
+    Simple products and purchasable variation rows remain eligible.
     """
-    return str(row.get("Type", "") or "").strip().casefold() != "variable"
+    product_type = str(row.get("Type", "") or "").strip().casefold()
+    return product_type in {"simple", "variation"}
 
 
 def clean_description(value: str) -> tuple[str, str]:
-    """Return (cleaned_text, quality). Known storefront boilerplate is quarantined."""
+    """Return (cleaned_text, quality); quarantine known storefront boilerplate."""
     if not value:
         return "", "missing"
     raw = str(value)
@@ -483,51 +485,40 @@ def classify_match(
     return MatchDecision("", "", score, wratio, token_set, simple, "", True, (), "")
 
 
-def median_decimal(values: Iterable[Decimal]) -> Decimal | None:
-    items = sorted(values)
-    if not items:
-        return None
-    size = len(items)
-    mid = size // 2
-    if size % 2:
-        return items[mid]
-    return (items[mid - 1] + items[mid]) / Decimal("2")
+def market_price_decision(values: Iterable[Decimal]) -> MarketPriceDecision:
+    """Establish a market price only from exact cross-retailer agreement.
 
-
-def price_consensus(values: Iterable[Decimal]) -> PriceConsensus:
-    """Classify observed verified site prices without assuming why prices agree.
-
-    Exact equality across independent retailers is reported as observed price
-    consensus. It is intentionally not labeled MAP/MSRP because that commercial
-    policy cannot be inferred from matching prices alone.
+    No mean, median, midpoint, majority price, or other synthesized price is ever
+    produced. A disagreement between verified retailers is a review condition.
     """
-    prices = sorted(value for value in values if value is not None)
+    prices = tuple(value for value in values if value is not None)
     if not prices:
-        return PriceConsensus("no_verified_price", 0, 0, None, None, None, None, None)
-    distinct = sorted(set(prices))
-    low = prices[0]
-    high = prices[-1]
-    median = median_decimal(prices)
-    spread = high - low
+        return MarketPriceDecision("NO_MARKET_EVIDENCE", 0, 0, None, (), None)
+
+    distinct = tuple(sorted(set(prices)))
+    spread = max(prices) - min(prices) if len(prices) >= 2 else Decimal("0")
     if len(prices) == 1:
-        status = "single_verified_price"
-        consensus = prices[0]
-    elif len(distinct) == 1:
-        status = "exact_price_consensus"
-        consensus = distinct[0]
-    else:
-        status = "price_dispersion"
-        consensus = None
-    return PriceConsensus(status, len(prices), len(distinct), consensus, low, high, median, spread)
+        return MarketPriceDecision("MARKET_PRICE_SINGLE_SOURCE", 1, 1, None, prices, spread)
+    if len(distinct) > 1:
+        return MarketPriceDecision("MARKET_PRICE_CONFLICT", len(prices), len(distinct), None, prices, spread)
+    if len(prices) == len(SITE_KEYS):
+        return MarketPriceDecision("MARKET_PRICE_VERIFIED_3_OF_3", len(prices), 1, distinct[0], prices, spread)
+    return MarketPriceDecision("MARKET_PRICE_VERIFIED_2_OF_3", len(prices), 1, distinct[0], prices, spread)
 
 
 def resolve_site_evidence(source_key: str, observations: Sequence[dict[str, str]]) -> SiteEvidence:
+    """Resolve one competitor site's evidence without averaging duplicate prices."""
     evidence = SiteEvidence(source_key=source_key, source_label=SITE_LABELS[source_key], observations=list(observations))
     if not observations:
         return evidence
-    verified = [row for row in observations if row.get("Match Status") == "auto_accept" and row.get("Evidence Quality") == "verified_exact_identity"]
+
+    verified = [
+        row for row in observations
+        if row.get("Match Status") == "auto_accept" and row.get("Evidence Quality") == "verified_exact_identity"
+    ]
     review = [row for row in observations if row.get("Match Status") == "review"]
     evidence.duplicate_count = max(0, len(observations) - 1)
+
     if not verified:
         evidence.quality = "review_only" if review else "unusable"
         best = max(observations, key=lambda r: int(r.get("Match Score") or 0))
@@ -541,12 +532,6 @@ def resolve_site_evidence(source_key: str, observations: Sequence[dict[str, str]
         evidence.quality = "conflicting_identity_duplicates"
         return evidence
 
-    prices = [decimal_price(row.get("Competitor Price", "")) for row in verified]
-    prices = [price for price in prices if price is not None]
-    if not prices:
-        evidence.quality = "verified_identity_missing_price"
-        return evidence
-
     names = [row.get("Competitor Product Name", "") for row in verified if row.get("Competitor Product Name", "")]
     if len(names) > 1:
         anchor = names[0]
@@ -554,27 +539,50 @@ def resolve_site_evidence(source_key: str, observations: Sequence[dict[str, str]
             evidence.quality = "conflicting_title_duplicates"
             return evidence
 
+    prices = tuple(
+        price for price in (decimal_price(row.get("Competitor Price", "")) for row in verified)
+        if price is not None
+    )
+    evidence.observed_prices = prices
+    if not prices:
+        evidence.quality = "verified_identity_missing_price"
+        return evidence
+
+    distinct_prices = set(prices)
+    if len(distinct_prices) > 1:
+        evidence.quality = "conflicting_price_duplicates"
+        return evidence
+
     evidence.verified = True
-    evidence.price_low = min(prices)
-    evidence.price_high = max(prices)
-    evidence.price = median_decimal(prices)
-    evidence.quality = "verified_exact_identity" if len(verified) == 1 else "verified_duplicate_collapsed_median"
-    best = max(verified, key=lambda r: (int(r.get("Match Score") or 0), int(r.get("Simple Ratio") or 0), r.get("Competitor Product Name", "")))
+    evidence.price = prices[0]
+    evidence.quality = "verified_exact_identity" if len(verified) == 1 else "verified_duplicate_same_price"
+    best = max(
+        verified,
+        key=lambda r: (
+            int(r.get("Match Score") or 0),
+            int(r.get("Simple Ratio") or 0),
+            r.get("Competitor Product Name", ""),
+        ),
+    )
     evidence.product_name = best.get("Competitor Product Name", "")
     evidence.identifier = best.get("Competitor SKU", "")
     evidence.identity_key = best.get("Identity Key", "")
     return evidence
 
 
-def market_status(site_evidence: Sequence[SiteEvidence], review_count: int) -> str:
-    verified_count = sum(1 for item in site_evidence if item.verified)
-    conflicts = any(item.quality.startswith("conflicting_") for item in site_evidence)
-    if conflicts:
-        return "Review Required - Conflicting Evidence"
-    if verified_count >= 2:
-        return "Verified Market Evidence" if review_count == 0 else "Verified Market Evidence + Review Candidates"
-    if verified_count == 1:
-        return "Verified Single-Source" if review_count == 0 else "Verified Single-Source + Review Candidates"
+def market_status(site_evidence: Sequence[SiteEvidence], review_count: int, market_price_status: str) -> str:
+    """Return a business-facing state aligned with the explicit market-price contract."""
+    duplicate_conflict = any(item.quality.startswith("conflicting_") for item in site_evidence)
+    if duplicate_conflict or market_price_status == "MARKET_PRICE_CONFLICT":
+        return "Price Conflict - Review Required"
+
+    suffix = " + Review Candidates" if review_count else ""
+    if market_price_status == "MARKET_PRICE_VERIFIED_3_OF_3":
+        return "Verified Market Price - 3/3" + suffix
+    if market_price_status == "MARKET_PRICE_VERIFIED_2_OF_3":
+        return "Verified Market Price - 2/3" + suffix
+    if market_price_status == "MARKET_PRICE_SINGLE_SOURCE":
+        return "Single-Source Evidence" + suffix
     if review_count:
-        return "Review Required"
-    return "No Match Found"
+        return "Identity Review Required"
+    return "No Market Evidence"
