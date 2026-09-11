@@ -44,7 +44,13 @@ class OfferEquivalenceDecision:
 
 
 def _compact_text(*values: str) -> str:
-    return " ".join(html_lib.unescape(value or "").split() for value in values if value).strip()
+    """Normalize multiple evidence strings into one whitespace-compacted string."""
+    parts = [
+        " ".join(html_lib.unescape(str(value or "")).split())
+        for value in values
+        if value
+    ]
+    return " ".join(part for part in parts if part).strip()
 
 
 def extract_offer_signature(title: str, description: str = "", category: str = "") -> OfferSignature:
