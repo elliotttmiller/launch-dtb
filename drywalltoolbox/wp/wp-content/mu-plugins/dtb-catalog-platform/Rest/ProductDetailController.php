@@ -104,10 +104,9 @@ final class DTB_ProductDetailController {
 	/**
 	 * Build the public PDP merchandising rail.
 	 *
-	 * Canonical compatibility metadata is preferred when it exists. WooCommerce
-	 * upsells/related products remain a bounded fallback so products without
-	 * compatibility coverage retain useful merchandising without creating a
-	 * second recommendation authority.
+	 * Canonical compatibility relationships are preferred. WooCommerce upsells
+	 * and related products remain a bounded fallback when compatibility coverage
+	 * is absent. Compatibility lookup stays owned by DTB_CompatiblePartsController.
 	 *
 	 * @return array{products:array<int,array<string,mixed>>,context:string}
 	 */
@@ -122,8 +121,12 @@ final class DTB_ProductDetailController {
 			return [ 'products' => [], 'context' => 'related' ];
 		}
 
-		$compatibility_ids = self::get_compatibility_candidate_ids( $product );
-		$fallback_ids      = array_merge(
+		$compatibility_dtos = self::get_compatibility_candidates( $product );
+		$compatibility_ids  = array_values( array_filter( array_map(
+			static fn( array $dto ): int => absint( $dto['id'] ?? 0 ),
+			$compatibility_dtos
+		) ) );
+		$fallback_ids       = array_merge(
 			$source_product->get_upsell_ids(),
 			wc_get_related_products( $product_id, self::RELATED_PRODUCT_LIMIT * 2, [ $product_id ] )
 		);
@@ -153,112 +156,30 @@ final class DTB_ProductDetailController {
 			'dtb_catalog_normalize_product',
 			dtb_catalog_wc_fetch_products_by_ids( $visible_ids )
 		) );
-
-		$visible_compatibility_ids = array_intersect( $visible_ids, $compatibility_ids );
-		$context = ! empty( $visible_compatibility_ids )
-			? ( ! empty( $product['isParts'] ) ? 'compatible_tools' : 'compatible_parts' )
-			: 'related';
+		$has_visible_compatibility = ! empty( array_intersect( $visible_ids, $compatibility_ids ) );
 
 		return [
 			'products' => $normalized,
-			'context'  => $context,
+			'context'  => $has_visible_compatibility
+				? ( ! empty( $product['isParts'] ) ? 'compatible_tools' : 'compatible_parts' )
+				: 'related',
 		];
 	}
 
 	/**
-	 * Resolve compatibility-backed merchandising candidates from the canonical
-	 * product meta graph. Reads are bounded to the PDP rail size and never infer
-	 * compatibility from names, brands, or category proximity.
+	 * Read a bounded compatibility slice from the existing compatibility owner.
 	 *
-	 * @param  array $product Canonical catalog DTO.
-	 * @return int[]
+	 * @return array<int,array<string,mixed>>
 	 */
-	private static function get_compatibility_candidate_ids( array $product ): array {
-		$source_sku = strtoupper( trim( (string) ( $product['sku'] ?? '' ) ) );
-		if ( '' === $source_sku ) {
+	private static function get_compatibility_candidates( array $product ): array {
+		$sku = strtoupper( trim( (string) ( $product['sku'] ?? '' ) ) );
+		if ( '' === $sku ) {
 			return [];
 		}
 
-		$compatibility = is_array( $product['compatibility'] ?? null )
-			? $product['compatibility']
-			: [];
-
-		if ( ! empty( $product['isParts'] ) ) {
-			$tool_skus = array_values( array_unique( array_filter( array_merge(
-				self::normalize_sku_list( $compatibility['compatibleToolSkus'] ?? [] ),
-				self::normalize_sku_list( $compatibility['replacementPartFor'] ?? [] )
-			) ) ) );
-			$ids = [];
-
-			foreach ( array_slice( $tool_skus, 0, self::RELATED_PRODUCT_LIMIT * 2 ) as $tool_sku ) {
-				$product_id = absint( wc_get_product_id_by_sku( $tool_sku ) );
-				if ( $product_id > 0 ) {
-					$ids[] = $product_id;
-				}
-			}
-
-			return array_values( array_unique( $ids ) );
-		}
-
-		$candidate_ids = get_posts( [
-			'post_type'      => 'product',
-			'post_status'    => 'publish',
-			'posts_per_page' => self::RELATED_PRODUCT_LIMIT * 4,
-			'fields'         => 'ids',
-			'no_found_rows'  => true,
-			'meta_query'     => [
-				'relation' => 'OR',
-				[
-					'key'     => DTB_ProductMeta::COMPATIBLE_TOOL_SKUS,
-					'value'   => $source_sku,
-					'compare' => 'LIKE',
-				],
-				[
-					'key'     => DTB_ProductMeta::REPLACEMENT_PART_FOR,
-					'value'   => $source_sku,
-					'compare' => 'LIKE',
-				],
-			],
-		] );
-
-		$verified_ids = [];
-		foreach ( (array) $candidate_ids as $candidate_id ) {
-			$candidate = wc_get_product( absint( $candidate_id ) );
-			if ( ! $candidate ) {
-				continue;
-			}
-
-			$declared_tool_skus = array_values( array_unique( array_merge(
-				self::normalize_sku_list( $candidate->get_meta( DTB_ProductMeta::COMPATIBLE_TOOL_SKUS, true ) ),
-				self::normalize_sku_list( $candidate->get_meta( DTB_ProductMeta::REPLACEMENT_PART_FOR, true ) )
-			) ) );
-
-			if ( in_array( $source_sku, $declared_tool_skus, true ) ) {
-				$verified_ids[] = absint( $candidate_id );
-			}
-
-			if ( count( $verified_ids ) >= self::RELATED_PRODUCT_LIMIT ) {
-				break;
-			}
-		}
-
-		return $verified_ids;
-	}
-
-	/** Normalize a canonical SKU list without inventing compatibility. */
-	private static function normalize_sku_list( mixed $raw ): array {
-		if ( is_array( $raw ) ) {
-			$values = $raw;
-		} elseif ( is_string( $raw ) && '' !== trim( $raw ) ) {
-			$values = explode( ',', $raw );
-		} else {
-			return [];
-		}
-
-		return array_values( array_filter( array_unique( array_map(
-			static fn( $value ) => strtoupper( trim( (string) $value ) ),
-			$values
-		) ) ) );
+		return ! empty( $product['isParts'] )
+			? DTB_CompatiblePartsController::get_compatible_tools_for_part_sku( $sku, self::RELATED_PRODUCT_LIMIT )
+			: DTB_CompatiblePartsController::get_compatible_parts_for_tool_sku( $sku, self::RELATED_PRODUCT_LIMIT );
 	}
 
 	/** GET /dtb/v1/catalog/products/:id/variations */
