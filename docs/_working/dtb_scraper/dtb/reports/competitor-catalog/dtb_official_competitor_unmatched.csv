@@ -1,177 +1,109 @@
-﻿DTB Row,DTB SKU,DTB Brand,DTB Product,DTB Effective Price,DTB Price Basis,Recommended Review Status
-12,COL-AUTOMATIC-FLAT-BOX,Columbia Tools,Columbia Automatic Flat Box,,missing_price,No Match Found
-22,COL-BILLET-MUD-APPLICATOR,Columbia Tools,Columbia Billet Mud Applicator,,missing_price,No Match Found
-32,COL-CAM-LOCK-TUBE,Columbia Tools,Columbia Cam Lock Tube,,missing_price,No Match Found
-42,COL-DIRECT-FLUSHER,Columbia Tools,Columbia Direct Flusher,,missing_price,No Match Found
-44,3WTCSF,Columbia Tools,"Columbia Combo Flusher - 3"" Widetrack",196.25,regular_price,No Match Found
-55,4DF,Columbia Tools,"Columbia Direct Flusher - 4""",151.41,regular_price,No Match Found
-56,5.5FBB,Columbia Tools,"Columbia Fat Boy Flat Box - 5.5""",384.39,regular_price,No Match Found
-89,COBCRE,Columbia Tools,Columbia Outside Corner Roller - European,79.06,regular_price,No Match Found
-91,COL-PREDATOR-MATRIX-HANDLE,Columbia Tools,Columbia Predator Matrix Handle,,missing_price,No Match Found
-92,COL-PREDATOR-ONE-HANDLE,Columbia Tools,Columbia Predator One Handle,,missing_price,No Match Found
-93,COL-STANDARD-FLUSHER,Columbia Tools,Columbia Standard Flusher,,missing_price,No Match Found
-94,PMHS,Columbia Tools,"Columbia Predator Matrix Handle - Short 29""-39""",384.00,regular_price,No Match Found
-95,PMH,Columbia Tools,"Columbia Predator Matrix Handle - 40""-60""",418.00,regular_price,No Match Found
-96,PMHL,Columbia Tools,"Columbia Predator Matrix Handle - Long 56""-76""",503.00,regular_price,No Match Found
-99,PCHXL,Columbia Tools,Columbia Predator One Handle - Long Extendable 4'-8',216.15,regular_price,No Match Found
-101,COL-THROTTLE-CORNER-FLUSHER-BOX,Columbia Tools,Columbia Throttle Corner Flusher Box,,missing_price,No Match Found
-110,COL-UHMW-MUD-APPLICATOR,Columbia Tools,Columbia UHMW Mud Applicator,,missing_price,No Match Found
-114,OA90-325,Columbia Tools,Columbia UHMW Mud Applicator - Outside 90° 325,91.93,regular_price,No Match Found
-116,CPFP,Columbia Tools,Columbia PowerFill 3.5 Pro Series Cordless Loading Pump,1473.00,regular_price,No Match Found
-117,CPFGN,Columbia Tools,Columbia Powerfill 5 Gallon Taper Gooseneck Fill Tube,275.00,regular_price,No Match Found
-133,FA379,Columbia Tools,"1/4"" SS E-Clip",3.25,regular_price,No Match Found
-138,FA313,Columbia Tools,1/4-20 X 1/4 Socket Head Set Screw,2.00,regular_price,No Match Found
-146,FA320,Columbia Tools,"1/4-28-3/8"" Socket Set Screw",2.00,regular_price,No Match Found
-151,FFB25,Columbia Tools,Rubber Gasket Retainer,,missing_price,No Match Found
-159,FA380,Columbia Tools,"1/8"" SS E-Clip",2.95,regular_price,No Match Found
-170,FA382,Columbia Tools,"10-32 x 1/4"" SS Set Screw",1.00,regular_price,No Match Found
-172,FA365,Columbia Tools,"3/16 x 1"" Sping Pin SS",3.00,regular_price,No Match Found
-191,FFB11,Columbia Tools,Adjuster Spring,,missing_price,No Match Found
-218,FA376,Columbia Tools,8-32 x 5/16 SS Socket Head,2.00,regular_price,No Match Found
-221,FFB5,Columbia Tools,Axle,,missing_price,No Match Found
-224,FFB5-7,Columbia Tools,"Axle - 7""",44.00,regular_price,No Match Found
-225,FFB5-8,Columbia Tools,"Axle - 8""",44.00,regular_price,No Match Found
-226,FFB5-10,Columbia Tools,"Axle - 10""",44.00,regular_price,No Match Found
-227,FFB5-12,Columbia Tools,"Axle - 12""",44.00,regular_price,No Match Found
-228,FFB5-14,Columbia Tools,"Axle - 14""",44.00,regular_price,No Match Found
-241,HNS8,Columbia Tools,Blade Holder,,missing_price,No Match Found
-251,BH9,Columbia Tools,Brake Connecting Strap,,missing_price,No Match Found
-261,FFB36,Columbia Tools,Box Wheel,5.00,regular_price,No Match Found
-264,MH9A,Columbia Tools,Brake Activation Rod,24.00,regular_price,No Match Found
-268,MH8,Columbia Tools,Brake Rod Bushing,8.00,regular_price,No Match Found
-270,HH-BRASS-CONNECTOR,Columbia Tools,Brass Connector,,missing_price,No Match Found
-277,HH19,Columbia Tools,Cap,17.00,regular_price,No Match Found
-291,HNS4,Columbia Tools,Door,,missing_price,No Match Found
-301,PCLT42,Columbia Tools,Columbia Predator Camlock Tube,368.05,regular_price,No Match Found
-302,PCMT42,Columbia Tools,"Columbia Predator Compound Tube 42""",274.93,regular_price,No Match Found
-307,MH7,Columbia Tools,Connecting Link Fork,29.00,regular_price,No Match Found
-308,MH5,Columbia Tools,Connecting Link Pin,5.00,regular_price,No Match Found
-310,MH16,Columbia Tools,Connecting Rod Housing,8.00,regular_price,No Match Found
-320,CFB4,Columbia Tools,Door,,missing_price,No Match Found
-321,HNS15,Columbia Tools,Door Gasket,,missing_price,No Match Found
-322,CFB7,Columbia Tools,Door Gasket,,missing_price,No Match Found
-323,HNS-DOOR-SPRING,Columbia Tools,Door Spring,,missing_price,No Match Found
-343,CT87,Columbia Tools,Engraved Cover Plate Cap,42.00,regular_price,No Match Found
-358,MH21,Columbia Tools,Grip Adjuster Housing,21.95,regular_price,No Match Found
-359,MH23,Columbia Tools,Grip Adjusting Fastener,11.00,regular_price,No Match Found
-360,MH22,Columbia Tools,Grip Adjustment Pin,11.00,regular_price,No Match Found
-370,MH11,Columbia Tools,Handle Grip Bushing,6.00,regular_price,No Match Found
-371,AH1,Columbia Tools,Head Casting,,missing_price,No Match Found
-375,AH1-3,Columbia Tools,"Head Casting - 3""",153.00,regular_price,No Match Found
-381,MH1,Columbia Tools,Handle Mount Plate,75.00,regular_price,No Match Found
-384,HH8,Columbia Tools,Handle Tube,45.00,regular_price,No Match Found
-387,FFB39,Columbia Tools,Hex Bolt,3.00,regular_price,No Match Found
-391,CT-WAFER-BUSHING,Columbia Tools,Wafer Bushing,,missing_price,No Match Found
-392,MH6,Columbia Tools,Hinge Pin,4.00,regular_price,No Match Found
-396,MH13,Columbia Tools,Large Nyliner Bushing,5.00,regular_price,No Match Found
-407,MH2,Columbia Tools,Matrix Handle Head,4.00,regular_price,No Match Found
-409,MH3A,Columbia Tools,Mounting Bracket Stem,4.00,regular_price,No Match Found
-421,MP-PISTON-BACKING-WASHER,Columbia Tools,Piston Backing Washer,,missing_price,No Match Found
-429,FFB38,Columbia Tools,Nyliner Bearing,2.00,regular_price,No Match Found
-433,MH10,Columbia Tools,Octagon,36.00,regular_price,No Match Found
-435,MH17,Columbia Tools,Pinch Brake,24.50,regular_price,No Match Found
-436,MH15,Columbia Tools,Pinch Brake Activator,22.00,regular_price,No Match Found
-437,MH24,Columbia Tools,Pinch Brake Bushing,12.75,regular_price,No Match Found
-438,MH18,Columbia Tools,Pinch Brake Housing,20.00,regular_price,No Match Found
-439,MH19,Columbia Tools,Pinch Brake Sleeve,28.00,regular_price,No Match Found
-440,MH25,Columbia Tools,Pinch Brake Stem,14.95,regular_price,No Match Found
-441,CT-INSERT-BUSHING,Columbia Tools,Insert Bushing,,missing_price,No Match Found
-442,CT-NYLATRON-CHAIN-ROLLER,Columbia Tools,Nylatron Chain Roller,,missing_price,No Match Found
-443,MH12,Columbia Tools,PinchBrake Spring,4.00,regular_price,No Match Found
-454,HNS18,Columbia Tools,Pivot,4.00,regular_price,No Match Found
-472,CFB3,Columbia Tools,Side Plate,,missing_price,No Match Found
-483,FFB37,Columbia Tools,Rubber for Box Wheel,2.00,regular_price,No Match Found
-488,MH20,Columbia Tools,Small Nyliner Bushing,3.00,regular_price,No Match Found
-492,DS-DURA-III,Dura-Stilts,Dura-III Adjustable,,missing_price,No Match Found
-501,LV5-CORNER-APPLICATOR,LEVEL5,LEVEL5 Corner Applicator,,missing_price,No Match Found
-502,LV5-CORNER-HANDLE-APPLICATOR-EXT,LEVEL5,LEVEL5 Corner Applicator Handle (Extendable),,missing_price,No Match Found
-505,4-701,LEVEL5,LEVEL5 Corner Applicator - 7”,287.65,regular_price,No Match Found
-506,4-702,LEVEL5,LEVEL5 Corner Applicator - 8”,296.64,regular_price,No Match Found
-507,4-794,LEVEL5,LEVEL5 Corner Applicator Handle (Extendable) - 31”- 50”,176.35,regular_price,No Match Found
-508,4-798,LEVEL5,LEVEL5 Corner Applicator Handle (Extendable) - 43”- 72”,195.18,regular_price,No Match Found
-521,LV5-CORNER-FINISHER,LEVEL5,LEVEL5 Corner Finisher,,missing_price,No Match Found
-522,LV5-CORNER-HANDLE-FINISHER-EXT,LEVEL5,LEVEL5 Corner Finisher Handle (Extendable),,missing_price,No Match Found
-523,LV5-CORNER-FLUSHER,LEVEL5,LEVEL5 Corner Flusher,,missing_price,No Match Found
-525,4-733,LEVEL5,LEVEL5 Corner Finisher - 3”,409.65,regular_price,No Match Found
-526,4-734,LEVEL5,LEVEL5 Corner Finisher - 3.5”,419.07,regular_price,No Match Found
-527,4-735,LEVEL5,LEVEL5 Corner Finisher - 4”,428.48,regular_price,No Match Found
-528,4-795,LEVEL5,LEVEL5 Corner Finisher Handle (Extendable) - 31”- 50”,188.34,regular_price,No Match Found
-529,4-799,LEVEL5,LEVEL5 Corner Finisher Handle (Extendable) - 43”- 72”,207.17,regular_price,No Match Found
-530,4-743,LEVEL5,LEVEL5 Corner Flusher - 3”,146.48,regular_price,No Match Found
-531,LV5-FLAT-BOX-MEGA,LEVEL5,LEVEL5 Flat Box (MEGA),,missing_price,No Match Found
-532,LV5-FLAT-BOX-STANDARD,LEVEL5,LEVEL5 Flat Box (Standard),,missing_price,No Match Found
-533,4-744,LEVEL5,LEVEL5 Corner Flusher - 3.5”,151.09,regular_price,No Match Found
-540,4-770,LEVEL5,LEVEL5 Flat Box (Standard) - 14”,412.68,regular_price,No Match Found
-541,LV5-FLAT-BOX-HANDLE-EXT,LEVEL5,LEVEL5 Flat Box Handle (Extendable),,missing_price,No Match Found
-542,LV5-FLAT-BOX-HANDLE-FIXED,LEVEL5,LEVEL5 Flat Box Handle (Fixed Length),,missing_price,No Match Found
-543,4-759,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 48” - 78”,315.47,regular_price,No Match Found
-544,4-780,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 40” - 62”,306.06,regular_price,No Match Found
-546,4-782,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 23” - 32”,278.24,regular_price,No Match Found
-547,4-711,LEVEL5,LEVEL5 Flat Box Handle (Fixed Length) - 34”,176.35,regular_price,No Match Found
-549,4-740,LEVEL5,LEVEL5 Flat Box Handle (Fixed Length) - 54”,204.18,regular_price,No Match Found
-551,LV5-ENTRY-FINISHING-SET,LEVEL5,LEVEL5 Entry to Automatic Finishing Set,,missing_price,No Match Found
-555,4-630,LEVEL5,LEVEL5 The Starter Taping Set,2126.35,regular_price,No Match Found
-556,4-602,LEVEL5,LEVEL5 Entry to Automatic Finishing Set - Tools Only,2412.75,regular_price,No Match Found
-557,4-600P,LEVEL5,LEVEL5 Entry to Automatic Finishing Set - With Automatic Taper,3878.41,regular_price,No Match Found
-558,4-677P,LEVEL5,LEVEL5 The Ultimate Taping & Finishing Set,6388.28,regular_price,No Match Found
-559,5-777,LEVEL5,"LEVEL5 Corner Roller Handle - 50""",89.99,regular_price,No Match Found
-561,LV5-FIXED-HANDLE-50,LEVEL5,"LEVEL5 50"" Fixed Handle",,missing_price,No Match Found
-562,4-778,LEVEL5,"LEVEL5 50"" Fixed Handle - Corner Applicator",92.88,regular_price,No Match Found
-563,4-779,LEVEL5,"LEVEL5 50"" Fixed Handle - Corner Finisher",92.88,regular_price,No Match Found
-564,4-792,LEVEL5,"LEVEL5 31""- 50"" Corner Roller/Nail Spotter Handle",180.62,regular_price,No Match Found
-565,4-760,LEVEL5,LEVEL5 Automatic Taper,1455.39,regular_price,No Match Found
-567,4-771,LEVEL5,LEVEL5 Compound Pump,455.88,regular_price,No Match Found
-568,4-741,LEVEL5,LEVEL5 Compound Tube,205.31,regular_price,No Match Found
-570,5-311,LEVEL5,LEVEL5 Drywall Banjo,151.37,regular_price,No Match Found
-575,PT-3CF,Platinum Drywall Tools,"Platinum Angle Head Corner Finisher with Wheels - 3""",249.00,regular_price,No Match Found
-580,PT-BH34,Platinum Drywall Tools,"Platinum Flat Box Handle - 34""",90.00,regular_price,No Match Found
-581,PT-FB,Platinum Drywall Tools,Platinum Flat Finishing Box,,missing_price,No Match Found
-589,4-772,LEVEL5,LEVEL5 MiniShot,941.72,regular_price,No Match Found
-590,4-773,LEVEL5,LEVEL5 MiniShot Ext. Handle,74.48,regular_price,No Match Found
-592,PT-SSCF,Platinum Drywall Tools,Platinum Stainless Steel Corner Flusher,,missing_price,No Match Found
-593,PT-CORNER-HANDLE-50,Platinum Drywall Tools,"Platinum 50"" Corner Tool Handle",,missing_price,No Match Found
-594,4-746,LEVEL5,LEVEL5 Outside Corner Tool,77.26,regular_price,No Match Found
-601,PT-90-APPLICATOR,Platinum Drywall Tools,Platinum 90° Corner Applicator,,missing_price,No Match Found
-602,PT-CORNER-ROLLER,Platinum Drywall Tools,Platinum Corner Roller,,missing_price,No Match Found
-607,PT-CR,Platinum Drywall Tools,Platinum Corner Roller - Inside,79.99,regular_price,No Match Found
-608,PT-OCR,Platinum Drywall Tools,Platinum Corner Roller - Outside 90°,69.99,regular_price,No Match Found
-609,PT-FA,Platinum Drywall Tools,"Platinum 4"" Flat Applicator",59.00,regular_price,No Match Found
-610,PT-CA8,Platinum Drywall Tools,"Platinum 8"" Corner Applicator",159.00,regular_price,No Match Found
-611,SP-S1-A,SurPro,SurPro S1 Aluminum Drywall Stilts,,missing_price,No Match Found
-612,PT-BF,Platinum Drywall Tools,Platinum Box Filler Attachment,49.00,regular_price,No Match Found
-613,PT-CP,Platinum Drywall Tools,Platinum Drywall Pump w/Filler,269.00,regular_price,No Match Found
-614,PT-FIN,Platinum Drywall Tools,Platinum Drywall Starter Finishing Set,1399.00,regular_price,No Match Found
-617,S1-A-1624,SurPro,"SurPro S1 Aluminum Drywall Stilts - 16""-24""",322.00,regular_price,No Match Found
-618,S1-A-2030,SurPro,"SurPro S1 Aluminum Drywall Stilts - 20""-30""",331.00,regular_price,No Match Found
-620,SP-S1-M,SurPro,SurPro S1 Magnesium Drywall Stilts,,missing_price,No Match Found
-621,SP-S1X-A,SurPro,SurPro S1X Aluminum Drywall Stilts,,missing_price,No Match Found
-622,SP-S1X-M,SurPro,SurPro S1X Magnesium Drywall Stilts,,missing_price,No Match Found
-626,S1X-A-2131,SurPro,"SurPro S1X Aluminum Drywall Stilts - 21""-31""",407.00,regular_price,No Match Found
-627,S1X-A-2640,SurPro,"SurPro S1X Aluminum Drywall Stilts - 26""-40""",407.00,regular_price,No Match Found
-630,SP-S2-A,SurPro,SurPro S2 Aluminum Drywall Stilts,,missing_price,No Match Found
-631,SP-S2-M,SurPro,SurPro S2 Magnesium Drywall Stilts,,missing_price,No Match Found
-632,S2-A-1624,SurPro,"SurPro S2 Aluminum Drywall Stilts - 16""-24""",356.00,regular_price,No Match Found
-633,S2-A-2030,SurPro,"SurPro S2 Aluminum Drywall Stilts - 20""-30""",365.00,regular_price,No Match Found
-634,S2-A-2640,SurPro,"SurPro S2 Aluminum Drywall Stilts - 26""-40""",374.00,regular_price,No Match Found
-641,SP-S2X-A,SurPro,SurPro S2X Aluminum Drywall Stilts,,missing_price,No Match Found
-642,SP-S2X-M,SurPro,SurPro S2X Magnesium Drywall Stilts,,missing_price,No Match Found
-643,TT-APPLICATOR-HEAD,TapeTech,TapeTech Applicator Head,,missing_price,No Match Found
-645,S2X-A-3852,SurPro,"SurPro S2X Aluminum Drywall Stilts - 38""-52""",486.00,regular_price,No Match Found
-646,S2X-A-2640,SurPro,"SurPro S2X Aluminum Drywall Stilts - 26""-40""",457.00,regular_price,No Match Found
-651,TT-BRAKELESS-BOX-HANDLE,TapeTech,TapeTech Brakeless Box Handle,,missing_price,No Match Found
-661,TT-COMBO-CORNER-FLUSHER,TapeTech,TapeTech Combo Corner Flusher,,missing_price,No Match Found
-670,TT-COMPOUND-TUBE,TapeTech,TapeTech Compound Tube,,missing_price,No Match Found
-671,TT-CORNER-APPLICATOR,TapeTech,TapeTech Corner Applicator,,missing_price,No Match Found
-672,TT-CORNER-FINISHER,TapeTech,TapeTech Corner Finisher,,missing_price,No Match Found
-681,TT-CORNER-ROLLER,TapeTech,TapeTech Corner Roller,,missing_price,No Match Found
-682,TT-COVE-APPLICATOR-HEAD,TapeTech,TapeTech Cove Applicator Head,,missing_price,No Match Found
-691,TT-DIRECT-CORNER-FLUSHER,TapeTech,TapeTech Direct Corner Flusher,,missing_price,No Match Found
-700,TT-EASYCLEAN-FINISHING-BOX,TapeTech,TapeTech EasyClean® Finishing Box,,missing_price,No Match Found
-702,TT-EASYFINISH-BOX-HANDLE,TapeTech,TapeTech EasyFinish™ Box Handle,,missing_price,No Match Found
-721,TT-MAXXBOX-HIGH-CAPACITY-FINISHING-BOX,TapeTech,TapeTech MaxxBox® High Capacity Finishing Box,,missing_price,No Match Found
-722,TT-NAIL-SPOTTER,TapeTech,TapeTech Nail Spotter,,missing_price,No Match Found
-730,TT-POWER-ASSIST-MAXXBOX-FINISHING-BOX,TapeTech,TapeTech Power Assist® MaxxBox® Finishing Box,,missing_price,No Match Found
-732,TT-SUPPORT-HANDLE,TapeTech,TapeTech Support Handle,,missing_price,No Match Found
-741,TT-SUPPORT-HANDLE-ADAPTER,TapeTech,TapeTech Support Handle Adapter,,missing_price,No Match Found
-742,TT-WIZARD-COMPACT-FINISHING-BOX-HANDLE,TapeTech,TapeTech Wizard® Compact Finishing Box Handle,,missing_price,No Match Found
-756,,USG Sheetrock,"USG Sheetrock Magnesium, Lightweight Professional Drywall Stilts 18-30”",299.00,regular_price,No Match Found
+﻿DTB Row,DTB Product Type,DTB Parent SKU,DTB SKU,DTB Brand,DTB Product,DTB Effective Price,DTB Price Basis,Market Price Status,Recommended Review Status
+44,variation,COL-COMBO-FLUSHER,3WTCSF,Columbia Tools,"Columbia Combo Flusher - 3"" Widetrack",196.25,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+55,variation,COL-DIRECT-FLUSHER,4DF,Columbia Tools,"Columbia Direct Flusher - 4""",151.41,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+56,variation,COL-FAT-BOY-FLAT-BOX,5.5FBB,Columbia Tools,"Columbia Fat Boy Flat Box - 5.5""",384.39,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+89,variation,COL-OUTSIDE-CORNER-ROLLER,COBCRE,Columbia Tools,Columbia Outside Corner Roller - European,79.06,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+94,variation,COL-PREDATOR-MATRIX-HANDLE,PMHS,Columbia Tools,"Columbia Predator Matrix Handle - Short 29""-39""",384.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+95,variation,COL-PREDATOR-MATRIX-HANDLE,PMH,Columbia Tools,"Columbia Predator Matrix Handle - 40""-60""",418.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+96,variation,COL-PREDATOR-MATRIX-HANDLE,PMHL,Columbia Tools,"Columbia Predator Matrix Handle - Long 56""-76""",503.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+99,variation,COL-PREDATOR-ONE-HANDLE,PCHXL,Columbia Tools,Columbia Predator One Handle - Long Extendable 4'-8',216.15,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+114,variation,COL-UHMW-MUD-APPLICATOR,OA90-325,Columbia Tools,Columbia UHMW Mud Applicator - Outside 90° 325,91.93,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+116,simple,,CPFP,Columbia Tools,Columbia PowerFill 3.5 Pro Series Cordless Loading Pump,1473.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+117,simple,,CPFGN,Columbia Tools,Columbia Powerfill 5 Gallon Taper Gooseneck Fill Tube,275.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+133,simple,,FA379,Columbia Tools,"1/4"" SS E-Clip",3.25,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+138,simple,,FA313,Columbia Tools,1/4-20 X 1/4 Socket Head Set Screw,2.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+146,simple,,FA320,Columbia Tools,"1/4-28-3/8"" Socket Set Screw",2.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+159,simple,,FA380,Columbia Tools,"1/8"" SS E-Clip",2.95,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+170,simple,,FA382,Columbia Tools,"10-32 x 1/4"" SS Set Screw",1.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+172,simple,,FA365,Columbia Tools,"3/16 x 1"" Sping Pin SS",3.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+218,simple,,FA376,Columbia Tools,8-32 x 5/16 SS Socket Head,2.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+224,variation,FFB5,FFB5-7,Columbia Tools,"Axle - 7""",44.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+225,variation,FFB5,FFB5-8,Columbia Tools,"Axle - 8""",44.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+226,variation,FFB5,FFB5-10,Columbia Tools,"Axle - 10""",44.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+227,variation,FFB5,FFB5-12,Columbia Tools,"Axle - 12""",44.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+228,variation,FFB5,FFB5-14,Columbia Tools,"Axle - 14""",44.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+261,simple,,FFB36,Columbia Tools,Box Wheel,5.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+264,simple,,MH9A,Columbia Tools,Brake Activation Rod,24.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+268,simple,,MH8,Columbia Tools,Brake Rod Bushing,8.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+277,simple,,HH19,Columbia Tools,Cap,17.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+301,simple,,PCLT42,Columbia Tools,Columbia Predator Camlock Tube,368.05,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+302,simple,,PCMT42,Columbia Tools,"Columbia Predator Compound Tube 42""",274.93,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+307,simple,,MH7,Columbia Tools,Connecting Link Fork,29.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+308,simple,,MH5,Columbia Tools,Connecting Link Pin,5.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+310,simple,,MH16,Columbia Tools,Connecting Rod Housing,8.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+343,simple,,CT87,Columbia Tools,Engraved Cover Plate Cap,42.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+358,simple,,MH21,Columbia Tools,Grip Adjuster Housing,21.95,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+359,simple,,MH23,Columbia Tools,Grip Adjusting Fastener,11.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+360,simple,,MH22,Columbia Tools,Grip Adjustment Pin,11.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+370,simple,,MH11,Columbia Tools,Handle Grip Bushing,6.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+375,variation,AH1,AH1-3,Columbia Tools,"Head Casting - 3""",153.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+381,simple,,MH1,Columbia Tools,Handle Mount Plate,75.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+384,simple,,HH8,Columbia Tools,Handle Tube,45.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+387,simple,,FFB39,Columbia Tools,Hex Bolt,3.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+392,simple,,MH6,Columbia Tools,Hinge Pin,4.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+396,simple,,MH13,Columbia Tools,Large Nyliner Bushing,5.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+407,simple,,MH2,Columbia Tools,Matrix Handle Head,4.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+409,simple,,MH3A,Columbia Tools,Mounting Bracket Stem,4.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+429,simple,,FFB38,Columbia Tools,Nyliner Bearing,2.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+433,simple,,MH10,Columbia Tools,Octagon,36.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+435,simple,,MH17,Columbia Tools,Pinch Brake,24.50,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+436,simple,,MH15,Columbia Tools,Pinch Brake Activator,22.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+437,simple,,MH24,Columbia Tools,Pinch Brake Bushing,12.75,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+438,simple,,MH18,Columbia Tools,Pinch Brake Housing,20.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+439,simple,,MH19,Columbia Tools,Pinch Brake Sleeve,28.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+440,simple,,MH25,Columbia Tools,Pinch Brake Stem,14.95,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+443,simple,,MH12,Columbia Tools,PinchBrake Spring,4.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+454,simple,,HNS18,Columbia Tools,Pivot,4.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+483,simple,,FFB37,Columbia Tools,Rubber for Box Wheel,2.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+488,simple,,MH20,Columbia Tools,Small Nyliner Bushing,3.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+505,variation,LV5-CORNER-APPLICATOR,4-701,LEVEL5,LEVEL5 Corner Applicator - 7”,287.65,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+506,variation,LV5-CORNER-APPLICATOR,4-702,LEVEL5,LEVEL5 Corner Applicator - 8”,296.64,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+507,variation,LV5-CORNER-HANDLE-APPLICATOR-EXT,4-794,LEVEL5,LEVEL5 Corner Applicator Handle (Extendable) - 31”- 50”,176.35,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+508,variation,LV5-CORNER-HANDLE-APPLICATOR-EXT,4-798,LEVEL5,LEVEL5 Corner Applicator Handle (Extendable) - 43”- 72”,195.18,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+525,variation,LV5-CORNER-FINISHER,4-733,LEVEL5,LEVEL5 Corner Finisher - 3”,409.65,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+526,variation,LV5-CORNER-FINISHER,4-734,LEVEL5,LEVEL5 Corner Finisher - 3.5”,419.07,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+527,variation,LV5-CORNER-FINISHER,4-735,LEVEL5,LEVEL5 Corner Finisher - 4”,428.48,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+528,variation,LV5-CORNER-HANDLE-FINISHER-EXT,4-795,LEVEL5,LEVEL5 Corner Finisher Handle (Extendable) - 31”- 50”,188.34,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+529,variation,LV5-CORNER-HANDLE-FINISHER-EXT,4-799,LEVEL5,LEVEL5 Corner Finisher Handle (Extendable) - 43”- 72”,207.17,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+530,variation,LV5-CORNER-FLUSHER,4-743,LEVEL5,LEVEL5 Corner Flusher - 3”,146.48,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+533,variation,LV5-CORNER-FLUSHER,4-744,LEVEL5,LEVEL5 Corner Flusher - 3.5”,151.09,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+540,variation,LV5-FLAT-BOX-STANDARD,4-770,LEVEL5,LEVEL5 Flat Box (Standard) - 14”,412.68,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+543,variation,LV5-FLAT-BOX-HANDLE-EXT,4-759,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 48” - 78”,315.47,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+544,variation,LV5-FLAT-BOX-HANDLE-EXT,4-780,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 40” - 62”,306.06,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+546,variation,LV5-FLAT-BOX-HANDLE-EXT,4-782,LEVEL5,LEVEL5 Flat Box Handle (Extendable) - 23” - 32”,278.24,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+547,variation,LV5-FLAT-BOX-HANDLE-FIXED,4-711,LEVEL5,LEVEL5 Flat Box Handle (Fixed Length) - 34”,176.35,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+549,variation,LV5-FLAT-BOX-HANDLE-FIXED,4-740,LEVEL5,LEVEL5 Flat Box Handle (Fixed Length) - 54”,204.18,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+555,simple,,4-630,LEVEL5,LEVEL5 The Starter Taping Set,2126.35,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+556,variation,LV5-ENTRY-FINISHING-SET,4-602,LEVEL5,LEVEL5 Entry to Automatic Finishing Set - Tools Only,2412.75,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+557,variation,LV5-ENTRY-FINISHING-SET,4-600P,LEVEL5,LEVEL5 Entry to Automatic Finishing Set - With Automatic Taper,3878.41,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+558,simple,,4-677P,LEVEL5,LEVEL5 The Ultimate Taping & Finishing Set,6388.28,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+559,variation,LV5-CORNER-ROLLER-HANDLE,5-777,LEVEL5,"LEVEL5 Corner Roller Handle - 50""",89.99,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+562,variation,LV5-FIXED-HANDLE-50,4-778,LEVEL5,"LEVEL5 50"" Fixed Handle - Corner Applicator",92.88,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+563,variation,LV5-FIXED-HANDLE-50,4-779,LEVEL5,"LEVEL5 50"" Fixed Handle - Corner Finisher",92.88,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+564,simple,,4-792,LEVEL5,"LEVEL5 31""- 50"" Corner Roller/Nail Spotter Handle",180.62,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+565,simple,,4-760,LEVEL5,LEVEL5 Automatic Taper,1455.39,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+567,simple,,4-771,LEVEL5,LEVEL5 Compound Pump,455.88,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+568,simple,,4-741,LEVEL5,LEVEL5 Compound Tube,205.31,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+570,simple,,5-311,LEVEL5,LEVEL5 Drywall Banjo,151.37,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+575,variation,PT-CF,PT-3CF,Platinum Drywall Tools,"Platinum Angle Head Corner Finisher with Wheels - 3""",249.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+580,variation,PT-BH,PT-BH34,Platinum Drywall Tools,"Platinum Flat Box Handle - 34""",90.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+589,simple,,4-772,LEVEL5,LEVEL5 MiniShot,941.72,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+590,simple,,4-773,LEVEL5,LEVEL5 MiniShot Ext. Handle,74.48,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+594,simple,,4-746,LEVEL5,LEVEL5 Outside Corner Tool,77.26,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+607,variation,PT-CORNER-ROLLER,PT-CR,Platinum Drywall Tools,Platinum Corner Roller - Inside,79.99,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+608,variation,PT-CORNER-ROLLER,PT-OCR,Platinum Drywall Tools,Platinum Corner Roller - Outside 90°,69.99,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+609,simple,,PT-FA,Platinum Drywall Tools,"Platinum 4"" Flat Applicator",59.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+610,simple,,PT-CA8,Platinum Drywall Tools,"Platinum 8"" Corner Applicator",159.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+612,simple,,PT-BF,Platinum Drywall Tools,Platinum Box Filler Attachment,49.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+613,simple,,PT-CP,Platinum Drywall Tools,Platinum Drywall Pump w/Filler,269.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+614,simple,,PT-FIN,Platinum Drywall Tools,Platinum Drywall Starter Finishing Set,1399.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+617,variation,SP-S1-A,S1-A-1624,SurPro,"SurPro S1 Aluminum Drywall Stilts - 16""-24""",322.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+618,variation,SP-S1-A,S1-A-2030,SurPro,"SurPro S1 Aluminum Drywall Stilts - 20""-30""",331.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+626,variation,SP-S1X-A,S1X-A-2131,SurPro,"SurPro S1X Aluminum Drywall Stilts - 21""-31""",407.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+627,variation,SP-S1X-A,S1X-A-2640,SurPro,"SurPro S1X Aluminum Drywall Stilts - 26""-40""",407.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+632,variation,SP-S2-A,S2-A-1624,SurPro,"SurPro S2 Aluminum Drywall Stilts - 16""-24""",356.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+633,variation,SP-S2-A,S2-A-2030,SurPro,"SurPro S2 Aluminum Drywall Stilts - 20""-30""",365.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+634,variation,SP-S2-A,S2-A-2640,SurPro,"SurPro S2 Aluminum Drywall Stilts - 26""-40""",374.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+645,variation,SP-S2X-A,S2X-A-3852,SurPro,"SurPro S2X Aluminum Drywall Stilts - 38""-52""",486.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+646,variation,SP-S2X-A,S2X-A-2640,SurPro,"SurPro S2X Aluminum Drywall Stilts - 26""-40""",457.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence
+756,simple,,,USG Sheetrock,"USG Sheetrock Magnesium, Lightweight Professional Drywall Stilts 18-30”",299.00,regular_price,NO_MARKET_EVIDENCE,No Market Evidence

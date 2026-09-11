@@ -1,25 +1,35 @@
 metric,value,count
-official_rows,all,756
+catalog_rows,all,756
+pricing_target_rows,simple_or_variation,651
+excluded_rows,non_pricing_target_including_variable_parent,105
 competitor_rows,all,10301
-candidate_match_rows,all,1178
-official_rows_with_verified_evidence,all,524
-official_rows_review_only,all,56
-official_rows_unmatched,all,176
+candidate_match_rows,all,1095
+official_rows_with_verified_competitor_identity,all,514
+official_rows_with_verified_market_price,all,48
+official_rows_review_only,all,29
+official_rows_unmatched,all,108
 match_method,exact_identifier_brand_conflict,42
-match_method,exact_identifier_contradiction,82
+match_method,exact_identifier_contradiction,80
 match_method,exact_identifier_unknown_brand,31
-match_method,exact_identity_key,887
-match_method,high_confidence_fuzzy_title,43
-match_method,medium_confidence_fuzzy_title,47
-match_method,near_identical_title,46
-match_status,auto_accept,887
-match_status,review,291
-competitor_source,Al's Taping Tools,329
-competitor_source,All-Wall,445
-competitor_source,Wall Tools,404
-market_status,No Match Found,176
-market_status,Review Required,56
-market_status,Verified Market Evidence,225
-market_status,Verified Market Evidence + Review Candidates,76
-market_status,Verified Single-Source,159
-market_status,Verified Single-Source + Review Candidates,64
+match_method,exact_identity_key,873
+match_method,high_confidence_fuzzy_title,22
+match_method,medium_confidence_fuzzy_title,30
+match_method,near_identical_title,17
+match_status,auto_accept,873
+match_status,review,222
+competitor_source,Al's Taping Tools,302
+competitor_source,All-Wall,417
+competitor_source,Wall Tools,376
+market_price_status,MARKET_PRICE_CONFLICT,249
+market_price_status,MARKET_PRICE_SINGLE_SOURCE,217
+market_price_status,MARKET_PRICE_VERIFIED_2_OF_3,33
+market_price_status,MARKET_PRICE_VERIFIED_3_OF_3,15
+market_price_status,NO_MARKET_EVIDENCE,137
+review_status,Identity Review Required,29
+review_status,No Market Evidence,108
+review_status,Price Conflict - Review Required,249
+review_status,Single-Source Evidence,154
+review_status,Single-Source Evidence + Review Candidates,63
+review_status,Verified Market Price - 2/3,27
+review_status,Verified Market Price - 2/3 + Review Candidates,6
+review_status,Verified Market Price - 3/3,15
