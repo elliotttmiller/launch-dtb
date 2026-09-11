@@ -7,7 +7,7 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-from competitor_identity import canonical_identifier, identity_key
+from competitor_identity import canonical_identifier, identity_key, resolved_identifier
 from competitor_pricing_core import (
     SITE_KEYS,
     SITE_LABELS,
@@ -67,6 +67,7 @@ def load_official() -> list[dict[str, str]]:
         row["_pricing_target"] = "yes" if is_pricing_target(row) else "no"; row["_match_name"] = match_name
         row["_brand_key"] = canonical_brand(official_brand(row), match_name); row["_ids"] = official_ids(row)
         row["_canonical_ids"] = {canonical_identifier(value) for value in row["_ids"] if canonical_identifier(value)}
+        row["_resolved_ids"] = {resolved_identifier(row["_brand_key"], value) for value in row["_ids"] if resolved_identifier(row["_brand_key"], value)}
         row["_tokens"] = token_key(match_name)
         price, basis, warnings = effective_dtb_price(row); row["_effective_price"] = money(price); row["_price_basis"] = basis; row["_price_warnings"] = " | ".join(warnings)
     return rows
@@ -81,7 +82,11 @@ def load_competitors() -> list[dict[str, str]]:
                 title = row.get("Product Name", ""); raw_brand = row.get("Brand", "")
                 description, description_quality = clean_description(row.get("Product Description", ""))
                 row["_source_key"] = site_key; row["_source_label"] = SITE_LABELS[site_key]; row["_source_row"] = str(index)
-                row["_brand_key"] = canonical_brand(raw_brand, title); row["_sku_key"] = canonical_identifier(row.get("SKU", "")); row["_tokens"] = token_key(title)
+                row["_brand_key"] = canonical_brand(raw_brand, title)
+                row["_strict_sku_key"] = canonical_identifier(row.get("SKU", ""))
+                row["_sku_key"] = resolved_identifier(row["_brand_key"], row.get("SKU", ""))
+                row["_alias_applied"] = "yes" if row["_strict_sku_key"] and row["_sku_key"] != row["_strict_sku_key"] else "no"
+                row["_tokens"] = token_key(title)
                 row["_description_clean"] = description; row["_description_quality"] = description_quality; rows.append(row)
     return rows
 
@@ -98,8 +103,8 @@ def candidate_indexes(competitors: list[dict[str, str]]):
 
 def candidates_for(official: dict[str, str], by_identifier, by_brand, by_brand_token):
     candidates: dict[int, dict[str, str]] = {}
-    for identifier in official["_ids"]:
-        for row in by_identifier.get(canonical_identifier(identifier), []): candidates[id(row)] = row
+    for identifier in official["_resolved_ids"]:
+        for row in by_identifier.get(identifier, []): candidates[id(row)] = row
     brand = official["_brand_key"]
     if brand:
         for token in official["_tokens"]:
@@ -112,12 +117,12 @@ def candidates_for(official: dict[str, str], by_identifier, by_brand, by_brand_t
 
 
 def safe_decision(official: dict[str, str], competitor: dict[str, str]):
-    """Prevent legacy compact-ID equivalence from creating an exact match."""
-    raw_competitor_id = competitor.get("SKU", ""); competitor_key = canonical_identifier(raw_competitor_id)
-    classifier_identifier = raw_competitor_id if competitor_key and competitor_key in official["_canonical_ids"] else ""
+    """Allow exact identity only after strict or explicitly approved alias resolution."""
+    competitor_key = competitor.get("_sku_key", "")
+    classifier_identifier = competitor_key if competitor_key and competitor_key in official["_resolved_ids"] else ""
     return classify_match(
         official_name=official.get("_match_name", official.get("Name", "")),
-        official_brand_key=official["_brand_key"], official_identifiers=official["_ids"],
+        official_brand_key=official["_brand_key"], official_identifiers=sorted(official["_resolved_ids"]),
         competitor_name=competitor.get("Product Name", ""), competitor_brand_key=competitor["_brand_key"],
         competitor_identifier=classifier_identifier,
     )
@@ -135,7 +140,8 @@ def match_output_row(official: dict[str, str], competitor: dict[str, str], decis
         "DTB SKU": official.get("SKU", ""), "DTB Identifiers": " | ".join(official["_ids"]), "DTB Name": official.get("Name", ""), "DTB Match Name": official.get("_match_name", ""),
         "DTB Brand": official_brand(official), "DTB Brand Key": official["_brand_key"], "DTB Effective Price": official.get("_effective_price", ""), "DTB Price Basis": official.get("_price_basis", ""), "DTB Price Warnings": official.get("_price_warnings", ""),
         "Competitor Source": competitor["_source_label"], "Competitor Source Key": competitor["_source_key"], "Competitor Brand": competitor.get("Brand", ""), "Competitor Brand Key": competitor["_brand_key"],
-        "Competitor Product Name": competitor.get("Product Name", ""), "Competitor SKU": competitor.get("SKU", ""), "Competitor Canonical Identifier": competitor.get("_sku_key", ""),
+        "Competitor Product Name": competitor.get("Product Name", ""), "Competitor SKU": competitor.get("SKU", ""), "Competitor Strict Identifier": competitor.get("_strict_sku_key", ""),
+        "Competitor Canonical Identifier": competitor.get("_sku_key", ""), "Identifier Alias Applied": competitor.get("_alias_applied", "no"),
         "Competitor Price": money(competitor_price), "DTB vs Competitor": money(delta), "Description Quality": competitor["_description_quality"], "Competitor Description": competitor["_description_clean"],
     }
 
@@ -159,6 +165,7 @@ def aggregate_row(official: dict[str, str], observations: list[dict[str, str]]) 
         "Verified Competitor Count": str(market.verified_source_count), "Distinct Verified Prices": str(market.distinct_price_count), "Market Price Status": market.status, "Market Price": money(market.market_price),
         "Market Price Evidence Count": str(market.verified_source_count if market.market_price is not None else 0), "Observed Price Spread": money(market.price_spread),
         "DTB vs Market Price": money(market_delta), "DTB vs Market Price %": percent(market_delta_percent), "Review Candidate Count": str(review_count), "Recommended Review Status": market_status(site_evidence, review_count, market.status),
+        "Approved Alias Evidence Count": str(sum(1 for row in observations if row.get("Identifier Alias Applied") == "yes" and row.get("Match Status") == "auto_accept")),
     }
     for evidence in site_evidence:
         label = evidence.source_label; out[f"{label} Verified"] = "yes" if evidence.verified else "no"; out[f"{label} Identity"] = evidence.identity_key; out[f"{label} SKU"] = evidence.identifier
@@ -192,7 +199,8 @@ def main() -> int:
     market_status_counts = Counter(row["Market Price Status"] for row in market_rows); review_status_counts = Counter(row["Recommended Review Status"] for row in market_rows); excluded_type_counts = Counter(row.get("_product_type", "") or "unknown" for row in excluded_rows)
     verified_identity_products = sum(1 for row in market_rows if int(row["Verified Competitor Count"]) > 0); verified_market_price_products = sum(1 for row in market_rows if row["Market Price"])
     review_only_products = sum(1 for row in market_rows if int(row["Verified Competitor Count"]) == 0 and int(row["Review Candidate Count"]) > 0)
-    summary_rows = [["metric", "value", "count"], ["catalog_rows", "all", len(catalog_rows)], ["pricing_target_rows", "simple_or_variation", len(official_rows)], ["excluded_rows", "all_non_pricing_types", len(excluded_rows)], ["competitor_rows", "all", len(competitors)], ["candidate_match_rows", "all", len(all_matches)], ["official_rows_with_verified_competitor_identity", "all", verified_identity_products], ["official_rows_with_verified_market_price", "all", verified_market_price_products], ["official_rows_review_only", "all", review_only_products], ["official_rows_unmatched", "all", len(unmatched)]]
+    approved_alias_matches = sum(1 for row in all_matches if row.get("Identifier Alias Applied") == "yes" and row.get("Match Status") == "auto_accept")
+    summary_rows = [["metric", "value", "count"], ["catalog_rows", "all", len(catalog_rows)], ["pricing_target_rows", "simple_or_variation", len(official_rows)], ["excluded_rows", "all_non_pricing_types", len(excluded_rows)], ["competitor_rows", "all", len(competitors)], ["candidate_match_rows", "all", len(all_matches)], ["approved_alias_auto_accept_rows", "all", approved_alias_matches], ["official_rows_with_verified_competitor_identity", "all", verified_identity_products], ["official_rows_with_verified_market_price", "all", verified_market_price_products], ["official_rows_review_only", "all", review_only_products], ["official_rows_unmatched", "all", len(unmatched)]]
     for value, count in sorted(excluded_type_counts.items()): summary_rows.append(["excluded_product_type", value, count])
     for value, count in sorted(method_counts.items()): summary_rows.append(["match_method", value, count])
     for value, count in sorted(match_status_counts.items()): summary_rows.append(["match_status", value, count])
@@ -203,6 +211,7 @@ def main() -> int:
     print(f"Catalog rows: {len(catalog_rows)}; pricing targets: {len(official_rows)}; excluded non-pricing rows: {len(excluded_rows)}")
     print("Excluded product types: " + ", ".join(f"{key or 'unknown'}={value}" for key, value in sorted(excluded_type_counts.items())))
     print(f"Wrote {len(all_matches)} candidate evidence rows to {OUTPUT_MATCHES}"); print(f"Wrote {len(market_rows)} market aggregate rows to {OUTPUT_MARKET}")
+    print(f"Approved identifier-alias auto-accept evidence rows: {approved_alias_matches}")
     print(f"Verified competitor identity for {verified_identity_products}/{len(official_rows)} pricing targets; verified market price for {verified_market_price_products}; {len(unmatched)} fully unmatched")
     return 0
 
