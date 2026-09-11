@@ -1,14 +1,20 @@
 # DTB Competition Price Catalog
 
-This tooling produces one simple business-facing CSV that lines up Drywall Toolbox products with the three supported competitor prices.
+This working toolset produces a simple, read-only competitor price comparison for Drywall Toolbox products using:
 
-## Primary output
+- Al's Taping Tools
+- Wall Tools
+- All-Wall
+
+The primary deliverable is:
 
 ```text
 reports/competitor-catalog/dtb_competitor_price_catalog.csv
 ```
 
-Columns:
+## Primary CSV
+
+The CSV intentionally contains only:
 
 ```text
 SKU
@@ -21,72 +27,63 @@ Wall Tools Price
 All-Wall Price
 ```
 
-The CSV contains every row from:
+`Regular Price` and `Sale Price` are copied directly from:
 
 ```text
 products/launch/official/dtb_official_catalog.csv
 ```
 
-in official catalog order.
+Competitor prices are populated only when the existing matcher has a verified retailer correlation. Missing or unverified retailer matches remain blank. Prices are never averaged, estimated, inferred, or synthesized.
 
-DTB `Regular price` and `Sale price` are copied directly from the official catalog without recomputing or replacing them.
+## Included products
 
-Competitor prices are populated only when `match_official_catalog_to_competitors.py` has a verified retailer match for that DTB row. If a retailer cannot be safely correlated, that retailer's price cell remains blank.
+The competition catalog is intentionally narrow. It includes independently purchasable catalog rows such as singular tools, accessories/stilts, variations, and replacement parts.
 
-No fuzzy fill-ins, averages, medians, inferred prices, tolerance pricing, or synthetic values are written to the competition catalog.
+Included WooCommerce product types:
 
-## Competitors
+```text
+simple
+variation
+```
 
-- Al's Taping Tools — `https://www.alstapingtools.com/`
-- Wall Tools — `https://walltools.com/`
-- All-Wall — `https://www.all-wall.com/`
+Excluded:
 
-The scraper keeps site-specific identifier semantics:
+```text
+variable parent products
+tool sets
+kits
+```
 
-- All-Wall: manufacturer part number / MPN.
-- Al's Taping Tools: storefront SKU as exposed.
-- Wall Tools: storefront SKU with only verified prefixes `LEV5-`, `DURA-`, `SURP-`, `TAPE-`, and `COLM-` stripped case-insensitively.
+Tool sets/kits are identified primarily by `Meta: _dtb_product_kind` values `toolset` or `kit`, with category fallback checks for older catalog rows.
 
-Manufacturer-scoped identity, approved brand-scoped aliases, and contradiction checks remain in place so unrelated products are not forced into a price column.
+## Matching rule
 
-## Rebuild from existing scrape outputs
+A competitor price is written only after safe product identity verification. Matching remains manufacturer-scoped and protects meaningful manufacturer identifier punctuation. Explicit approved brand-scoped aliases may be used; fuzzy or uncertain correlations do not populate competitor price cells.
+
+A blank competitor cell means:
+
+> No safely verified competitor price is currently available for this DTB product.
+
+That blank is intentional and must not be replaced with a guessed or nearest price.
+
+## Execution
 
 ```powershell
+python -m unittest discover -s tests -v
 python run_competitor_pricing_pipeline.py
 ```
 
-The normal rebuild intentionally has only two application steps after tests:
+The normal rebuild is deliberately small:
 
 ```text
 match_official_catalog_to_competitors.py
 create_competition_catalog.py
 ```
 
-`match_official_catalog_to_competitors.py` performs safe DTB-to-retailer correlation from the existing per-site competitor catalogs.
+`match_official_catalog_to_competitors.py` owns correlation safety and produces the verified retailer observations used by the final catalog.
 
-`create_competition_catalog.py` projects those verified matches into the eight-column business CSV.
+`create_competition_catalog.py` owns the simple business-facing CSV and filters out variable parents and tool sets/kits.
 
-## Refresh competitor data
+## Authority and safety
 
-A pipeline rebuild does not scrape the live competitor sites. To refresh source prices first, run:
-
-```powershell
-python competitor_catalog_scraper.py
-python run_competitor_pricing_pipeline.py
-```
-
-The live scraper is read-only against competitor storefronts and writes the per-site catalog evidence consumed by the matcher.
-
-## Truthfulness rule
-
-A blank competitor price means:
-
-> No safely verified competitor price is currently available for that DTB catalog row.
-
-Blank cells are intentional. The workflow must never invent a competitor price merely to make the table look complete.
-
-## Ownership and safety
-
-`products/launch/official/dtb_official_catalog.csv` remains the canonical DTB launch catalog source artifact. WooCommerce remains the runtime commerce authority.
-
-This competitor tooling is read-only research/reporting infrastructure. It does not update WooCommerce, orders, payments, inventory, fulfillment, accounting, or protected DTB identifiers.
+The official DTB catalog remains the canonical DTB product source. WooCommerce remains the commerce authority at runtime. Competitor data is read-only research evidence and does not mutate WooCommerce, pricing, orders, inventory, fulfillment, accounting, or protected identifiers.
