@@ -3,7 +3,8 @@ catalog_rows,all,756
 pricing_target_rows,simple_or_variation,651
 excluded_rows,all_non_pricing_types,105
 competitor_rows,all,10301
-candidate_match_rows,all,1016
+candidate_match_rows,all,1019
+approved_alias_auto_accept_rows,all,3
 official_rows_with_verified_competitor_identity,all,497
 official_rows_with_verified_market_price,all,48
 official_rows_review_only,all,33
@@ -12,24 +13,24 @@ excluded_product_type,variable,105
 match_method,exact_identifier_brand_conflict,23
 match_method,exact_identifier_contradiction,74
 match_method,exact_identifier_unknown_brand,12
-match_method,exact_identity_key,834
+match_method,exact_identity_key,837
 match_method,high_confidence_fuzzy_title,26
 match_method,medium_confidence_fuzzy_title,30
 match_method,near_identical_title,17
-match_status,auto_accept,834
+match_status,auto_accept,837
 match_status,review,182
-competitor_source,Al's Taping Tools,246
+competitor_source,Al's Taping Tools,249
 competitor_source,All-Wall,413
 competitor_source,Wall Tools,357
-market_price_status,MARKET_PRICE_CONFLICT,243
-market_price_status,MARKET_PRICE_SINGLE_SOURCE,206
+market_price_status,MARKET_PRICE_CONFLICT,244
+market_price_status,MARKET_PRICE_SINGLE_SOURCE,205
 market_price_status,MARKET_PRICE_VERIFIED_2_OF_3,35
 market_price_status,MARKET_PRICE_VERIFIED_3_OF_3,13
 market_price_status,NO_MARKET_EVIDENCE,154
 review_status,Identity Review Required,33
 review_status,No Market Evidence,121
-review_status,Price Conflict - Review Required,243
-review_status,Single-Source Evidence,150
+review_status,Price Conflict - Review Required,244
+review_status,Single-Source Evidence,149
 review_status,Single-Source Evidence + Review Candidates,56
 review_status,Verified Market Price - 2/3,29
 review_status,Verified Market Price - 2/3 + Review Candidates,6
