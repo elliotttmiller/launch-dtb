@@ -1,10 +1,9 @@
 {
-  "name": "@dtb/east-coast-schematic-extractor",
+  "name": "@dtb/east-coast-schematic-scraper",
   "private": true,
   "type": "module",
   "scripts": {
-    "extract": "node ./extract.mjs",
-    "enrich-products": "node ./enrich-products.mjs",
+    "scrape": "node ./scrape.mjs",
     "install-browser": "playwright install chromium"
   },
   "dependencies": {
