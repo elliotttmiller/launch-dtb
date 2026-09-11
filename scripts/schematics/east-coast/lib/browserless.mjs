@@ -62,8 +62,21 @@ export function buildBrowserlessUrl(options) {
   return url.toString();
 }
 
+function redactConnectionError(error) {
+  const token = cleanText(process.env.BROWSERLESS_TOKEN);
+  let message = String(error?.message || error || 'unknown Browserless connection error');
+  if (token) message = message.split(token).join('[REDACTED]');
+  message = message.replace(/([?&]token=)[^&\s)]+/gi, '$1[REDACTED]');
+  return new Error(`Browserless connection failed: ${message}`);
+}
+
 export async function openBrowserlessSession(options, timeoutMs) {
-  const browser = await chromium.connectOverCDP(buildBrowserlessUrl(options), { timeout: timeoutMs });
+  let browser;
+  try {
+    browser = await chromium.connectOverCDP(buildBrowserlessUrl(options), { timeout: timeoutMs });
+  } catch (error) {
+    throw redactConnectionError(error);
+  }
   const contexts = browser.contexts();
   if (!contexts.length) {
     await browser.close().catch(() => {});
