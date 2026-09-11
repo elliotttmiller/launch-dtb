@@ -87,6 +87,14 @@ class PricingAndQualityTests(unittest.TestCase):
         self.assertIsNone(decision.market_price)
         self.assertEqual(decision.price_spread, Decimal("100.00"))
 
+    def test_retailer_level_conflict_blocks_two_source_market_price(self):
+        decision = market_price_decision(
+            [Decimal("1649.29"), Decimal("1649.29")],
+            has_conflict=True,
+        )
+        self.assertEqual(decision.status, "MARKET_PRICE_CONFLICT")
+        self.assertIsNone(decision.market_price)
+
     def test_no_prices_has_no_market_evidence(self):
         decision = market_price_decision([])
         self.assertEqual(decision.status, "NO_MARKET_EVIDENCE")
