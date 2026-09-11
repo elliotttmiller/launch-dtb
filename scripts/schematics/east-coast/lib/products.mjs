@@ -58,7 +58,7 @@ async function loadCache(options, handle) {
     const ttl = cached.classification === 'not_published' ? NOT_FOUND_CACHE_TTL_MS : SUCCESS_CACHE_TTL_MS;
     if ((Date.now() - info.mtimeMs) > ttl) return null;
     if (!['resolved', 'not_published'].includes(cached.classification)) return null;
-    return { ...cached, cache: { hit: true, path: file } };
+    return { ...cached, cache: { hit: true } };
   } catch {
     return null;
   }
