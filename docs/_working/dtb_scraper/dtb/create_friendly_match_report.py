@@ -56,18 +56,37 @@ def display_money(value: str) -> str:
     return f"{sign}${abs(amount):,.2f}"
 
 
+def display_consensus(value: str) -> str:
+    labels = {
+        "exact_price_consensus": "Exact observed price consensus",
+        "price_dispersion": "Observed price dispersion",
+        "single_verified_price": "Single verified price",
+        "no_verified_price": "No verified price",
+    }
+    return labels.get(value, value)
+
+
 def reader_row(row: dict[str, str]) -> dict[str, str]:
     out = {
         "Status": row.get("Recommended Review Status", ""),
         "DTB Product": row.get("DTB Product", ""),
         "DTB SKU": row.get("DTB SKU", ""),
+        "DTB Product Type": row.get("DTB Product Type", ""),
+        "DTB Parent SKU": row.get("DTB Parent SKU", ""),
         "DTB Brand": row.get("DTB Brand", ""),
         "DTB Effective Price": display_money(row.get("DTB Effective Price", "")),
         "DTB Price Basis": row.get("DTB Price Basis", ""),
         "Verified Competitors": row.get("Verified Competitor Count", "0"),
+        "Distinct Verified Prices": row.get("Distinct Verified Prices", "0"),
+        "Price Consensus": display_consensus(row.get("Price Consensus", "")),
+        "Consensus Price": display_money(row.get("Consensus Price", "")),
+        "Price Spread": display_money(row.get("Price Spread", "")),
+        "Market Reference Price": display_money(row.get("Market Reference Price", "")),
+        "Market Reference Basis": row.get("Market Reference Basis", ""),
         "Lowest Verified Price": display_money(row.get("Lowest Verified Price", "")),
         "Highest Verified Price": display_money(row.get("Highest Verified Price", "")),
         "Median Verified Price": display_money(row.get("Median Verified Price", "")),
+        "DTB vs Market Reference": display_money(row.get("DTB vs Market Reference", "")),
         "DTB vs Lowest": display_money(row.get("DTB vs Lowest", "")),
         "DTB vs Median": display_money(row.get("DTB vs Median", "")),
         "Review Candidates": row.get("Review Candidate Count", "0"),
@@ -100,10 +119,10 @@ def main() -> int:
 
     price_gap_rows = [
         row for row in reader_rows
-        if int(row.get("Verified Competitors") or 0) > 0 and row.get("DTB vs Median")
+        if int(row.get("Verified Competitors") or 0) > 0 and row.get("DTB vs Market Reference")
     ]
     price_gap_rows.sort(
-        key=lambda row: abs(signed_decimal(row.get("DTB vs Median", "")) or Decimal("0")),
+        key=lambda row: abs(signed_decimal(row.get("DTB vs Market Reference", "")) or Decimal("0")),
         reverse=True,
     )
     write_csv(OUTPUT_PRICE_GAPS_CSV, price_gap_rows, reader_fields)
@@ -139,6 +158,8 @@ def main() -> int:
     status_counts = Counter(row.get("Status", "") for row in reader_rows)
     verified_products = sum(1 for row in reader_rows if int(row.get("Verified Competitors") or 0) > 0)
     multi_source = sum(1 for row in reader_rows if int(row.get("Verified Competitors") or 0) >= 2)
+    exact_consensus = sum(1 for row in market if row.get("Price Consensus") == "exact_price_consensus")
+    dispersion = sum(1 for row in market if row.get("Price Consensus") == "price_dispersion")
     review_only = sum(1 for row in reader_rows if int(row.get("Verified Competitors") or 0) == 0 and int(row.get("Review Candidates") or 0) > 0)
     fully_unmatched = len(unmatched)
 
@@ -146,12 +167,18 @@ def main() -> int:
 
 ## Executive Summary
 
-- Official DTB products evaluated: **{len(market):,}**
+- Sellable DTB pricing targets evaluated: **{len(market):,}**
 - Products with at least one verified competitor identity: **{verified_products:,}**
 - Products with verified evidence from two or more competitors: **{multi_source:,}**
+- Products with exact observed multi-source price consensus: **{exact_consensus:,}**
+- Products with observed verified price dispersion: **{dispersion:,}**
 - Products with review candidates but no verified evidence: **{review_only:,}**
 - Products with no candidate evidence: **{fully_unmatched:,}**
 - Candidate evidence rows requiring review: **{len(normalized_review):,}**
+
+## Product Scope
+
+WooCommerce `variable` parent rows are product-family containers, not independent SKU-level pricing targets. They are excluded from competitor price conclusions. Their sellable child `variation` rows remain in scope and inherit parent naming context for matching when useful. Simple and other non-variable sellable rows remain in scope.
 
 ## Identity Contract
 
@@ -159,9 +186,15 @@ A competitor record is automatically verified only when **canonical manufacturer
 
 Fuzzy and near-identical title matches are **never auto-accepted**.
 
-## Price Semantics
+## Price Consensus Semantics
 
-`DTB Effective Price` uses the sale price when a sale price is present, otherwise the regular price. `DTB vs Lowest` and `DTB vs Median` are calculated as **DTB effective price minus competitor price**; positive values mean DTB is higher and negative values mean DTB is lower.
+Identical verified prices across two or more competitors are classified as **exact observed price consensus**. This is strong corroboration of the current observed market price, but the pipeline does **not** infer MAP, MSRP, or another manufacturer pricing policy merely because retailers display the same amount.
+
+When exact consensus exists, that amount is the `Market Reference Price`. When verified retailers differ, the market reference falls back to the median verified site price and the row is classified as `price_dispersion`.
+
+## DTB Price Semantics
+
+`DTB Effective Price` uses the sale price when a sale price is present, otherwise the regular price. `DTB vs Market Reference` is calculated as **DTB effective price minus market reference price**; positive values mean DTB is higher and negative values mean DTB is lower.
 
 ## Status Breakdown
 
@@ -173,10 +206,10 @@ Fuzzy and near-identical title matches are **never auto-accepted**.
 ## Report Usage
 
 - `competitor_match_reader_view.csv` is the business-facing market evidence view.
-- `competitor_match_price_gaps.csv` contains only products with verified competitor evidence.
+- `competitor_match_price_gaps.csv` contains only products with verified competitor evidence, ranked by absolute DTB-vs-market-reference gap.
 - `competitor_match_review_queue.csv` contains contradiction, brand-uncertain, and fuzzy candidates that must not drive automated pricing.
 - `dtb_official_competitor_matches.csv` is the full technical evidence ledger.
-- `dtb_official_competitor_best_matches.csv` is retained for compatibility but now contains one **aggregated market-evidence row per DTB product**, not an arbitrary single “best” competitor.
+- `dtb_official_competitor_best_matches.csv` is retained for compatibility but now contains one **aggregated market-evidence row per sellable DTB pricing target**, not an arbitrary single “best” competitor.
 """
     OUTPUT_SUMMARY_MD.write_text(summary_md, encoding="utf-8")
 
@@ -196,9 +229,9 @@ table{{border-collapse:collapse;width:100%;font-size:13px;margin:12px 0 28px}} t
 </style></head><body><main>
 <h1>DTB Competitor Market Evidence</h1>
 <p>Manufacturer-scoped, contradiction-aware competitor pricing evidence. Fuzzy matches are review-only.</p>
-<div class="cards"><div class="card"><strong>{len(market):,}</strong>DTB products</div><div class="card"><strong>{verified_products:,}</strong>with verified evidence</div><div class="card"><strong>{multi_source:,}</strong>multi-source verified</div><div class="card"><strong>{fully_unmatched:,}</strong>fully unmatched</div></div>
-<div class="note"><strong>Pricing guardrail:</strong> Only verified identity evidence participates in market low/high/median calculations. Positive DTB-vs-market values mean DTB is priced higher; negative values mean DTB is lower.</div>
-<h2>Largest Verified Median Price Gaps</h2><div class="table-wrap">{table_html(top_gaps,["Status","DTB Product","DTB SKU","DTB Effective Price","Verified Competitors","Lowest Verified Price","Median Verified Price","DTB vs Median"])}</div>
+<div class="cards"><div class="card"><strong>{len(market):,}</strong>pricing targets</div><div class="card"><strong>{verified_products:,}</strong>with verified evidence</div><div class="card"><strong>{exact_consensus:,}</strong>exact price consensus</div><div class="card"><strong>{dispersion:,}</strong>price dispersion</div><div class="card"><strong>{fully_unmatched:,}</strong>fully unmatched</div></div>
+<div class="note"><strong>Pricing guardrail:</strong> Identical retailer prices are recorded as observed consensus, not presumed MAP/MSRP. Only verified identity evidence participates in the market reference. Positive DTB-vs-market-reference values mean DTB is priced higher; negative values mean DTB is lower.</div>
+<h2>Largest Verified Market-Reference Gaps</h2><div class="table-wrap">{table_html(top_gaps,["Status","DTB Product","DTB SKU","DTB Effective Price","Verified Competitors","Price Consensus","Market Reference Price","DTB vs Market Reference"])}</div>
 <h2>Highest-Priority Review Candidates</h2><div class="table-wrap">{table_html(top_review,["Match Method","Contradictions","DTB Product","DTB SKU","Competitor Source","Competitor Product Name","Competitor SKU","Competitor Price"])}</div>
 </main></body></html>"""
     OUTPUT_HTML.write_text(html_doc, encoding="utf-8")
