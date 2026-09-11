@@ -8,6 +8,10 @@ catalog. Variable parent rows and tool sets/kits are excluded.
 Competitor cells are populated only from verified retailer matches produced by
 ``match_official_catalog_to_competitors.py``. Unverified or missing retailer
 matches remain blank; no price is inferred or synthesized.
+
+After a successful build, the report directory is sanitized to retain only the
+final comparison plus the minimal per-retailer scrape evidence required for
+repeatable matching and efficient scraper resume.
 """
 from __future__ import annotations
 
@@ -41,6 +45,13 @@ COMPETITOR_COLUMNS = (
 
 EXCLUDED_PRODUCT_KINDS = {"toolset", "kit"}
 INCLUDED_WOO_TYPES = {"simple", "variation"}
+SITE_DIRS = ("als_taping_tools", "wall_tools", "all_wall")
+RETAINED_REPORT_FILES = {
+    "dtb_competitor_price_catalog.csv",
+    *(f"{site}/catalog.csv" for site in SITE_DIRS),
+    *(f"{site}/products.jsonl" for site in SITE_DIRS),
+    *(f"{site}/failures.jsonl" for site in SITE_DIRS),
+}
 
 
 def load_csv(path: Path) -> list[dict[str, str]]:
@@ -58,12 +69,31 @@ def is_competition_catalog_row(row: dict[str, str]) -> bool:
     if product_kind in EXCLUDED_PRODUCT_KINDS:
         return False
 
-    # Defensive fallback for older rows whose semantic kind was not normalized.
     category = (row.get("Categories") or "").strip().casefold()
     if category.endswith(" > tool sets") or category.endswith(" > tool sets & kits"):
         return False
 
     return True
+
+
+def sanitize_report_directory() -> list[str]:
+    """Remove stale/generated diagnostics while preserving required evidence only."""
+    removed: list[str] = []
+    if not REPORT_DIR.exists():
+        return removed
+
+    for path in sorted(REPORT_DIR.rglob("*"), key=lambda item: len(item.parts), reverse=True):
+        if path.is_file():
+            relative = path.relative_to(REPORT_DIR).as_posix()
+            if relative not in RETAINED_REPORT_FILES:
+                path.unlink()
+                removed.append(relative)
+        elif path.is_dir() and path != REPORT_DIR:
+            try:
+                path.rmdir()
+            except OSError:
+                pass
+    return sorted(removed)
 
 
 def main() -> int:
@@ -120,12 +150,15 @@ def main() -> int:
         output_field: sum(1 for row in output_rows if row[output_field])
         for _, output_field in COMPETITOR_COLUMNS
     }
+    removed = sanitize_report_directory()
+
     print(f"Wrote {len(output_rows)} singular DTB products/parts to {OUTPUT}")
     print(f"Excluded non-purchasable/parent rows: {excluded_variable}; excluded tool sets/kits: {excluded_toolsets}")
     print(
         "Verified competitor prices: "
         + "; ".join(f"{field}={count}" for field, count in populated.items())
     )
+    print(f"Sanitized competitor report directory; removed {len(removed)} stale/unnecessary files")
     return 0
 
 
