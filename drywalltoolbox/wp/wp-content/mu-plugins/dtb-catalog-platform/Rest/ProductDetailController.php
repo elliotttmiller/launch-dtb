@@ -83,13 +83,14 @@ final class DTB_ProductDetailController {
 		$variation_diagnostics = method_exists( 'DTB_VariationReadModelService', 'get_last_diagnostics' )
 			? DTB_VariationReadModelService::get_last_diagnostics()
 			: [ 'available' => false ];
-		$related_products = self::get_related_products( $product );
+		$related = self::get_related_products( $product );
 
 		return new WP_REST_Response( [
-			'product'         => $product,
-			'variations'      => $variations,
-			'relatedProducts' => $related_products,
-			'computed'        => [
+			'product'                => $product,
+			'variations'             => $variations,
+			'relatedProducts'        => $related['products'],
+			'relatedProductsContext' => $related['context'],
+			'computed'               => [
 				'defaultVariation'      => $default_var,
 				'hasInStockVariation'   => $in_stock_count > 0,
 				'variationCount'        => count( $variations ),
@@ -107,16 +108,18 @@ final class DTB_ProductDetailController {
 	 * upsells/related products remain a bounded fallback so products without
 	 * compatibility coverage retain useful merchandising without creating a
 	 * second recommendation authority.
+	 *
+	 * @return array{products:array<int,array<string,mixed>>,context:string}
 	 */
 	private static function get_related_products( array $product ): array {
 		$product_id = absint( $product['id'] ?? 0 );
 		if ( $product_id <= 0 ) {
-			return [];
+			return [ 'products' => [], 'context' => 'related' ];
 		}
 
 		$source_product = wc_get_product( $product_id );
 		if ( ! $source_product ) {
-			return [];
+			return [ 'products' => [], 'context' => 'related' ];
 		}
 
 		$compatibility_ids = self::get_compatibility_candidate_ids( $product );
@@ -146,10 +149,20 @@ final class DTB_ProductDetailController {
 			}
 		}
 
-		return array_values( array_map(
+		$normalized = array_values( array_map(
 			'dtb_catalog_normalize_product',
 			dtb_catalog_wc_fetch_products_by_ids( $visible_ids )
 		) );
+
+		$visible_compatibility_ids = array_intersect( $visible_ids, $compatibility_ids );
+		$context = ! empty( $visible_compatibility_ids )
+			? ( ! empty( $product['isParts'] ) ? 'compatible_tools' : 'compatible_parts' )
+			: 'related';
+
+		return [
+			'products' => $normalized,
+			'context'  => $context,
+		];
 	}
 
 	/**
