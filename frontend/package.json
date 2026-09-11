@@ -13,6 +13,7 @@
     "reviews-server": "node server/index.js",
     "lint": "eslint src",
     "test:catalog-navigation": "node --test tests/catalogNavigationContract.test.mjs",
+    "test:contractor-shopping": "node --test tests/contractorShoppingContract.test.mjs",
     "test:calculators": "node --test tests/calculators/calculators.test.mjs",
     "test:home-hero": "node --test tests/homeHeroResponsiveMediaContract.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production"

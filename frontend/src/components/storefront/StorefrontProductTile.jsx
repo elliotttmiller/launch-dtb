@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, Info } from 'lucide-react';
 import ProductCardImage from '../product/ProductCardImage';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
+import { getToolSetContentsSummary } from '../../utils/productMerchandising.js';
+import '../../styles/contractor-shopping.css';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
@@ -49,6 +51,7 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
   // A real variation SKU belongs to the selected variation and is surfaced by the PDP/selector.
   const sku = isVariable ? '' : (displayProduct.sku || commerceProduct.sku || '');
   const shortDescription = stripHtml(displayProduct.short_description || '', 132);
+  const toolSetSummary = getToolSetContentsSummary(displayProduct, 3);
 
   const priceStr = isVariable && displayProduct.min_price != null
     ? `From $${money(displayProduct.min_price)}`
@@ -122,6 +125,15 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
         {displayProduct.brand ? <span className="dtb-product-card__brand">{displayProduct.brand}</span> : null}
         <button type="button" onClick={handleTitleClick} className="dtb-product-card__name" data-dtb-card-action="title" aria-label={isMobile ? `Open full page for ${name}` : `View product details for ${name}`}>{name}</button>
         <span className={`dtb-product-card__sku${sku ? '' : ' dtb-product-card__sku--empty'}`} aria-hidden={sku ? undefined : true}>{sku ? `SKU: ${sku}` : '\u00a0'}</span>
+        {toolSetSummary ? (
+          <div className="dtb-toolset-summary" aria-label={`${toolSetSummary.count} included items`}>
+            <span className="dtb-toolset-summary__label">{toolSetSummary.count}-piece set</span>
+            <span className="dtb-toolset-summary__items">
+              {toolSetSummary.visibleItems.map((item) => item.name).join(' · ')}
+              {toolSetSummary.hiddenCount > 0 ? ` · +${toolSetSummary.hiddenCount} more` : ''}
+            </span>
+          </div>
+        ) : null}
         <div className="dtb-product-card__divider" />
         <div className="dtb-product-card__footer"><div className="dtb-product-card__price-col"><div className="dtb-product-card__price-group"><strong className="dtb-product-card__price" style={{ color: outOfStock ? 'var(--dtb-muted)' : 'var(--dtb-text)' }}>{priceStr}</strong>{comparePriceStr ? <span className="dtb-product-card__compare-price">{comparePriceStr}</span> : null}</div></div>{!isMobile && !isVariable && <AddToCartButton onClick={handleAddButtonClick} disabled={outOfStock} className="dtb-product-card__action" size="card" label="Add" productId={displayProduct.id} aria-label={`Add ${name} to cart`} data-dtb-card-action="add" />}</div>
       </div>

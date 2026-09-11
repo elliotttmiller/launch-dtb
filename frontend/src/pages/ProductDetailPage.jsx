@@ -64,6 +64,28 @@ function replaceVariantInAddressBar(location, variationId) {
   }
 }
 
+function getRelatedProductsCopy(context = 'related') {
+  if (context === 'compatible_parts') {
+    return {
+      eyebrow: 'Works with this tool',
+      title: 'Compatible parts',
+      railLabel: 'Compatible parts',
+    };
+  }
+  if (context === 'compatible_tools') {
+    return {
+      eyebrow: 'Compatible equipment',
+      title: 'Compatible tools',
+      railLabel: 'Compatible tools',
+    };
+  }
+  return {
+    eyebrow: 'Recommended for this product',
+    title: 'Related products',
+    railLabel: 'Related products',
+  };
+}
+
 export default function ProductDetailPage() {
   const { slug, variationId } = useParams();
   const location = useLocation();
@@ -75,6 +97,7 @@ export default function ProductDetailPage() {
   const [locallySelectedVariation, setLocallySelectedVariation] = useState(null);
 
   const { product, variations, relatedProducts, computed, status, error } = useCatalogProductDetail(slug);
+  const relatedProductsCopy = getRelatedProductsCopy(computed?.relatedProductsContext);
 
   const urlVariantId = useMemo(
     () => legacyPathVariantId ?? getVariantParam(location.search),
@@ -261,12 +284,12 @@ export default function ProductDetailPage() {
           <section className="product-related" aria-labelledby="product-related-title">
             <div className="product-related__heading">
               <div>
-                <span className="product-related__eyebrow">Recommended for this product</span>
-                <h2 id="product-related-title">Related products</h2>
+                <span className="product-related__eyebrow">{relatedProductsCopy.eyebrow}</span>
+                <h2 id="product-related-title">{relatedProductsCopy.title}</h2>
               </div>
               <Link to="/products" className="product-related__browse">Browse all products</Link>
             </div>
-            <StorefrontRail label="Related products" className="storefront-rail--fixed-tiles">
+            <StorefrontRail label={relatedProductsCopy.railLabel} className="storefront-rail--fixed-tiles">
               {relatedProducts.map((relatedProduct, index) => (
                 <StorefrontProductTile
                   key={relatedProduct.id}
