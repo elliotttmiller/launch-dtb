@@ -24,7 +24,12 @@ INPUT = REPORT_DIR / "competitor_two_source_price_conflict_audit.csv"
 OUTPUT = REPORT_DIR / "competitor_price_provenance_audit.csv"
 SUMMARY = REPORT_DIR / "competitor_price_provenance_summary.csv"
 
+SITE_LABEL_ORDER = tuple(SITE_LABELS[key] for key in SITE_KEYS)
 LABEL_TO_KEY = {label: key for key, label in SITE_LABELS.items()}
+PROVENANCE_SUFFIXES = (
+    "Observed Price", "Raw Price Basis", "Raw Price", "Regular Price", "Sale Price",
+    "Currency", "Availability", "Parse Method", "Retrieved At", "Product URL", "Source Hash",
+)
 
 
 def decimal_price(value: object) -> Decimal | None:
@@ -111,12 +116,19 @@ def pair_semantics(left_basis: str, right_basis: str, left_found: bool, right_fo
         return "PROVENANCE_INCOMPLETE"
     if "not_reconciled" in left_basis or "not_reconciled" in right_basis:
         return "RAW_FIELD_RECONCILIATION_REQUIRED"
-    sale_regular = {left_basis, right_basis}
-    if "sale_price" in sale_regular and "regular_price" in sale_regular:
+    if {left_basis, right_basis} == {"sale_price", "regular_price"}:
         return "SALE_VS_REGULAR_FIELD"
     if left_basis == right_basis:
         return "SAME_PRICE_FIELD_SEMANTIC_DIFFERENT_AMOUNT"
     return "DIFFERENT_RAW_PRICE_FIELD_SEMANTICS"
+
+
+def empty_provenance() -> dict[str, str]:
+    return {
+        "found": "no", "basis": "not_in_conflict_pair", "url": "", "canonical_url": "",
+        "raw_price": "", "regular_price": "", "sale_price": "", "currency": "",
+        "availability": "", "parse_method": "", "retrieved_at": "", "source_hash": "",
+    }
 
 
 def main() -> int:
@@ -146,7 +158,7 @@ def main() -> int:
             pair = [part.strip() for part in conflict.get("Retailer Pair", "").split(" vs ") if part.strip()]
             if len(pair) != 2:
                 continue
-            site_data: dict[str, dict[str, str]] = {}
+            site_data: dict[str, dict[str, str]] = {label: empty_provenance() for label in SITE_LABEL_ORDER}
             for label in pair:
                 site_key = LABEL_TO_KEY.get(label, "")
                 observed = decimal_price(conflict.get(f"{label} Price", ""))
@@ -154,11 +166,7 @@ def main() -> int:
                 record = choose_record(candidates, observed)
                 if record is None:
                     missing_provenance += 1
-                    site_data[label] = {
-                        "found": "no", "basis": "provenance_missing", "url": "", "canonical_url": "",
-                        "raw_price": "", "regular_price": "", "sale_price": "", "currency": "",
-                        "availability": "", "parse_method": "", "retrieved_at": "", "source_hash": "",
-                    }
+                    site_data[label]["basis"] = "provenance_missing"
                     continue
                 basis = raw_price_basis(record, observed)
                 basis_counts[f"{label}:{basis}"] += 1
@@ -193,7 +201,7 @@ def main() -> int:
                 "Absolute Spread": conflict.get("Absolute Spread", ""),
                 "Price Semantic Classification": semantic,
             }
-            for label in pair:
+            for label in SITE_LABEL_ORDER:
                 data = site_data[label]
                 out[f"{label} Observed Price"] = conflict.get(f"{label} Price", "")
                 out[f"{label} Raw Price Basis"] = data["basis"]
@@ -213,7 +221,11 @@ def main() -> int:
         -Decimal(row["Spread % vs Lowest"] or "0"),
         row["Identity Key"],
     ))
-    fields = list(rows[0].keys()) if rows else []
+    base_fields = [
+        "Identity Key", "Canonical Brand", "Canonical Identifier", "Priority", "Retailer Pair",
+        "Missing Retailer", "Spread % vs Lowest", "Absolute Spread", "Price Semantic Classification",
+    ]
+    fields = base_fields + [f"{label} {suffix}" for label in SITE_LABEL_ORDER for suffix in PROVENANCE_SUFFIXES]
     with OUTPUT.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
         writer.writeheader(); writer.writerows(rows)
