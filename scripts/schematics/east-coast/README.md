@@ -1,217 +1,171 @@
-# East Coast schematic extractor
+# East Coast schematic scraper
 
-Read-only research tooling for discovering and capturing the public data that East Coast Drywall sends to a browser for interactive schematic pages.
+Read-only operational tooling for extracting public interactive schematic data from East Coast Drywall in one deterministic workflow.
 
-## Why browser/network capture
-
-East Coast exposes `Interactable Schematics` on its parts collections, but the public search crawler does not expose a stable documented hotspot API. The extractor therefore observes the actual browser network contract instead of hard-coding an unverified endpoint. Any XHR/fetch/JSON/app-proxy response with schematic, part, callout, product, or coordinate signals is persisted with source URL, request fingerprint, checksum, and page provenance.
-
-This is deliberately a staging tool. It never writes to `frontend/public/brands/**/schematic_data.json` or WordPress.
+The scraper never writes DTB canonical catalog or schematic data. East Coast product URLs, Shopify product IDs, variant IDs, and source handles are provenance only.
 
 ## Requirements
 
 - Node.js 20+
-- Chromium installed by Playwright
+- Playwright Chromium
 - Public network access to `https://eastcoastdrywall.com`
 
-Install in this directory:
+Install:
 
 ```bash
 npm install
 npm run install-browser
 ```
 
-## Run TapeTech and Columbia
+## One supported workflow
+
+Run the default TapeTech and Columbia brand indexes:
 
 ```bash
-npm run extract
+npm run scrape
 ```
 
-The default seeds are:
-
-- `https://eastcoastdrywall.com/pages/schematic-list/tape-tech`
-- `https://eastcoastdrywall.com/pages/schematic-list/columbia`
-
-The crawler follows public same-site links under `/pages/schematic-list/` and schematic-like page paths discovered from those pages.
-
-## Run the global schematic index
-
-To enumerate every brand exposed by East Coast, seed its global schematic index as well:
+Run a specific schematic for diagnosis:
 
 ```bash
-npm run extract -- \
+npm run scrape -- \
+  --url https://eastcoastdrywall.com/pages/schematic/col-3-ah \
+  --fail-on-incomplete
+```
+
+Run explicit brand/index seeds:
+
+```bash
+npm run scrape -- \
   --brand-url https://eastcoastdrywall.com/pages/schematic-list/schematics \
   --brand-url https://eastcoastdrywall.com/pages/schematic-list/tape-tech \
   --brand-url https://eastcoastdrywall.com/pages/schematic-list/columbia \
-  --max-pages 250
+  --max-pages 250 \
+  --fail-on-incomplete
 ```
 
-If East Coast changes the global index route, pass the replacement public index with `--brand-url`; do not modify canonical DTB data to compensate.
+## Pipeline
+
+One browser session performs the full operation:
+
+```text
+discover schematic pages
+  -> load schematic
+  -> extract page/image metadata
+  -> extract overlay callouts + source geometry
+  -> resolve unique /products/<handle>.js records
+  -> join occurrence -> source part -> source product/variant
+  -> validate coverage and integrity
+  -> persist normalized source dataset + raw provenance
+```
+
+The primary extraction contract is East Coast's rendered schematic markup:
+
+- `[data-schematic-canvas]`
+- `[data-canvas-page]`
+- `.interactable-schematic-image`
+- `.interactable-schematic-overlay`
+- `.interactable-schematic-overlay > a[href*="/products/"]`
+- `.interactable-schematic-overlay .schematic-link a[href*="/products/"]`
+- `.schematic-overlay-text[data-product-handle]`
+
+If that contract changes, validation must fail rather than silently inventing data.
+
+## Geometry
+
+East Coast positions callout rectangles directly over each diagram using CSS percentage `left`, `top`, `width`, and `height` values. Those values are retained verbatim as source geometry.
+
+The scraper also derives a center-based normalized rectangle suitable for later DTB reconciliation:
+
+```text
+x_pct = left_pct + width_pct / 2
+y_pct = top_pct + height_pct / 2
+```
+
+Both source and derived geometry are preserved. The scraper does not write either form into canonical DTB schematic files.
+
+## Product resolution
+
+For every unique overlay product handle, the scraper explicitly requests the same public Shopify contract East Coast uses:
+
+```text
+/products/<handle>.js
+```
+
+It captures public product metadata including product ID, title, vendor, product type, description, images, options, variants, SKU, barcode, price, and availability where exposed.
+
+A schematic occurrence without an online product is still retained as a legitimate source part occurrence. Missing commerce data must not cause the schematic part to disappear.
 
 ## Output
 
-Each run gets its own local directory under `output/<run-id>/`:
+Each run writes to local `output/<run-id>/`:
 
 ```text
 manifest.json
-endpoints.json
-responses.json
-candidates.json
+schematics.json
+products.json
+validation.json
+failures.json
+diagnostics.json
 raw/
   pages/
-    <page>.json
-  responses/
-    <sha256>.json
-    <sha256>.txt
+  products/
 ```
 
-`output/` is intentionally ignored by Git. Research captures can contain large third-party payloads and browser-delivered token-shaped configuration fields and must not be committed.
+`output/` is ignored by Git.
 
 ### `manifest.json`
 
-Coverage and safety metadata: seeds, pages visited, navigation errors, counts, limits, and whether authentication/canonical writes were used.
+Run identity, safety boundaries, coverage counts, and overall `PASS`, `PASS_WITH_WARNINGS`, or `FAIL` status.
 
-### `endpoints.json`
+### `schematics.json`
 
-Observed endpoint signatures sorted by hotspot/part signal strength. This is the quickest way to identify the actual East Coast application/API backend after a run.
+Joined source records containing diagram pages, images, hotspot/callout occurrences, source part numbers, source/normalized geometry, source product resolution, and exact variant-SKU matches.
 
-### `responses.json`
+### `products.json`
 
-Provenance index for every persisted response. Sensitive request headers such as cookies, authorization, CSRF/XSRF tokens, Shopify access tokens, and API keys are excluded.
+One deduplicated record per East Coast source product handle.
 
-### `candidates.json`
+### `validation.json`
 
-Review candidates extracted recursively from JSON payloads, embedded JSON, and relevant DOM elements. Candidate geometry remains in the source representation. The extractor does **not** convert a DOM bounding box, CSS `left/top`, SVG coordinate, or source JSON coordinate into DTB `x_pct/y_pct` until its coordinate system and anchor semantics are verified.
+Per-schematic validation. Hard failures include missing pages, zero callouts, page-count mismatch, missing geometry, and invalid percentage ranges. Warnings include unresolved products and resolved products without an exact variant-SKU match.
 
-## Deterministic schematic part and product enrichment
+### `failures.json`
 
-The schematic pages expose part occurrences directly through the rendered schematic overlay. Online parts are linked as `/products/<handle>` and the East Coast page's own JavaScript resolves those links through Shopify's public `/products/<handle>.js` endpoint.
+Navigation and coverage failures.
 
-After the capture pass, run:
+### `diagnostics.json`
 
-```bash
-npm run enrich-products -- \
-  --run ./output/<run-id>
-```
+Non-schematic pages encountered during discovery. This is diagnostic evidence only and is not the principal extraction dataset.
 
-The enrichment pass only revisits public `/pages/schematic/*` URLs already present in the selected run. It extracts each rendered overlay occurrence and explicitly fetches every unique linked product's public Shopify JSON record.
+### `raw/`
 
-It writes:
+Sanitized page/product evidence with SHA-256 provenance. Token/secret/password/authorization/cookie/API-key-shaped object fields are redacted before page snapshots are persisted.
 
-```text
-schematic-parts-products.json
-enrichment-summary.json
-enrichment-failures.json
-source-products.json
-```
-
-### `schematic-parts-products.json`
-
-Per-schematic joined source evidence containing:
-
-- schematic page and title;
-- page number where determinable;
-- callout/part number text rendered on the diagram;
-- East Coast product handle and product URL when present;
-- the overlay/link element's source attributes and datasets;
-- source-native inline CSS and rendered rectangles;
-- CSS percentage geometry when the page supplies percentage `left/top/width/height` values;
-- source product ID/title resolution;
-- exact Shopify variant-SKU matches to the rendered callout when available.
-
-Coordinate anchor semantics remain `unverified`; the enrichment command does not promote CSS or rendered DOM coordinates into canonical DTB coordinates.
-
-### `source-products.json`
-
-One record per unique linked East Coast product with public Shopify product data including product ID, title, vendor, product type, availability, description, images, options, variants, variant SKU, barcode, price, and availability where Shopify exposes them.
-
-East Coast/Shopify identifiers are provenance only. They are not DTB product identity.
-
-### Unavailable/offline parts
-
-The East Coast page converts product links that return unavailable product data into `.schematic-overlay-text` nodes. Those occurrences are retained with their callout text and `no_online_product_link`/unresolved status rather than discarded or guessed.
-
-## Identifying the real hotspot endpoint
-
-After a run:
-
-1. Open `endpoints.json`.
-2. Inspect endpoints with the highest `maxSignalScore`.
-3. Open the referenced `raw/responses/<sha>.json` payloads from `responses.json`.
-4. Confirm which payload contains the complete schematic list, part records, and per-occurrence hotspot/callout geometry.
-5. Record the source contract before writing a deterministic normalizer for that specific payload shape.
-
-The enrichment pass complements this network evidence. It uses the rendered overlay and the exact public Shopify product endpoint East Coast itself uses, so missing product metadata does not depend on idle-request timing during the initial capture.
-
-## Promotion into DTB
-
-Do not copy raw East Coast records directly into canonical schematics.
-
-The required promotion flow is:
+## Options
 
 ```text
-capture
-  -> enrich source part/product relationships
-  -> identify authoritative source payload
-  -> normalize without inventing values
-  -> reconcile brand + manufacturer part number against DTB catalog
-  -> validate every hotspot part_ref
-  -> verify coordinate system/anchor semantics
+--brand-url URL       Seed schematic-list URL; repeatable
+--url URL             Direct schematic URL; repeatable
+--out DIR             Output root
+--headed              Run visible Chromium
+--timeout-ms N        Navigation timeout, 1,000-120,000
+--settle-ms N         Post-load settle delay, 0-30,000
+--max-pages N         Crawl bound, 1-250
+--fail-on-incomplete  Return non-zero when validation fails
+```
+
+## Reconciliation into DTB
+
+This tool stops at source extraction and validation. Canonical promotion remains a separate reviewed data operation:
+
+```text
+scrape
+  -> review validation
+  -> reconcile exact brand + manufacturer part number against DTB catalog
+  -> validate every canonical part_ref
   -> visual overlay QA
-  -> explicit canonical promotion
+  -> explicit promotion into DTB schema v2
 ```
 
-DTB's native target remains schematic schema v2 (`parts_catalog` + per-occurrence `hotspots`). One manufacturer part may have multiple hotspot occurrences.
-
-## Product linking rules
-
-East Coast product URLs, Shopify product IDs, and variant IDs are source provenance only. They must never become DTB product identity.
-
-Reconciliation priority should be:
-
-1. exact brand + manufacturer part number;
-2. documented normalized manufacturer identifier;
-3. existing DTB external-ID mapping;
-4. exact normalized name + brand as review candidate;
-5. fuzzy matching only as `review_required`.
-
-Never auto-link a cross-brand common part solely because its name is similar.
-
-## Operational safeguards
-
-- HTTPS and `eastcoastdrywall.com` seeds only.
-- Maximum 250 pages per capture run.
-- Maximum 12 MiB per captured textual response.
-- Deliberate delay between page navigations.
-- No login or authentication flow.
-- No access-control bypass.
-- No write requests are initiated by the tooling.
-- Cookies/authentication headers are never persisted.
-- Raw bodies are content-addressed by SHA-256 for reproducibility and change detection.
-- Service workers are blocked so browser response observation is deterministic.
-- Generated `output/` directories are excluded from Git.
-
-## Useful options
-
-Capture:
-
-```text
---brand-url URL   Seed URL; repeatable
---out DIR         Output root
---headed          Run visible Chromium for inspection
---timeout-ms N    Navigation timeout (1,000–120,000)
---settle-ms N     Post-load settle delay
---max-pages N     Crawl safety bound (1–250)
-```
-
-Enrichment:
-
-```text
---run DIR         Existing extractor run directory; required
---headed          Run visible Chromium for inspection
---timeout-ms N    Navigation timeout (1,000–120,000)
-```
-
-## Failure semantics
-
-A navigation error is recorded per page and does not cause silent omission of already captured evidence. A completely empty crawl exits non-zero. Enrichment records failed navigations and unresolved product fetches separately. Endpoint/payload changes should therefore surface as changed checksums, lower signal counts, navigation errors, missing candidates, or unresolved source products rather than silently rewriting DTB data.
+Never auto-link cross-brand parts from fuzzy names, never use East Coast/Shopify IDs as DTB product identity, and never let this script become an alternate catalog or schematic application service.
