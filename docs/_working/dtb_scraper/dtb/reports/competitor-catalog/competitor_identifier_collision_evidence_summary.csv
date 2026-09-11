@@ -1,5 +1,4 @@
 metric,value,count
-unresolved_collisions_audited,all,63
+unresolved_collisions_audited,all,49
 recommended_disposition,insufficient_repository_evidence,38
 recommended_disposition,official_anchor_only_review,11
-recommended_disposition,repository_supported_alias_candidate,14

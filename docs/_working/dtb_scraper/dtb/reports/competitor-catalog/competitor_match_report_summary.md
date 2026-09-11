@@ -7,11 +7,11 @@
 - Products with an established observed market price: **48**
 - Market prices verified by all three competitors: **13**
 - Market prices verified by two of three competitors: **35**
-- Products with verified competitor price conflicts: **244**
-- Products with only one verified competitor price: **205**
+- Products with verified competitor price conflicts: **247**
+- Products with only one verified competitor price: **202**
 - Products with review candidates but no verified priced evidence: **33**
 - Products with no candidate evidence: **121**
-- Review queue rows: **426**
+- Review queue rows: **428**
 
 ## Product Scope
 
@@ -47,9 +47,9 @@ Identical retailer prices are observed market evidence only; the workflow does n
 
 - **Identity Review Required:** 33
 - **No Market Evidence:** 121
-- **Price Conflict - Review Required:** 244
-- **Single-Source Evidence:** 149
-- **Single-Source Evidence + Review Candidates:** 56
+- **Price Conflict - Review Required:** 247
+- **Single-Source Evidence:** 147
+- **Single-Source Evidence + Review Candidates:** 55
 - **Verified Market Price - 2/3:** 29
 - **Verified Market Price - 2/3 + Review Candidates:** 6
 - **Verified Market Price - 3/3:** 13
