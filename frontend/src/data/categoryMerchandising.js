@@ -1,3 +1,10 @@
+const AUTOMATIC_FINISHING_WORKFLOW = [
+  { id: 'load', label: 'Load compound' },
+  { id: 'tape', label: 'Apply tape' },
+  { id: 'flats', label: 'Finish flats' },
+  { id: 'corners', label: 'Finish corners' },
+];
+
 const CATEGORY_INTENT_CONFIG = {
   'automatic-tools': {
     eyebrow: 'Shop by workflow',
@@ -56,6 +63,52 @@ const CATEGORY_INTENT_CONFIG = {
   },
   'tool-sets-and-kits': {
     aliasOf: 'automatic-tool-sets',
+  },
+  pumps: {
+    workflow: {
+      eyebrow: 'Automatic finishing workflow',
+      currentStage: 'load',
+      steps: AUTOMATIC_FINISHING_WORKFLOW,
+    },
+  },
+  'mud-pans-and-pumps': {
+    aliasOf: 'pumps',
+  },
+  'automatic-tapers': {
+    workflow: {
+      eyebrow: 'Automatic finishing workflow',
+      currentStage: 'tape',
+      steps: AUTOMATIC_FINISHING_WORKFLOW,
+    },
+  },
+  'automatic-taping-tools': {
+    aliasOf: 'automatic-tapers',
+  },
+  'finishing-boxes': {
+    workflow: {
+      eyebrow: 'Automatic finishing workflow',
+      currentStage: 'flats',
+      steps: AUTOMATIC_FINISHING_WORKFLOW,
+    },
+  },
+  'flat-boxes': {
+    aliasOf: 'finishing-boxes',
+  },
+  'corner-tools': {
+    workflow: {
+      eyebrow: 'Automatic finishing workflow',
+      currentStage: 'corners',
+      steps: AUTOMATIC_FINISHING_WORKFLOW,
+    },
+  },
+  'automatic-angle-heads': {
+    aliasOf: 'corner-tools',
+  },
+  'angle-heads': {
+    aliasOf: 'corner-tools',
+  },
+  'automatic-corner-finishers': {
+    aliasOf: 'corner-tools',
   },
 };
 
