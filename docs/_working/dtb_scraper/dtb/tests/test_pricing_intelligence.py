@@ -1,0 +1,79 @@
+import sys
+import unittest
+from decimal import Decimal
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from competitor_pricing_core import (
+    canonical_brand,
+    classify_match,
+    clean_description,
+    effective_dtb_price,
+    identity_key,
+    resolve_site_evidence,
+)
+
+
+class IdentityContractTests(unittest.TestCase):
+    def test_identity_key_scopes_identifier_by_brand(self):
+        self.assertNotEqual(identity_key("tapetech", "10116"), identity_key("columbia", "10116"))
+
+    def test_cross_brand_identifier_is_review_not_auto_accept(self):
+        decision = classify_match("Columbia Box Shoe", "columbia", ["10116"], "TapeTech Box Shoe", "tapetech", "10116")
+        self.assertEqual(decision.status, "review")
+        self.assertEqual(decision.method, "exact_identifier_brand_conflict")
+
+    def test_unknown_brand_identifier_is_review_not_auto_accept(self):
+        decision = classify_match("TapeTech Box Shoe", "tapetech", ["10116"], "10116 Box Shoe", "", "10116")
+        self.assertEqual(decision.status, "review")
+        self.assertEqual(decision.method, "exact_identifier_unknown_brand")
+
+    def test_title_identifier_conflict_downgrades_exact_identifier(self):
+        decision = classify_match("1/4 - 20 Hex Nut", "columbia", ["CT109"], "CT114 Columbia Taper Cable Retaining Nut #5972", "columbia", "CT109")
+        self.assertEqual(decision.status, "review")
+        self.assertEqual(decision.method, "exact_identifier_contradiction")
+        self.assertTrue(any("title_identifier_conflict" in value for value in decision.contradictions))
+
+    def test_dimension_contradiction_blocks_fuzzy_candidate(self):
+        decision = classify_match('1/4-20 x 1/2" Hex Bolt', "columbia", ["FA296"], '1/4-20 x 1-1/2" Hex Bolt', "columbia", "FA299")
+        self.assertEqual(decision.method, "")
+        self.assertFalse(decision.variation_compatible)
+
+    def test_near_identical_is_review_only(self):
+        decision = classify_match('Platinum 3.5" Angle Head Corner Finisher', "platinum", ["PT-CF3.5"], 'Platinum Drywall Tools 3.5" Angle Head Corner Finisher', "platinum", "OTHER")
+        self.assertEqual(decision.status, "review")
+        self.assertEqual(decision.method, "near_identical_title")
+
+
+class PricingAndQualityTests(unittest.TestCase):
+    def test_effective_price_prefers_sale(self):
+        price, basis, warnings = effective_dtb_price({"Regular price": "200", "Sale price": "175"})
+        self.assertEqual(price, Decimal("175"))
+        self.assertEqual(basis, "sale_price")
+        self.assertEqual(warnings, ())
+
+    def test_boilerplate_description_is_quarantined(self):
+        text, quality = clean_description("WallTools a leading supplier of professional tools for drywall hanging and drywall finishing, wallpaper, wallcovering, and ceiling grid.")
+        self.assertEqual(text, "")
+        self.assertEqual(quality, "quarantined_storefront_boilerplate")
+
+    def test_site_duplicates_are_explicitly_collapsed_by_median(self):
+        rows = [
+            {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.00", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
+            {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.20", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
+        ]
+        evidence = resolve_site_evidence("all_wall", rows)
+        self.assertTrue(evidence.verified)
+        self.assertEqual(evidence.duplicate_count, 1)
+        self.assertEqual(evidence.price, Decimal("1.10"))
+        self.assertEqual(evidence.quality, "verified_duplicate_collapsed_median")
+
+    def test_brand_aliases_are_canonical(self):
+        self.assertEqual(canonical_brand("Columbia Parts", ""), "columbia")
+        self.assertEqual(canonical_brand("", "TapeTech EasyClean Automatic Taper"), "tapetech")
+
+
+if __name__ == "__main__":
+    unittest.main()
