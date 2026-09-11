@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Create manufacturer-scoped cross-competitor price comparisons.
+"""Create manufacturer-scoped cross-competitor observed-price comparisons.
 
-Unlike the legacy report, this script never groups on SKU alone. Records are
-compared only when canonical manufacturer/brand and canonical identifier agree.
-Same-site duplicates are retained, audited, and deterministically collapsed to a
-median site price instead of being overwritten by dictionary iteration order.
+This report never groups on SKU alone and never averages or median-collapses
+prices. Each retailer is resolved independently. A market price exists only when
+multiple verified retailer observations for the same manufacturer identity expose
+the exact same price. Any disagreement remains an explicit conflict.
 """
 from __future__ import annotations
 
@@ -21,9 +21,8 @@ from competitor_pricing_core import (
     compact_identifier,
     decimal_price,
     identity_key,
-    median_decimal,
+    market_price_decision,
     money,
-    price_consensus,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -55,22 +54,40 @@ def load_rows():
 
 
 def resolve_site(rows: list[dict[str, str]]) -> dict[str, str]:
-    prices = [decimal_price(row.get("Product Price", "")) for row in rows]
-    prices = [price for price in prices if price is not None]
-    names = sorted({(row.get("Product Name") or "").strip() for row in rows if (row.get("Product Name") or "").strip()})
+    prices = tuple(
+        price for price in (decimal_price(row.get("Product Price", "")) for row in rows)
+        if price is not None
+    )
+    names = sorted({
+        (row.get("Product Name") or "").strip()
+        for row in rows
+        if (row.get("Product Name") or "").strip()
+    })
+    distinct = sorted(set(prices))
+
+    if not prices:
+        resolved_price = None
+        quality = "missing_price"
+    elif len(distinct) > 1:
+        resolved_price = None
+        quality = "conflicting_duplicate_prices"
+    else:
+        resolved_price = distinct[0]
+        quality = "single_observation" if len(rows) == 1 else "duplicate_same_price"
+
     return {
-        "price": money(median_decimal(prices)),
-        "price_low": money(min(prices) if prices else None),
-        "price_high": money(max(prices) if prices else None),
+        "price": money(resolved_price),
         "duplicate_count": str(max(0, len(rows) - 1)),
+        "observed_prices": " | ".join(money(price) for price in prices),
         "product": " | ".join(names[:3]),
-        "quality": "single_observation" if len(rows) == 1 else "duplicate_collapsed_median",
+        "quality": quality,
     }
 
 
 def main() -> int:
     grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
     review_rows: list[dict[str, str]] = []
+
     for row in load_rows():
         if not row["_brand_key"] or not row["_identifier_key"]:
             review_rows.append({
@@ -85,15 +102,25 @@ def main() -> int:
         grouped[row["_identity_key"]].append(row)
 
     fields = [
-        "Identity Key", "Canonical Brand", "Canonical Identifier", "Source Count",
-        "Observation Count", "Distinct Price Count", "Price Consensus", "Consensus Price",
-        "Lowest Price", "Highest Price", "Median Price", "Price Spread",
+        "Identity Key",
+        "Canonical Brand",
+        "Canonical Identifier",
+        "Source Count",
+        "Observation Count",
+        "Verified Price Source Count",
+        "Distinct Verified Prices",
+        "Market Price Status",
+        "Market Price",
+        "Observed Price Spread",
     ]
     for site_key in SITE_KEYS:
         label = SITE_LABELS[site_key]
         fields.extend([
-            f"{label} Price", f"{label} Price Low", f"{label} Price High",
-            f"{label} Duplicate Count", f"{label} Evidence Quality", f"{label} Product Name",
+            f"{label} Price",
+            f"{label} Duplicate Count",
+            f"{label} Observed Duplicate Prices",
+            f"{label} Evidence Quality",
+            f"{label} Product Name",
         ])
 
     output_rows: list[dict[str, str]] = []
@@ -103,10 +130,16 @@ def main() -> int:
             by_site[record["_site_key"]].append(record)
         if len(by_site) < 2:
             continue
+
         site_resolved = {site: resolve_site(rows) for site, rows in by_site.items()}
-        site_prices = [decimal_price(value["price"]) for value in site_resolved.values()]
-        site_prices = [price for price in site_prices if price is not None]
-        consensus = price_consensus(site_prices)
+        verified_site_prices = [
+            price for price in (
+                decimal_price(resolved.get("price", ""))
+                for resolved in site_resolved.values()
+            )
+            if price is not None
+        ]
+        market = market_price_decision(verified_site_prices)
         first = records[0]
         row = {
             "Identity Key": key,
@@ -114,44 +147,53 @@ def main() -> int:
             "Canonical Identifier": first.get("SKU", ""),
             "Source Count": str(len(by_site)),
             "Observation Count": str(len(records)),
-            "Distinct Price Count": str(consensus.distinct_price_count),
-            "Price Consensus": consensus.status,
-            "Consensus Price": money(consensus.consensus_price),
-            "Lowest Price": money(consensus.low),
-            "Highest Price": money(consensus.high),
-            "Median Price": money(consensus.median),
-            "Price Spread": money(consensus.spread),
+            "Verified Price Source Count": str(market.verified_source_count),
+            "Distinct Verified Prices": str(market.distinct_price_count),
+            "Market Price Status": market.status,
+            "Market Price": money(market.market_price),
+            "Observed Price Spread": money(market.price_spread),
         }
         for site_key in SITE_KEYS:
             label = SITE_LABELS[site_key]
             resolved = site_resolved.get(site_key, {})
             row[f"{label} Price"] = resolved.get("price", "")
-            row[f"{label} Price Low"] = resolved.get("price_low", "")
-            row[f"{label} Price High"] = resolved.get("price_high", "")
             row[f"{label} Duplicate Count"] = resolved.get("duplicate_count", "0")
+            row[f"{label} Observed Duplicate Prices"] = resolved.get("observed_prices", "")
             row[f"{label} Evidence Quality"] = resolved.get("quality", "")
             row[f"{label} Product Name"] = resolved.get("product", "")
         output_rows.append(row)
 
+    status_priority = {
+        "MARKET_PRICE_CONFLICT": 0,
+        "MARKET_PRICE_SINGLE_SOURCE": 1,
+        "MARKET_PRICE_VERIFIED_2_OF_3": 2,
+        "MARKET_PRICE_VERIFIED_3_OF_3": 3,
+        "NO_MARKET_EVIDENCE": 4,
+    }
     output_rows.sort(key=lambda row: (
-        0 if row["Price Consensus"] == "price_dispersion" else 1,
-        -(decimal_price(row["Price Spread"]) or 0),
-        row["Canonical Brand"].casefold(), row["Canonical Identifier"].casefold(),
+        status_priority.get(row["Market Price Status"], 9),
+        -(decimal_price(row["Observed Price Spread"]) or 0),
+        row["Canonical Brand"].casefold(),
+        row["Canonical Identifier"].casefold(),
     ))
+
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader(); writer.writerows(output_rows)
+        writer.writeheader()
+        writer.writerows(output_rows)
 
     review_fields = ["Competitor", "Brand", "Product Name", "SKU", "Product Price", "Reason"]
     with OUTPUT_REVIEW.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=review_fields)
-        writer.writeheader(); writer.writerows(review_rows)
+        writer.writeheader()
+        writer.writerows(review_rows)
 
-    exact_consensus = sum(1 for row in output_rows if row["Price Consensus"] == "exact_price_consensus")
-    dispersion = sum(1 for row in output_rows if row["Price Consensus"] == "price_dispersion")
+    verified_3 = sum(1 for row in output_rows if row["Market Price Status"] == "MARKET_PRICE_VERIFIED_3_OF_3")
+    verified_2 = sum(1 for row in output_rows if row["Market Price Status"] == "MARKET_PRICE_VERIFIED_2_OF_3")
+    conflicts = sum(1 for row in output_rows if row["Market Price Status"] == "MARKET_PRICE_CONFLICT")
     print(f"Wrote {len(output_rows)} manufacturer-scoped multi-source comparisons to {OUTPUT_CSV}")
-    print(f"Observed exact price consensus: {exact_consensus}; price dispersion: {dispersion}")
+    print(f"Verified market prices: 3/3={verified_3}; 2/3={verified_2}; conflicts={conflicts}")
     print(f"Wrote {len(review_rows)} unscoped rows to {OUTPUT_REVIEW}")
     return 0
 
