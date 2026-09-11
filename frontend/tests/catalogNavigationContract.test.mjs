@@ -8,6 +8,10 @@ import {
   flattenCatalogNavigationGroups,
   normalizeCatalogNavigationGroups,
 } from '../src/utils/catalogFacets.js';
+import {
+  getCategoryMerchandising,
+  resolveIntentTarget,
+} from '../src/data/categoryMerchandising.js';
 
 const repoRoot = new URL('../../', import.meta.url);
 
@@ -94,4 +98,37 @@ test('StorefrontHeader has no parallel hardcoded desktop category authority', as
   assert.doesNotMatch(source, /CURATED_DESKTOP_PRODUCT_TAXONOMY/);
   assert.match(source, /items:\s*desktopProductNavigation/);
   assert.match(source, /normalizeCatalogNavigationGroups\(facets\?\.navigationGroups\)/);
+});
+
+test('tool-set merchandising aliases resolve to one bounded presentation profile', () => {
+  const canonical = getCategoryMerchandising({ slug: 'automatic-tool-sets' });
+  const alias = getCategoryMerchandising({ slug: 'toolsets' });
+  const displayAlias = getCategoryMerchandising({ key: 'tool_sets_and_kits' });
+
+  assert.ok(canonical);
+  assert.strictEqual(alias, canonical);
+  assert.strictEqual(displayAlias, canonical);
+  assert.ok(canonical.intents.every((intent) => !Object.hasOwn(intent, 'filterHint')));
+});
+
+test('contractor intent only resolves against authoritative category children', () => {
+  const intent = {
+    label: 'Tape',
+    targetSlugs: ['automatic-tapers', 'automatic-taping-tools'],
+  };
+  const children = [
+    { key: 'pumps', slug: 'pumps', label: 'Pumps' },
+    { key: 'automatic_tapers', slug: 'automatic-tapers', label: 'Automatic Tapers' },
+  ];
+
+  assert.strictEqual(resolveIntentTarget(intent, children), children[1]);
+  assert.equal(resolveIntentTarget(intent, [{ key: 'automatic_tapers', slug: 'tapers' }]), null);
+  assert.equal(resolveIntentTarget(intent, []), null);
+});
+
+test('informational merchandising intents do not synthesize catalog targets', () => {
+  const toolSets = getCategoryMerchandising({ slug: 'automatic-tool-sets' });
+  assert.ok(toolSets);
+  assert.ok(toolSets.intents.length > 0);
+  assert.ok(toolSets.intents.every((intent) => resolveIntentTarget(intent, []) === null));
 });
