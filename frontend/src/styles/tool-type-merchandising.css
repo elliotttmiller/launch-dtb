@@ -1,0 +1,27 @@
+.storefront-section__subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.dtb-tool-type-tile__description {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.35rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  line-height: 1.42;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dtb-tool-type-tile__description + .dtb-tool-type-tile__count {
+  margin-top: 0.45rem;
+}
+
+@media (max-width: 767px) {
+  .storefront-section__subtitle {
+    max-width: 34rem;
+  }
+}
