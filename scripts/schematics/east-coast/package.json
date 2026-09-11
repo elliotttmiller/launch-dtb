@@ -1,12 +1,12 @@
 {
-  "name": "@dtb/east-coast-schematic-scraper",
+  "name": "@dtb/east-coast-schematic-extractor",
   "private": true,
   "type": "module",
   "scripts": {
     "scrape": "node ./scrape.mjs",
-    "install-browser": "playwright install chromium"
+    "check": "node --check ./scrape.mjs && node --check ./lib/browserless.mjs && node --check ./lib/io.mjs && node --check ./lib/products.mjs && node --check ./lib/source.mjs && node --check ./lib/validation.mjs"
   },
   "dependencies": {
-    "playwright": "1.55.0"
+    "playwright-core": "1.55.0"
   }
 }
