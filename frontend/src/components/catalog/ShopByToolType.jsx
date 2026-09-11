@@ -5,6 +5,7 @@ import StorefrontRail from '../storefront/StorefrontRail.jsx';
 import { buildCategoryPageUrl } from '../../utils/catalogFacets.js';
 import { resolveCategoryThumbnail } from '../../utils/categoryThumbnailImages.js';
 import '../../styles/category-hero.css';
+import '../../styles/tool-type-merchandising.css';
 
 function ToolTypeTile({ category }) {
   const [imageFailed, setImageFailed] = useState(false);
