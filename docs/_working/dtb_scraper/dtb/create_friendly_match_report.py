@@ -5,10 +5,10 @@ from __future__ import annotations
 import csv
 import html
 from collections import Counter
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from competitor_pricing_core import SITE_LABELS, decimal_price
+from competitor_pricing_core import SITE_LABELS
 
 ROOT = Path(__file__).resolve().parent
 REPORT_DIR = ROOT / "reports" / "competitor-catalog"
@@ -36,8 +36,20 @@ def write_csv(path: Path, rows: list[dict[str, str]], fields: list[str] | None =
         writer.writeheader(); writer.writerows(rows)
 
 
+def signed_decimal(value: str) -> Decimal | None:
+    """Parse signed display/analysis deltas without treating negatives as invalid prices."""
+    raw = (value or "").strip().replace("$", "").replace(",", "")
+    if not raw:
+        return None
+    try:
+        amount = Decimal(raw)
+    except InvalidOperation:
+        return None
+    return amount if amount.is_finite() else None
+
+
 def display_money(value: str) -> str:
-    amount = decimal_price(value)
+    amount = signed_decimal(value)
     if amount is None:
         return ""
     sign = "-" if amount < 0 else ""
@@ -91,7 +103,7 @@ def main() -> int:
         if int(row.get("Verified Competitors") or 0) > 0 and row.get("DTB vs Median")
     ]
     price_gap_rows.sort(
-        key=lambda row: abs(decimal_price(row.get("DTB vs Median", "")) or Decimal("0")),
+        key=lambda row: abs(signed_decimal(row.get("DTB vs Median", "")) or Decimal("0")),
         reverse=True,
     )
     write_csv(OUTPUT_PRICE_GAPS_CSV, price_gap_rows, reader_fields)
@@ -149,7 +161,7 @@ Fuzzy and near-identical title matches are **never auto-accepted**.
 
 ## Price Semantics
 
-`DTB Effective Price` uses the sale price when a sale price is present, otherwise the regular price. `DTB vs Lowest` and `DTB vs Median` are calculated as **DTB effective price minus competitor price**; positive values mean DTB is higher.
+`DTB Effective Price` uses the sale price when a sale price is present, otherwise the regular price. `DTB vs Lowest` and `DTB vs Median` are calculated as **DTB effective price minus competitor price**; positive values mean DTB is higher and negative values mean DTB is lower.
 
 ## Status Breakdown
 
@@ -185,7 +197,7 @@ table{{border-collapse:collapse;width:100%;font-size:13px;margin:12px 0 28px}} t
 <h1>DTB Competitor Market Evidence</h1>
 <p>Manufacturer-scoped, contradiction-aware competitor pricing evidence. Fuzzy matches are review-only.</p>
 <div class="cards"><div class="card"><strong>{len(market):,}</strong>DTB products</div><div class="card"><strong>{verified_products:,}</strong>with verified evidence</div><div class="card"><strong>{multi_source:,}</strong>multi-source verified</div><div class="card"><strong>{fully_unmatched:,}</strong>fully unmatched</div></div>
-<div class="note"><strong>Pricing guardrail:</strong> Only verified identity evidence participates in market low/high/median calculations. Positive DTB-vs-market values mean DTB is priced higher.</div>
+<div class="note"><strong>Pricing guardrail:</strong> Only verified identity evidence participates in market low/high/median calculations. Positive DTB-vs-market values mean DTB is priced higher; negative values mean DTB is lower.</div>
 <h2>Largest Verified Median Price Gaps</h2><div class="table-wrap">{table_html(top_gaps,["Status","DTB Product","DTB SKU","DTB Effective Price","Verified Competitors","Lowest Verified Price","Median Verified Price","DTB vs Median"])}</div>
 <h2>Highest-Priority Review Candidates</h2><div class="table-wrap">{table_html(top_review,["Match Method","Contradictions","DTB Product","DTB SKU","Competitor Source","Competitor Product Name","Competitor SKU","Competitor Price"])}</div>
 </main></body></html>"""
