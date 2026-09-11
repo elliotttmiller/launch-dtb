@@ -169,28 +169,33 @@ async function bootstrap(page, settleMs) {
 export async function resolveProductsGlobally(handles, options, runDir) {
   const productMap = new Map();
   const pending = [];
+  const sessionRetryCounts = new Map();
   for (const handle of handles) {
     const cached = await loadCache(options, handle);
     if (cached) productMap.set(handle, cached);
     else pending.push(handle);
   }
 
-  let offset = 0;
-  while (offset < pending.length) {
-    const batch = pending.slice(offset, offset + options.productBatchSize);
-    offset += batch.length;
+  while (pending.length) {
+    const batch = pending.splice(0, options.productBatchSize);
     let session = null;
     try {
       session = await openBrowserlessSession(options.browserless, options.timeoutMs);
       await bootstrap(session.page, options.settleMs);
-      process.stdout.write(`[products] Browserless batch ${Math.ceil(offset / options.productBatchSize)}/${Math.ceil(pending.length / options.productBatchSize)} (${batch.length})\n`);
+      process.stdout.write(`[products] Browserless session (${batch.length} handles; ${pending.length} queued)\n`);
       for (let i = 0; i < batch.length; i += 1) {
         if (i > 0) await session.page.waitForTimeout(options.productDelayMs);
-        const record = await resolveOne(session.page, batch[i], options, runDir);
-        productMap.set(batch[i], record);
+        const handle = batch[i];
+        const record = await resolveOne(session.page, handle, options, runDir);
+        if (record.classification === 'rate_limited_retry_exhausted' && (sessionRetryCounts.get(handle) || 0) < 1) {
+          sessionRetryCounts.set(handle, (sessionRetryCounts.get(handle) || 0) + 1);
+          pending.unshift(handle, ...batch.slice(i + 1));
+          break;
+        }
+        productMap.set(handle, record);
         await saveCache(options, record);
         if (record.classification === 'rate_limited_retry_exhausted') {
-          for (let j = i + 1; j < batch.length; j += 1) pending.splice(offset, 0, batch[j]);
+          pending.unshift(...batch.slice(i + 1));
           break;
         }
       }
