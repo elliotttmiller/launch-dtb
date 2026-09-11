@@ -175,6 +175,21 @@ If one verified site shows a different amount, the result is `MARKET_PRICE_CONFL
 
 Identical retailer prices prove observed agreement only. They must not be labeled MAP, MSRP, or manufacturer-enforced pricing unless independent policy evidence establishes that.
 
+## Conflict diagnosis
+
+`analyze_competitor_price_conflicts.py` runs immediately after the cross-retailer comparison and classifies every `MARKET_PRICE_CONFLICT` without changing its market-price status.
+
+It distinguishes:
+
+- two retailers agree and one retailer is an outlier;
+- all three verified prices are distinct;
+- two-source disagreements;
+- same-retailer duplicate-price conflicts;
+- exact multiplicative price relationships commonly associated with pack/unit mismatches;
+- small price drift versus larger possible sale/stale-price differences.
+
+The audit identifies the outlier retailer when two sources agree and emits both product-level detail and aggregate counts. These diagnostics are evidence for fixing extraction or offer normalization; they never choose a market price.
+
 ## DTB versus market semantics
 
 When and only when a market price is established:
@@ -278,6 +293,7 @@ The pricing composition root executes:
 finalize_scrape_outputs.py
 filter_current_dtb_brands.py
 create_competitor_price_comparison.py
+analyze_competitor_price_conflicts.py
 match_official_catalog_to_competitors.py
 create_friendly_match_report.py
 ```
@@ -290,6 +306,8 @@ A new full scrape is not required merely because downstream market-price semanti
 - `current_dtb_brand_filter_summary.csv` — accepted/rejected brand-classification telemetry.
 - `competitor_price_comparison_by_sku.csv` — manufacturer-scoped cross-retailer observed-price comparison; compatibility filename only, not a global SKU join.
 - `competitor_price_comparison_review.csv` — rows lacking a safe manufacturer-scoped identity.
+- `competitor_price_conflict_audit.csv` — one row per market-price conflict with conflict pattern, probable cause, outlier retailer, spread, pack-factor diagnostics, retailer prices, and product titles.
+- `competitor_price_conflict_summary.csv` — aggregate conflict-pattern, probable-cause, outlier-retailer, and pack-factor counts.
 - `dtb_official_competitor_matches.csv` — full technical candidate evidence ledger.
 - `dtb_official_competitor_best_matches.csv` — compatibility filename; one aggregate row per eligible DTB pricing target.
 - `dtb_official_competitor_unmatched.csv` — eligible DTB targets with no verified or review candidate evidence.
