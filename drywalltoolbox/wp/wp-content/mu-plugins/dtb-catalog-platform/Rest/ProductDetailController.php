@@ -83,38 +83,64 @@ final class DTB_ProductDetailController {
 		$variation_diagnostics = method_exists( 'DTB_VariationReadModelService', 'get_last_diagnostics' )
 			? DTB_VariationReadModelService::get_last_diagnostics()
 			: [ 'available' => false ];
-		$related_products = self::get_related_products( $product['id'] );
+		$related = self::get_related_products( $product );
 
 		return new WP_REST_Response( [
 			'product'         => $product,
 			'variations'      => $variations,
-			'relatedProducts' => $related_products,
+			'relatedProducts' => $related['products'],
 			'computed'        => [
-				'defaultVariation'      => $default_var,
-				'hasInStockVariation'   => $in_stock_count > 0,
-				'variationCount'        => count( $variations ),
-				'inStockVariationCount' => $in_stock_count,
-				'variationMatrix'       => dtb_catalog_build_variation_matrix( $variations ),
-				'variationDiagnostics'  => $variation_diagnostics,
+				'defaultVariation'       => $default_var,
+				'hasInStockVariation'    => $in_stock_count > 0,
+				'variationCount'         => count( $variations ),
+				'inStockVariationCount'  => $in_stock_count,
+				'variationMatrix'        => dtb_catalog_build_variation_matrix( $variations ),
+				'variationDiagnostics'   => $variation_diagnostics,
+				'relatedProductsContext' => $related['context'],
 			],
 		], 200 );
 	}
 
-	/** Build the public PDP merchandising rail from WooCommerce relationships. */
-	private static function get_related_products( int $product_id ): array {
-		$source_product = wc_get_product( $product_id );
-		if ( ! $source_product ) {
-			return [];
+	/**
+	 * Build the public PDP merchandising rail.
+	 *
+	 * Canonical compatibility relationships are preferred. WooCommerce upsells
+	 * and related products remain a bounded fallback when compatibility coverage
+	 * is absent. Compatibility lookup stays owned by DTB_CompatiblePartsController.
+	 *
+	 * @return array{products:array<int,array<string,mixed>>,context:string}
+	 */
+	private static function get_related_products( array $product ): array {
+		$product_id = absint( $product['id'] ?? 0 );
+		if ( $product_id <= 0 ) {
+			return [ 'products' => [], 'context' => 'related' ];
 		}
 
-		$candidate_ids = array_merge(
+		$source_product = wc_get_product( $product_id );
+		if ( ! $source_product ) {
+			return [ 'products' => [], 'context' => 'related' ];
+		}
+
+		$compatibility_dtos = self::get_compatibility_candidates( $product );
+		$compatibility_ids  = array_values( array_filter( array_map(
+			static fn( array $dto ): int => absint( $dto['id'] ?? 0 ),
+			$compatibility_dtos
+		) ) );
+		$fallback_ids       = array_merge(
 			$source_product->get_upsell_ids(),
 			wc_get_related_products( $product_id, self::RELATED_PRODUCT_LIMIT * 2, [ $product_id ] )
 		);
-		$candidate_ids = array_values( array_unique( array_filter( array_map( 'absint', $candidate_ids ) ) ) );
-		$visible_ids   = [];
+		$candidate_ids = array_values( array_unique( array_filter( array_map(
+			'absint',
+			array_merge( $compatibility_ids, $fallback_ids )
+		) ) ) );
+		$visible_ids = [];
 
 		foreach ( $candidate_ids as $candidate_id ) {
+			if ( $candidate_id === $product_id ) {
+				continue;
+			}
+
 			$candidate = wc_get_product( $candidate_id );
 			if ( ! $candidate || 'publish' !== get_post_status( $candidate_id ) || ! $candidate->is_visible() ) {
 				continue;
@@ -126,10 +152,34 @@ final class DTB_ProductDetailController {
 			}
 		}
 
-		return array_values( array_map(
+		$normalized = array_values( array_map(
 			'dtb_catalog_normalize_product',
 			dtb_catalog_wc_fetch_products_by_ids( $visible_ids )
 		) );
+		$has_visible_compatibility = ! empty( array_intersect( $visible_ids, $compatibility_ids ) );
+
+		return [
+			'products' => $normalized,
+			'context'  => $has_visible_compatibility
+				? ( ! empty( $product['isParts'] ) ? 'compatible_tools' : 'compatible_parts' )
+				: 'related',
+		];
+	}
+
+	/**
+	 * Read a bounded compatibility slice from the existing compatibility owner.
+	 *
+	 * @return array<int,array<string,mixed>>
+	 */
+	private static function get_compatibility_candidates( array $product ): array {
+		$sku = strtoupper( trim( (string) ( $product['sku'] ?? '' ) ) );
+		if ( '' === $sku ) {
+			return [];
+		}
+
+		return ! empty( $product['isParts'] )
+			? DTB_CompatiblePartsController::get_compatible_tools_for_part_sku( $sku, self::RELATED_PRODUCT_LIMIT )
+			: DTB_CompatiblePartsController::get_compatible_parts_for_tool_sku( $sku, self::RELATED_PRODUCT_LIMIT );
 	}
 
 	/** GET /dtb/v1/catalog/products/:id/variations */

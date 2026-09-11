@@ -47,7 +47,35 @@ Tool Sets are treated as a high-consideration buying context, not as a separate 
 
 These intent cards are informational unless they resolve to an authoritative category route. They do not implement product comparison, synthetic filters, inferred set membership, or frontend-owned bundle composition.
 
+Product cards may summarize set contents only from the structured `_includes_<n>_name` / `_includes_<n>_sku` metadata already carried by the canonical catalog DTO. `frontend/src/utils/productMerchandising.js` parses that structured metadata and refuses to infer set contents from product names, descriptions, brand, or category proximity. If structured includes data is absent, no set-content claim is rendered.
+
 Actual set contents, current price, availability, savings, warranty, and compatibility must come from authoritative product/catalog data before those facts are rendered as product-specific claims. Contractors are directed to the live catalog and product details for those commerce facts.
+
+## Child-category workflow context
+
+Selected automatic-finishing child categories may render a compact workflow orientation such as:
+
+```text
+Load compound -> Apply tape -> Finish flats -> Finish corners
+```
+
+This is presentation context only. It does not create category routes, filter state, compatibility relationships, or another workflow taxonomy. The highlighted step is keyed from the existing category identity and the strip is intentionally non-navigational so canonical catalog navigation remains authoritative.
+
+The workflow context must remain small enough that expert users can proceed directly to filtering and product selection without additional interaction.
+
+## Compatibility-aware PDP merchandising
+
+The existing product-detail `relatedProducts` rail remains the single PDP recommendation surface.
+
+`dtb-catalog-platform` now prioritizes products that are explicitly connected through canonical compatibility metadata before falling back to the existing WooCommerce upsell/related-product relationships. It does not infer compatibility from product names, brands, descriptions, taxonomy proximity, or fuzzy matching.
+
+For tool products, compatibility candidates are parts whose canonical `COMPATIBLE_TOOL_SKUS` or `REPLACEMENT_PART_FOR` metadata contains the exact tool SKU. The initial meta lookup is bounded and every candidate is re-read and exact-membership checked before it can enter the rail, preventing substring matches from becoming compatibility claims.
+
+For part products, compatible tool SKUs already present in the normalized compatibility DTO are resolved through WooCommerce's indexed SKU lookup. Candidate count and the rendered rail remain bounded by the existing PDP related-product limit.
+
+If no visible compatibility-backed candidate exists, the PDP retains its existing WooCommerce merchandising fallback. This preserves useful related products without creating a second recommendation service or weakening compatibility ownership.
+
+The product-detail computed envelope may identify whether the selected rail is compatibility-backed or generic merchandising context. That flag is presentation context only and is not a persisted compatibility relationship.
 
 ## Repair merchandising relationship
 
@@ -61,4 +89,21 @@ Repair-specific visual refinements used by `RepairLanding.jsx` are loaded after 
 
 Contractor-intent navigation must preserve semantic links and headings, visible keyboard focus, mobile-first layouts, reduced-motion behavior, and non-hover access to information.
 
-The merchandising layer must not introduce per-card network requests. Category intent renders from data already available to the route. Any future compatibility or availability enhancement must batch or reuse existing catalog contracts rather than creating N+1 fetch patterns.
+Tool-set contents summaries are supplemental text inside existing product cards and require no additional requests. Workflow context uses semantic ordered-list markup and `aria-current="step"` for the active stage.
+
+The merchandising layer must not introduce per-card network requests. Category intent and Tool Set summaries render from data already available to the route. Compatibility-aware PDP recommendations are assembled inside the existing product-detail request rather than adding a second browser request.
+
+## Scope boundary
+
+These enhancements deliberately do not introduce:
+
+- a new merchandising service or persistence table;
+- a second taxonomy or contractor-intent taxonomy;
+- frontend-owned compatibility;
+- a bundle/composition engine;
+- product comparison infrastructure;
+- recommendation machine learning or fuzzy product matching;
+- additional PDP recommendation endpoints;
+- new global frontend state.
+
+Future shopping features should extend these existing contracts only when an authoritative data source already exists and the customer value justifies the additional complexity.
