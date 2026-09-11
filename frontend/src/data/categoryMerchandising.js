@@ -15,7 +15,7 @@ const CATEGORY_INTENT_CONFIG = {
       { label: 'Load', description: 'Move compound into tapers, boxes, and corner tools.', targetSlugs: ['pumps', 'mud-pans-and-pumps'] },
       { label: 'Finish flats', description: 'Finish flat joints with controlled compound application.', targetSlugs: ['finishing-boxes', 'flat-boxes'] },
       { label: 'Finish corners', description: 'Roll, apply, and finish inside corners.', targetSlugs: ['corner-tools', 'angle-heads', 'automatic-angle-heads'] },
-      { label: 'Complete systems', description: 'Shop coordinated tool sets for a complete workflow.', targetSlugs: ['automatic-tool-sets', 'tool-sets-and-kits', 'toolsets'] },
+      { label: 'Complete systems', description: 'Shop coordinated tool sets for a complete workflow.', targetSlugs: ['tool-sets-kits', 'automatic-tool-sets', 'tool-sets-and-kits', 'toolsets'] },
     ],
   },
   'semi-automatic-tools': {
@@ -59,6 +59,9 @@ const CATEGORY_INTENT_CONFIG = {
     },
   },
   toolsets: {
+    aliasOf: 'automatic-tool-sets',
+  },
+  'tool-sets-kits': {
     aliasOf: 'automatic-tool-sets',
   },
   'tool-sets-and-kits': {
