@@ -1,0 +1,5 @@
+brand_key,canonical_identifier,alias_identifier,status,evidence
+columbia,CT103,CT-103,approved,"products/launch/official/dtb_official_catalog.csv uses CT103; docs/pricing_engine/reports/columbia_price_backfill_report.csv maps CT103 to CT-103; frontend Columbia schematic names CT-103 with sku CT103"
+columbia,CT104,CT-104,approved,"products/launch/official/dtb_official_catalog.csv uses CT104; docs/pricing_engine/reports/columbia_price_backfill_report.csv maps CT104 to CT-104"
+columbia,CT105,CT-105,approved,"products/launch/official/dtb_official_catalog.csv uses CT105; docs/pricing_engine/reports/columbia_price_backfill_report.csv maps CT105 to CT-105"
+columbia,CT111,CT-111,approved,"products/launch/official/dtb_official_catalog.csv uses CT111; docs/pricing_engine/reports/columbia_price_backfill_report.csv maps CT111 to CT-111"
