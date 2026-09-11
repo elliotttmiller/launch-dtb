@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
+import CategoryMerchandising from './CategoryMerchandising.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
 
@@ -39,7 +40,9 @@ export function CategoryHeroSkeleton() {
  *
  * Presentation is standardized across every category route: content occupies
  * the left side of one bounded hero surface and dedicated category artwork
- * fills the right-side media viewport without stretching.
+ * fills the right-side media viewport without stretching. Contractor-intent
+ * merchandising is an additive presentation layer over the same authoritative
+ * category metadata; it never defines taxonomy or product truth.
  */
 export default function CategoryHero({ category, breadcrumbs = [] }) {
   const resolvedHero = resolveCategoryHeroImage(category || {});
@@ -66,35 +69,39 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
   const eyebrow = parent?.label || '';
 
   return (
-    <div className={`dtb-category-hero mb-5 sm:mb-6${heroReady ? ' is-ready' : ' is-loading'}`}>
-      <div className="dtb-category-hero__breadcrumb-stage">
-        <div className="dtb-category-hero__breadcrumb-content">
-          <Breadcrumb items={breadcrumbs} />
+    <>
+      <div className={`dtb-category-hero mb-5 sm:mb-6${heroReady ? ' is-ready' : ' is-loading'}`}>
+        <div className="dtb-category-hero__breadcrumb-stage">
+          <div className="dtb-category-hero__breadcrumb-content">
+            <Breadcrumb items={breadcrumbs} />
+          </div>
+          <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
+            <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
+          </div>
         </div>
-        <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
-          <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
+
+        <div className="dtb-category-hero-card">
+          <div className="dtb-category-hero-card__loading-layer" aria-hidden="true">
+            <CategoryHeroSkeletonCard />
+          </div>
+
+          <div className="dtb-category-hero-card__content">
+            {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
+            <h1 className="dtb-category-hero-card__title">{label}</h1>
+            <p className="dtb-category-hero-card__description">{displayDescription}</p>
+          </div>
+
+          <CategoryHeroMedia
+            key={`${resolvedHero.src}|${resolvedHero.srcSet}`}
+            resolvedHero={resolvedHero}
+            initiallyReady={heroReady}
+            onReady={handleHeroReady}
+          />
         </div>
       </div>
 
-      <div className="dtb-category-hero-card">
-        <div className="dtb-category-hero-card__loading-layer" aria-hidden="true">
-          <CategoryHeroSkeletonCard />
-        </div>
-
-        <div className="dtb-category-hero-card__content">
-          {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
-          <h1 className="dtb-category-hero-card__title">{label}</h1>
-          <p className="dtb-category-hero-card__description">{displayDescription}</p>
-        </div>
-
-        <CategoryHeroMedia
-          key={`${resolvedHero.src}|${resolvedHero.srcSet}`}
-          resolvedHero={resolvedHero}
-          initiallyReady={heroReady}
-          onReady={handleHeroReady}
-        />
-      </div>
-    </div>
+      <CategoryMerchandising category={category} />
+    </>
   );
 }
 
