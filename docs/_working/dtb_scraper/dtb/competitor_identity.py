@@ -73,12 +73,22 @@ def approved_alias_map() -> dict[tuple[str, str], str]:
 
 
 def resolved_identifier(brand_key: str, identifier: str) -> str:
-    """Resolve strict identifier through approved brand-scoped aliases only."""
+    """Resolve strict identifier through approved aliases only.
+
+    Normal operation is brand-scoped. If the caller has no brand, an alias is
+    resolved only when every approved occurrence of that strict alias maps to the
+    same canonical identifier across brands. This supports contradiction checks
+    in legacy call sites without weakening cross-brand identity safety.
+    """
     strict = canonical_identifier(identifier)
     brand = (brand_key or "").strip().casefold()
-    if not strict or not brand:
+    if not strict:
         return strict
-    return approved_alias_map().get((brand, strict), strict)
+    aliases = approved_alias_map()
+    if brand:
+        return aliases.get((brand, strict), strict)
+    candidates = {canonical for (candidate_brand, alias), canonical in aliases.items() if alias == strict}
+    return next(iter(candidates)) if len(candidates) == 1 else strict
 
 
 def identity_key(brand_key: str, identifier: str) -> str:
