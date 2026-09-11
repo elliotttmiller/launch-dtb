@@ -5,6 +5,12 @@ This script joins the derived two-source conflict report back to the scraper's
 internal ``products.jsonl`` evidence. The public five-column catalog contract is
 left unchanged. Provenance is diagnostic only and never mutates competitor or
 DTB prices.
+
+Raw field names and normalized commercial semantics are reported separately.
+For example, a storefront may expose the same current amount in both ``price``
+and ``regular_price``. That is raw-field duplication, not automatically a
+commercial-semantic mismatch against another storefront that exposes only
+``price``.
 """
 from __future__ import annotations
 
@@ -27,8 +33,9 @@ SUMMARY = REPORT_DIR / "competitor_price_provenance_summary.csv"
 SITE_LABEL_ORDER = tuple(SITE_LABELS[key] for key in SITE_KEYS)
 LABEL_TO_KEY = {label: key for key, label in SITE_LABELS.items()}
 PROVENANCE_SUFFIXES = (
-    "Observed Price", "Raw Price Basis", "Raw Price", "Regular Price", "Sale Price",
-    "Currency", "Availability", "Parse Method", "Retrieved At", "Product URL", "Source Hash",
+    "Observed Price", "Raw Field Matches", "Normalized Price Semantic", "Raw Price",
+    "Regular Price", "Sale Price", "Currency", "Availability", "Parse Method",
+    "Retrieved At", "Product URL", "Source Hash",
 )
 
 
@@ -47,26 +54,42 @@ def money(value: Decimal | None) -> str:
     return "" if value is None else f"{value:.2f}"
 
 
-def raw_price_basis(record: dict[str, object], observed: Decimal | None) -> str:
+def price_provenance(record: dict[str, object], observed: Decimal | None) -> tuple[str, str]:
+    """Return raw field matches plus one normalized price semantic.
+
+    The normalized semantic intentionally avoids treating duplicate raw fields as
+    distinct commercial meanings. ``price=10`` and ``regular_price=10`` with no
+    distinct sale amount is classified as CURRENT_PRICE, while an explicitly
+    lower sale price remains SALE_PRICE and a distinct regular amount remains
+    REGULAR_PRICE.
+    """
     if observed is None:
-        return "observed_price_missing"
+        return "", "OBSERVED_PRICE_MISSING"
+
     price = decimal_price(record.get("price"))
     regular = decimal_price(record.get("regular_price"))
     sale = decimal_price(record.get("sale_price"))
+
     matches: list[str] = []
-    if sale is not None and sale == observed:
-        matches.append("sale_price")
-    if regular is not None and regular == observed:
-        matches.append("regular_price")
     if price is not None and price == observed:
         matches.append("price")
+    if regular is not None and regular == observed:
+        matches.append("regular_price")
+    if sale is not None and sale == observed:
+        matches.append("sale_price")
     if not matches:
-        return "not_reconciled_to_raw_fields"
-    if sale is not None and regular is not None and sale != regular and "sale_price" in matches:
-        return "sale_price"
-    if sale is not None and regular is not None and sale != regular and "regular_price" in matches:
-        return "regular_price"
-    return "+".join(matches)
+        return "", "NOT_RECONCILED_TO_RAW_FIELDS"
+
+    distinct_sale = sale is not None and regular is not None and sale != regular
+    if distinct_sale and sale == observed:
+        return "+".join(matches), "SALE_PRICE"
+    if distinct_sale and regular == observed and sale != observed:
+        return "+".join(matches), "REGULAR_PRICE"
+
+    # No explicit sale-vs-regular distinction exists. The observed storefront
+    # amount is the current displayed price even if a platform duplicates it into
+    # both generic and regular-price fields.
+    return "+".join(matches), "CURRENT_PRICE"
 
 
 def load_provenance_index() -> dict[tuple[str, str], list[dict[str, object]]]:
@@ -111,21 +134,28 @@ def choose_record(records: list[dict[str, object]], observed: Decimal | None) ->
     return max(records, key=lambda row: str(row.get("retrieved_at") or ""))
 
 
-def pair_semantics(left_basis: str, right_basis: str, left_found: bool, right_found: bool) -> str:
+def pair_semantics(left_semantic: str, right_semantic: str, left_found: bool, right_found: bool) -> str:
     if not left_found or not right_found:
         return "PROVENANCE_INCOMPLETE"
-    if "not_reconciled" in left_basis or "not_reconciled" in right_basis:
+    if "NOT_RECONCILED" in {left_semantic, right_semantic} or (
+        left_semantic == "NOT_RECONCILED_TO_RAW_FIELDS" or right_semantic == "NOT_RECONCILED_TO_RAW_FIELDS"
+    ):
         return "RAW_FIELD_RECONCILIATION_REQUIRED"
-    if {left_basis, right_basis} == {"sale_price", "regular_price"}:
-        return "SALE_VS_REGULAR_FIELD"
-    if left_basis == right_basis:
-        return "SAME_PRICE_FIELD_SEMANTIC_DIFFERENT_AMOUNT"
-    return "DIFFERENT_RAW_PRICE_FIELD_SEMANTICS"
+    if left_semantic == right_semantic:
+        return "SAME_PRICE_SEMANTIC_DIFFERENT_AMOUNT"
+    semantic_pair = {left_semantic, right_semantic}
+    if semantic_pair == {"SALE_PRICE", "REGULAR_PRICE"}:
+        return "SALE_VS_REGULAR_PRICE"
+    if semantic_pair == {"SALE_PRICE", "CURRENT_PRICE"}:
+        return "SALE_VS_CURRENT_PRICE"
+    if semantic_pair == {"REGULAR_PRICE", "CURRENT_PRICE"}:
+        return "REGULAR_VS_CURRENT_PRICE"
+    return "DIFFERENT_NORMALIZED_PRICE_SEMANTICS"
 
 
 def empty_provenance() -> dict[str, str]:
     return {
-        "found": "no", "basis": "not_in_conflict_pair", "url": "", "canonical_url": "",
+        "found": "no", "raw_matches": "", "semantic": "NOT_IN_CONFLICT_PAIR", "url": "", "canonical_url": "",
         "raw_price": "", "regular_price": "", "sale_price": "", "currency": "",
         "availability": "", "parse_method": "", "retrieved_at": "", "source_hash": "",
     }
@@ -135,7 +165,8 @@ def main() -> int:
     provenance = load_provenance_index()
     rows: list[dict[str, str]] = []
     semantic_counts: Counter[str] = Counter()
-    basis_counts: Counter[str] = Counter()
+    normalized_semantic_counts: Counter[str] = Counter()
+    raw_match_counts: Counter[str] = Counter()
     priority_counts: Counter[str] = Counter()
     missing_provenance = 0
 
@@ -166,12 +197,13 @@ def main() -> int:
                 record = choose_record(candidates, observed)
                 if record is None:
                     missing_provenance += 1
-                    site_data[label]["basis"] = "provenance_missing"
+                    site_data[label]["semantic"] = "PROVENANCE_MISSING"
                     continue
-                basis = raw_price_basis(record, observed)
-                basis_counts[f"{label}:{basis}"] += 1
+                raw_matches, normalized_semantic = price_provenance(record, observed)
+                raw_match_counts[f"{label}:{raw_matches or 'none'}"] += 1
+                normalized_semantic_counts[f"{label}:{normalized_semantic}"] += 1
                 site_data[label] = {
-                    "found": "yes", "basis": basis,
+                    "found": "yes", "raw_matches": raw_matches, "semantic": normalized_semantic,
                     "url": str(record.get("url") or ""),
                     "canonical_url": str(record.get("canonical_url") or ""),
                     "raw_price": money(decimal_price(record.get("price"))),
@@ -186,7 +218,7 @@ def main() -> int:
 
             left, right = pair
             semantic = pair_semantics(
-                site_data[left]["basis"], site_data[right]["basis"],
+                site_data[left]["semantic"], site_data[right]["semantic"],
                 site_data[left]["found"] == "yes", site_data[right]["found"] == "yes",
             )
             semantic_counts[semantic] += 1
@@ -204,7 +236,8 @@ def main() -> int:
             for label in SITE_LABEL_ORDER:
                 data = site_data[label]
                 out[f"{label} Observed Price"] = conflict.get(f"{label} Price", "")
-                out[f"{label} Raw Price Basis"] = data["basis"]
+                out[f"{label} Raw Field Matches"] = data["raw_matches"]
+                out[f"{label} Normalized Price Semantic"] = data["semantic"]
                 out[f"{label} Raw Price"] = data["raw_price"]
                 out[f"{label} Regular Price"] = data["regular_price"]
                 out[f"{label} Sale Price"] = data["sale_price"]
@@ -239,8 +272,10 @@ def main() -> int:
             writer.writerow(["priority", value, count])
         for value, count in sorted(semantic_counts.items()):
             writer.writerow(["price_semantic_classification", value, count])
-        for value, count in sorted(basis_counts.items()):
-            writer.writerow(["retailer_raw_price_basis", value, count])
+        for value, count in sorted(normalized_semantic_counts.items()):
+            writer.writerow(["retailer_normalized_price_semantic", value, count])
+        for value, count in sorted(raw_match_counts.items()):
+            writer.writerow(["retailer_raw_field_matches", value, count])
 
     print(f"Audited raw price provenance for {len(rows)} two-source conflicts to {OUTPUT}")
     for value, count in sorted(priority_counts.items()):
