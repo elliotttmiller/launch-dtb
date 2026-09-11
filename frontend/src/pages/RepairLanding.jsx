@@ -9,20 +9,35 @@ const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.loc
 
 const PROCESS_STEPS = [
   {
-    title: 'Choose a service path',
-    description: 'Start a repair, select a service package, or request a diagnostic when the issue is unclear.',
+    title: 'Identify the tool',
+    description: 'Tell us the brand, tool family, model, symptoms, and service goal. Photos can be added during intake.',
   },
   {
-    title: 'Send us your tool',
-    description: 'Ship the tool to DTB or choose an eligible drop-off option during intake.',
+    title: 'Choose service and shipping',
+    description: 'Select a repair package or diagnostic path, then choose how the tool gets to DTB and how it should return.',
   },
   {
-    title: 'Review and approve',
-    description: 'We inspect the tool, confirm the required work, and request approval when additional service is needed.',
+    title: 'Inspect and approve',
+    description: 'We inspect the tool and follow the approval rules you select. Additional quote-first work waits for your approval.',
   },
   {
-    title: 'Repair and return',
-    description: 'We complete the approved work, function-test the tool, and return it using your selected delivery method.',
+    title: 'Repair, test, and return',
+    description: 'Approved work is completed, the tool is function-tested, and repair status stays available through return shipping.',
+  },
+];
+
+const ASSURANCE_ITEMS = [
+  {
+    title: 'You control additional work',
+    description: 'Choose quote-required approval or an eligible pre-approval limit during intake so inspection findings do not become surprise work.',
+  },
+  {
+    title: 'Structured tool intake',
+    description: 'Brand, tool family, model, symptoms, photos, shipping preferences, warranty review, and service package stay tied to one repair request.',
+  },
+  {
+    title: 'Track the repair',
+    description: 'Use your repair number and token to review the current status and any next action without starting a separate support thread.',
   },
 ];
 
@@ -46,6 +61,14 @@ const FAQ_ITEMS = [
   {
     question: 'How do I get the tool to DTB?',
     answer: 'Choose shipping or an eligible drop-off option during intake. You will also select your return delivery preference.',
+  },
+  {
+    question: 'Can I request faster service?',
+    answer: 'Repair intake exposes the service-priority options currently supported for the request. Availability and timing are confirmed through the repair workflow rather than promised on this page.',
+  },
+  {
+    question: 'Can replaced parts be returned with my tool?',
+    answer: 'Yes. Intake includes an old-parts preference so you can request that replaced parts be returned instead of recycled or discarded.',
   },
   {
     question: 'Can I track an existing repair?',
@@ -75,7 +98,7 @@ export default function RepairLanding() {
               <span>Back on the Job.</span>
             </h1>
             <p className="repair-hero__lead">
-              Professional repair, rebuild, and diagnostics for automatic drywall finishing tools. Choose the service you need, approve any additional work, and track your repair through return.
+              Choose a repair package or diagnostic, send your tool to DTB, approve any additional quote-first work, and track the repair through return shipping.
             </p>
 
             <div className="repair-hero__actions" aria-label="Repair service actions">
@@ -84,7 +107,7 @@ export default function RepairLanding() {
                 <span aria-hidden="true">→</span>
               </Link>
               <Link className="repair-button repair-button--secondary" to="/repairs/packages">
-                Repair Packages
+                Compare Packages
                 <span aria-hidden="true">→</span>
               </Link>
               <Link className="repair-button repair-button--utility" to="/repairs/track">
@@ -94,10 +117,49 @@ export default function RepairLanding() {
             </div>
 
             <div className="repair-hero__assurance" aria-label="Repair service highlights">
-              <span>Major tool categories</span>
-              <span>Quote approval options</span>
+              <span>Package or diagnostic paths</span>
+              <span>Approval controls</span>
               <span>Repair tracking</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="repair-service-details" aria-labelledby="repair-service-paths-title">
+        <div className="repair-section-shell">
+          <div className="repair-section-heading repair-section-heading--center">
+            <p className="repair-eyebrow">Choose a Service Path</p>
+            <h2 id="repair-service-paths-title">Start with what you know about the tool.</h2>
+            <p>The same repair workflow supports a known service package, a quote-first diagnostic, or a coverage review.</p>
+          </div>
+
+          <div className="repair-service-details__grid">
+            <article className="repair-service-panel">
+              <p className="repair-eyebrow">Standard Service</p>
+              <h2>Know the service you need?</h2>
+              <p>Choose a package built around the tool family and service scope, then continue into the same structured repair intake.</p>
+              <ul>
+                <li>Tool-family service packages and tune-ups</li>
+                <li>Photos, symptoms, shipping, and return preferences</li>
+                <li>Approval rules stay attached to the repair request</li>
+              </ul>
+              <Link to="/repairs/packages">Compare repair packages <span aria-hidden="true">→</span></Link>
+            </article>
+
+            <article className="repair-service-panel repair-service-panel--diagnostic">
+              <p className="repair-eyebrow">Diagnostic & Coverage Review</p>
+              <h2>Not sure what is wrong?</h2>
+              <p>Start with a diagnostic when the failure is unclear, or flag the request for warranty or coverage review during intake.</p>
+              <ul>
+                <li>Inspection before quote-first repair work begins</li>
+                <li>Warranty or eligibility-review request supported</li>
+                <li>Approval required before additional quote-first work</li>
+              </ul>
+              <Link className="repair-button repair-button--primary" to="/repairs/start?package=dx">
+                Start Diagnostic
+                <span aria-hidden="true">→</span>
+              </Link>
+            </article>
           </div>
         </div>
       </section>
@@ -106,8 +168,8 @@ export default function RepairLanding() {
         <div className="repair-section-shell">
           <div className="repair-section-heading repair-section-heading--center">
             <p className="repair-eyebrow">Repair Workflow</p>
-            <h2 id="repair-process-title">How Repairs Work</h2>
-            <p>A straightforward process from intake to return.</p>
+            <h2 id="repair-process-title">Know what happens before you send the tool.</h2>
+            <p>A single request stays tied to the tool, service choice, approval rules, shipping preferences, and repair status.</p>
           </div>
 
           <ol className="repair-process__grid">
@@ -121,6 +183,24 @@ export default function RepairLanding() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      <section className="repair-assurance" aria-labelledby="repair-assurance-title">
+        <div className="repair-section-shell">
+          <div className="repair-section-heading">
+            <p className="repair-eyebrow">Built for Contractor Downtime</p>
+            <h2 id="repair-assurance-title">Clear decisions. Fewer unknowns.</h2>
+            <p>The repair workflow is designed to keep service scope, approvals, logistics, and status explicit.</p>
+          </div>
+          <div className="repair-assurance__grid">
+            {ASSURANCE_ITEMS.map((item) => (
+              <article className="repair-assurance__item" key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -169,7 +249,7 @@ export default function RepairLanding() {
           <div className="repair-section-heading">
             <p className="repair-eyebrow">Repair FAQ</p>
             <h2 id="repair-faq-title">Before you send your tool.</h2>
-            <p>Key details about service, approval, shipping, and tracking.</p>
+            <p>Key details about service selection, approval, shipping, parts, and tracking.</p>
           </div>
 
           <div className="repair-faq__list">
@@ -192,6 +272,7 @@ export default function RepairLanding() {
           <div className="repair-closing-cta__actions">
             <Link className="repair-button repair-button--primary" to="/repairs/start">Start a Repair <span aria-hidden="true">→</span></Link>
             <Link to="/repairs/packages">View Repair Packages <span aria-hidden="true">→</span></Link>
+            <Link to="/repairs/track">Track Existing Repair <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>
