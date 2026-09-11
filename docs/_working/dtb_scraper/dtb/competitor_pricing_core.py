@@ -485,18 +485,20 @@ def classify_match(
     return MatchDecision("", "", score, wratio, token_set, simple, "", True, (), "")
 
 
-def market_price_decision(values: Iterable[Decimal]) -> MarketPriceDecision:
-    """Establish a market price only from exact cross-retailer agreement.
+def market_price_decision(values: Iterable[Decimal], *, has_conflict: bool = False) -> MarketPriceDecision:
+    """Establish market price only from exact cross-retailer agreement.
 
     No mean, median, midpoint, majority price, or other synthesized price is ever
-    produced. A disagreement between verified retailers is a review condition.
+    produced. Any known retailer-level conflict blocks market-price establishment.
     """
     prices = tuple(value for value in values if value is not None)
+    distinct = tuple(sorted(set(prices)))
+    spread = max(prices) - min(prices) if len(prices) >= 2 else Decimal("0") if prices else None
+
+    if has_conflict:
+        return MarketPriceDecision("MARKET_PRICE_CONFLICT", len(prices), len(distinct), None, prices, spread)
     if not prices:
         return MarketPriceDecision("NO_MARKET_EVIDENCE", 0, 0, None, (), None)
-
-    distinct = tuple(sorted(set(prices)))
-    spread = max(prices) - min(prices) if len(prices) >= 2 else Decimal("0")
     if len(prices) == 1:
         return MarketPriceDecision("MARKET_PRICE_SINGLE_SOURCE", 1, 1, None, prices, spread)
     if len(distinct) > 1:
@@ -572,8 +574,7 @@ def resolve_site_evidence(source_key: str, observations: Sequence[dict[str, str]
 
 def market_status(site_evidence: Sequence[SiteEvidence], review_count: int, market_price_status: str) -> str:
     """Return a business-facing state aligned with the explicit market-price contract."""
-    duplicate_conflict = any(item.quality.startswith("conflicting_") for item in site_evidence)
-    if duplicate_conflict or market_price_status == "MARKET_PRICE_CONFLICT":
+    if market_price_status == "MARKET_PRICE_CONFLICT":
         return "Price Conflict - Review Required"
 
     suffix = " + Review Candidates" if review_count else ""
