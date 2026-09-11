@@ -23,6 +23,7 @@ from competitor_pricing_core import (
     identity_key,
     median_decimal,
     money,
+    price_consensus,
 )
 
 ROOT = Path(__file__).resolve().parent
@@ -85,7 +86,8 @@ def main() -> int:
 
     fields = [
         "Identity Key", "Canonical Brand", "Canonical Identifier", "Source Count",
-        "Observation Count", "Lowest Price", "Highest Price", "Median Price", "Price Spread",
+        "Observation Count", "Distinct Price Count", "Price Consensus", "Consensus Price",
+        "Lowest Price", "Highest Price", "Median Price", "Price Spread",
     ]
     for site_key in SITE_KEYS:
         label = SITE_LABELS[site_key]
@@ -104,9 +106,7 @@ def main() -> int:
         site_resolved = {site: resolve_site(rows) for site, rows in by_site.items()}
         site_prices = [decimal_price(value["price"]) for value in site_resolved.values()]
         site_prices = [price for price in site_prices if price is not None]
-        low = min(site_prices) if site_prices else None
-        high = max(site_prices) if site_prices else None
-        median = median_decimal(site_prices)
+        consensus = price_consensus(site_prices)
         first = records[0]
         row = {
             "Identity Key": key,
@@ -114,10 +114,13 @@ def main() -> int:
             "Canonical Identifier": first.get("SKU", ""),
             "Source Count": str(len(by_site)),
             "Observation Count": str(len(records)),
-            "Lowest Price": money(low),
-            "Highest Price": money(high),
-            "Median Price": money(median),
-            "Price Spread": money(high - low if low is not None and high is not None else None),
+            "Distinct Price Count": str(consensus.distinct_price_count),
+            "Price Consensus": consensus.status,
+            "Consensus Price": money(consensus.consensus_price),
+            "Lowest Price": money(consensus.low),
+            "Highest Price": money(consensus.high),
+            "Median Price": money(consensus.median),
+            "Price Spread": money(consensus.spread),
         }
         for site_key in SITE_KEYS:
             label = SITE_LABELS[site_key]
@@ -131,6 +134,7 @@ def main() -> int:
         output_rows.append(row)
 
     output_rows.sort(key=lambda row: (
+        0 if row["Price Consensus"] == "price_dispersion" else 1,
         -(decimal_price(row["Price Spread"]) or 0),
         row["Canonical Brand"].casefold(), row["Canonical Identifier"].casefold(),
     ))
@@ -144,7 +148,10 @@ def main() -> int:
         writer = csv.DictWriter(handle, fieldnames=review_fields)
         writer.writeheader(); writer.writerows(review_rows)
 
+    exact_consensus = sum(1 for row in output_rows if row["Price Consensus"] == "exact_price_consensus")
+    dispersion = sum(1 for row in output_rows if row["Price Consensus"] == "price_dispersion")
     print(f"Wrote {len(output_rows)} manufacturer-scoped multi-source comparisons to {OUTPUT_CSV}")
+    print(f"Observed exact price consensus: {exact_consensus}; price dispersion: {dispersion}")
     print(f"Wrote {len(review_rows)} unscoped rows to {OUTPUT_REVIEW}")
     return 0
 
