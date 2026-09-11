@@ -31,24 +31,24 @@ A variation may use its parent product name as additional candidate-discovery co
 A competitor product is automatically verified only when:
 
 ```text
-identity_key = canonical_brand + "::" + canonical_identifier
+identity_key = canonical_brand + "::" + resolved_manufacturer_identifier
 ```
 
 and all of the following hold:
 
 1. competitor manufacturer/brand is known;
 2. competitor manufacturer/brand agrees with the DTB product;
-3. the competitor identifier agrees with a DTB SKU/MPN/manufacturer identifier;
-4. no title-extracted identifier contradicts the exported identifier;
+3. the competitor identifier agrees with a DTB SKU/MPN/manufacturer identifier either exactly or through an explicitly approved brand-scoped alias;
+4. no title-extracted identifier contradicts the resolved identifier;
 5. no structured variation evidence contradicts the match.
 
 SKU alone is never a global join key. Unknown-brand exact identifiers, cross-brand collisions, dimensional conflicts, handedness conflicts, pack/count conflicts, generation conflicts, product-family conflicts, fuzzy matches, and near-identical title matches remain review-only.
 
-### Canonical identifier normalization
+### Strict canonical identifier normalization
 
-Manufacturer identifiers are normalized conservatively. The canonical form may normalize Unicode representation, letter case, whitespace, and equivalent Unicode punctuation glyphs, but it must preserve punctuation that can carry identifier meaning, including `-`, `/`, `.`, `+`, and `_`.
+Manufacturer identifiers are normalized conservatively. The strict canonical form may normalize Unicode representation, letter case, whitespace, and equivalent Unicode punctuation glyphs, but it must preserve punctuation that can carry identifier meaning, including `-`, `/`, `.`, `+`, and `_`.
 
-Therefore these identifiers remain distinct unless a manufacturer-specific authoritative rule proves equivalence:
+Therefore these strict identifiers remain distinct unless a brand-scoped approved alias proves equivalence:
 
 ```text
 AH3-2 != AH32
@@ -56,9 +56,58 @@ CT-104 != CT104
 XHTT/NSA != XHTTNSA
 ```
 
-The historical destructive normalization that removed all non-alphanumeric characters is not an identity authority. It may be used only for diagnostics. `competitor_identifier_collision_audit.csv` records cases where multiple distinct canonical identifiers would have collapsed to the same historical compact token. Such collisions must never be merged for matching or market-price calculation.
+The historical destructive normalization that removed all non-alphanumeric characters is not an identity authority. It may be used only for diagnostics. `competitor_identifier_collision_audit.csv` records cases where multiple strict identifiers would have collapsed to the same historical compact token.
 
-Title identifier evidence is validated using the same separator-preserving canonical identifier contract. A row whose title explicitly identifies a different MPN/SKU is quarantined for review and cannot establish market price.
+### Approved manufacturer identifier aliases
+
+Some retailers format a manufacturer identifier differently without changing the underlying product. Those equivalences must never be inferred by a global punctuation-removal rule.
+
+Approved exceptions live in:
+
+```text
+docs/_working/dtb_scraper/dtb/competitor_identifier_aliases.csv
+```
+
+Each active alias is explicitly scoped by:
+
+```text
+brand_key
+canonical_identifier
+alias_identifier
+status=approved
+evidence
+```
+
+The resolver applies an alias only after the manufacturer is known. An alias for one brand never establishes equivalence for another brand. Pending, rejected, missing, or ambiguous aliases have no effect on automatic identity.
+
+The intended resolution order is:
+
+```text
+raw retailer identifier
+        ↓
+strict separator-preserving canonicalization
+        ↓
+brand-scoped approved alias lookup
+        ↓
+protected resolved manufacturer identifier
+        ↓
+title / variation contradiction validation
+        ↓
+verified identity
+```
+
+This permits explicitly evidenced mappings such as a retailer-formatted `CT-103` to the protected Columbia identifier `CT103` while leaving unrelated forms such as `AH-32` and `AH3-2` separate unless separately proven.
+
+The collision audit distinguishes:
+
+```text
+approved_alias_equivalence
+unresolved_format_collision_review
+```
+
+Only the first may collapse to one resolved identity. The second remains separated and cannot affect market-price calculation as a merged product.
+
+Title identifier evidence is validated against the same resolved alias contract. A title that uses an approved formatting alias is not a contradiction; a title that resolves to a different protected identifier is quarantined for review.
 
 ## Cross-retailer identity validation
 
@@ -66,8 +115,8 @@ Raw competitor comparison must enforce the same identity contract as DTB matchin
 
 ```text
 canonical manufacturer agrees
-+ canonical identifier agrees
-+ title identifier does not contradict exported identifier
++ resolved manufacturer identifier agrees
++ title identifier does not contradict resolved identifier
 + structured dimensions / handedness / quantity / model do not contradict
 = verified cross-retailer identity
 ```
@@ -143,6 +192,7 @@ DTB Product Type
 DTB Parent SKU
 DTB Effective Price
 DTB Price Basis
+Approved Alias Evidence Count
 
 All-Wall Verified
 All-Wall Identity
