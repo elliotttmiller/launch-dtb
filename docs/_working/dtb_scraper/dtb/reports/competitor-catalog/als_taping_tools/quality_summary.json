@@ -1,0 +1,15 @@
+{
+  "legacy_failure_rows": 179,
+  "non_product_candidates": 28,
+  "product_failures": 151,
+  "description_product_specific": 2728,
+  "description_quarantined": 510,
+  "description_missing": 0,
+  "description_low_information": 1,
+  "classification_reasons": {
+    "known_non_product_route": 11,
+    "identifier_extraction_failure": 149,
+    "runtime_or_extraction_failure": 2,
+    "brand_landing_page": 17
+  }
+}

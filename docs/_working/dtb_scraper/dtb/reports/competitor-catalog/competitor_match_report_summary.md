@@ -1,41 +1,38 @@
-# Competitor Match Report
+# DTB Competitor Market Evidence Report
 
-## What We Learned
+## Executive Summary
 
-- We reviewed **756** official DTB catalog products.
-- We found competitor matches for **586 products**, or about **78%** of the catalog.
-- **170 products** still need more competitor research or manual lookup.
-- The matcher found **1,201 total competitor match rows** across All-Wall, Al's Taping Tools, and Wall Tools.
-- **1,006 matches** are strong enough to use as confirmed evidence.
-- **195 matches** should be reviewed before they are used for pricing decisions.
+- Official DTB products evaluated: **756**
+- Products with at least one verified competitor identity: **524**
+- Products with verified evidence from two or more competitors: **301**
+- Products with review candidates but no verified evidence: **56**
+- Products with no candidate evidence: **176**
+- Candidate evidence rows requiring review: **291**
 
-## Plain-English Statuses
+## Identity Contract
 
-- **Confirmed Match**: SKU/MPN matched exactly, or the product names are nearly identical.
-- **Likely Match**: brand and title are strongly similar, but a person should still spot-check before pricing use.
-- **Needs Review**: the identifier, brand, title, or variation has something inconsistent.
-- **No Match Found**: no reliable competitor match was found for that DTB product.
+A competitor record is automatically verified only when **canonical manufacturer/brand + canonical identifier** match the DTB product and no structured contradiction is present. SKU values are never treated as globally unique. Unknown competitor brands, brand conflicts, identifier/title conflicts, dimensional conflicts, handedness conflicts, pack-count conflicts, generation conflicts, and product-family conflicts are review-only.
 
-## Best Next Uses
+Fuzzy and near-identical title matches are **never auto-accepted**.
 
-1. Use `competitor_match_reader_view.csv` as the main business-facing view.
-2. Use `competitor_match_price_gaps.csv` to find pricing opportunities.
-3. Use `competitor_match_review_queue.csv` as the manual cleanup queue.
-4. Use `dtb_official_competitor_matches.csv` only when an audit trail is needed.
+## Price Semantics
 
-## Best-Match Status Breakdown
+`DTB Effective Price` uses the sale price when a sale price is present, otherwise the regular price. `DTB vs Lowest` and `DTB vs Median` are calculated as **DTB effective price minus competitor price**; positive values mean DTB is higher and negative values mean DTB is lower.
 
-| Status | Products |
-|---|---:|
-| Confirmed Match | 558 |
-| Likely Match | 13 |
-| Needs Review | 15 |
-| No Match Found | 170 |
+## Status Breakdown
 
-## Best-Match Competitor Breakdown
+- **No Match Found:** 176
+- **Review Required:** 56
+- **Verified Market Evidence:** 225
+- **Verified Market Evidence + Review Candidates:** 76
+- **Verified Single-Source:** 159
+- **Verified Single-Source + Review Candidates:** 64
 
-| Competitor | Best Matches |
-|---|---:|
-| All-Wall | 406 |
-| Al's Taping Tools | 69 |
-| Wall Tools | 111 |
+
+## Report Usage
+
+- `competitor_match_reader_view.csv` is the business-facing market evidence view.
+- `competitor_match_price_gaps.csv` contains only products with verified competitor evidence.
+- `competitor_match_review_queue.csv` contains contradiction, brand-uncertain, and fuzzy candidates that must not drive automated pricing.
+- `dtb_official_competitor_matches.csv` is the full technical evidence ledger.
+- `dtb_official_competitor_best_matches.csv` is retained for compatibility but now contains one **aggregated market-evidence row per DTB product**, not an arbitrary single “best” competitor.

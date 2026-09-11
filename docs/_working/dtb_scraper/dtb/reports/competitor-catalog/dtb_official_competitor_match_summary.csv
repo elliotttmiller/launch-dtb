@@ -1,16 +1,25 @@
 metric,value,count
 official_rows,all,756
 competitor_rows,all,10301
-match_rows,all,1201
-official_rows_with_match,all,586
-official_rows_unmatched,all,170
-match_method,exact_identifier,962
-match_method,exact_identifier_brand_conflict,80
-match_method,high_confidence_fuzzy_title,42
-match_method,medium_confidence_fuzzy_title,73
-match_method,near_identical_title,44
-match_status,auto_accept,1006
-match_status,review,195
-competitor_source,Al's Taping Tools,339
-competitor_source,All-Wall,458
+candidate_match_rows,all,1178
+official_rows_with_verified_evidence,all,524
+official_rows_review_only,all,56
+official_rows_unmatched,all,176
+match_method,exact_identifier_brand_conflict,42
+match_method,exact_identifier_contradiction,82
+match_method,exact_identifier_unknown_brand,31
+match_method,exact_identity_key,887
+match_method,high_confidence_fuzzy_title,43
+match_method,medium_confidence_fuzzy_title,47
+match_method,near_identical_title,46
+match_status,auto_accept,887
+match_status,review,291
+competitor_source,Al's Taping Tools,329
+competitor_source,All-Wall,445
 competitor_source,Wall Tools,404
+market_status,No Match Found,176
+market_status,Review Required,56
+market_status,Verified Market Evidence,225
+market_status,Verified Market Evidence + Review Candidates,76
+market_status,Verified Single-Source,159
+market_status,Verified Single-Source + Review Candidates,64

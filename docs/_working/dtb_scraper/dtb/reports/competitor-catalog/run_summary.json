@@ -39,5 +39,38 @@
       "skipped": 0
     }
   },
-  "csv": "reports\\competitor-catalog\\all_competitor_products.csv"
+  "csv": "reports\\competitor-catalog\\all_competitor_products.csv",
+  "quality": {
+    "sites": {
+      "als_taping_tools": {
+        "legacy_failure_rows": 179,
+        "non_product_candidates": 28,
+        "product_failures": 151,
+        "description_product_specific": 2728,
+        "description_quarantined": 510,
+        "description_missing": 0,
+        "description_low_information": 1
+      },
+      "wall_tools": {
+        "legacy_failure_rows": 99,
+        "non_product_candidates": 25,
+        "product_failures": 74,
+        "description_product_specific": 2814,
+        "description_quarantined": 110,
+        "description_missing": 0,
+        "description_low_information": 0
+      },
+      "all_wall": {
+        "legacy_failure_rows": 48,
+        "non_product_candidates": 1,
+        "product_failures": 47,
+        "description_product_specific": 2778,
+        "description_quarantined": 0,
+        "description_missing": 1353,
+        "description_low_information": 7
+      }
+    },
+    "all_wall_manual_pricing_evidence": 45,
+    "note": "non_product_candidates are excluded from true product-failure counts; manual All-Wall evidence is never auto-matched without MPN"
+  }
 }

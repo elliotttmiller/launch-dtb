@@ -1,0 +1,43 @@
+{
+  "finished_at": "2026-09-10T00:42:21.159279Z",
+  "sites": [
+    "als_taping_tools",
+    "wall_tools",
+    "all_wall"
+  ],
+  "transport": "cloudscraper",
+  "settings": {
+    "workers": 12,
+    "per_host": 6,
+    "timeout": 20.0,
+    "retries": 2,
+    "request_interval": 0.15,
+    "respect_robots": true,
+    "max_urls": 100000,
+    "discover_only": false
+  },
+  "results": {
+    "als_taping_tools": {
+      "discovered": 3418,
+      "pending": 3418,
+      "saved": 3239,
+      "failed": 179,
+      "skipped": 0
+    },
+    "wall_tools": {
+      "discovered": 3025,
+      "pending": 3025,
+      "saved": 2926,
+      "failed": 99,
+      "skipped": 0
+    },
+    "all_wall": {
+      "discovered": 4223,
+      "pending": 4223,
+      "saved": 4174,
+      "failed": 48,
+      "skipped": 0
+    }
+  },
+  "csv": "reports\\competitor-catalog\\all_competitor_products.csv"
+}
