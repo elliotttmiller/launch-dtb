@@ -1,0 +1,136 @@
+{
+  "competitor": "wall_tools",
+  "competitor_name": "Wall Tools",
+  "base_url": "https://walltools.com/",
+  "audited_at": "2026-09-10T00:22:22.587416Z",
+  "identifier_strategy": "sku_strip_prefix",
+  "verified_sku_prefixes_to_strip": [
+    "LEV5-",
+    "DURA-",
+    "SURP-",
+    "TAPE-",
+    "COLM-"
+  ],
+  "preferred_catalog_strategy": "sitemap_discovery_then_structured_product_page_extraction",
+  "detected_platform_signals": [
+    "bigcommerce",
+    "cloudflare"
+  ],
+  "probes": [
+    {
+      "label": "homepage",
+      "url": "https://walltools.com/",
+      "checked_at": "2026-09-10T00:22:17.542880Z",
+      "status": 200,
+      "final_url": "https://walltools.com/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 457720,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "3ea47391309ae7737939b197135a098750cbcad0a7cdb76c9584776a07ed35df"
+    },
+    {
+      "label": "robots",
+      "url": "https://walltools.com/robots.txt",
+      "checked_at": "2026-09-10T00:22:18.274048Z",
+      "status": 200,
+      "final_url": "https://walltools.com/robots.txt",
+      "content_type": "text/plain; charset=UTF-8",
+      "content_length": 2078,
+      "server": "cloudflare",
+      "platform_signals": [
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "ccfb1f7f12d9fe3b57f7e1dcd11692a2b4414a31b611fe0be4ccad29db370f64"
+    },
+    {
+      "label": "sitemap:/xmlsitemap.php",
+      "url": "https://walltools.com/xmlsitemap.php",
+      "checked_at": "2026-09-10T00:22:18.454085Z",
+      "status": 200,
+      "final_url": "https://walltools.com/xmlsitemap.php",
+      "content_type": "text/xml; charset=UTF-8",
+      "content_length": 802,
+      "server": "cloudflare",
+      "platform_signals": [
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "8373dfccb99d2d05d4afc5029ee98854394b5d5fe65d03f4d4b9cc91cebd72a1"
+    },
+    {
+      "label": "sitemap:/sitemap.xml",
+      "url": "https://walltools.com/sitemap.xml",
+      "checked_at": "2026-09-10T00:22:18.606532Z",
+      "status": 0,
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://walltools.com/sitemap.xml"
+    },
+    {
+      "label": "bigcommerce_graphql",
+      "url": "https://walltools.com/graphql",
+      "checked_at": "2026-09-10T00:22:18.939490Z",
+      "status": 0,
+      "error": "HTTPError: 405 Client Error: Method Not Allowed for url: https://walltools.com/graphql"
+    },
+    {
+      "label": "bigcommerce_storefront_products",
+      "url": "https://walltools.com/api/storefront/products",
+      "checked_at": "2026-09-10T00:22:19.036105Z",
+      "status": 0,
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://walltools.com/api/storefront/products"
+    },
+    {
+      "label": "product_sample_1",
+      "url": "https://walltools.com/330003-17-bearing-for-porter-cable-7800-drywall-sander",
+      "checked_at": "2026-09-10T00:22:20.835751Z",
+      "status": 200,
+      "final_url": "https://walltools.com/330003-17-bearing-for-porter-cable-7800-drywall-sander/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 255335,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "d449ebb58489119284507babdec70eea5e3e03a6f8cdaf5dfe90be5fcad3e246"
+    },
+    {
+      "label": "product_sample_2",
+      "url": "https://walltools.com/330003-64-ball-bearing-6001dw-for-porter-cable-7800-drywall-sander",
+      "checked_at": "2026-09-10T00:22:21.443772Z",
+      "status": 200,
+      "final_url": "https://walltools.com/330003-64-ball-bearing-6001dw-for-porter-cable-7800-drywall-sander/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 255568,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "e2fec148131452e453f5de79d02cc0997af5022aad386f0157a8f7d080f72016"
+    },
+    {
+      "label": "product_sample_3",
+      "url": "https://walltools.com/3m-1-1-2-in-general-purpose-masking-tape-2020-3m-2020-15a",
+      "checked_at": "2026-09-10T00:22:22.003182Z",
+      "status": 200,
+      "final_url": "https://walltools.com/3m-1-1-2-in-general-purpose-masking-tape-2020-3m-2020-15a/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 251377,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "163b9ba9c8f048129ad89ae2c500a997f5a288d62bc131f4859186fb0f227896"
+    }
+  ]
+}

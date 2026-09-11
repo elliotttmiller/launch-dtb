@@ -1,0 +1,14 @@
+metric,value,count
+input_rows,all,10301
+output_rows,all,5101
+skipped_rows,all,5200
+matched_brand,Columbia Tools,1741
+matched_brand,Dura-Stilts,170
+matched_brand,LEVEL5,53
+matched_brand,Platinum Drywall Tools,32
+matched_brand,SurPro,82
+matched_brand,TapeTech,2845
+matched_brand,USG Sheetrock Tools,178
+match_method,brand_alias,3949
+match_method,exact_sku_in_official_catalog,928
+match_method,title_brand_pattern,224

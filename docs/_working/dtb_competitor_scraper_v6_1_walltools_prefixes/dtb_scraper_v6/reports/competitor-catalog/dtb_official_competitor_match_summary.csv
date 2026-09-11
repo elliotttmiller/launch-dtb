@@ -1,0 +1,16 @@
+metric,value,count
+official_rows,all,756
+competitor_rows,all,10301
+match_rows,all,1201
+official_rows_with_match,all,586
+official_rows_unmatched,all,170
+match_method,exact_identifier,962
+match_method,exact_identifier_brand_conflict,80
+match_method,high_confidence_fuzzy_title,42
+match_method,medium_confidence_fuzzy_title,73
+match_method,near_identical_title,44
+match_status,auto_accept,1006
+match_status,review,195
+competitor_source,Al's Taping Tools,339
+competitor_source,All-Wall,458
+competitor_source,Wall Tools,404

@@ -1,0 +1,130 @@
+{
+  "competitor": "als_taping_tools",
+  "competitor_name": "Al's Taping Tools",
+  "base_url": "https://www.alstapingtools.com/",
+  "audited_at": "2026-09-10T00:02:27.528128Z",
+  "identifier_strategy": "sku_exact",
+  "verified_sku_prefixes_to_strip": [],
+  "preferred_catalog_strategy": "sitemap_discovery_then_structured_product_page_extraction",
+  "detected_platform_signals": [
+    "bigcommerce",
+    "cloudflare"
+  ],
+  "probes": [
+    {
+      "label": "homepage",
+      "url": "https://www.alstapingtools.com/",
+      "checked_at": "2026-09-10T00:02:22.191937Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 558426,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "fc29291ba4ff28bca1cfa4cbfaee26540e1f19de1ff308fb2ef63d634bbaa61d"
+    },
+    {
+      "label": "robots",
+      "url": "https://www.alstapingtools.com/robots.txt",
+      "checked_at": "2026-09-10T00:02:23.078561Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/robots.txt",
+      "content_type": "text/plain; charset=UTF-8",
+      "content_length": 1674,
+      "server": "cloudflare",
+      "platform_signals": [
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "d031f71ccc1a5833502b5fed41f76a7392c76c7ffafe8d58884dd93c275311d7"
+    },
+    {
+      "label": "sitemap:/xmlsitemap.php",
+      "url": "https://www.alstapingtools.com/xmlsitemap.php",
+      "checked_at": "2026-09-10T00:02:23.247567Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/xmlsitemap.php",
+      "content_type": "text/xml; charset=UTF-8",
+      "content_length": 847,
+      "server": "cloudflare",
+      "platform_signals": [
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "c0198a2748e55388756a5984c24a0e33f37110b5d27658af815a00e9cdd78c9b"
+    },
+    {
+      "label": "sitemap:/sitemap.xml",
+      "url": "https://www.alstapingtools.com/sitemap.xml",
+      "checked_at": "2026-09-10T00:02:23.383567Z",
+      "status": 0,
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.alstapingtools.com/sitemap.xml"
+    },
+    {
+      "label": "bigcommerce_graphql",
+      "url": "https://www.alstapingtools.com/graphql",
+      "checked_at": "2026-09-10T00:02:23.765882Z",
+      "status": 0,
+      "error": "HTTPError: 405 Client Error: Method Not Allowed for url: https://www.alstapingtools.com/graphql"
+    },
+    {
+      "label": "bigcommerce_storefront_products",
+      "url": "https://www.alstapingtools.com/api/storefront/products",
+      "checked_at": "2026-09-10T00:02:23.874884Z",
+      "status": 0,
+      "error": "HTTPError: 404 Client Error: Not Found for url: https://www.alstapingtools.com/api/storefront/products"
+    },
+    {
+      "label": "product_sample_1",
+      "url": "https://www.alstapingtools.com/059025-cotter-pin",
+      "checked_at": "2026-09-10T00:02:25.763992Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/059025-cotter-pin/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 232259,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "596bb90a3dac7dc442bfb30866a3621d0673c7db3ee45ca0f765159e2e0f33da"
+    },
+    {
+      "label": "product_sample_2",
+      "url": "https://www.alstapingtools.com/059038-lock-washer-4",
+      "checked_at": "2026-09-10T00:02:26.401004Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/059038-lock-washer-4/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 236886,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "daf480d6b55a0b64e5dee1c481544f41a597b118f69707c49d03ecab1ac67ca6"
+    },
+    {
+      "label": "product_sample_3",
+      "url": "https://www.alstapingtools.com/059044-insert",
+      "checked_at": "2026-09-10T00:02:26.940401Z",
+      "status": 200,
+      "final_url": "https://www.alstapingtools.com/059044-insert/",
+      "content_type": "text/html; charset=UTF-8",
+      "content_length": 230769,
+      "server": "cloudflare",
+      "platform_signals": [
+        "bigcommerce",
+        "cloudflare"
+      ],
+      "usable_json": false,
+      "sha256": "b5305d23d06a96013c840c36fdc69fef3f27dd1ce7c236a8e83c33d319ae6700"
+    }
+  ]
+}
