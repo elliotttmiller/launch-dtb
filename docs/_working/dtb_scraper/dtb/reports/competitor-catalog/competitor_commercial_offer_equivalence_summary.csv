@@ -1,0 +1,22 @@
+metric,value,count
+material_conflicts_audited,all,478
+missing_raw_offer_records,all,0
+priority,P0_gt_25pct,242
+priority,P1_10_to_25pct,236
+offer_equivalence_classification,OFFER_EQUIVALENCE_UNRESOLVED,38
+offer_equivalence_classification,OFFER_EQUIVALENT_PRICE_DISAGREEMENT,434
+offer_equivalence_classification,PACK_QUANTITY_MISMATCH,2
+offer_equivalence_classification,VARIANT_MISMATCH,4
+offer_evidence_strength,explicit_quantity_contradiction,2
+offer_evidence_strength,explicit_structured_contradiction,4
+offer_evidence_strength,matching_explicit_quantity,1
+offer_evidence_strength,matching_explicit_scope,23
+offer_evidence_strength,one_sided_offer_evidence,38
+offer_evidence_strength,verified_identity_no_structural_mismatch_detected,410
+retailer_pair,Al's Taping Tools vs Wall Tools,20
+retailer_pair,All-Wall vs Al's Taping Tools,141
+retailer_pair,All-Wall vs Wall Tools,317
+canonical_brand,Columbia Tools,237
+canonical_brand,SurPro,6
+canonical_brand,TapeTech,209
+canonical_brand,USG Sheetrock Tools,26
