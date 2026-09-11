@@ -49,10 +49,11 @@ The audit records, per retailer observation:
 
 ```text
 observed comparison price
+raw field matches
+normalized price semantic
 raw price field
 raw regular price field
 raw sale price field
-resolved raw-price basis
 currency
 availability
 parse method
@@ -60,6 +61,20 @@ retrieval timestamp
 canonical product URL
 source hash
 ```
+
+Raw field names and commercial semantics are deliberately separate. A storefront may duplicate the same amount into both `price` and `regular_price`; that is raw-field duplication, not proof that its commercial meaning differs from another storefront exposing only `price`.
+
+Normalized semantics are:
+
+```text
+CURRENT_PRICE
+SALE_PRICE
+REGULAR_PRICE
+NOT_RECONCILED_TO_RAW_FIELDS
+OBSERVED_PRICE_MISSING
+```
+
+`SALE_PRICE` and `REGULAR_PRICE` require a distinct stored sale-versus-regular relationship. When no distinct sale amount exists, an observed amount that reconciles to `price`, `regular_price`, or both is treated as `CURRENT_PRICE` for provenance comparison. This normalization is diagnostic only and does not alter the observed amount.
 
 The audit never changes the observed price and never selects a preferred retailer amount.
 
@@ -83,9 +98,11 @@ The provenance audit may classify a disagreement as:
 ```text
 PROVENANCE_INCOMPLETE
 RAW_FIELD_RECONCILIATION_REQUIRED
-SALE_VS_REGULAR_FIELD
-SAME_PRICE_FIELD_SEMANTIC_DIFFERENT_AMOUNT
-DIFFERENT_RAW_PRICE_FIELD_SEMANTICS
+SAME_PRICE_SEMANTIC_DIFFERENT_AMOUNT
+SALE_VS_REGULAR_PRICE
+SALE_VS_CURRENT_PRICE
+REGULAR_VS_CURRENT_PRICE
+DIFFERENT_NORMALIZED_PRICE_SEMANTICS
 ```
 
 These classifications describe what the stored raw evidence supports. They must not be interpreted as permission to rewrite a retailer price.
