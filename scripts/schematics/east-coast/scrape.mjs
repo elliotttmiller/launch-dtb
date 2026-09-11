@@ -52,6 +52,7 @@ function parseArgs(argv) {
     productDelayMs: 450,
     productRetries: 4,
     productBatchSize: 75,
+    pageBatchSize: 8,
     maxPages: MAX_PAGES,
     failOnIncomplete: false,
     refreshProducts: false,
@@ -71,6 +72,7 @@ function parseArgs(argv) {
     else if (arg === '--product-delay-ms') options.productDelayMs = boundedInt(argv[++i], 100, 10_000, arg);
     else if (arg === '--product-retries') options.productRetries = boundedInt(argv[++i], 0, 8, arg);
     else if (arg === '--product-batch-size') options.productBatchSize = boundedInt(argv[++i], 10, 250, arg);
+    else if (arg === '--page-batch-size') options.pageBatchSize = boundedInt(argv[++i], 1, 50, arg);
     else if (arg === '--max-pages') options.maxPages = boundedInt(argv[++i], 1, MAX_PAGES, arg);
     else if (arg === '--proxy') options.browserless.proxy = cleanText(argv[++i]).toLowerCase();
     else if (arg === '--proxy-country') options.browserless.proxyCountry = cleanText(argv[++i]).toLowerCase();
@@ -111,6 +113,7 @@ function printHelp() {
   process.stdout.write('  --product-delay-ms N     Minimum product request spacing\n');
   process.stdout.write('  --product-retries N      Retries for 429/5xx/network errors\n');
   process.stdout.write('  --product-batch-size N   Product handles per Browserless session\n');
+  process.stdout.write('  --page-batch-size N      Page navigations per Browserless session\n');
   process.stdout.write('  --proxy TYPE             none|datacenter|residential\n');
   process.stdout.write('  --proxy-country CC       Proxy country\n');
   process.stdout.write('  --proxy-sticky BOOL      Sticky proxy within each session\n');
