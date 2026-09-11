@@ -32,7 +32,7 @@ REPO_ROOT = next(path for path in [ROOT, *ROOT.parents] if (path / OFFICIAL_RELA
 OFFICIAL_CATALOG = REPO_ROOT / OFFICIAL_RELATIVE
 
 OUTPUT_MATCHES = REPORT_DIR / "dtb_official_competitor_matches.csv"
-OUTPUT_MARKET = REPORT_DIR / "dtb_official_competitor_best_matches.csv"  # compatibility filename; aggregate evidence
+OUTPUT_MARKET = REPORT_DIR / "dtb_official_competitor_best_matches.csv"
 OUTPUT_UNMATCHED = REPORT_DIR / "dtb_official_competitor_unmatched.csv"
 OUTPUT_SUMMARY = REPORT_DIR / "dtb_official_competitor_match_summary.csv"
 
@@ -218,7 +218,8 @@ def aggregate_row(official: dict[str, str], observations: list[dict[str, str]]) 
         item.price for item in site_evidence
         if item.verified and item.price is not None
     ]
-    market = market_price_decision(verified_site_prices)
+    has_site_conflict = any(item.quality.startswith("conflicting_") for item in site_evidence)
+    market = market_price_decision(verified_site_prices, has_conflict=has_site_conflict)
     dtb_price = decimal_price(official.get("_effective_price", ""))
     review_count = sum(1 for row in observations if row["Match Status"] == "review")
     market_delta = dtb_price - market.market_price if dtb_price is not None and market.market_price is not None else None
