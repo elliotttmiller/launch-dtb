@@ -5,11 +5,12 @@ import { getCategoryMerchandising, resolveIntentTarget } from '../../data/catego
 import '../../styles/category-merchandising.css';
 
 function IntentCard({ intent, target }) {
+  const hasRoutableTarget = Boolean(target?.slug);
   const content = (
     <>
       <span className="dtb-category-intent-card__title">{intent.label}</span>
       <span className="dtb-category-intent-card__description">{intent.description}</span>
-      {target && (
+      {hasRoutableTarget && (
         <span className="dtb-category-intent-card__action">
           Shop {target.name || target.label || intent.label}
           <ArrowRight size={14} aria-hidden="true" />
@@ -18,7 +19,7 @@ function IntentCard({ intent, target }) {
     </>
   );
 
-  if (!target) {
+  if (!hasRoutableTarget) {
     return (
       <article className="dtb-category-intent-card dtb-category-intent-card--informational">
         {content}
