@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "extract": "node ./extract.mjs",
+    "enrich-products": "node ./enrich-products.mjs",
     "install-browser": "playwright install chromium"
   },
   "dependencies": {

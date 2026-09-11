@@ -50,7 +50,7 @@ If East Coast changes the global index route, pass the replacement public index 
 
 ## Output
 
-Each run gets its own immutable-style directory under `output/<run-id>/`:
+Each run gets its own local directory under `output/<run-id>/`:
 
 ```text
 manifest.json
@@ -65,6 +65,8 @@ raw/
     <sha256>.txt
 ```
 
+`output/` is intentionally ignored by Git. Research captures can contain large third-party payloads and browser-delivered token-shaped configuration fields and must not be committed.
+
 ### `manifest.json`
 
 Coverage and safety metadata: seeds, pages visited, navigation errors, counts, limits, and whether authentication/canonical writes were used.
@@ -73,19 +75,6 @@ Coverage and safety metadata: seeds, pages visited, navigation errors, counts, l
 
 Observed endpoint signatures sorted by hotspot/part signal strength. This is the quickest way to identify the actual East Coast application/API backend after a run.
 
-Example fields:
-
-```json
-{
-  "endpoint": "GET https://some-app.example/api/schematics",
-  "captures": 12,
-  "maxSignalScore": 72,
-  "exampleUrls": ["..."]
-}
-```
-
-The endpoint list is evidence from the captured browser session. It is not hard-coded into the scraper.
-
 ### `responses.json`
 
 Provenance index for every persisted response. Sensitive request headers such as cookies, authorization, CSRF/XSRF tokens, Shopify access tokens, and API keys are excluded.
@@ -93,6 +82,54 @@ Provenance index for every persisted response. Sensitive request headers such as
 ### `candidates.json`
 
 Review candidates extracted recursively from JSON payloads, embedded JSON, and relevant DOM elements. Candidate geometry remains in the source representation. The extractor does **not** convert a DOM bounding box, CSS `left/top`, SVG coordinate, or source JSON coordinate into DTB `x_pct/y_pct` until its coordinate system and anchor semantics are verified.
+
+## Deterministic schematic part and product enrichment
+
+The schematic pages expose part occurrences directly through the rendered schematic overlay. Online parts are linked as `/products/<handle>` and the East Coast page's own JavaScript resolves those links through Shopify's public `/products/<handle>.js` endpoint.
+
+After the capture pass, run:
+
+```bash
+npm run enrich-products -- \
+  --run ./output/<run-id>
+```
+
+The enrichment pass only revisits public `/pages/schematic/*` URLs already present in the selected run. It extracts each rendered overlay occurrence and explicitly fetches every unique linked product's public Shopify JSON record.
+
+It writes:
+
+```text
+schematic-parts-products.json
+enrichment-summary.json
+enrichment-failures.json
+source-products.json
+```
+
+### `schematic-parts-products.json`
+
+Per-schematic joined source evidence containing:
+
+- schematic page and title;
+- page number where determinable;
+- callout/part number text rendered on the diagram;
+- East Coast product handle and product URL when present;
+- the overlay/link element's source attributes and datasets;
+- source-native inline CSS and rendered rectangles;
+- CSS percentage geometry when the page supplies percentage `left/top/width/height` values;
+- source product ID/title resolution;
+- exact Shopify variant-SKU matches to the rendered callout when available.
+
+Coordinate anchor semantics remain `unverified`; the enrichment command does not promote CSS or rendered DOM coordinates into canonical DTB coordinates.
+
+### `source-products.json`
+
+One record per unique linked East Coast product with public Shopify product data including product ID, title, vendor, product type, availability, description, images, options, variants, variant SKU, barcode, price, and availability where Shopify exposes them.
+
+East Coast/Shopify identifiers are provenance only. They are not DTB product identity.
+
+### Unavailable/offline parts
+
+The East Coast page converts product links that return unavailable product data into `.schematic-overlay-text` nodes. Those occurrences are retained with their callout text and `no_online_product_link`/unresolved status rather than discarded or guessed.
 
 ## Identifying the real hotspot endpoint
 
@@ -104,7 +141,7 @@ After a run:
 4. Confirm which payload contains the complete schematic list, part records, and per-occurrence hotspot/callout geometry.
 5. Record the source contract before writing a deterministic normalizer for that specific payload shape.
 
-This two-stage design is intentional. It survives undocumented Shopify/app changes better than guessing a permanent endpoint from URL naming.
+The enrichment pass complements this network evidence. It uses the rendered overlay and the exact public Shopify product endpoint East Coast itself uses, so missing product metadata does not depend on idle-request timing during the initial capture.
 
 ## Promotion into DTB
 
@@ -114,6 +151,7 @@ The required promotion flow is:
 
 ```text
 capture
+  -> enrich source part/product relationships
   -> identify authoritative source payload
   -> normalize without inventing values
   -> reconcile brand + manufacturer part number against DTB catalog
@@ -142,17 +180,20 @@ Never auto-link a cross-brand common part solely because its name is similar.
 ## Operational safeguards
 
 - HTTPS and `eastcoastdrywall.com` seeds only.
-- Maximum 250 pages per run.
+- Maximum 250 pages per capture run.
 - Maximum 12 MiB per captured textual response.
 - Deliberate delay between page navigations.
 - No login or authentication flow.
 - No access-control bypass.
-- No write requests are initiated by the extractor itself.
+- No write requests are initiated by the tooling.
 - Cookies/authentication headers are never persisted.
 - Raw bodies are content-addressed by SHA-256 for reproducibility and change detection.
 - Service workers are blocked so browser response observation is deterministic.
+- Generated `output/` directories are excluded from Git.
 
 ## Useful options
+
+Capture:
 
 ```text
 --brand-url URL   Seed URL; repeatable
@@ -163,6 +204,14 @@ Never auto-link a cross-brand common part solely because its name is similar.
 --max-pages N     Crawl safety bound (1–250)
 ```
 
+Enrichment:
+
+```text
+--run DIR         Existing extractor run directory; required
+--headed          Run visible Chromium for inspection
+--timeout-ms N    Navigation timeout (1,000–120,000)
+```
+
 ## Failure semantics
 
-A navigation error is recorded per page and does not cause silent omission of already captured evidence. A completely empty crawl exits non-zero. Endpoint/payload changes should therefore surface as changed checksums, lower signal counts, navigation errors, or missing candidates rather than silently rewriting DTB data.
+A navigation error is recorded per page and does not cause silent omission of already captured evidence. A completely empty crawl exits non-zero. Enrichment records failed navigations and unresolved product fetches separately. Endpoint/payload changes should therefore surface as changed checksums, lower signal counts, navigation errors, missing candidates, or unresolved source products rather than silently rewriting DTB data.
