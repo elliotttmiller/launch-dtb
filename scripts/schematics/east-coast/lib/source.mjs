@@ -180,19 +180,30 @@ export function normalizeOccurrence(raw) {
 }
 
 export async function discoverAndExtract(options, runDir) {
-  const session = await openBrowserlessSession(options.browserless, options.timeoutMs);
   const queue = [...options.directUrls, ...options.seeds];
   const seen = new Set();
   const schematicUrls = new Set(options.directUrls.filter(isDirectSchematicUrl));
   const rawSchematics = [];
   const failures = [];
   const diagnostics = [];
+  let session = null;
+  let pagesInSession = 0;
+
+  async function ensureSession() {
+    if (session && pagesInSession < options.pageBatchSize) return;
+    await closeBrowserlessSession(session);
+    session = await openBrowserlessSession(options.browserless, options.timeoutMs);
+    pagesInSession = 0;
+  }
+
   try {
     while (queue.length && seen.size < options.maxPages) {
+      await ensureSession();
       const current = assertAllowedUrl(queue.shift()).toString();
       if (seen.has(current)) continue;
       seen.add(current);
-      if (seen.size > 1 && options.navDelayMs) await session.page.waitForTimeout(options.navDelayMs);
+      pagesInSession += 1;
+      if (pagesInSession > 1 && options.navDelayMs) await session.page.waitForTimeout(options.navDelayMs);
       process.stdout.write(`[pages ${seen.size}/${options.maxPages}] ${current}\n`);
       let response;
       try {
@@ -201,6 +212,9 @@ export async function discoverAndExtract(options, runDir) {
         if (options.settleMs) await session.page.waitForTimeout(options.settleMs);
       } catch (error) {
         failures.push({ url: current, stage: 'navigation', error: error.message });
+        await closeBrowserlessSession(session);
+        session = null;
+        pagesInSession = 0;
         continue;
       }
       if (!response || response.status() >= 400) {
