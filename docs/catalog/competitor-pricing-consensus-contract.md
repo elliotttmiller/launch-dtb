@@ -26,6 +26,8 @@ A variation may use its parent product name as additional candidate-discovery co
 
 ## Identity authority
 
+`docs/_working/dtb_scraper/dtb/competitor_identity.py` is the canonical manufacturer-identifier authority for both DTB-to-competitor matching and competitor-to-competitor comparison.
+
 A competitor product is automatically verified only when:
 
 ```text
@@ -41,6 +43,38 @@ and all of the following hold:
 5. no structured variation evidence contradicts the match.
 
 SKU alone is never a global join key. Unknown-brand exact identifiers, cross-brand collisions, dimensional conflicts, handedness conflicts, pack/count conflicts, generation conflicts, product-family conflicts, fuzzy matches, and near-identical title matches remain review-only.
+
+### Canonical identifier normalization
+
+Manufacturer identifiers are normalized conservatively. The canonical form may normalize Unicode representation, letter case, whitespace, and equivalent Unicode punctuation glyphs, but it must preserve punctuation that can carry identifier meaning, including `-`, `/`, `.`, `+`, and `_`.
+
+Therefore these identifiers remain distinct unless a manufacturer-specific authoritative rule proves equivalence:
+
+```text
+AH3-2 != AH32
+CT-104 != CT104
+XHTT/NSA != XHTTNSA
+```
+
+The historical destructive normalization that removed all non-alphanumeric characters is not an identity authority. It may be used only for diagnostics. `competitor_identifier_collision_audit.csv` records cases where multiple distinct canonical identifiers would have collapsed to the same historical compact token. Such collisions must never be merged for matching or market-price calculation.
+
+Title identifier evidence is validated using the same separator-preserving canonical identifier contract. A row whose title explicitly identifies a different MPN/SKU is quarantined for review and cannot establish market price.
+
+## Cross-retailer identity validation
+
+Raw competitor comparison must enforce the same identity contract as DTB matching. Cross-retailer price comparison occurs only after:
+
+```text
+canonical manufacturer agrees
++ canonical identifier agrees
++ title identifier does not contradict exported identifier
++ structured dimensions / handedness / quantity / model do not contradict
+= verified cross-retailer identity
+```
+
+If cross-retailer titles contain structured variation contradictions, the comparison is `IDENTITY_CONFLICT`, not `MARKET_PRICE_CONFLICT`. Identity conflicts are excluded from market-price KPIs until resolved.
+
+This prevents identity defects from inflating the market-price conflict count.
 
 ## Site-level evidence
 
@@ -75,31 +109,23 @@ MARKET_PRICE_CONFLICT
 NO_MARKET_EVIDENCE
 ```
 
+`IDENTITY_CONFLICT` is a pre-price diagnostic state and must not be counted as a market-price conflict.
+
 ### MARKET_PRICE_VERIFIED_3_OF_3
 
-All three competitors have a verified priced identity and all three prices are identical.
-
-The shared observed amount is the market price.
+All three competitors have a verified priced identity and all three prices are identical. The shared observed amount is the market price.
 
 ### MARKET_PRICE_VERIFIED_2_OF_3
 
-Exactly two competitors contribute verified priced observations, both prices are identical, and there is no verified conflicting third price.
-
-The shared observed amount is the market price with two-source corroboration.
-
-This state is weaker than 3/3 and must remain distinguishable in reporting.
+Exactly two competitors contribute verified priced observations, both prices are identical, and there is no verified conflicting third price. The shared observed amount is the market price with two-source corroboration. This state is weaker than 3/3 and must remain distinguishable in reporting.
 
 ### MARKET_PRICE_SINGLE_SOURCE
 
-Only one competitor contributes a verified priced observation.
-
-The observed retailer price is retained as evidence but is not promoted to `Market Price`.
+Only one competitor contributes a verified priced observation. The observed retailer price is retained as evidence but is not promoted to `Market Price`.
 
 ### MARKET_PRICE_CONFLICT
 
-Two or more verified competitor observations expose different prices.
-
-`Market Price` must remain blank. The product enters review with each retailer's actual observed price preserved. The workflow must not choose a majority price or synthesize a median/average fallback.
+Two or more verified competitor observations expose different prices. `Market Price` must remain blank. The product enters review with each retailer's actual observed price preserved. The workflow must not choose a majority price or synthesize a median/average fallback.
 
 ### NO_MARKET_EVIDENCE
 
