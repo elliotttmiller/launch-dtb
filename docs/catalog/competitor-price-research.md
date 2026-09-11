@@ -170,6 +170,29 @@ Other artifacts are:
 - `unmatched_catalog_products.csv` — DTB SKUs with no accepted competitor observation;
 - `run_summary.json` — checkpointed run status, configuration, counts, crawl statistics, resume state, and artifact paths.
 
+## Full-catalog working pipeline identity contract
+
+The working full-catalog scraper and pricing-analysis pipeline under `docs/_working/dtb_scraper/dtb/` uses the same read-only ownership boundary but processes the already-scraped complete competitor catalogs. Its downstream identity contract is stricter than an unscoped SKU join:
+
+```text
+identity_key = canonical_brand + "::" + canonical_identifier
+```
+
+A competitor observation is verified automatically only when manufacturer/brand is known, the manufacturer/brand agrees with the DTB catalog, the canonical identifier agrees with a DTB SKU/MPN/manufacturer identifier, and no independently extracted title or variation evidence contradicts the match. Unknown-brand identifier matches, cross-brand collisions, dimensional or handedness differences, pack/count differences, generation differences, product-family conflicts, and title/identifier contradictions remain review-only. Fuzzy and near-identical title matches are never auto-accepted.
+
+The working pipeline also uses the active DTB sale price as the effective selling price when one is present, otherwise regular price. Verified observations are aggregated by competitor and then across competitors to produce market low/high/median evidence; a single arbitrary “best match” is not used for business-facing pricing conclusions.
+
+All-Wall remains MPN-strict: its retailer store SKU is not substituted when manufacturer MPN is absent. MPN-less All-Wall products may be retained only as manual pricing evidence and cannot participate in automatic identity matching.
+
+The working composition root is:
+
+```powershell
+cd docs/_working/dtb_scraper/dtb
+python run_competitor_pricing_pipeline.py
+```
+
+Use `--refresh-all-wall-manual-evidence` only when a fresh read of All-Wall's public SuiteCommerce catalog is required for the manual-evidence file. No command in this workflow writes DTB commerce prices.
+
 ## HTTP behavior
 
 Permanent HTTP failures such as ordinary 404 responses fail immediately. Transient 403/408/425/429 and selected 5xx responses use bounded retries. `Retry-After` is honored when available. Network/TLS/timeout failures use bounded retries.
