@@ -168,6 +168,18 @@ class SiteEvidence:
     identity_key: str = ""
 
 
+@dataclass(frozen=True)
+class PriceConsensus:
+    status: str
+    source_count: int
+    distinct_price_count: int
+    consensus_price: Decimal | None
+    low: Decimal | None
+    high: Decimal | None
+    median: Decimal | None
+    spread: Decimal | None
+
+
 def normalize_words(value: str) -> str:
     value = html_lib.unescape(value or "").replace("&", " and ").casefold()
     value = NON_ALNUM_RE.sub(" ", value)
@@ -251,6 +263,16 @@ def effective_dtb_price(row: Mapping[str, str]) -> tuple[Decimal | None, str, tu
     if regular is not None:
         return regular, "regular_price", tuple(warnings_out)
     return None, "missing_price", tuple(warnings_out)
+
+
+def is_pricing_target(row: Mapping[str, str]) -> bool:
+    """Exclude WooCommerce variable parent containers from SKU-level price research.
+
+    Simple products, variations, and other non-variable sellable rows remain in scope.
+    Variable parents are product-family containers whose purchasable prices belong to
+    their child variations; including them creates false unmatched/no-price noise.
+    """
+    return str(row.get("Type", "") or "").strip().casefold() != "variable"
 
 
 def clean_description(value: str) -> tuple[str, str]:
@@ -470,6 +492,33 @@ def median_decimal(values: Iterable[Decimal]) -> Decimal | None:
     if size % 2:
         return items[mid]
     return (items[mid - 1] + items[mid]) / Decimal("2")
+
+
+def price_consensus(values: Iterable[Decimal]) -> PriceConsensus:
+    """Classify observed verified site prices without assuming why prices agree.
+
+    Exact equality across independent retailers is reported as observed price
+    consensus. It is intentionally not labeled MAP/MSRP because that commercial
+    policy cannot be inferred from matching prices alone.
+    """
+    prices = sorted(value for value in values if value is not None)
+    if not prices:
+        return PriceConsensus("no_verified_price", 0, 0, None, None, None, None, None)
+    distinct = sorted(set(prices))
+    low = prices[0]
+    high = prices[-1]
+    median = median_decimal(prices)
+    spread = high - low
+    if len(prices) == 1:
+        status = "single_verified_price"
+        consensus = prices[0]
+    elif len(distinct) == 1:
+        status = "exact_price_consensus"
+        consensus = distinct[0]
+    else:
+        status = "price_dispersion"
+        consensus = None
+    return PriceConsensus(status, len(prices), len(distinct), consensus, low, high, median, spread)
 
 
 def resolve_site_evidence(source_key: str, observations: Sequence[dict[str, str]]) -> SiteEvidence:
