@@ -1,123 +1,151 @@
 #!/usr/bin/env python3
-"""Create a source-aware price comparison report from per-site catalog exports."""
+"""Create manufacturer-scoped cross-competitor price comparisons.
 
+Unlike the legacy report, this script never groups on SKU alone. Records are
+compared only when canonical manufacturer/brand and canonical identifier agree.
+Same-site duplicates are retained, audited, and deterministically collapsed to a
+median site price instead of being overwritten by dictionary iteration order.
+"""
 from __future__ import annotations
 
 import csv
 from collections import defaultdict
-from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from competitor_pricing_core import (
+    SITE_KEYS,
+    SITE_LABELS,
+    canonical_brand,
+    canonical_brand_label,
+    clean_description,
+    compact_identifier,
+    decimal_price,
+    identity_key,
+    median_decimal,
+    money,
+)
 
 ROOT = Path(__file__).resolve().parent
 REPORT_DIR = ROOT / "reports" / "competitor-catalog"
 OUTPUT_CSV = REPORT_DIR / "competitor_price_comparison_by_sku.csv"
-
-SITES = [
-    ("all_wall", "All-Wall"),
-    ("als_taping_tools", "Al's Taping Tools"),
-    ("wall_tools", "Wall Tools"),
-]
+OUTPUT_REVIEW = REPORT_DIR / "competitor_price_comparison_review.csv"
 
 
-def normalize_sku(value: str) -> str:
-    return " ".join((value or "").strip().casefold().split())
+def load_rows():
+    for site_key in SITE_KEYS:
+        path = REPORT_DIR / site_key / "catalog.csv"
+        with path.open(newline="", encoding="utf-8-sig") as handle:
+            for index, row in enumerate(csv.DictReader(handle), start=1):
+                title = (row.get("Product Name") or "").strip()
+                identifier = (row.get("SKU") or "").strip()
+                brand_key = canonical_brand(row.get("Brand", ""), title)
+                description, description_quality = clean_description(row.get("Product Description", ""))
+                yield {
+                    **row,
+                    "_site_key": site_key,
+                    "_site_label": SITE_LABELS[site_key],
+                    "_row": str(index),
+                    "_brand_key": brand_key,
+                    "_identifier_key": compact_identifier(identifier),
+                    "_identity_key": identity_key(brand_key, identifier),
+                    "_description": description,
+                    "_description_quality": description_quality,
+                }
 
 
-def parse_price(value: str) -> Decimal | None:
-    cleaned = (value or "").strip().replace("$", "").replace(",", "")
-    if not cleaned:
-        return None
-    try:
-        return Decimal(cleaned)
-    except InvalidOperation:
-        return None
-
-
-def money(value: Decimal | None) -> str:
-    if value is None:
-        return ""
-    return f"{value:.2f}"
+def resolve_site(rows: list[dict[str, str]]) -> dict[str, str]:
+    prices = [decimal_price(row.get("Product Price", "")) for row in rows]
+    prices = [price for price in prices if price is not None]
+    names = sorted({(row.get("Product Name") or "").strip() for row in rows if (row.get("Product Name") or "").strip()})
+    return {
+        "price": money(median_decimal(prices)),
+        "price_low": money(min(prices) if prices else None),
+        "price_high": money(max(prices) if prices else None),
+        "duplicate_count": str(max(0, len(rows) - 1)),
+        "product": " | ".join(names[:3]),
+        "quality": "single_observation" if len(rows) == 1 else "duplicate_collapsed_median",
+    }
 
 
 def main() -> int:
     grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
-    display_skus: dict[str, str] = {}
-
-    for site_key, site_label in SITES:
-        path = REPORT_DIR / site_key / "catalog.csv"
-        with path.open(newline="", encoding="utf-8-sig") as handle:
-            for row in csv.DictReader(handle):
-                sku = (row.get("SKU") or "").strip()
-                key = normalize_sku(sku)
-                if not key:
-                    continue
-                display_skus.setdefault(key, sku)
-                row["_source_key"] = site_key
-                row["_source_label"] = site_label
-                grouped[key].append(row)
+    review_rows: list[dict[str, str]] = []
+    for row in load_rows():
+        if not row["_brand_key"] or not row["_identifier_key"]:
+            review_rows.append({
+                "Competitor": row["_site_label"],
+                "Brand": row.get("Brand", ""),
+                "Product Name": row.get("Product Name", ""),
+                "SKU": row.get("SKU", ""),
+                "Product Price": row.get("Product Price", ""),
+                "Reason": "canonical_brand_unknown" if not row["_brand_key"] else "identifier_missing",
+            })
+            continue
+        grouped[row["_identity_key"]].append(row)
 
     fields = [
-        "SKU",
-        "Source Count",
-        "Sources",
-        "Lowest Price",
-        "Highest Price",
-        "Price Spread",
-        "All-Wall Price",
-        "All-Wall Brand",
-        "All-Wall Product Name",
-        "Al's Taping Tools Price",
-        "Al's Taping Tools Brand",
-        "Al's Taping Tools Product Name",
-        "Wall Tools Price",
-        "Wall Tools Brand",
-        "Wall Tools Product Name",
+        "Identity Key", "Canonical Brand", "Canonical Identifier", "Source Count",
+        "Observation Count", "Lowest Price", "Highest Price", "Median Price", "Price Spread",
     ]
+    for site_key in SITE_KEYS:
+        label = SITE_LABELS[site_key]
+        fields.extend([
+            f"{label} Price", f"{label} Price Low", f"{label} Price High",
+            f"{label} Duplicate Count", f"{label} Evidence Quality", f"{label} Product Name",
+        ])
 
-    rows: list[dict[str, str]] = []
+    output_rows: list[dict[str, str]] = []
     for key, records in grouped.items():
-        source_labels = sorted({record["_source_label"] for record in records})
-        if len(source_labels) < 2:
+        by_site: dict[str, list[dict[str, str]]] = defaultdict(list)
+        for record in records:
+            by_site[record["_site_key"]].append(record)
+        if len(by_site) < 2:
             continue
-
-        by_site = {record["_source_key"]: record for record in records}
-        prices = [parse_price(record.get("Product Price", "")) for record in records]
-        prices = [price for price in prices if price is not None]
-        low = min(prices) if prices else None
-        high = max(prices) if prices else None
-        spread = (high - low) if low is not None and high is not None else None
-
-        output = {
-            "SKU": display_skus[key],
-            "Source Count": str(len(source_labels)),
-            "Sources": " | ".join(source_labels),
+        site_resolved = {site: resolve_site(rows) for site, rows in by_site.items()}
+        site_prices = [decimal_price(value["price"]) for value in site_resolved.values()]
+        site_prices = [price for price in site_prices if price is not None]
+        low = min(site_prices) if site_prices else None
+        high = max(site_prices) if site_prices else None
+        median = median_decimal(site_prices)
+        first = records[0]
+        row = {
+            "Identity Key": key,
+            "Canonical Brand": canonical_brand_label(first["_brand_key"]) or first["_brand_key"],
+            "Canonical Identifier": first.get("SKU", ""),
+            "Source Count": str(len(by_site)),
+            "Observation Count": str(len(records)),
             "Lowest Price": money(low),
             "Highest Price": money(high),
-            "Price Spread": money(spread),
+            "Median Price": money(median),
+            "Price Spread": money(high - low if low is not None and high is not None else None),
         }
+        for site_key in SITE_KEYS:
+            label = SITE_LABELS[site_key]
+            resolved = site_resolved.get(site_key, {})
+            row[f"{label} Price"] = resolved.get("price", "")
+            row[f"{label} Price Low"] = resolved.get("price_low", "")
+            row[f"{label} Price High"] = resolved.get("price_high", "")
+            row[f"{label} Duplicate Count"] = resolved.get("duplicate_count", "0")
+            row[f"{label} Evidence Quality"] = resolved.get("quality", "")
+            row[f"{label} Product Name"] = resolved.get("product", "")
+        output_rows.append(row)
 
-        for site_key, site_label in SITES:
-            record = by_site.get(site_key, {})
-            output[f"{site_label} Price"] = money(parse_price(record.get("Product Price", "")))
-            output[f"{site_label} Brand"] = (record.get("Brand") or "").strip()
-            output[f"{site_label} Product Name"] = (record.get("Product Name") or "").strip()
-
-        rows.append(output)
-
-    rows.sort(
-        key=lambda row: (
-            -Decimal(row["Price Spread"] or "0"),
-            row["SKU"].casefold(),
-        )
-    )
-
+    output_rows.sort(key=lambda row: (
+        -(decimal_price(row["Price Spread"]) or 0),
+        row["Canonical Brand"].casefold(), row["Canonical Identifier"].casefold(),
+    ))
+    OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
-        writer.writeheader()
-        writer.writerows(rows)
+        writer.writeheader(); writer.writerows(output_rows)
 
-    print(f"Wrote {len(rows)} multi-source SKU comparisons to {OUTPUT_CSV}")
+    review_fields = ["Competitor", "Brand", "Product Name", "SKU", "Product Price", "Reason"]
+    with OUTPUT_REVIEW.open("w", newline="", encoding="utf-8-sig") as handle:
+        writer = csv.DictWriter(handle, fieldnames=review_fields)
+        writer.writeheader(); writer.writerows(review_rows)
+
+    print(f"Wrote {len(output_rows)} manufacturer-scoped multi-source comparisons to {OUTPUT_CSV}")
+    print(f"Wrote {len(review_rows)} unscoped rows to {OUTPUT_REVIEW}")
     return 0
 
 
