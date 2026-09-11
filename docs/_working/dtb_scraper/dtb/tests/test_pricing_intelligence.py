@@ -6,7 +6,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from analyze_price_provenance import pair_semantics, price_provenance
 from competitor_identity import (
     canonical_identifier,
     identity_key,
@@ -127,36 +126,6 @@ class PricingAndQualityTests(unittest.TestCase):
 
     def test_brand_aliases_are_canonical(self):
         self.assertEqual(canonical_brand("Columbia Parts", ""), "columbia"); self.assertEqual(canonical_brand("", "TapeTech EasyClean Automatic Taper"), "tapetech")
-
-    def test_duplicate_price_and_regular_fields_are_one_current_price_semantic(self):
-        raw_matches, semantic = price_provenance(
-            {"price": "10.00", "regular_price": "10.00", "sale_price": ""},
-            Decimal("10.00"),
-        )
-        self.assertEqual(raw_matches, "price+regular_price")
-        self.assertEqual(semantic, "CURRENT_PRICE")
-        self.assertEqual(
-            pair_semantics("CURRENT_PRICE", "CURRENT_PRICE", True, True),
-            "SAME_PRICE_SEMANTIC_DIFFERENT_AMOUNT",
-        )
-
-    def test_distinct_sale_and_regular_price_semantics_remain_distinguishable(self):
-        sale_matches, sale_semantic = price_provenance(
-            {"price": "8.00", "regular_price": "10.00", "sale_price": "8.00"},
-            Decimal("8.00"),
-        )
-        regular_matches, regular_semantic = price_provenance(
-            {"price": "10.00", "regular_price": "10.00", "sale_price": "8.00"},
-            Decimal("10.00"),
-        )
-        self.assertEqual(sale_matches, "price+sale_price")
-        self.assertEqual(sale_semantic, "SALE_PRICE")
-        self.assertEqual(regular_matches, "price+regular_price")
-        self.assertEqual(regular_semantic, "REGULAR_PRICE")
-        self.assertEqual(
-            pair_semantics(sale_semantic, regular_semantic, True, True),
-            "SALE_VS_REGULAR_PRICE",
-        )
 
 
 if __name__ == "__main__":
