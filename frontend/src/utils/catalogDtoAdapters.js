@@ -506,6 +506,7 @@ export function toProductDetailDTO(payload = {}) {
     product,
     variations,
     relatedProducts,
+    relatedProductsContext: String(payload?.relatedProductsContext || 'related'),
     computed: {
       ...(payload?.computed || {}),
       defaultVariation,
@@ -517,12 +518,21 @@ export function toProductDetailDTO(payload = {}) {
 export function toCartLineDTO(productOrCard = {}, quantity = 1) {
   const card = productOrCard?.cardProduct || productOrCard;
   const id = card?.id ?? productOrCard?.id ?? 0;
+  const parentId = card?.parent_id ?? card?.parentId ?? productOrCard?.parent_id ?? productOrCard?.parentId ?? null;
+  const explicitVariationId = card?.variation_id ?? card?.variationId ?? productOrCard?.variation_id ?? productOrCard?.variationId ?? null;
+  const isVariation = String(productOrCard?.type || card?.type || '').toLowerCase() === 'variation'
+    || Boolean(parentId)
+    || Boolean(explicitVariationId);
 
   return {
     id,
-    quantity,
-    variation_attribute_values: toLegacyVariationAttributeValues(card?.attributes || productOrCard?.attributes),
-    metadata: Array.isArray(card?.metadata) ? card.metadata : (Array.isArray(productOrCard?.metadata) ? productOrCard.metadata : []),
-    extensions: card?.extensions || productOrCard?.extensions || {},
+    product_id: isVariation && parentId ? parentId : id,
+    variation_id: isVariation ? (explicitVariationId || id) : 0,
+    sku: card?.sku || productOrCard?.sku || '',
+    name: productOrCard?.name || card?.name || '',
+    price: toNumber(card?.price ?? productOrCard?.price, 0),
+    quantity: Math.max(1, Number.parseInt(quantity, 10) || 1),
+    image: card?.image || productOrCard?.image || '',
+    attributes: Array.isArray(card?.attributes) ? card.attributes : [],
   };
 }
