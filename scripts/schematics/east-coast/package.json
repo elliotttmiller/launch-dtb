@@ -1,0 +1,12 @@
+{
+  "name": "@dtb/east-coast-schematic-extractor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "extract": "node ./extract.mjs",
+    "install-browser": "playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
+  }
+}
