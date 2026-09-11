@@ -182,16 +182,21 @@ insufficient_repository_evidence
 
 `analyze_competitor_price_conflicts.py` classifies every `MARKET_PRICE_CONFLICT` without changing its market-price status. It distinguishes two-retailer disagreements, three-way disagreement, two-agree/one-outlier cases, same-retailer duplicate-price conflicts, possible pack/unit multipliers, and small price drift versus larger possible sale/stale-price differences.
 
-`analyze_two_source_price_conflicts.py` then focuses specifically on true two-source disagreements. It records:
+`analyze_two_source_price_conflicts.py` then focuses specifically on true two-source disagreements. It records retailer pair, missing third retailer, lower- and higher-priced retailer, absolute and percentage spread, spread buckets, canonical brand, retailer titles/evidence quality, and approved-alias participation.
 
-- retailer pair;
-- missing third retailer;
-- lower- and higher-priced retailer;
-- absolute and percentage spread;
-- absolute and relative spread buckets;
-- canonical brand;
-- retailer product titles and evidence quality;
-- whether an approved identifier alias participated.
+`analyze_price_provenance.py` joins those two-source conflicts back to the internal `products.jsonl` records and distinguishes raw storage fields from normalized commercial price semantics. Duplicate raw fields containing the same current amount do not become false semantic mismatches.
+
+`analyze_commercial_offer_equivalence.py` then audits only material P0/P1 disagreements (>10%) whose price semantics already agree. It reuses the canonical variation parser and adds conservative pack/quantity/scope extraction. Possible results are:
+
+```text
+OFFER_EQUIVALENT_PRICE_DISAGREEMENT
+PACK_QUANTITY_MISMATCH
+VARIANT_MISMATCH
+OFFER_SCOPE_MISMATCH
+OFFER_EQUIVALENCE_UNRESOLVED
+```
+
+`OFFER_EQUIVALENT_PRICE_DISAGREEMENT` means the retained evidence exposes no structural commercial-offer mismatch; it does not prove that hidden storefront options were identical and it never changes `MARKET_PRICE_CONFLICT`. One-sided quantity/scope evidence fails closed as `OFFER_EQUIVALENCE_UNRESOLVED`.
 
 These diagnostics never choose a winner and never synthesize a market price.
 
@@ -238,6 +243,8 @@ create_competitor_price_comparison.py
 analyze_identifier_collision_evidence.py
 analyze_competitor_price_conflicts.py
 analyze_two_source_price_conflicts.py
+analyze_price_provenance.py
+analyze_commercial_offer_equivalence.py
 match_official_catalog_to_competitors.py
 create_friendly_match_report.py
 ```
@@ -257,6 +264,10 @@ A new full scrape is not required merely because downstream market-price semanti
 - `competitor_price_conflict_summary.csv` — aggregate conflict-pattern and probable-cause counts.
 - `competitor_two_source_price_conflict_audit.csv` — focused detail for exactly-two-retailer price disagreements.
 - `competitor_two_source_price_conflict_summary.csv` — retailer-pair, missing-retailer, lower-price-retailer, spread-bucket, and brand counts.
+- `competitor_price_provenance_audit.csv` — raw-field and normalized-price-semantic evidence for two-source disagreements.
+- `competitor_price_provenance_summary.csv` — priority, normalized-semantic, raw-field, and provenance completeness counts.
+- `competitor_commercial_offer_equivalence_audit.csv` — P0/P1 commercial offer-equivalence classifications and per-retailer quantity/scope evidence.
+- `competitor_commercial_offer_equivalence_summary.csv` — classification, evidence-strength, pair, brand, and priority counts for material conflicts.
 - `dtb_official_competitor_matches.csv` — full technical candidate evidence ledger.
 - `dtb_official_competitor_best_matches.csv` — one aggregate row per eligible DTB pricing target.
 - `dtb_official_competitor_unmatched.csv` — eligible DTB targets with no verified or review candidate evidence.
@@ -273,7 +284,7 @@ A new full scrape is not required merely because downstream market-price semanti
 python -m unittest discover -s tests -v
 ```
 
-Regression coverage includes manufacturer-scoped identities, approved brand-scoped aliases, unresolved formatting variants, cross-brand collisions, unknown-brand identifiers, title/identifier contradictions, dimensional conflicts, fuzzy review-only behavior, sale-price precedence, variable-parent exclusion, 3/3 exact market-price agreement, 2/3 agreement, single-source non-promotion, price conflicts, storefront-boilerplate quarantine, same-site duplicate agreement, same-site duplicate price conflict, and canonical brand aliases.
+Regression coverage includes manufacturer-scoped identities, approved brand-scoped aliases, unresolved formatting variants, cross-brand collisions, unknown-brand identifiers, title/identifier contradictions, dimensional conflicts, fuzzy review-only behavior, sale-price precedence, normalized price semantics, commercial offer quantity/scope mismatches, variable-parent exclusion, 3/3 exact market-price agreement, 2/3 agreement, single-source non-promotion, price conflicts, storefront-boilerplate quarantine, same-site duplicate agreement, same-site duplicate price conflict, and canonical brand aliases.
 
 ## Safety boundary
 
