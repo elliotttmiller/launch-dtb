@@ -1,0 +1,159 @@
+.repair-assurance__grid--trust {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.repair-packing {
+  padding: 46px 0;
+  background: #fff;
+  border-bottom: 1px solid var(--repair-line);
+}
+
+.repair-packing__inner {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: clamp(36px, 5vw, 72px);
+  align-items: start;
+}
+
+.repair-packing__copy h2 {
+  margin: 0;
+  color: var(--repair-ink);
+  font-size: clamp(1.55rem, 2.2vw, 2.1rem);
+  font-weight: 880;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.repair-packing__copy > p:last-child,
+.repair-brands__copy > p:last-child {
+  margin: 12px 0 0;
+  color: var(--repair-muted);
+  font-size: 0.84rem;
+  line-height: 1.58;
+}
+
+.repair-packing__steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--repair-line);
+  border-bottom: 1px solid var(--repair-line);
+  list-style: none;
+}
+
+.repair-packing__steps li {
+  min-width: 0;
+  padding: 18px 16px;
+}
+
+.repair-packing__steps li:not(:last-child) {
+  border-right: 1px solid var(--repair-line);
+}
+
+.repair-packing__steps span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--repair-blue);
+  font-size: 0.67rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.repair-packing__steps strong {
+  display: block;
+  color: var(--repair-ink);
+  font-size: 0.8rem;
+  font-weight: 820;
+  line-height: 1.35;
+}
+
+.repair-brands__copy {
+  max-width: 440px;
+}
+
+.repair-faq__groups {
+  display: grid;
+  gap: 32px;
+}
+
+.repair-faq__group h3 {
+  margin: 0 0 10px;
+  color: var(--repair-ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1100px) {
+  .repair-assurance__grid--trust {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .repair-assurance__grid--trust .repair-assurance__item {
+    padding-block: 14px;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-assurance__grid--trust .repair-assurance__item:nth-child(2) {
+    border-right: 0;
+  }
+
+  .repair-packing__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .repair-packing__steps li:nth-child(3) {
+    border-right: 0;
+  }
+
+  .repair-packing__steps li:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--repair-line);
+  }
+}
+
+@media (max-width: 760px) {
+  .repair-packing__inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .repair-packing__steps {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-packing__steps li,
+  .repair-packing__steps li:nth-child(3) {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+    padding: 14px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-packing__steps li:last-child {
+    border-bottom: 0;
+  }
+
+  .repair-packing__steps span {
+    margin: 0;
+  }
+
+  .repair-faq__groups {
+    gap: 26px;
+  }
+}
+
+@media (max-width: 560px) {
+  .repair-assurance__grid--trust {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-assurance__grid--trust .repair-assurance__item,
+  .repair-assurance__grid--trust .repair-assurance__item:nth-child(2) {
+    border-right: 0;
+  }
+}
