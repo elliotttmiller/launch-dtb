@@ -1,0 +1,15 @@
+metric,value,1034
+conflict_pattern,all_three_prices_distinct,180
+conflict_pattern,retailer_duplicate_price_conflict,1
+conflict_pattern,two_retailers_agree_one_outlier,45
+conflict_pattern,two_source_disagreement,808
+probable_cause,possible_pack_or_unit_multiplier,2
+probable_cause,possible_sale_or_stale_price,258
+probable_cause,requires_source_price_review,659
+probable_cause,same_retailer_duplicate_price_disagreement,1
+probable_cause,single_retailer_price_outlier,16
+probable_cause,small_price_drift_or_rounding,98
+outlier_retailer,Al's Taping Tools,11
+outlier_retailer,All-Wall,24
+outlier_retailer,Wall Tools,10
+possible_pack_factor,present,2
