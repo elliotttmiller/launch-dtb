@@ -11,6 +11,7 @@ function ToolTypeTile({ category }) {
   const image = resolveCategoryThumbnail(category);
   const hasImage = Boolean(image) && !imageFailed;
   const count = Number(category?.count || 0);
+  const description = String(category?.description || '').replace(/<[^>]*>/g, '').trim();
 
   return (
     <Link
@@ -32,6 +33,7 @@ function ToolTypeTile({ category }) {
         )}
       </span>
       <span className="dtb-tool-type-tile__label">{category.name}</span>
+      {description && <span className="dtb-tool-type-tile__description">{description}</span>}
       {count > 0 && (
         <span className="dtb-tool-type-tile__count">
           {count.toLocaleString()} product{count === 1 ? '' : 's'}
@@ -46,6 +48,10 @@ function ToolTypeTile({ category }) {
  * authoritative WooCommerce child terms returned by the category metadata
  * endpoint. Display-category metadata remains a filtering/merchandising facet
  * and must not define the storefront taxonomy architecture.
+ *
+ * Category descriptions are presentation-only metadata from the same
+ * authoritative child-term payload. They are never synthesized into category
+ * identity or used to drive product filtering.
  *
  * Category thumbnail source assets intentionally have intrinsic, tool-specific
  * aspect ratios. The fixed media viewport and `object-fit: contain` CSS own
@@ -70,6 +76,7 @@ export default function ShopByToolType({ categories = [], onOpenFilters }) {
       <div className="storefront-section__head">
         <div className="storefront-section__head-text">
           <h2 className="storefront-section__title">Shop by Tool Type</h2>
+          <p className="storefront-section__subtitle">Go directly to the tool family you need, then refine by brand and product attributes.</p>
         </div>
         <a href="#dtb-category-filters" className="storefront-section__view-all" onClick={handleViewAll}>
           View all tool types
