@@ -12,6 +12,8 @@ from competitor_pricing_core import (
     clean_description,
     effective_dtb_price,
     identity_key,
+    is_pricing_target,
+    price_consensus,
     resolve_site_evidence,
 )
 
@@ -53,6 +55,27 @@ class PricingAndQualityTests(unittest.TestCase):
         self.assertEqual(price, Decimal("175"))
         self.assertEqual(basis, "sale_price")
         self.assertEqual(warnings, ())
+
+    def test_variable_parent_is_not_pricing_target(self):
+        self.assertFalse(is_pricing_target({"Type": "variable"}))
+        self.assertTrue(is_pricing_target({"Type": "variation"}))
+        self.assertTrue(is_pricing_target({"Type": "simple"}))
+
+    def test_exact_multi_source_prices_are_consensus(self):
+        consensus = price_consensus([Decimal("1295.00"), Decimal("1295.00"), Decimal("1295.00")])
+        self.assertEqual(consensus.status, "exact_price_consensus")
+        self.assertEqual(consensus.source_count, 3)
+        self.assertEqual(consensus.distinct_price_count, 1)
+        self.assertEqual(consensus.consensus_price, Decimal("1295.00"))
+        self.assertEqual(consensus.spread, Decimal("0.00"))
+
+    def test_different_verified_prices_are_dispersion(self):
+        consensus = price_consensus([Decimal("1295.00"), Decimal("1275.00"), Decimal("1295.00")])
+        self.assertEqual(consensus.status, "price_dispersion")
+        self.assertEqual(consensus.distinct_price_count, 2)
+        self.assertIsNone(consensus.consensus_price)
+        self.assertEqual(consensus.median, Decimal("1295.00"))
+        self.assertEqual(consensus.spread, Decimal("20.00"))
 
     def test_boilerplate_description_is_quarantined(self):
         text, quality = clean_description("WallTools a leading supplier of professional tools for drywall hanging and drywall finishing, wallpaper, wallcovering, and ceiling grid.")
