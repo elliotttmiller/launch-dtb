@@ -1,0 +1,26 @@
+.repair-service-details .repair-section-heading--center {
+  margin-bottom: 28px;
+}
+
+.repair-service-panel--diagnostic li {
+  color: rgba(255, 255, 255, 0.82);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.repair-service-panel--diagnostic li::before {
+  background: #78a7ff;
+}
+
+.repair-service-panel--diagnostic .repair-button--primary {
+  border-color: #fff;
+  background: #fff;
+  color: #1646cf;
+}
+
+.repair-service-panel--diagnostic .repair-button--primary:hover {
+  background: #f5f8ff;
+}
+
+.repair-closing-cta__actions {
+  flex-wrap: wrap;
+}
