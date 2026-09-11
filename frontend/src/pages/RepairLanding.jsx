@@ -4,6 +4,7 @@ import { SCHEMATIC_DEFINITIONS } from '../data/schematicMappings';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/repair-landing.css';
 import '../styles/repair-landing-responsive.css';
+import '../styles/repair-merchandising.css';
 
 const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.localeCompare(b));
 
@@ -155,7 +156,7 @@ export default function RepairLanding() {
                 <li>Warranty or eligibility-review request supported</li>
                 <li>Approval required before additional quote-first work</li>
               </ul>
-              <Link className="repair-button repair-button--primary" to="/repairs/start?package=dx">
+              <Link className="repair-button repair-button--primary" to="/repairs/start?package=diagnose_and_quote">
                 Start Diagnostic
                 <span aria-hidden="true">→</span>
               </Link>
