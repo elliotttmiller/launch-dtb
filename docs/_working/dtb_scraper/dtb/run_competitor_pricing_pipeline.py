@@ -16,6 +16,7 @@ STEPS = (
     "analyze_competitor_price_conflicts.py",
     "analyze_two_source_price_conflicts.py",
     "analyze_price_provenance.py",
+    "analyze_commercial_offer_equivalence.py",
     "match_official_catalog_to_competitors.py",
     "create_friendly_match_report.py",
 )
