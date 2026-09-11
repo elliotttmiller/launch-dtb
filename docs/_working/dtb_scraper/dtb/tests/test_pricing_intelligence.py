@@ -6,7 +6,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from competitor_identity import canonical_identifier, identity_key, normalization_collisions
+from competitor_identity import (
+    canonical_identifier,
+    identity_key,
+    identifier_title_contradictions,
+    normalization_collisions,
+    resolved_identifier,
+)
 from competitor_pricing_core import (
     canonical_brand,
     classify_match,
@@ -26,7 +32,17 @@ class IdentityContractTests(unittest.TestCase):
         self.assertEqual(canonical_identifier(" AH3–2 "), "ah3-2")
         self.assertEqual(canonical_identifier("XHTT / NSA"), "xhtt/NSA".casefold().replace(" ", ""))
         self.assertNotEqual(identity_key("columbia", "AH3-2"), identity_key("columbia", "AH32"))
-        self.assertNotEqual(identity_key("columbia", "CT-104"), identity_key("columbia", "CT104"))
+        self.assertNotEqual(identity_key("columbia", "CT-104X"), identity_key("columbia", "CT104X"))
+
+    def test_approved_brand_scoped_alias_resolves_to_protected_identifier(self):
+        self.assertEqual(resolved_identifier("columbia", "CT-103"), "ct103")
+        self.assertEqual(identity_key("columbia", "CT-103"), identity_key("columbia", "CT103"))
+        self.assertEqual(identifier_title_contradictions("CT103", "CT-103 Columbia Taper Barrel Main Body", "columbia"), [])
+
+    def test_unapproved_format_variant_remains_distinct(self):
+        self.assertEqual(resolved_identifier("columbia", "AH-32"), "ah-32")
+        self.assertEqual(resolved_identifier("columbia", "AH3-2"), "ah3-2")
+        self.assertNotEqual(identity_key("columbia", "AH-32"), identity_key("columbia", "AH3-2"))
 
     def test_legacy_compaction_collisions_are_detected_not_merged(self):
         rows = [
