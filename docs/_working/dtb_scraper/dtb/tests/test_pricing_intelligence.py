@@ -13,7 +13,7 @@ from competitor_pricing_core import (
     effective_dtb_price,
     identity_key,
     is_pricing_target,
-    price_consensus,
+    market_price_decision,
     resolve_site_evidence,
 )
 
@@ -56,42 +56,67 @@ class PricingAndQualityTests(unittest.TestCase):
         self.assertEqual(basis, "sale_price")
         self.assertEqual(warnings, ())
 
-    def test_variable_parent_is_not_pricing_target(self):
+    def test_only_simple_and_variation_are_pricing_targets(self):
         self.assertFalse(is_pricing_target({"Type": "variable"}))
         self.assertTrue(is_pricing_target({"Type": "variation"}))
         self.assertTrue(is_pricing_target({"Type": "simple"}))
+        self.assertFalse(is_pricing_target({"Type": ""}))
 
-    def test_exact_multi_source_prices_are_consensus(self):
-        consensus = price_consensus([Decimal("1295.00"), Decimal("1295.00"), Decimal("1295.00")])
-        self.assertEqual(consensus.status, "exact_price_consensus")
-        self.assertEqual(consensus.source_count, 3)
-        self.assertEqual(consensus.distinct_price_count, 1)
-        self.assertEqual(consensus.consensus_price, Decimal("1295.00"))
-        self.assertEqual(consensus.spread, Decimal("0.00"))
+    def test_three_identical_site_prices_establish_market_price(self):
+        decision = market_price_decision([Decimal("1649.29"), Decimal("1649.29"), Decimal("1649.29")])
+        self.assertEqual(decision.status, "MARKET_PRICE_VERIFIED_3_OF_3")
+        self.assertEqual(decision.verified_source_count, 3)
+        self.assertEqual(decision.distinct_price_count, 1)
+        self.assertEqual(decision.market_price, Decimal("1649.29"))
+        self.assertEqual(decision.price_spread, Decimal("0.00"))
 
-    def test_different_verified_prices_are_dispersion(self):
-        consensus = price_consensus([Decimal("1295.00"), Decimal("1275.00"), Decimal("1295.00")])
-        self.assertEqual(consensus.status, "price_dispersion")
-        self.assertEqual(consensus.distinct_price_count, 2)
-        self.assertIsNone(consensus.consensus_price)
-        self.assertEqual(consensus.median, Decimal("1295.00"))
-        self.assertEqual(consensus.spread, Decimal("20.00"))
+    def test_two_identical_site_prices_establish_two_source_market_price(self):
+        decision = market_price_decision([Decimal("1649.29"), Decimal("1649.29")])
+        self.assertEqual(decision.status, "MARKET_PRICE_VERIFIED_2_OF_3")
+        self.assertEqual(decision.market_price, Decimal("1649.29"))
+
+    def test_single_site_price_is_not_promoted_to_market_price(self):
+        decision = market_price_decision([Decimal("1649.29")])
+        self.assertEqual(decision.status, "MARKET_PRICE_SINGLE_SOURCE")
+        self.assertIsNone(decision.market_price)
+
+    def test_different_verified_prices_are_conflict_not_synthesized_market_price(self):
+        decision = market_price_decision([Decimal("1649.29"), Decimal("1649.29"), Decimal("1549.29")])
+        self.assertEqual(decision.status, "MARKET_PRICE_CONFLICT")
+        self.assertEqual(decision.distinct_price_count, 2)
+        self.assertIsNone(decision.market_price)
+        self.assertEqual(decision.price_spread, Decimal("100.00"))
+
+    def test_no_prices_has_no_market_evidence(self):
+        decision = market_price_decision([])
+        self.assertEqual(decision.status, "NO_MARKET_EVIDENCE")
+        self.assertIsNone(decision.market_price)
 
     def test_boilerplate_description_is_quarantined(self):
         text, quality = clean_description("WallTools a leading supplier of professional tools for drywall hanging and drywall finishing, wallpaper, wallcovering, and ceiling grid.")
         self.assertEqual(text, "")
         self.assertEqual(quality, "quarantined_storefront_boilerplate")
 
-    def test_site_duplicates_are_explicitly_collapsed_by_median(self):
+    def test_same_site_duplicate_same_price_is_verified_without_aggregation_math(self):
+        rows = [
+            {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.00", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
+            {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.00", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
+        ]
+        evidence = resolve_site_evidence("all_wall", rows)
+        self.assertTrue(evidence.verified)
+        self.assertEqual(evidence.duplicate_count, 1)
+        self.assertEqual(evidence.price, Decimal("1.00"))
+        self.assertEqual(evidence.quality, "verified_duplicate_same_price")
+
+    def test_same_site_duplicate_price_conflict_is_not_verified(self):
         rows = [
             {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.00", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
             {"Match Status": "auto_accept", "Evidence Quality": "verified_exact_identity", "Identity Key": "columbia::fa280", "Competitor Price": "1.20", "Competitor Product Name": "Columbia #10 Belleville Washer", "Competitor SKU": "FA280", "Match Score": "100", "Simple Ratio": "100"},
         ]
         evidence = resolve_site_evidence("all_wall", rows)
-        self.assertTrue(evidence.verified)
-        self.assertEqual(evidence.duplicate_count, 1)
-        self.assertEqual(evidence.price, Decimal("1.10"))
-        self.assertEqual(evidence.quality, "verified_duplicate_collapsed_median")
+        self.assertFalse(evidence.verified)
+        self.assertIsNone(evidence.price)
+        self.assertEqual(evidence.quality, "conflicting_price_duplicates")
 
     def test_brand_aliases_are_canonical(self):
         self.assertEqual(canonical_brand("Columbia Parts", ""), "columbia")
