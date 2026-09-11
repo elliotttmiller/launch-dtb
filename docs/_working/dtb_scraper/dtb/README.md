@@ -1,16 +1,28 @@
-# DTB Competitor Catalog Scraper v6
+# DTB Competitor Catalog + Pricing Intelligence
 
-A local, read-only scraper specialized for these three competitor storefronts:
+This working toolset is a local, read-only competitor catalog and market-pricing workflow for:
 
 - Al's Taping Tools — `https://www.alstapingtools.com/`
 - Wall Tools — `https://walltools.com/`
 - All-Wall — `https://www.all-wall.com/`
 
-The scraper is intentionally narrow. It does **not** perform DTB product matching, pricing recommendations, inventory mutation, WooCommerce writes, or any commerce operation.
+It does **not** update WooCommerce, Veeqo, QuickBooks, MAP, canonical DTB product identifiers, or storefront prices. Competitor data is research evidence only.
 
-## Final CSV contract
+## Source boundaries
 
-Every business-facing CSV contains exactly five columns:
+Canonical DTB product identity and DTB selling prices come from:
+
+```text
+products/launch/official/dtb_official_catalog.csv
+```
+
+Raw competitor evidence comes from the three per-site catalog exports under:
+
+```text
+reports/competitor-catalog/
+```
+
+The five-column scrape contract remains:
 
 ```text
 Brand
@@ -20,138 +32,145 @@ Product Price
 Product Description
 ```
 
-No URLs, images, crawl metadata, GTINs, MPN columns, timestamps, or endpoint details are written into the business CSV.
+## Competitor identifier contract
 
-The scraper writes:
+The exported column is named `SKU`, but its source is competitor-specific:
 
-```text
-reports/competitor-catalog/
-  als_taping_tools/catalog.csv
-  wall_tools/catalog.csv
-  all_wall/catalog.csv
-  all_competitor_products.csv
-```
+- **All-Wall:** manufacturer part number / MPN. The All-Wall store SKU is never substituted when MPN is absent.
+- **Al's Taping Tools:** storefront SKU exactly as exposed.
+- **Wall Tools:** storefront SKU with only the verified prefixes `LEV5-`, `DURA-`, `SURP-`, `TAPE-`, and `COLM-` stripped case-insensitively. Unknown prefixes are preserved.
 
-Internal JSONL/audit files remain under each competitor directory only to support resume, diagnostics, and source provenance.
+## Market identity contract
 
-## Authoritative identifier rules
+Downstream matching no longer treats SKU as globally unique.
 
-The output column is always named `SKU`, but the source value is competitor-specific.
-
-### All-Wall
-
-Use the **manufacturer part number / MPN** as the exported SKU.
-
-Example:
+The authoritative comparison key is:
 
 ```text
-Mfr: TapeTech
-MPN: 07TT-C
-SKU: 14767
+identity_key = canonical_brand + "::" + canonical_identifier
 ```
 
-Exports:
+Examples:
 
 ```text
-SKU = 07TT-C
+tapetech::10116
+columbia::10116
 ```
 
-The All-Wall storefront SKU `14767` is internal store data and is never substituted for the MPN in the final CSV.
+Those are distinct product identities even though the identifier text is the same.
 
-### Al's Taping Tools
+An automatic verified match requires all of the following:
 
-Use the storefront **SKU exactly as exposed**. No normalization or prefix removal is applied.
+1. canonical competitor manufacturer/brand is known;
+2. canonical competitor manufacturer/brand equals the DTB manufacturer/brand;
+3. competitor identifier equals a DTB SKU/MPN/manufacturer identifier;
+4. no independent title-identifier contradiction exists;
+5. no structured variation contradiction exists.
 
-### Wall Tools
+Unknown-brand identifier matches, cross-brand identifier matches, title/identifier conflicts, dimensional differences, range differences, left/right differences, pack-count differences, generation differences, length-class differences, and product-family conflicts are review-only.
 
-Use the storefront **SKU**, then strip only explicitly verified store/vendor prefixes.
+**Fuzzy and near-identical title matches are never auto-accepted.**
 
-Current verified rule:
+## Structured variation guardrails
+
+The matcher extracts and compares identity-critical product features before fuzzy evidence can be considered, including:
+
+- inch measurements and mixed fractions;
+- size ranges;
+- left/right handedness;
+- pack/count quantities;
+- short / standard / long / XL / mini qualifiers;
+- generation markers;
+- controlled product-family terms such as taper, flat box, corner finisher, handle, blade, washer, bolt, pump, and stilt.
+
+For example, `1/2"` and `1-1/2"` fasteners cannot become near-identical matches simply because the remaining title text is similar.
+
+## DTB effective-price semantics
+
+Pricing analysis uses:
 
 ```text
-LEV5-12345 -> 12345
-DURA-ABC123 -> ABC123
-SURP-X100   -> X100
-TAPE-07TT   -> 07TT
-COLM-TAPER  -> TAPER
+Sale price, when present
+otherwise Regular price
 ```
 
-The verified Wall Tools prefix allowlist is exactly `LEV5-`, `DURA-`, `SURP-`, `TAPE-`, and `COLM-`. Matching is case-insensitive. Unknown prefixes are preserved intact rather than guessed away, which protects legitimate manufacturer SKUs that contain hyphens.
+The aggregate report includes `DTB Price Basis` and flags a sale price above regular price for review.
 
-## Extraction strategy
-
-### All-Wall
-
-All-Wall is treated as a SuiteCommerce storefront.
-
-Preferred path:
+`DTB vs Lowest` and `DTB vs Median` are:
 
 ```text
-endpoint audit
-  -> /api/cacheable/items
-  -> /api/items fallback
-  -> paginated item catalog JSON
-  -> extract title / manufacturer / MPN / price / description
-  -> selectively fetch only product pages missing MPN, brand, or description
+DTB effective price - competitor price
 ```
 
-This avoids downloading thousands of client-rendered product shells when the structured catalog endpoint provides the data in bulk.
+A positive value means DTB is more expensive. A negative value means DTB is less expensive.
 
-### Al's Taping Tools and Wall Tools
+## Evidence aggregation
 
-These storefronts are processed with a sitemap-first BigCommerce-oriented path:
+The old arbitrary `best_by_official` winner model has been removed.
+
+Every candidate observation is preserved in the technical evidence ledger. Verified observations are aggregated per competitor, then across competitors.
+
+For each DTB product the market report includes:
 
 ```text
-robots.txt
-  -> sitemap discovery
-  -> sitemap indexes / product URLs
-  -> concurrent product retrieval
-  -> JSON-LD first
-  -> structured DOM / labeled-field fallback
+DTB SKU
+DTB Brand
+DTB Product
+DTB Effective Price
+DTB Price Basis
+
+All-Wall verified identity / price / quality
+Al's verified identity / price / quality
+Wall Tools verified identity / price / quality
+
+Verified Competitor Count
+Review Candidate Count
+Lowest Verified Price
+Highest Verified Price
+Median Verified Price
+DTB vs Lowest
+DTB vs Median
+Recommended Review Status
 ```
 
-The parser explicitly targets product title, brand, SKU/MPN, price, and description. It does not spend time collecting image URLs or unrelated product metadata.
+If the same competitor exposes duplicate rows for one verified identity, duplicates are **not overwritten**. They are retained, counted, checked for title conflicts, and deterministically collapsed to a site median only when the duplicate evidence remains compatible.
 
-## Endpoint audit
+## Description quality
 
-Each run audits the public endpoint surface before collection and writes:
+Known generic Al's and Wall Tools storefront boilerplate is quarantined from matching evidence. Raw five-column scrape CSVs are preserved; downstream analysis emits cleaned descriptions and description-quality classifications instead of using generic store marketing copy as semantic evidence.
+
+## Discovery rejection vs product failure
+
+`finalize_scrape_outputs.py` separates obvious non-product crawl candidates from true product failures:
 
 ```text
-<site>/endpoint_audit.json
+<site>/non_product_candidates.jsonl
+<site>/product_failures.jsonl
+<site>/quality_summary.json
+<site>/catalog_quality.jsonl
 ```
 
-This includes only diagnostic data such as endpoint status, final URL, content type, response size/hash, detected storefront signals, configured identifier strategy, and preferred catalog strategy.
+Examples such as `/about-us`, `/brands`, `/privacy-policy`, brand landing pages, and API endpoints no longer need to be interpreted as failed product extractions in quality reporting.
 
-Endpoint audit data is **not** added to the final CSV.
+The original `failures.jsonl` remains unchanged as source evidence.
 
-## Performance characteristics
+## All-Wall products without MPN
 
-The scraper uses:
+All-Wall MPN strictness is retained. A product without MPN is never assigned the All-Wall store SKU for automatic identity matching.
 
-- `cloudscraper`
-- one persistent session per worker thread
-- bounded `ThreadPoolExecutor` concurrency
-- per-host request spacing
-- bounded retries
-- incremental JSONL writes
-- automatic resume
-- SuiteCommerce bulk pagination for All-Wall
-- selective All-Wall page enrichment only when required
-- gzip sitemap support
-- query-preserving sitemap request URLs
-- safe support for BigCommerce permanent `*.mybigcommerce.com` sitemap hosts while product crawling remains restricted to the configured storefront domain
+`finalize_scrape_outputs.py` writes:
 
-Recommended balanced profile:
+```text
+all_wall/manual_pricing_evidence.csv
+```
+
+Without a network refresh, historical `no_mpn` failures are preserved there as manual-identity candidates. To refresh the public SuiteCommerce catalog and retain title, store SKU, price, description, and URL for MPN-less products **strictly as manual evidence**, run:
 
 ```powershell
-python competitor_catalog_scraper.py --workers 12 --per-host 6 --request-interval 0.15 --verbose
+python run_competitor_pricing_pipeline.py --refresh-all-wall-manual-evidence
 ```
 
-For a lighter profile:
-
-```powershell
-python competitor_catalog_scraper.py --workers 8 --per-host 4 --request-interval 0.20 --verbose
-```
+Those records never enter automatic identity matching.
 
 ## Installation
 
@@ -162,19 +181,63 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-## Full run
+## Scrape
+
+Balanced profile:
 
 ```powershell
 python competitor_catalog_scraper.py --workers 12 --per-host 6 --request-interval 0.15 --verbose
 ```
 
-Run one competitor:
+Lighter profile:
 
 ```powershell
-python competitor_catalog_scraper.py --site wall_tools --workers 12 --per-host 6 --request-interval 0.15 --verbose
+python competitor_catalog_scraper.py --workers 8 --per-host 4 --request-interval 0.20 --verbose
 ```
 
-Resume is automatic. A prior record only counts as complete when it still satisfies the site's authoritative identifier rule and contains a title and price. This means older All-Wall records containing only the store SKU, or old price-less rows, are reprocessed.
+The scraper remains resumable and read-only. All-Wall uses its public SuiteCommerce item endpoint first; Al's and Wall Tools use sitemap-first structured product-page extraction.
+
+## Rebuild all pricing intelligence outputs
+
+After a scrape, run one command:
+
+```powershell
+python run_competitor_pricing_pipeline.py
+```
+
+This executes, in order:
+
+```text
+finalize_scrape_outputs.py
+filter_current_dtb_brands.py
+create_competitor_price_comparison.py
+match_official_catalog_to_competitors.py
+create_friendly_match_report.py
+```
+
+If refreshed All-Wall manual evidence is needed:
+
+```powershell
+python run_competitor_pricing_pipeline.py --refresh-all-wall-manual-evidence
+```
+
+## Generated reports
+
+Primary outputs are:
+
+- `current_dtb_brand_competitor_products.csv` — competitor rows belonging to DTB-held brands using independent brand evidence; SKU alone cannot assign brand.
+- `current_dtb_brand_filter_summary.csv` — accepted/rejected brand classification telemetry.
+- `competitor_price_comparison_by_sku.csv` — compatibility filename; now a **manufacturer-scoped identity comparison**, not a global SKU join.
+- `competitor_price_comparison_review.csv` — rows lacking a safe manufacturer-scoped identity.
+- `dtb_official_competitor_matches.csv` — full candidate evidence ledger with match method, evidence quality, variation compatibility, contradictions, identity key, and effective DTB price.
+- `dtb_official_competitor_best_matches.csv` — compatibility filename; now one **aggregated market-evidence row per DTB product**, not an arbitrary best competitor.
+- `dtb_official_competitor_unmatched.csv` — DTB rows with no verified or review candidate evidence.
+- `dtb_official_competitor_match_summary.csv` — technical counts by method, status, source, and aggregate market status.
+- `competitor_match_reader_view.csv` — business-facing market evidence view.
+- `competitor_match_price_gaps.csv` — only products with verified competitor evidence, sorted by absolute DTB-vs-median gap.
+- `competitor_match_review_queue.csv` — all review-only contradiction, unknown-brand, cross-brand, and fuzzy candidates.
+- `competitor_match_report_summary.md` — plain-language market evidence summary.
+- `competitor_match_report.html` — readable market evidence dashboard.
 
 ## Tests
 
@@ -182,18 +245,21 @@ Resume is automatic. A prior record only counts as complete when it still satisf
 python -m unittest discover -s tests -v
 ```
 
-The test suite covers:
+The pricing-intelligence tests cover:
 
-- All-Wall MPN-over-store-SKU semantics
-- Al's exact SKU preservation
-- Wall Tools normalization for `LEV5-`, `DURA-`, `SURP-`, `TAPE-`, and `COLM-`
-- case-insensitive prefix handling
-- preservation of unknown Wall Tools prefixes
-- JSON-LD extraction
-- visible labeled SKU/MPN extraction
-- BigCommerce price fallback
-- SuiteCommerce pricing
-- five-column CSV output
-- per-site CSV output
-- price-aware / identifier-aware resume
-- query-preserving request URL normalization
+- manufacturer-scoped identity keys;
+- cross-brand identifier collision rejection;
+- unknown-brand exact identifier review;
+- explicit title/identifier contradictions such as exported `CT109` with a title identifying `CT114`;
+- dimensional conflict rejection such as `1/2"` vs `1-1/2"`;
+- near-identical title matches remaining review-only;
+- sale-price precedence for DTB effective price;
+- storefront boilerplate quarantine;
+- explicit same-site duplicate aggregation by median;
+- canonical brand aliases.
+
+## Ownership and safety
+
+This directory is deterministic operational research tooling. It does not become a system of record for products or prices and does not mutate WooCommerce, payments, orders, inventory, fulfillment, accounting, or the canonical catalog.
+
+Competitor pricing outputs are evidence for review. Any future price write must remain inside the system that owns commerce pricing and must have its own authorization, validation, MAP/policy, audit, and approval contract.
