@@ -5,8 +5,10 @@ priority,P0_gt_25pct,242
 priority,P1_10_to_25pct,236
 priority,P2_1_to_10pct,216
 priority,P3_lte_1pct,61
-price_semantic_classification,DIFFERENT_RAW_PRICE_FIELD_SEMANTICS,723
-price_semantic_classification,SAME_PRICE_FIELD_SEMANTIC_DIFFERENT_AMOUNT,32
-retailer_raw_price_basis,Al's Taping Tools:price,297
-retailer_raw_price_basis,All-Wall:regular_price+price,723
-retailer_raw_price_basis,Wall Tools:price,490
+price_semantic_classification,SAME_PRICE_SEMANTIC_DIFFERENT_AMOUNT,755
+retailer_normalized_price_semantic,Al's Taping Tools:CURRENT_PRICE,297
+retailer_normalized_price_semantic,All-Wall:CURRENT_PRICE,723
+retailer_normalized_price_semantic,Wall Tools:CURRENT_PRICE,490
+retailer_raw_field_matches,Al's Taping Tools:price,297
+retailer_raw_field_matches,All-Wall:price+regular_price,723
+retailer_raw_field_matches,Wall Tools:price,490
