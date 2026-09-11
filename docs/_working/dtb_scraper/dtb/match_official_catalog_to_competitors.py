@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build contradiction-aware DTB-to-competitor evidence and market aggregates."""
+"""Build contradiction-aware DTB-to-competitor evidence and explicit market-price aggregates."""
 from __future__ import annotations
 
 import csv
 from collections import Counter, defaultdict
+from decimal import Decimal
 from pathlib import Path
 
 from competitor_pricing_core import (
@@ -15,9 +16,10 @@ from competitor_pricing_core import (
     decimal_price,
     effective_dtb_price,
     is_pricing_target,
+    market_price_decision,
     market_status,
     money,
-    price_consensus,
+    percent,
     resolve_site_evidence,
     token_key,
     classify_match,
@@ -30,7 +32,7 @@ REPO_ROOT = next(path for path in [ROOT, *ROOT.parents] if (path / OFFICIAL_RELA
 OFFICIAL_CATALOG = REPO_ROOT / OFFICIAL_RELATIVE
 
 OUTPUT_MATCHES = REPORT_DIR / "dtb_official_competitor_matches.csv"
-OUTPUT_MARKET = REPORT_DIR / "dtb_official_competitor_best_matches.csv"  # compatibility filename; now aggregate evidence
+OUTPUT_MARKET = REPORT_DIR / "dtb_official_competitor_best_matches.csv"  # compatibility filename; aggregate evidence
 OUTPUT_UNMATCHED = REPORT_DIR / "dtb_official_competitor_unmatched.csv"
 OUTPUT_SUMMARY = REPORT_DIR / "dtb_official_competitor_match_summary.csv"
 
@@ -194,28 +196,33 @@ def match_output_row(official: dict[str, str], competitor: dict[str, str], decis
         "Competitor Product Name": competitor.get("Product Name", ""),
         "Competitor SKU": competitor.get("SKU", ""),
         "Competitor Price": money(competitor_price),
-        "Price Delta vs DTB": money(delta),
+        "DTB vs Competitor": money(delta),
         "Description Quality": competitor["_description_quality"],
         "Competitor Description": competitor["_description_clean"],
     }
+
+
+def _market_delta_percent(dtb_price: Decimal | None, market_price: Decimal | None) -> Decimal | None:
+    if dtb_price is None or market_price is None or market_price == 0:
+        return None
+    return ((dtb_price - market_price) / market_price) * Decimal("100")
 
 
 def aggregate_row(official: dict[str, str], observations: list[dict[str, str]]) -> dict[str, str]:
     by_site: dict[str, list[dict[str, str]]] = defaultdict(list)
     for row in observations:
         by_site[row["Competitor Source Key"]].append(row)
+
     site_evidence = [resolve_site_evidence(key, by_site.get(key, [])) for key in SITE_KEYS]
-    verified_prices = [item.price for item in site_evidence if item.verified and item.price is not None]
-    consensus = price_consensus(verified_prices)
+    verified_site_prices = [
+        item.price for item in site_evidence
+        if item.verified and item.price is not None
+    ]
+    market = market_price_decision(verified_site_prices)
     dtb_price = decimal_price(official.get("_effective_price", ""))
     review_count = sum(1 for row in observations if row["Match Status"] == "review")
-
-    if consensus.status in {"exact_price_consensus", "single_verified_price"}:
-        market_reference = consensus.consensus_price
-        reference_basis = consensus.status
-    else:
-        market_reference = consensus.median
-        reference_basis = "median_verified_price" if consensus.median is not None else ""
+    market_delta = dtb_price - market.market_price if dtb_price is not None and market.market_price is not None else None
+    market_delta_percent = _market_delta_percent(dtb_price, market.market_price)
 
     out = {
         "DTB Row": official["_row_number"],
@@ -227,22 +234,18 @@ def aggregate_row(official: dict[str, str], observations: list[dict[str, str]]) 
         "DTB Effective Price": official.get("_effective_price", ""),
         "DTB Price Basis": official.get("_price_basis", ""),
         "DTB Price Warnings": official.get("_price_warnings", ""),
-        "Verified Competitor Count": str(consensus.source_count),
-        "Distinct Verified Prices": str(consensus.distinct_price_count),
-        "Price Consensus": consensus.status,
-        "Consensus Price": money(consensus.consensus_price),
-        "Price Spread": money(consensus.spread),
-        "Market Reference Price": money(market_reference),
-        "Market Reference Basis": reference_basis,
+        "Verified Competitor Count": str(market.verified_source_count),
+        "Distinct Verified Prices": str(market.distinct_price_count),
+        "Market Price Status": market.status,
+        "Market Price": money(market.market_price),
+        "Market Price Evidence Count": str(market.verified_source_count if market.market_price is not None else 0),
+        "Observed Price Spread": money(market.price_spread),
+        "DTB vs Market Price": money(market_delta),
+        "DTB vs Market Price %": percent(market_delta_percent),
         "Review Candidate Count": str(review_count),
-        "Lowest Verified Price": money(consensus.low),
-        "Highest Verified Price": money(consensus.high),
-        "Median Verified Price": money(consensus.median),
-        "DTB vs Lowest": money(dtb_price - consensus.low if dtb_price is not None and consensus.low is not None else None),
-        "DTB vs Median": money(dtb_price - consensus.median if dtb_price is not None and consensus.median is not None else None),
-        "DTB vs Market Reference": money(dtb_price - market_reference if dtb_price is not None and market_reference is not None else None),
-        "Recommended Review Status": market_status(site_evidence, review_count),
+        "Recommended Review Status": market_status(site_evidence, review_count, market.status),
     }
+
     for evidence in site_evidence:
         label = evidence.source_label
         out[f"{label} Verified"] = "yes" if evidence.verified else "no"
@@ -250,9 +253,8 @@ def aggregate_row(official: dict[str, str], observations: list[dict[str, str]]) 
         out[f"{label} SKU"] = evidence.identifier
         out[f"{label} Product"] = evidence.product_name
         out[f"{label} Price"] = money(evidence.price)
-        out[f"{label} Price Low"] = money(evidence.price_low)
-        out[f"{label} Price High"] = money(evidence.price_high)
         out[f"{label} Duplicate Count"] = str(evidence.duplicate_count)
+        out[f"{label} Observed Duplicate Prices"] = " | ".join(money(value) for value in evidence.observed_prices)
         out[f"{label} Evidence Quality"] = evidence.quality
     return out
 
@@ -270,7 +272,7 @@ def write_csv(path: Path, rows: list[dict[str, str]], fields: list[str] | None =
 def main() -> int:
     catalog_rows = load_official()
     official_rows = [row for row in catalog_rows if row["_pricing_target"] == "yes"]
-    excluded_parent_rows = [row for row in catalog_rows if row["_pricing_target"] != "yes"]
+    excluded_rows = [row for row in catalog_rows if row["_pricing_target"] != "yes"]
     competitors = load_competitors()
     by_identifier, by_brand, by_brand_token = candidate_indexes(competitors)
 
@@ -294,14 +296,19 @@ def main() -> int:
             matches_by_official[official["_row_number"]].append(row)
 
     all_matches.sort(key=lambda row: (
-        row["DTB Brand"].casefold(), row["DTB Name"].casefold(),
+        row["DTB Brand"].casefold(),
+        row["DTB Name"].casefold(),
         0 if row["Match Status"] == "auto_accept" else 1,
-        -int(row["Match Score"]), row["Competitor Source"].casefold(), row["Competitor Product Name"].casefold(),
+        -int(row["Match Score"]),
+        row["Competitor Source"].casefold(),
+        row["Competitor Product Name"].casefold(),
     ))
-    match_fields = list(all_matches[0].keys()) if all_matches else []
-    write_csv(OUTPUT_MATCHES, all_matches, match_fields)
+    write_csv(OUTPUT_MATCHES, all_matches, list(all_matches[0].keys()) if all_matches else [])
 
-    market_rows = [aggregate_row(row, matches_by_official.get(row["_row_number"], [])) for row in official_rows]
+    market_rows = [
+        aggregate_row(row, matches_by_official.get(row["_row_number"], []))
+        for row in official_rows
+    ]
     write_csv(OUTPUT_MARKET, market_rows)
 
     unmatched = [
@@ -310,46 +317,63 @@ def main() -> int:
     ]
     unmatched_fields = [
         "DTB Row", "DTB Product Type", "DTB Parent SKU", "DTB SKU", "DTB Brand",
-        "DTB Product", "DTB Effective Price", "DTB Price Basis", "Recommended Review Status",
+        "DTB Product", "DTB Effective Price", "DTB Price Basis", "Market Price Status",
+        "Recommended Review Status",
     ]
-    write_csv(OUTPUT_UNMATCHED, [{field: row.get(field, "") for field in unmatched_fields} for row in unmatched], unmatched_fields)
+    write_csv(
+        OUTPUT_UNMATCHED,
+        [{field: row.get(field, "") for field in unmatched_fields} for row in unmatched],
+        unmatched_fields,
+    )
 
     method_counts = Counter(row["Match Method"] for row in all_matches)
-    status_counts = Counter(row["Match Status"] for row in all_matches)
+    match_status_counts = Counter(row["Match Status"] for row in all_matches)
     source_counts = Counter(row["Competitor Source"] for row in all_matches)
-    aggregate_status_counts = Counter(row["Recommended Review Status"] for row in market_rows)
-    consensus_counts = Counter(row["Price Consensus"] for row in market_rows)
-    verified_products = sum(1 for row in market_rows if int(row["Verified Competitor Count"]) > 0)
-    review_only_products = sum(1 for row in market_rows if int(row["Verified Competitor Count"]) == 0 and int(row["Review Candidate Count"]) > 0)
+    market_status_counts = Counter(row["Market Price Status"] for row in market_rows)
+    review_status_counts = Counter(row["Recommended Review Status"] for row in market_rows)
+    verified_identity_products = sum(1 for row in market_rows if int(row["Verified Competitor Count"]) > 0)
+    verified_market_price_products = sum(1 for row in market_rows if row["Market Price"])
+    review_only_products = sum(
+        1 for row in market_rows
+        if int(row["Verified Competitor Count"]) == 0 and int(row["Review Candidate Count"]) > 0
+    )
 
     summary_rows = [
         ["metric", "value", "count"],
         ["catalog_rows", "all", len(catalog_rows)],
-        ["pricing_target_rows", "sellable_non_variable", len(official_rows)],
-        ["excluded_rows", "variable_parent", len(excluded_parent_rows)],
+        ["pricing_target_rows", "simple_or_variation", len(official_rows)],
+        ["excluded_rows", "non_pricing_target_including_variable_parent", len(excluded_rows)],
         ["competitor_rows", "all", len(competitors)],
         ["candidate_match_rows", "all", len(all_matches)],
-        ["official_rows_with_verified_evidence", "all", verified_products],
+        ["official_rows_with_verified_competitor_identity", "all", verified_identity_products],
+        ["official_rows_with_verified_market_price", "all", verified_market_price_products],
         ["official_rows_review_only", "all", review_only_products],
         ["official_rows_unmatched", "all", len(unmatched)],
     ]
     for value, count in sorted(method_counts.items()):
         summary_rows.append(["match_method", value, count])
-    for value, count in sorted(status_counts.items()):
+    for value, count in sorted(match_status_counts.items()):
         summary_rows.append(["match_status", value, count])
     for value, count in sorted(source_counts.items()):
         summary_rows.append(["competitor_source", value, count])
-    for value, count in sorted(aggregate_status_counts.items()):
-        summary_rows.append(["market_status", value, count])
-    for value, count in sorted(consensus_counts.items()):
-        summary_rows.append(["price_consensus", value, count])
+    for value, count in sorted(market_status_counts.items()):
+        summary_rows.append(["market_price_status", value, count])
+    for value, count in sorted(review_status_counts.items()):
+        summary_rows.append(["review_status", value, count])
+
     with OUTPUT_SUMMARY.open("w", newline="", encoding="utf-8") as handle:
         csv.writer(handle).writerows(summary_rows)
 
-    print(f"Catalog rows: {len(catalog_rows)}; pricing targets: {len(official_rows)}; variable parents excluded: {len(excluded_parent_rows)}")
+    print(
+        f"Catalog rows: {len(catalog_rows)}; pricing targets: {len(official_rows)}; "
+        f"excluded non-pricing rows: {len(excluded_rows)}"
+    )
     print(f"Wrote {len(all_matches)} candidate evidence rows to {OUTPUT_MATCHES}")
     print(f"Wrote {len(market_rows)} market aggregate rows to {OUTPUT_MARKET}")
-    print(f"Verified evidence for {verified_products}/{len(official_rows)} pricing targets; {len(unmatched)} fully unmatched")
+    print(
+        f"Verified competitor identity for {verified_identity_products}/{len(official_rows)} pricing targets; "
+        f"verified market price for {verified_market_price_products}; {len(unmatched)} fully unmatched"
+    )
     return 0
 
 
