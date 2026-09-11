@@ -75,13 +75,15 @@ An automatic verified match requires:
 
 1. known canonical competitor manufacturer/brand;
 2. competitor manufacturer equals DTB manufacturer;
-3. competitor identifier equals a DTB SKU/MPN/manufacturer identifier;
+3. competitor identifier equals a DTB SKU/MPN/manufacturer identifier or an explicitly approved brand-scoped alias;
 4. no title-extracted identifier contradiction;
 5. no structured variation contradiction.
 
 Unknown-brand identifier matches, cross-brand collisions, dimensional differences, range differences, left/right differences, pack-count differences, generation differences, length-class differences, and product-family conflicts remain review-only.
 
 **Fuzzy and near-identical title matches are never auto-accepted.**
+
+Identifier punctuation is preserved by default. Approved aliases are explicit, brand-scoped, evidence-backed mappings in `competitor_identifier_aliases.csv`; unresolved separator-format collisions remain distinct until proven equivalent.
 
 ## Structured variation guardrails
 
@@ -159,36 +161,39 @@ Two or more verified retailer prices differ. `Market Price` remains blank and th
 
 No verified priced competitor evidence exists.
 
-Example:
+Identical retailer prices prove observed agreement only. They must not be labeled MAP, MSRP, or manufacturer-enforced pricing unless independent policy evidence establishes that.
+
+## Collision evidence audit
+
+`analyze_identifier_collision_evidence.py` audits unresolved separator-format collisions after cross-retailer identity grouping. It never writes aliases automatically.
+
+For every unresolved collision, it records whether a strict identifier is present in the protected DTB catalog and whether existing repository evidence contains a direct normalized source-to-DTB mapping. Dispositions are diagnostic only:
 
 ```text
-All-Wall             1649.29
-Al's Taping Tools    1649.29
-Wall Tools           1649.29
-
-Market Price Status  MARKET_PRICE_VERIFIED_3_OF_3
-Market Price         1649.29
-Evidence Count       3
+repository_supported_alias_candidate
+official_anchor_only_review
+multiple_official_identifiers_review
+insufficient_repository_evidence
 ```
 
-If one verified site shows a different amount, the result is `MARKET_PRICE_CONFLICT` and `Market Price` is blank.
-
-Identical retailer prices prove observed agreement only. They must not be labeled MAP, MSRP, or manufacturer-enforced pricing unless independent policy evidence establishes that.
+`repository_supported_alias_candidate` means the repository contains direct existing mapping evidence worth human verification. It does **not** authorize an alias by itself. Approved aliases still require an explicit entry in `competitor_identifier_aliases.csv`.
 
 ## Conflict diagnosis
 
-`analyze_competitor_price_conflicts.py` runs immediately after the cross-retailer comparison and classifies every `MARKET_PRICE_CONFLICT` without changing its market-price status.
+`analyze_competitor_price_conflicts.py` classifies every `MARKET_PRICE_CONFLICT` without changing its market-price status. It distinguishes two-retailer disagreements, three-way disagreement, two-agree/one-outlier cases, same-retailer duplicate-price conflicts, possible pack/unit multipliers, and small price drift versus larger possible sale/stale-price differences.
 
-It distinguishes:
+`analyze_two_source_price_conflicts.py` then focuses specifically on true two-source disagreements. It records:
 
-- two retailers agree and one retailer is an outlier;
-- all three verified prices are distinct;
-- two-source disagreements;
-- same-retailer duplicate-price conflicts;
-- exact multiplicative price relationships commonly associated with pack/unit mismatches;
-- small price drift versus larger possible sale/stale-price differences.
+- retailer pair;
+- missing third retailer;
+- lower- and higher-priced retailer;
+- absolute and percentage spread;
+- absolute and relative spread buckets;
+- canonical brand;
+- retailer product titles and evidence quality;
+- whether an approved identifier alias participated.
 
-The audit identifies the outlier retailer when two sources agree and emits both product-level detail and aggregate counts. These diagnostics are evidence for fixing extraction or offer normalization; they never choose a market price.
+These diagnostics never choose a winner and never synthesize a market price.
 
 ## DTB versus market semantics
 
@@ -196,50 +201,10 @@ When and only when a market price is established:
 
 ```text
 DTB vs Market Price = DTB effective price - Market Price
-```
-
-and:
-
-```text
 DTB vs Market Price % = (DTB effective price - Market Price) / Market Price * 100
 ```
 
-Positive means DTB is higher, negative means DTB is lower, and zero means DTB is aligned.
-
-No DTB-versus-market delta is emitted for single-source or conflicting observations because no market price has been established.
-
-## Evidence aggregation
-
-Every candidate observation remains in the technical evidence ledger. Verified observations are resolved per competitor, then evaluated cross-retailer for exact price agreement.
-
-Primary product-level fields include:
-
-```text
-DTB SKU
-DTB Product Type
-DTB Parent SKU
-DTB Brand
-DTB Product
-DTB Effective Price
-DTB Price Basis
-
-All-Wall Verified / Identity / SKU / Product / Price / Evidence Quality
-Al's Verified / Identity / SKU / Product / Price / Evidence Quality
-Wall Tools Verified / Identity / SKU / Product / Price / Evidence Quality
-
-Verified Competitor Count
-Distinct Verified Prices
-Market Price Status
-Market Price
-Market Price Evidence Count
-Observed Price Spread
-DTB vs Market Price
-DTB vs Market Price %
-Review Candidate Count
-Recommended Review Status
-```
-
-`Observed Price Spread` is diagnostic conflict telemetry only. It never determines market price.
+Positive means DTB is higher, negative means DTB is lower, and zero means DTB is aligned. No DTB-versus-market delta is emitted for single-source or conflicting observations.
 
 ## Description quality
 
@@ -247,34 +212,11 @@ Known generic Al's and Wall Tools storefront boilerplate is quarantined from sem
 
 ## Discovery rejection vs product failure
 
-`finalize_scrape_outputs.py` separates obvious non-product crawl candidates from true product failures:
-
-```text
-<site>/non_product_candidates.jsonl
-<site>/product_failures.jsonl
-<site>/quality_summary.json
-<site>/catalog_quality.jsonl
-```
-
-The original `failures.jsonl` remains unchanged as source evidence.
+`finalize_scrape_outputs.py` separates obvious non-product crawl candidates from true product failures while preserving the original `failures.jsonl` as source evidence.
 
 ## All-Wall products without MPN
 
-All-Wall remains MPN-strict. A product without an MPN is never assigned the All-Wall store SKU for automatic matching.
-
-Manual-only evidence is written to:
-
-```text
-all_wall/manual_pricing_evidence.csv
-```
-
-Refresh it with:
-
-```powershell
-python run_competitor_pricing_pipeline.py --refresh-all-wall-manual-evidence
-```
-
-Those records never enter automatic identity matching.
+All-Wall remains MPN-strict. A product without an MPN is never assigned the All-Wall store SKU for automatic matching. Manual-only evidence is written to `all_wall/manual_pricing_evidence.csv` and never enters automatic identity matching.
 
 ## Installation and execution
 
@@ -293,23 +235,30 @@ The pricing composition root executes:
 finalize_scrape_outputs.py
 filter_current_dtb_brands.py
 create_competitor_price_comparison.py
+analyze_identifier_collision_evidence.py
 analyze_competitor_price_conflicts.py
+analyze_two_source_price_conflicts.py
 match_official_catalog_to_competitors.py
 create_friendly_match_report.py
 ```
 
-A new full scrape is not required merely because downstream market-price semantics change. Existing raw scrape evidence can be reprocessed deterministically.
+A new full scrape is not required merely because downstream market-price semantics or diagnostics change. Existing raw scrape evidence can be reprocessed deterministically.
 
 ## Generated reports
 
 - `current_dtb_brand_competitor_products.csv` — competitor rows assigned to DTB-held brands using independent brand evidence.
 - `current_dtb_brand_filter_summary.csv` — accepted/rejected brand-classification telemetry.
-- `competitor_price_comparison_by_sku.csv` — manufacturer-scoped cross-retailer observed-price comparison; compatibility filename only, not a global SKU join.
+- `competitor_price_comparison_by_sku.csv` — manufacturer-scoped cross-retailer observed-price comparison.
 - `competitor_price_comparison_review.csv` — rows lacking a safe manufacturer-scoped identity.
-- `competitor_price_conflict_audit.csv` — one row per market-price conflict with conflict pattern, probable cause, outlier retailer, spread, pack-factor diagnostics, retailer prices, and product titles.
-- `competitor_price_conflict_summary.csv` — aggregate conflict-pattern, probable-cause, outlier-retailer, and pack-factor counts.
+- `competitor_identifier_collision_audit.csv` — legacy compact collisions, strict/resolved identifiers, and approved-vs-unresolved disposition.
+- `competitor_identifier_collision_evidence.csv` — evidence-based diagnostic disposition of unresolved separator-format collisions.
+- `competitor_identifier_collision_evidence_summary.csv` — aggregate unresolved-collision disposition counts.
+- `competitor_price_conflict_audit.csv` — one row per market-price conflict with pattern, probable cause, outlier retailer, spread, and retailer evidence.
+- `competitor_price_conflict_summary.csv` — aggregate conflict-pattern and probable-cause counts.
+- `competitor_two_source_price_conflict_audit.csv` — focused detail for exactly-two-retailer price disagreements.
+- `competitor_two_source_price_conflict_summary.csv` — retailer-pair, missing-retailer, lower-price-retailer, spread-bucket, and brand counts.
 - `dtb_official_competitor_matches.csv` — full technical candidate evidence ledger.
-- `dtb_official_competitor_best_matches.csv` — compatibility filename; one aggregate row per eligible DTB pricing target.
+- `dtb_official_competitor_best_matches.csv` — one aggregate row per eligible DTB pricing target.
 - `dtb_official_competitor_unmatched.csv` — eligible DTB targets with no verified or review candidate evidence.
 - `dtb_official_competitor_match_summary.csv` — technical counts including excluded parent rows and market-price states.
 - `competitor_match_reader_view.csv` — business-facing product-by-product market-price view.
@@ -324,7 +273,7 @@ A new full scrape is not required merely because downstream market-price semanti
 python -m unittest discover -s tests -v
 ```
 
-Regression coverage includes manufacturer-scoped identities, cross-brand collisions, unknown-brand identifiers, title/identifier contradictions, dimensional conflicts, fuzzy review-only behavior, sale-price precedence, variable-parent exclusion, 3/3 exact market-price agreement, 2/3 agreement, single-source non-promotion, price conflicts, storefront-boilerplate quarantine, same-site duplicate agreement, same-site duplicate price conflict, and canonical brand aliases.
+Regression coverage includes manufacturer-scoped identities, approved brand-scoped aliases, unresolved formatting variants, cross-brand collisions, unknown-brand identifiers, title/identifier contradictions, dimensional conflicts, fuzzy review-only behavior, sale-price precedence, variable-parent exclusion, 3/3 exact market-price agreement, 2/3 agreement, single-source non-promotion, price conflicts, storefront-boilerplate quarantine, same-site duplicate agreement, same-site duplicate price conflict, and canonical brand aliases.
 
 ## Safety boundary
 
