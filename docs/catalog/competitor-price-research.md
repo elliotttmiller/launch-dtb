@@ -2,29 +2,38 @@
 
 ## Purpose
 
-`scripts/catalog/competitor_price_research.py` is read-only operational tooling for competitor market-price research against the canonical DTB launch catalog.
+DTB has two read-only competitor-research implementations:
 
-Production research scope is intentionally limited to:
+1. `scripts/catalog/competitor_price_research.py` — streaming competitor research tooling.
+2. `docs/_working/dtb_scraper/dtb/` — the current full-catalog workflow that analyzes the already-completed complete scrape.
+
+Active competitor scope is:
 
 - Al's Taping Tools — `https://www.alstapingtools.com/`
 - All-Wall — `https://www.all-wall.com/`
 - Wall Tools — `https://walltools.com/`
 
-CSR Building Supplies is not part of the active research workflow and cannot be selected through `--sites`.
-
-The tool never updates WooCommerce, Veeqo, QuickBooks, MAP, protected identifiers, or `products/launch/official/dtb_official_catalog.csv`.
+Neither workflow owns or mutates WooCommerce pricing, Veeqo, QuickBooks, MAP, protected identifiers, or `products/launch/official/dtb_official_catalog.csv`.
 
 ## Source of truth
 
-Input defaults to `products/launch/official/dtb_official_catalog.csv`. The catalog supplies DTB product identity, brand, SKU/MPN/GTIN, and DTB selling price. Competitor data is research evidence only.
+Canonical DTB identity and DTB selling prices come from:
 
-Validate the catalog before a research run:
+```text
+products/launch/official/dtb_official_catalog.csv
+```
+
+Competitor data is research evidence only.
+
+Validate the canonical catalog before a new streaming research run:
 
 ```powershell
 python scripts/catalog/validate_official_catalog.py
 ```
 
-## Install and validation
+## Streaming research tool
+
+Install and validate:
 
 ```powershell
 python -m venv .venv-market
@@ -35,170 +44,160 @@ python -m unittest scripts/catalog/tests/test_competitor_price_research.py
 python -m unittest scripts/catalog/tests/test_competitor_price_streaming.py
 ```
 
-## Standard run
+Standard run:
 
 ```powershell
 python scripts/catalog/competitor_price_research.py --verbose
 ```
 
-Default output directory: `reports/pricing/competitor-market/`.
+Default output directory:
 
-All three active competitors run by default. A subset can be selected explicitly:
+```text
+reports/pricing/competitor-market/
+```
+
+The streaming scraper is network-I/O bound and uses bounded concurrency, persistent per-worker sessions, bounded retries, rate limiting, durable URL checkpoints, evidence persistence, and resumable execution. It reads structured product data where available and retains normalized evidence rather than raw HTML.
+
+The streaming implementation's own output schema and matching behavior remain implementation-specific to that script. It must not be used to override the stricter full-catalog market-price contract below.
+
+## Current full-catalog workflow
+
+The current complete-catalog analysis workflow is:
+
+```text
+docs/_working/dtb_scraper/dtb/
+```
+
+It processes the existing complete raw competitor scrape and does not require another crawl merely because matching or market-price semantics change.
+
+Composition root:
 
 ```powershell
-python scripts/catalog/competitor_price_research.py --sites als_taping_tools wall_tools --verbose
+cd docs/_working/dtb_scraper/dtb
+python -m unittest discover -s tests -v
+python run_competitor_pricing_pipeline.py
 ```
 
-Valid site keys are only `als_taping_tools`, `all_wall`, and `wall_tools`.
+Use `--refresh-all-wall-manual-evidence` only when a fresh public read is specifically needed for All-Wall products that lack an MPN:
 
-## Throughput model
+```powershell
+python run_competitor_pricing_pipeline.py --refresh-all-wall-manual-evidence
+```
 
-The scraper is network-I/O bound and uses a bounded `ThreadPoolExecutor` rather than multiprocessing.
+## Pricing target scope
 
-Defaults:
-
-- 10 concurrent product-page workers for the active competitor;
-- one persistent `cloudscraper` session per worker thread;
-- minimum 0.20 seconds between request starts to the same host;
-- 20 second request timeout;
-- 2 bounded retries for transient HTTP/network failures;
-- maximum 16 workers accepted by the CLI.
-
-Competitor sites are processed sequentially. Multi-site parallel crawling is intentionally not enabled because the single-site executor already overlaps network latency while keeping persistence and rate ownership simple.
-
-## Streaming persistence
-
-After each successful in-scope product extraction the scraper immediately appends normalized evidence to `competitor_scrape_evidence.jsonl`, matches only the new listing(s), and appends accepted rows to `competitor_price_matches.csv`.
-
-Every attempted product URL is also appended to `competitor_processed_urls.jsonl` and flushed immediately. Successful products, non-product pages, and failed requests are all checkpointed so a restart does not repeat work unnecessarily.
-
-Aggregate reports and `run_summary.json` are checkpointed every 100 successful product pages, approximately every 30 seconds while results are arriving, at the end of each competitor, and on normal completion or interruption. Progress telemetry is emitted every 100 processed candidate URLs.
-
-## Durable resume
-
-On startup the scraper loads resume state before opening any research artifact for writing. It:
-
-1. reads the previous `run_summary.json`;
-2. reloads valid evidence for the three active competitors;
-3. reloads processed URL identities;
-4. reconstructs internal matches from restored evidence;
-5. rewrites the concise match CSV from that deduplicated state;
-6. skips already attempted URLs and continues remaining work.
-
-### Legacy checkpoint safety
-
-Older checkpoints created before `competitor_processed_urls.jsonl` can identify a site whose crawl reached `fetched_urls >= allowed_urls`. That summary metadata is not sufficient by itself to restore pricing data.
-
-A legacy completed-site marker is therefore honored only when evidence for that site was also successfully restored from `competitor_scrape_evidence.jsonl`. If the summary says a site completed but its evidence is missing or empty, the marker is invalidated and the site is rerun. The log reports:
+The full-catalog workflow analyzes only independently purchasable canonical DTB rows:
 
 ```text
-legacy_resume_invalidated site=<site> reason=completed_summary_without_restored_evidence rerun_required=true
+simple     -> included
+variation  -> included
+variable   -> excluded
 ```
 
-This prevents a completed-site flag from producing a false zero-listing/zero-match result after evidence was lost or truncated.
+Variable parents are excluded from matching, review, unmatched counts, market-price establishment, and price-gap reports. A variation may use parent naming context for candidate discovery, but child SKU/MPN/manufacturer identifiers remain authoritative.
 
-For runs created by the current implementation, `competitor_processed_urls.jsonl` provides URL-level resume and does not depend on legacy site-completion inference.
+## Identity contract
 
-Prior evidence from sites outside the active three-site scope is ignored.
-
-To intentionally start a completely fresh research dataset, archive or remove the contents of `reports/pricing/competitor-market/` before running the scraper.
-
-## Windows file locks
-
-A temporary Windows lock on `run_summary.json` or an aggregate CSV must not terminate the crawl. Summary replacement is retried briefly and then skipped with a warning. Locked aggregate checkpoints are also skipped while evidence, processed-URL checkpoints, and primary matches continue to be collected.
-
-Avoid opening live output files in applications that take exclusive write locks.
-
-## Discovery
-
-The scraper reads configured and advertised sitemaps, follows bounded sitemap indexes, keeps structurally plausible product URLs, scores URLs against the active DTB catalog, retains relevant candidates plus a small deterministic fallback pool, and fetches only selected candidates.
-
-Default discovery controls:
-
-- URL prefilter score: 38;
-- uncertain fallback: 50 URLs per competitor;
-- maximum product fetches per competitor: 5,000;
-- maximum discovered product URLs considered: 50,000;
-- maximum sitemap documents: 100.
-
-### All-Wall product URLs
-
-All-Wall's current sitemap publishes product pages as root-level slugs such as:
-
-```text
-https://www.all-wall.com/TapeTech-EasyClean-Automatic-Taper
-```
-
-They do not require a `.html` suffix. The production entrypoint therefore removes the stale `.html` product-path constraint for All-Wall while retaining the shared catalog-aware relevance scoring and bounded fallback behavior.
-
-## Extraction
-
-For fetched product pages extraction currently prefers Schema.org JSON-LD `Product` / `ProductGroup` data and then conservative storefront DOM/meta selectors.
-
-Rich internal evidence contains identifiers, regular/sale/current price, currency, availability, variant, parser source, retrieval timestamp, discovery score/reasons, source URL, and source SHA-256. Raw HTML is not persisted.
-
-## Matching
-
-Competitor listings are matched conservatively in this order:
-
-1. exact normalized GTIN / UPC / EAN;
-2. exact normalized MPN / manufacturer SKU;
-3. competitor SKU equal to DTB MPN / manufacturer SKU;
-4. exact DTB SKU;
-5. brand-scoped fuzzy product-name match at the configured threshold.
-
-Cross-brand conflicts and ambiguous fuzzy results remain unmatched.
-
-`matches` means accepted competitor observation rows. One DTB SKU may have multiple observations. `matched_skus` / `matched_catalog_products` is the unique DTB SKU count.
-
-## Outputs
-
-`competitor_price_matches.csv` contains:
-
-```text
-dtb_sku,dtb_name,price_delta,dtb_price,competitor_sku,competitor_title,competitor_price,competitor_url
-```
-
-`price_delta` is `DTB price - competitor price`: positive means DTB is more expensive, negative means DTB is cheaper, and `0.00` means the observed prices are equal.
-
-Other artifacts are:
-
-- `competitor_price_analysis.csv` — aggregate market statistics per DTB SKU;
-- `competitor_scrape_evidence.jsonl` — normalized competitor evidence;
-- `competitor_processed_urls.jsonl` — durable per-URL resume checkpoint;
-- `unmatched_competitor_listings.csv` — competitor listings not safely mapped to one DTB SKU;
-- `unmatched_catalog_products.csv` — DTB SKUs with no accepted competitor observation;
-- `run_summary.json` — checkpointed run status, configuration, counts, crawl statistics, resume state, and artifact paths.
-
-## Full-catalog working pipeline identity contract
-
-The working full-catalog scraper and pricing-analysis pipeline under `docs/_working/dtb_scraper/dtb/` uses the same read-only ownership boundary but processes the already-scraped complete competitor catalogs. Its downstream identity contract is stricter than an unscoped SKU join:
+The full-catalog workflow never joins on SKU alone:
 
 ```text
 identity_key = canonical_brand + "::" + canonical_identifier
 ```
 
-A competitor observation is verified automatically only when manufacturer/brand is known, the manufacturer/brand agrees with the DTB catalog, the canonical identifier agrees with a DTB SKU/MPN/manufacturer identifier, and no independently extracted title or variation evidence contradicts the match. Unknown-brand identifier matches, cross-brand collisions, dimensional or handedness differences, pack/count differences, generation differences, product-family conflicts, and title/identifier contradictions remain review-only. Fuzzy and near-identical title matches are never auto-accepted.
+An automatic match requires known and matching manufacturer identity, a matching canonical identifier, and no independent title or structured-variation contradiction.
 
-The working pipeline also uses the active DTB sale price as the effective selling price when one is present, otherwise regular price. Verified observations are aggregated by competitor and then across competitors to produce market low/high/median evidence; a single arbitrary “best match” is not used for business-facing pricing conclusions.
+Unknown-brand identifier matches, cross-brand collisions, dimensional differences, handedness differences, pack/count differences, generation differences, product-family conflicts, and title/identifier contradictions remain review-only. Fuzzy and near-identical title matches are never auto-accepted.
 
-All-Wall remains MPN-strict: its retailer store SKU is not substituted when manufacturer MPN is absent. MPN-less All-Wall products may be retained only as manual pricing evidence and cannot participate in automatic identity matching.
+All-Wall remains MPN-strict. Its retailer store SKU is not substituted when manufacturer MPN is absent. MPN-less All-Wall rows may be retained only as manual evidence.
 
-The working composition root is:
+## Site-level price resolution
 
-```powershell
-cd docs/_working/dtb_scraper/dtb
-python run_competitor_pricing_pipeline.py
+Each of the three competitors is resolved independently.
+
+A retailer contributes at most one verified observed price for a product. Same-site duplicate rows are not averaged or median-collapsed:
+
+- identical duplicate prices resolve to one retailer observation;
+- differing duplicate prices are a conflict and the retailer does not contribute a market-price observation until reviewed.
+
+## Market price contract
+
+Competitor prices are explicit retailer observations, not values to statistically aggregate.
+
+The full-catalog workflow must never calculate an average, median, midpoint, weighted average, or majority-derived amount and call it the market price.
+
+A market price is established only when verified retailer prices agree exactly and there is no verified conflicting retailer price.
+
+States:
+
+```text
+MARKET_PRICE_VERIFIED_3_OF_3
+MARKET_PRICE_VERIFIED_2_OF_3
+MARKET_PRICE_SINGLE_SOURCE
+MARKET_PRICE_CONFLICT
+NO_MARKET_EVIDENCE
 ```
 
-Use `--refresh-all-wall-manual-evidence` only when a fresh read of All-Wall's public SuiteCommerce catalog is required for the manual-evidence file. No command in this workflow writes DTB commerce prices.
+`MARKET_PRICE_VERIFIED_3_OF_3` means all three retailers have verified product identities and publish the same price. The common observed amount is the market price.
 
-## HTTP behavior
+`MARKET_PRICE_VERIFIED_2_OF_3` means exactly two verified priced observations are available, both are equal, and there is no verified conflicting third price. The common amount is the market price with weaker two-source evidence.
 
-Permanent HTTP failures such as ordinary 404 responses fail immediately. Transient 403/408/425/429 and selected 5xx responses use bounded retries. `Retry-After` is honored when available. Network/TLS/timeout failures use bounded retries.
+`MARKET_PRICE_SINGLE_SOURCE` retains one verified retailer price as evidence but does not promote it to market price.
 
-robots.txt is honored by default. `--ignore-robots` exists only for cases where permission and terms have been independently verified.
+`MARKET_PRICE_CONFLICT` means two or more verified retailer prices disagree. Market price remains blank and the product enters review. No majority, median, or average fallback is permitted.
+
+`NO_MARKET_EVIDENCE` means no verified priced competitor observation exists.
+
+## DTB effective price and delta
+
+The DTB comparison price is:
+
+```text
+positive Sale price when populated
+otherwise Regular price
+```
+
+When and only when a market price has been established:
+
+```text
+DTB vs Market Price = DTB effective price - Market Price
+```
+
+and:
+
+```text
+DTB vs Market Price % = (DTB effective price - Market Price) / Market Price * 100
+```
+
+Positive means DTB is higher; negative means DTB is lower; zero means DTB is aligned.
+
+No DTB-vs-market delta is produced when market price is unresolved.
+
+## Full-catalog outputs
+
+Primary artifacts under `docs/_working/dtb_scraper/dtb/reports/competitor-catalog/` include:
+
+- `current_dtb_brand_competitor_products.csv`
+- `current_dtb_brand_filter_summary.csv`
+- `competitor_price_comparison_by_sku.csv`
+- `competitor_price_comparison_review.csv`
+- `dtb_official_competitor_matches.csv`
+- `dtb_official_competitor_best_matches.csv`
+- `dtb_official_competitor_unmatched.csv`
+- `dtb_official_competitor_match_summary.csv`
+- `competitor_match_reader_view.csv`
+- `competitor_match_price_gaps.csv`
+- `competitor_match_review_queue.csv`
+- `competitor_match_report_summary.md`
+- `competitor_match_report.html`
+
+The `best_matches` filename is retained only for compatibility. It contains one aggregate evidence row per eligible DTB pricing target and does not select an arbitrary competitor.
+
+`competitor_match_price_gaps.csv` contains only rows for which a market price was actually established. `competitor_match_review_queue.csv` includes identity-review candidates and verified cross-retailer price conflicts.
+
+## Interpretation boundary
+
+Identical retailer prices prove observed agreement only. They must not be labeled MAP, MSRP, manufacturer-enforced pricing, or another pricing policy without independent policy evidence.
 
 ## Ownership
 
-This tool belongs in `scripts/catalog/` as deterministic operational research tooling. It is not an application service and must not become an alternate authority for WooCommerce pricing, MAP, protected product identifiers, inventory, fulfillment, or accounting.
+Competitor research is deterministic operational tooling, not an application service and not a commerce authority. WooCommerce owns storefront pricing. Any future automated price mutation requires a separate authorized workflow with validation, policy controls, approval, auditability, rollback, and explicit ownership boundaries.
