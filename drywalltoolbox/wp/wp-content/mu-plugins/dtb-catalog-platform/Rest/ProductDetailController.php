@@ -86,17 +86,17 @@ final class DTB_ProductDetailController {
 		$related = self::get_related_products( $product );
 
 		return new WP_REST_Response( [
-			'product'                => $product,
-			'variations'             => $variations,
-			'relatedProducts'        => $related['products'],
-			'relatedProductsContext' => $related['context'],
-			'computed'               => [
-				'defaultVariation'      => $default_var,
-				'hasInStockVariation'   => $in_stock_count > 0,
-				'variationCount'        => count( $variations ),
-				'inStockVariationCount' => $in_stock_count,
-				'variationMatrix'       => dtb_catalog_build_variation_matrix( $variations ),
-				'variationDiagnostics'  => $variation_diagnostics,
+			'product'         => $product,
+			'variations'      => $variations,
+			'relatedProducts' => $related['products'],
+			'computed'        => [
+				'defaultVariation'       => $default_var,
+				'hasInStockVariation'    => $in_stock_count > 0,
+				'variationCount'         => count( $variations ),
+				'inStockVariationCount'  => $in_stock_count,
+				'variationMatrix'        => dtb_catalog_build_variation_matrix( $variations ),
+				'variationDiagnostics'   => $variation_diagnostics,
+				'relatedProductsContext' => $related['context'],
 			],
 		], 200 );
 	}
