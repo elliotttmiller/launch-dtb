@@ -1,0 +1,78 @@
+name: DTB Competitor Pricing Rebuild
+
+on:
+  push:
+    paths:
+      - '.github/workflows/dtb-competitor-pricing-rebuild.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dtb-competitor-pricing-rebuild
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: docs/_working/dtb_scraper/dtb/requirements.txt
+
+      - name: Install dependencies
+        working-directory: docs/_working/dtb_scraper/dtb
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run pricing intelligence tests
+        working-directory: docs/_working/dtb_scraper/dtb
+        run: python -m unittest discover -s tests -v
+
+      - name: Rebuild all derived reports
+        working-directory: docs/_working/dtb_scraper/dtb
+        run: python run_competitor_pricing_pipeline.py --refresh-all-wall-manual-evidence
+
+      - name: Verify generated report set
+        working-directory: docs/_working/dtb_scraper/dtb
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s reports/competitor-catalog/current_dtb_brand_competitor_products.csv
+          test -s reports/competitor-catalog/current_dtb_brand_filter_summary.csv
+          test -s reports/competitor-catalog/competitor_price_comparison_by_sku.csv
+          test -s reports/competitor-catalog/competitor_price_comparison_review.csv
+          test -s reports/competitor-catalog/dtb_official_competitor_matches.csv
+          test -s reports/competitor-catalog/dtb_official_competitor_best_matches.csv
+          test -s reports/competitor-catalog/dtb_official_competitor_unmatched.csv
+          test -s reports/competitor-catalog/dtb_official_competitor_match_summary.csv
+          test -s reports/competitor-catalog/competitor_match_reader_view.csv
+          test -s reports/competitor-catalog/competitor_match_price_gaps.csv
+          test -s reports/competitor-catalog/competitor_match_review_queue.csv
+          test -s reports/competitor-catalog/competitor_match_report.html
+          test -s reports/competitor-catalog/competitor_match_report_summary.md
+          test -s reports/competitor-catalog/all_wall/manual_pricing_evidence.csv
+
+      - name: Commit regenerated reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/_working/dtb_scraper/dtb/reports/competitor-catalog
+          if git diff --cached --quiet; then
+            echo 'No report changes to commit.'
+            exit 0
+          fi
+          git commit -m 'Regenerate competitor pricing intelligence reports'
+          git push
