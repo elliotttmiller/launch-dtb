@@ -6,7 +6,7 @@ import csv
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from competitor_identity import canonical_identifier
+from competitor_identity import canonical_identifier, resolved_identifier
 from competitor_pricing_core import CANONICAL_BRAND_LABELS, canonical_brand, clean_description
 
 ROOT = Path(__file__).resolve().parent
@@ -30,33 +30,36 @@ def load_held_identity_index():
             if not brand_key: continue
             held_brands.add(brand_key)
             for field in ("SKU", "Meta: schema_mpn", "Meta: _dtb_mpn", "Meta: _dtb_manufacturer_sku"):
-                identifier = canonical_identifier(row.get(field, ""))
+                identifier = resolved_identifier(brand_key, row.get(field, ""))
                 if identifier: identifier_brands[identifier].add(brand_key)
     return held_brands, identifier_brands
 
 
 def classify_row(row: dict[str, str], held_brands: set[str], identifier_brands: dict[str, set[str]]):
-    title = row.get("Product Name", ""); brand_key = canonical_brand(row.get("Brand", ""), title); sku_key = canonical_identifier(row.get("SKU", ""))
+    title = row.get("Product Name", ""); brand_key = canonical_brand(row.get("Brand", ""), title)
+    strict_key = canonical_identifier(row.get("SKU", "")); sku_key = resolved_identifier(brand_key, row.get("SKU", ""))
     if brand_key and brand_key in held_brands:
         if sku_key and sku_key in identifier_brands and brand_key not in identifier_brands[sku_key]:
-            return "", "brand_identifier_conflict", "0.00"
-        return brand_key, "canonical_brand_evidence", "1.00"
+            return "", "brand_identifier_conflict", "0.00", strict_key, sku_key
+        method = "canonical_brand_evidence_with_approved_alias" if strict_key and sku_key != strict_key else "canonical_brand_evidence"
+        return brand_key, method, "1.00", strict_key, sku_key
     if sku_key and sku_key in identifier_brands:
-        if len(identifier_brands[sku_key]) == 1: return "", "identifier_without_brand_evidence", "0.00"
-        return "", "identifier_cross_brand_collision", "0.00"
-    return "", "not_current_dtb_brand", "0.00"
+        if len(identifier_brands[sku_key]) == 1: return "", "identifier_without_brand_evidence", "0.00", strict_key, sku_key
+        return "", "identifier_cross_brand_collision", "0.00", strict_key, sku_key
+    return "", "not_current_dtb_brand", "0.00", strict_key, sku_key
 
 
 def main() -> int:
     held_brands, identifier_brands = load_held_identity_index(); rows: list[dict[str, str]] = []; rejected = Counter(); methods = Counter()
     with INPUT_CSV.open(newline="", encoding="utf-8-sig") as source:
-        reader = csv.DictReader(source); base_fields = list(reader.fieldnames or []); audit_fields = ["Matched DTB Brand", "DTB Brand Match Method", "DTB Brand Match Confidence", "Canonical Identifier", "Description Quality"]; output_fields = base_fields + audit_fields
+        reader = csv.DictReader(source); base_fields = list(reader.fieldnames or []); audit_fields = ["Matched DTB Brand", "DTB Brand Match Method", "DTB Brand Match Confidence", "Strict Identifier", "Canonical Identifier", "Identifier Alias Applied", "Description Quality"]; output_fields = base_fields + audit_fields
         for row in reader:
-            brand_key, method, confidence = classify_row(row, held_brands, identifier_brands)
+            brand_key, method, confidence, strict_key, sku_key = classify_row(row, held_brands, identifier_brands)
             if not brand_key: rejected[method] += 1; continue
             cleaned_description, description_quality = clean_description(row.get("Product Description", "")); row["Product Description"] = cleaned_description
             row["Matched DTB Brand"] = CANONICAL_BRAND_LABELS.get(brand_key, brand_key); row["DTB Brand Match Method"] = method; row["DTB Brand Match Confidence"] = confidence
-            row["Canonical Identifier"] = canonical_identifier(row.get("SKU", "")); row["Description Quality"] = description_quality; rows.append(row); methods[method] += 1
+            row["Strict Identifier"] = strict_key; row["Canonical Identifier"] = sku_key; row["Identifier Alias Applied"] = "yes" if strict_key and sku_key != strict_key else "no"
+            row["Description Quality"] = description_quality; rows.append(row); methods[method] += 1
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)
     with OUTPUT_CSV.open("w", newline="", encoding="utf-8-sig") as target:
         writer = csv.DictWriter(target, fieldnames=output_fields); writer.writeheader(); writer.writerows(rows)
