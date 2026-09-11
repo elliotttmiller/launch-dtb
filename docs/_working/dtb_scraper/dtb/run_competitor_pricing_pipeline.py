@@ -12,7 +12,9 @@ STEPS = (
     "finalize_scrape_outputs.py",
     "filter_current_dtb_brands.py",
     "create_competitor_price_comparison.py",
+    "analyze_identifier_collision_evidence.py",
     "analyze_competitor_price_conflicts.py",
+    "analyze_two_source_price_conflicts.py",
     "match_official_catalog_to_competitors.py",
     "create_friendly_match_report.py",
 )
