@@ -83,7 +83,7 @@ final class DTB_ProductDetailController {
 		$variation_diagnostics = method_exists( 'DTB_VariationReadModelService', 'get_last_diagnostics' )
 			? DTB_VariationReadModelService::get_last_diagnostics()
 			: [ 'available' => false ];
-		$related_products = self::get_related_products( $product['id'] );
+		$related_products = self::get_related_products( $product );
 
 		return new WP_REST_Response( [
 			'product'         => $product,
@@ -100,21 +100,41 @@ final class DTB_ProductDetailController {
 		], 200 );
 	}
 
-	/** Build the public PDP merchandising rail from WooCommerce relationships. */
-	private static function get_related_products( int $product_id ): array {
+	/**
+	 * Build the public PDP merchandising rail.
+	 *
+	 * Canonical compatibility metadata is preferred when it exists. WooCommerce
+	 * upsells/related products remain a bounded fallback so products without
+	 * compatibility coverage retain useful merchandising without creating a
+	 * second recommendation authority.
+	 */
+	private static function get_related_products( array $product ): array {
+		$product_id = absint( $product['id'] ?? 0 );
+		if ( $product_id <= 0 ) {
+			return [];
+		}
+
 		$source_product = wc_get_product( $product_id );
 		if ( ! $source_product ) {
 			return [];
 		}
 
-		$candidate_ids = array_merge(
+		$compatibility_ids = self::get_compatibility_candidate_ids( $product );
+		$fallback_ids      = array_merge(
 			$source_product->get_upsell_ids(),
 			wc_get_related_products( $product_id, self::RELATED_PRODUCT_LIMIT * 2, [ $product_id ] )
 		);
-		$candidate_ids = array_values( array_unique( array_filter( array_map( 'absint', $candidate_ids ) ) ) );
-		$visible_ids   = [];
+		$candidate_ids = array_values( array_unique( array_filter( array_map(
+			'absint',
+			array_merge( $compatibility_ids, $fallback_ids )
+		) ) ) );
+		$visible_ids = [];
 
 		foreach ( $candidate_ids as $candidate_id ) {
+			if ( $candidate_id === $product_id ) {
+				continue;
+			}
+
 			$candidate = wc_get_product( $candidate_id );
 			if ( ! $candidate || 'publish' !== get_post_status( $candidate_id ) || ! $candidate->is_visible() ) {
 				continue;
@@ -130,6 +150,102 @@ final class DTB_ProductDetailController {
 			'dtb_catalog_normalize_product',
 			dtb_catalog_wc_fetch_products_by_ids( $visible_ids )
 		) );
+	}
+
+	/**
+	 * Resolve compatibility-backed merchandising candidates from the canonical
+	 * product meta graph. Reads are bounded to the PDP rail size and never infer
+	 * compatibility from names, brands, or category proximity.
+	 *
+	 * @param  array $product Canonical catalog DTO.
+	 * @return int[]
+	 */
+	private static function get_compatibility_candidate_ids( array $product ): array {
+		$source_sku = strtoupper( trim( (string) ( $product['sku'] ?? '' ) ) );
+		if ( '' === $source_sku ) {
+			return [];
+		}
+
+		$compatibility = is_array( $product['compatibility'] ?? null )
+			? $product['compatibility']
+			: [];
+
+		if ( ! empty( $product['isParts'] ) ) {
+			$tool_skus = array_values( array_unique( array_filter( array_merge(
+				self::normalize_sku_list( $compatibility['compatibleToolSkus'] ?? [] ),
+				self::normalize_sku_list( $compatibility['replacementPartFor'] ?? [] )
+			) ) ) );
+			$ids = [];
+
+			foreach ( array_slice( $tool_skus, 0, self::RELATED_PRODUCT_LIMIT * 2 ) as $tool_sku ) {
+				$product_id = absint( wc_get_product_id_by_sku( $tool_sku ) );
+				if ( $product_id > 0 ) {
+					$ids[] = $product_id;
+				}
+			}
+
+			return array_values( array_unique( $ids ) );
+		}
+
+		$candidate_ids = get_posts( [
+			'post_type'      => 'product',
+			'post_status'    => 'publish',
+			'posts_per_page' => self::RELATED_PRODUCT_LIMIT * 4,
+			'fields'         => 'ids',
+			'no_found_rows'  => true,
+			'meta_query'     => [
+				'relation' => 'OR',
+				[
+					'key'     => DTB_ProductMeta::COMPATIBLE_TOOL_SKUS,
+					'value'   => $source_sku,
+					'compare' => 'LIKE',
+				],
+				[
+					'key'     => DTB_ProductMeta::REPLACEMENT_PART_FOR,
+					'value'   => $source_sku,
+					'compare' => 'LIKE',
+				],
+			],
+		] );
+
+		$verified_ids = [];
+		foreach ( (array) $candidate_ids as $candidate_id ) {
+			$candidate = wc_get_product( absint( $candidate_id ) );
+			if ( ! $candidate ) {
+				continue;
+			}
+
+			$declared_tool_skus = array_values( array_unique( array_merge(
+				self::normalize_sku_list( $candidate->get_meta( DTB_ProductMeta::COMPATIBLE_TOOL_SKUS, true ) ),
+				self::normalize_sku_list( $candidate->get_meta( DTB_ProductMeta::REPLACEMENT_PART_FOR, true ) )
+			) ) );
+
+			if ( in_array( $source_sku, $declared_tool_skus, true ) ) {
+				$verified_ids[] = absint( $candidate_id );
+			}
+
+			if ( count( $verified_ids ) >= self::RELATED_PRODUCT_LIMIT ) {
+				break;
+			}
+		}
+
+		return $verified_ids;
+	}
+
+	/** Normalize a canonical SKU list without inventing compatibility. */
+	private static function normalize_sku_list( mixed $raw ): array {
+		if ( is_array( $raw ) ) {
+			$values = $raw;
+		} elseif ( is_string( $raw ) && '' !== trim( $raw ) ) {
+			$values = explode( ',', $raw );
+		} else {
+			return [];
+		}
+
+		return array_values( array_filter( array_unique( array_map(
+			static fn( $value ) => strtoupper( trim( (string) $value ) ),
+			$values
+		) ) ) );
 	}
 
 	/** GET /dtb/v1/catalog/products/:id/variations */
