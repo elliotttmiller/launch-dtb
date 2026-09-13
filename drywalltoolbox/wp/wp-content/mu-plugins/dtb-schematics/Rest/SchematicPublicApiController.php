@@ -1,25 +1,6 @@
 <?php
 /**
- * DTB Schematics — SchematicPublicApiController (transport).
- *
- * Public REST surface for the authoritative `dtb_schematic` domain record:
- *
- *   GET /dtb/v1/schematics             collection (published records only)
- *   GET /dtb/v1/schematics/{schematic_id}   detail (published records only)
- *
- * This controller is intentionally thin: request mapping + response
- * serialization only. All response shape comes from
- * Application/GenerateSchematicResponse.php; all record access comes from
- * Infrastructure/SchematicRecordRepository.php. No business logic and no
- * direct persistence calls live here.
- *
- * This is the sole public schematic REST surface. The legacy `/dtb/v1/
- * schematics/media` and `/dtb/v1/schematics/manifest` routes (formerly
- * Rest/SchematicMediaController.php / Rest/SchematicManifestController.php)
- * and their backing Infrastructure/SchematicMediaRepository.php and
- * Infrastructure/SchematicManifestRepository.php were removed in Phase 9
- * after confirming zero live frontend callers (the rebuilt
- * frontend/src/pages/SchematicsPage.jsx consumes only this controller).
+ * DTB Schematics — public REST transport.
  *
  * @package drywall-toolbox
  */
@@ -52,69 +33,49 @@ function dtb_register_schematics_public_api_routes(): void {
 					'validate_callback' => static function ( $value ) {
 						return is_string( $value ) && '' !== sanitize_key( $value );
 					},
-				],
 			],
 		]
 	);
 }
 
-/**
- * One coherent public cache policy shared by both endpoints:
- *   - a single `public, max-age=<ttl>` Cache-Control directive (never mixed
- *     with private/no-store/no-cache);
- *   - an ETag derived from the catalog/publication version so proxies and
- *     browsers can revalidate cheaply;
- *   - conditional-GET (If-None-Match) support returning a bare 304.
- *
- * @return true If the caller should short-circuit with a 304 (headers already sent via $response).
- */
 function dtb_schematics_public_api_apply_cache_headers( WP_REST_Request $request, WP_REST_Response $response, string $etag_seed, int $ttl = 300 ): bool {
 	$etag = '"' . md5( $etag_seed ) . '"';
-
 	$response->header( 'Cache-Control', 'public, max-age=' . max( 0, $ttl ) );
 	$response->header( 'ETag', $etag );
 
 	$if_none_match = $request->get_header( 'if_none_match' );
-	if ( is_string( $if_none_match ) && trim( $if_none_match ) === $etag ) {
-		return true;
-	}
-
-	return false;
+	return is_string( $if_none_match ) && trim( $if_none_match ) === $etag;
 }
 
-/**
- * Append a version query argument to a media URL so caches can treat the URL
- * itself as immutable/versioned. Prefers the page's own source checksum;
- * falls back to the record's publication version when no checksum is known.
- */
 function dtb_schematics_public_api_versioned_url( string $url, string $checksum, int $publication_version ): string {
 	if ( '' === $url ) {
 		return '';
 	}
-
 	$version = '' !== $checksum ? $checksum : ( 'v' . max( 0, $publication_version ) );
-
 	return add_query_arg( 'v', rawurlencode( $version ), $url );
 }
 
 /**
- * Enforce deterministic page ordering (page_number ascending) regardless of
- * stored array order, and attach versioned media URLs + an explicit
- * hotspot-availability shape to each serialized page.
- *
- * @param array $pages Raw page definitions as stored on the domain record (see dtb_schematic_page_make()).
+ * Enforce deterministic page ordering and serialize only structurally valid
+ * page/source records. Optional hotspot/media data degrades instead of
+ * invalidating the complete public schematic response.
  */
 function dtb_schematics_public_api_order_and_annotate_pages( array $pages, int $publication_version ): array {
-	usort( $pages, fn( $a, $b ) => ( $a['page_number'] ?? 0 ) <=> ( $b['page_number'] ?? 0 ) );
+	$pages = array_values( array_filter( $pages, 'is_array' ) );
 
-	// Enforce unique page relationships: if a page_id repeats (should not
-	// happen at the domain layer, but the public serializer must not trust
-	// that blindly), keep only the first (lowest page_number) occurrence.
-	$seen  = [];
+	usort(
+		$pages,
+		static fn( $a, $b ) => (int) ( $a['page_number'] ?? 0 ) <=> (int) ( $b['page_number'] ?? 0 )
+	);
+
+	$seen = [];
 	$pages = array_values(
 		array_filter(
 			$pages,
 			static function ( $page ) use ( &$seen ) {
+				if ( ! is_array( $page ) ) {
+					return false;
+				}
 				$page_id = (string) ( $page['page_id'] ?? '' );
 				if ( '' === $page_id || isset( $seen[ $page_id ] ) ) {
 					return false;
@@ -125,50 +86,48 @@ function dtb_schematics_public_api_order_and_annotate_pages( array $pages, int $
 		)
 	);
 
-	return array_map(
-		static function ( array $page ) use ( $publication_version ) {
-			$checksum = (string) ( $page['source_checksum'] ?? '' );
-
-			if ( '' !== ( $page['url'] ?? '' ) ) {
-				$page['url'] = dtb_schematics_public_api_versioned_url( $page['url'], $checksum, $publication_version );
+	$annotated = array_map(
+		static function ( $page ) use ( $publication_version ) {
+			if ( ! is_array( $page ) ) {
+				return null;
 			}
 
-			$page['sources'] = array_map(
-				static function ( array $source ) use ( $checksum, $publication_version ) {
-					$source['url'] = dtb_schematics_public_api_versioned_url( (string) ( $source['url'] ?? '' ), $checksum, $publication_version );
-					return $source;
-				},
-				(array) ( $page['sources'] ?? [] )
-			);
+			$checksum = sanitize_text_field( (string) ( $page['source_checksum'] ?? '' ) );
 
-			$dataset          = (array) ( $page['hotspot_dataset'] ?? [] );
-			$occurrences      = (array) ( $dataset['occurrences'] ?? [] );
-			$has_reference    = ! empty( $dataset['type'] ) && 'none' !== $dataset['type'];
-			$has_occurrences  = ! empty( $occurrences );
+			if ( '' !== ( $page['url'] ?? '' ) ) {
+				$page['url'] = dtb_schematics_public_api_versioned_url( (string) $page['url'], $checksum, $publication_version );
+			}
+
+			$sources = [];
+			foreach ( (array) ( $page['sources'] ?? [] ) as $source ) {
+				if ( ! is_array( $source ) ) {
+					continue;
+				}
+				$source['url'] = dtb_schematics_public_api_versioned_url(
+					(string) ( $source['url'] ?? '' ),
+					$checksum,
+					$publication_version
+				);
+				$sources[] = $source;
+			}
+			$page['sources'] = $sources;
+
+			$dataset         = is_array( $page['hotspot_dataset'] ?? null ) ? $page['hotspot_dataset'] : [];
+			$occurrences     = array_values( array_filter( (array) ( $dataset['occurrences'] ?? [] ), 'is_array' ) );
+			$has_reference   = ! empty( $dataset['type'] ) && 'none' !== $dataset['type'];
+			$has_occurrences = ! empty( $occurrences );
 
 			if ( $has_occurrences ) {
-				// Phase 5: real migrated hotspot occurrence data for this page
-				// (Application/MigrateSchematicHotspotDatasets.php). Never
-				// collapsed to one-per-part — every physical occurrence is
-				// preserved as its own entry.
 				$page['hotspot_dataset'] = [
 					'available'      => true,
-					'schema_version' => $dataset['schema_version'] ?? DTB_SCHEMATIC_HOTSPOT_SCHEMA_VERSION,
-					'checksum'       => $dataset['checksum'] ?? '',
+					'schema_version' => sanitize_text_field( (string) ( $dataset['schema_version'] ?? DTB_SCHEMATIC_HOTSPOT_SCHEMA_VERSION ) ),
+					'checksum'       => sanitize_text_field( (string) ( $dataset['checksum'] ?? '' ) ),
 					'occurrences'    => $occurrences,
-				];
-			} elseif ( $has_reference ) {
-				// A dataset reference exists but migration has not yet produced
-				// real occurrence data for it (e.g. a legacy-schema source file
-				// with no coordinates, or migration has not run for this record).
-				$page['hotspot_dataset'] = [
-					'available' => false,
-					'reason'    => 'hotspot_data_unavailable',
 				];
 			} else {
 				$page['hotspot_dataset'] = [
 					'available' => false,
-					'reason'    => 'hotspot_data_unavailable',
+					'reason'    => $has_reference ? 'hotspot_data_unavailable' : 'hotspot_data_unavailable',
 				];
 			}
 
@@ -176,27 +135,26 @@ function dtb_schematics_public_api_order_and_annotate_pages( array $pages, int $
 		},
 		$pages
 	);
+
+	return array_values( array_filter( $annotated, 'is_array' ) );
 }
 
-/**
- * Annotate resolved/unresolved part summaries with an explicit unavailable
- * state (nothing is fabricated — the underlying relationship data comes
- * unchanged from dtb_schematic_generate_detail_response()).
- */
 function dtb_schematics_public_api_annotate_parts( array $parts ): array {
-	return array_map(
-		static function ( array $part ) {
+	$annotated = array_map(
+		static function ( $part ) {
+			if ( ! is_array( $part ) ) {
+				return null;
+			}
 			$part['available'] = DTB_SCHEMATIC_PART_STATE_RESOLVED === ( $part['resolution_state'] ?? '' )
 				&& is_array( $part['product'] ?? null );
 			return $part;
 		},
 		$parts
 	);
+
+	return array_values( array_filter( $annotated, 'is_array' ) );
 }
 
-/**
- * GET /dtb/v1/schematics
- */
 function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 	$per_page = 200;
 	$page     = 1;
@@ -213,20 +171,13 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 
 		foreach ( $result['items'] as $record ) {
 			if ( ! $record->lifecycle->is_published() ) {
-				continue; // Defense in depth: never leak a non-published record.
+				continue;
 			}
 			if ( ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
-				continue; // Published metadata alone never exposes an unusable projection.
+				continue;
 			}
 
 			$entry = dtb_schematic_generate_catalog_entry( $record );
-
-			// Catalog card previews get the same immutable/versioned URL
-			// treatment as detail-page media (see
-			// dtb_schematics_public_api_versioned_url()). No page-level
-			// checksum is available at catalog granularity, so this keys
-			// off the record's publication version — still cache-busted on
-			// every reconciled change.
 			if ( '' !== ( $entry['preview']['url'] ?? '' ) ) {
 				$entry['preview']['url'] = dtb_schematics_public_api_versioned_url(
 					$entry['preview']['url'],
@@ -234,15 +185,13 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 					$record->publication_version
 				);
 			}
-
 			$items[] = $entry;
 		}
 
 		++$page;
-	} while ( $page <= $result['pages'] && $page <= 50 ); // Bounded: at most 10,000 records.
+	} while ( $page <= $result['pages'] && $page <= 50 );
 
 	$catalog_version = dtb_schematics_public_catalog_version();
-
 	$response = rest_ensure_response(
 		[
 			'schema_version'  => 'v1',
@@ -252,26 +201,16 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 		]
 	);
 
-	$is_not_modified = dtb_schematics_public_api_apply_cache_headers(
-		$request,
-		$response,
-		'collection:' . $catalog_version . ':' . count( $items )
-	);
-
-	if ( $is_not_modified ) {
+	if ( dtb_schematics_public_api_apply_cache_headers( $request, $response, 'collection:' . $catalog_version . ':' . count( $items ) ) ) {
 		return new WP_REST_Response( null, 304 );
 	}
 
 	return $response;
 }
 
-/**
- * GET /dtb/v1/schematics/{schematic_id}
- */
 function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 	$schematic_id = sanitize_key( (string) $request->get_param( 'schematic_id' ) );
-
-	$record = dtb_schematic_record_repo_find_by_canonical_id( $schematic_id );
+	$record       = dtb_schematic_record_repo_find_by_canonical_id( $schematic_id );
 
 	if ( ! $record || ! $record->lifecycle->is_published() || ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
 		return new WP_Error(
@@ -281,23 +220,29 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 		);
 	}
 
-	$body = dtb_schematic_generate_detail_response( $record );
-
-	$body['pages'] = dtb_schematics_public_api_order_and_annotate_pages( $body['pages'], $record->publication_version );
-	$body['parts'] = dtb_schematics_public_api_annotate_parts( $body['parts'] );
+	try {
+		$body          = dtb_schematic_generate_detail_response( $record );
+		$body['pages'] = dtb_schematics_public_api_order_and_annotate_pages( (array) ( $body['pages'] ?? [] ), $record->publication_version );
+		$body['parts'] = dtb_schematics_public_api_annotate_parts( (array) ( $body['parts'] ?? [] ) );
+	} catch ( Throwable $error ) {
+		if ( function_exists( 'dtb_schematic_public_projection_log' ) ) {
+			dtb_schematic_public_projection_log( $record, 'detail_response', [], $error );
+		}
+		return new WP_Error(
+			'dtb_schematic_projection_failed',
+			__( 'Schematic data is temporarily unavailable.', 'drywall-toolbox' ),
+			[ 'status' => 503 ]
+		);
+	}
 
 	$response = rest_ensure_response( $body );
-
-	$is_not_modified = dtb_schematics_public_api_apply_cache_headers(
-		$request,
-		$response,
-		// Include the response-contract revision so a deployment that adds a
-		// projection cannot receive a stale 304 solely because record content
-		// and publication_version did not change.
-		'detail:v3:' . $record->canonical_id . ':' . $record->publication_version . ':' . md5( wp_json_encode( $body['parts'] ?? [] ) )
-	);
-
-	if ( $is_not_modified ) {
+	if (
+		dtb_schematics_public_api_apply_cache_headers(
+			$request,
+			$response,
+			'detail:v4:' . $record->canonical_id . ':' . $record->publication_version . ':' . md5( wp_json_encode( $body['parts'] ?? [] ) )
+		)
+	) {
 		return new WP_REST_Response( null, 304 );
 	}
 

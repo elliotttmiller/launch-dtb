@@ -19,7 +19,6 @@ $_dtb_returns_files = [
 	'Services/ReturnService.php',
 	'Admin/ReturnsPage.php',
 	'Rest/ReturnsController.php',
-	'Rest/ReturnsPublicLookupController.php',
 	'Rest/ReturnsAdminQueueController.php',
 ];
 
