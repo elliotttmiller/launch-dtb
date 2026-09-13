@@ -33,6 +33,7 @@ function dtb_register_schematics_public_api_routes(): void {
 					'validate_callback' => static function ( $value ) {
 						return is_string( $value ) && '' !== sanitize_key( $value );
 					},
+				],
 			],
 		]
 	);
@@ -127,7 +128,7 @@ function dtb_schematics_public_api_order_and_annotate_pages( array $pages, int $
 			} else {
 				$page['hotspot_dataset'] = [
 					'available' => false,
-					'reason'    => $has_reference ? 'hotspot_data_unavailable' : 'hotspot_data_unavailable',
+					'reason'    => 'hotspot_data_unavailable',
 				];
 			}
 
@@ -169,7 +170,14 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 			]
 		);
 
-		foreach ( $result['items'] as $record ) {
+		if ( ! is_array( $result ) ) {
+			break;
+		}
+
+		foreach ( (array) ( $result['items'] ?? [] ) as $record ) {
+			if ( ! $record instanceof DTB_Schematic_Record_Entity ) {
+				continue;
+			}
 			if ( ! $record->lifecycle->is_published() ) {
 				continue;
 			}
@@ -180,7 +188,7 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 			$entry = dtb_schematic_generate_catalog_entry( $record );
 			if ( '' !== ( $entry['preview']['url'] ?? '' ) ) {
 				$entry['preview']['url'] = dtb_schematics_public_api_versioned_url(
-					$entry['preview']['url'],
+					(string) $entry['preview']['url'],
 					'',
 					$record->publication_version
 				);
@@ -188,8 +196,9 @@ function dtb_schematics_public_api_collection( WP_REST_Request $request ) {
 			$items[] = $entry;
 		}
 
+		$total_pages = max( 0, (int) ( $result['pages'] ?? 0 ) );
 		++$page;
-	} while ( $page <= $result['pages'] && $page <= 50 );
+	} while ( $page <= $total_pages && $page <= 50 );
 
 	$catalog_version = dtb_schematics_public_catalog_version();
 	$response = rest_ensure_response(
@@ -212,7 +221,7 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 	$schematic_id = sanitize_key( (string) $request->get_param( 'schematic_id' ) );
 	$record       = dtb_schematic_record_repo_find_by_canonical_id( $schematic_id );
 
-	if ( ! $record || ! $record->lifecycle->is_published() || ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
+	if ( ! $record instanceof DTB_Schematic_Record_Entity || ! $record->lifecycle->is_published() || ! empty( dtb_schematic_runtime_publication_requirements( $record ) ) ) {
 		return new WP_Error(
 			'dtb_schematic_not_found',
 			__( 'Schematic not found.', 'drywall-toolbox' ),
@@ -225,8 +234,8 @@ function dtb_schematics_public_api_detail( WP_REST_Request $request ) {
 		$body['pages'] = dtb_schematics_public_api_order_and_annotate_pages( (array) ( $body['pages'] ?? [] ), $record->publication_version );
 		$body['parts'] = dtb_schematics_public_api_annotate_parts( (array) ( $body['parts'] ?? [] ) );
 	} catch ( Throwable $error ) {
-		if ( function_exists( 'dtb_schematic_public_projection_log' ) ) {
-			dtb_schematic_public_projection_log( $record, 'detail_response', [], $error );
+		if ( function_exists( 'dtb_schematic_log_public_projection_failure' ) ) {
+			dtb_schematic_log_public_projection_failure( $record->canonical_id, 'detail_response', $error );
 		}
 		return new WP_Error(
 			'dtb_schematic_projection_failed',
