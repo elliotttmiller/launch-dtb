@@ -12,8 +12,8 @@ defined( 'ABSPATH' ) || exit;
 function dtb_returns_register_post_type(): void {
 	register_post_type( 'dtb_return', [
 		'labels' => [
-			'name'          => __( 'Returns',      'drywall-toolbox' ),
-			'singular_name' => __( 'Return',        'drywall-toolbox' ),
+			'name'          => __( 'Returns', 'drywall-toolbox' ),
+			'singular_name' => __( 'Return', 'drywall-toolbox' ),
 		],
 		'public'       => false,
 		'show_ui'      => false,
@@ -22,12 +22,6 @@ function dtb_returns_register_post_type(): void {
 	] );
 }
 
-/**
- * Count returns grouped by status.
- *
- * @param string|null $status  If provided, returns count for that status only.
- * @return int|array
- */
 function dtb_returns_count_by_status( ?string $status = null ) {
 	global $wpdb;
 
@@ -58,12 +52,6 @@ function dtb_returns_count_by_status( ?string $status = null ) {
 	return $counts;
 }
 
-/**
- * Query returns for the admin list page.
- *
- * @param array $args  { status?, search?, page?, per_page? }
- * @return array{ items: DTB_Return_Entity[], total: int, pages: int }
- */
 function dtb_returns_query( array $args = [] ): array {
 	$per_page = (int) ( $args['per_page'] ?? 20 );
 	$page     = max( 1, (int) ( $args['page'] ?? 1 ) );
@@ -100,9 +88,6 @@ function dtb_returns_query( array $args = [] ): array {
 	];
 }
 
-/**
- * Get a single return by ID.
- */
 function dtb_returns_get( int $id ): ?DTB_Return_Entity {
 	$post = get_post( $id );
 	if ( ! $post || $post->post_type !== 'dtb_return' ) {
@@ -114,8 +99,8 @@ function dtb_returns_get( int $id ): ?DTB_Return_Entity {
 /**
  * Persist (create or update) a return.
  *
- * @param array $data  Fields matching ReturnEntity properties.
- * @return int|\WP_Error  New post ID on create, existing ID on update.
+ * Structured return lines are stored as JSON post meta so WooCommerce line-item
+ * identity remains explicit without creating a second product/order authority.
  */
 function dtb_returns_save( array $data ) {
 	$id = (int) ( $data['id'] ?? 0 );
@@ -140,14 +125,15 @@ function dtb_returns_save( array $data ) {
 	$id = (int) $result;
 
 	$meta_map = [
-		'_dtb_return_order_id'      => 'order_id',
-		'_dtb_return_order_number'  => 'order_number',
-		'_dtb_return_customer_name' => 'customer_name',
-		'_dtb_return_customer_email'=> 'customer_email',
-		'_dtb_return_reason'        => 'reason',
-		'_dtb_return_notes'         => 'notes',
-		'_dtb_return_resolution'    => 'resolution',
-		'_dtb_return_status'        => 'status',
+		'_dtb_return_order_id'        => 'order_id',
+		'_dtb_return_order_number'    => 'order_number',
+		'_dtb_return_customer_name'   => 'customer_name',
+		'_dtb_return_customer_email'  => 'customer_email',
+		'_dtb_return_request_type'    => 'request_type',
+		'_dtb_return_reason'          => 'reason',
+		'_dtb_return_resolution'      => 'resolution',
+		'_dtb_return_status'          => 'status',
+		'_dtb_return_idempotency_key' => 'idempotency_key',
 	];
 
 	foreach ( $meta_map as $meta_key => $field ) {
@@ -156,7 +142,25 @@ function dtb_returns_save( array $data ) {
 		}
 	}
 
-	// Update title to include real ID.
+	if ( array_key_exists( 'notes', $data ) ) {
+		update_post_meta( $id, '_dtb_return_notes', sanitize_textarea_field( (string) $data['notes'] ) );
+	}
+
+	if ( array_key_exists( 'items', $data ) ) {
+		$items = [];
+		foreach ( (array) $data['items'] as $item ) {
+			$items[] = [
+				'item_id'      => (int) ( $item['item_id'] ?? 0 ),
+				'product_id'   => (int) ( $item['product_id'] ?? 0 ),
+				'variation_id' => (int) ( $item['variation_id'] ?? 0 ),
+				'name'         => sanitize_text_field( (string) ( $item['name'] ?? '' ) ),
+				'sku'          => sanitize_text_field( (string) ( $item['sku'] ?? '' ) ),
+				'quantity'     => max( 1, (int) ( $item['quantity'] ?? 1 ) ),
+			];
+		}
+		update_post_meta( $id, '_dtb_return_items', wp_json_encode( $items ) );
+	}
+
 	wp_update_post( [ 'ID' => $id, 'post_title' => 'Return #' . $id ] );
 
 	return $id;
