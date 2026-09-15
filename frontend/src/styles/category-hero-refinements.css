@@ -1,92 +1,95 @@
 /* Category hero decorative geometry.
-   This file owns only the approved optical treatment. Structural hero layout,
-   media sizing/loading, copy, and storefront tokens remain in category-hero.css. */
+   Structural hero layout, media sizing/loading, copy, and storefront tokens
+   remain owned by category-hero.css. */
 
-/* Compact halftone field: it begins under the blue corner wedge, stays above
-   the category title, and fades softly into the hero surface. */
+/* Halftone texture is deliberately attached to the top-left treatment. It
+   begins underneath the blue wedge, fills the negative space beside it, then
+   fades before the category title. */
 .dtb-category-hero-card__dot-field {
   top: 0;
-  left: 2.7rem;
+  left: 2.25rem;
   z-index: 0;
-  width: 7.25rem;
-  height: 7.2rem;
+  width: 9.25rem;
+  height: 7.9rem;
   background-image: radial-gradient(
     circle,
-    rgba(59, 130, 246, 0.3) 0.85px,
-    transparent 1.05px
+    rgba(59, 130, 246, 0.28) 0.9px,
+    transparent 1.1px
   );
   background-position: 0 0;
   background-size: 5.75px 5.75px;
   -webkit-mask-image: radial-gradient(
-    ellipse 90% 84% at 0% 0%,
+    ellipse 100% 92% at 0% 0%,
     #000 0%,
-    rgba(0, 0, 0, 0.96) 38%,
-    rgba(0, 0, 0, 0.62) 63%,
-    rgba(0, 0, 0, 0.2) 80%,
+    #000 32%,
+    rgba(0, 0, 0, 0.82) 51%,
+    rgba(0, 0, 0, 0.42) 69%,
+    rgba(0, 0, 0, 0.12) 84%,
     transparent 100%
   );
   mask-image: radial-gradient(
-    ellipse 90% 84% at 0% 0%,
+    ellipse 100% 92% at 0% 0%,
     #000 0%,
-    rgba(0, 0, 0, 0.96) 38%,
-    rgba(0, 0, 0, 0.62) 63%,
-    rgba(0, 0, 0, 0.2) 80%,
+    #000 32%,
+    rgba(0, 0, 0, 0.82) 51%,
+    rgba(0, 0, 0, 0.42) 69%,
+    rgba(0, 0, 0, 0.12) 84%,
     transparent 100%
   );
-  opacity: 0.72;
+  opacity: 0.7;
 }
 
 @media (min-width: 768px) {
-  /* The divider is built from a full-height clipped plane rather than a skewed
-     rectangle. Its polygon vertices explicitly touch y=0 and y=100%, so both
-     parallel diagonals always terminate on the hero's top and bottom edges. */
+  /* One full-height decoration canvas containing two independently painted
+     parallel rails. Both polygons explicitly intersect y=0 and y=100%, so the
+     rails cannot terminate inside the hero as transformed rectangles can. */
   .dtb-category-hero-card__divider {
     top: 0;
-    right: -1px;
+    right: -0.25rem;
     bottom: 0;
     z-index: 1;
     display: block;
-    width: clamp(8.75rem, 12.5vw, 12rem);
+    width: clamp(10.5rem, 14vw, 13.5rem);
     height: auto;
     transform: none;
     border: 0;
-    background: linear-gradient(
-      90deg,
-      rgba(211, 226, 246, 0.7) 0%,
-      rgba(224, 235, 249, 0.52) 100%
-    );
-    clip-path: polygon(58% 0, 82% 0, 24% 100%, 0 100%);
+    background: transparent;
+    clip-path: none;
     box-shadow: none;
     opacity: 1;
   }
 
-  /* Second narrow parallel rail from the target composition. */
+  /* Primary, broader blue-silver rail. */
   .dtb-category-hero-card__divider::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(238, 244, 251, 0.92);
-    clip-path: polygon(89% 0, 100% 0, 42% 100%, 31% 100%);
+    background: linear-gradient(
+      90deg,
+      rgba(207, 224, 246, 0.76) 0%,
+      rgba(220, 233, 249, 0.58) 100%
+    );
+    clip-path: polygon(47% 0, 61% 0, 17% 100%, 0 100%);
   }
 
-  /* Blue termination is clipped to the bottom of the primary diagonal. */
+  /* Second narrow rail: separate geometry, visible gap, same slope. */
   .dtb-category-hero-card__divider::after {
     content: '';
     position: absolute;
-    left: 0;
-    bottom: 0;
-    width: 42%;
-    height: 2.9rem;
-    background: linear-gradient(145deg, #3d83ea 0%, #2563d9 100%);
-    clip-path: polygon(57% 0, 100% 0, 76% 100%, 33% 100%);
-    opacity: 0.92;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(231, 239, 249, 0.94) 0%,
+      rgba(241, 246, 252, 0.86) 100%
+    );
+    clip-path: polygon(73% 0, 82% 0, 38% 100%, 29% 100%);
   }
 
   .dtb-category-hero-card__dot-field {
     top: 0;
-    left: 3.05rem;
-    width: 7.75rem;
-    height: 7.45rem;
+    left: 2.8rem;
+    width: 9.75rem;
+    height: 8.15rem;
     background-size: 5.75px 5.75px;
     opacity: 0.7;
   }
@@ -94,34 +97,34 @@
 
 @media (min-width: 1280px) {
   .dtb-category-hero-card__divider {
-    width: clamp(10rem, 11.5vw, 12rem);
+    width: clamp(11.5rem, 13vw, 14rem);
   }
 
   .dtb-category-hero-card__dot-field {
-    left: 3.35rem;
-    width: 8rem;
-    height: 7.65rem;
+    left: 3rem;
+    width: 10.25rem;
+    height: 8.4rem;
   }
 }
 
 @media (min-width: 1536px) {
   .dtb-category-hero-card__divider {
-    width: 11.5rem;
+    width: 13.5rem;
   }
 
   .dtb-category-hero-card__dot-field {
-    left: 3.5rem;
-    width: 8.15rem;
-    height: 7.75rem;
+    left: 3.15rem;
+    width: 10.5rem;
+    height: 8.5rem;
   }
 }
 
 @media (max-width: 767px) {
   .dtb-category-hero-card__dot-field {
     top: 0;
-    left: 2rem;
-    width: 5.6rem;
-    height: 5.5rem;
+    left: 1.65rem;
+    width: 6.8rem;
+    height: 5.8rem;
     background-size: 5.25px 5.25px;
     opacity: 0.5;
   }
