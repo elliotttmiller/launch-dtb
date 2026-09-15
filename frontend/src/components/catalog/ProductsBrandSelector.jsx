@@ -4,7 +4,7 @@ import { normalizeBrandAssetKey, resolveProductBrandLogo } from '../../utils/bra
 import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import './products-selector.css';
 
-const sitegroundLogoAsset = (filename, version = '') => `/logos/${filename}${version ? `?v=${version}` : ''}`;
+const sitegroundLogoAsset = (filename) => `/logos/${filename}`;
 
 const FEATURED_BRAND_PRESENTATION = {
   columbia: {
@@ -40,10 +40,9 @@ const FEATURED_BRAND_PRESENTATION = {
     },
   },
   usgsheetrocktools: {
-    // SiteGround/CDN may retain the previous SVG at this stable path after an
-    // in-place asset replacement. Version the request so the selector always
-    // resolves the current transparent artwork without renaming the canonical file.
-    logo: sitegroundLogoAsset('usg-sheetrock-tools.svg', '20260914-transparent'),
+    // Selector artwork is intentionally separate from the canonical USG logo
+    // used by headers and other storefront surfaces.
+    logo: sitegroundLogoAsset('usg-sheetrock-tools-transparent.svg'),
     className: 'products-brand-selector__card--usg',
     cardStyle: {
       backgroundColor: '#00843d',
