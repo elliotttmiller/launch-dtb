@@ -9,7 +9,6 @@ import ScrewCalculator from './ScrewCalculator'
 import SummaryView from './SummaryView'
 import {
   reducedContentVariants,
-  dtbDistance,
   dtbSpring,
   dtbTransition,
   reducedTransition,
@@ -60,13 +59,14 @@ const toastVariants = {
   exit: { opacity: 0, y: -8, scale: 0.985, transition: dtbTransition.exit },
 }
 
-// Calculator tabs are in-page context switches, not route changes. Keep the
-// surrounding surface stable and use a restrained micro-distance crossfade so
-// heavy calculator forms never disappear into a blank exit frame.
+// Tab changes should read as a calm content reveal, not as spatial movement.
+// The old panel is replaced immediately inside the persistent card and the new
+// panel only fades from transparent to opaque. Avoid exit, translate, scale,
+// pop-layout and container-size animation here: those effects make large forms
+// visually flicker while React exchanges calculator trees.
 const calculatorPanelVariants = {
-  hidden: { opacity: 0, y: dtbDistance.micro },
-  visible: { opacity: 1, y: 0, transition: dtbTransition.fast },
-  exit: { opacity: 0, y: -dtbDistance.micro, transition: dtbTransition.exit },
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: dtbTransition.standard },
 }
 
 export default function CalculatorHub() {
@@ -178,30 +178,22 @@ export default function CalculatorHub() {
       <div className="w-full px-4 pb-8">
         <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 100%, 1200px)' }}>
           <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative">
-            <Motion.div
-              layout="size"
-              transition={reduceMotion ? { layout: reducedTransition } : { layout: dtbTransition.standard }}
-              className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden"
-            >
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden">
               <div className={`h-px w-10 bg-linear-to-r ${currentTab.gradient} rounded-full mb-5`} />
-              <AnimatePresence mode="popLayout" initial={false}>
-                <Motion.div
-                  key={currentTab.id}
-                  variants={panelVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                  className="relative"
-                >
-                  {activeTab === 0 && <SheetCalculator onUpdate={handleSheetUpdate} />}
-                  {activeTab === 1 && <MudCalculator onUpdate={handleMudUpdate} sheetData={summaryData.sheets} />}
-                  {activeTab === 2 && <TapeCalculator onUpdate={handleTapeUpdate} sheetData={summaryData.sheets} />}
-                  {activeTab === 3 && <CornerBeadCalculator onUpdate={handleBeadUpdate} />}
-                  {activeTab === 4 && <ScrewCalculator onUpdate={handleScrewUpdate} sheetData={summaryData.sheets} />}
-                  {activeTab === 5 && <SummaryView data={summaryData} onProjectUpdate={handleProjectUpdate} />}
-                </Motion.div>
-              </AnimatePresence>
-            </Motion.div>
+              <Motion.div
+                key={currentTab.id}
+                variants={panelVariants}
+                initial="hidden"
+                animate="visible"
+              >
+                {activeTab === 0 && <SheetCalculator onUpdate={handleSheetUpdate} />}
+                {activeTab === 1 && <MudCalculator onUpdate={handleMudUpdate} sheetData={summaryData.sheets} />}
+                {activeTab === 2 && <TapeCalculator onUpdate={handleTapeUpdate} sheetData={summaryData.sheets} />}
+                {activeTab === 3 && <CornerBeadCalculator onUpdate={handleBeadUpdate} />}
+                {activeTab === 4 && <ScrewCalculator onUpdate={handleScrewUpdate} sheetData={summaryData.sheets} />}
+                {activeTab === 5 && <SummaryView data={summaryData} onProjectUpdate={handleProjectUpdate} />}
+              </Motion.div>
+            </div>
           </div>
         </div>
       </div>
