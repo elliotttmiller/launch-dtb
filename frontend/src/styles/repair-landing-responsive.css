@@ -40,21 +40,21 @@
   .repair-landing .repair-shipping-prep__grid li:nth-child(-n+3) { border-bottom:1px solid var(--repair-line); }
 }
 
-/* Phone composition follows the approved mobile reference. The storefront
- * header is intentionally outside this file and remains unchanged. */
+/* Phone composition is calibrated as one coherent reference viewport rather
+ * than a collection of desktop-sized components stacked into one column. */
 @media (max-width:47.99rem) {
   .repair-landing {
     --repair-mobile-gutter:clamp(14px,3.75vw,16px);
-    --repair-mobile-section:clamp(32px,9vw,44px);
+    --repair-mobile-section:clamp(26px,7vw,32px);
     --repair-mobile-radius:6px;
-    --repair-mobile-eyebrow:clamp(9px,2.4vw,10px);
-    --repair-mobile-heading:clamp(27px,7.2vw,30px);
-    --repair-mobile-card-heading:clamp(22px,6vw,25px);
-    --repair-mobile-body:clamp(12.5px,3.3vw,13.5px);
-    --repair-mobile-meta:clamp(11.5px,3vw,12.5px);
-    --repair-package-art-right:-6%;
-    --repair-package-art-width:49%;
-    --repair-package-art-height:80%;
+    --repair-mobile-eyebrow:clamp(8px,2.05vw,9px);
+    --repair-mobile-heading:clamp(20px,5.4vw,22px);
+    --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
+    --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
+    --repair-mobile-meta:clamp(10px,2.65vw,11px);
+    --repair-package-art-right:-3%;
+    --repair-package-art-width:36%;
+    --repair-package-art-height:72%;
   }
 
   .repair-landing .repair-section-shell,
@@ -64,6 +64,7 @@
     margin-inline:auto;
   }
 
+  /* The hero already tracks the approved reference proportions closely. */
   .repair-landing .repair-hero {
     min-height:0;
     height:95vw;
@@ -73,7 +74,7 @@
   }
   .repair-landing .repair-hero__inner { min-height:100%; height:100%; align-items:flex-end; }
   .repair-landing .repair-hero__content { width:100%; max-width:none; padding:0 0 clamp(20px,5.5vw,28px); }
-  .repair-landing .repair-hero .repair-eyebrow { margin:0 0 8px; color:#5e9cff; font-size:var(--repair-mobile-eyebrow); font-weight:800; line-height:1.1; letter-spacing:.1em; }
+  .repair-landing .repair-hero .repair-eyebrow { margin:0 0 8px; color:#5e9cff; font-size:clamp(9px,2.4vw,10px); font-weight:800; line-height:1.1; letter-spacing:.1em; }
   .repair-landing .repair-hero h1 { max-width:11ch; margin:0 0 10px; font-size:clamp(30px,8vw,33px); line-height:.96; letter-spacing:-.045em; white-space:normal; }
   .repair-landing .repair-hero h1 br { display:none; }
   .repair-landing .repair-hero h1 span { display:block; }
@@ -83,12 +84,13 @@
   .repair-landing .repair-hero__actions .repair-button--utility,
   .repair-landing .repair-hero__assurance { display:none; }
 
-  .repair-landing .repair-service-details { padding:clamp(30px,8vw,36px) 0 clamp(34px,9vw,40px); background:#fff; }
-  .repair-landing .repair-service-details .repair-section-heading--center { max-width:100%; margin:0 auto clamp(26px,6.8vw,30px); text-align:center; }
-  .repair-landing .repair-service-details .repair-section-heading--center .repair-eyebrow { margin:0 0 10px; font-size:var(--repair-mobile-eyebrow); font-weight:800; letter-spacing:.1em; }
-  .repair-landing .repair-service-details .repair-section-heading--center h2 { max-width:350px; margin-inline:auto; font-size:clamp(27px,7.2vw,29px); line-height:1.01; letter-spacing:-.04em; text-wrap:balance; }
-  .repair-landing .repair-service-details .repair-section-heading--center > p:last-child { max-width:350px; margin:12px auto 0; color:#637898; font-size:clamp(12px,3.2vw,13px); line-height:1.45; }
-  .repair-landing .repair-service-details__grid { display:grid; grid-template-columns:minmax(0,1fr); gap:13px; }
+  /* Reference transition: compact intro and tightly composed decision cards. */
+  .repair-landing .repair-service-details { padding:clamp(20px,5.4vw,24px) 0 clamp(24px,6.4vw,28px); background:#fff; }
+  .repair-landing .repair-service-details .repair-section-heading--center { max-width:100%; margin:0 auto clamp(18px,4.8vw,21px); text-align:center; }
+  .repair-landing .repair-service-details .repair-section-heading--center .repair-eyebrow { margin:0 0 7px; font-size:var(--repair-mobile-eyebrow); font-weight:800; letter-spacing:.1em; }
+  .repair-landing .repair-service-details .repair-section-heading--center h2 { max-width:330px; margin-inline:auto; font-size:var(--repair-mobile-heading); line-height:1.03; letter-spacing:-.035em; text-wrap:balance; }
+  .repair-landing .repair-service-details .repair-section-heading--center > p:last-child { max-width:330px; margin:8px auto 0; color:#637898; font-size:var(--repair-mobile-body); line-height:1.42; }
+  .repair-landing .repair-service-details__grid { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
 
   .repair-landing .repair-service-panel,
   .repair-landing .repair-service-panel--diagnostic {
@@ -104,21 +106,19 @@
     box-shadow:none;
   }
 
-  /* I KNOW THE SERVICE I NEED. The transparent product asset is rendered as a
-   * bounded lower-right composition. No alpha mask is applied: the source WebP
-   * transparency remains authoritative, preventing the white flare seen when
-   * the previous gradient mask intersected the tool. */
+  /* Package card: copy owns the left two-thirds; artwork is a bounded visual
+   * field on the lower-right and never participates in content sizing. */
   .repair-landing .repair-service-panel {
     position:relative;
-    min-height:410px;
-    padding:20px 18px 18px;
+    min-height:246px;
+    padding:13px 14px 12px;
     border:1px solid #cedbed;
     background:#fff;
   }
   .repair-landing .repair-service-panel::after {
     top:auto;
     right:var(--repair-package-art-right);
-    bottom:-2%;
+    bottom:-1%;
     width:var(--repair-package-art-width);
     height:var(--repair-package-art-height);
     min-height:0;
@@ -129,158 +129,96 @@
     pointer-events:none;
   }
   .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
-  .repair-landing .repair-service-panel .repair-eyebrow {
-    width:64%;
-    margin:0 0 8px;
-    font-size:var(--repair-mobile-eyebrow);
-    font-weight:800;
-    line-height:1.1;
-    letter-spacing:.1em;
-  }
-  .repair-landing .repair-service-panel h2 {
-    width:66%;
-    max-width:none;
-    margin:0;
-    font-size:var(--repair-mobile-card-heading);
-    line-height:1.04;
-    letter-spacing:-.04em;
-  }
-  .repair-landing .repair-service-panel > p:not(.repair-eyebrow) {
-    width:63%;
-    max-width:34ch;
-    margin:10px 0 0;
-    color:#5c7190;
-    font-size:var(--repair-mobile-body);
-    line-height:1.43;
-  }
-  .repair-landing .repair-service-panel ul {
-    width:63%;
-    max-width:none;
-    margin:14px 0 0;
-    padding:0;
-  }
-  .repair-landing .repair-service-panel li {
-    min-height:0;
-    padding:5px 0 5px 29px;
-    color:#102455;
-    font-size:clamp(12px,3.15vw,13px);
-    line-height:1.32;
-  }
-  .repair-landing .repair-service-panel li::before { top:4px; left:0; width:21px; height:21px; }
-  .repair-landing .repair-service-panel li::after { top:4px; left:5px; font-size:9px; line-height:21px; }
-  .repair-landing .repair-service-panel > a {
-    flex:0 0 auto;
-    align-self:flex-start;
-    margin-top:auto;
-    padding-top:16px;
-    position:relative;
-    z-index:3;
-  }
-  .repair-landing .repair-service-panel > a:not(.repair-button) {
-    color:#086cf4;
-    font-size:clamp(12px,3.2vw,13px);
-    font-weight:800;
-    line-height:1.2;
-  }
+  .repair-landing .repair-service-panel .repair-eyebrow { width:67%; margin:0 0 6px; font-size:var(--repair-mobile-eyebrow); font-weight:800; line-height:1.1; letter-spacing:.1em; }
+  .repair-landing .repair-service-panel h2 { width:68%; max-width:none; margin:0; font-size:var(--repair-mobile-card-heading); line-height:1.04; letter-spacing:-.035em; }
+  .repair-landing .repair-service-panel > p:not(.repair-eyebrow) { width:66%; max-width:36ch; margin:7px 0 0; color:#5c7190; font-size:var(--repair-mobile-body); line-height:1.38; }
+  .repair-landing .repair-service-panel ul { width:68%; max-width:none; margin:9px 0 0; padding:0; }
+  .repair-landing .repair-service-panel li { min-height:0; padding:3px 0 3px 21px; color:#102455; font-size:clamp(10px,2.65vw,11px); line-height:1.25; }
+  .repair-landing .repair-service-panel li::before { top:3px; left:0; width:15px; height:15px; }
+  .repair-landing .repair-service-panel li::after { top:2px; left:4px; font-size:7px; line-height:15px; }
+  .repair-landing .repair-service-panel > a { flex:0 0 auto; align-self:flex-start; margin-top:auto; padding-top:8px; position:relative; z-index:3; }
+  .repair-landing .repair-service-panel > a:not(.repair-button) { color:#086cf4; font-size:clamp(10.5px,2.75vw,11.5px); font-weight:800; line-height:1.2; }
 
-  /* I NEED THE TOOL DIAGNOSED */
+  /* Diagnostic card uses the same compact type and spacing system so the two
+   * decision surfaces read as one component family. */
   .repair-landing .repair-service-panel--diagnostic {
-    min-height:445px;
-    padding:20px 18px 18px;
+    min-height:266px;
+    padding:13px 14px 12px;
     border:1px solid #06182f;
     background:
-      linear-gradient(180deg,#04172f 0%,#04172f 49%,rgba(4,23,47,.98) 60%,rgba(4,23,47,.78) 76%,rgba(4,23,47,.18) 100%),
-      linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.97) 50%,rgba(4,23,47,.72) 70%,rgba(4,23,47,.06) 100%),
-      url('../assets/media/repairs/repair-service-diagnostic.webp') right bottom/auto 54% no-repeat,
+      linear-gradient(180deg,#04172f 0%,#04172f 48%,rgba(4,23,47,.98) 59%,rgba(4,23,47,.76) 76%,rgba(4,23,47,.18) 100%),
+      linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.97) 52%,rgba(4,23,47,.70) 72%,rgba(4,23,47,.05) 100%),
+      url('../assets/media/repairs/repair-service-diagnostic.webp') right bottom/auto 50% no-repeat,
       #04172f;
   }
   .repair-landing .repair-service-panel--diagnostic::after { display:none; }
-  .repair-landing .repair-service-panel--diagnostic .repair-eyebrow { width:74%; }
-  .repair-landing .repair-service-panel--diagnostic h2 {
-    width:72%;
-    max-width:11ch;
-    color:#fff;
-    font-size:clamp(25px,6.8vw,28px);
-    line-height:1.02;
-  }
-  .repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) {
-    width:72%;
-    max-width:35ch;
-    color:rgba(255,255,255,.84);
-    font-size:clamp(12px,3.15vw,13px);
-  }
-  .repair-landing .repair-service-panel--diagnostic ul { width:74%; max-width:35ch; }
-  .repair-landing .repair-service-panel--diagnostic li {
-    color:rgba(255,255,255,.94);
-    font-size:clamp(11.5px,3.05vw,12.5px);
-  }
-  .repair-landing .repair-service-panel--diagnostic .repair-button {
-    width:auto;
-    min-height:42px;
-    height:42px;
-    margin-top:auto;
-    padding:0 17px;
-    font-size:10px;
-  }
+  .repair-landing .repair-service-panel--diagnostic .repair-eyebrow { width:72%; }
+  .repair-landing .repair-service-panel--diagnostic h2 { width:69%; max-width:12ch; color:#fff; font-size:clamp(18px,4.8vw,20px); line-height:1.02; }
+  .repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) { width:68%; max-width:37ch; color:rgba(255,255,255,.84); font-size:var(--repair-mobile-body); }
+  .repair-landing .repair-service-panel--diagnostic ul { width:70%; max-width:37ch; }
+  .repair-landing .repair-service-panel--diagnostic li { color:rgba(255,255,255,.94); font-size:clamp(9.5px,2.55vw,10.5px); }
+  .repair-landing .repair-service-panel--diagnostic .repair-button { width:auto; min-height:32px; height:32px; margin-top:auto; padding:0 13px; font-size:8.5px; }
 
   .repair-landing .repair-assurance { display:none; }
 
-  .repair-landing .repair-process { padding:38px 0 var(--repair-mobile-section); }
-  .repair-landing .repair-process .repair-section-heading--center { margin-bottom:28px; text-align:center; }
-  .repair-landing .repair-process .repair-section-heading--center .repair-eyebrow { margin-bottom:10px; font-size:var(--repair-mobile-eyebrow); font-weight:800; letter-spacing:.1em; }
-  .repair-landing .repair-process .repair-section-heading--center h2 { max-width:350px; margin-inline:auto; font-size:clamp(27px,7.3vw,29px); line-height:1.03; letter-spacing:-.035em; }
-  .repair-landing .repair-process .repair-section-heading--center > p:last-child { max-width:350px; margin:11px auto 0; font-size:clamp(12px,3.2vw,13px); line-height:1.45; }
+  /* Down-page mobile content uses the same compact reference scale instead of
+   * reverting to desktop-like display typography. */
+  .repair-landing .repair-process { padding:var(--repair-mobile-section) 0; }
+  .repair-landing .repair-process .repair-section-heading--center { margin-bottom:20px; text-align:center; }
+  .repair-landing .repair-process .repair-section-heading--center .repair-eyebrow { margin-bottom:7px; font-size:var(--repair-mobile-eyebrow); font-weight:800; letter-spacing:.1em; }
+  .repair-landing .repair-process .repair-section-heading--center h2 { max-width:330px; margin-inline:auto; font-size:var(--repair-mobile-heading); line-height:1.03; letter-spacing:-.035em; }
+  .repair-landing .repair-process .repair-section-heading--center > p:last-child { max-width:330px; margin:8px auto 0; font-size:var(--repair-mobile-body); line-height:1.42; }
   .repair-landing .repair-process__grid { display:block; position:relative; }
-  .repair-landing .repair-process__grid::before { display:block; top:0; bottom:0; left:14px; right:auto; width:1px; height:auto; background:#4b8cff; }
+  .repair-landing .repair-process__grid::before { display:block; top:0; bottom:0; left:12px; right:auto; width:1px; height:auto; background:#4b8cff; }
   .repair-landing .repair-process__step,
   .repair-landing .repair-process__step:first-child,
-  .repair-landing .repair-process__step:last-child { display:grid; grid-template-columns:30px minmax(0,1fr); gap:15px; padding:0 0 25px; border:0; }
+  .repair-landing .repair-process__step:last-child { display:grid; grid-template-columns:26px minmax(0,1fr); gap:11px; padding:0 0 18px; border:0; }
   .repair-landing .repair-process__step:last-child { padding-bottom:0; }
-  .repair-landing .repair-process__number { width:29px; height:29px; margin:0; font-size:10px; box-shadow:0 0 0 4px #fff; }
-  .repair-landing .repair-process__step h3 { margin:1px 0 5px; font-size:clamp(14px,3.7vw,15px); line-height:1.2; }
-  .repair-landing .repair-process__step p { max-width:none; font-size:clamp(11.5px,3.05vw,12.5px); line-height:1.46; }
+  .repair-landing .repair-process__number { width:25px; height:25px; margin:0; font-size:8px; box-shadow:0 0 0 3px #fff; }
+  .repair-landing .repair-process__step h3 { margin:1px 0 4px; font-size:clamp(12px,3.2vw,13px); line-height:1.2; }
+  .repair-landing .repair-process__step p { max-width:none; font-size:var(--repair-mobile-meta); line-height:1.42; }
 
   .repair-landing .repair-shipping-prep { padding:0 0 var(--repair-mobile-section); }
-  .repair-landing .repair-shipping-prep .repair-section-shell { padding:22px 18px 10px; border-radius:var(--repair-mobile-radius); }
-  .repair-landing .repair-shipping-prep__intro { margin-bottom:8px; }
+  .repair-landing .repair-shipping-prep .repair-section-shell { padding:17px 14px 8px; border-radius:var(--repair-mobile-radius); }
+  .repair-landing .repair-shipping-prep__intro { margin-bottom:6px; }
   .repair-landing .repair-shipping-prep__intro .repair-eyebrow { font-size:var(--repair-mobile-eyebrow); }
-  .repair-landing .repair-shipping-prep__intro .repair-section-heading h2 { font-size:clamp(24px,6.5vw,28px); line-height:1.04; }
-  .repair-landing .repair-shipping-prep__intro .repair-section-heading > p:last-child { font-size:var(--repair-mobile-body); line-height:1.45; }
+  .repair-landing .repair-shipping-prep__intro .repair-section-heading h2 { font-size:var(--repair-mobile-heading); line-height:1.04; }
+  .repair-landing .repair-shipping-prep__intro .repair-section-heading > p:last-child { font-size:var(--repair-mobile-body); line-height:1.42; }
   .repair-landing .repair-shipping-prep__grid { display:grid; grid-template-columns:minmax(0,1fr); }
   .repair-landing .repair-shipping-prep__grid li,
-  .repair-landing .repair-shipping-prep__grid li:nth-child(-n+3) { display:grid; grid-template-columns:32px minmax(0,1fr); gap:11px; padding:14px 0; border-right:0; border-bottom:1px solid var(--repair-line); }
+  .repair-landing .repair-shipping-prep__grid li:nth-child(-n+3) { display:grid; grid-template-columns:27px minmax(0,1fr); gap:9px; padding:10px 0; border-right:0; border-bottom:1px solid var(--repair-line); }
   .repair-landing .repair-shipping-prep__grid li:last-child { border-bottom:0; }
-  .repair-landing .repair-shipping-prep__grid li > span { display:inline-flex; align-items:center; justify-content:center; width:29px; height:29px; border:1px solid #cfe0f4; border-radius:50%; background:#fff; }
-  .repair-landing .repair-shipping-prep__grid h3 { font-size:14px; }
-  .repair-landing .repair-shipping-prep__grid p { font-size:var(--repair-mobile-meta); line-height:1.45; }
+  .repair-landing .repair-shipping-prep__grid li > span { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border:1px solid #cfe0f4; border-radius:50%; background:#fff; font-size:8px; }
+  .repair-landing .repair-shipping-prep__grid h3 { font-size:12px; }
+  .repair-landing .repair-shipping-prep__grid p { font-size:var(--repair-mobile-meta); line-height:1.42; }
 
   .repair-landing .repair-brands { padding:0 0 var(--repair-mobile-section); }
   .repair-landing .repair-brands__inner,
   .repair-landing .repair-resources__grid,
-  .repair-landing .repair-faq__layout { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; }
+  .repair-landing .repair-faq__layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; }
   .repair-landing .repair-brands h2,
   .repair-landing .repair-resources__copy h2,
-  .repair-landing .repair-closing-cta h2 { font-size:clamp(24px,6.5vw,28px); line-height:1.04; }
+  .repair-landing .repair-closing-cta h2 { font-size:var(--repair-mobile-heading); line-height:1.04; }
   .repair-landing .repair-brands__copy,
-  .repair-landing .repair-resources__copy > p:last-child { font-size:var(--repair-mobile-body); line-height:1.45; }
-  .repair-landing .repair-brands__list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .repair-landing .repair-brands__list span { display:flex; align-items:center; justify-content:center; min-height:64px; padding:10px; }
-  .repair-landing .repair-brands__list img { width:120px !important; max-width:88% !important; height:38px !important; object-fit:contain; }
+  .repair-landing .repair-resources__copy > p:last-child { font-size:var(--repair-mobile-body); line-height:1.42; }
+  .repair-landing .repair-brands__list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+  .repair-landing .repair-brands__list span { display:flex; align-items:center; justify-content:center; min-height:52px; padding:8px; }
+  .repair-landing .repair-brands__list img { width:106px !important; max-width:88% !important; height:34px !important; object-fit:contain; }
 
   .repair-landing .repair-resources,
   .repair-landing .repair-faq { padding:var(--repair-mobile-section) 0; }
-  .repair-landing .repair-resources__actions a { min-height:52px; font-size:12px; }
-  .repair-landing .repair-faq .repair-section-heading h2 { font-size:clamp(24px,6.5vw,28px); }
+  .repair-landing .repair-resources__actions a { min-height:44px; font-size:10.5px; }
+  .repair-landing .repair-faq .repair-section-heading h2 { font-size:var(--repair-mobile-heading); }
   .repair-landing .repair-faq .repair-section-heading > p:last-child { font-size:var(--repair-mobile-body); }
-  .repair-landing .repair-faq summary { min-height:48px; padding:16px 38px 16px 0; font-size:13px; }
-  .repair-landing .repair-faq summary::after { top:14px; }
-  .repair-landing .repair-faq details p { font-size:12px; line-height:1.5; }
+  .repair-landing .repair-faq summary { min-height:42px; padding:12px 34px 12px 0; font-size:11px; }
+  .repair-landing .repair-faq summary::after { top:11px; }
+  .repair-landing .repair-faq details p { font-size:10.5px; line-height:1.45; }
 
-  .repair-landing .repair-closing-cta { padding:32px 0 max(32px,env(safe-area-inset-bottom)); }
-  .repair-landing .repair-closing-cta__inner { width:100%; align-items:flex-start; flex-direction:column; gap:20px; }
-  .repair-landing .repair-closing-cta__actions { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; width:100%; }
+  .repair-landing .repair-closing-cta { padding:26px 0 max(26px,env(safe-area-inset-bottom)); }
+  .repair-landing .repair-closing-cta__inner { width:100%; align-items:flex-start; flex-direction:column; gap:16px; }
+  .repair-landing .repair-closing-cta__actions { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; width:100%; }
   .repair-landing .repair-closing-cta__actions .repair-button,
-  .repair-landing .repair-closing-cta__actions > a { width:100%; min-height:44px; }
+  .repair-landing .repair-closing-cta__actions > a { width:100%; min-height:40px; }
 }
 
 @media (max-width:22.5rem) {
@@ -289,12 +227,8 @@
   .repair-landing .repair-service-panel .repair-eyebrow,
   .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
-  .repair-landing .repair-service-panel ul { width:63%; }
-  .repair-landing .repair-service-panel::after {
-    right:-7%;
-    width:52%;
-    height:78%;
-  }
+  .repair-landing .repair-service-panel ul { width:67%; }
+  .repair-landing .repair-service-panel::after { right:-4%; width:38%; height:70%; }
 }
 
 @media (prefers-reduced-motion:reduce) {
