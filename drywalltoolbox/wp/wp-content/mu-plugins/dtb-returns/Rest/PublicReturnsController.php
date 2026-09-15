@@ -161,7 +161,7 @@ function dtb_returns_public_rest_submit_verified( WP_REST_Request $request ): WP
 			}
 		}
 
-		$validated_items = dtb_returns_validate_requested_items( $order, $items );
+		$validated_items = dtb_returns_validate_requested_items( $order, $items, $request_type );
 		if ( is_wp_error( $validated_items ) ) {
 			return $validated_items;
 		}
