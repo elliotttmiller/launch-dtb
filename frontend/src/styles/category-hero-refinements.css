@@ -1,9 +1,9 @@
-/* Category hero decorative geometry.
-   Structural layout, media sizing/loading, copy, and storefront tokens remain
-   owned by category-hero.css. This layer implements the approved hero artwork. */
+/* Category hero decorative geometry and desktop divider safe-zone.
+   category-hero.css remains authoritative for structural hero/media behavior;
+   this layer owns the approved decorative artwork and its responsive clearance. */
 
-/* Compact corner halftone: visually meshes beneath the blue wedge, remains
-   concentrated around the eyebrow, and dissolves before the category title. */
+/* Compact corner halftone: mesh beneath the blue wedge, remain concentrated
+   around the eyebrow, and dissolve before the category title. */
 .dtb-category-hero-card__dot-field {
   top: 0;
   left: 2.2rem;
@@ -19,28 +19,49 @@
 }
 
 @media (min-width: 768px) {
-  /* Slim full-height artwork canvas. Every rail is an independent surface so
-     the hierarchy from the approved reference is preserved: atmospheric left
-     rail, dominant layered center rail, atmospheric right rail, blue pin. */
+  /* Reserve a real copy safe-zone before the decorative corridor. Long category
+     names wrap inside the text region instead of painting beneath the divider. */
+  .dtb-category-hero-card__copy {
+    width: min(100%, 31rem);
+    max-width: calc(100% - clamp(3.25rem, 5vw, 5.25rem));
+  }
+
+  .dtb-category-hero-card__title,
+  .dtb-category-hero-card__description {
+    max-width: 100%;
+    overflow-wrap: normal;
+  }
+
+  /* Slim full-height artwork canvas. Shifted toward the media side to keep the
+     visual center balanced while preserving a clean gutter after the copy. */
   .dtb-category-hero-card__divider {
     top: 0;
-    right: -1rem;
+    right: -2.4rem;
     bottom: 0;
     z-index: 1;
     display: block;
-    width: clamp(12.5rem, 15vw, 15.75rem);
+    width: clamp(12rem, 14vw, 15rem);
     height: auto;
-    transform: none;
+    transform: translate3d(1.1rem, 0, 0);
     border: 0;
     background: transparent;
     clip-path: none;
     box-shadow: none;
-    opacity: 1;
+    opacity: 0;
     pointer-events: none;
+    will-change: transform, opacity;
+    transition:
+      opacity 520ms ease 120ms,
+      transform 760ms var(--dtb-category-hero-ease) 80ms;
   }
 
-  /* Dominant center ribbon. The horizontal travel is intentionally large so
-     it reads as a designed diagonal sweep rather than a near-vertical stripe. */
+  .dtb-category-hero.is-ready .dtb-category-hero-card__divider {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  /* Dominant center ribbon: broad diagonal travel, layered glass/silver-blue
+     depth, and enough transparency to integrate with the hero surface. */
   .dtb-category-hero-card__divider-main {
     position: absolute;
     inset: 0;
@@ -48,24 +69,24 @@
     display: block;
     overflow: hidden;
     background:
-      linear-gradient(112deg, rgba(255,255,255,.18) 0%, transparent 24%, rgba(255,255,255,.24) 48%, transparent 70%),
-      linear-gradient(105deg, rgba(218,232,249,.78) 0%, rgba(146,190,240,.9) 46%, rgba(184,215,248,.82) 74%, rgba(226,237,250,.66) 100%);
-    clip-path: polygon(62% 0, 77% 0, 26% 100%, 11% 100%);
+      linear-gradient(112deg, rgba(255,255,255,.22) 0%, transparent 23%, rgba(255,255,255,.28) 48%, transparent 71%),
+      linear-gradient(105deg, rgba(222,234,249,.78) 0%, rgba(143,188,239,.9) 45%, rgba(181,213,247,.84) 73%, rgba(229,239,251,.68) 100%);
+    clip-path: polygon(63% 0, 78% 0, 27% 100%, 12% 100%);
     filter: drop-shadow(0 0 7px rgba(80, 139, 215, .08));
   }
 
-  /* Soft internal bloom gives the ribbon the generated reference's glassy,
-     dimensional center instead of a flat CSS fill. */
   .dtb-category-hero-card__divider-main::before {
     content: '';
     position: absolute;
     inset: 0;
     background:
       radial-gradient(ellipse 55% 34% at 44% 62%, rgba(48,129,236,.34), transparent 72%),
-      linear-gradient(180deg, rgba(255,255,255,.16), transparent 36%, rgba(31,111,230,.08) 76%, rgba(255,255,255,.2));
+      linear-gradient(180deg, rgba(255,255,255,.18), transparent 36%, rgba(31,111,230,.08) 76%, rgba(255,255,255,.2));
+    transform: translateY(-7%);
+    animation: dtb-category-divider-bloom 8s ease-in-out 1.1s infinite alternate;
   }
 
-  /* Restrained horizontal segmentation, clipped by the center ribbon itself. */
+  /* Restrained horizontal segmentation clipped inside the main ribbon. */
   .dtb-category-hero-card__divider-main::after {
     content: '';
     position: absolute;
@@ -79,18 +100,17 @@
 
   .dtb-category-hero-card__divider-blue-foot {
     position: absolute;
-    left: 9%;
+    left: 10%;
     bottom: 0;
     z-index: 3;
     display: block;
-    width: 42%;
-    height: 27%;
+    width: 41%;
+    height: 26%;
     background: linear-gradient(138deg, #0867ed 0%, #176fe9 42%, #6eacf5 100%);
     clip-path: polygon(36% 0, 100% 0, 70% 100%, 0 100%);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
   }
 
-  /* Peripheral rails are intentionally faint and narrower than the center. */
   .dtb-category-hero-card__divider-rail {
     position: absolute;
     inset: 0;
@@ -99,31 +119,29 @@
   }
 
   .dtb-category-hero-card__divider-rail--left {
-    background: linear-gradient(105deg, rgba(237,244,252,.12), rgba(208,225,246,.5) 48%, rgba(242,247,252,.2));
-    clip-path: polygon(47% 0, 54% 0, 3% 100%, 0 100%, 0 94%);
-    opacity: .72;
+    background: linear-gradient(105deg, rgba(237,244,252,.08), rgba(208,225,246,.48) 48%, rgba(242,247,252,.16));
+    clip-path: polygon(48% 0, 54% 0, 4% 100%, 0 100%, 0 94%);
+    opacity: .66;
   }
 
   .dtb-category-hero-card__divider-rail--right {
-    background: linear-gradient(105deg, rgba(245,249,253,.1), rgba(220,234,249,.48) 52%, rgba(246,249,253,.14));
-    clip-path: polygon(84% 0, 91% 0, 40% 100%, 33% 100%);
-    opacity: .68;
+    background: linear-gradient(105deg, rgba(245,249,253,.08), rgba(220,234,249,.44) 52%, rgba(246,249,253,.12));
+    clip-path: polygon(85% 0, 91% 0, 41% 100%, 35% 100%);
+    opacity: .62;
   }
 
-  /* Fine electric-blue edge detail from the reference; deliberately short so
-     it remains an accent rather than becoming a fourth rail. */
   .dtb-category-hero-card__divider-pin {
     position: absolute;
-    top: 28%;
+    top: 29%;
     right: 8%;
     z-index: 4;
     display: block;
-    width: 1.5px;
-    height: 42%;
-    background: linear-gradient(180deg, rgba(22,116,246,0), #1674f6 16%, #1674f6 84%, rgba(22,116,246,0));
+    width: 1.25px;
+    height: 39%;
+    background: linear-gradient(180deg, rgba(22,116,246,0), #1674f6 17%, #1674f6 83%, rgba(22,116,246,0));
     transform: rotate(28deg);
     transform-origin: 50% 50%;
-    opacity: .88;
+    opacity: .82;
   }
 
   .dtb-category-hero-card__dot-field {
@@ -133,10 +151,20 @@
   }
 }
 
+@keyframes dtb-category-divider-bloom {
+  from { transform: translateY(-7%); opacity: .78; }
+  to { transform: translateY(7%); opacity: 1; }
+}
+
 @media (min-width: 1280px) {
+  .dtb-category-hero-card__copy {
+    width: min(100%, 34rem);
+    max-width: calc(100% - clamp(4rem, 5.2vw, 5.75rem));
+  }
+
   .dtb-category-hero-card__divider {
-    right: -.5rem;
-    width: clamp(13.5rem, 14vw, 16.25rem);
+    right: -1.9rem;
+    width: clamp(13rem, 13.5vw, 15.5rem);
   }
 
   .dtb-category-hero-card__dot-field {
@@ -147,9 +175,14 @@
 }
 
 @media (min-width: 1536px) {
+  .dtb-category-hero-card__copy {
+    width: min(100%, 36rem);
+    max-width: calc(100% - 5.5rem);
+  }
+
   .dtb-category-hero-card__divider {
-    right: 0;
-    width: 15.75rem;
+    right: -1.25rem;
+    width: 15.25rem;
   }
 
   .dtb-category-hero-card__dot-field {
@@ -167,5 +200,16 @@
     height: 5.7rem;
     background-size: 5.2px 5.2px;
     opacity: .5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-category-hero-card__divider {
+    transition: none;
+  }
+
+  .dtb-category-hero-card__divider-main::before {
+    animation: none;
+    transform: none;
   }
 }
