@@ -17,8 +17,11 @@ $_dtb_returns_files = [
 	'Infrastructure/ReturnRepository.php',
 	'Services/ReturnWorkflowTransitionMap.php',
 	'Services/ReturnService.php',
+	'Services/PublicReturnAccessService.php',
+	'Services/ReturnSubmissionGuard.php',
 	'Admin/ReturnsPage.php',
 	'Rest/ReturnsController.php',
+	'Rest/PublicReturnsController.php',
 	'Rest/ReturnsAdminQueueController.php',
 ];
 
@@ -40,4 +43,5 @@ foreach ( $_dtb_returns_files as $_dtb_returns_file ) {
 unset( $_dtb_returns_dir, $_dtb_returns_files, $_dtb_returns_file );
 
 add_action( 'rest_api_init', 'dtb_returns_rest_register_routes' );
+add_action( 'rest_api_init', 'dtb_returns_public_rest_register_routes' );
 add_action( 'init',          'dtb_returns_register_post_type' );

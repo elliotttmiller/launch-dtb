@@ -1,86 +1,237 @@
 /**
  * frontend/src/pages/ReturnPortal.jsx
  *
- * Customer return portal. WooCommerce remains the order authority; this page
- * only sends lookup criteria and short-lived lookup tokens to DTB Returns.
+ * Customer returns workflow. WooCommerce remains authoritative for orders and
+ * line items; DTB Returns owns verification, eligibility, request persistence,
+ * workflow status, and public tracking.
  */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Check,
   CheckCircle,
+  ClipboardCheck,
+  FileSearch,
   Loader,
   Package,
+  PackageCheck,
+  RefreshCcw,
   RotateCcw,
   Search,
+  ShieldCheck,
+  Truck,
+  Wrench,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import { apiClient } from '../api/client';
+import '../styles/returns-portal.css';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const RETURN_REASONS = [
-  'Arrived damaged',
-  'Wrong item received',
-  'Item not as described',
-  'Changed my mind / no longer needed',
-  'Defective / not working',
-  'Ordered by mistake',
-  'Better price found elsewhere',
-  'Other',
+const REQUEST_TYPES = [
+  {
+    id: 'standard_return',
+    title: 'Standard return',
+    description: 'Changed your mind, ordered the wrong item, or no longer need it.',
+    Icon: RotateCcw,
+  },
+  {
+    id: 'order_problem',
+    title: 'Damaged or wrong order',
+    description: 'The shipment arrived damaged, incorrect, or not as described.',
+    Icon: Package,
+  },
+  {
+    id: 'product_problem',
+    title: 'Product problem',
+    description: 'The item is defective or is not working as expected.',
+    Icon: Wrench,
+  },
 ];
 
-const POLICY_LINKS = [
-  ['Return policy', 'Eligibility, the 45-day return window, and refund timing.', CheckCircle],
-  ['Return shipping', 'Shipping rules for damaged, defective, warranty, and customer-error returns.', Package],
-  ['Non-returnable items', 'Used, final-sale, special-order, direct-ship, and consumable-item exclusions.', AlertCircle],
+const REASONS = {
+  standard_return: [
+    ['changed_mind', 'Changed my mind / no longer needed'],
+    ['ordered_by_mistake', 'Ordered by mistake'],
+    ['better_price_found', 'Better price found elsewhere'],
+    ['other', 'Other'],
+  ],
+  order_problem: [
+    ['arrived_damaged', 'Arrived damaged'],
+    ['wrong_item_received', 'Wrong item received'],
+    ['item_not_as_described', 'Item not as described'],
+    ['other', 'Other'],
+  ],
+  product_problem: [
+    ['defective_not_working', 'Defective / not working'],
+    ['item_not_as_described', 'Item not as described'],
+    ['other', 'Other'],
+  ],
+};
+
+const PROCESS_STEPS = [
+  ['Request review', 'We verify the selected items and return reason.', FileSearch],
+  ['Approval', 'Approved requests receive a Return ID and shipping instructions.', ClipboardCheck],
+  ['Return shipment', 'Pack only approved items and follow the provided instructions.', Truck],
+  ['Inspection', 'Returned merchandise is checked against the approved request.', PackageCheck],
+  ['Resolution', 'Refund, exchange, replacement, or another approved resolution is completed.', CheckCircle],
 ];
+
+function createIdempotencyKey() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return `return:${crypto.randomUUID()}`;
+  }
+  return `return:${Date.now().toString(36)}:${Math.random().toString(36).slice(2)}:${Math.random().toString(36).slice(2)}`;
+}
 
 function Notice({ children }) {
   return (
     <div className="returns-notice" role="alert" aria-live="polite">
-      <AlertCircle size={16} aria-hidden="true" />
+      <AlertCircle size={18} aria-hidden="true" />
       <span>{children}</span>
     </div>
   );
 }
 
 function Steps({ step }) {
+  const steps = [
+    [1, 'Find order'],
+    [2, 'Return details'],
+    [3, 'Submitted'],
+  ];
+
   return (
-    <ol className="returns-steps" aria-label="Return request progress">
-      {[
-        [1, 'Find order'],
-        [2, 'Return details'],
-      ].map(([number, label], index) => (
-        <li key={number}>
-          <span className={`returns-step-dot ${step >= number ? 'is-active' : ''}`} aria-current={step === number ? 'step' : undefined}>
-            {step > number ? <CheckCircle size={14} aria-hidden="true" /> : number}
+    <ol className="returns-progress" aria-label="Return request progress">
+      {steps.map(([number, label], index) => (
+        <li key={number} className={step >= number ? 'is-active' : ''}>
+          <span className="returns-progress__dot" aria-current={step === number ? 'step' : undefined}>
+            {step > number ? <Check size={14} aria-hidden="true" /> : number}
           </span>
-          <span className="returns-step-label">{label}</span>
-          {index === 0 && <span className="returns-step-line" aria-hidden="true" />}
+          <span>{label}</span>
+          {index < steps.length - 1 ? <span className="returns-progress__line" aria-hidden="true" /> : null}
         </li>
       ))}
     </ol>
   );
 }
 
-function OrderChoice({ order, selected, onSelect }) {
+function PolicySummary({ policy }) {
+  const items = policy
+    ? [
+        [`${policy.window_days}-day window`, 'Standard return eligibility is measured from the order date.'],
+        ['Return condition', policy.condition],
+        ['Approval before shipping', policy.approval_required],
+        ['Refund handling', policy.refund_method],
+      ]
+    : [
+        ['Verified order lookup', 'Use the order number and checkout email so we can securely identify the purchase.'],
+        ['Approval before shipping', 'Do not send merchandise back until DTB approves the request.'],
+        ['Item-level review', 'Eligibility is evaluated against the actual WooCommerce order line.'],
+        ['Inspection before resolution', 'Returned merchandise is inspected before the approved resolution is completed.'],
+      ];
+
   return (
-    <button
-      type="button"
-      className={`returns-order-choice ${selected ? 'is-selected' : ''}`}
-      onClick={() => onSelect(order)}
-      aria-pressed={selected}
-    >
-      <span>
-        <strong>Order #{order.order_number}</strong>
-        <small>{order.date || 'Order date unavailable'} · {order.item_count} {order.item_count === 1 ? 'item' : 'items'}</small>
-      </span>
-      <span className="returns-order-status">{order.status}</span>
-    </button>
+    <div className="returns-policy-strip" aria-label="Return policy summary">
+      {items.map(([title, text]) => (
+        <div key={title}>
+          <strong>{title}</strong>
+          <span>{text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function OrderItem({ item, quantity, onToggle, onQuantityChange }) {
+  const selected = quantity > 0;
+  const maxQuantity = Math.max(0, Number(item.returnable_quantity || 0));
+  const standardEligible = item.standard_return_eligible !== false;
+  const eligibilityLabel = !item.eligible_for_request
+    ? 'Not available'
+    : standardEligible
+      ? 'Standard return eligible'
+      : 'Problem review available';
+
+  return (
+    <article className={`returns-item ${selected ? 'is-selected' : ''} ${item.eligible_for_request ? '' : 'is-ineligible'}`}>
+      <label className="returns-item__select">
+        <input
+          type="checkbox"
+          checked={selected}
+          disabled={!item.eligible_for_request}
+          onChange={(event) => onToggle(item.item_id, event.target.checked ? 1 : 0)}
+          aria-label={`Select ${item.name} for return`}
+        />
+        <span className="returns-item__checkbox" aria-hidden="true" />
+      </label>
+
+      <div className="returns-item__media" aria-hidden="true">
+        {item.image_url ? <img src={item.image_url} alt="" loading="lazy" /> : <Package size={24} />}
+      </div>
+
+      <div className="returns-item__body">
+        <div className="returns-item__title-row">
+          <div>
+            <h3>{item.name}</h3>
+            {item.sku ? <p>SKU {item.sku}</p> : null}
+          </div>
+          <span className={`returns-eligibility ${item.eligible_for_request ? 'is-eligible' : 'is-ineligible'}`}>
+            {eligibilityLabel}
+          </span>
+        </div>
+
+        {item.eligible_for_request ? (
+          <>
+            <div className="returns-item__meta">
+              <span>Purchased: {item.quantity}</span>
+              <label>
+                Return quantity
+                <select
+                  value={selected ? quantity : 0}
+                  onChange={(event) => onQuantityChange(item.item_id, Number(event.target.value))}
+                  disabled={!selected}
+                >
+                  <option value="0">0</option>
+                  {Array.from({ length: maxQuantity }, (_, index) => index + 1).map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {item.eligibility_note ? <p className="returns-item__reason">{item.eligibility_note}</p> : null}
+          </>
+        ) : (
+          <p className="returns-item__reason">{item.eligibility_note || 'This order line is not available for another return request.'}</p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ProcessTimeline() {
+  return (
+    <section className="returns-process" aria-labelledby="returns-process-title">
+      <div className="returns-section-heading">
+        <span className="returns-kicker">What happens next</span>
+        <h2 id="returns-process-title">A visible return workflow from request to resolution.</h2>
+      </div>
+      <ol>
+        {PROCESS_STEPS.map(([title, text, Icon], index) => (
+          <li key={title}>
+            <span className="returns-process__number">{String(index + 1).padStart(2, '0')}</span>
+            <Icon size={20} aria-hidden="true" />
+            <div>
+              <strong>{title}</strong>
+              <p>{text}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -88,33 +239,50 @@ export default function ReturnPortal() {
   const [step, setStep] = useState(1);
   const [orderNumber, setOrderNumber] = useState('');
   const [lookupEmail, setLookupEmail] = useState('');
-  const [lookupName, setLookupName] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
   const [lookupError, setLookupError] = useState('');
-  const [lookupResults, setLookupResults] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedItems, setSelectedItems] = useState({});
+  const [requestType, setRequestType] = useState('');
   const [returnReason, setReturnReason] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
+  const [idempotencyKey, setIdempotencyKey] = useState(createIdempotencyKey);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [returnTracking, setReturnTracking] = useState(null);
 
+  const selectedItemPayload = useMemo(
+    () => Object.entries(selectedItems)
+      .filter(([, quantity]) => Number(quantity) > 0)
+      .map(([itemId, quantity]) => ({ item_id: Number(itemId), quantity: Number(quantity) })),
+    [selectedItems]
+  );
+
+  const selectedRequiresProblemPath = useMemo(() => {
+    const selectedIds = new Set(selectedItemPayload.map((item) => item.item_id));
+    return (selectedOrder?.items || []).some(
+      (item) => selectedIds.has(Number(item.item_id)) && item.standard_return_eligible === false
+    );
+  }, [selectedItemPayload, selectedOrder]);
+
+  const reasonOptions = requestType ? REASONS[requestType] || [] : [];
+  const policy = selectedOrder?.policy || null;
+
   const handleLookup = async (event) => {
     event.preventDefault();
     setLookupError('');
-    setLookupResults([]);
     setSelectedOrder(null);
+    setSelectedItems({});
 
     const order = orderNumber.trim();
     const email = lookupEmail.trim().toLowerCase();
-    const name = lookupName.trim();
 
-    if (!order && !email && !name) {
-      setLookupError('Enter at least one detail so we can search for your order.');
+    if (!order) {
+      setLookupError('Enter your order number.');
       return;
     }
-    if (email && !EMAIL_RE.test(email)) {
-      setLookupError('Enter a valid email address or leave the email field blank.');
+    if (!EMAIL_RE.test(email)) {
+      setLookupError('Enter the checkout email used for this order.');
       return;
     }
 
@@ -122,20 +290,17 @@ export default function ReturnPortal() {
     try {
       const response = await apiClient('/wp-json/dtb/v1/returns/lookup', {
         method: 'POST',
-        body: JSON.stringify({
-          order_number: order,
-          customer_email: email,
-          customer_name: name,
-        }),
+        body: JSON.stringify({ order_number: order, customer_email: email }),
       });
-      const orders = Array.isArray(response?.orders) ? response.orders : [];
-      setLookupResults(orders);
-      setSelectedOrder(orders.length === 1 ? orders[0] : null);
-      if (!orders.length) {
-        setLookupError('No matching order was found. Check the detail you entered or add another detail to narrow the search.');
+      const verifiedOrder = Array.isArray(response?.orders) ? response.orders[0] : null;
+      if (!verifiedOrder?.lookup_token) {
+        setLookupError('We could not verify that order. Check the order number and checkout email and try again.');
+        return;
       }
+      setSelectedOrder(verifiedOrder);
+      setIdempotencyKey(createIdempotencyKey());
     } catch (error) {
-      setLookupError(error?.message || 'We could not search for your order. Please try again.');
+      setLookupError(error?.message || 'We could not verify that order. Please try again.');
     } finally {
       setLookupLoading(false);
     }
@@ -143,12 +308,32 @@ export default function ReturnPortal() {
 
   const continueWithOrder = () => {
     if (!selectedOrder?.lookup_token) {
-      setLookupError('Select the order you want to return.');
+      setLookupError('Verify your order before continuing.');
+      return;
+    }
+    if (selectedItemPayload.length === 0) {
+      setLookupError('Select at least one available item and quantity to continue.');
       return;
     }
     setLookupError('');
+    setRequestType('');
+    setReturnReason('');
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItemToggle = (itemId, quantity) => {
+    setSelectedItems((current) => ({ ...current, [itemId]: quantity }));
+  };
+
+  const handleQuantityChange = (itemId, quantity) => {
+    setSelectedItems((current) => ({ ...current, [itemId]: quantity }));
+  };
+
+  const handleRequestTypeChange = (type) => {
+    if (type === 'standard_return' && selectedRequiresProblemPath) return;
+    setRequestType(type);
+    setReturnReason('');
   };
 
   const handleSubmit = async (event) => {
@@ -156,24 +341,36 @@ export default function ReturnPortal() {
     setSubmitError('');
 
     if (!selectedOrder?.lookup_token) {
-      setSubmitError('Your order verification has expired. Search for the order again.');
+      setSubmitError('Your order verification has expired. Find the order again.');
       return;
     }
-    if (!returnReason) {
-      setSubmitError('Select a return reason.');
+    if (selectedItemPayload.length === 0) {
+      setSubmitError('Select at least one available item to return.');
+      return;
+    }
+    if (!requestType || !returnReason) {
+      setSubmitError('Choose the return type and reason.');
+      return;
+    }
+    if (requestType === 'standard_return' && selectedRequiresProblemPath) {
+      setSubmitError('One or more selected items are outside standard-return eligibility. Choose an applicable order-problem or product-problem path.');
       return;
     }
 
     setSubmitLoading(true);
     try {
-      const response = await apiClient('/wp-json/dtb/v1/returns/request', {
+      const response = await apiClient('/wp-json/dtb/v1/returns/request/verified', {
         method: 'POST',
         body: JSON.stringify({
           lookup_token: selectedOrder.lookup_token,
+          idempotency_key: idempotencyKey,
+          request_type: requestType,
           reason: returnReason,
           notes: additionalNotes.trim(),
+          items: selectedItemPayload,
         }),
       });
+
       setReturnTracking(
         response?.return_id && response?.public_token
           ? { id: response.return_id, token: response.public_token }
@@ -192,13 +389,14 @@ export default function ReturnPortal() {
     setStep(1);
     setOrderNumber('');
     setLookupEmail('');
-    setLookupName('');
     setLookupLoading(false);
     setLookupError('');
-    setLookupResults([]);
     setSelectedOrder(null);
+    setSelectedItems({});
+    setRequestType('');
     setReturnReason('');
     setAdditionalNotes('');
+    setIdempotencyKey(createIdempotencyKey());
     setSubmitLoading(false);
     setSubmitError('');
     setReturnTracking(null);
@@ -207,221 +405,265 @@ export default function ReturnPortal() {
   return (
     <div className="page-wrapper returns-portal">
       <SEOHead
-        title="Return Portal"
-        description="Find an order and start a return or exchange with Drywall Toolbox. Search using an order number, checkout email, or customer name."
+        title="Returns & Exchanges"
+        description="Verify your Drywall Toolbox order, select eligible items, and start a secure return request online."
         canonical="/returns"
       />
 
-      <style>{`
-        .returns-portal { min-height: 100vh; background: #f8fafc; color: #0f172a; }
-        .returns-hero { background: #0f172a; padding: clamp(42px, 7vw, 72px) clamp(1.25rem, 5vw, 3rem); }
-        .returns-shell { width: min(1180px, 100%); margin: 0 auto; }
-        .returns-eyebrow { color: #93c5fd; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-        .returns-hero h1 { margin: 10px 0 0; color: #fff; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.05; letter-spacing: -.035em; }
-        .returns-hero p { max-width: 620px; margin: 14px 0 0; color: #cbd5e1; font-size: clamp(.92rem, 2vw, 1.03rem); line-height: 1.65; }
-        .returns-main { padding: clamp(28px, 5vw, 56px) clamp(1.25rem, 5vw, 3rem) 72px; }
-        .returns-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(260px, .8fr); gap: clamp(28px, 5vw, 54px); align-items: start; }
-        .returns-card { background: #fff; border: 1px solid #dbe2ea; border-radius: 8px; padding: clamp(22px, 4vw, 36px); box-shadow: 0 8px 24px rgba(15, 23, 42, .04); }
-        .returns-card h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.02em; }
-        .returns-help { margin: 8px 0 24px; color: #64748b; font-size: .9rem; line-height: 1.6; }
-        .returns-fields { display: grid; gap: 18px; }
-        .returns-fields .form-group { margin: 0; }
-        .returns-notice { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 18px; padding: 12px 14px; border: 1px solid #fecaca; border-radius: 6px; background: #fef2f2; color: #991b1b; font-size: .85rem; line-height: 1.5; }
-        .returns-notice svg { flex: 0 0 auto; margin-top: 2px; }
-        .returns-steps { display: flex; gap: 8px; list-style: none; margin: 0 0 20px; padding: 0; }
-        .returns-steps li { display: flex; align-items: center; gap: 8px; min-width: 0; }
-        .returns-steps li:first-child { flex: 1; }
-        .returns-step-dot { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: #e2e8f0; color: #64748b; font-size: .72rem; font-weight: 800; }
-        .returns-step-dot.is-active { background: var(--primary-600); color: #fff; }
-        .returns-step-label { white-space: nowrap; color: #475569; font-size: .75rem; font-weight: 700; }
-        .returns-step-line { height: 1px; flex: 1; min-width: 18px; background: #dbe2ea; }
-        .returns-results { margin-top: 28px; padding-top: 24px; border-top: 1px solid #e2e8f0; }
-        .returns-results h3 { margin: 0; font-size: 1rem; }
-        .returns-results > p { margin: 6px 0 14px; color: #64748b; font-size: .82rem; }
-        .returns-result-list { display: grid; gap: 10px; }
-        .returns-order-choice { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 16px; align-items: center; padding: 16px 18px; border: 1px solid #dbe2ea; border-radius: 7px; background: #fff; color: #0f172a; text-align: left; cursor: pointer; }
-        .returns-order-choice.is-selected { border: 2px solid var(--primary-600); background: #f8fbff; }
-        .returns-order-choice strong, .returns-order-choice small { display: block; }
-        .returns-order-choice strong { font-size: .95rem; }
-        .returns-order-choice small { margin-top: 5px; color: #64748b; font-size: .8rem; }
-        .returns-order-status { color: #475569; font-size: .75rem; font-weight: 700; }
-        .returns-summary { margin: 16px 0 24px; padding: 14px 16px; border: 1px solid #e2e8f0; border-radius: 7px; background: #f8fafc; }
-        .returns-summary strong, .returns-summary span { display: block; }
-        .returns-summary strong { font-size: .9rem; }
-        .returns-summary span { margin-top: 4px; color: #64748b; font-size: .8rem; }
-        .returns-back, .returns-reset { border: 0; background: transparent; color: var(--primary-600); font-size: .82rem; font-weight: 700; cursor: pointer; }
-        .returns-back { display: inline-flex; align-items: center; gap: 6px; padding: 0; margin-bottom: 20px; }
-        .returns-success { text-align: center; padding: 10px 0; }
-        .returns-success-icon { width: 54px; height: 54px; margin: 0 auto 16px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: #ecfdf5; color: #047857; }
-        .returns-success p { max-width: 520px; margin: 10px auto 0; color: #64748b; font-size: .9rem; line-height: 1.65; }
-        .returns-id { display: inline-block; margin-top: 20px; padding: 12px 18px; border: 1px solid #bfdbfe; border-radius: 7px; background: #eff6ff; color: #1e3a8a; font-weight: 800; }
-        .returns-help-link { margin: 16px 0 0; color: #64748b; font-size: .82rem; line-height: 1.6; }
-        .returns-help-link a { color: var(--primary-600); font-weight: 700; }
-        .returns-sidebar { display: grid; gap: 14px; }
-        .returns-sidebar-card { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; padding: 16px 18px; border: 1px solid #dbe2ea; border-radius: 8px; background: #fff; color: inherit; text-decoration: none; }
-        .returns-sidebar-card.is-intro { display: block; padding: 18px 20px; }
-        .returns-sidebar-card h2, .returns-sidebar-card strong { margin: 0; color: #0f172a; font-size: .9rem; }
-        .returns-sidebar-card p, .returns-sidebar-card span { display: block; margin: 6px 0 0; color: #64748b; font-size: .8rem; line-height: 1.55; }
-        .returns-sidebar-card svg { color: var(--primary-600); }
-        .returns-primary { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 22px; }
-        .returns-results .returns-primary { margin-top: 16px; }
-        .returns-track { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; }
-        .returns-reset { display: block; margin: 22px auto 0; }
-        @media (max-width: 820px) {
-          .returns-grid { grid-template-columns: minmax(0, 1fr); }
-          .returns-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-          .returns-sidebar-card.is-intro { grid-column: 1 / -1; }
-        }
-        @media (max-width: 560px) {
-          .returns-main { padding-left: 1rem; padding-right: 1rem; }
-          .returns-hero { padding-left: 1rem; padding-right: 1rem; }
-          .returns-sidebar { grid-template-columns: minmax(0, 1fr); }
-          .returns-sidebar-card.is-intro { grid-column: auto; }
-          .returns-order-choice { grid-template-columns: minmax(0,1fr); gap: 8px; }
-          .returns-order-status { justify-self: start; }
-          .returns-step-label { font-size: .7rem; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .returns-portal * { scroll-behavior: auto !important; }
-        }
-      `}</style>
-
       <header className="returns-hero">
-        <div className="returns-shell">
-          <div className="returns-eyebrow">Returns &amp; exchanges</div>
-          <h1>Start a return</h1>
-          <p>Find the order with any detail you have, choose the matching order, and tell us what you need help with.</p>
+        <div className="returns-shell returns-hero__inner">
+          <div>
+            <span className="returns-eyebrow">Returns & exchanges</span>
+            <h1>Start the right return without guessing what happens next.</h1>
+            <p>
+              Verify the purchase, choose the exact order lines you need help with, and send one structured request to DTB Returns. Do not ship anything until the request is approved.
+            </p>
+            <div className="returns-hero__actions">
+              <a href="#start-return" className="btn btn-primary">Start a return <ArrowRight size={17} /></a>
+              <Link to="/return-policy" className="returns-secondary-link">Read return policy</Link>
+            </div>
+          </div>
+          <div className="returns-hero__trust" aria-label="Returns portal safeguards">
+            <div><ShieldCheck size={20} /><span><strong>Verified order access</strong>Order number + checkout email</span></div>
+            <div><ClipboardCheck size={20} /><span><strong>Approval before shipping</strong>Return ID and instructions first</span></div>
+            <div><RefreshCcw size={20} /><span><strong>Retry-safe submission</strong>Duplicate request protection</span></div>
+          </div>
         </div>
       </header>
 
-      <main className="returns-shell returns-main">
-        <div className="returns-grid">
-          <section aria-labelledby="return-form-heading">
-            {step < 3 && <Steps step={step} />}
+      <main className="returns-main">
+        <div className="returns-shell">
+          <PolicySummary policy={policy} />
 
-            <div className="returns-card">
-              {step === 1 && (
+          <div className="returns-layout" id="start-return">
+            <section className="returns-workflow-card" aria-labelledby="returns-workflow-title">
+              <Steps step={step} />
+
+              {step === 1 ? (
                 <>
-                  <h2 id="return-form-heading">Find your order</h2>
-                  <p id="lookup-help" className="returns-help">
-                    Enter <strong>any one</strong> of the details below. Adding more details can narrow the results.
-                  </p>
-                  {lookupError && <Notice>{lookupError}</Notice>}
+                  <div className="returns-section-heading">
+                    <span className="returns-kicker">Find your order</span>
+                    <h2 id="returns-workflow-title">Verify the purchase before selecting return items.</h2>
+                    <p>For customer privacy, both the order number and checkout email must match the WooCommerce order.</p>
+                  </div>
 
-                  <form onSubmit={handleLookup} noValidate>
-                    <div className="returns-fields">
-                      <div className="form-group">
-                        <label className="machined-label text-blue-600" htmlFor="return-order-number">Order number</label>
-                        <input id="return-order-number" type="text" inputMode="numeric" autoComplete="off" value={orderNumber} onChange={(event) => setOrderNumber(event.target.value)} placeholder="e.g. 10042" className="machined-input text-black" aria-describedby="lookup-help" />
-                      </div>
-                      <div className="form-group">
-                        <label className="machined-label text-blue-600" htmlFor="return-email">Checkout email</label>
-                        <input id="return-email" type="email" autoComplete="email" value={lookupEmail} onChange={(event) => setLookupEmail(event.target.value)} placeholder="you@example.com" className="machined-input text-black" aria-describedby="lookup-help" />
-                      </div>
-                      <div className="form-group">
-                        <label className="machined-label text-blue-600" htmlFor="return-name">Customer name</label>
-                        <input id="return-name" type="text" autoComplete="name" value={lookupName} onChange={(event) => setLookupName(event.target.value)} placeholder="Full name used at checkout" className="machined-input text-black" aria-describedby="lookup-help" />
-                      </div>
-                    </div>
+                  {lookupError ? <Notice>{lookupError}</Notice> : null}
 
-                    <button type="submit" className="alloy-button returns-primary" disabled={lookupLoading}>
-                      {lookupLoading ? <Loader size={16} className="animate-spin" aria-hidden="true" /> : <Search size={16} aria-hidden="true" />}
-                      {lookupLoading ? 'Searching…' : 'Find order'}
+                  <form className="returns-lookup-form" onSubmit={handleLookup} noValidate>
+                    <label>
+                      <span>Order number</span>
+                      <input
+                        value={orderNumber}
+                        onChange={(event) => setOrderNumber(event.target.value)}
+                        placeholder="Example: 12345"
+                        autoComplete="off"
+                        inputMode="numeric"
+                      />
+                    </label>
+                    <label>
+                      <span>Checkout email</span>
+                      <input
+                        type="email"
+                        value={lookupEmail}
+                        onChange={(event) => setLookupEmail(event.target.value)}
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                      />
+                    </label>
+                    <button className="btn btn-primary returns-lookup-submit" type="submit" disabled={lookupLoading}>
+                      {lookupLoading ? <Loader className="returns-spin" size={17} /> : <Search size={17} />}
+                      {lookupLoading ? 'Verifying order…' : 'Find my order'}
                     </button>
                   </form>
 
-                  {lookupResults.length > 0 && (
-                    <div className="returns-results" aria-live="polite">
-                      <h3>{lookupResults.length === 1 ? 'Order found' : `${lookupResults.length} matching orders`}</h3>
-                      <p>Select the order you want to return.</p>
-                      <div className="returns-result-list">
-                        {lookupResults.map((order) => (
-                          <OrderChoice
-                            key={`${order.order_number}-${order.lookup_token}`}
-                            order={order}
-                            selected={selectedOrder?.lookup_token === order.lookup_token}
-                            onSelect={setSelectedOrder}
+                  {selectedOrder ? (
+                    <div className="returns-order-panel">
+                      <div className="returns-order-panel__header">
+                        <div>
+                          <span>Verified order</span>
+                          <h3>Order #{selectedOrder.order_number}</h3>
+                          <p>{selectedOrder.date || 'Order date unavailable'} · {selectedOrder.status}</p>
+                        </div>
+                        <span className="returns-verified"><CheckCircle size={16} /> Verified</span>
+                      </div>
+
+                      <div className="returns-item-list">
+                        {(selectedOrder.items || []).map((item) => (
+                          <OrderItem
+                            key={item.item_id}
+                            item={item}
+                            quantity={Number(selectedItems[item.item_id] || 0)}
+                            onToggle={handleItemToggle}
+                            onQuantityChange={handleQuantityChange}
                           />
                         ))}
                       </div>
-                      <button type="button" className="alloy-button returns-primary" disabled={!selectedOrder} onClick={continueWithOrder}>
-                        Start return <ArrowRight size={16} aria-hidden="true" />
+
+                      <button type="button" className="btn btn-primary returns-continue" onClick={continueWithOrder}>
+                        Continue with selected items <ArrowRight size={17} />
                       </button>
                     </div>
-                  )}
+                  ) : null}
                 </>
-              )}
+              ) : null}
 
-              {step === 2 && selectedOrder && (
-                <>
+              {step === 2 ? (
+                <form onSubmit={handleSubmit} noValidate>
                   <button type="button" className="returns-back" onClick={() => setStep(1)}>
-                    <ArrowLeft size={15} aria-hidden="true" /> Change order
+                    <ArrowLeft size={15} /> Back to order items
                   </button>
-                  <h2 id="return-form-heading">Return details</h2>
-                  <div className="returns-summary">
-                    <strong>Order #{selectedOrder.order_number}</strong>
-                    <span>{selectedOrder.date} · {selectedOrder.item_count} {selectedOrder.item_count === 1 ? 'item' : 'items'} · {selectedOrder.status}</span>
+
+                  <div className="returns-section-heading">
+                    <span className="returns-kicker">Return details</span>
+                    <h2 id="returns-workflow-title">Tell us what kind of help this return needs.</h2>
+                    <p>The category changes how the request is reviewed. Damaged, incorrect, and defective-item cases are not treated like ordinary buyer-remorse returns.</p>
                   </div>
-                  {submitError && <Notice>{submitError}</Notice>}
 
-                  <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                      <label className="machined-label text-blue-600" htmlFor="return-reason">Reason for return</label>
-                      <select id="return-reason" value={returnReason} onChange={(event) => setReturnReason(event.target.value)} className="machined-input text-black" required>
-                        <option value="">Select a reason</option>
-                        {RETURN_REASONS.map((reason) => <option key={reason} value={reason}>{reason}</option>)}
+                  {submitError ? <Notice>{submitError}</Notice> : null}
+                  {selectedRequiresProblemPath ? (
+                    <div className="returns-path-callout" role="note">
+                      <AlertCircle size={19} aria-hidden="true" />
+                      <div>
+                        <strong>Standard return is not available for every selected item.</strong>
+                        <p>One or more selected order lines are outside standard-return eligibility. If the item arrived damaged, was incorrect, or has a product problem, choose the applicable problem-review path below.</p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <fieldset className="returns-type-fieldset">
+                    <legend>What do you need help with?</legend>
+                    <div className="returns-type-grid">
+                      {REQUEST_TYPES.map(({ id, title, description, Icon }) => {
+                        const disabled = id === 'standard_return' && selectedRequiresProblemPath;
+                        return (
+                          <label key={id} className={`returns-type-card ${requestType === id ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''}`}>
+                            <input
+                              type="radio"
+                              name="request-type"
+                              value={id}
+                              checked={requestType === id}
+                              disabled={disabled}
+                              onChange={() => handleRequestTypeChange(id)}
+                            />
+                            <Icon size={21} aria-hidden="true" />
+                            <span>
+                              <strong>{title}</strong>
+                              <small>{disabled ? 'Not available for the current item selection.' : description}</small>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </fieldset>
+
+                  <div className="returns-detail-fields">
+                    <label>
+                      <span>Return reason</span>
+                      <select value={returnReason} onChange={(event) => setReturnReason(event.target.value)} disabled={!requestType}>
+                        <option value="">{requestType ? 'Choose a reason' : 'Choose a return type first'}</option>
+                        {reasonOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                       </select>
-                    </div>
-                    <div className="form-group">
-                      <label className="machined-label text-blue-600" htmlFor="return-notes">Additional details <span style={{ color: '#64748b', fontWeight: 500 }}>(optional)</span></label>
-                      <textarea id="return-notes" value={additionalNotes} onChange={(event) => setAdditionalNotes(event.target.value)} placeholder="Tell us what happened, what condition the item is in, or anything else that will help us review the request." className="machined-input text-black" rows={5} style={{ resize: 'vertical', minHeight: 120 }} />
-                    </div>
-                    <button type="submit" className="alloy-button returns-primary" disabled={submitLoading}>
-                      {submitLoading ? <Loader size={16} className="animate-spin" aria-hidden="true" /> : <RotateCcw size={16} aria-hidden="true" />}
-                      {submitLoading ? 'Submitting…' : 'Submit return request'}
-                    </button>
-                  </form>
-                </>
-              )}
+                    </label>
 
-              {step === 3 && (
-                <div className="returns-success">
-                  <span className="returns-success-icon"><CheckCircle size={28} aria-hidden="true" /></span>
-                  <h2 id="return-form-heading">Request received</h2>
-                  <p>We received your return request and will review it. Keep your Return ID for reference and wait for return instructions before shipping anything back.</p>
-                  {returnTracking?.id && <div className="returns-id">Return ID: {returnTracking.id}</div>}
-                  {returnTracking?.id && returnTracking?.token && (
-                    <div>
-                      <Link to={`/returns/status/${returnTracking.id}?token=${encodeURIComponent(returnTracking.token)}`} className="alloy-button returns-track">
-                        Track return <ArrowRight size={15} aria-hidden="true" />
-                      </Link>
+                    <label>
+                      <span>Additional details <em>optional</em></span>
+                      <textarea
+                        rows="5"
+                        value={additionalNotes}
+                        onChange={(event) => setAdditionalNotes(event.target.value)}
+                        maxLength="2000"
+                        placeholder="Add condition details, damage location, missing components, or anything our returns team should know."
+                      />
+                    </label>
+                  </div>
+
+                  {requestType === 'order_problem' || requestType === 'product_problem' ? (
+                    <div className="returns-evidence-callout">
+                      <FileSearch size={20} aria-hidden="true" />
+                      <div>
+                        <strong>Keep supporting photos available.</strong>
+                        <p>For damage or product problems, keep clear photos of the item, shipping carton, label, and affected area. DTB may request them during review. The public portal does not upload customer evidence into the general WordPress media library.</p>
+                      </div>
                     </div>
-                  )}
+                  ) : null}
+
+                  <div className="returns-submit-summary">
+                    <strong>{selectedItemPayload.length} selected order {selectedItemPayload.length === 1 ? 'line' : 'lines'}</strong>
+                    <span>Nothing should be shipped until the request is approved and return instructions are provided.</span>
+                  </div>
+
+                  <button className="btn btn-primary returns-submit" type="submit" disabled={submitLoading}>
+                    {submitLoading ? <Loader className="returns-spin" size={17} /> : <CheckCircle size={17} />}
+                    {submitLoading ? 'Submitting request…' : 'Submit return request'}
+                  </button>
+                </form>
+              ) : null}
+
+              {step === 3 ? (
+                <div className="returns-success" id="returns-workflow-title">
+                  <div className="returns-success__icon"><CheckCircle size={28} /></div>
+                  <span className="returns-kicker">Request received</span>
+                  <h2>Your return is now pending review.</h2>
+                  <p>Do not ship the selected items yet. DTB will review the request and provide instructions when the return is approved.</p>
+                  {returnTracking ? (
+                    <>
+                      <div className="returns-reference">Return #{returnTracking.id}</div>
+                      <Link className="btn btn-primary returns-track" to={`/returns/status/${returnTracking.id}?token=${encodeURIComponent(returnTracking.token)}`}>
+                        Track return status <ArrowRight size={17} />
+                      </Link>
+                    </>
+                  ) : null}
                   <button type="button" className="returns-reset" onClick={resetAll}>Start another return</button>
                 </div>
-              )}
-            </div>
+              ) : null}
+            </section>
 
-            {step === 1 && (
-              <p className="returns-help-link">Still can&apos;t find the order? <Link to="/contact">Contact support</Link> and we can help locate it.</p>
-            )}
+            <aside className="returns-sidebar" aria-label="Return guidance">
+              <section>
+                <span className="returns-kicker">Know before you start</span>
+                <h2>One request, clear responsibilities.</h2>
+                <ul>
+                  <li><CheckCircle size={16} /><span><strong>Keep the item complete.</strong> Original packaging, accessories, documentation, and included components may be required.</span></li>
+                  <li><CheckCircle size={16} /><span><strong>Do not ship early.</strong> Wait for an approved Return ID and the instructions tied to your request.</span></li>
+                  <li><CheckCircle size={16} /><span><strong>Pack against movement.</strong> Protect approved merchandise from damage during return transit.</span></li>
+                  <li><CheckCircle size={16} /><span><strong>Return only approved items.</strong> Extra or unrelated merchandise can delay inspection and resolution.</span></li>
+                </ul>
+                <Link to="/return-policy">Read the full return policy <ArrowRight size={14} /></Link>
+              </section>
+
+              <section className="returns-sidebar__problem">
+                <AlertCircle size={20} />
+                <div>
+                  <strong>Damaged, wrong, or defective?</strong>
+                  <p>Select the matching request type instead of treating it as a standard return. That keeps the issue classified correctly for review.</p>
+                </div>
+              </section>
+
+              <section className="returns-sidebar__tracking">
+                <RefreshCcw size={20} />
+                <div>
+                  <strong>Already started a return?</strong>
+                  <p>Use the secure tracking link in your confirmation email. It is tied to your Return ID and access token.</p>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <ProcessTimeline />
+
+          <section className="returns-before-ship" aria-labelledby="returns-before-ship-title">
+            <div className="returns-section-heading">
+              <span className="returns-kicker">Before you ship</span>
+              <h2 id="returns-before-ship-title">Approval comes before packing labels or carrier handoff.</h2>
+              <p>The approved request defines what can be sent back. Packing and transit responsibility begins only after DTB provides return instructions.</p>
+            </div>
+            <div className="returns-before-ship__grid">
+              <div><span>01</span><strong>Confirm approval</strong><p>Verify the Return ID, approved items, and quantities.</p></div>
+              <div><span>02</span><strong>Restore the package</strong><p>Include required accessories, documentation, and original components.</p></div>
+              <div><span>03</span><strong>Protect the merchandise</strong><p>Cushion the shipment so tools and parts cannot move freely in transit.</p></div>
+              <div><span>04</span><strong>Follow the instructions</strong><p>Use the carrier, label, Return ID placement, and destination supplied for the approved return.</p></div>
+            </div>
           </section>
-
-          <aside className="returns-sidebar" aria-label="Return information">
-            <div className="returns-sidebar-card is-intro">
-              <h2>Before you start</h2>
-              <p>You do not need every order detail. One matching field is enough to search. Do not ship a product back until you receive return instructions.</p>
-            </div>
-            {POLICY_LINKS.map(([title, body, Icon]) => (
-              <Link key={title} to="/return-policy" className="returns-sidebar-card">
-                <Icon size={18} aria-hidden="true" />
-                <span>
-                  <strong>{title}</strong>
-                  <span>{body}</span>
-                </span>
-              </Link>
-            ))}
-          </aside>
         </div>
       </main>
     </div>
