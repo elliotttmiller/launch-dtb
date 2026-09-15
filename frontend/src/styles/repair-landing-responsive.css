@@ -106,8 +106,8 @@
     box-shadow:none;
   }
 
-  /* Package card: copy owns the left two-thirds; artwork is a bounded visual
-   * field on the lower-right and never participates in content sizing. */
+  /* Package card: preserve the locked composition while feathering only the
+   * transparent artwork canvas so no source-image boundary can render. */
   .repair-landing .repair-service-panel {
     position:relative;
     min-height:246px;
@@ -124,8 +124,8 @@
     min-height:0;
     background:url('../assets/media/repairs/repair-service-package.webp') right bottom/auto 100% no-repeat;
     opacity:1;
-    -webkit-mask-image:none;
-    mask-image:none;
+    -webkit-mask-image:radial-gradient(ellipse 100% 96% at 76% 72%,#000 0 66%,rgba(0,0,0,.96) 74%,rgba(0,0,0,.68) 86%,transparent 100%);
+    mask-image:radial-gradient(ellipse 100% 96% at 76% 72%,#000 0 66%,rgba(0,0,0,.96) 74%,rgba(0,0,0,.68) 86%,transparent 100%);
     pointer-events:none;
   }
   .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
