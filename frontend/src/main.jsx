@@ -47,6 +47,9 @@ import './styles/product-detail-approved-mockup.css';
  * the PDP production layers so their narrow-screen component rules can replace
  * legacy grid-tab behavior without escalating specificity. */
 import './styles/product-detail-description.css';
+/* Desktop full-page PDP target calibration. Scoped to non-modal product detail
+ * so ProductModal keeps its independent quick-view presentation authority. */
+import './styles/product-detail-full-page-target.css';
 /* Selector grids/cards are shared presentation across product brand/category
  * discovery and schematics. Domain modules continue to own data and routing. */
 import './styles/selector-cards.css';
@@ -101,7 +104,6 @@ function AppBootMarker() {
   useEffect(() => {
     markAppMounted();
   }, []);
-
   return null;
 }
 
@@ -109,13 +111,11 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <HelmetProvider>
       <GlobalMotionProvider>
-        <>
+        <ErrorBoundary>
           <AppBootMarker />
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </>
+          <App />
+        </ErrorBoundary>
       </GlobalMotionProvider>
     </HelmetProvider>
-  </StrictMode>,
+  </StrictMode>
 );
