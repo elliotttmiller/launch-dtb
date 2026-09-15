@@ -1,0 +1,269 @@
+.dtb-parts-page {
+  background: #fff;
+}
+
+/* The Parts route owns this presentation. The shared catalog remains the
+   authority for filters, search, sorting, product cards, pagination and data. */
+.dtb-parts-page > .page-wrapper > .dtb-container > .mb-5:has(.dtb-listing-heading--standard) {
+  display: none;
+}
+
+.dtb-parts-hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(219, 227, 241, 0.58);
+  background:
+    radial-gradient(circle at 84% 28%, rgba(205, 220, 239, 0.34), transparent 27%),
+    linear-gradient(104deg, #fff 0%, #fff 48%, #f7faff 69%, #edf4fc 100%);
+}
+
+.dtb-parts-hero__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: min(100%, 1600px);
+  min-height: clamp(190px, 15.5vw, 260px);
+  margin: 0 auto;
+  padding: clamp(2rem, 3.4vw, 3.4rem) clamp(1.25rem, 4.1vw, 4.25rem);
+}
+
+.dtb-parts-hero__content {
+  position: relative;
+  z-index: 4;
+  width: min(640px, 50vw);
+  padding-left: clamp(1.1rem, 1.7vw, 1.65rem);
+}
+
+.dtb-parts-hero__content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: #1769ff;
+}
+
+.dtb-parts-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+
+.dtb-parts-hero__eyebrow {
+  color: #10284d;
+  font-size: clamp(0.65rem, 0.72vw, 0.78rem);
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dtb-parts-hero__eyebrow-rule {
+  width: clamp(90px, 9vw, 155px);
+  height: 1px;
+  background: #1769ff;
+}
+
+.dtb-parts-hero__title {
+  margin: 0;
+  color: #0a1d3a;
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(2.55rem, 4vw, 4.15rem);
+  font-weight: 900;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.dtb-parts-hero__description {
+  margin: clamp(0.55rem, 0.8vw, 0.8rem) 0 0;
+  color: #5d7393;
+  font-size: clamp(0.95rem, 1.22vw, 1.22rem);
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.dtb-parts-hero__strapline {
+  margin: clamp(0.55rem, 0.75vw, 0.75rem) 0 0;
+  color: #10284d;
+  font-size: clamp(0.58rem, 0.67vw, 0.7rem);
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.dtb-parts-hero__art {
+  position: absolute;
+  inset: 0 8.5% 0 49%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dtb-parts-hero__beam {
+  position: absolute;
+  top: -22%;
+  width: 11%;
+  height: 150%;
+  transform: skewX(-28deg);
+  background: linear-gradient(90deg, rgba(225, 234, 246, 0.16), rgba(190, 208, 231, 0.42), rgba(238, 244, 251, 0.16));
+}
+
+.dtb-parts-hero__beam--one { left: 8%; }
+.dtb-parts-hero__beam--two { left: 27%; opacity: 0.72; }
+.dtb-parts-hero__beam--three { left: 46%; opacity: 0.48; }
+
+.dtb-parts-hero__spring {
+  position: absolute;
+  top: 8%;
+  right: 14%;
+  display: flex;
+  align-items: center;
+  width: 30%;
+  height: 35%;
+  transform: rotate(-37deg);
+  opacity: 0.34;
+  filter: drop-shadow(0 7px 6px rgba(15, 23, 42, 0.08));
+}
+
+.dtb-parts-hero__spring::before,
+.dtb-parts-hero__spring::after {
+  content: '';
+  width: 10%;
+  height: 4px;
+  border-radius: 99px;
+  background: #6f7d8b;
+}
+
+.dtb-parts-hero__spring i {
+  flex: 1 0 9%;
+  height: 100%;
+  margin-left: -2%;
+  border: 4px solid #758391;
+  border-radius: 50%;
+  transform: skewX(-8deg);
+}
+
+.dtb-parts-hero__fitting {
+  position: absolute;
+  right: 35%;
+  bottom: -17%;
+  width: 13%;
+  aspect-ratio: 1;
+  border: 12px solid rgba(91, 105, 119, 0.31);
+  border-radius: 22%;
+  transform: rotate(19deg);
+  background: rgba(174, 187, 199, 0.24);
+  box-shadow: inset 0 0 0 10px rgba(255,255,255,.36), 0 12px 22px rgba(15,23,42,.08);
+}
+
+.dtb-parts-hero__fitting::after {
+  content: '';
+  position: absolute;
+  inset: 27%;
+  border-radius: 50%;
+  background: rgba(77, 90, 103, 0.4);
+  box-shadow: inset 0 5px 9px rgba(15,23,42,.18);
+}
+
+.dtb-parts-hero__pin {
+  position: absolute;
+  right: 4%;
+  bottom: -6%;
+  width: 7%;
+  height: 48%;
+  border-radius: 999px 999px 18% 18%;
+  transform: rotate(47deg);
+  background: linear-gradient(90deg, rgba(102,115,128,.28), rgba(225,232,239,.56) 45%, rgba(95,109,123,.27));
+}
+
+.dtb-parts-hero__statement {
+  position: absolute;
+  z-index: 4;
+  top: 50%;
+  right: clamp(1.5rem, 4.5vw, 5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transform: translateY(-50%);
+  color: #30496f;
+  font-size: clamp(0.62rem, 0.72vw, 0.76rem);
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.dtb-parts-hero__statement i {
+  width: 50px;
+  height: 2px;
+  margin-top: 9px;
+  background: #1769ff;
+}
+
+/* The mockup places the controls directly against the hero. Remove only the
+   Parts route's former heading-space contribution; catalog controls are intact. */
+.dtb-parts-page > .page-wrapper .dtb-container--fluid {
+  padding-top: clamp(0.5rem, 1vw, 1rem);
+}
+
+@media (max-width: 900px) {
+  .dtb-parts-hero__inner {
+    min-height: 210px;
+  }
+
+  .dtb-parts-hero__content {
+    width: min(72%, 600px);
+  }
+
+  .dtb-parts-hero__art {
+    inset-left: 58%;
+    opacity: 0.72;
+  }
+
+  .dtb-parts-hero__statement {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .dtb-parts-hero__inner {
+    min-height: 188px;
+    padding-block: 1.75rem;
+  }
+
+  .dtb-parts-hero__content {
+    width: 100%;
+  }
+
+  .dtb-parts-hero__description {
+    max-width: 31ch;
+  }
+
+  .dtb-parts-hero__strapline {
+    max-width: 34ch;
+    letter-spacing: 0.16em;
+  }
+
+  .dtb-parts-hero__art {
+    left: 68%;
+    right: -15%;
+    opacity: 0.34;
+  }
+
+  .dtb-parts-hero__spring {
+    width: 60%;
+    right: 10%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-parts-hero *,
+  .dtb-parts-hero *::before,
+  .dtb-parts-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
