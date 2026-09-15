@@ -4,12 +4,11 @@ import { normalizeBrandAssetKey, resolveProductBrandLogo } from '../../utils/bra
 import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import './products-selector.css';
 
-const PUBLIC_ASSET_BASE = String(process.env.PUBLIC_URL || '/').replace(/\/+$/, '');
-const publicBrandAsset = (path) => `${PUBLIC_ASSET_BASE}/brands/${path}`;
+const sitegroundLogoAsset = (filename) => `/logos/${filename}`;
 
 const FEATURED_BRAND_PRESENTATION = {
   columbia: {
-    logo: publicBrandAsset('Columbia/columbia_logo_white.svg'),
+    logo: sitegroundLogoAsset('columbia_logo_white.svg'),
     className: 'products-brand-selector__card--columbia',
     cardStyle: {
       background: '#080808',
@@ -23,11 +22,11 @@ const FEATURED_BRAND_PRESENTATION = {
     },
   },
   level5: {
-    logo: publicBrandAsset('Level5/Level5-white.svg'),
+    logo: sitegroundLogoAsset('Level5-white.svg'),
     className: 'products-brand-selector__card--level5',
     cardStyle: {
       backgroundColor: '#b5121b',
-      backgroundImage: `url("${publicBrandAsset('Level5/level5-background.webp')}")`,
+      backgroundImage: `url("${sitegroundLogoAsset('level5-background.webp')}")`,
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
@@ -41,11 +40,11 @@ const FEATURED_BRAND_PRESENTATION = {
     },
   },
   usgsheetrocktools: {
-    logo: publicBrandAsset('USG-Sheetrock-Tools/usg-sheetrock-tools.svg'),
+    logo: sitegroundLogoAsset('usg-sheetrock-tools.svg'),
     className: 'products-brand-selector__card--usg',
     cardStyle: {
       backgroundColor: '#00843d',
-      backgroundImage: `url("${publicBrandAsset('USG-Sheetrock-Tools/USG-background.webp')}")`,
+      backgroundImage: `url("${sitegroundLogoAsset('USG-background.webp')}")`,
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',
       backgroundSize: 'cover',
