@@ -11,19 +11,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Return policy window used for storefront eligibility messaging.
- */
 function dtb_returns_policy_window_days(): int {
 	return max( 1, (int) apply_filters( 'dtb_returns_policy_window_days', 45 ) );
 }
 
-/**
- * Public policy projection consumed by the customer portal.
- *
- * Keep operational policy copy centralized so the React storefront does not
- * become an independent policy authority.
- */
 function dtb_returns_public_policy(): array {
 	return [
 		'window_days'        => dtb_returns_policy_window_days(),
@@ -35,10 +26,9 @@ function dtb_returns_public_policy(): array {
 }
 
 /**
- * Resolve one WooCommerce order from customer-supplied order number + email.
- *
- * The bounded email query also supports stores where a presentation-layer order
- * number differs from the numeric WooCommerce order ID.
+ * Resolve one WooCommerce order from order number + checkout email.
+ * A bounded email query supports stores where the presentation order number
+ * differs from the numeric WooCommerce order ID.
  */
 function dtb_returns_resolve_verified_order( string $order_number, string $customer_email ) {
 	$order_number   = ltrim( trim( sanitize_text_field( $order_number ) ), '#' );
@@ -52,7 +42,7 @@ function dtb_returns_resolve_verified_order( string $order_number, string $custo
 	if ( ctype_digit( $order_number ) ) {
 		$order = wc_get_order( (int) $order_number );
 		if ( $order ) {
-			$candidates[] = $order;
+			$candidates[ (int) $order->get_id() ] = $order;
 		}
 	}
 
@@ -65,8 +55,8 @@ function dtb_returns_resolve_verified_order( string $order_number, string $custo
 			'return'        => 'objects',
 		] );
 		foreach ( (array) $orders as $candidate ) {
-			if ( $candidate && ! isset( $candidates[ $candidate->get_id() ] ) ) {
-				$candidates[ $candidate->get_id() ] = $candidate;
+			if ( $candidate ) {
+				$candidates[ (int) $candidate->get_id() ] = $candidate;
 			}
 		}
 	}
@@ -130,7 +120,12 @@ function dtb_returns_store_lookup_token( string $token, int $order_id ): void {
 }
 
 /**
- * Project one order line into a customer-safe return item contract.
+ * Project one order line into the public return contract.
+ *
+ * `eligible_for_request` means the line may be submitted for review. The
+ * separate `standard_return_eligible` flag applies the ordinary return window;
+ * order/product problems remain reviewable without pretending they are ordinary
+ * buyer-remorse returns.
  */
 function dtb_returns_project_order_item( $order, int $item_id, $item ): array {
 	$product          = $item->get_product();
@@ -140,26 +135,28 @@ function dtb_returns_project_order_item( $order, int $item_id, $item ): array {
 	$date_created     = $order->get_date_created();
 	$window_days      = dtb_returns_policy_window_days();
 	$within_window    = $date_created ? ( time() <= ( $date_created->getTimestamp() + ( $window_days * DAY_IN_SECONDS ) ) ) : false;
-	$eligible         = $within_window && $returnable_qty > 0;
+	$requestable      = $returnable_qty > 0;
+	$standard_eligible = $requestable && $within_window;
 	$note             = '';
 
-	if ( ! $within_window ) {
-		$note = sprintf( __( 'Outside the standard %d-day return window.', 'drywall-toolbox' ), $window_days );
-	} elseif ( $returnable_qty < 1 ) {
-		$note = __( 'No remaining quantity is available for a standard return.', 'drywall-toolbox' );
+	if ( $returnable_qty < 1 ) {
+		$note = __( 'No remaining quantity is available for another return request.', 'drywall-toolbox' );
+	} elseif ( ! $within_window ) {
+		$note = sprintf( __( 'Outside the standard %d-day return window. A damaged, incorrect, or defective-item problem can still be submitted for review.', 'drywall-toolbox' ), $window_days );
 	}
 
 	$projection = [
-		'item_id'              => $item_id,
-		'product_id'           => (int) $item->get_product_id(),
-		'variation_id'         => (int) $item->get_variation_id(),
-		'name'                 => wp_strip_all_tags( (string) $item->get_name() ),
-		'sku'                  => $product ? (string) $product->get_sku() : '',
-		'quantity'             => $ordered_quantity,
-		'returnable_quantity'  => $returnable_qty,
-		'eligible_for_request' => $eligible,
-		'eligibility_note'     => $note,
-		'image_url'            => '',
+		'item_id'                  => $item_id,
+		'product_id'               => (int) $item->get_product_id(),
+		'variation_id'             => (int) $item->get_variation_id(),
+		'name'                     => wp_strip_all_tags( (string) $item->get_name() ),
+		'sku'                      => $product ? (string) $product->get_sku() : '',
+		'quantity'                 => $ordered_quantity,
+		'returnable_quantity'      => $returnable_qty,
+		'eligible_for_request'     => $requestable,
+		'standard_return_eligible' => $standard_eligible,
+		'eligibility_note'         => $note,
+		'image_url'                => '',
 	];
 
 	if ( $product && $product->get_image_id() ) {
@@ -168,13 +165,14 @@ function dtb_returns_project_order_item( $order, int $item_id, $item ): array {
 	}
 
 	/**
-	 * Allow product-domain policy integrations to narrow eligibility without
-	 * duplicating policy rules in the storefront.
+	 * Product/policy integrations may narrow either eligibility flag without
+	 * duplicating those rules in the React storefront.
 	 */
 	$projection = (array) apply_filters( 'dtb_returns_public_item_projection', $projection, $item, $order );
 	$projection['item_id'] = $item_id;
 	$projection['returnable_quantity'] = max( 0, (int) ( $projection['returnable_quantity'] ?? 0 ) );
 	$projection['eligible_for_request'] = ! empty( $projection['eligible_for_request'] );
+	$projection['standard_return_eligible'] = ! empty( $projection['standard_return_eligible'] ) && $projection['eligible_for_request'];
 	$projection['eligibility_note'] = sanitize_text_field( (string) ( $projection['eligibility_note'] ?? '' ) );
 
 	return $projection;
@@ -188,21 +186,21 @@ function dtb_returns_project_verified_order( $order, string $lookup_token ): arr
 
 	$date_created = $order->get_date_created();
 	return [
-		'order_id'      => (int) $order->get_id(),
-		'order_number'  => (string) $order->get_order_number(),
-		'date'          => $date_created ? $date_created->date_i18n( get_option( 'date_format' ) ) : '',
-		'status'        => wc_get_order_status_name( $order->get_status() ),
-		'item_count'    => count( $items ),
-		'items'         => $items,
-		'lookup_token'  => $lookup_token,
-		'policy'        => dtb_returns_public_policy(),
+		'order_id'     => (int) $order->get_id(),
+		'order_number' => (string) $order->get_order_number(),
+		'date'         => $date_created ? $date_created->date_i18n( get_option( 'date_format' ) ) : '',
+		'status'       => wc_get_order_status_name( $order->get_status() ),
+		'item_count'   => count( $items ),
+		'items'        => $items,
+		'lookup_token' => $lookup_token,
+		'policy'       => dtb_returns_public_policy(),
 	];
 }
 
 /**
- * Validate submitted line identities and quantities against the verified order.
+ * Re-validate client-submitted line identity and quantity against WooCommerce.
  */
-function dtb_returns_validate_requested_items( $order, array $requested_items ) {
+function dtb_returns_validate_requested_items( $order, array $requested_items, string $request_type ) {
 	$available = [];
 	foreach ( $order->get_items( 'line_item' ) as $item_id => $item ) {
 		$available[ (int) $item_id ] = dtb_returns_project_order_item( $order, (int) $item_id, $item );
@@ -216,10 +214,17 @@ function dtb_returns_validate_requested_items( $order, array $requested_items ) 
 		if ( $item_id < 1 || isset( $seen[ $item_id ] ) || ! isset( $available[ $item_id ] ) ) {
 			return new WP_Error( 'dtb_returns_invalid_item', __( 'One of the selected return items is invalid. Refresh the order and try again.', 'drywall-toolbox' ), [ 'status' => 400 ] );
 		}
+
 		$projection = $available[ $item_id ];
-		if ( empty( $projection['eligible_for_request'] ) || $quantity < 1 || $quantity > (int) $projection['returnable_quantity'] ) {
-			return new WP_Error( 'dtb_returns_ineligible_item', __( 'One of the selected items is not eligible for the requested quantity.', 'drywall-toolbox' ), [ 'status' => 409 ] );
+		$eligible   = ! empty( $projection['eligible_for_request'] );
+		if ( 'standard_return' === $request_type ) {
+			$eligible = ! empty( $projection['standard_return_eligible'] );
 		}
+
+		if ( ! $eligible || $quantity < 1 || $quantity > (int) $projection['returnable_quantity'] ) {
+			return new WP_Error( 'dtb_returns_ineligible_item', __( 'One of the selected items is not eligible for this request type or quantity.', 'drywall-toolbox' ), [ 'status' => 409 ] );
+		}
+
 		$seen[ $item_id ] = true;
 		$validated[] = [
 			'item_id'      => $item_id,
