@@ -89,7 +89,9 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
           <div className="dtb-category-hero-card__content">
             <span className="dtb-category-hero-card__corner-accent" aria-hidden="true" />
             <span className="dtb-category-hero-card__dot-field" aria-hidden="true" />
-            <span className="dtb-category-hero-card__divider" aria-hidden="true" />
+            <span className="dtb-category-hero-card__divider" aria-hidden="true">
+              <span className="dtb-category-hero-card__divider-cutouts" />
+            </span>
 
             <div className="dtb-category-hero-card__copy">
               {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
