@@ -52,9 +52,9 @@
     --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
     --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-4%;
-    --repair-package-art-width:41%;
-    --repair-package-art-height:74%;
+    --repair-package-art-right:-2%;
+    --repair-package-art-width:40%;
+    --repair-package-art-height:84%;
   }
 
   .repair-landing .repair-section-shell,
@@ -106,8 +106,9 @@
     box-shadow:none;
   }
 
-  /* Package artwork is rendered directly from the source alpha channel. The
-   * card owns clipping; no CSS mask or synthetic feather may expose a canvas edge. */
+  /* Package artwork is calibrated from the card's vertical geometry, not the
+   * source canvas width. This preserves the transparent cutout at a stable
+   * visual scale while the card itself remains the clipping boundary. */
   .repair-landing .repair-service-panel {
     position:relative;
     min-height:246px;
@@ -118,13 +119,13 @@
   .repair-landing .repair-service-panel::after {
     top:auto;
     right:var(--repair-package-art-right);
-    bottom:-2%;
+    bottom:-1%;
     width:var(--repair-package-art-width);
     height:var(--repair-package-art-height);
     min-height:0;
     background-image:url('../assets/media/repairs/repair-service-package.webp');
     background-position:right bottom;
-    background-size:contain;
+    background-size:auto 100%;
     background-repeat:no-repeat;
     opacity:1;
     pointer-events:none;
@@ -229,7 +230,7 @@
   .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
   .repair-landing .repair-service-panel ul { width:67%; }
-  .repair-landing .repair-service-panel::after { right:-4%; width:38%; height:70%; }
+  .repair-landing .repair-service-panel::after { right:-2%; width:40%; height:82%; }
 }
 
 @media (prefers-reduced-motion:reduce) {
