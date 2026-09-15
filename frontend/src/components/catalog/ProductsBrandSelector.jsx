@@ -53,10 +53,10 @@ const FEATURED_BRAND_PRESENTATION = {
       padding: 0,
     },
     logoStyle: {
-      width: '78%',
+      width: '88%',
       height: 'auto',
-      maxWidth: '78%',
-      maxHeight: '48%',
+      maxWidth: '88%',
+      maxHeight: '56%',
     },
   },
 };
