@@ -17,6 +17,7 @@ $_dtb_returns_files = [
 	'Infrastructure/ReturnRepository.php',
 	'Services/ReturnWorkflowTransitionMap.php',
 	'Services/ReturnService.php',
+	'Services/PublicReturnAccessService.php',
 	'Admin/ReturnsPage.php',
 	'Rest/ReturnsController.php',
 	'Rest/ReturnsAdminQueueController.php',
