@@ -8,8 +8,8 @@ import CornerBeadCalculator from './CornerBeadCalculator'
 import ScrewCalculator from './ScrewCalculator'
 import SummaryView from './SummaryView'
 import {
-  contentVariants,
   reducedContentVariants,
+  dtbDistance,
   dtbSpring,
   dtbTransition,
   reducedTransition,
@@ -60,6 +60,15 @@ const toastVariants = {
   exit: { opacity: 0, y: -8, scale: 0.985, transition: dtbTransition.exit },
 }
 
+// Calculator tabs are in-page context switches, not route changes. Keep the
+// surrounding surface stable and use a restrained micro-distance crossfade so
+// heavy calculator forms never disappear into a blank exit frame.
+const calculatorPanelVariants = {
+  hidden: { opacity: 0, y: dtbDistance.micro },
+  visible: { opacity: 1, y: 0, transition: dtbTransition.fast },
+  exit: { opacity: 0, y: -dtbDistance.micro, transition: dtbTransition.exit },
+}
+
 export default function CalculatorHub() {
   const reduceMotion = useReducedMotion()
   const [activeTab, setActiveTab] = useState(() => {
@@ -104,7 +113,7 @@ export default function CalculatorHub() {
   void showToastMessage
 
   const currentTab = TABS[activeTab]
-  const panelVariants = reduceMotion ? reducedContentVariants : contentVariants
+  const panelVariants = reduceMotion ? reducedContentVariants : calculatorPanelVariants
 
   useEffect(() => {
     localStorage.setItem(HUB_STORAGE_KEY, JSON.stringify({
@@ -147,9 +156,17 @@ export default function CalculatorHub() {
                     whileTap={reduceMotion ? undefined : { scale: 0.975 }}
                     transition={reduceMotion ? reducedTransition : dtbSpring.responsive}
                     style={{ scrollSnapAlign: 'start' }}
-                    className={`relative flex items-center px-3.5 py-1.5 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-[background-color,color,box-shadow] duration-[var(--dtb-motion-duration-fast)] ${isActive ? 'bg-primary-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
+                    className={`relative isolate flex items-center px-3.5 py-1.5 rounded-xl text-sm font-medium whitespace-nowrap shrink-0 transition-colors duration-[var(--dtb-motion-duration-fast)] ${isActive ? 'text-white' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
                   >
-                    {tab.shortLabel}
+                    {isActive ? (
+                      <Motion.span
+                        layoutId="calculator-tab-active-indicator"
+                        aria-hidden="true"
+                        className="absolute inset-0 z-0 rounded-xl bg-primary-600 shadow-sm"
+                        transition={reduceMotion ? reducedTransition : dtbSpring.responsive}
+                      />
+                    ) : null}
+                    <span className="relative z-10">{tab.shortLabel}</span>
                   </Motion.button>
                 )
               })}
@@ -161,24 +178,30 @@ export default function CalculatorHub() {
       <div className="w-full px-4 pb-8">
         <div className="mx-auto" style={{ maxWidth: 'clamp(320px, 100%, 1200px)' }}>
           <div onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} className="relative">
-            <AnimatePresence mode="wait" initial={false}>
-              <Motion.div
-                key={activeTab}
-                variants={panelVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden"
-              >
-                <div className={`h-px w-10 bg-linear-to-r ${currentTab.gradient} rounded-full mb-5`} />
-                {activeTab === 0 && <SheetCalculator onUpdate={handleSheetUpdate} />}
-                {activeTab === 1 && <MudCalculator onUpdate={handleMudUpdate} sheetData={summaryData.sheets} />}
-                {activeTab === 2 && <TapeCalculator onUpdate={handleTapeUpdate} sheetData={summaryData.sheets} />}
-                {activeTab === 3 && <CornerBeadCalculator onUpdate={handleBeadUpdate} />}
-                {activeTab === 4 && <ScrewCalculator onUpdate={handleScrewUpdate} sheetData={summaryData.sheets} />}
-                {activeTab === 5 && <SummaryView data={summaryData} onProjectUpdate={handleProjectUpdate} />}
-              </Motion.div>
-            </AnimatePresence>
+            <Motion.div
+              layout="size"
+              transition={reduceMotion ? { layout: reducedTransition } : { layout: dtbTransition.standard }}
+              className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5 sm:p-7 overflow-hidden"
+            >
+              <div className={`h-px w-10 bg-linear-to-r ${currentTab.gradient} rounded-full mb-5`} />
+              <AnimatePresence mode="popLayout" initial={false}>
+                <Motion.div
+                  key={currentTab.id}
+                  variants={panelVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="relative"
+                >
+                  {activeTab === 0 && <SheetCalculator onUpdate={handleSheetUpdate} />}
+                  {activeTab === 1 && <MudCalculator onUpdate={handleMudUpdate} sheetData={summaryData.sheets} />}
+                  {activeTab === 2 && <TapeCalculator onUpdate={handleTapeUpdate} sheetData={summaryData.sheets} />}
+                  {activeTab === 3 && <CornerBeadCalculator onUpdate={handleBeadUpdate} />}
+                  {activeTab === 4 && <ScrewCalculator onUpdate={handleScrewUpdate} sheetData={summaryData.sheets} />}
+                  {activeTab === 5 && <SummaryView data={summaryData} onProjectUpdate={handleProjectUpdate} />}
+                </Motion.div>
+              </AnimatePresence>
+            </Motion.div>
           </div>
         </div>
       </div>
