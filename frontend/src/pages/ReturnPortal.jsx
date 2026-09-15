@@ -82,7 +82,7 @@ const PROCESS_STEPS = [
 ];
 
 function createIdempotencyKey() {
-  if ( typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ) {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     return `return:${crypto.randomUUID()}`;
   }
   return `return:${Date.now().toString(36)}:${Math.random().toString(36).slice(2)}:${Math.random().toString(36).slice(2)}`;
@@ -149,6 +149,12 @@ function PolicySummary({ policy }) {
 function OrderItem({ item, quantity, onToggle, onQuantityChange }) {
   const selected = quantity > 0;
   const maxQuantity = Math.max(0, Number(item.returnable_quantity || 0));
+  const standardEligible = item.standard_return_eligible !== false;
+  const eligibilityLabel = !item.eligible_for_request
+    ? 'Not available'
+    : standardEligible
+      ? 'Standard return eligible'
+      : 'Problem review available';
 
   return (
     <article className={`returns-item ${selected ? 'is-selected' : ''} ${item.eligible_for_request ? '' : 'is-ineligible'}`}>
@@ -158,6 +164,7 @@ function OrderItem({ item, quantity, onToggle, onQuantityChange }) {
           checked={selected}
           disabled={!item.eligible_for_request}
           onChange={(event) => onToggle(item.item_id, event.target.checked ? 1 : 0)}
+          aria-label={`Select ${item.name} for return`}
         />
         <span className="returns-item__checkbox" aria-hidden="true" />
       </label>
@@ -173,29 +180,32 @@ function OrderItem({ item, quantity, onToggle, onQuantityChange }) {
             {item.sku ? <p>SKU {item.sku}</p> : null}
           </div>
           <span className={`returns-eligibility ${item.eligible_for_request ? 'is-eligible' : 'is-ineligible'}`}>
-            {item.eligible_for_request ? 'Eligible to request' : 'Not eligible'}
+            {eligibilityLabel}
           </span>
         </div>
 
         {item.eligible_for_request ? (
-          <div className="returns-item__meta">
-            <span>Purchased: {item.quantity}</span>
-            <label>
-              Return quantity
-              <select
-                value={selected ? quantity : 0}
-                onChange={(event) => onQuantityChange(item.item_id, Number(event.target.value))}
-                disabled={!selected}
-              >
-                <option value="0">0</option>
-                {Array.from({ length: maxQuantity }, (_, index) => index + 1).map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+          <>
+            <div className="returns-item__meta">
+              <span>Purchased: {item.quantity}</span>
+              <label>
+                Return quantity
+                <select
+                  value={selected ? quantity : 0}
+                  onChange={(event) => onQuantityChange(item.item_id, Number(event.target.value))}
+                  disabled={!selected}
+                >
+                  <option value="0">0</option>
+                  {Array.from({ length: maxQuantity }, (_, index) => index + 1).map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {item.eligibility_note ? <p className="returns-item__reason">{item.eligibility_note}</p> : null}
+          </>
         ) : (
-          <p className="returns-item__reason">{item.eligibility_note || 'This order line is not available for a standard return request.'}</p>
+          <p className="returns-item__reason">{item.eligibility_note || 'This order line is not available for another return request.'}</p>
         )}
       </div>
     </article>
@@ -248,6 +258,13 @@ export default function ReturnPortal() {
     [selectedItems]
   );
 
+  const selectedRequiresProblemPath = useMemo(() => {
+    const selectedIds = new Set(selectedItemPayload.map((item) => item.item_id));
+    return (selectedOrder?.items || []).some(
+      (item) => selectedIds.has(Number(item.item_id)) && item.standard_return_eligible === false
+    );
+  }, [selectedItemPayload, selectedOrder]);
+
   const reasonOptions = requestType ? REASONS[requestType] || [] : [];
   const policy = selectedOrder?.policy || null;
 
@@ -295,10 +312,12 @@ export default function ReturnPortal() {
       return;
     }
     if (selectedItemPayload.length === 0) {
-      setLookupError('Select at least one eligible item and quantity to return.');
+      setLookupError('Select at least one available item and quantity to continue.');
       return;
     }
     setLookupError('');
+    setRequestType('');
+    setReturnReason('');
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -312,6 +331,7 @@ export default function ReturnPortal() {
   };
 
   const handleRequestTypeChange = (type) => {
+    if (type === 'standard_return' && selectedRequiresProblemPath) return;
     setRequestType(type);
     setReturnReason('');
   };
@@ -325,11 +345,15 @@ export default function ReturnPortal() {
       return;
     }
     if (selectedItemPayload.length === 0) {
-      setSubmitError('Select at least one eligible item to return.');
+      setSubmitError('Select at least one available item to return.');
       return;
     }
     if (!requestType || !returnReason) {
       setSubmitError('Choose the return type and reason.');
+      return;
+    }
+    if (requestType === 'standard_return' && selectedRequiresProblemPath) {
+      setSubmitError('One or more selected items are outside standard-return eligibility. Choose an applicable order-problem or product-problem path.');
       return;
     }
 
@@ -496,23 +520,39 @@ export default function ReturnPortal() {
                   </div>
 
                   {submitError ? <Notice>{submitError}</Notice> : null}
+                  {selectedRequiresProblemPath ? (
+                    <div className="returns-path-callout" role="note">
+                      <AlertCircle size={19} aria-hidden="true" />
+                      <div>
+                        <strong>Standard return is not available for every selected item.</strong>
+                        <p>One or more selected order lines are outside standard-return eligibility. If the item arrived damaged, was incorrect, or has a product problem, choose the applicable problem-review path below.</p>
+                      </div>
+                    </div>
+                  ) : null}
 
                   <fieldset className="returns-type-fieldset">
                     <legend>What do you need help with?</legend>
                     <div className="returns-type-grid">
-                      {REQUEST_TYPES.map(({ id, title, description, Icon }) => (
-                        <label key={id} className={`returns-type-card ${requestType === id ? 'is-selected' : ''}`}>
-                          <input
-                            type="radio"
-                            name="request-type"
-                            value={id}
-                            checked={requestType === id}
-                            onChange={() => handleRequestTypeChange(id)}
-                          />
-                          <Icon size={21} aria-hidden="true" />
-                          <span><strong>{title}</strong><small>{description}</small></span>
-                        </label>
-                      ))}
+                      {REQUEST_TYPES.map(({ id, title, description, Icon }) => {
+                        const disabled = id === 'standard_return' && selectedRequiresProblemPath;
+                        return (
+                          <label key={id} className={`returns-type-card ${requestType === id ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''}`}>
+                            <input
+                              type="radio"
+                              name="request-type"
+                              value={id}
+                              checked={requestType === id}
+                              disabled={disabled}
+                              onChange={() => handleRequestTypeChange(id)}
+                            />
+                            <Icon size={21} aria-hidden="true" />
+                            <span>
+                              <strong>{title}</strong>
+                              <small>{disabled ? 'Not available for the current item selection.' : description}</small>
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </fieldset>
 
