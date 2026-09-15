@@ -16,6 +16,7 @@
     "test:contractor-shopping": "node --test tests/contractorShoppingContract.test.mjs",
     "test:calculators": "node --test tests/calculators/calculators.test.mjs",
     "test:home-hero": "node --test tests/homeHeroResponsiveMediaContract.test.mjs",
+    "test:repair-landing": "node --test tests/repairLandingContract.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production"
   },
   "dependencies": {
@@ -41,13 +42,10 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
     "@babel/preset-react": "^7.28.5",
-    "@eslint/js": "^9.39.1",
-    "@tailwindcss/postcss": "^4.1.18",
-    "@tailwindcss/typography": "^0.5.19",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.23",
-    "babel-loader": "^9.2.1",
+    "babel-loader": "^10.1.0",
     "copy-webpack-plugin": "^14.0.0",
     "cross-env": "^10.1.0",
     "css-loader": "^7.1.4",
