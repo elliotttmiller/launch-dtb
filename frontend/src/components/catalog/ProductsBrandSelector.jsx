@@ -24,7 +24,34 @@ export default function ProductsBrandSelector({ brands, onSelectBrand }) {
 
   return (
     <div className="products-brand-selector">
-      <h1 className="products-brand-selector__title">Brands</h1>
+      <header className="products-brand-selector__hero">
+        <div className="products-brand-selector__hero-content">
+          <div className="products-brand-selector__hero-heading">
+            <div className="products-brand-selector__eyebrow-row">
+              <span className="products-brand-selector__eyebrow">Brands</span>
+              <span className="products-brand-selector__eyebrow-rule" aria-hidden="true" />
+            </div>
+            <h1 className="products-brand-selector__title">Shop by Brand</h1>
+            <p className="products-brand-selector__description">
+              Professional drywall tools from the brands you trust.<br className="products-brand-selector__description-break" />
+              Browse tools, replacement parts, and equipment by manufacturer.
+            </p>
+          </div>
+        </div>
+
+        <div className="products-brand-selector__hero-art" aria-hidden="true">
+          <span className="products-brand-selector__slash products-brand-selector__slash--one" />
+          <span className="products-brand-selector__slash products-brand-selector__slash--two" />
+          <span className="products-brand-selector__slash products-brand-selector__slash--three" />
+          <div className="products-brand-selector__statement">
+            <span>The brands</span>
+            <span>professionals</span>
+            <span>count on.</span>
+            <span className="products-brand-selector__statement-rule" />
+          </div>
+        </div>
+      </header>
+
       <SelectorGrid variant="brands">
         {sortedBrands.map((brand) => {
           const label = brand.label || brand.key || '';
