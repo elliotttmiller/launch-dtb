@@ -52,9 +52,8 @@
     --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
     --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-2%;
-    --repair-package-art-width:40%;
-    --repair-package-art-height:84%;
+    --repair-package-art-right:-5%;
+    --repair-package-art-height:78%;
   }
 
   .repair-landing .repair-section-shell,
@@ -106,9 +105,9 @@
     box-shadow:none;
   }
 
-  /* Package artwork is calibrated from the card's vertical geometry, not the
-   * source canvas width. This preserves the transparent cutout at a stable
-   * visual scale while the card itself remains the clipping boundary. */
+  /* Render the transparent package artwork as intrinsic replaced content.
+   * The generated element has no rectangular background painting area: its
+   * native aspect ratio is scaled by height and positioned directly. */
   .repair-landing .repair-service-panel {
     position:relative;
     min-height:246px;
@@ -117,18 +116,21 @@
     background:#fff;
   }
   .repair-landing .repair-service-panel::after {
+    content:url('../assets/media/repairs/repair-service-package.webp');
+    position:absolute;
     top:auto;
     right:var(--repair-package-art-right);
-    bottom:-1%;
-    width:var(--repair-package-art-width);
+    bottom:-2%;
+    width:auto;
     height:var(--repair-package-art-height);
-    min-height:0;
-    background-image:url('../assets/media/repairs/repair-service-package.webp');
-    background-position:right bottom;
-    background-size:auto 100%;
-    background-repeat:no-repeat;
+    max-width:none;
+    max-height:none;
+    background:none;
+    object-fit:contain;
+    object-position:right bottom;
     opacity:1;
     pointer-events:none;
+    z-index:1;
   }
   .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
   .repair-landing .repair-service-panel .repair-eyebrow { width:67%; margin:0 0 6px; font-size:var(--repair-mobile-eyebrow); font-weight:800; line-height:1.1; letter-spacing:.1em; }
@@ -230,7 +232,7 @@
   .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
   .repair-landing .repair-service-panel ul { width:67%; }
-  .repair-landing .repair-service-panel::after { right:-2%; width:40%; height:82%; }
+  .repair-landing .repair-service-panel::after { right:-5%; height:76%; }
 }
 
 @media (prefers-reduced-motion:reduce) {
