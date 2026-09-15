@@ -1,0 +1,100 @@
+/* Optical refinements for the category hero decoration layer.
+   Kept separate from the base hero contract so structural layout, media sizing,
+   loading behavior, and storefront tokens remain untouched. */
+
+.dtb-category-hero-card__dot-field {
+  top: 0;
+  left: 1.35rem;
+  width: 9.25rem;
+  height: 8.75rem;
+  background-image: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.24) 0.9px,
+    transparent 1px
+  );
+  background-size: 6px 6px;
+  -webkit-mask-image: linear-gradient(
+    135deg,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.76) 66%,
+    transparent 96%
+  );
+  mask-image: linear-gradient(
+    135deg,
+    #000 0%,
+    #000 42%,
+    rgba(0, 0, 0, 0.76) 66%,
+    transparent 96%
+  );
+  opacity: 0.72;
+}
+
+@media (min-width: 768px) {
+  /* One continuous diagonal separator, matching the approved art direction.
+     The previous bordered skew box produced disconnected-looking fragments
+     because only its borders were visible inside the clipped content column. */
+  .dtb-category-hero-card__divider {
+    top: -10%;
+    right: 2.35rem;
+    z-index: 1;
+    display: block;
+    width: 2.85rem;
+    height: 120%;
+    transform: skewX(-27deg);
+    transform-origin: 50% 50%;
+    border: 0;
+    background: rgba(214, 228, 246, 0.52);
+    box-shadow: 3.55rem 0 0 rgba(237, 243, 250, 0.68);
+    opacity: 1;
+  }
+
+  .dtb-category-hero-card__divider::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2.9rem;
+    background: linear-gradient(180deg, #3d83ea 0%, #2563d9 100%);
+    opacity: 0.86;
+  }
+
+  .dtb-category-hero-card__dot-field {
+    left: 2.2rem;
+    width: 11rem;
+    height: 9.9rem;
+    background-size: 6px 6px;
+    opacity: 0.7;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dtb-category-hero-card__divider {
+    right: 2.75rem;
+    width: 3rem;
+    box-shadow: 3.85rem 0 0 rgba(237, 243, 250, 0.7);
+  }
+
+  .dtb-category-hero-card__dot-field {
+    left: 2.55rem;
+    width: 11.75rem;
+    height: 10.3rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .dtb-category-hero-card__divider {
+    right: 3.15rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .dtb-category-hero-card__dot-field {
+    left: 1rem;
+    width: 7.5rem;
+    height: 7rem;
+    background-size: 5.5px 5.5px;
+    opacity: 0.5;
+  }
+}
