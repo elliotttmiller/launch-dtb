@@ -52,9 +52,9 @@
     --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
     --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-3%;
-    --repair-package-art-width:36%;
-    --repair-package-art-height:72%;
+    --repair-package-art-right:-4%;
+    --repair-package-art-width:41%;
+    --repair-package-art-height:74%;
   }
 
   .repair-landing .repair-section-shell,
@@ -106,8 +106,8 @@
     box-shadow:none;
   }
 
-  /* Package card: preserve the locked composition while feathering only the
-   * transparent artwork canvas so no source-image boundary can render. */
+  /* Package artwork is rendered directly from the source alpha channel. The
+   * card owns clipping; no CSS mask or synthetic feather may expose a canvas edge. */
   .repair-landing .repair-service-panel {
     position:relative;
     min-height:246px;
@@ -118,14 +118,15 @@
   .repair-landing .repair-service-panel::after {
     top:auto;
     right:var(--repair-package-art-right);
-    bottom:-1%;
+    bottom:-2%;
     width:var(--repair-package-art-width);
     height:var(--repair-package-art-height);
     min-height:0;
-    background:url('../assets/media/repairs/repair-service-package.webp') right bottom/auto 100% no-repeat;
+    background-image:url('../assets/media/repairs/repair-service-package.webp');
+    background-position:right bottom;
+    background-size:contain;
+    background-repeat:no-repeat;
     opacity:1;
-    -webkit-mask-image:radial-gradient(ellipse 100% 96% at 76% 72%,#000 0 66%,rgba(0,0,0,.96) 74%,rgba(0,0,0,.68) 86%,transparent 100%);
-    mask-image:radial-gradient(ellipse 100% 96% at 76% 72%,#000 0 66%,rgba(0,0,0,.96) 74%,rgba(0,0,0,.68) 86%,transparent 100%);
     pointer-events:none;
   }
   .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
