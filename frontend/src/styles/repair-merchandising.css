@@ -65,32 +65,7 @@
 }
 
 .repair-shipping-prep__intro {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 32px;
   margin-bottom: 28px;
-}
-
-.repair-shipping-prep__intro > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding-bottom: 2px;
-  color: var(--repair-blue);
-  font-size: 0.78rem;
-  font-weight: 850;
-  text-decoration: none;
-}
-
-.repair-shipping-prep__intro > a:hover {
-  color: var(--repair-blue-dark);
-}
-
-.repair-shipping-prep__intro > a:focus-visible {
-  outline: 3px solid rgba(34, 85, 238, 0.25);
-  outline-offset: 4px;
 }
 
 .repair-shipping-prep__grid {
@@ -232,13 +207,7 @@
   }
 
   .repair-shipping-prep__intro {
-    display: grid;
-    gap: 14px;
     margin-bottom: 20px;
-  }
-
-  .repair-shipping-prep__intro > a {
-    width: fit-content;
   }
 
   .repair-shipping-prep__grid {
