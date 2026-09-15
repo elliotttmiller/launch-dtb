@@ -17,8 +17,8 @@ function dtb_returns_public_rest_register_routes(): void {
 		'callback'            => 'dtb_returns_public_rest_lookup',
 		'permission_callback' => '__return_true',
 		'args'                => [
-			'order_number'  => [ 'type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
-			'customer_email'=> [ 'type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_email' ],
+			'order_number'   => [ 'type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_text_field' ],
+			'customer_email' => [ 'type' => 'string', 'required' => true, 'sanitize_callback' => 'sanitize_email' ],
 		],
 	] );
 
@@ -38,11 +38,11 @@ function dtb_returns_public_rest_register_routes(): void {
 }
 
 function dtb_returns_public_rate_limit( string $bucket, int $limit, int $window_seconds ) {
-	$ip       = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' ) );
-	$key      = 'dtb_returns_' . sanitize_key( $bucket ) . '_' . md5( $ip );
-	$count    = (int) get_transient( $key );
-	$limit    = max( 1, $limit );
-	$window   = max( MINUTE_IN_SECONDS, $window_seconds );
+	$ip     = sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0' ) );
+	$key    = 'dtb_returns_' . sanitize_key( $bucket ) . '_' . md5( $ip );
+	$count  = (int) get_transient( $key );
+	$limit  = max( 1, $limit );
+	$window = max( MINUTE_IN_SECONDS, $window_seconds );
 
 	if ( $count >= $limit ) {
 		return new WP_Error( 'dtb_returns_rate_limited', __( 'Too many attempts. Please wait a few minutes and try again.', 'drywall-toolbox' ), [ 'status' => 429 ] );
@@ -76,17 +76,25 @@ function dtb_returns_public_request_types(): array {
 	return [ 'standard_return', 'order_problem', 'product_problem' ];
 }
 
-function dtb_returns_public_reasons(): array {
+function dtb_returns_public_reason_map(): array {
 	return [
-		'arrived_damaged',
-		'wrong_item_received',
-		'item_not_as_described',
-		'defective_not_working',
-		'changed_mind',
-		'ordered_by_mistake',
-		'better_price_found',
-		'other',
+		'standard_return' => [ 'changed_mind', 'ordered_by_mistake', 'better_price_found', 'other' ],
+		'order_problem'   => [ 'arrived_damaged', 'wrong_item_received', 'item_not_as_described', 'other' ],
+		'product_problem' => [ 'defective_not_working', 'item_not_as_described', 'other' ],
 	];
+}
+
+function dtb_returns_public_reasons(): array {
+	$reasons = [];
+	foreach ( dtb_returns_public_reason_map() as $allowed ) {
+		$reasons = array_merge( $reasons, $allowed );
+	}
+	return array_values( array_unique( $reasons ) );
+}
+
+function dtb_returns_public_reason_allowed_for_type( string $request_type, string $reason ): bool {
+	$map = dtb_returns_public_reason_map();
+	return isset( $map[ $request_type ] ) && in_array( $reason, $map[ $request_type ], true );
 }
 
 function dtb_returns_public_reason_label( string $reason ): string {
@@ -119,7 +127,7 @@ function dtb_returns_public_rest_submit_verified( WP_REST_Request $request ): WP
 	if ( strlen( $idempotency_key ) < 16 || strlen( $idempotency_key ) > 96 || ! preg_match( '/^[A-Za-z0-9._:-]+$/', $idempotency_key ) ) {
 		return new WP_Error( 'dtb_returns_invalid_idempotency_key', __( 'The return request identity is invalid. Refresh the page and try again.', 'drywall-toolbox' ), [ 'status' => 400 ] );
 	}
-	if ( ! in_array( $request_type, dtb_returns_public_request_types(), true ) || ! in_array( $reason, dtb_returns_public_reasons(), true ) ) {
+	if ( ! in_array( $request_type, dtb_returns_public_request_types(), true ) || ! in_array( $reason, dtb_returns_public_reasons(), true ) || ! dtb_returns_public_reason_allowed_for_type( $request_type, $reason ) ) {
 		return new WP_Error( 'dtb_returns_invalid_reason', __( 'Choose a valid return type and reason.', 'drywall-toolbox' ), [ 'status' => 400 ] );
 	}
 
@@ -137,40 +145,59 @@ function dtb_returns_public_rest_submit_verified( WP_REST_Request $request ): WP
 		}
 	}
 
-	$validated_items = dtb_returns_validate_requested_items( $order, $items );
-	if ( is_wp_error( $validated_items ) ) {
-		return $validated_items;
+	$lock = dtb_returns_acquire_submission_lock( $order_id, $idempotency_key );
+	if ( is_wp_error( $lock ) ) {
+		return $lock;
 	}
 
-	$customer_name = trim( (string) $order->get_formatted_billing_full_name() );
-	if ( '' === $customer_name ) {
-		$customer_name = __( 'Customer', 'drywall-toolbox' );
+	try {
+		// Re-check after lock acquisition so concurrent identical requests converge
+		// on the first created return instead of producing duplicate side effects.
+		$existing = dtb_returns_find_by_idempotency_key( $order_id, $idempotency_key );
+		if ( $existing > 0 ) {
+			$entity = dtb_returns_get( $existing );
+			if ( $entity ) {
+				return new WP_REST_Response( dtb_returns_public_success_payload( $entity ), 200 );
+			}
+		}
+
+		$validated_items = dtb_returns_validate_requested_items( $order, $items );
+		if ( is_wp_error( $validated_items ) ) {
+			return $validated_items;
+		}
+
+		$customer_name = trim( (string) $order->get_formatted_billing_full_name() );
+		if ( '' === $customer_name ) {
+			$customer_name = __( 'Customer', 'drywall-toolbox' );
+		}
+
+		$result = dtb_return_create( [
+			'order_id'        => $order_id,
+			'order_number'    => (string) $order->get_order_number(),
+			'customer_name'   => $customer_name,
+			'customer_email'  => sanitize_email( (string) $order->get_billing_email() ),
+			'request_type'    => $request_type,
+			'reason'          => dtb_returns_public_reason_label( $reason ),
+			'notes'           => $notes,
+			'items'           => $validated_items,
+			'resolution'      => '',
+			'idempotency_key' => $idempotency_key,
+		] );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$entity = dtb_returns_get( (int) $result );
+		if ( ! $entity ) {
+			return new WP_Error( 'dtb_returns_create_failed', __( 'The return was created but could not be loaded. Please contact support.', 'drywall-toolbox' ), [ 'status' => 500 ] );
+		}
+
+		dtb_returns_public_send_notifications( $entity );
+		return new WP_REST_Response( dtb_returns_public_success_payload( $entity ), 201 );
+	} finally {
+		dtb_returns_release_submission_lock( $order_id, $idempotency_key );
 	}
-
-	$result = dtb_return_create( [
-		'order_id'        => $order_id,
-		'order_number'    => (string) $order->get_order_number(),
-		'customer_name'   => $customer_name,
-		'customer_email'  => sanitize_email( (string) $order->get_billing_email() ),
-		'request_type'    => $request_type,
-		'reason'          => dtb_returns_public_reason_label( $reason ),
-		'notes'           => $notes,
-		'items'           => $validated_items,
-		'resolution'      => '',
-		'idempotency_key' => $idempotency_key,
-	] );
-
-	if ( is_wp_error( $result ) ) {
-		return $result;
-	}
-
-	$entity = dtb_returns_get( (int) $result );
-	if ( ! $entity ) {
-		return new WP_Error( 'dtb_returns_create_failed', __( 'The return was created but could not be loaded. Please contact support.', 'drywall-toolbox' ), [ 'status' => 500 ] );
-	}
-
-	dtb_returns_public_send_notifications( $entity );
-	return new WP_REST_Response( dtb_returns_public_success_payload( $entity ), 201 );
 }
 
 function dtb_returns_public_success_payload( DTB_Return_Entity $entity ): array {
