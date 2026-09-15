@@ -62,12 +62,15 @@ export function BrandSelectorCard({
   meta,
   onClick,
   className = '',
+  style,
+  logoStyle,
 }) {
   return (
     <button
       type="button"
       role="listitem"
       className={`dtb-selector-card dtb-selector-card--brand${className ? ` ${className}` : ''}`}
+      style={style}
       onClick={onClick}
     >
       {logo ? (
@@ -75,6 +78,7 @@ export function BrandSelectorCard({
           src={logo}
           alt={`${name} logo`}
           className="dtb-selector-card__brand-logo"
+          style={logoStyle}
           loading="lazy"
           decoding="async"
         />
