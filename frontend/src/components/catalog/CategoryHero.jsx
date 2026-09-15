@@ -86,9 +86,17 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
           </div>
 
           <div className="dtb-category-hero-card__content">
-            {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
-            <h1 className="dtb-category-hero-card__title">{label}</h1>
-            <p className="dtb-category-hero-card__description">{displayDescription}</p>
+            <span className="dtb-category-hero-card__corner-accent" aria-hidden="true" />
+            <span className="dtb-category-hero-card__dot-field" aria-hidden="true" />
+            <span className="dtb-category-hero-card__divider" aria-hidden="true" />
+
+            <div className="dtb-category-hero-card__copy">
+              {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
+              <h1 className="dtb-category-hero-card__title">{label}</h1>
+              <p className="dtb-category-hero-card__description">{displayDescription}</p>
+              <span className="dtb-category-hero-card__rule" aria-hidden="true" />
+              <p className="dtb-category-hero-card__tagline">Trusted Tools. Stronger Results.</p>
+            </div>
           </div>
 
           <CategoryHeroMedia
