@@ -90,7 +90,12 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
             <span className="dtb-category-hero-card__corner-accent" aria-hidden="true" />
             <span className="dtb-category-hero-card__dot-field" aria-hidden="true" />
             <span className="dtb-category-hero-card__divider" aria-hidden="true">
-              <span className="dtb-category-hero-card__divider-cutouts" />
+              <span className="dtb-category-hero-card__divider-main">
+                <span className="dtb-category-hero-card__divider-blue-foot" />
+              </span>
+              <span className="dtb-category-hero-card__divider-rail dtb-category-hero-card__divider-rail--left" />
+              <span className="dtb-category-hero-card__divider-rail dtb-category-hero-card__divider-rail--right" />
+              <span className="dtb-category-hero-card__divider-pin" />
             </span>
 
             <div className="dtb-category-hero-card__copy">
