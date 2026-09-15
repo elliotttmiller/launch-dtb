@@ -19,17 +19,16 @@
 }
 
 @media (min-width: 768px) {
-  /* Full-height design canvas. The rails use explicit top/bottom polygon
-     vertices rather than transforms, so their endpoints remain flush with the
-     hero edges while the wider horizontal displacement creates the target
-     low-angle diagonal. */
+  /* Slim full-height artwork canvas. Every rail is an independent surface so
+     the hierarchy from the approved reference is preserved: atmospheric left
+     rail, dominant layered center rail, atmospheric right rail, blue pin. */
   .dtb-category-hero-card__divider {
     top: 0;
-    right: -1.75rem;
+    right: -1rem;
     bottom: 0;
     z-index: 1;
     display: block;
-    width: clamp(14.5rem, 18vw, 18.5rem);
+    width: clamp(12.5rem, 15vw, 15.75rem);
     height: auto;
     transform: none;
     border: 0;
@@ -40,53 +39,91 @@
     pointer-events: none;
   }
 
-  /* Main blue-silver diagonal. Wider and more diagonal than the previous rail,
-     with restrained tonal depth rather than a flat solid fill. */
-  .dtb-category-hero-card__divider::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(108deg, rgba(218,231,248,.56) 0%, rgba(190,214,243,.82) 47%, rgba(213,228,247,.62) 100%);
-    clip-path: polygon(66% 0, 80% 0, 25% 100%, 11% 100%);
-  }
-
-  /* Right silver companion rail. */
-  .dtb-category-hero-card__divider::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(108deg, rgba(241,246,252,.5) 0%, rgba(224,235,248,.76) 52%, rgba(245,248,252,.4) 100%);
-    clip-path: polygon(88% 0, 96% 0, 41% 100%, 33% 100%);
-  }
-
-  /* Left silver companion rail plus subtle horizontal cutouts across the main
-     rail. The cutouts are surface accents only and do not interrupt the rail's
-     continuous silhouette. */
-  .dtb-category-hero-card__divider-cutouts {
+  /* Dominant center ribbon. The horizontal travel is intentionally large so
+     it reads as a designed diagonal sweep rather than a near-vertical stripe. */
+  .dtb-category-hero-card__divider-main {
     position: absolute;
     inset: 0;
     z-index: 2;
     display: block;
+    overflow: hidden;
     background:
-      linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.72)) 51% 28% / 3.15rem 2px no-repeat,
-      linear-gradient(rgba(255,255,255,.62), rgba(255,255,255,.62)) 45% 37% / 3.65rem 2px no-repeat,
-      linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.72)) 34% 59% / 3.5rem 2px no-repeat,
-      linear-gradient(rgba(255,255,255,.56), rgba(255,255,255,.56)) 30% 67% / 2.8rem 2px no-repeat,
-      linear-gradient(108deg, rgba(245,248,252,.34) 0%, rgba(230,239,250,.68) 52%, rgba(247,250,253,.28) 100%);
-    clip-path: polygon(48% 0, 56% 0, 1% 100%, 0 100%, 0 91%);
+      linear-gradient(112deg, rgba(255,255,255,.18) 0%, transparent 24%, rgba(255,255,255,.24) 48%, transparent 70%),
+      linear-gradient(105deg, rgba(218,232,249,.78) 0%, rgba(146,190,240,.9) 46%, rgba(184,215,248,.82) 74%, rgba(226,237,250,.66) 100%);
+    clip-path: polygon(62% 0, 77% 0, 26% 100%, 11% 100%);
+    filter: drop-shadow(0 0 7px rgba(80, 139, 215, .08));
   }
 
-  /* Restore the target blue foot without changing the main rail silhouette. */
-  .dtb-category-hero-card__divider-cutouts::after {
+  /* Soft internal bloom gives the ribbon the generated reference's glassy,
+     dimensional center instead of a flat CSS fill. */
+  .dtb-category-hero-card__divider-main::before {
     content: '';
     position: absolute;
-    left: 11%;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 55% 34% at 44% 62%, rgba(48,129,236,.34), transparent 72%),
+      linear-gradient(180deg, rgba(255,255,255,.16), transparent 36%, rgba(31,111,230,.08) 76%, rgba(255,255,255,.2));
+  }
+
+  /* Restrained horizontal segmentation, clipped by the center ribbon itself. */
+  .dtb-category-hero-card__divider-main::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent 0 29%, rgba(255,255,255,.55) 29% 64%, transparent 64%) 50% 31% / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent 0 21%, rgba(255,255,255,.42) 21% 60%, transparent 60%) 50% 39% / 100% 1px no-repeat,
+      linear-gradient(90deg, transparent 0 31%, rgba(255,255,255,.38) 31% 68%, transparent 68%) 50% 61% / 100% 1px no-repeat;
+    opacity: .72;
+  }
+
+  .dtb-category-hero-card__divider-blue-foot {
+    position: absolute;
+    left: 9%;
     bottom: 0;
-    width: 3.1rem;
-    height: 2.7rem;
-    background: linear-gradient(145deg, #3d83ea 0%, #1769e8 100%);
-    clip-path: polygon(48% 0, 100% 0, 73% 100%, 21% 100%);
-    opacity: .94;
+    z-index: 3;
+    display: block;
+    width: 42%;
+    height: 27%;
+    background: linear-gradient(138deg, #0867ed 0%, #176fe9 42%, #6eacf5 100%);
+    clip-path: polygon(36% 0, 100% 0, 70% 100%, 0 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
+  }
+
+  /* Peripheral rails are intentionally faint and narrower than the center. */
+  .dtb-category-hero-card__divider-rail {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: block;
+  }
+
+  .dtb-category-hero-card__divider-rail--left {
+    background: linear-gradient(105deg, rgba(237,244,252,.12), rgba(208,225,246,.5) 48%, rgba(242,247,252,.2));
+    clip-path: polygon(47% 0, 54% 0, 3% 100%, 0 100%, 0 94%);
+    opacity: .72;
+  }
+
+  .dtb-category-hero-card__divider-rail--right {
+    background: linear-gradient(105deg, rgba(245,249,253,.1), rgba(220,234,249,.48) 52%, rgba(246,249,253,.14));
+    clip-path: polygon(84% 0, 91% 0, 40% 100%, 33% 100%);
+    opacity: .68;
+  }
+
+  /* Fine electric-blue edge detail from the reference; deliberately short so
+     it remains an accent rather than becoming a fourth rail. */
+  .dtb-category-hero-card__divider-pin {
+    position: absolute;
+    top: 28%;
+    right: 8%;
+    z-index: 4;
+    display: block;
+    width: 1.5px;
+    height: 42%;
+    background: linear-gradient(180deg, rgba(22,116,246,0), #1674f6 16%, #1674f6 84%, rgba(22,116,246,0));
+    transform: rotate(28deg);
+    transform-origin: 50% 50%;
+    opacity: .88;
   }
 
   .dtb-category-hero-card__dot-field {
@@ -98,8 +135,8 @@
 
 @media (min-width: 1280px) {
   .dtb-category-hero-card__divider {
-    right: -1.25rem;
-    width: clamp(16rem, 17vw, 19rem);
+    right: -.5rem;
+    width: clamp(13.5rem, 14vw, 16.25rem);
   }
 
   .dtb-category-hero-card__dot-field {
@@ -111,8 +148,8 @@
 
 @media (min-width: 1536px) {
   .dtb-category-hero-card__divider {
-    right: -0.75rem;
-    width: 18.75rem;
+    right: 0;
+    width: 15.75rem;
   }
 
   .dtb-category-hero-card__dot-field {
