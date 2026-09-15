@@ -179,9 +179,11 @@ function hasMoneyField(value) { return value !== null && value !== undefined && 
 function OrderSummaryCard({ order }) {
   if (!order) return null;
   const currency = order?.currency;
+  const discountTotal = parseMoney(order?.discount_total);
   const shippingTotal = parseMoney(order?.shipping_total);
   const hasShipping = Boolean(order?.has_shipping) && hasMoneyField(order?.shipping_total);
-  return <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="order-summary-title"><header className="dtb-order-sheet-section__header"><h2 id="order-summary-title" className="dtb-order-card__title">Order summary</h2></header><div className="dtb-order-sheet-section__body"><div className="dtb-order-totals dtb-order-totals--summary"><div className="dtb-order-total-row"><span>Subtotal</span><strong>{formatMoney(order?.subtotal, currency) || '—'}</strong></div><div className="dtb-order-total-row"><span>Shipping</span><strong>{hasShipping ? (shippingTotal === 0 ? <span className="dtb-order-free">FREE</span> : formatMoney(shippingTotal, currency)) : '—'}</strong></div><div className="dtb-order-total-row dtb-order-total-row--grand"><span>Total</span><strong>{formatMoney(order?.total, currency) || '—'}</strong></div></div></div></section>;
+  const hasDiscount = discountTotal !== null && discountTotal > 0;
+  return <section className="dtb-order-sheet-section dtb-order-sheet-section--tracking" aria-labelledby="order-summary-title"><header className="dtb-order-sheet-section__header"><h2 id="order-summary-title" className="dtb-order-card__title">Order summary</h2></header><div className="dtb-order-sheet-section__body"><div className="dtb-order-totals dtb-order-totals--summary"><div className="dtb-order-total-row"><span>Subtotal</span><strong>{formatMoney(order?.subtotal, currency) || '—'}</strong></div>{hasDiscount ? <div className="dtb-order-total-row"><span>Discount</span><strong>{formatMoney(-discountTotal, currency)}</strong></div> : null}<div className="dtb-order-total-row"><span>Shipping</span><strong>{hasShipping ? (shippingTotal === 0 ? <span className="dtb-order-free">FREE</span> : formatMoney(shippingTotal, currency)) : '—'}</strong></div><div className="dtb-order-total-row"><span>Tax</span><strong>{formatMoney(order?.total_tax, currency) || '—'}</strong></div><div className="dtb-order-total-row dtb-order-total-row--grand"><span>Total</span><strong>{formatMoney(order?.total, currency) || '—'}</strong></div></div></div></section>;
 }
 
 function OrderTrackingHelpFooter() {

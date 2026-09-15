@@ -119,14 +119,16 @@ function dtb_order_build_tracking_projection( int $order_id ): ?array {
 		'number'             => $order->get_order_number(),
 		'currency'           => $order->get_currency(),
 		'subtotal'           => $order->get_subtotal(),
+		'discount_total'     => $order->get_discount_total(),
 		'shipping_total'     => $order->get_shipping_total(),
 		'has_shipping'       => ! empty( $order->get_shipping_methods() ),
+		'total_tax'          => $order->get_total_tax(),
 		'total'              => $order->get_total(),
 	];
 }
 
 function dtb_order_get_tracking_projection( int $order_id ): ?array {
-	$cache_key = 'dtb_order_tracking_v2_' . $order_id;
+	$cache_key = 'dtb_order_tracking_v3_' . $order_id;
 	$cached    = get_transient( $cache_key );
 
 	if ( is_array( $cached ) ) {
