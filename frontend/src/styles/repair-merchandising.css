@@ -24,3 +24,230 @@
 .repair-closing-cta__actions {
   flex-wrap: wrap;
 }
+
+/* Customer-facing repair merchandising refinements. */
+.repair-hero__assurance {
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repair-hero__assurance li {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.repair-hero__assurance li:not(:last-child)::after {
+  content: '';
+  width: 1px;
+  height: 13px;
+  margin: 0 12px;
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.repair-assurance .repair-section-shell {
+  grid-template-columns: minmax(250px, 0.72fr) minmax(0, 2.28fr);
+}
+
+.repair-assurance__grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.repair-assurance__item {
+  min-width: 0;
+}
+
+.repair-shipping-prep {
+  padding: 52px 0 56px;
+  background: #fff;
+  border-bottom: 1px solid var(--repair-line);
+}
+
+.repair-shipping-prep__intro {
+  margin-bottom: 28px;
+}
+
+.repair-shipping-prep__grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--repair-line);
+  border-bottom: 1px solid var(--repair-line);
+}
+
+.repair-shipping-prep__grid li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 22px clamp(14px, 1.7vw, 24px);
+}
+
+.repair-shipping-prep__grid li:not(:last-child) {
+  border-right: 1px solid var(--repair-line);
+}
+
+.repair-shipping-prep__grid li > span {
+  color: var(--repair-blue);
+  font-size: 0.66rem;
+  font-weight: 950;
+  letter-spacing: 0.07em;
+  line-height: 1.45;
+}
+
+.repair-shipping-prep__grid h3 {
+  margin: 0 0 6px;
+  color: var(--repair-ink);
+  font-size: 0.9rem;
+  font-weight: 850;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.repair-shipping-prep__grid p {
+  margin: 0;
+  color: var(--repair-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.repair-brands__copy {
+  max-width: 42ch;
+  margin: 12px 0 0;
+  color: var(--repair-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.repair-faq__groups {
+  display: grid;
+  gap: 30px;
+}
+
+.repair-faq__group h3 {
+  margin: 0 0 10px;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.repair-faq__group .repair-faq__list {
+  border-top-color: #cfd8e5;
+}
+
+.repair-resources__actions a:last-child {
+  color: var(--repair-blue);
+}
+
+@media (max-width: 1100px) {
+  .repair-assurance .repair-section-shell {
+    grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.8fr);
+  }
+
+  .repair-assurance__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .repair-assurance__item:nth-child(2) {
+    border-right: 0;
+  }
+
+  .repair-assurance__item:nth-child(-n + 2) {
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-assurance__item:nth-child(n + 3) {
+    padding-top: 24px;
+  }
+
+  .repair-shipping-prep__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .repair-shipping-prep__grid li:nth-child(3) {
+    border-right: 0;
+  }
+
+  .repair-shipping-prep__grid li:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--repair-line);
+  }
+}
+
+@media (max-width: 700px) {
+  .repair-assurance .repair-section-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-assurance__grid {
+    grid-template-columns: 1fr;
+    border-left: 0;
+    border-top: 1px solid var(--repair-line);
+  }
+
+  .repair-assurance__item,
+  .repair-assurance__item:nth-child(-n + 2),
+  .repair-assurance__item:nth-child(n + 3) {
+    padding: 18px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-assurance__item:last-child {
+    border-bottom: 0;
+  }
+
+  .repair-shipping-prep {
+    padding: 34px 0;
+  }
+
+  .repair-shipping-prep__intro {
+    margin-bottom: 20px;
+  }
+
+  .repair-shipping-prep__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-shipping-prep__grid li,
+  .repair-shipping-prep__grid li:nth-child(-n + 3) {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    padding: 17px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-shipping-prep__grid li:last-child {
+    border-bottom: 0;
+  }
+
+  .repair-shipping-prep__grid li > span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #dbe5f5;
+    border-radius: 50%;
+    background: #fff;
+    line-height: 1;
+  }
+
+  .repair-shipping-prep__grid h3 {
+    font-size: 0.88rem;
+  }
+
+  .repair-shipping-prep__grid p {
+    font-size: 0.77rem;
+  }
+
+  .repair-faq__groups {
+    gap: 26px;
+  }
+}

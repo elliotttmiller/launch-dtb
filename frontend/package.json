@@ -16,6 +16,7 @@
     "test:contractor-shopping": "node --test tests/contractorShoppingContract.test.mjs",
     "test:calculators": "node --test tests/calculators/calculators.test.mjs",
     "test:home-hero": "node --test tests/homeHeroResponsiveMediaContract.test.mjs",
+    "test:repair-landing": "node --test tests/repairLandingContract.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production"
   },
   "dependencies": {
