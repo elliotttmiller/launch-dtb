@@ -20,10 +20,9 @@ function PartsHero() {
           <span className="dtb-parts-hero__slash dtb-parts-hero__slash--two" />
           <span className="dtb-parts-hero__slash dtb-parts-hero__slash--three" />
           <div className="dtb-parts-hero__statement">
-            <span>Parts</span>
-            <span>Service</span>
-            <span>Uptime</span>
-            <span>Confidence</span>
+            <span>Genuine Parts</span>
+            <span>Dependable Repairs</span>
+            <span>Less Downtime</span>
             <span className="dtb-parts-hero__statement-rule" />
           </div>
         </div>
