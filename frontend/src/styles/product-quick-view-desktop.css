@@ -3,6 +3,10 @@
  * ProductModal owns dialog lifecycle/focus/scroll behavior and ProductDetail owns
  * product, variation and cart behavior. This file is presentation-only and is
  * deliberately scoped to the modal shell so the full PDP remains unchanged.
+ *
+ * IMPORTANT: Quick View remains the complete ProductDetail experience. Its
+ * description, specifications, reviews and other lower-page sections must stay
+ * rendered and reachable by scrolling; this stylesheet only restyles them.
  */
 
 @media (min-width: 1024px) {
@@ -19,7 +23,6 @@
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp {
     min-height: 0;
     padding: 52px 64px 44px !important;
-    overflow: hidden;
     background: #fff;
   }
 
@@ -36,7 +39,6 @@
     margin: 0 !important;
   }
 
-  /* Media column: 690 x 501 reference stage with a five-up thumbnail rail. */
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-gallery {
     width: 100%;
     min-width: 0;
@@ -93,14 +95,12 @@
     padding: 8px;
   }
 
-  /* Reference design does not expose carousel chrome over the product photo. */
   .product-modal-card-shell.dtb-product-page-shell .product-image-gallery__nav-btn,
   .product-modal-card-shell.dtb-product-page-shell .product-image-gallery__counter,
   .product-modal-card-shell.dtb-product-page-shell .product-image-gallery__thumb-nav {
     display: none !important;
   }
 
-  /* Product information column. */
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__info-column {
     min-width: 0;
     align-self: stretch;
@@ -256,11 +256,28 @@
     max-width: 58px;
   }
 
-  /* Quick view is intentionally a focused purchase surface. Long-form PDP
-     content remains available from the linked product title/full product route. */
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-sections,
+  /* Preserve the complete lower ProductDetail experience in Quick View. */
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-sections {
+    display: block !important;
+    margin-top: 46px !important;
+    padding-top: 0;
+    border-top: 1px solid #e1e7ef;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-tabs {
+    display: flex !important;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-section {
+    display: block;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-section__content {
+    padding-top: 30px;
+  }
+
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-assurance-row {
-    display: none !important;
+    display: grid !important;
   }
 
   .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__close-btn {
