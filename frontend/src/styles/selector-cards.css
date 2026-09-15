@@ -219,6 +219,8 @@
 }
 
 .dtb-selector-card__brand-logo {
+  position: relative;
+  z-index: 1;
   width: auto;
   height: clamp(4rem, 12vw, 6rem);
   max-width: 88%;
@@ -261,19 +263,100 @@
 }
 
 .dtb-selector-card--brand.products-brand-selector__card--surpro,
-.dtb-selector-card--brand.products-brand-selector__card--tapetech {
+.dtb-selector-card--brand.products-brand-selector__card--tapetech,
+.dtb-selector-card--brand.products-brand-selector__card--dura-stilts,
+.dtb-selector-card--brand.products-brand-selector__card--platinum {
   justify-content: center;
   border-color: rgba(255, 255, 255, 0.28);
 }
 
 .dtb-selector-card--brand.products-brand-selector__card--surpro .dtb-selector-card__brand-meta,
-.dtb-selector-card--brand.products-brand-selector__card--tapetech .dtb-selector-card__brand-meta {
+.dtb-selector-card--brand.products-brand-selector__card--tapetech .dtb-selector-card__brand-meta,
+.dtb-selector-card--brand.products-brand-selector__card--dura-stilts .dtb-selector-card__brand-meta,
+.dtb-selector-card--brand.products-brand-selector__card--platinum .dtb-selector-card__brand-meta {
   position: absolute;
   bottom: clamp(0.75rem, 2.6vw, 1rem);
   left: 1rem;
   right: 1rem;
   color: rgba(255, 255, 255, 0.78);
   text-align: center;
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--dura-stilts::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.055) 0,
+      rgba(255, 255, 255, 0.055) 2px,
+      rgba(4, 0, 36, 0.16) 2px,
+      rgba(4, 0, 36, 0.16) 7px
+    ),
+    radial-gradient(circle at 28% 20%, rgba(255, 255, 255, 0.14), transparent 34%),
+    radial-gradient(circle at 78% 82%, rgba(255, 210, 34, 0.12), transparent 32%),
+    linear-gradient(135deg, rgba(38, 18, 128, 0.34), rgba(8, 0, 48, 0.28));
+  z-index: 0;
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--dura-stilts .dtb-selector-card__brand-logo {
+  filter:
+    drop-shadow(0 0 2px rgba(255, 214, 35, 0.35))
+    drop-shadow(0 3px 7px rgba(0, 0, 0, 0.42));
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--tapetech::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.13) 0,
+      rgba(255, 255, 255, 0.13) 2px,
+      rgba(120, 78, 8, 0.07) 2px,
+      rgba(120, 78, 8, 0.07) 4px
+    ),
+    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(255, 214, 91, 0.38), rgba(205, 132, 6, 0.14));
+  z-index: 0;
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--tapetech .dtb-selector-card__brand-logo {
+  filter:
+    drop-shadow(0 0 1px rgba(0, 0, 0, 0.72))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.16));
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--platinum {
+  border-color: rgba(100, 116, 139, 0.24);
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--platinum::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      112deg,
+      rgba(255, 255, 255, 0.18) 0,
+      rgba(255, 255, 255, 0.18) 1px,
+      rgba(91, 104, 121, 0.12) 1px,
+      rgba(91, 104, 121, 0.12) 4px
+    ),
+    linear-gradient(135deg, #f3f5f8 0%, #d3dae3 48%, #aeb8c5 100%);
+  z-index: 0;
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--platinum .dtb-selector-card__brand-logo {
+  filter:
+    drop-shadow(0 1px 1px rgba(0, 0, 0, 0.2))
+    drop-shadow(0 8px 16px rgba(15, 23, 42, 0.08));
+}
+
+.dtb-selector-card--brand.products-brand-selector__card--platinum .dtb-selector-card__brand-meta {
+  color: rgba(15, 23, 42, 0.56);
 }
 
 @media (hover: hover) and (pointer: fine) {

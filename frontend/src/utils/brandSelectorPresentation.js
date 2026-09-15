@@ -11,10 +11,10 @@ export const FEATURED_BRAND_PRESENTATION = {
       padding: 0,
     },
     logoStyle: {
-      width: '82%',
+      width: '76%',
       height: 'auto',
-      maxWidth: '82%',
-      maxHeight: '54%',
+      maxWidth: '76%',
+      maxHeight: '46%',
     },
   },
   columbia: {
@@ -28,6 +28,20 @@ export const FEATURED_BRAND_PRESENTATION = {
       width: '72%',
       height: 'auto',
       maxWidth: '72%',
+      maxHeight: '48%',
+    },
+  },
+  durastilts: {
+    logo: resolveBrandLogo('Dura-Stilts'),
+    className: 'products-brand-selector__card--dura-stilts',
+    cardStyle: {
+      backgroundColor: 'rgba(17, 0, 87)',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '78%',
+      height: 'auto',
+      maxWidth: '78%',
       maxHeight: '48%',
     },
   },
@@ -47,6 +61,20 @@ export const FEATURED_BRAND_PRESENTATION = {
       height: 'auto',
       maxWidth: '74%',
       maxHeight: '48%',
+    },
+  },
+  platinum: {
+    logo: resolveBrandLogo('Platinum'),
+    className: 'products-brand-selector__card--platinum',
+    cardStyle: {
+      backgroundColor: '#eef2f6',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '76%',
+      height: 'auto',
+      maxWidth: '76%',
+      maxHeight: '44%',
     },
   },
   surpro: {
@@ -93,8 +121,10 @@ export function resolveFeaturedBrandPresentation(brand = {}) {
     if (!normalized) continue;
 
     if (normalized.includes('columbia')) return FEATURED_BRAND_PRESENTATION.columbia;
+    if (normalized === 'durastilts' || normalized === 'durastilt') return FEATURED_BRAND_PRESENTATION.durastilts;
     if (normalized === 'tapetech' || normalized === 'tapetechtools') return FEATURED_BRAND_PRESENTATION.tapetech;
     if (normalized === 'level5') return FEATURED_BRAND_PRESENTATION.level5;
+    if (normalized.includes('platinum')) return FEATURED_BRAND_PRESENTATION.platinum;
     if (normalized === 'surpro' || normalized === 'sur') return FEATURED_BRAND_PRESENTATION.surpro;
     if (normalized === 'usg' || normalized.includes('usgsheetrock')) {
       return FEATURED_BRAND_PRESENTATION.usgsheetrocktools;
