@@ -1,26 +1,26 @@
 /* Category hero presentation layer.
-   The catalog page shell, breadcrumbs, merchandising, filters, product grid,
-   category data, and media resolution remain owned by their existing modules.
-   This file only art-directs the bounded category hero surface. */
+   Category routing, catalog state, merchandising, and media resolution remain
+   owned by their existing modules. This file only art-directs the hero card. */
 
 .dtb-category-hero-card {
-  --hero-blue: #1769e8;
-  --hero-blue-soft: rgba(23, 105, 232, .12);
-  --hero-ink: #0b1930;
-  --hero-line: rgba(111, 139, 177, .18);
-  border-color: rgba(154, 177, 207, .34);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 18% 18%, rgba(218, 235, 255, .46), transparent 31%),
-    radial-gradient(circle at 76% 54%, rgba(232, 240, 250, .28), transparent 34%),
-    linear-gradient(105deg, #f8fbff 0%, #fbfdff 39%, #fff 61%, #f8fbff 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.9),
-    0 1px 2px rgba(15, 23, 42, .025),
-    0 14px 36px rgba(34, 63, 102, .055);
+  --hero-navy: #062956;
+  --hero-navy-deep: #031f43;
+  --hero-blue: #1477e8;
+  --hero-copy-muted: #d8e7f7;
+  border-color: rgba(139, 165, 197, .32);
+  border-radius: 14px;
+  background: #f8fbff;
+  box-shadow: 0 8px 24px rgba(15, 39, 71, .055);
 }
 
-/* Fine architectural texture replaces the old large corner-decoration feel. */
+/* The approved direction uses the information plane itself as the graphic
+   identity; remove the legacy corner/dot/ribbon decoration entirely. */
+.dtb-category-hero-card__corner-accent,
+.dtb-category-hero-card__dot-field,
+.dtb-category-hero-card__divider {
+  display: none !important;
+}
+
 .dtb-category-hero-card::before {
   content: '';
   position: absolute;
@@ -28,9 +28,8 @@
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, transparent 0 8%, rgba(104, 137, 179, .055) 8% 8.06%, transparent 8.06% 100%),
-    linear-gradient(180deg, rgba(255,255,255,.2), transparent 24%, transparent 78%, rgba(223,234,247,.18));
-  opacity: .9;
+    linear-gradient(124deg, transparent 0 79%, rgba(215,226,241,.42) 79.1% 82%, transparent 82.1%),
+    linear-gradient(124deg, transparent 0 87%, rgba(228,236,247,.62) 87.1% 90%, transparent 90.1%);
 }
 
 .dtb-category-hero-card::after {
@@ -39,254 +38,142 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: linear-gradient(112deg, transparent 0 45%, rgba(218,231,247,.22) 51%, transparent 58%);
-  transform: translateX(-9%);
+  background: linear-gradient(90deg, transparent 52%, rgba(238,244,251,.35) 67%, rgba(248,251,255,.78) 100%);
 }
 
 .dtb-category-hero-card__content,
-.dtb-category-hero-card__media {
-  position: relative;
-}
+.dtb-category-hero-card__media { position: relative; }
 
 .dtb-category-hero-card__content {
   z-index: 2;
+  color: #fff;
+  background:
+    radial-gradient(circle at 72% 12%, rgba(27,135,244,.30), transparent 34%),
+    linear-gradient(135deg, rgba(16,99,191,.20), transparent 43%),
+    linear-gradient(112deg, var(--hero-navy-deep) 0%, var(--hero-navy) 48%, #0754a3 100%);
 }
 
-.dtb-category-hero-card__media {
-  z-index: 1;
-}
-
-/* Modern corner signature: smaller, sharper and integrated with a fading mesh. */
-.dtb-category-hero-card__corner-accent {
-  width: 4.25rem;
-  height: 6.9rem;
-  background: linear-gradient(142deg, #145fe3 0%, #2f79ed 72%, #70a9f4 100%);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  opacity: .96;
-  filter: saturate(.96);
-}
-
-.dtb-category-hero-card__dot-field {
-  top: 0;
-  left: 2.15rem;
+.dtb-category-hero-card__content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
   z-index: 0;
-  width: 9.5rem;
-  height: 6.9rem;
-  background-image: radial-gradient(circle, rgba(51, 122, 224, .27) .8px, transparent 1px);
-  background-size: 5.5px 5.5px;
-  -webkit-mask-image: radial-gradient(ellipse 110% 100% at 0 0, #000 0 27%, rgba(0,0,0,.72) 52%, rgba(0,0,0,.22) 74%, transparent 96%);
-  mask-image: radial-gradient(ellipse 110% 100% at 0 0, #000 0 27%, rgba(0,0,0,.72) 52%, rgba(0,0,0,.22) 74%, transparent 96%);
-  opacity: .62;
+  pointer-events: none;
+  background:
+    linear-gradient(133deg, transparent 0 57%, rgba(40,139,239,.08) 57.2% 67%, transparent 67.2%),
+    linear-gradient(180deg, rgba(255,255,255,.035), transparent 38%, rgba(0,0,0,.08));
 }
 
-.dtb-category-hero-card__copy {
-  isolation: isolate;
-}
+.dtb-category-hero-card__copy { isolation: isolate; }
 
 .dtb-category-hero-card__eyebrow {
-  color: #1263e7;
-  font-size: .66rem;
-  font-weight: 850;
-  letter-spacing: .105em;
+  color: #d8ebff;
+  font-size: .64rem;
+  font-weight: 800;
+  letter-spacing: .16em;
 }
 
 .dtb-category-hero-card__title {
-  color: var(--hero-ink);
+  color: #fff;
+  font-weight: 880;
   letter-spacing: -.045em;
   text-wrap: balance;
+  text-shadow: 0 1px 1px rgba(0,20,48,.12);
 }
 
 .dtb-category-hero-card__description {
-  color: #5b6f89;
+  color: var(--hero-copy-muted);
+  font-weight: 480;
   text-wrap: pretty;
 }
 
 .dtb-category-hero-card__rule {
-  width: 2.75rem;
+  width: 3rem;
   height: 2px;
-  margin-top: 1.15rem;
-  background: linear-gradient(90deg, #1263e7, #4289ee);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.35);
+  margin-top: 1rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #39a4ff, #82c8ff);
+  box-shadow: 0 0 12px rgba(69,166,255,.18);
 }
 
 .dtb-category-hero-card__tagline {
-  margin-top: .88rem;
-  color: #74869e;
-  font-size: .59rem;
+  margin-top: .82rem;
+  color: #9dc5ea;
+  font-size: .58rem;
+  font-weight: 760;
   letter-spacing: .245em;
 }
 
-/* Product artwork remains the category-specific focal point. A restrained
-   radial lift creates separation without adding a second card or fake scene. */
+.dtb-category-hero-card__media { z-index: 1; background: transparent; }
+
 .dtb-category-hero-card__media::before {
   content: '';
   position: absolute;
-  inset: 13% 8% 10% 3%;
+  inset: 12% 5% 8% 0;
   z-index: -1;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(222,233,247,.42) 0%, rgba(240,246,252,.16) 47%, transparent 72%);
+  background: radial-gradient(ellipse at center, rgba(221,231,244,.38), rgba(242,247,252,.12) 54%, transparent 74%);
   filter: blur(10px);
-  opacity: .7;
   pointer-events: none;
 }
 
 @media (min-width: 768px) {
-  .dtb-category-hero-card__content,
-  .dtb-category-hero-card__skeleton-content {
-    padding-left: clamp(2.4rem, 3.6vw, 3.6rem);
-    padding-right: clamp(2.5rem, 4.1vw, 4.4rem);
+  .dtb-category-hero-card {
+    grid-template-columns: minmax(0, 42.5%) minmax(0, 57.5%);
+    height: clamp(13.25rem, 16.2vw, 17.75rem);
+    min-height: 13.25rem;
   }
 
-  .dtb-category-hero-card__copy {
-    width: min(100%, 32rem);
-    max-width: calc(100% - clamp(3.75rem, 5.5vw, 5.75rem));
+  /* Broad angled handoff is geometry, not a decorative divider. */
+  .dtb-category-hero-card__content {
+    width: calc(100% + clamp(3.5rem, 5.4vw, 6rem));
+    padding: clamp(1.4rem, 2vw, 2rem) clamp(2.2rem, 3.4vw, 4rem);
+    padding-right: clamp(5rem, 7.2vw, 8rem);
+    clip-path: polygon(0 0, 100% 0, calc(100% - clamp(3.5rem, 5.4vw, 6rem)) 100%, 0 100%);
   }
 
-  .dtb-category-hero-card__title,
-  .dtb-category-hero-card__description {
-    max-width: 100%;
-    overflow-wrap: normal;
-  }
-
-  /* The divider is now one engineered ribbon system rather than three flat
-     stripes: glass center blade, two fading rails, lower blue energy segment,
-     fine edge pin, and clipped technical cross-lines. */
-  .dtb-category-hero-card__divider {
-    top: -8%;
-    right: -3rem;
-    bottom: -8%;
-    z-index: 1;
-    display: block;
-    width: clamp(13rem, 15vw, 16.5rem);
-    height: auto;
-    border: 0;
-    background: transparent;
-    clip-path: none;
-    box-shadow: none;
-    opacity: 0;
-    transform: translate3d(1.35rem, 0, 0) scale(.985);
-    transform-origin: 50% 50%;
-    pointer-events: none;
-    will-change: transform, opacity;
-    transition:
-      opacity 600ms ease 110ms,
-      transform 900ms cubic-bezier(.16,1,.3,1) 70ms;
-  }
-
-  .dtb-category-hero.is-ready .dtb-category-hero-card__divider {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-
-  .dtb-category-hero-card__divider-main {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: block;
-    overflow: hidden;
-    clip-path: polygon(69% 0, 82% 0, 25% 100%, 12% 100%);
-    background:
-      linear-gradient(115deg, rgba(255,255,255,.48) 0%, transparent 26%, rgba(255,255,255,.18) 48%, transparent 70%),
-      linear-gradient(106deg, rgba(225,237,251,.88) 0%, rgba(176,210,247,.88) 34%, rgba(104,167,238,.77) 61%, rgba(222,236,251,.82) 100%);
-    box-shadow: inset 1px 0 rgba(255,255,255,.7), inset -1px 0 rgba(116,166,225,.12);
-    filter: drop-shadow(0 8px 18px rgba(55, 112, 183, .06));
-  }
-
-  .dtb-category-hero-card__divider-main::before {
+  /* Crisp blue/ice edge integrated into the split plane. */
+  .dtb-category-hero-card__content::after {
     content: '';
     position: absolute;
-    inset: -15% -30%;
-    background:
-      radial-gradient(ellipse 30% 22% at 48% 63%, rgba(27,112,232,.4), transparent 74%),
-      linear-gradient(180deg, transparent 12%, rgba(255,255,255,.25) 34%, transparent 50%, rgba(29,110,224,.11) 72%, transparent 88%);
-    transform: translateY(-9%);
-    animation: dtb-category-divider-bloom 7.5s ease-in-out 1s infinite alternate;
-  }
-
-  .dtb-category-hero-card__divider-main::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(90deg, transparent 0 30%, rgba(255,255,255,.7) 30% 68%, transparent 68%) 50% 31% / 100% 1px no-repeat,
-      linear-gradient(90deg, transparent 0 24%, rgba(119,170,232,.22) 24% 63%, transparent 63%) 50% 45% / 100% 1px no-repeat,
-      linear-gradient(90deg, transparent 0 32%, rgba(255,255,255,.58) 32% 70%, transparent 70%) 50% 61% / 100% 1px no-repeat;
-    opacity: .72;
-  }
-
-  .dtb-category-hero-card__divider-blue-foot {
-    position: absolute;
-    left: 9%;
+    top: 0;
+    right: 0;
     bottom: 0;
-    z-index: 3;
-    display: block;
-    width: 45%;
-    height: 25%;
-    clip-path: polygon(35% 0, 100% 0, 68% 100%, 0 100%);
-    background:
-      linear-gradient(135deg, #075ee6 0%, #0f6ff0 48%, #67a7f4 100%);
-    box-shadow: inset 0 1px rgba(255,255,255,.3), 0 -8px 22px rgba(22,105,232,.08);
-  }
-
-  .dtb-category-hero-card__divider-rail {
-    position: absolute;
-    inset: 0;
     z-index: 1;
-    display: block;
+    width: clamp(3.5rem, 5.4vw, 6rem);
+    pointer-events: none;
+    background: linear-gradient(112deg, transparent 0 43%, rgba(106,186,255,.95) 44% 52%, rgba(227,243,255,.98) 53% 58%, transparent 59%);
   }
 
-  .dtb-category-hero-card__divider-rail--left {
-    clip-path: polygon(53% 0, 59% 0, 2% 100%, 0 100%, 0 94%);
-    background: linear-gradient(106deg, rgba(244,249,254,.05), rgba(198,220,247,.42) 50%, rgba(242,248,254,.08));
-    opacity: .62;
+  .dtb-category-hero-card__copy { width: min(100%, 34rem); max-width: 100%; }
+
+  .dtb-category-hero-card__title {
+    margin-top: .42rem;
+    font-size: clamp(2rem, 2.55vw, 2.85rem);
+    line-height: .98;
   }
 
-  .dtb-category-hero-card__divider-rail--right {
-    clip-path: polygon(89% 0, 94% 0, 37% 100%, 32% 100%);
-    background: linear-gradient(106deg, rgba(248,251,255,.04), rgba(210,229,249,.38) 50%, rgba(248,251,255,.06));
-    opacity: .55;
+  .dtb-category-hero-card__description {
+    max-width: 45ch;
+    margin-top: .68rem;
+    font-size: clamp(.8rem, .9vw, .94rem);
+    line-height: 1.42;
   }
 
-  .dtb-category-hero-card__divider-pin {
-    position: absolute;
-    top: 30%;
-    right: 6.5%;
-    z-index: 4;
-    display: block;
-    width: 1px;
-    height: 36%;
-    background: linear-gradient(180deg, transparent, #1675f5 17%, #1675f5 83%, transparent);
-    transform: rotate(30deg);
-    transform-origin: center;
-    opacity: .72;
+  .dtb-category-hero-card__media {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    padding: clamp(.5rem,.9vw,.85rem) clamp(1.25rem,2.5vw,3rem) clamp(.45rem,.8vw,.75rem) clamp(1.8rem,3vw,3.6rem);
   }
-
-  /* Stagger copy and media rather than moving the entire card. This provides
-     present-day motion without making the commerce layout feel theatrical. */
-  .dtb-category-hero-card__copy > * {
-    opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 430ms ease, transform 650ms cubic-bezier(.16,1,.3,1);
-  }
-
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > * {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(1) { transition-delay: 80ms; }
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(2) { transition-delay: 125ms; }
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(3) { transition-delay: 170ms; }
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(4) { transition-delay: 215ms; }
-  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(5) { transition-delay: 245ms; }
 
   .dtb-category-hero-card__image {
-    transform: translate3d(16px, 4px, 0) scale(.985);
-    transition:
-      opacity 500ms ease 100ms,
-      transform 900ms cubic-bezier(.16,1,.3,1) 80ms,
-      filter 700ms ease;
-    filter: saturate(.96) contrast(.985);
+    object-fit: contain;
+    object-position: 50% 50%;
+    transform: translate3d(14px,2px,0) scale(.99);
+    filter: saturate(.98) contrast(.995);
+    transition: opacity 420ms ease 80ms, transform 760ms cubic-bezier(.16,1,.3,1) 50ms, filter 600ms ease;
   }
 
   .dtb-category-hero-card__image.is-ready {
@@ -294,76 +181,73 @@
     filter: saturate(1) contrast(1);
   }
 
-  .dtb-category-hero-card__dot-field {
-    left: 2.65rem;
-    width: 9.8rem;
-    height: 7.2rem;
+  .dtb-category-hero-card__copy > * {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 360ms ease, transform 560ms cubic-bezier(.16,1,.3,1);
   }
-}
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > * { opacity: 1; transform: translateY(0); }
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(1) { transition-delay: 70ms; }
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(2) { transition-delay: 105ms; }
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(3) { transition-delay: 140ms; }
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(4) { transition-delay: 175ms; }
+  .dtb-category-hero.is-ready .dtb-category-hero-card__copy > :nth-child(5) { transition-delay: 205ms; }
 
-@keyframes dtb-category-divider-bloom {
-  from { transform: translateY(-9%); opacity: .72; }
-  to { transform: translateY(9%); opacity: 1; }
+  .dtb-category-hero-card--skeleton {
+    grid-template-columns: minmax(0,42.5%) minmax(0,57.5%);
+    height: clamp(13.25rem,16.2vw,17.75rem);
+    min-height: 13.25rem;
+  }
 }
 
 @media (min-width: 1280px) {
-  .dtb-category-hero-card__copy {
-    width: min(100%, 34rem);
-    max-width: calc(100% - clamp(4.25rem, 5.5vw, 6rem));
+  .dtb-category-hero-card {
+    grid-template-columns: minmax(0,41%) minmax(0,59%);
+    height: clamp(14rem,15.2vw,17.25rem);
   }
-
-  .dtb-category-hero-card__divider {
-    right: -2.35rem;
-    width: clamp(14rem, 14vw, 16.75rem);
-  }
-
-  .dtb-category-hero-card__dot-field {
-    left: 2.9rem;
-    width: 10rem;
+  .dtb-category-hero-card__content { padding-left: clamp(2.8rem,3.5vw,4.4rem); }
+  .dtb-category-hero-card__media {
+    padding-left: clamp(2.4rem,3.4vw,4.4rem);
+    padding-right: clamp(2rem,3vw,4rem);
   }
 }
 
 @media (min-width: 1536px) {
-  .dtb-category-hero-card__copy {
-    width: min(100%, 36rem);
-    max-width: calc(100% - 5.8rem);
-  }
-
-  .dtb-category-hero-card__divider {
-    right: -1.75rem;
-    width: 16.25rem;
-  }
+  .dtb-category-hero-card { height: 16.75rem; }
+  .dtb-category-hero-card__title { font-size: 2.75rem; }
 }
 
 @media (max-width: 767px) {
-  .dtb-category-hero-card {
-    border-radius: 15px;
-  }
+  .dtb-category-hero-card { border-radius: 13px; background: #f8fbff; }
+  .dtb-category-hero-card::before,
+  .dtb-category-hero-card::after { opacity: .55; }
 
-  .dtb-category-hero-card__corner-accent {
-    width: 3.6rem;
-    height: 5.7rem;
+  .dtb-category-hero-card__content {
+    order: 2;
+    padding: 1.5rem 1.35rem 1.45rem;
+    background: radial-gradient(circle at 85% 5%, rgba(29,137,244,.24), transparent 35%), linear-gradient(112deg,var(--hero-navy-deep),#0754a3);
   }
-
-  .dtb-category-hero-card__dot-field {
-    top: 0;
-    left: 1.55rem;
-    width: 6.8rem;
-    height: 5.35rem;
-    background-size: 5.2px 5.2px;
-    opacity: .48;
+  .dtb-category-hero-card__content::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg,#1682f2,#83c9ff 52%,transparent 90%);
   }
+  .dtb-category-hero-card__media {
+    order: 1;
+    aspect-ratio: 2.05 / 1;
+    padding: .8rem 1rem .55rem;
+  }
+  .dtb-category-hero-card__title { color: #fff; font-size: clamp(1.8rem,9vw,2.35rem); }
+  .dtb-category-hero-card__description { color: var(--hero-copy-muted); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dtb-category-hero-card__divider,
   .dtb-category-hero-card__copy > *,
   .dtb-category-hero-card__image {
-    transition: none;
-  }
-
-  .dtb-category-hero-card__divider-main::before {
-    animation: none;
-    transform: none;
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
   }
 }
