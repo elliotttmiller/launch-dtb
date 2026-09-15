@@ -3,12 +3,12 @@
 }
 
 .repair-service-panel--diagnostic li {
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.88);
   border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
-.repair-service-panel--diagnostic li::before { background: #78a7ff; }
-.repair-service-panel--diagnostic .repair-button--primary { border-color: #fff; background: #fff; color: #1646cf; }
+.repair-service-panel--diagnostic li::before { background: #1476ff; }
+.repair-service-panel--diagnostic .repair-button--primary { border-color: #fff; background: #fff; color: #075ee8; }
 .repair-service-panel--diagnostic .repair-button--primary:hover { background: #f5f8ff; }
 .repair-closing-cta__actions { flex-wrap: wrap; }
 .repair-hero__assurance { margin: 26px 0 0; padding: 0; list-style: none; }
@@ -45,20 +45,28 @@
 .repair-landing .repair-hero__assurance { margin-top:18px; font-size:.68rem; }
 
 .repair-landing .repair-service-details { padding:30px 0 22px; background:#fff; }
-.repair-landing .repair-service-details .repair-section-heading--center { max-width:720px; margin-bottom:22px; }
+.repair-landing .repair-service-details .repair-section-heading--center { max-width:760px; margin-bottom:24px; }
 .repair-landing .repair-section-heading h2,.repair-landing .repair-service-panel h2,.repair-landing .repair-resources__copy h2,.repair-landing .repair-closing-cta h2,.repair-landing .repair-brands h2 { font-size:clamp(1.55rem,2.1vw,2.2rem); }
 .repair-landing .repair-section-heading > p:last-child { margin-top:7px; font-size:.82rem; }
-.repair-landing .repair-service-details__grid { grid-template-columns:1fr 1fr; gap:18px; }
-.repair-landing .repair-service-panel { position:relative; min-height:300px; overflow:hidden; padding:24px 38% 24px 26px; border-color:#cfdbeb; border-radius:7px; box-shadow:0 8px 24px rgba(15,38,75,.04); }
-.repair-landing .repair-service-panel::after { content:''; position:absolute; inset:0 0 0 58%; z-index:0; background:linear-gradient(90deg,rgba(255,255,255,0),rgba(235,242,250,.72)),url('../assets/media/repairs/repair-hero.webp') 74% 55%/auto 135% no-repeat; opacity:.82; pointer-events:none; }
+.repair-landing .repair-service-details__grid { grid-template-columns:1fr 1fr; gap:18px; align-items:stretch; }
+.repair-landing .repair-service-panel { position:relative; isolation:isolate; min-height:348px; overflow:hidden; padding:30px 43% 28px 30px; border:1px solid #cbd9ea; border-radius:8px; background:#fff; box-shadow:0 8px 24px rgba(15,38,75,.035); }
+.repair-landing .repair-service-panel::after { content:''; position:absolute; z-index:-1; top:8%; right:-5%; bottom:-3%; width:52%; background:url('../assets/media/repairs/repair-service-package.webp') right bottom/contain no-repeat; pointer-events:none; }
 .repair-landing .repair-service-panel > * { position:relative; z-index:1; }
-.repair-landing .repair-service-panel--diagnostic { padding-right:38%; background:#071a36; border-color:#071a36; }
-.repair-landing .repair-service-panel--diagnostic::after { background:linear-gradient(90deg,#071a36 0%,rgba(7,26,54,.74) 38%,rgba(7,26,54,.14) 100%),url('../assets/media/repairs/repair-hero.webp') 72% 50%/auto 135% no-repeat; opacity:.68; }
-.repair-landing .repair-service-panel h2 { font-size:1.55rem; }
-.repair-landing .repair-service-panel > p:not(.repair-eyebrow) { margin-top:9px; font-size:.78rem; line-height:1.48; }
-.repair-landing .repair-service-panel ul { margin:14px 0 14px; }
-.repair-landing .repair-service-panel li { padding:6px 0 6px 17px; border-bottom:0; font-size:.74rem; }
-.repair-landing .repair-service-panel li::before { top:11px; width:8px; height:8px; box-shadow:inset 0 0 0 2px #fff; }
+.repair-landing .repair-service-panel h2 { max-width:13ch; margin-top:0; font-size:clamp(1.65rem,2.2vw,2.2rem); line-height:1.02; letter-spacing:-.035em; }
+.repair-landing .repair-service-panel > p:not(.repair-eyebrow) { max-width:42ch; margin-top:12px; color:#526987; font-size:.82rem; line-height:1.52; }
+.repair-landing .repair-service-panel ul { margin:20px 0 22px; padding:0; }
+.repair-landing .repair-service-panel li { position:relative; padding:7px 0 7px 24px; border-bottom:0; font-size:.78rem; line-height:1.42; }
+.repair-landing .repair-service-panel li::before { top:9px; left:0; width:17px; height:17px; border-radius:50%; background:#1476ff; box-shadow:none; }
+.repair-landing .repair-service-panel li::after { content:'✓'; position:absolute; top:8px; left:4px; color:#fff; font-size:.65rem; font-weight:900; line-height:17px; }
+.repair-landing .repair-service-panel > a:not(.repair-button) { display:inline-flex; align-items:center; gap:10px; margin-top:4px; color:#0768f7; font-size:.82rem; font-weight:850; text-decoration:none; }
+
+.repair-landing .repair-service-panel--diagnostic { padding:30px 45% 28px 30px; border-color:#06182f; background:linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.97) 37%,rgba(4,23,47,.78) 55%,rgba(4,23,47,.24) 78%,rgba(4,23,47,.06) 100%),url('../assets/media/repairs/repair-service-diagnostic.webp') 64% center/cover no-repeat; color:#fff; }
+.repair-landing .repair-service-panel--diagnostic::after { display:none; }
+.repair-landing .repair-service-panel--diagnostic .repair-eyebrow { color:#3f8dff; }
+.repair-landing .repair-service-panel--diagnostic h2 { max-width:11ch; color:#fff; }
+.repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) { color:rgba(255,255,255,.78); }
+.repair-landing .repair-service-panel--diagnostic ul { margin-top:18px; }
+.repair-landing .repair-service-panel--diagnostic .repair-button { margin-top:4px; min-height:44px; padding-inline:20px; }
 
 .repair-landing .repair-assurance { padding:0; background:#fbfdff; }
 .repair-landing .repair-assurance .repair-section-heading { display:none; }
@@ -108,8 +116,9 @@
 .repair-landing .repair-closing-cta h2 { color:#fff; font-size:1.45rem; }
 
 @media (max-width:1100px) {
-  .repair-landing .repair-service-panel { padding-right:26px; }
-  .repair-landing .repair-service-panel::after { opacity:.12; inset-left:45%; }
+  .repair-landing .repair-service-panel { padding-right:40%; }
+  .repair-landing .repair-service-panel::after { right:-8%; width:48%; opacity:.8; }
+  .repair-landing .repair-service-panel--diagnostic { padding-right:40%; background-position:62% center; }
   .repair-landing .repair-assurance__grid { grid-template-columns:repeat(2,1fr); }
   .repair-landing .repair-assurance__item:first-child,.repair-landing .repair-assurance__item:last-child { padding-inline:28px; }
   .repair-landing .repair-brands__list { grid-template-columns:repeat(4,minmax(0,1fr)); }
@@ -120,8 +129,11 @@
   .repair-landing .repair-hero { min-height:560px; }
   .repair-landing .repair-service-details { padding:28px 0 18px; }
   .repair-landing .repair-service-details__grid { grid-template-columns:1fr; }
-  .repair-landing .repair-service-panel { min-height:auto; padding:22px 18px; }
-  .repair-landing .repair-service-panel::after { opacity:.08; }
+  .repair-landing .repair-service-panel { min-height:470px; padding:22px 18px 205px; }
+  .repair-landing .repair-service-panel::after { top:auto; right:-5%; bottom:0; width:78%; height:215px; opacity:1; }
+  .repair-landing .repair-service-panel--diagnostic { min-height:520px; padding:22px 18px 220px; background:linear-gradient(180deg,#04172f 0%,rgba(4,23,47,.98) 43%,rgba(4,23,47,.7) 61%,rgba(4,23,47,.12) 100%),url('../assets/media/repairs/repair-service-diagnostic.webp') 60% bottom/auto 62% no-repeat,#04172f; }
+  .repair-landing .repair-service-panel h2 { max-width:13ch; }
+  .repair-landing .repair-service-panel--diagnostic h2 { max-width:10ch; }
   .repair-landing .repair-assurance__grid { grid-template-columns:1fr; }
   .repair-landing .repair-assurance__item,.repair-landing .repair-assurance__item:first-child,.repair-landing .repair-assurance__item:last-child { min-height:0; padding:18px 14px; border-right:0; border-bottom:1px solid var(--repair-line); }
   .repair-landing .repair-process__grid::before { top:0; bottom:0; left:16px; right:auto; width:1px; height:auto; }
