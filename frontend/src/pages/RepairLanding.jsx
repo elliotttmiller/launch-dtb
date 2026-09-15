@@ -27,8 +27,12 @@ const PROCESS_STEPS = [
     description: 'We inspect the tool and follow the approval rules you select. Additional quote-first work waits for your approval.',
   },
   {
-    title: 'Repair and return',
-    description: 'Approved work is completed, and repair status stays available through return shipping.',
+    title: 'Repair and service',
+    description: 'Approved repair, rebuild, calibration, and service work is completed against the inspected scope.',
+  },
+  {
+    title: 'Return to you',
+    description: 'Repair status remains available through return shipping so the same request follows the tool back to you.',
   },
 ];
 
