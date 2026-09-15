@@ -12,6 +12,7 @@ import {
   productModalTransition,
   reducedTransition,
 } from '../../motion/dtbMotion.js';
+import '../../styles/product-quick-view-desktop.css';
 
 function useIsMobileModal() {
   const [isMobile, setIsMobile] = useState(() => {
