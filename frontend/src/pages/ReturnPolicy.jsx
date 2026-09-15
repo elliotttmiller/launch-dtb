@@ -15,7 +15,6 @@ import {
   Package,
   RotateCcw,
   ShieldCheck,
-  Truck,
   Wrench,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
