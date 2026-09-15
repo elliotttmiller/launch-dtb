@@ -1,103 +1,128 @@
-/* Optical refinements for the category hero decoration layer.
-   Structural layout, media sizing, loading behavior, and storefront tokens
-   remain owned by category-hero.css. */
+/* Category hero decorative geometry.
+   This file owns only the approved optical treatment. Structural hero layout,
+   media sizing/loading, copy, and storefront tokens remain in category-hero.css. */
 
-/* The dot field is anchored to the actual top-left corner so the blue wedge
-   and texture read as one composed treatment rather than adjacent elements. */
+/* Compact halftone field: it begins under the blue corner wedge, stays above
+   the category title, and fades softly into the hero surface. */
 .dtb-category-hero-card__dot-field {
   top: 0;
-  left: 0;
-  width: 12rem;
-  height: 10.5rem;
+  left: 2.7rem;
+  z-index: 0;
+  width: 7.25rem;
+  height: 7.2rem;
   background-image: radial-gradient(
     circle,
-    rgba(59, 130, 246, 0.24) 0.9px,
-    transparent 1px
+    rgba(59, 130, 246, 0.3) 0.85px,
+    transparent 1.05px
   );
   background-position: 0 0;
-  background-size: 6px 6px;
-  -webkit-mask-image:
-    linear-gradient(90deg, #000 0%, #000 48%, rgba(0, 0, 0, 0.72) 72%, transparent 100%),
-    linear-gradient(180deg, #000 0%, #000 46%, rgba(0, 0, 0, 0.76) 72%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(90deg, #000 0%, #000 48%, rgba(0, 0, 0, 0.72) 72%, transparent 100%),
-    linear-gradient(180deg, #000 0%, #000 46%, rgba(0, 0, 0, 0.76) 72%, transparent 100%);
-  mask-composite: intersect;
-  opacity: 0.7;
+  background-size: 5.75px 5.75px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 90% 84% at 0% 0%,
+    #000 0%,
+    rgba(0, 0, 0, 0.96) 38%,
+    rgba(0, 0, 0, 0.62) 63%,
+    rgba(0, 0, 0, 0.2) 80%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 90% 84% at 0% 0%,
+    #000 0%,
+    rgba(0, 0, 0, 0.96) 38%,
+    rgba(0, 0, 0, 0.62) 63%,
+    rgba(0, 0, 0, 0.2) 80%,
+    transparent 100%
+  );
+  opacity: 0.72;
 }
 
 @media (min-width: 768px) {
-  /* Continuous parallel diagonals. Extending beyond both vertical bounds is
-     intentional: the hero card clips them at its top and bottom edges, which
-     guarantees the bands visibly meet both edges at every responsive height. */
+  /* The divider is built from a full-height clipped plane rather than a skewed
+     rectangle. Its polygon vertices explicitly touch y=0 and y=100%, so both
+     parallel diagonals always terminate on the hero's top and bottom edges. */
   .dtb-category-hero-card__divider {
-    top: -32%;
-    right: 1.7rem;
+    top: 0;
+    right: -1px;
+    bottom: 0;
     z-index: 1;
     display: block;
-    width: 2.85rem;
-    height: 164%;
-    transform: skewX(-27deg);
-    transform-origin: 50% 50%;
+    width: clamp(8.75rem, 12.5vw, 12rem);
+    height: auto;
+    transform: none;
     border: 0;
-    background: rgba(214, 228, 246, 0.52);
-    box-shadow: 3.55rem 0 0 rgba(237, 243, 250, 0.68);
+    background: linear-gradient(
+      90deg,
+      rgba(211, 226, 246, 0.7) 0%,
+      rgba(224, 235, 249, 0.52) 100%
+    );
+    clip-path: polygon(58% 0, 82% 0, 24% 100%, 0 100%);
+    box-shadow: none;
     opacity: 1;
   }
 
+  /* Second narrow parallel rail from the target composition. */
+  .dtb-category-hero-card__divider::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(238, 244, 251, 0.92);
+    clip-path: polygon(89% 0, 100% 0, 42% 100%, 31% 100%);
+  }
+
+  /* Blue termination is clipped to the bottom of the primary diagonal. */
   .dtb-category-hero-card__divider::after {
     content: '';
     position: absolute;
     left: 0;
     bottom: 0;
-    width: 100%;
-    height: 3.2rem;
-    background: linear-gradient(180deg, #3d83ea 0%, #2563d9 100%);
-    opacity: 0.86;
+    width: 42%;
+    height: 2.9rem;
+    background: linear-gradient(145deg, #3d83ea 0%, #2563d9 100%);
+    clip-path: polygon(57% 0, 100% 0, 76% 100%, 33% 100%);
+    opacity: 0.92;
   }
 
   .dtb-category-hero-card__dot-field {
     top: 0;
-    left: 0;
-    width: 13rem;
-    height: 11.25rem;
-    background-size: 6px 6px;
-    opacity: 0.68;
+    left: 3.05rem;
+    width: 7.75rem;
+    height: 7.45rem;
+    background-size: 5.75px 5.75px;
+    opacity: 0.7;
   }
 }
 
 @media (min-width: 1280px) {
   .dtb-category-hero-card__divider {
-    right: 2rem;
-    width: 3rem;
-    box-shadow: 3.85rem 0 0 rgba(237, 243, 250, 0.7);
+    width: clamp(10rem, 11.5vw, 12rem);
   }
 
   .dtb-category-hero-card__dot-field {
-    width: 14rem;
-    height: 11.75rem;
+    left: 3.35rem;
+    width: 8rem;
+    height: 7.65rem;
   }
 }
 
 @media (min-width: 1536px) {
   .dtb-category-hero-card__divider {
-    right: 2.35rem;
+    width: 11.5rem;
   }
 
   .dtb-category-hero-card__dot-field {
-    width: 14.5rem;
-    height: 12rem;
+    left: 3.5rem;
+    width: 8.15rem;
+    height: 7.75rem;
   }
 }
 
 @media (max-width: 767px) {
   .dtb-category-hero-card__dot-field {
     top: 0;
-    left: 0;
-    width: 8.75rem;
-    height: 7.75rem;
-    background-size: 5.5px 5.5px;
+    left: 2rem;
+    width: 5.6rem;
+    height: 5.5rem;
+    background-size: 5.25px 5.25px;
     opacity: 0.5;
   }
 }
