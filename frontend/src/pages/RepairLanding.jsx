@@ -1,18 +1,16 @@
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
-import { SCHEMATIC_DEFINITIONS } from '../data/schematicMappings';
+import { getOfficialRepairBrands } from '../data/repairCatalogMap.js';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/repair-landing.css';
 import '../styles/repair-merchandising.css';
 import '../styles/repair-landing-responsive.css';
 
-const SUPPORTED_BRANDS = Object.keys(SCHEMATIC_DEFINITIONS).sort((a, b) => a.localeCompare(b));
-
 const HERO_PROOF_POINTS = [
-  'Major brands serviced',
+  'Major repair brands supported',
   'Approval before added work',
-  'Repair tracking',
-  'Function-tested before return',
+  'Online repair tracking',
+  'Physical inspection before quote-first work',
 ];
 
 const PROCESS_STEPS = [
@@ -29,8 +27,8 @@ const PROCESS_STEPS = [
     description: 'We inspect the tool and follow the approval rules you select. Additional quote-first work waits for your approval.',
   },
   {
-    title: 'Repair, test, and return',
-    description: 'Approved work is completed, the tool is function-tested, and repair status stays available through return shipping.',
+    title: 'Repair and return',
+    description: 'Approved work is completed, and repair status stays available through return shipping.',
   },
 ];
 
@@ -48,8 +46,8 @@ const ASSURANCE_ITEMS = [
     description: 'Use your repair number and token to review current status and any next action without opening a separate support thread.',
   },
   {
-    title: 'Test before return',
-    description: 'Completed repair work is function-tested before the tool moves into return shipping.',
+    title: 'Physical inspection drives scope',
+    description: 'Photos and symptoms help document the problem, but final repair scope is determined after the tool is physically inspected.',
   },
 ];
 
@@ -121,11 +119,20 @@ const FAQ_GROUPS = [
     ],
   },
   {
-    title: 'Pricing & Service Priority',
+    title: 'Service Priority',
     items: [
       {
         question: 'Can I request faster service?',
         answer: 'Repair intake exposes the service-priority options currently supported for the request. Availability and timing are confirmed through the repair workflow rather than promised on this page.',
+      },
+    ],
+  },
+  {
+    title: 'Repair & Parts',
+    items: [
+      {
+        question: 'Can I upload photos of the problem?',
+        answer: 'Yes. Add photos during intake to document leaks, damage, wear, or other symptoms before you send the tool.',
       },
       {
         question: 'Can replaced parts be returned with my tool?',
@@ -144,10 +151,15 @@ const FAQ_GROUPS = [
   },
 ];
 
+function faqGroupId(title) {
+  return `repair-faq-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
+
 export default function RepairLanding() {
-  const featuredBrands = SUPPORTED_BRANDS.slice(0, 8)
+  const featuredBrands = getOfficialRepairBrands()
     .map((brand) => ({ brand, logo: getBrandLogo(brand) }))
-    .filter(({ logo }) => Boolean(logo));
+    .filter(({ logo }) => Boolean(logo))
+    .slice(0, 8);
 
   return (
     <div className="repair-landing page-wrapper">
@@ -253,7 +265,7 @@ export default function RepairLanding() {
           <div className="repair-section-heading repair-section-heading--center">
             <p className="repair-eyebrow">Repair Workflow</p>
             <h2 id="repair-process-title">Know what happens before you send the tool.</h2>
-            <p>One request follows the tool from intake and shipping through inspection, approval, repair, testing, and return.</p>
+            <p>One request follows the tool from intake and shipping through inspection, approval, repair, and return.</p>
           </div>
 
           <ol className="repair-process__grid">
@@ -278,7 +290,6 @@ export default function RepairLanding() {
               <h2 id="repair-shipping-prep-title">Protect the tool before it leaves your hands.</h2>
               <p>Good preparation reduces transit damage and helps the tool arrive ready for intake and inspection.</p>
             </div>
-            <Link to="/shipping-policy">View shipping policy <span aria-hidden="true">→</span></Link>
           </div>
 
           <ol className="repair-shipping-prep__grid">
@@ -342,23 +353,26 @@ export default function RepairLanding() {
           <div className="repair-section-heading">
             <p className="repair-eyebrow">Repair FAQ</p>
             <h2 id="repair-faq-title">What to know before service starts.</h2>
-            <p>Service selection, physical inspection, approval, shipping, pricing controls, and repair tracking.</p>
+            <p>Service selection, physical inspection, approval, shipping, service priority, parts, and repair tracking.</p>
           </div>
 
           <div className="repair-faq__groups">
-            {FAQ_GROUPS.map((group) => (
-              <section className="repair-faq__group" key={group.title} aria-labelledby={`repair-faq-${group.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`}>
-                <h3 id={`repair-faq-${group.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-')}`}>{group.title}</h3>
-                <div className="repair-faq__list">
-                  {group.items.map((item) => (
-                    <details key={item.question}>
-                      <summary>{item.question}</summary>
-                      <p>{item.answer}</p>
-                    </details>
-                  ))}
-                </div>
-              </section>
-            ))}
+            {FAQ_GROUPS.map((group) => {
+              const groupId = faqGroupId(group.title);
+              return (
+                <section className="repair-faq__group" key={group.title} aria-labelledby={groupId}>
+                  <h3 id={groupId}>{group.title}</h3>
+                  <div className="repair-faq__list">
+                    {group.items.map((item) => (
+                      <details key={item.question}>
+                        <summary>{item.question}</summary>
+                        <p>{item.answer}</p>
+                      </details>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
           </div>
         </div>
       </section>
