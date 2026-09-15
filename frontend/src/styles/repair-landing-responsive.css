@@ -50,8 +50,8 @@
     --repair-mobile-radius:6px;
     --repair-mobile-eyebrow:clamp(9px,2.4vw,10px);
     --repair-mobile-heading:clamp(27px,7.2vw,30px);
-    --repair-mobile-card-heading:clamp(22px,6vw,25px);
-    --repair-mobile-body:clamp(12.5px,3.35vw,14px);
+    --repair-mobile-card-heading:clamp(17px,4.55vw,19px);
+    --repair-mobile-body:clamp(10px,2.75vw,11.5px);
     --repair-mobile-meta:clamp(11.5px,3vw,12.5px);
   }
 
@@ -174,128 +174,133 @@
     gap:13px;
   }
 
-  /* Paired decision cards share geometry and typography. */
+  /* Mobile decision cards are calibrated from the approved reference as a
+   * compact ~0.53:1 card-height-to-width composition. They intentionally use
+   * their own card scale instead of inheriting the larger section typography. */
   .repair-landing .repair-service-panel,
   .repair-landing .repair-service-panel--diagnostic {
     display:grid;
-    grid-template-rows:auto auto auto auto auto;
+    grid-template-rows:auto auto auto auto 1fr;
     align-content:start;
     width:100%;
     min-width:0;
     height:auto;
+    min-height:0;
     overflow:hidden;
     border-radius:var(--repair-mobile-radius);
     box-shadow:none;
   }
   .repair-landing .repair-service-panel {
-    min-height:410px;
-    padding:20px 18px 20px;
+    height:53.5vw;
+    max-height:220px;
+    padding:12px 13px 13px;
     border:1px solid #cedbed;
     background:#fff;
   }
   .repair-landing .repair-service-panel::after {
-    top:auto;
-    right:-7%;
-    bottom:-2%;
-    width:56%;
-    height:61%;
+    top:0;
+    right:-6%;
+    bottom:auto;
+    width:43%;
+    height:100%;
     min-height:0;
-    background:url('../assets/media/repairs/repair-service-package.webp') right bottom/contain no-repeat;
+    background:url('../assets/media/repairs/repair-service-package.webp') right bottom/auto 101% no-repeat;
     opacity:1;
   }
   .repair-landing .repair-service-panel .repair-eyebrow {
-    margin:0 0 8px;
-    font-size:var(--repair-mobile-eyebrow);
+    margin:0 0 5px;
+    font-size:clamp(8px,2.15vw,9px);
     font-weight:800;
     line-height:1.1;
     letter-spacing:.1em;
   }
   .repair-landing .repair-service-panel h2 {
-    max-width:13ch;
+    max-width:64%;
     margin:0;
     font-size:var(--repair-mobile-card-heading);
-    line-height:1.04;
+    line-height:1.02;
     letter-spacing:-.04em;
   }
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow) {
-    width:64%;
+    width:61%;
     max-width:31ch;
-    margin:10px 0 0;
+    margin:6px 0 0;
     color:#5c7190;
     font-size:var(--repair-mobile-body);
-    line-height:1.44;
+    line-height:1.34;
   }
   .repair-landing .repair-service-panel ul {
-    width:64%;
+    width:62%;
     max-width:none;
-    margin:12px 0 0;
+    margin:7px 0 0;
     padding:0;
   }
   .repair-landing .repair-service-panel li {
     min-height:0;
-    padding:5px 0 5px 29px;
+    padding:2px 0 2px 25px;
     color:#102455;
-    font-size:clamp(12px,3.2vw,13px);
-    line-height:1.35;
+    font-size:clamp(9.5px,2.55vw,10.5px);
+    line-height:1.24;
   }
   .repair-landing .repair-service-panel li::before {
-    top:4px;
+    top:1px;
     left:0;
-    width:21px;
-    height:21px;
+    width:18px;
+    height:18px;
   }
   .repair-landing .repair-service-panel li::after {
-    top:4px;
-    left:5px;
-    font-size:9px;
-    line-height:21px;
+    top:1px;
+    left:4px;
+    font-size:8px;
+    line-height:18px;
   }
   .repair-landing .repair-service-panel > a {
     justify-self:start;
-    align-self:start;
-    margin-top:13px;
+    align-self:end;
+    margin-top:5px;
     position:relative;
     z-index:2;
   }
   .repair-landing .repair-service-panel > a:not(.repair-button) {
     padding:0;
     color:#086cf4;
-    font-size:clamp(12px,3.2vw,13px);
+    font-size:clamp(10px,2.7vw,11px);
     font-weight:800;
-    line-height:1.2;
+    line-height:1.15;
   }
 
-  /* Diagnostic image is an atmospheric lower field rather than a small corner
-   * thumbnail. The gradient preserves readable contrast over the photograph. */
+  /* Diagnostic card uses the same compact information density while its image
+   * remains an atmospheric lower/right field behind a controlled navy fade. */
   .repair-landing .repair-service-panel--diagnostic {
-    min-height:445px;
-    padding:20px 18px 132px;
+    height:59vw;
+    max-height:244px;
+    padding:12px 13px 46px;
     border:1px solid #06182f;
     background:
-      linear-gradient(180deg,#04172f 0%,#04172f 49%,rgba(4,23,47,.98) 59%,rgba(4,23,47,.72) 75%,rgba(4,23,47,.18) 100%),
-      url('../assets/media/repairs/repair-service-diagnostic.webp') 72% bottom/auto 46% no-repeat,
+      linear-gradient(180deg,#04172f 0%,#04172f 52%,rgba(4,23,47,.97) 65%,rgba(4,23,47,.67) 82%,rgba(4,23,47,.10) 100%),
+      url('../assets/media/repairs/repair-service-diagnostic.webp') 68% bottom/auto 58% no-repeat,
       #04172f;
   }
   .repair-landing .repair-service-panel--diagnostic::after { display:none; }
   .repair-landing .repair-service-panel--diagnostic h2 {
-    max-width:12ch;
+    max-width:11ch;
     color:#fff;
-    font-size:clamp(25px,6.8vw,28px);
+    font-size:clamp(18px,4.8vw,20px);
   }
   .repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow),
-  .repair-landing .repair-service-panel--diagnostic ul { width:72%; max-width:33ch; }
+  .repair-landing .repair-service-panel--diagnostic ul { width:64%; max-width:32ch; }
   .repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) { color:rgba(255,255,255,.84); }
   .repair-landing .repair-service-panel--diagnostic li {
     color:rgba(255,255,255,.94);
-    font-size:clamp(11.5px,3.05vw,12.5px);
+    font-size:clamp(9px,2.45vw,10px);
   }
   .repair-landing .repair-service-panel--diagnostic .repair-button {
     width:auto;
-    min-height:42px;
-    height:42px;
-    margin-top:13px;
-    padding:0 17px;
-    font-size:10px;
+    min-height:32px;
+    height:32px;
+    margin-top:5px;
+    padding:0 12px;
+    font-size:9px;
   }
 
   .repair-landing .repair-assurance { display:none; }
@@ -475,8 +480,8 @@
   .repair-landing .repair-hero { height:102vw; }
   .repair-landing .repair-hero__lead { width:78%; }
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
-  .repair-landing .repair-service-panel ul { width:68%; }
-  .repair-landing .repair-service-panel::after { right:-10%; width:59%; }
+  .repair-landing .repair-service-panel ul { width:64%; }
+  .repair-landing .repair-service-panel::after { right:-8%; width:46%; }
 }
 
 @media (prefers-reduced-motion:reduce) {
