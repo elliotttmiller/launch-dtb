@@ -8,14 +8,52 @@ const FEATURED_BRAND_PRESENTATION = {
   columbia: {
     logo: '/brands/Columbia/columbia_logo_white.svg',
     className: 'products-brand-selector__card--columbia',
+    cardStyle: {
+      background: '#080808',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '72%',
+      height: 'auto',
+      maxWidth: '72%',
+      maxHeight: '48%',
+    },
   },
   level5: {
     logo: '/brands/Level5/Level5-white.svg',
     className: 'products-brand-selector__card--level5',
+    cardStyle: {
+      backgroundColor: '#b5121b',
+      backgroundImage: "url('/brands/Level5/level5-background.webp')",
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '74%',
+      height: 'auto',
+      maxWidth: '74%',
+      maxHeight: '48%',
+    },
   },
   usgsheetrocktools: {
     logo: '/brands/USG-Sheetrock-Tools/usg-sheetrock-tools.svg',
     className: 'products-brand-selector__card--usg',
+    cardStyle: {
+      backgroundColor: '#00843d',
+      backgroundImage: "url('/brands/USG-Sheetrock-Tools/USG-background.webp')",
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      backgroundSize: 'cover',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '78%',
+      height: 'auto',
+      maxWidth: '78%',
+      maxHeight: '48%',
+    },
   },
 };
 
@@ -44,6 +82,8 @@ function normalizeBrandList(brands = []) {
       ...brand,
       logo: presentation?.logo || resolveProductBrandLogo(brand),
       selectorClassName: presentation?.className || '',
+      selectorStyle: presentation?.cardStyle,
+      selectorLogoStyle: presentation?.logoStyle,
     };
   });
 }
@@ -63,6 +103,8 @@ export default function ProductsBrandSelector({ brands, onSelectBrand }) {
               name={label}
               logo={brand.logo}
               className={brand.selectorClassName}
+              style={brand.selectorStyle}
+              logoStyle={brand.selectorLogoStyle}
               onClick={() => onSelectBrand(brand)}
             />
           );
