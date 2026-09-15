@@ -66,21 +66,10 @@ test('non-tool-set products do not expose a set summary even when includes metad
   assert.equal(getToolSetContentsSummary(product), null);
 });
 
-test('child category workflow context is informational and highlights one canonical work stage', () => {
-  const taper = getCategoryMerchandising({ slug: 'automatic-tapers' });
-  const pump = getCategoryMerchandising({ slug: 'pumps' });
-  const boxes = getCategoryMerchandising({ slug: 'flat-boxes' });
-  const corners = getCategoryMerchandising({ slug: 'angle-heads' });
-
-  assert.equal(taper.workflow.currentStage, 'tape');
-  assert.equal(pump.workflow.currentStage, 'load');
-  assert.equal(boxes.workflow.currentStage, 'flats');
-  assert.equal(corners.workflow.currentStage, 'corners');
-  assert.deepEqual(
-    taper.workflow.steps.map(({ id }) => id),
-    ['load', 'tape', 'flats', 'corners'],
-  );
-  assert.ok(taper.workflow.steps.every((step) => !Object.hasOwn(step, 'targetSlug')));
+test('automatic-finishing child categories do not inject standalone merchandising UI', () => {
+  for (const slug of ['automatic-tapers', 'pumps', 'flat-boxes', 'angle-heads']) {
+    assert.equal(getCategoryMerchandising({ slug }), null);
+  }
 });
 
 test('compatibility-aware PDP merchandising reuses the existing compatibility authority', async () => {
