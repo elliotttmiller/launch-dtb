@@ -1,82 +1,9 @@
 import { useMemo } from 'react';
 import { dedupeCatalogBrandEntries } from '../../utils/catalogFacets.js';
-import { normalizeBrandAssetKey, resolveProductBrandLogo } from '../../utils/brandLogoAssets.js';
+import { resolveProductBrandLogo } from '../../utils/brandLogoAssets.js';
+import { resolveFeaturedBrandPresentation } from '../../utils/brandSelectorPresentation.js';
 import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import './products-selector.css';
-
-const sitegroundLogoAsset = (filename) => `/logos/${filename}`;
-
-const FEATURED_BRAND_PRESENTATION = {
-  columbia: {
-    logo: sitegroundLogoAsset('columbia_logo_white.svg'),
-    className: 'products-brand-selector__card--columbia',
-    cardStyle: {
-      background: '#080808',
-      padding: 0,
-    },
-    logoStyle: {
-      width: '72%',
-      height: 'auto',
-      maxWidth: '72%',
-      maxHeight: '48%',
-    },
-  },
-  level5: {
-    logo: sitegroundLogoAsset('Level5-white.svg'),
-    className: 'products-brand-selector__card--level5',
-    cardStyle: {
-      backgroundColor: '#b5121b',
-      backgroundImage: `url("${sitegroundLogoAsset('level5-background.webp')}")`,
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover',
-      padding: 0,
-    },
-    logoStyle: {
-      width: '74%',
-      height: 'auto',
-      maxWidth: '74%',
-      maxHeight: '48%',
-    },
-  },
-  usgsheetrocktools: {
-    // Selector artwork is intentionally separate from the canonical USG logo
-    // used by headers and other storefront surfaces.
-    logo: sitegroundLogoAsset('usg-sheetrock-tools-transparent.svg'),
-    className: 'products-brand-selector__card--usg',
-    cardStyle: {
-      backgroundColor: '#00843d',
-      backgroundImage: `url("${sitegroundLogoAsset('USG-background.webp')}")`,
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat',
-      backgroundSize: 'cover',
-      padding: 0,
-    },
-    logoStyle: {
-      width: '88%',
-      height: 'auto',
-      maxWidth: '88%',
-      maxHeight: '56%',
-    },
-  },
-};
-
-function resolveFeaturedBrandPresentation(brand = {}) {
-  const candidates = [brand.slug, brand.key, brand.label];
-
-  for (const candidate of candidates) {
-    const normalized = normalizeBrandAssetKey(candidate);
-    if (!normalized) continue;
-
-    if (normalized.includes('columbia')) return FEATURED_BRAND_PRESENTATION.columbia;
-    if (normalized === 'level5') return FEATURED_BRAND_PRESENTATION.level5;
-    if (normalized === 'usg' || normalized.includes('usgsheetrock')) {
-      return FEATURED_BRAND_PRESENTATION.usgsheetrocktools;
-    }
-  }
-
-  return null;
-}
 
 function normalizeBrandList(brands = []) {
   if (!Array.isArray(brands) || brands.length === 0) return [];

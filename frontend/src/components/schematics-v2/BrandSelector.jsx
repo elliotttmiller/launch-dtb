@@ -6,6 +6,7 @@
  */
 import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
+import { resolveFeaturedBrandPresentation } from '../../utils/brandSelectorPresentation.js';
 
 export function resolveSchematicBrandLogo(name) {
   return resolveBrandLogo(name) || null;
@@ -40,13 +41,22 @@ export default function BrandSelector({ brands, onSelectBrand }) {
   return (
     <SelectorGrid variant="brands">
       {brands.map((brand) => (
-        <BrandSelectorCard
-          key={brand.id}
-          name={brand.name}
-          logo={resolveBrandLogo(brand)}
-          meta={`${brand.count} schematic${brand.count === 1 ? '' : 's'}`}
-          onClick={() => onSelectBrand(brand.id)}
-        />
+        (() => {
+          const presentation = resolveFeaturedBrandPresentation(brand);
+
+          return (
+            <BrandSelectorCard
+              key={brand.id}
+              name={brand.name}
+              logo={presentation?.logo || resolveBrandLogo(brand)}
+              meta={`${brand.count} schematic${brand.count === 1 ? '' : 's'}`}
+              className={presentation?.className || ''}
+              style={presentation?.cardStyle}
+              logoStyle={presentation?.logoStyle}
+              onClick={() => onSelectBrand(brand.id)}
+            />
+          );
+        })()
       ))}
     </SelectorGrid>
   );
