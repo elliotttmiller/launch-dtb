@@ -52,32 +52,28 @@
   align-items: center;
 }
 
-/* The hero owns one restrained white/silver surface across both content and
-   media. Category artwork is expected to be isolated/transparent so the same
-   surface remains continuous behind title copy and tools. */
+/* One continuous hero surface. The frontend owns all decoration; category
+   artwork remains transparent, isolated product media with no baked scene. */
 .dtb-category-hero-card {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
   overflow: hidden;
-  border: 1px solid rgba(203, 213, 225, 0.74);
+  border: 1px solid rgba(203, 213, 225, 0.78);
   border-radius: 14px;
   background:
-    linear-gradient(
-      112deg,
-      #ffffff 0%,
-      #fcfdff 42%,
-      #f5f7fa 72%,
-      #eef2f6 100%
-    );
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.055);
+    linear-gradient(104deg, #f7fbff 0%, #fbfdff 37%, #ffffff 59%, #f8fafc 100%);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.025),
+    0 8px 24px rgba(15, 23, 42, 0.045);
+  isolation: isolate;
 }
 
 .dtb-category-hero-card__loading-layer {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 5;
   pointer-events: none;
   opacity: 1;
   transition:
@@ -98,12 +94,14 @@
 }
 
 .dtb-category-hero-card__content {
+  position: relative;
+  z-index: 2;
   display: flex;
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 0.5rem;
   padding: 1.25rem 1.25rem 1.2rem;
+  overflow: hidden;
   opacity: 0;
   transform: translateY(7px);
   transition:
@@ -116,6 +114,50 @@
   transform: translateY(0);
 }
 
+.dtb-category-hero-card__copy {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.dtb-category-hero-card__corner-accent,
+.dtb-category-hero-card__dot-field,
+.dtb-category-hero-card__divider {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+.dtb-category-hero-card__corner-accent {
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 4.9rem;
+  height: 8.1rem;
+  background: linear-gradient(145deg, #2255ee 0%, #2f72e8 100%);
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  opacity: 0.93;
+}
+
+.dtb-category-hero-card__dot-field {
+  top: 0;
+  left: 2.7rem;
+  z-index: 0;
+  width: 8.8rem;
+  height: 8.8rem;
+  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.23) 1px, transparent 1.15px);
+  background-size: 7px 7px;
+  mask-image: linear-gradient(135deg, #000 0%, rgba(0, 0, 0, 0.85) 45%, transparent 88%);
+  opacity: 0.65;
+}
+
+.dtb-category-hero-card__divider {
+  display: none;
+}
+
 .dtb-category-hero-card__eyebrow {
   color: var(--color-primary-600, #2255ee);
   font-size: 0.68rem;
@@ -126,32 +168,53 @@
 }
 
 .dtb-category-hero-card__title {
-  margin: 0;
+  margin: 0.54rem 0 0;
   color: var(--dtb-text, #0f172a);
   font-size: clamp(1.85rem, 4.25vw, 2.5rem);
   font-weight: 900;
-  letter-spacing: -0.035em;
-  line-height: 1.02;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
 }
 
 .dtb-category-hero-card__description {
   display: -webkit-box;
-  max-width: 48ch;
-  margin: 0;
+  max-width: 47ch;
+  margin: 0.74rem 0 0;
   overflow: hidden;
   color: var(--dtb-muted, #52657d);
   font-size: clamp(0.84rem, 1vw, 0.94rem);
-  line-height: 1.46;
+  font-weight: 500;
+  line-height: 1.45;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
 }
 
-/* Media never paints its own surface. Transparent category art therefore
-   reveals the exact same card gradient used behind the content column. */
+.dtb-category-hero-card__rule {
+  display: block;
+  width: 3.2rem;
+  height: 3px;
+  margin-top: 1.35rem;
+  border-radius: 999px;
+  background: var(--color-primary-600, #2255ee);
+}
+
+.dtb-category-hero-card__tagline {
+  margin: 1rem 0 0;
+  color: #71829a;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Media paints no independent scene or surface. Transparent category artwork
+   reveals the card's shared white/silver background. */
 .dtb-category-hero-card__media {
   order: -1;
   position: relative;
+  z-index: 1;
   display: flex;
   width: 100%;
   min-width: 0;
@@ -162,9 +225,7 @@
   background: transparent;
 }
 
-/* Isolated hero artwork must remain completely visible. `contain` is the
-   correct fit contract for transparent product compositions; it avoids
-   cropping taper heads/handles and lets the card own all surrounding space. */
+/* Isolated hero artwork must remain fully visible and undistorted. */
 .dtb-category-hero-card__image {
   display: block;
   width: 100%;
@@ -186,8 +247,7 @@
 }
 
 /* Full-footprint loading state. The skeleton deliberately occupies the exact
-   hero geometry so metadata resolution never causes the page to jump from a
-   pair of bars into a large card. */
+   hero geometry so metadata resolution never causes layout shift. */
 .dtb-category-hero-card--skeleton {
   isolation: isolate;
   box-shadow: none;
@@ -404,12 +464,24 @@
   .dtb-category-hero-card__skeleton-content {
     grid-column: 1;
     grid-row: 1;
-    gap: 0.48rem;
     padding: clamp(1.35rem, 2.15vw, 1.8rem) clamp(1.75rem, 3.2vw, 3rem);
   }
 
   .dtb-category-hero-card__title {
     font-size: clamp(1.95rem, 2.8vw, 2.55rem);
+  }
+
+  .dtb-category-hero-card__divider {
+    top: -15%;
+    right: -4.4rem;
+    z-index: 1;
+    display: block;
+    width: 9.5rem;
+    height: 130%;
+    transform: skewX(-28deg);
+    border-left: 1.2rem solid rgba(219, 232, 248, 0.62);
+    border-right: 2.6rem solid rgba(236, 243, 251, 0.72);
+    opacity: 0.94;
   }
 
   .dtb-category-hero-card__media,
@@ -442,6 +514,21 @@
     padding-right: clamp(1.8rem, 2.7vw, 2.7rem);
   }
 
+  .dtb-category-hero-card__corner-accent {
+    width: 5.3rem;
+    height: 8.6rem;
+  }
+
+  .dtb-category-hero-card__dot-field {
+    left: 3rem;
+    width: 9.5rem;
+    height: 9.2rem;
+  }
+
+  .dtb-category-hero-card__tagline {
+    font-size: 0.64rem;
+  }
+
   .dtb-tool-type-rail {
     grid-auto-columns: clamp(176px, 12.5vw, 198px);
   }
@@ -450,6 +537,10 @@
 @media (min-width: 1536px) {
   .dtb-category-hero-card {
     grid-template-columns: minmax(0, 46%) minmax(0, 54%);
+  }
+
+  .dtb-category-hero-card__divider {
+    right: -5.2rem;
   }
 
   .dtb-tool-type-rail {
@@ -464,9 +555,35 @@
     order: 1;
   }
 
+  .dtb-category-hero-card__content {
+    padding-top: 1.7rem;
+  }
+
   .dtb-category-hero-card__media,
   .dtb-category-hero-card__skeleton-media {
     padding: 0.65rem 0.8rem 0;
+  }
+
+  .dtb-category-hero-card__corner-accent {
+    width: 3.5rem;
+    height: 5.2rem;
+  }
+
+  .dtb-category-hero-card__dot-field {
+    left: 1.8rem;
+    width: 6.5rem;
+    height: 6.5rem;
+    opacity: 0.45;
+  }
+
+  .dtb-category-hero-card__rule {
+    margin-top: 1rem;
+  }
+
+  .dtb-category-hero-card__tagline {
+    margin-top: 0.8rem;
+    font-size: 0.56rem;
+    letter-spacing: 0.2em;
   }
 
   .dtb-tool-type-section .storefront-section__head {
