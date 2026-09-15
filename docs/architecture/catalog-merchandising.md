@@ -31,7 +31,7 @@ Dedicated category routes retain the existing composition:
 
 ```text
 CategoryHero
-  -> CategoryMerchandising (only when an explicit presentation profile exists)
+  -> CategoryMerchandising (only when an explicit presentation profile with substantive intent/guide content exists)
   -> ShopByToolType (authoritative WooCommerce child categories)
   -> existing search / filters / sorting
   -> existing product grid
@@ -40,6 +40,8 @@ CategoryHero
 `frontend/src/data/categoryMerchandising.js` contains bounded presentation metadata for contractor intent. It may define labels, explanations, buying-guide copy, and candidate category slugs used to resolve links against category metadata already supplied by the catalog.
 
 Where a contractor-intent card resolves to an authoritative child category with a routable slug, navigation uses the existing category URL builder. If no authoritative child category is present, the card remains informational rather than inventing a category, synthesizing a route, or changing catalog filtering.
+
+Automatic-finishing child categories do not render a standalone workflow-orientation strip between the hero and catalog controls. These focused product-category routes proceed directly from the hero into authoritative child-category navigation when present and the existing filtering/product-selection experience. Workflow-oriented discovery remains appropriate at broader merchandising entry points such as the Automatic Tools category rather than being repeated as a non-actionable card on focused child categories.
 
 ## Tool-set merchandising
 
@@ -50,18 +52,6 @@ These intent cards are informational unless they resolve to an authoritative cat
 Product cards may summarize set contents only from the structured `_includes_<n>_name` / `_includes_<n>_sku` metadata already carried by the canonical catalog DTO. `frontend/src/utils/productMerchandising.js` parses that structured metadata and refuses to infer set contents from product names, descriptions, brand, or category proximity. If structured includes data is absent, no set-content claim is rendered.
 
 Actual set contents, current price, availability, savings, warranty, and compatibility must come from authoritative product/catalog data before those facts are rendered as product-specific claims. Contractors are directed to the live catalog and product details for those commerce facts.
-
-## Child-category workflow context
-
-Selected automatic-finishing child categories may render a compact workflow orientation such as:
-
-```text
-Load compound -> Apply tape -> Finish flats -> Finish corners
-```
-
-This is presentation context only. It does not create category routes, filter state, compatibility relationships, or another workflow taxonomy. The highlighted step is keyed from the existing category identity and the strip is intentionally non-navigational so canonical catalog navigation remains authoritative.
-
-The workflow context must remain small enough that expert users can proceed directly to filtering and product selection without additional interaction.
 
 ## Compatibility-aware PDP merchandising
 
@@ -89,7 +79,7 @@ Repair-specific visual refinements used by `RepairLanding.jsx` are loaded after 
 
 Contractor-intent navigation must preserve semantic links and headings, visible keyboard focus, mobile-first layouts, reduced-motion behavior, and non-hover access to information.
 
-Tool-set contents summaries are supplemental text inside existing product cards and require no additional requests. Workflow context uses semantic ordered-list markup and `aria-current="step"` for the active stage.
+Tool-set contents summaries are supplemental text inside existing product cards and require no additional requests. Category merchandising renders from data already available to the route.
 
 The merchandising layer must not introduce per-card network requests. Category intent and Tool Set summaries render from data already available to the route. Compatibility-aware PDP recommendations are assembled inside the existing product-detail request rather than adding a second browser request.
 
