@@ -1,0 +1,201 @@
+/* Full-page desktop ProductDetail visual refinement.
+ *
+ * This layer intentionally excludes ProductModal. ProductDetail remains the
+ * rendering/commerce authority; this file only calibrates full-route desktop
+ * proportions to the approved PDP composition.
+ */
+
+@media (min-width: 1024px) {
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp__hero {
+    grid-template-columns: minmax(0, 1.28fr) minmax(500px, .92fr) !important;
+    gap: clamp(34px, 2.5vw, 46px) !important;
+    align-items: start;
+    margin-bottom: 32px !important;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-gallery {
+    min-width: 0;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-image-gallery__main {
+    aspect-ratio: 1.42 / 1;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-image-gallery__image {
+    padding: 24px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-image-gallery__thumbs {
+    gap: 11px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-image-gallery__thumb {
+    width: 96px;
+    height: 96px;
+    min-width: 96px;
+    flex-basis: 96px;
+    border-radius: 7px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-image-gallery__thumb img {
+    padding: 7px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp__info-column {
+    padding: 16px 0 8px clamp(34px, 2.5vw, 44px);
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__brand-logo-wrap {
+    min-height: 36px;
+    margin: 0 0 10px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__brand-logo,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-detail-brand-logo {
+    max-width: 122px;
+    max-height: 38px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__brand-eyebrow {
+    margin-bottom: 11px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__title {
+    max-width: 620px;
+    font-size: clamp(29px, 1.85vw, 34px);
+    line-height: 1.08;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__identity-row {
+    margin-top: 20px;
+    gap: 0;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__identity-row > * {
+    font-size: 11.5px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__identity-row > * + * {
+    margin-left: 16px;
+    padding-left: 16px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__price-block {
+    margin-top: 22px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__price {
+    color: #1457e6;
+    font-size: clamp(31px, 2vw, 35px);
+    font-weight: 800;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__compare-at {
+    font-size: 13px;
+    font-weight: 650;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-header__summary {
+    max-width: 610px;
+    margin-top: 22px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-variation-rail {
+    margin-top: 23px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .product-variation-rail :is(button, [role='button']) {
+    min-width: 52px;
+    min-height: 46px;
+    border-radius: 7px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp__purchase-region {
+    margin-top: 24px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-purchase-panel {
+    gap: 0;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-purchase-panel__quantity-label {
+    display: none;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-purchase-row {
+    grid-template-columns: 142px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-qty-root,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-add-to-cart,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-product-buy-now,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-product-buy-now__button {
+    min-height: 50px;
+    border-radius: 7px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-add-to-cart,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-product-buy-now__button {
+    font-size: 15px;
+    font-weight: 720;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-payment-confidence {
+    width: 100%;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--dtb-pdp-border);
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-secure-checkout {
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-secure-checkout svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-payment-methods {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    margin-top: 17px;
+    padding: 0 8px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-payment-methods__logo {
+    width: auto;
+    height: 23px;
+    max-width: 68px;
+    object-fit: contain;
+    flex: 0 1 auto;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-assurance-row {
+    margin-top: 22px;
+    padding-top: 20px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-assurance-row strong {
+    font-size: 12px;
+  }
+
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-assurance-row span,
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp-assurance-row a {
+    font-size: 10.5px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .dtb-product-page-shell:not(.product-modal-card-shell) .dtb-pdp__hero {
+    grid-template-columns: minmax(0, 1.22fr) minmax(520px, .92fr) !important;
+  }
+}
