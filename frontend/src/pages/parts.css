@@ -14,15 +14,15 @@
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-bottom: 1px solid rgba(219, 227, 241, 0.58);
-  background: #fff;
+  border-bottom: 1px solid rgba(214, 224, 239, 0.72);
+  background: linear-gradient(90deg, #fff 0%, #fff 48%, #fbfdff 100%);
   isolation: isolate;
 }
 
 .dtb-parts-hero__inner {
   position: relative;
   width: calc(100% - (2 * var(--dtb-viewport-gutter)));
-  min-height: clamp(15.5rem, 24vw, 19.5rem);
+  min-height: clamp(14.75rem, 22vw, 18.25rem);
   margin: 0 auto;
 }
 
@@ -34,131 +34,135 @@
   justify-content: center;
   min-height: inherit;
   width: min(62%, 47rem);
-  padding: clamp(2.25rem, 4vw, 4rem) 0;
+  padding: clamp(2.1rem, 3.6vw, 3.6rem) 0;
   padding-left: clamp(2rem, 2.6vw, 2.75rem);
 }
 
 .dtb-parts-hero__content::before {
   content: '';
   position: absolute;
-  top: clamp(2.25rem, 4vw, 4rem);
-  bottom: clamp(2.25rem, 4vw, 4rem);
+  top: clamp(2.1rem, 3.6vw, 3.6rem);
+  bottom: clamp(2.1rem, 3.6vw, 3.6rem);
   left: 0;
   width: 3px;
-  background: linear-gradient(180deg, #0d2b55 0%, #0878ff 100%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #092c5b 0%, #0878ff 100%);
+  box-shadow: 0 0 0 1px rgba(8, 120, 255, 0.04);
 }
 
 .dtb-parts-hero__eyebrow-row {
   display: flex;
   align-items: center;
-  gap: clamp(1rem, 2vw, 1.6rem);
-  margin-bottom: 0.75rem;
+  gap: clamp(0.9rem, 1.8vw, 1.45rem);
+  margin-bottom: 0.68rem;
 }
 
 .dtb-parts-hero__eyebrow {
   color: #0873ee;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.76rem, 1vw, 0.92rem);
+  font-size: clamp(0.74rem, 0.95vw, 0.88rem);
   font-weight: 800;
   line-height: 1;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.27em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .dtb-parts-hero__eyebrow-rule {
   display: block;
-  width: clamp(5rem, 10vw, 8.25rem);
+  width: clamp(4.75rem, 9vw, 7.5rem);
   height: 1px;
-  background: linear-gradient(90deg, #378cff, rgba(55, 140, 255, 0.18));
+  background: linear-gradient(90deg, #2784ff 0%, rgba(39, 132, 255, 0.12) 100%);
 }
 
 .dtb-parts-hero__title {
   margin: 0;
   color: #071a38;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(2.35rem, 4.2vw, 3.65rem);
+  font-size: clamp(2.4rem, 4vw, 3.55rem);
   font-weight: 800;
-  line-height: 0.98;
-  letter-spacing: -0.045em;
+  line-height: 0.96;
+  letter-spacing: -0.048em;
 }
 
 .dtb-parts-hero__description {
   max-width: 39rem;
-  margin: clamp(1rem, 1.5vw, 1.3rem) 0 0;
+  margin: clamp(0.85rem, 1.25vw, 1.1rem) 0 0;
   color: #58708f;
-  font-size: clamp(0.98rem, 1.25vw, 1.18rem);
+  font-size: clamp(0.98rem, 1.2vw, 1.15rem);
   font-weight: 400;
-  line-height: 1.45;
+  line-height: 1.42;
   letter-spacing: -0.015em;
 }
 
 .dtb-parts-hero__strapline {
-  margin: clamp(0.7rem, 1vw, 0.95rem) 0 0;
+  margin: clamp(0.68rem, 0.9vw, 0.85rem) 0 0;
   color: #10284d;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.58rem, 0.7vw, 0.7rem);
+  font-size: clamp(0.57rem, 0.68vw, 0.67rem);
   font-weight: 800;
   line-height: 1.45;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.23em;
   text-transform: uppercase;
 }
 
 .dtb-parts-hero__art {
   position: absolute;
   z-index: 1;
-  inset: 0 0 0 54%;
+  inset: 0 0 0 52%;
   overflow: hidden;
-  background: linear-gradient(105deg, rgba(246, 250, 255, 0) 0%, #f7fbff 58%, #f4f8fd 100%);
+  background: linear-gradient(105deg, rgba(248, 251, 255, 0) 0%, rgba(246, 250, 255, 0.82) 46%, #f7faff 100%);
   pointer-events: none;
 }
 
 .dtb-parts-hero__slash {
   position: absolute;
-  top: -28%;
-  width: clamp(5rem, 8vw, 8.5rem);
-  height: 160%;
+  top: -30%;
+  width: clamp(4.5rem, 7vw, 7.5rem);
+  height: 164%;
   transform: skewX(-30deg);
   transform-origin: center;
 }
 
 .dtb-parts-hero__slash--one {
-  left: 12%;
-  background: linear-gradient(180deg, rgba(226, 237, 250, 0.18), rgba(218, 231, 247, 0.7));
+  left: 16%;
+  background: linear-gradient(180deg, rgba(231, 240, 251, 0.14), rgba(220, 232, 247, 0.58));
 }
 
 .dtb-parts-hero__slash--two {
-  left: 31%;
-  background: linear-gradient(180deg, rgba(238, 245, 253, 0.35), rgba(209, 225, 244, 0.78));
+  left: 34%;
+  background: linear-gradient(180deg, rgba(237, 244, 252, 0.28), rgba(207, 224, 244, 0.66));
 }
 
 .dtb-parts-hero__slash--three {
-  left: 51%;
-  background: linear-gradient(180deg, rgba(243, 248, 253, 0.55), rgba(221, 233, 247, 0.82));
+  left: 52%;
+  background: linear-gradient(180deg, rgba(245, 249, 254, 0.48), rgba(221, 233, 247, 0.7));
 }
 
 .dtb-parts-hero__statement {
   position: absolute;
   top: 50%;
-  right: clamp(2rem, 7vw, 6rem);
+  right: clamp(2rem, 6.25vw, 5.5rem);
   display: flex;
   flex-direction: column;
+  gap: 0.08rem;
   transform: translateY(-50%);
   color: #071a38;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.68rem, 0.95vw, 0.88rem);
+  font-size: clamp(0.66rem, 0.9vw, 0.84rem);
   font-weight: 800;
-  line-height: 1.6;
-  letter-spacing: 0.27em;
+  line-height: 1.5;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
 .dtb-parts-hero__statement-rule {
   display: block;
-  width: 2.7rem;
+  width: 2.55rem;
   height: 2px;
-  margin-top: 1rem;
-  background: #0878ff;
+  margin-top: 0.9rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0878ff 0%, #3b9aff 100%);
 }
 
 /* Keep the existing catalog directly below the hero without changing its UI. */
@@ -177,7 +181,7 @@
 
   .dtb-parts-hero__art {
     left: 58%;
-    opacity: 0.78;
+    opacity: 0.72;
   }
 
   .dtb-parts-hero__statement {
@@ -213,7 +217,7 @@
   .dtb-parts-hero__art {
     left: 68%;
     right: -18%;
-    opacity: 0.34;
+    opacity: 0.3;
   }
 
   .dtb-parts-hero__eyebrow-rule {
