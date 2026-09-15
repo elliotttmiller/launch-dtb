@@ -42,13 +42,17 @@
 .repair-landing .repair-service-panel--diagnostic ul { margin-top:11px; }
 .repair-landing .repair-service-panel--diagnostic .repair-button { min-height:36px; margin-top:auto; padding:0 16px; font-size:.62rem; line-height:1; }
 
+/* Remove the three redundant assurance badges requested from the landing composition. */
+.repair-landing .repair-assurance__item:nth-child(-n+3) { display:none; }
+.repair-landing .repair-assurance__grid { grid-template-columns:minmax(0,1fr); }
+
 @media (max-width:1180px) {
   .repair-landing .repair-hero { min-height:390px; background-position:62% 50%; }
   .repair-landing .repair-hero__content { width:min(540px,53%); }
   .repair-landing .repair-service-panel { height:306px; padding-right:39%; }
   .repair-landing .repair-service-panel::after { right:0; width:50%; height:100%; background-size:auto 100%; }
   .repair-landing .repair-service-panel--diagnostic { height:306px; padding-right:39%; background-position:right center; }
-  .repair-landing .repair-assurance__grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .repair-landing .repair-assurance__grid { grid-template-columns:minmax(0,1fr); }
   .repair-landing .repair-assurance__item { border-bottom:1px solid var(--repair-line); }
   .repair-landing .repair-brands__list { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
