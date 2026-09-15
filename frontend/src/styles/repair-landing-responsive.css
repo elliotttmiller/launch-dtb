@@ -14,8 +14,9 @@
 @media (max-width:1180px) {
   .repair-landing .repair-hero { min-height:390px; background-position:62% 50%; }
   .repair-landing .repair-hero__content { width:min(540px,53%); }
-  .repair-landing .repair-service-panel { padding-right:24px; }
-  .repair-landing .repair-service-panel::after { opacity:.12; }
+  .repair-landing .repair-service-panel { padding-right:40%; }
+  .repair-landing .repair-service-panel::after { right:-8%; width:48%; opacity:.82; }
+  .repair-landing .repair-service-panel--diagnostic { padding-right:40%; background-position:62% center; }
   .repair-landing .repair-assurance__grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .repair-landing .repair-assurance__item { border-bottom:1px solid var(--repair-line); }
   .repair-landing .repair-brands__list { grid-template-columns:repeat(4,minmax(0,1fr)); }
@@ -27,6 +28,9 @@
   .repair-landing .repair-hero__content { width:min(650px,100%); padding:260px 0 32px; }
   .repair-landing .repair-hero h1 { max-width:9ch; font-size:clamp(2.65rem,8vw,3.8rem); }
   .repair-landing .repair-service-details__grid { grid-template-columns:1fr; }
+  .repair-landing .repair-service-panel { min-height:340px; }
+  .repair-landing .repair-service-panel::after { right:0; width:46%; opacity:1; }
+  .repair-landing .repair-service-panel--diagnostic { background-position:65% center; }
   .repair-landing .repair-process__grid { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:26px; }
   .repair-landing .repair-process__grid::before { display:none; }
   .repair-landing .repair-process__step { border-bottom:1px solid var(--repair-line); }
@@ -55,8 +59,11 @@
   .repair-landing .repair-resources__copy h2,
   .repair-landing .repair-closing-cta h2,
   .repair-landing .repair-brands h2 { font-size:clamp(1.45rem,7vw,1.9rem); }
-  .repair-landing .repair-service-panel { min-height:auto; padding:21px 18px; }
-  .repair-landing .repair-service-panel::after { opacity:.07; }
+  .repair-landing .repair-service-panel { min-height:470px; padding:22px 18px 205px; }
+  .repair-landing .repair-service-panel::after { top:auto; right:-5%; bottom:0; width:78%; height:215px; opacity:1; }
+  .repair-landing .repair-service-panel--diagnostic { min-height:520px; padding:22px 18px 220px; background:linear-gradient(180deg,#04172f 0%,rgba(4,23,47,.98) 43%,rgba(4,23,47,.7) 61%,rgba(4,23,47,.12) 100%),url('../assets/media/repairs/repair-service-diagnostic.webp') 60% bottom/auto 62% no-repeat,#04172f; }
+  .repair-landing .repair-service-panel h2 { max-width:13ch; }
+  .repair-landing .repair-service-panel--diagnostic h2 { max-width:10ch; }
 
   .repair-landing .repair-assurance__grid { grid-template-columns:1fr; }
   .repair-landing .repair-assurance__item,
