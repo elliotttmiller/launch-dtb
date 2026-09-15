@@ -75,10 +75,23 @@
 
 .product-selector-header {
   margin-bottom: clamp(var(--dtb-space-1), 1vw, var(--dtb-space-2));
-  display: flex;
-  flex-direction: column;
-  gap: clamp(var(--dtb-space-1), 0.8vw, var(--dtb-space-2));
+  display: grid;
+  place-items: center;
+  min-height: clamp(4.75rem, 10vw, 7rem);
+  padding: clamp(0.25rem, 1vw, 0.75rem) 0;
   position: relative;
+}
+
+.product-selector-header .dtb-product-nav-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.product-selector-header .back-button.dtb-product-nav-back:hover,
+.product-selector-header .back-button.dtb-product-nav-back:active {
+  transform: translateY(-50%);
 }
 
 .product-selector-header-content h2 {
@@ -92,10 +105,27 @@
 
 .product-brand-header-logo {
   display: block;
-  margin: 0 auto clamp(var(--dtb-space-1), 1vw, var(--dtb-space-2));
-  height: clamp(2.5rem, 6vw, 3.5rem);
+  margin: 0 auto;
   width: auto;
+  height: clamp(3.75rem, 7vw, 5.25rem);
+  max-width: min(72vw, 24rem);
+  max-height: 5.25rem;
   object-fit: contain;
+}
+
+.product-selector .dtb-selector-card__image,
+.product-selector .dtb-selector-card__slide {
+  box-sizing: border-box;
+  padding: clamp(0.75rem, 2vw, 1.25rem);
+  object-fit: contain;
+  object-position: center;
+  background: #ffffff;
+  transform: translateZ(0);
+}
+
+.product-selector .dtb-selector-card--media:hover .dtb-selector-card__image,
+.product-selector .dtb-selector-card--media:hover .dtb-selector-card__slide {
+  transform: translateZ(0);
 }
 
 .product-categories-grid {
@@ -288,26 +318,14 @@
 }
 
 @media (min-width: 640px) {
-  /* Back button sits inline with the brand logo — row layout on desktop */
   .product-selector-header {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--dtb-space-4);
     margin-bottom: clamp(var(--dtb-space-3), 2vw, var(--dtb-space-5));
   }
 
   .product-selector-header-content {
-    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-  /* Remove auto-centering margins — parent flex handles centering */
-  .product-brand-header-logo {
-    margin-bottom: 0;
-    margin-left: 0;
-    margin-right: 0;
   }
 }
 
