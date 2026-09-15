@@ -3,6 +3,7 @@ import Breadcrumb from '../shared/Breadcrumb.jsx';
 import CategoryMerchandising from './CategoryMerchandising.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
+import '../../styles/category-hero-refinements.css';
 
 const READY_CATEGORY_HERO_IMAGES = new Set();
 
