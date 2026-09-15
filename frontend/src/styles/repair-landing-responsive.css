@@ -11,24 +11,36 @@
 .repair-landing .repair-hero h1 { max-width:10ch; font-size:clamp(2.55rem,4vw,4.25rem); }
 .repair-landing .repair-hero__lead { max-width:55ch; }
 
-/* Approved service-path cards. Artwork is anchored to the physical right edge. */
+/* Service-path cards: shared content rhythm plus independently composed artwork. */
 .repair-landing .repair-service-details { padding:30px 0 22px; }
 .repair-landing .repair-service-details .repair-section-heading--center { max-width:760px; margin-bottom:20px; }
 .repair-landing .repair-service-details__grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; align-items:stretch; }
-.repair-landing .repair-service-panel { min-height:0; height:300px; padding:24px 40% 22px 28px; border-radius:7px; }
+.repair-landing .repair-service-panel {
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  min-height:0;
+  height:300px;
+  padding:25px 40% 21px 28px;
+  overflow:hidden;
+  border-radius:7px;
+}
 .repair-landing .repair-service-panel::after { top:0; right:0; bottom:0; width:52%; height:100%; background:url('../assets/media/repairs/repair-service-package.webp') right bottom/auto 100% no-repeat; opacity:1; }
-.repair-landing .repair-service-panel h2 { max-width:14ch; font-size:1.55rem; line-height:1.02; }
-.repair-landing .repair-service-panel > p:not(.repair-eyebrow) { max-width:40ch; margin-top:9px; font-size:.74rem; line-height:1.45; }
-.repair-landing .repair-service-panel ul { margin:13px 0 14px; }
-.repair-landing .repair-service-panel li { padding:5px 0 5px 21px; font-size:.7rem; line-height:1.34; }
-.repair-landing .repair-service-panel li::before { top:6px; width:14px; height:14px; }
-.repair-landing .repair-service-panel li::after { top:5px; left:3px; font-size:.56rem; line-height:14px; }
-.repair-landing .repair-service-panel > a:not(.repair-button) { margin-top:0; font-size:.72rem; }
-.repair-landing .repair-service-panel--diagnostic { height:300px; padding:24px 41% 22px 28px; background:linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.98) 37%,rgba(4,23,47,.82) 52%,rgba(4,23,47,.34) 69%,rgba(4,23,47,.06) 82%),url('../assets/media/repairs/repair-service-diagnostic.webp') right center/cover no-repeat,#04172f; }
+.repair-landing .repair-service-panel .repair-eyebrow { position:relative; z-index:1; flex:0 0 auto; margin:0 0 9px; font-size:.62rem; line-height:1.2; letter-spacing:.13em; }
+.repair-landing .repair-service-panel h2 { position:relative; z-index:1; flex:0 0 auto; max-width:14ch; margin:0; font-size:1.55rem; line-height:1.03; letter-spacing:-.035em; }
+.repair-landing .repair-service-panel > p:not(.repair-eyebrow) { position:relative; z-index:1; flex:0 0 auto; max-width:39ch; margin:10px 0 0; font-size:.74rem; line-height:1.43; }
+.repair-landing .repair-service-panel ul { position:relative; z-index:1; flex:0 0 auto; width:100%; margin:12px 0 0; padding:0; }
+.repair-landing .repair-service-panel li { min-height:0; padding:4px 0 4px 21px; border-bottom:0; font-size:.7rem; line-height:1.32; }
+.repair-landing .repair-service-panel li::before { top:5px; left:0; width:14px; height:14px; }
+.repair-landing .repair-service-panel li::after { top:4px; left:3px; font-size:.56rem; line-height:14px; }
+.repair-landing .repair-service-panel > a { position:relative; z-index:1; flex:0 0 auto; }
+.repair-landing .repair-service-panel > a:not(.repair-button) { margin-top:auto; padding-top:8px; font-size:.72rem; line-height:1.2; }
+.repair-landing .repair-service-panel--diagnostic { height:300px; padding:25px 41% 21px 28px; background:linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.98) 37%,rgba(4,23,47,.82) 52%,rgba(4,23,47,.34) 69%,rgba(4,23,47,.06) 82%),url('../assets/media/repairs/repair-service-diagnostic.webp') right center/cover no-repeat,#04172f; }
 .repair-landing .repair-service-panel--diagnostic::after { display:none; }
 .repair-landing .repair-service-panel--diagnostic h2 { max-width:11ch; }
-.repair-landing .repair-service-panel--diagnostic ul { margin-top:12px; }
-.repair-landing .repair-service-panel--diagnostic .repair-button { min-height:36px; margin-top:0; padding-inline:16px; font-size:.62rem; }
+.repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) { max-width:38ch; }
+.repair-landing .repair-service-panel--diagnostic ul { margin-top:11px; }
+.repair-landing .repair-service-panel--diagnostic .repair-button { min-height:36px; margin-top:auto; padding:0 16px; font-size:.62rem; line-height:1; }
 
 @media (max-width:1180px) {
   .repair-landing .repair-hero { min-height:390px; background-position:62% 50%; }
@@ -79,11 +91,13 @@
   .repair-landing .repair-resources__copy h2,
   .repair-landing .repair-closing-cta h2,
   .repair-landing .repair-brands h2 { font-size:clamp(1.45rem,7vw,1.9rem); }
-  .repair-landing .repair-service-panel { height:auto; min-height:410px; padding:21px 18px 165px; }
+  .repair-landing .repair-service-panel { display:flex; height:auto; min-height:410px; padding:21px 18px 165px; }
   .repair-landing .repair-service-panel::after { top:auto; right:0; bottom:0; width:78%; height:175px; background-position:right bottom; background-size:auto 100%; }
   .repair-landing .repair-service-panel--diagnostic { height:auto; min-height:445px; padding:21px 18px 180px; background:linear-gradient(180deg,#04172f 0%,rgba(4,23,47,.98) 48%,rgba(4,23,47,.72) 65%,rgba(4,23,47,.12) 100%),url('../assets/media/repairs/repair-service-diagnostic.webp') right bottom/auto 58% no-repeat,#04172f; }
   .repair-landing .repair-service-panel h2 { max-width:13ch; }
   .repair-landing .repair-service-panel--diagnostic h2 { max-width:10ch; }
+  .repair-landing .repair-service-panel > a:not(.repair-button),
+  .repair-landing .repair-service-panel--diagnostic .repair-button { margin-top:14px; }
 
   .repair-landing .repair-assurance__grid { grid-template-columns:1fr; }
   .repair-landing .repair-assurance__item,
