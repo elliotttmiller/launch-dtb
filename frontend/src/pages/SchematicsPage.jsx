@@ -31,6 +31,7 @@ import SchematicViewerPage from '../components/schematics-v2/SchematicViewerPage
 import '../styles/schematics-v2.css';
 import '../styles/schematics-brand-header.css';
 import '../styles/schematic-hotspot-card-polish.css';
+import '../styles/schematic-linked-hotspot-glow.css';
 import '../styles/schematics-loading.css';
 
 function SchematicsPageInner() {
