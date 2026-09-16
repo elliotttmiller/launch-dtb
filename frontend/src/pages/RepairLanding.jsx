@@ -275,8 +275,8 @@ export default function RepairLanding() {
           <div className="repair-section-shell repair-brands__inner">
             <div>
               <p className="repair-eyebrow">Supported Brands</p>
-              <h2 id="repair-brands-title">Repair support across major automatic finishing brands.</h2>
-              <p className="repair-brands__copy">Choose the exact brand and tool family during intake so the request stays associated with the correct equipment.</p>
+              <h2 id="repair-brands-title">We service taping and finishing tools from all major brands.</h2>
+              <p className="repair-brands__copy">Don’t see yours? We may still be able to help.</p>
             </div>
             <div className="repair-brands__list" aria-label="Supported repair brands">
               {featuredBrands.map(({ brand, logo }) => (
