@@ -52,7 +52,7 @@
     --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
     --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-4%;
+    --repair-package-art-right:-6%;
     --repair-package-art-bottom:-2%;
     --repair-package-art-height:77%;
   }
@@ -304,7 +304,7 @@
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
   .repair-landing .repair-service-panel ul { width:67%; }
   .repair-landing .repair-service-panel__package-art {
-    right:-5%;
+    right:-6%;
     bottom:-2%;
     height:74%;
   }
