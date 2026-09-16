@@ -8,10 +8,13 @@ defined( 'ABSPATH' ) || exit;
  */
 function dtb_schematic_supported_brands(): array {
 	if ( defined( 'DTB_BRANDS' ) && is_array( DTB_BRANDS ) ) {
-		return array_values( array_map( 'strval', DTB_BRANDS ) );
+		$brands   = array_values( array_map( 'strval', DTB_BRANDS ) );
+		$brands[] = 'Asgard';
+		return array_values( array_unique( $brands ) );
 	}
 
 	return [
+		'Asgard',
 		'Columbia Tools',
 		'Platinum Drywall Tools',
 		'SurPro',

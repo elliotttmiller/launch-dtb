@@ -18,26 +18,26 @@
 88TTE_SCH-1.webp,tapetech_88tte_sch-page-001.webp,tapetech,88TTE,1,catalog SKU
 90T_SCH_page_1.webp,tapetech_90t_sch-page-001.webp,tapetech,90T,1,catalog SKU
 9333_SCH-page-001.webp,level5_9333_sch-page-001.webp,level5,9333,1,Level5 spare-part schematic SKU
-ah25-ad_sch-page-001.webp,columbia_ah25-ad_sch-page-001.webp,columbia,ah25-ad,1,existing Columbia AD SKU
-ah30-ad_sch-page-001.webp,columbia_ah30-ad_sch-page-001.webp,columbia,ah30-ad,1,existing Columbia AD SKU
-ah35-ad_sch-page-001.webp,columbia_ah35-ad_sch-page-001.webp,columbia,ah35-ad,1,existing Columbia AD SKU
-at01-ad_sch-page-001.webp,columbia_at01-ad_sch-page-001.webp,columbia,at01-ad,1,existing Columbia AD SKU
-at01-ad_sch-page-002.webp,columbia_at01-ad_sch-page-002.webp,columbia,at01-ad,2,existing Columbia AD SKU
-at01-ad_sch-page-003.webp,columbia_at01-ad_sch-page-003.webp,columbia,at01-ad,3,existing Columbia AD SKU
-at01-ad_sch-page-004.webp,columbia_at01-ad_sch-page-004.webp,columbia,at01-ad,4,existing Columbia AD SKU
-at01-ad_sch-page-005.webp,columbia_at01-ad_sch-page-005.webp,columbia,at01-ad,5,existing Columbia AD SKU
-at01-ad_sch-page-006.webp,columbia_at01-ad_sch-page-006.webp,columbia,at01-ad,6,existing Columbia AD SKU
-at01-ad_sch-page-007.webp,columbia_at01-ad_sch-page-007.webp,columbia,at01-ad,7,existing Columbia AD SKU
-at01-ad_sch-page-008.webp,columbia_at01-ad_sch-page-008.webp,columbia,at01-ad,8,existing Columbia AD SKU
-at01-ad_sch-page-009.webp,columbia_at01-ad_sch-page-009.webp,columbia,at01-ad,9,existing Columbia AD SKU
-at01-ad_sch-page-010.webp,columbia_at01-ad_sch-page-010.webp,columbia,at01-ad,10,existing Columbia AD SKU
-at01-ad_sch-page-011.webp,columbia_at01-ad_sch-page-011.webp,columbia,at01-ad,11,existing Columbia AD SKU
-at01-ad_sch-page-012.webp,columbia_at01-ad_sch-page-012.webp,columbia,at01-ad,12,existing Columbia AD SKU
-bbh-ad_sch-page-001.webp,columbia_bbh-ad_sch-page-001.webp,columbia,bbh-ad,1,existing Columbia AD SKU
-bbhe-ad_sch-page-001.webp,columbia_bbhe-ad_sch-page-001.webp,columbia,bbhe-ad,1,existing Columbia AD SKU
-bbhe-ad_sch-page-002.webp,columbia_bbhe-ad_sch-page-002.webp,columbia,bbhe-ad,2,existing Columbia AD SKU
-ca08-ad_sch-page-001.webp,columbia_ca08-ad_sch-page-001.webp,columbia,ca08-ad,1,existing Columbia AD SKU
-cfa-ad_sch-page-001.webp,columbia_cfa-ad_sch-page-001.webp,columbia,cfa-ad,1,existing Columbia AD SKU
+ah25-ad_sch-page-001.webp,asgard_ah25-ad_sch-page-001.webp,asgard,ah25-ad,1,legacy brand architecture
+ah30-ad_sch-page-001.webp,asgard_ah30-ad_sch-page-001.webp,asgard,ah30-ad,1,legacy brand architecture
+ah35-ad_sch-page-001.webp,asgard_ah35-ad_sch-page-001.webp,asgard,ah35-ad,1,legacy brand architecture
+at01-ad_sch-page-001.webp,asgard_at01-ad_sch-page-001.webp,asgard,at01-ad,1,legacy brand architecture
+at01-ad_sch-page-002.webp,asgard_at01-ad_sch-page-002.webp,asgard,at01-ad,2,legacy brand architecture
+at01-ad_sch-page-003.webp,asgard_at01-ad_sch-page-003.webp,asgard,at01-ad,3,legacy brand architecture
+at01-ad_sch-page-004.webp,asgard_at01-ad_sch-page-004.webp,asgard,at01-ad,4,legacy brand architecture
+at01-ad_sch-page-005.webp,asgard_at01-ad_sch-page-005.webp,asgard,at01-ad,5,legacy brand architecture
+at01-ad_sch-page-006.webp,asgard_at01-ad_sch-page-006.webp,asgard,at01-ad,6,legacy brand architecture
+at01-ad_sch-page-007.webp,asgard_at01-ad_sch-page-007.webp,asgard,at01-ad,7,legacy brand architecture
+at01-ad_sch-page-008.webp,asgard_at01-ad_sch-page-008.webp,asgard,at01-ad,8,legacy brand architecture
+at01-ad_sch-page-009.webp,asgard_at01-ad_sch-page-009.webp,asgard,at01-ad,9,legacy brand architecture
+at01-ad_sch-page-010.webp,asgard_at01-ad_sch-page-010.webp,asgard,at01-ad,10,legacy brand architecture
+at01-ad_sch-page-011.webp,asgard_at01-ad_sch-page-011.webp,asgard,at01-ad,11,legacy brand architecture
+at01-ad_sch-page-012.webp,asgard_at01-ad_sch-page-012.webp,asgard,at01-ad,12,legacy brand architecture
+bbh-ad_sch-page-001.webp,asgard_bbh-ad_sch-page-001.webp,asgard,bbh-ad,1,legacy brand architecture
+bbhe-ad_sch-page-001.webp,asgard_bbhe-ad_sch-page-001.webp,asgard,bbhe-ad,1,legacy brand architecture
+bbhe-ad_sch-page-002.webp,asgard_bbhe-ad_sch-page-002.webp,asgard,bbhe-ad,2,legacy brand architecture
+ca08-ad_sch-page-001.webp,asgard_ca08-ad_sch-page-001.webp,asgard,ca08-ad,1,legacy brand architecture
+cfa-ad_sch-page-001.webp,asgard_cfa-ad_sch-page-001.webp,asgard,cfa-ad,1,legacy brand architecture
 columbia-180-grip-flat-box-handle-sch-schematic-page-01.webp,columbia_col-180-grip-flat-box-handle_sch-page-001.webp,columbia,COL-180-GRIP-FLAT-BOX-HANDLE,1,schematic map: columbia-flat-box-handle
 columbia-angle-head-sch-schematic-page-01.webp,columbia_col-angle-head_sch-page-001.webp,columbia,COL-ANGLE-HEAD,1,schematic map: columbia-angle-head
 columbia-automatic-flat-finishing-box-sch-schematic-page-01.webp,columbia_col-automatic-flat-box_sch-page-001.webp,columbia,COL-AUTOMATIC-FLAT-BOX,1,schematic map: columbia-automatic-flat-box
@@ -74,34 +74,34 @@ columbia-semi-automatic-taper-sat-sch-schematic-page-01.webp,columbia_sat_sch-pa
 columbia-standard-flusher-sch-schematic-page-01.webp,columbia_col-standard-flusher_sch-page-001.webp,columbia,COL-STANDARD-FLUSHER,1,schematic map: columbia-standard-corner-flusher
 columbia-throttle-box-sch-schematic-page-01.webp,columbia_col-throttle-corner-flusher-box_sch-page-001.webp,columbia,COL-THROTTLE-CORNER-FLUSHER-BOX,1,schematic map: columbia-throttle-box
 columbia-tomahawk-smoothing-blade-sch-schematic-page-01.webp,columbia_tomahawk_sch-page-001.webp,columbia,TOMAHAWK,1,schematic map: columbia-tomahawk-smoothing-blades
-cr01-ad_sch-page-001.webp,columbia_cr01-ad_sch-page-001.webp,columbia,cr01-ad,1,existing Columbia AD SKU
-ehc07-ad_sch-page-001.webp,columbia_ehc07-ad_sch-page-001.webp,columbia,ehc07-ad,1,existing Columbia AD SKU
+cr01-ad_sch-page-001.webp,asgard_cr01-ad_sch-page-001.webp,asgard,cr01-ad,1,legacy brand architecture
+ehc07-ad_sch-page-001.webp,asgard_ehc07-ad_sch-page-001.webp,asgard,ehc07-ad,1,legacy brand architecture
 EHC07_SCH_page_1.webp,tapetech_ehc07_sch-page-001.webp,tapetech,EHC07,1,catalog SKU
-ehc10-ad_sch-page-001.webp,columbia_ehc10-ad_sch-page-001.webp,columbia,ehc10-ad,1,existing Columbia AD SKU
+ehc10-ad_sch-page-001.webp,asgard_ehc10-ad_sch-page-001.webp,asgard,ehc10-ad,1,legacy brand architecture
 EHC10_SCH_page_1.webp,tapetech_ehc10_sch-page-001.webp,tapetech,EHC10,1,catalog SKU
-ehc12-ad_sch-page-001.webp,columbia_ehc12-ad_sch-page-001.webp,columbia,ehc12-ad,1,existing Columbia AD SKU
+ehc12-ad_sch-page-001.webp,asgard_ehc12-ad_sch-page-001.webp,asgard,ehc12-ad,1,legacy brand architecture
 EHC12_SCH_page_1.webp,tapetech_ehc12_sch-page-001.webp,tapetech,EHC12,1,catalog SKU
-ez07-ad_sch-page-001.webp,columbia_ez07-ad_sch-page-001.webp,columbia,ez07-ad,1,existing Columbia AD SKU
+ez07-ad_sch-page-001.webp,asgard_ez07-ad_sch-page-001.webp,asgard,ez07-ad,1,legacy brand architecture
 EZ07TT_SCH_page_1.webp,tapetech_ez07tt_sch-page-001.webp,tapetech,EZ07TT,1,catalog SKU
-ez10-ad_sch-page-001.webp,columbia_ez10-ad_sch-page-001.webp,columbia,ez10-ad,1,existing Columbia AD SKU
+ez10-ad_sch-page-001.webp,asgard_ez10-ad_sch-page-001.webp,asgard,ez10-ad,1,legacy brand architecture
 EZ10TT_SCH_page_1.webp,tapetech_ez10tt_sch-page-001.webp,tapetech,EZ10TT,1,catalog SKU
-ez12-ad_sch-page-001.webp,columbia_ez12-ad_sch-page-001.webp,columbia,ez12-ad,1,existing Columbia AD SKU
+ez12-ad_sch-page-001.webp,asgard_ez12-ad_sch-page-001.webp,asgard,ez12-ad,1,legacy brand architecture
 EZ12TT_SCH_page_1.webp,tapetech_ez12tt_sch-page-001.webp,tapetech,EZ12TT,1,catalog SKU
 EZ15TT_SCH_page_1.webp,tapetech_ez15tt_sch-page-001.webp,tapetech,EZ15TT,1,catalog SKU
-fa01-ad_sch-page-001.webp,columbia_fa01-ad_sch-page-001.webp,columbia,fa01-ad,1,existing Columbia AD SKU
-fbhe-ad_sch-page-001.webp,columbia_fbhe-ad_sch-page-001.webp,columbia,fbhe-ad,1,existing Columbia AD SKU
-fbhe-ad_sch-page-002.webp,columbia_fbhe-ad_sch-page-002.webp,columbia,fbhe-ad,2,existing Columbia AD SKU
-fh-ad_sch-page-001.webp,columbia_fh-ad_sch-page-001.webp,columbia,fh-ad,1,existing Columbia AD SKU
-gn01-ad_sch-page-001.webp,columbia_gn01-ad_sch-page-001.webp,columbia,gn01-ad,1,existing Columbia AD SKU
-lp01-ad_sch-page-001.webp,columbia_lp01-ad_sch-page-001.webp,columbia,lp01-ad,1,existing Columbia AD SKU
+fa01-ad_sch-page-001.webp,asgard_fa01-ad_sch-page-001.webp,asgard,fa01-ad,1,legacy brand architecture
+fbhe-ad_sch-page-001.webp,asgard_fbhe-ad_sch-page-001.webp,asgard,fbhe-ad,1,legacy brand architecture
+fbhe-ad_sch-page-002.webp,asgard_fbhe-ad_sch-page-002.webp,asgard,fbhe-ad,2,legacy brand architecture
+fh-ad_sch-page-001.webp,asgard_fh-ad_sch-page-001.webp,asgard,fh-ad,1,legacy brand architecture
+gn01-ad_sch-page-001.webp,asgard_gn01-ad_sch-page-001.webp,asgard,gn01-ad,1,legacy brand architecture
+lp01-ad_sch-page-001.webp,asgard_lp01-ad_sch-page-001.webp,asgard,lp01-ad,1,legacy brand architecture
 model-4-14-22.webp,dura-stilts_d14-22_sch-page-001.webp,dura-stilts,D14-22,1,Dura-Stilts model range
 model-4-18-30.webp,dura-stilts_d18-30_sch-page-001.webp,dura-stilts,D18-30,1,Dura-Stilts model range
 model-4-24-40.webp,dura-stilts_d24-40_sch-page-001.webp,dura-stilts,D24-40,1,Dura-Stilts model range
 MUD-PUMP-SUB-ASSEMBLIES-2022-enhanced.webp,columbia_hmp-2022_sch-page-001.webp,columbia,HMP-2022,1,legacy exact mapping
-ns03-ad_sch-page-001.webp,columbia_ns03-ad_sch-page-001.webp,columbia,ns03-ad,1,existing Columbia AD SKU
-pa07-ad_sch-page-001.webp,columbia_pa07-ad_sch-page-001.webp,columbia,pa07-ad,1,existing Columbia AD SKU
-pa10-ad_sch-page-001.webp,columbia_pa10-ad_sch-page-001.webp,columbia,pa10-ad,1,existing Columbia AD SKU
-pa12-ad_sch-page-001.webp,columbia_pa12-ad_sch-page-001.webp,columbia,pa12-ad,1,existing Columbia AD SKU
+ns03-ad_sch-page-001.webp,asgard_ns03-ad_sch-page-001.webp,asgard,ns03-ad,1,legacy brand architecture
+pa07-ad_sch-page-001.webp,asgard_pa07-ad_sch-page-001.webp,asgard,pa07-ad,1,legacy brand architecture
+pa10-ad_sch-page-001.webp,asgard_pa10-ad_sch-page-001.webp,asgard,pa10-ad,1,legacy brand architecture
+pa12-ad_sch-page-001.webp,asgard_pa12-ad_sch-page-001.webp,asgard,pa12-ad,1,legacy brand architecture
 PAHC07_SCH_page_1.webp,tapetech_pahc07_sch-page-001.webp,tapetech,PAHC07,1,catalog SKU
 PAHC10_SCH_v2_page_1.webp,tapetech_pahc10_sch-page-001.webp,tapetech,PAHC10,1,catalog SKU
 PAHC12_SCH_page_1.webp,tapetech_pahc12_sch-page-001.webp,tapetech,PAHC12,1,catalog SKU
@@ -123,5 +123,5 @@ tapetech-tapetech-lock-block-for-07tt-050212f-sch-schematic-page-001.webp,tapete
 tapetech-tapetech-lock-block-for-07tt-050212f-sch-schematic-page-002.webp,tapetech_07tt_sch-page-002.webp,tapetech,07TT,2,schematic map: tapetech-07tt
 tapetech-tapetech-lock-block-for-07tt-050212f-sch-schematic-page-003.webp,tapetech_07tt_sch-page-003.webp,tapetech,07TT,3,schematic map: tapetech-07tt
 tapetech-tapetech-lock-block-for-07tt-050212f-sch-schematic-page-004.webp,tapetech_07tt_sch-page-004.webp,tapetech,07TT,4,schematic map: tapetech-07tt
-xh-ad_sch-page-001.webp,columbia_xh-ad_sch-page-001.webp,columbia,xh-ad,1,existing Columbia AD SKU
+xh-ad_sch-page-001.webp,asgard_xh-ad_sch-page-001.webp,asgard,xh-ad,1,legacy brand architecture
 XHTT_SCH_page_1.webp,tapetech_xhtt_sch-page-001.webp,tapetech,XHTT,1,catalog SKU

@@ -28,7 +28,7 @@ defined( 'ABSPATH' ) || exit;
  * DTB_SKU_SCHEMATIC_MAP (see scripts/catalog/gen_sku_schematic_map.py).
  * An optional leading "{brand}_" token is stripped first so canonical
  * {brand}_{sku}_sch-page-{n}.webp exports (e.g. a re-branded/misfiled
- * "columbia_ah25-ad_sch-page-001.webp") are still recognized as retired
+ * "asgard_ah25-ad_sch-page-001.webp") are still recognized as retired
  * instead of falling through to an opaque "unknown SKU" error.
  */
 function dtb_schematics_is_retired_upload_filename( string $filename ): bool {
@@ -81,7 +81,7 @@ const DTB_RETIRED_SCHEMATIC_UPLOAD_SKUS = [ 'COL-SANDER-HEAD', 'HMP-2022', 'TOMA
  *      individually retired SKUs that don't share a structural marker.
  * An optional leading "{brand}_" token is stripped first so canonical
  * {brand}_{sku}_sch-page-{n}.webp exports (e.g. a re-branded/misfiled
- * "columbia_ah25-ad_sch-page-001.webp") are still recognized as retired
+ * "asgard_ah25-ad_sch-page-001.webp") are still recognized as retired
  * instead of falling through to an opaque "unknown SKU" error.
  */
 function dtb_schematics_retired_upload_reason( string $filename ): ?string {
@@ -214,7 +214,7 @@ function dtb_schematics_parse_sku_upload_filename( string $name ) {
  * keys are bare catalog SKUs (no brand prefix), so a captured token like
  * "columbia_3ns" must have its brand prefix stripped before lookup.
  */
-const DTB_SCHEMATIC_UPLOAD_BRAND_PREFIXES = [ 'COLUMBIA', 'TAPETECH', 'PLATINUM', 'LEVEL5', 'DURA-STILTS' ];
+const DTB_SCHEMATIC_UPLOAD_BRAND_PREFIXES = [ 'ASGARD', 'COLUMBIA', 'TAPETECH', 'PLATINUM', 'LEVEL5', 'DURA-STILTS' ];
 
 /**
  * Resolves a captured filename token to a DTB_SKU_SCHEMATIC_MAP key, trying

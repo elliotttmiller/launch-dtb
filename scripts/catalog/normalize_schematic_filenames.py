@@ -20,9 +20,25 @@ CATALOG = REPO / "products" / "launch" / "official" / "dtb_official_catalog.csv"
 PRODUCT_LINKS = REPO / "frontend" / "src" / "data" / "productSchematicLinks.generated.js"
 SCHEMATIC_MAP = REPO / "drywalltoolbox" / "wp" / "wp-content" / "mu-plugins" / "dtb-schematics" / "Data" / "SkuSchematicMap.php"
 MANIFEST = IMAGE_DIR / "schematic_filename_migration.csv"
+SOURCE_MANIFEST = IMAGE_DIR / "schematic_source_manifest.csv"
+SCHEMATIC_PARTS_MASTER = (
+    REPO / "products" / "launch" / "universal_parts" / "references"
+    / "all_brands_schematic_parts_master.csv"
+)
 
 TEXT_SUFFIXES = {".csv", ".json", ".js", ".jsx", ".md", ".php", ".py", ".txt"}
-SKIP_PARTS = {".git", "node_modules", "dist", "dist-staging"}
+SKIP_PARTS = {
+    ".git", ".venv", ".cache", "node_modules", "vendor", "dist", "dist-staging",
+    "launch-wp",
+}
+
+ASGARD_SCHEMATIC_SKUS = {
+    "ah25-ad", "ah30-ad", "ah35-ad", "at01-ad", "bbh-ad", "bbhe-ad",
+    "ca08-ad", "cfa-ad", "cr01-ad", "ehc07-ad", "ehc10-ad", "ehc12-ad",
+    "ez07-ad", "ez10-ad", "ez12-ad", "fa01-ad", "fbhe-ad", "fh-ad",
+    "gn01-ad", "lp01-ad", "ns03-ad", "pa07-ad", "pa10-ad", "pa12-ad",
+    "xh-ad",
+}
 
 PREFERRED_SKU = {
     "columbia-2-way-internal-corner": "ICATW",
@@ -121,11 +137,17 @@ def resolve(path: Path, catalog: dict, product_links: dict, verbose_map: dict) -
 
     canonical = re.match(r"^([a-z0-9-]+)_(.+?)_sch-page-(\d{3})$", stem)
     if canonical:
-        return canonical.group(1), canonical.group(2), int(canonical.group(3)), "canonical filename"
+        brand = canonical.group(1)
+        sku = canonical.group(2)
+        if sku in ASGARD_SCHEMATIC_SKUS:
+            brand = "asgard"
+        return brand, sku, int(canonical.group(3)), "canonical filename"
 
     retired = re.match(r"^(.+?-ad)_sch-page-(\d+)$", stem, re.I)
     if retired:
-        return "columbia", retired.group(1), int(retired.group(2)), "existing Columbia AD SKU"
+        sku = retired.group(1)
+        brand = "asgard" if sku.lower() in ASGARD_SCHEMATIC_SKUS else "columbia"
+        return brand, sku, int(retired.group(2)), "legacy brand architecture"
 
     model = re.match(r"^model-4-(\d+-\d+)$", stem, re.I)
     if model:
@@ -206,10 +228,92 @@ def repository_text_files() -> list[Path]:
 
 
 def write_manifest(rows: list[dict[str, str]]) -> None:
+    existing = {}
+    existing_order = {}
+    if MANIFEST.exists():
+        with MANIFEST.open("r", encoding="utf-8-sig", newline="") as handle:
+            for index, row in enumerate(csv.DictReader(handle)):
+                key = (filename_token(row["sku"]), row["page"])
+                existing[key] = row
+                existing_order[key] = index
+
+    output_rows = []
+    for row in rows:
+        historical = existing.get((filename_token(row["sku"]), row["page"]))
+        if historical:
+            row = {
+                **row,
+                "old_filename": historical["old_filename"],
+                "sku": historical["sku"],
+                "resolution_source": historical["resolution_source"],
+            }
+        output_rows.append(row)
+
+    output_rows.sort(
+        key=lambda row: existing_order.get(
+            (filename_token(row["sku"]), row["page"]),
+            len(existing_order),
+        )
+    )
+
     with MANIFEST.open("w", encoding="utf-8-sig", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(handle, fieldnames=list(output_rows[0]))
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(output_rows)
+
+
+def rebuild_source_manifest(rows: list[dict[str, str]]) -> None:
+    asgard_ids = load_asgard_schematic_ids()
+    source_rows = []
+    for row in rows:
+        path = IMAGE_DIR / row["new_filename"]
+        brand = row["brand"]
+        sku = filename_token(row["sku"])
+        schematic_id = asgard_ids.get(sku) if brand == "asgard" else None
+        source_rows.append({
+            "schematic_id": schematic_id or f"{brand}_{sku}",
+            "brand": brand,
+            "sku_or_alias": sku,
+            "page": row["page"],
+            "filename": row["new_filename"],
+            "checksum_sha256": file_sha256(path),
+            "size_bytes": str(path.stat().st_size),
+        })
+
+    with SOURCE_MANIFEST.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(source_rows[0]))
+        writer.writeheader()
+        writer.writerows(source_rows)
+
+
+def load_asgard_schematic_ids() -> dict[str, str]:
+    result = {}
+    with SCHEMATIC_PARTS_MASTER.open("r", encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            if row.get("brand", "").strip().lower() != "asgard":
+                continue
+            sku = filename_token(row.get("product_sku", ""))
+            schematic_id = row.get("schematic_id", "").strip().lower()
+            if not sku or not schematic_id:
+                continue
+            existing = result.get(sku)
+            if existing and existing != schematic_id:
+                raise ValueError(f"Conflicting Asgard schematic ids for {sku}: {existing}, {schematic_id}")
+            result[sku] = schematic_id
+    missing = sorted(ASGARD_SCHEMATIC_SKUS - result.keys())
+    if missing:
+        raise ValueError(f"Missing Asgard schematic identities for: {', '.join(missing)}")
+    return result
+
+
+def file_sha256(path: Path) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def apply(rows: list[dict[str, str]]) -> tuple[int, int]:
@@ -239,6 +343,7 @@ def apply(rows: list[dict[str, str]]) -> tuple[int, int]:
     for temporary, new in staged:
         temporary.rename(new)
     write_manifest(rows)
+    rebuild_source_manifest(rows)
     return len(staged), changed_refs
 
 

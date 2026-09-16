@@ -13,6 +13,7 @@ def normalize_key(s):
 
 
 SCHEMATIC_BRANDS = {
+    "asgard": ("asgard", "Asgard"),
     "columbia": ("columbia", "Columbia Taping Tools"),
     "columbiatools": ("columbia", "Columbia Taping Tools"),
     "columbiatapingtools": ("columbia", "Columbia Taping Tools"),
@@ -86,7 +87,7 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         brand = (row.get("brand") or "").strip()
         category = (row.get("schematic_category") or "").strip()
         src_rel = (row.get("source_file_from_brands") or "").strip()
-        if sid and (brand == "Asgard" or category == "Sanders"):
+        if sid and category == "Sanders":
             retired_schematic_ids.add(sid.lower())
             continue
         if not sid:
@@ -176,7 +177,7 @@ for alias, canonical in SKU_ALIASES.items():
 
 print(f"[sku map] SKU_ALIASES entries added: {alias_added}", file=sys.stderr)
 print(f"[sku map] catalog entries: {len(catalog)}, csv entries added: {added}, total: {len(sku_map)}", file=sys.stderr)
-print(f"[retired ids] Asgard schematic ids denylisted: {len(retired_schematic_ids)}", file=sys.stderr)
+print(f"[retired ids] schematic ids denylisted: {len(retired_schematic_ids)}", file=sys.stderr)
 
 verbose_map_json_path = f"{REPO}/scripts/catalog/data/schematic_verbose_id_map.json"
 with open(verbose_map_json_path, encoding="utf-8") as f:
@@ -237,11 +238,12 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
     reader = csv.DictReader(f)
     for row in reader:
         brand = (row.get("brand") or "").strip()
-        if brand in ("", "Asgard"):
+        if not brand:
             continue
         sid = (row.get("schematic_id") or "").strip()
         sku = (row.get("product_sku") or "").strip()
         category = (row.get("schematic_category") or "").strip()
+        title = (row.get("product_name") or row.get("schematic_title") or "").strip()
         if not sid or not category:
             continue
         canonical_id = resolve_row_canonical_id(sid, sku)
@@ -252,6 +254,8 @@ with open(csv_path, encoding="utf-8-sig", newline="") as f:
         brand_category_votes.setdefault(canonical_id, Counter())[pair] += 1
         brand_name_votes.setdefault(canonical_id, Counter())[brand_name] += 1
         category_name_votes.setdefault(canonical_id, Counter())[category] += 1
+        if title:
+            title_votes.setdefault(canonical_id, Counter())[title] += 1
 
 # Catalog link metadata is the customer-facing authority whenever it exists.
 # Keep its display-name votes separate from source-folder labels; otherwise a
@@ -380,6 +384,8 @@ for source_row in schematic_source_rows:
     hotspot_source_map.setdefault(canonical_id, {})[reference] = int(page)
 
 hotspot_path_overrides = {
+    "Asgard/Schematics/Handles/BBHE-AD/schematic_data2.json": ("asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch", 2),
+    "Asgard/Schematics/Handles/FBHE-AD/schematic_data2.json": ("asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch", 2),
     "Columbia/Schematics/Handles/MatrixBoxHandle/BoxHandle/schematic_data.json": ("columbia-matrix", 1),
     "Columbia/Schematics/Handles/MatrixBoxHandle/Head/schematic_data.json": ("columbia-matrix", 2),
     "Columbia/Schematics/Handles/MatrixBoxHandle/Lever/schematic_data.json": ("columbia-matrix", 3),

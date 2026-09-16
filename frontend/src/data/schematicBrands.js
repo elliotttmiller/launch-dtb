@@ -1,4 +1,5 @@
 export const SCHEMATIC_BRANDS = [
+  { id: 'asgard', name: 'Asgard', slug: 'asgard', aliases: ['asgard-tools'] },
   { id: 'tape-tech', name: 'TapeTech', slug: 'tape-tech', aliases: ['tapetech'] },
   { id: 'columbia', name: 'Columbia Taping Tools', slug: 'columbia', aliases: ['columbia-taping-tools', 'columbia-tools'] },
   { id: 'sur-pro', name: 'SurPro', slug: 'sur-pro', aliases: ['surpro'] },

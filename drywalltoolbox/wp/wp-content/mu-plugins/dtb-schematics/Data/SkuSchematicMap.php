@@ -4,8 +4,6 @@
  *   - frontend/src/data/productSchematicLinks.generated.js (catalog SKUs)
  *   - scripts/catalog/data/schematic_verbose_id_map.json (tool id / page ordering)
  *   - products/launch/universal_parts/references/all_brands_schematic_parts_master.csv
- *     (Level5 spare-part codes and verbose Columbia/TapeTech/Platinum export
- *     ids, none of which are catalog SKUs)
  * Regenerate with scripts/catalog/gen_sku_schematic_map.py whenever any source changes.
  *
  * @package drywall-toolbox
@@ -13,7 +11,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-// {sku}_SCH-page-{n}.webp / {sku}_SCH-preview.webp uploads.
 const DTB_SKU_SCHEMATIC_MAP = [
 	'07TT' => [ 'schematic_id' => 'tapetech-07tt', 'page' => null ],
 	'10FBBA' => [ 'schematic_id' => 'columbia-fat-boy-box', 'page' => null ],
@@ -85,12 +82,20 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'8FFBA' => [ 'schematic_id' => 'columbia-automatic-flat-box', 'page' => null ],
 	'90T' => [ 'schematic_id' => 'tapetech-90t', 'page' => null ],
 	'9333' => [ 'schematic_id' => 'level5-9333-cutter-chain-assembly', 'page' => null ],
+	'AH25-AD' => [ 'schematic_id' => 'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch', 'page' => null ],
+	'AH30-AD' => [ 'schematic_id' => 'asgard-angle-head-3-ah30-ad-sch', 'page' => null ],
+	'AH35-AD' => [ 'schematic_id' => 'asgard-angle-head-3-5-ah35-ad-sch', 'page' => null ],
+	'AT01-AD' => [ 'schematic_id' => 'asgard-hammer-automatic-taper-at01-ad-sch', 'page' => null ],
+	'BBH-AD' => [ 'schematic_id' => 'asgard-brakeless-box-handle-34-bbh-ad-sch', 'page' => null ],
+	'BBHE-AD' => [ 'schematic_id' => 'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch', 'page' => null ],
 	'BF' => [ 'schematic_id' => 'columbia-box-filler', 'page' => null ],
 	'C1H' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
 	'C1HEXT' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
 	'C1HS' => [ 'schematic_id' => 'columbia-one', 'page' => null ],
+	'CA08-AD' => [ 'schematic_id' => 'asgard-ca08-ad-applicator-box-head-sch', 'page' => null ],
 	'CC' => [ 'schematic_id' => 'columbia-corner-cobra', 'page' => null ],
 	'CEXT90' => [ 'schematic_id' => 'columbia-external-corner-applicator', 'page' => null ],
+	'CFA-AD' => [ 'schematic_id' => 'asgard-angle-head-adapter-cfa-ad-sch', 'page' => null ],
 	'CHXL' => [ 'schematic_id' => 'columbia-long-extendable-handle', 'page' => null ],
 	'CLT24' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => null ],
 	'CLT32' => [ 'schematic_id' => 'columbia-cam-lock-tube', 'page' => null ],
@@ -118,23 +123,39 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'COL-STANDARD-FLUSHER' => [ 'schematic_id' => 'columbia-standard-corner-flusher', 'page' => null ],
 	'COL-THROTTLE-CORNER-FLUSHER-BOX' => [ 'schematic_id' => 'columbia-throttle-box', 'page' => null ],
 	'CR' => [ 'schematic_id' => 'columbia-inside-corner-roller', 'page' => null ],
+	'CR01-AD' => [ 'schematic_id' => 'asgard-inside-corner-roller-cr01-ad-sch', 'page' => null ],
 	'D14-22' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 1 ],
 	'D18-30' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 2 ],
 	'D24-40' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => 3 ],
 	'D38-64' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => null ],
 	'DS-DURA-III' => [ 'schematic_id' => 'dura-stilts-dura-iii', 'page' => null ],
 	'EHC07' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 1 ],
+	'EHC07-AD' => [ 'schematic_id' => 'asgard-maxxbox-finishing-box-7-ehc07-ad-sch', 'page' => null ],
 	'EHC10' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 2 ],
+	'EHC10-AD' => [ 'schematic_id' => 'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch', 'page' => null ],
 	'EHC12' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => 3 ],
+	'EHC12-AD' => [ 'schematic_id' => 'asgard-maxxbox-finishing-box-12-ehc12-ad-sch', 'page' => null ],
+	'EZ07-AD' => [ 'schematic_id' => 'asgard-finishing-box-7-ez07-ad-sch', 'page' => null ],
 	'EZ07TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 1 ],
+	'EZ10-AD' => [ 'schematic_id' => 'asgard-finishing-box-10-ez10-ad-sch', 'page' => null ],
 	'EZ10TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 2 ],
+	'EZ12-AD' => [ 'schematic_id' => 'asgard-finishing-box-12-ez12-ad-sch', 'page' => null ],
 	'EZ12TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 3 ],
 	'EZ15TT' => [ 'schematic_id' => 'tapetech-easyclean-finishing-box', 'page' => 4 ],
+	'FA01-AD' => [ 'schematic_id' => 'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch', 'page' => null ],
+	'FBHE-AD' => [ 'schematic_id' => 'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch', 'page' => null ],
+	'FH-AD' => [ 'schematic_id' => 'asgard-fh-ad-fiberglass-handle-43-sch', 'page' => null ],
 	'GN' => [ 'schematic_id' => 'columbia-gooseneck-adapter', 'page' => null ],
+	'GN01-AD' => [ 'schematic_id' => 'asgard-mud-pumps-gn01-ad-sch', 'page' => null ],
 	'HMP' => [ 'schematic_id' => 'columbia-mud-pump', 'page' => null ],
 	'ICA2-1' => [ 'schematic_id' => 'columbia-inside-corner-applicator', 'page' => null ],
 	'ICA4-1' => [ 'schematic_id' => 'columbia-inside-corner-applicator', 'page' => null ],
 	'ICATW' => [ 'schematic_id' => 'columbia-2-way-internal-corner', 'page' => null ],
+	'LP01-AD' => [ 'schematic_id' => 'asgard-loading-pump-lp01-ad-sch', 'page' => null ],
+	'NS03-AD' => [ 'schematic_id' => 'asgard-nail-spotter-head-only-ns03-ad-sch', 'page' => null ],
+	'PA07-AD' => [ 'schematic_id' => 'asgard-power-assist-maxxbox-7-pa07-ad-sch', 'page' => null ],
+	'PA10-AD' => [ 'schematic_id' => 'asgard-power-assist-maxxbox-10-pa10-ad-sch', 'page' => null ],
+	'PA12-AD' => [ 'schematic_id' => 'asgard-power-assist-maxxbox-12-pa12-ad-sch', 'page' => null ],
 	'PAHC07' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 1 ],
 	'PAHC10' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 2 ],
 	'PAHC12' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => 3 ],
@@ -198,14 +219,10 @@ const DTB_SKU_SCHEMATIC_MAP = [
 	'TT-MAXXBOX-HIGH-CAPACITY-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-maxxbox-ehc', 'page' => null ],
 	'TT-POWER-ASSIST-MAXXBOX-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-power-assist-maxxbox', 'page' => null ],
 	'TT-QUICKBOX-QSX-FINISHING-BOX' => [ 'schematic_id' => 'tapetech-quickbox-qsx', 'page' => null ],
+	'XH-AD' => [ 'schematic_id' => 'asgard-xh-ad-extension-support-handle-43-76-sch', 'page' => null ],
 	'XHTT' => [ 'schematic_id' => 'tapetech-xhtt', 'page' => null ],
 ];
 
-// {verbose-id}-schematic-page-{n}.webp / {name}-page-{n}.webp uploads.
-// Keys are normalized (lowercase, non-alphanumeric stripped) so hyphen- and
-// underscore-separated export variants (e.g. Platinum) resolve identically.
-// A numeric 'page' overrides the filename page for one-page component ids;
-// null preserves the filename page for ids whose source spans multiple pages.
 const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'1775486780529' => [ 'schematic_id' => 'dura-stilts-dura-iv', 'page' => 2 ],
 	'1775489045158' => [ 'schematic_id' => 'dura-stilts-dura-iv', 'page' => 3 ],
@@ -274,56 +291,42 @@ const DTB_VERBOSE_SCHEMATIC_ID_MAP = [
 	'tapetechtapetechlockblockfor07tt050212fsch' => [ 'schematic_id' => 'tapetech-07tt', 'page' => null ],
 ];
 
-// Exact source basenames that cannot be resolved through a SKU convention.
 const DTB_LEGACY_SCHEMATIC_FILENAME_MAP = [
 	'mud-pump-sub-assemblies-2022-enhanced' => [ 'schematic_id' => 'columbia-mud-pump', 'page' => 1 ],
 	'schematic_page_1' => [ 'schematic_id' => 'tapetech-17tt', 'page' => 1 ],
 	'tall-boy-mud-pump-sub-assemblies-2022-enhanced' => [ 'schematic_id' => 'columbia-tall-boy-mud-pump', 'page' => 1 ],
 ];
 
-// Retired-brand (Asgard) schematic ids, sourced from
-// all_brands_schematic_parts_master.csv rows with brand=Asgard. Denylisted
-// regardless of which upload filename pattern resolves to them, including
-// the {schematic-id}--page-{n} passthrough pattern that bypasses every
-// other map above.
 const DTB_RETIRED_SCHEMATIC_IDS = [
-	'1775120357961' => true,
-	'1775120854273' => true,
-	'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch' => true,
-	'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch' => true,
-	'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch' => true,
-	'asgard-angle-head-3-5-ah35-ad-sch' => true,
-	'asgard-angle-head-3-ah30-ad-sch' => true,
-	'asgard-angle-head-adapter-cfa-ad-sch' => true,
-	'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch' => true,
-	'asgard-brakeless-box-handle-34-bbh-ad-sch' => true,
-	'asgard-ca08-ad-applicator-box-head-sch' => true,
-	'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch' => true,
-	'asgard-fh-ad-fiberglass-handle-43-sch' => true,
-	'asgard-finishing-box-10-ez10-ad-sch' => true,
-	'asgard-finishing-box-12-ez12-ad-sch' => true,
-	'asgard-finishing-box-7-ez07-ad-sch' => true,
-	'asgard-hammer-automatic-taper-at01-ad-sch' => true,
-	'asgard-inside-corner-roller-cr01-ad-sch' => true,
-	'asgard-loading-pump-lp01-ad-sch' => true,
-	'asgard-maxxbox-finishing-box-12-ehc12-ad-sch' => true,
-	'asgard-maxxbox-finishing-box-7-ehc07-ad-sch' => true,
-	'asgard-mud-pumps-gn01-ad-sch' => true,
-	'asgard-nail-spotter-head-only-ns03-ad-sch' => true,
-	'asgard-power-assist-maxxbox-10-pa10-ad-sch' => true,
-	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => true,
-	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => true,
-	'asgard-xh-ad-extension-support-handle-43-76-sch' => true,
-	'columbia-combo-flusher-3-3csf-sch' => true,
+	'columbia-combo-flusher-3-3csf-sch',
 ];
 
-// Canonical schematic id -> brand_id/category_id, sourced from brand/
-// schematic_category columns in all_brands_schematic_parts_master.csv.
-// Consumed by Application/ReconcileSchematicSource.php to populate the
-// publication-required brand_id/category_id fields
-// (Domain/SchematicPublicationRules.php) on record create and backfill,
-// which the reconciliation pipeline previously never set.
 const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [
+	'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'adapters' ],
+	'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'angle-heads' ],
+	'asgard-angle-head-3-5-ah35-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'angle-heads' ],
+	'asgard-angle-head-3-ah30-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'angle-heads' ],
+	'asgard-angle-head-adapter-cfa-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'angle-heads' ],
+	'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'handles' ],
+	'asgard-brakeless-box-handle-34-bbh-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'handles' ],
+	'asgard-ca08-ad-applicator-box-head-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'angle-heads' ],
+	'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'handles' ],
+	'asgard-fh-ad-fiberglass-handle-43-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'handles' ],
+	'asgard-finishing-box-10-ez10-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-finishing-box-12-ez12-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-finishing-box-7-ez07-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-hammer-automatic-taper-at01-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'tapers' ],
+	'asgard-inside-corner-roller-cr01-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'rollers' ],
+	'asgard-loading-pump-lp01-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'pumps' ],
+	'asgard-maxxbox-finishing-box-12-ehc12-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-maxxbox-finishing-box-7-ehc07-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-mud-pumps-gn01-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'other' ],
+	'asgard-nail-spotter-head-only-ns03-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'spotters' ],
+	'asgard-power-assist-maxxbox-10-pa10-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'finishing-boxes' ],
+	'asgard-xh-ad-extension-support-handle-43-76-sch' => [ 'brand_id' => 'asgard', 'category_id' => 'handles' ],
 	'columbia-2-way-internal-corner' => [ 'brand_id' => 'columbia', 'category_id' => 'applicators' ],
 	'columbia-angle-head' => [ 'brand_id' => 'columbia', 'category_id' => 'angleheads' ],
 	'columbia-automatic-flat-box' => [ 'brand_id' => 'columbia', 'category_id' => 'finishing-boxes' ],
@@ -399,94 +402,107 @@ const DTB_SCHEMATIC_BRAND_CATEGORY_MAP = [
 	'tapetech-xhtt' => [ 'brand_id' => 'tape-tech', 'category_id' => 'handles' ],
 ];
 
-// Canonical schematic id -> customer-facing display metadata. Catalog link
-// metadata wins over source-folder labels; reconciliation persists this
-// projection and the public API uses it as a compatibility fallback.
 const DTB_SCHEMATIC_DISPLAY_MAP = [
-	'columbia-2-way-internal-corner' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => '2-Way Internal Corner Applicator' ],
-	'columbia-angle-head' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Angleheads', 'title' => 'Angle Head' ],
-	'columbia-automatic-flat-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'FinishingBoxes', 'title' => 'Automatic Flat Box' ],
-	'columbia-box-filler' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'Box Filler' ],
-	'columbia-cam-lock-tube' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CompoundTubes', 'title' => 'Cam Lock Tube' ],
-	'columbia-closet-monster-flat-box-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'Closet Monster Flat Box Handle' ],
-	'columbia-combo-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerFlushers', 'title' => 'Combo Flusher' ],
-	'columbia-compound-tube' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CompoundTubes', 'title' => 'Compound Tube' ],
-	'columbia-corner-cobra' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerRollers', 'title' => 'Corner Cobra' ],
-	'columbia-direct-corner-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerFlushers', 'title' => 'Direct Corner Flusher' ],
-	'columbia-external-corner-applicator' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => 'External Corner Applicator' ],
-	'columbia-fat-boy-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'FinishingBoxes', 'title' => 'Fat Boy Box' ],
-	'columbia-flat-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'FinishingBoxes', 'title' => 'Flat Box' ],
-	'columbia-flat-box-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'Flat Box Handle' ],
-	'columbia-gooseneck-adapter' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'Gooseneck Adapter' ],
-	'columbia-inside-corner-applicator' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => 'Inside Corner Applicator' ],
-	'columbia-inside-corner-roller' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerRollers', 'title' => 'Inside Corner Roller' ],
-	'columbia-long-extendable-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'Long Extendable Handle' ],
-	'columbia-matrix' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'Predator Matrix Handle' ],
-	'columbia-mud-pump' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'Mud Pump' ],
-	'columbia-nailspotter' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Nailspotters', 'title' => 'Nailspotter' ],
-	'columbia-one' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'Columbia One' ],
-	'columbia-predator-taper' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'AutomaticTapers', 'title' => 'Predator Taper' ],
-	'columbia-semi-automatic-taper' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'SemiAutomaticTapers', 'title' => 'Semi-Automatic Taper' ],
-	'columbia-standard-corner-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerFlushers', 'title' => 'Standard Corner Flusher' ],
-	'columbia-standard-outside-corner-roller' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerRollers', 'title' => 'Standard Outside Corner Roller' ],
-	'columbia-tall-boy-mud-pump' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'Tall Boy Mud Pump' ],
-	'columbia-throttle-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'CornerBoxes', 'title' => 'Throttle Box' ],
-	'columbia-tomahawk-smoothing-blades' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'SmoothingBlades', 'title' => 'Columbia Tomahawk Smoothing Blades' ],
+	'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '10″ MaxxBox Finishing Box' ],
+	'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Adapters', 'title' => 'Filler Adapter' ],
+	'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'AngleHeads', 'title' => '2.5″ Angle Head Corner Finisher' ],
+	'asgard-angle-head-3-5-ah35-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'AngleHeads', 'title' => '3.5″ Angle Head Corner Finisher' ],
+	'asgard-angle-head-3-ah30-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'AngleHeads', 'title' => '3″ Angle Head Corner Finisher' ],
+	'asgard-angle-head-adapter-cfa-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'AngleHeads', 'title' => 'Angle Head Adapter' ],
+	'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Handles', 'title' => 'Brakeless Box Handle – Extendable' ],
+	'asgard-brakeless-box-handle-34-bbh-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Handles', 'title' => 'Brakeless Box Handle' ],
+	'asgard-ca08-ad-applicator-box-head-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'AngleHeads', 'title' => '8″ Angle Box Corner Applicator' ],
+	'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Handles', 'title' => 'Extendable Flat Box Handle with Brake' ],
+	'asgard-fh-ad-fiberglass-handle-43-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Handles', 'title' => 'Fiberglass Handle' ],
+	'asgard-finishing-box-10-ez10-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '10″ Flat Finishing Box' ],
+	'asgard-finishing-box-12-ez12-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '12″ Flat Finishing Box' ],
+	'asgard-finishing-box-7-ez07-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '7″ Flat Finishing Box' ],
+	'asgard-hammer-automatic-taper-at01-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Tapers', 'title' => 'HAMMER Automatic Taper' ],
+	'asgard-inside-corner-roller-cr01-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Rollers', 'title' => 'Inside Corner Roller' ],
+	'asgard-loading-pump-lp01-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Pumps', 'title' => 'Compound Loading Pump' ],
+	'asgard-maxxbox-finishing-box-12-ehc12-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '12″ MaxxBox Finishing Box' ],
+	'asgard-maxxbox-finishing-box-7-ehc07-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '7″ MaxxBox Finishing Box' ],
+	'asgard-mud-pumps-gn01-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Other', 'title' => 'Gooseneck' ],
+	'asgard-nail-spotter-head-only-ns03-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Spotters', 'title' => '3″ Nail Spotter' ],
+	'asgard-power-assist-maxxbox-10-pa10-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '10″ Power Assist Finishing Box' ],
+	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '12″ Power Assist Finishing Box' ],
+	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'FinishingBoxes', 'title' => '7″ Power Assist Finishing Box' ],
+	'asgard-xh-ad-extension-support-handle-43-76-sch' => [ 'brand_name' => 'Asgard', 'category_name' => 'Handles', 'title' => 'Extendable Support Handle' ],
+	'columbia-2-way-internal-corner' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => 'columbia-billet-mud-applicator-two-way-internal-corner-4-wheels-icatw-sch-schematic-page-01.webp' ],
+	'columbia-angle-head' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Angleheads', 'title' => 'columbia-angle-head-sch-schematic-page-01.webp' ],
+	'columbia-automatic-flat-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Finishing Boxes', 'title' => 'columbia-automatic-flat-finishing-box-sch-schematic-page-01.webp' ],
+	'columbia-box-filler' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'columbia-box-filler-sch-schematic-page-01.webp' ],
+	'columbia-cam-lock-tube' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Compound Tubes', 'title' => 'columbia-cam-lock-tube-sch-schematic-page-01.webp' ],
+	'columbia-closet-monster-flat-box-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'columbia-closet-monster-handle-sch-schematic-page-01.webp' ],
+	'columbia-combo-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Flushers', 'title' => 'columbia-combo-flusher-sch-schematic-page-01.webp' ],
+	'columbia-compound-tube' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Compound Tubes', 'title' => 'columbia-compound-tube-sch-schematic-page-01.webp' ],
+	'columbia-corner-cobra' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Rollers', 'title' => 'columbia-corner-cobra-sch-schematic-page-01.webp' ],
+	'columbia-direct-corner-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Flushers', 'title' => 'columbia-direct-flusher-sch-schematic-page-01.webp' ],
+	'columbia-external-corner-applicator' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => 'columbia-billet-mud-applicator-external-90-cext90-sch-schematic-page-01.webp' ],
+	'columbia-fat-boy-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Finishing Boxes', 'title' => 'columbia-fat-boy-finishing-box-sch-schematic-page-01.webp' ],
+	'columbia-flat-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Finishing Boxes', 'title' => 'columbia-flat-finishing-box-sch-schematic-page-01.webp' ],
+	'columbia-flat-box-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'columbia-180-grip-flat-box-handle-sch-schematic-page-01.webp' ],
+	'columbia-gooseneck-adapter' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'columbia-gooseneck-sch-schematic-page-01.webp' ],
+	'columbia-inside-corner-applicator' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Applicators', 'title' => 'columbia-billet-mud-applicator-inside-corner-2-wheels-1-ica2-1-sch-schematic-page-01.webp' ],
+	'columbia-inside-corner-roller' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Rollers', 'title' => 'columbia-corner-roller-sch-schematic-page-01.webp' ],
+	'columbia-long-extendable-handle' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'columbia-one-handle-4-8-long-extendible-chxl-sch-schematic-page-01.webp' ],
+	'columbia-matrix' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'columbia-matrix-box-handle-matrixboxhandle-boxhandle-sch-schematic-page-01.webp' ],
+	'columbia-mud-pump' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'columbia-mud-pump-sch-schematic-page-01.webp' ],
+	'columbia-nailspotter' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Nailspotters', 'title' => 'columbia-nail-spotter-sch-schematic-page-01.webp' ],
+	'columbia-one' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Handles', 'title' => 'columbia-one-handle-sch-schematic-page-01.webp' ],
+	'columbia-predator-taper' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Automatic Tapers', 'title' => 'columbia-automatic-taper-predator-carbon-fiber-53-ptaper-predatortaper-head-sch-schematic-page-01.webp' ],
+	'columbia-semi-automatic-taper' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Semi-Automatic Tapers', 'title' => 'columbia-semi-automatic-taper-sat-sch-schematic-page-01.webp' ],
+	'columbia-standard-corner-flusher' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Flushers', 'title' => 'columbia-standard-flusher-sch-schematic-page-01.webp' ],
+	'columbia-standard-outside-corner-roller' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Rollers', 'title' => 'columbia-outside-corner-roller-sch-schematic-page-01.webp' ],
+	'columbia-tall-boy-mud-pump' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Pumps', 'title' => 'columbia-mud-pump-sch-2-schematic-page-01.webp' ],
+	'columbia-throttle-box' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'Corner Boxes', 'title' => 'columbia-throttle-box-sch-schematic-page-01.webp' ],
+	'columbia-tomahawk-smoothing-blades' => [ 'brand_name' => 'Columbia Taping Tools', 'category_name' => 'SmoothingBlades', 'title' => 'columbia-tomahawk-smoothing-blade-sch-schematic-page-01.webp' ],
 	'dura-stilts-dura-iii' => [ 'brand_name' => 'Dura-Stilts', 'category_name' => 'Stilts', 'title' => 'DURA III' ],
-	'dura-stilts-dura-iv' => [ 'brand_name' => 'Dura-Stilts', 'category_name' => 'Model-IV', 'title' => 'Dura Stilts Dura Iv' ],
-	'level5-10-inch-flat-box-4-765' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '10" Flat Box' ],
-	'level5-10-inch-mega-flat-box-4-768' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '10" Mega Flat Box' ],
-	'level5-12-inch-flat-box-4-766' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '12" Flat Box' ],
-	'level5-12-inch-mega-box-4-769' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '12" Mega Flat Box' ],
-	'level5-14-inch-flat-box-4-770' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => 'Level5 14 Inch Flat Box 4 770' ],
-	'level5-4-734-3-5-corner-finisher' => [ 'brand_name' => 'Level5', 'category_name' => 'CornerFinishers', 'title' => '3.5" Corner Finisher' ],
-	'level5-7-inch-flat-box-4-764' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '7" Flat Box' ],
-	'level5-7-inch-mega-flat-box-4-767' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '7" Mega Flat Box' ],
-	'level5-7097-drive-dog-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Level5 7097 Drive Dog Assembly' ],
-	'level5-7218-taper-wheel-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Level5 7218 Taper Wheel Assembly' ],
-	'level5-7293-gooser-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Level5 7293 Gooser Assembly' ],
-	'level5-7377-cover-plate-assembly-old-style' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Level5 7377 Cover Plate Assembly Old Style' ],
-	'level5-9333-cutter-chain-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Level5 9333 Cutter Chain Assembly' ],
+	'dura-stilts-dura-iv' => [ 'brand_name' => 'Dura-Stilts', 'category_name' => 'Model-IV', 'title' => 'model-4-18-30' ],
+	'level5-10-inch-flat-box-4-765' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '10" Flat Box' ],
+	'level5-10-inch-mega-flat-box-4-768' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '10" Mega Flat Box' ],
+	'level5-12-inch-flat-box-4-766' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '12" Flat Box' ],
+	'level5-12-inch-mega-box-4-769' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '12" Mega Flat Box' ],
+	'level5-14-inch-flat-box-4-770' => [ 'brand_name' => 'Level5', 'category_name' => 'FinishingBoxes', 'title' => '14" Flat Box' ],
+	'level5-4-734-3-5-corner-finisher' => [ 'brand_name' => 'Level5', 'category_name' => 'Corner Finishers', 'title' => '3.5" Corner Finisher' ],
+	'level5-7-inch-flat-box-4-764' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '7" Flat Box' ],
+	'level5-7-inch-mega-flat-box-4-767' => [ 'brand_name' => 'Level5', 'category_name' => 'Finishing Boxes', 'title' => '7" Mega Flat Box' ],
+	'level5-7097-drive-dog-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Drive Dog Assembly' ],
+	'level5-7218-taper-wheel-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Taper Wheel Assembly' ],
+	'level5-7293-gooser-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Gooser Assembly' ],
+	'level5-7377-cover-plate-assembly-old-style' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Cover Plate Assembly (Old Style)' ],
+	'level5-9333-cutter-chain-assembly' => [ 'brand_name' => 'Level5', 'category_name' => 'AutomaticTapers', 'title' => 'Cutter Chain Assembly' ],
 	'level5-compound-pump-4-771' => [ 'brand_name' => 'Level5', 'category_name' => 'Pumps', 'title' => 'Compound Pump' ],
-	'level5-corner-roller-4-707' => [ 'brand_name' => 'Level5', 'category_name' => 'CornerRollers', 'title' => 'Corner Roller' ],
+	'level5-corner-roller-4-707' => [ 'brand_name' => 'Level5', 'category_name' => 'Corner Rollers', 'title' => 'Corner Roller' ],
 	'platinum-compound-pump' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Pumps', 'title' => 'Compound Pump' ],
-	'platinum-corner-applicator-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Platinum Corner Applicator Handle' ],
-	'platinum-corner-finisher' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'CornerFinishers', 'title' => 'Corner Finisher' ],
-	'platinum-corner-finisher-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Platinum Corner Finisher Handle' ],
+	'platinum-corner-applicator-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Corner Applicator Handle' ],
+	'platinum-corner-finisher' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Corner Finishers', 'title' => 'Corner Finisher' ],
+	'platinum-corner-finisher-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Corner Finisher Handle' ],
 	'platinum-corner-roller-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Corner Roller Handle' ],
-	'platinum-flat-box' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'FinishingBoxes', 'title' => 'Flat Box' ],
-	'platinum-flat-box-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Platinum Flat Box Handle' ],
-	'platinum-outside-corner-roller' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'CornerRollers', 'title' => 'Outside Corner Roller' ],
+	'platinum-flat-box' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Finishing Boxes', 'title' => 'Flat Box' ],
+	'platinum-flat-box-handle' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Handles', 'title' => 'Flat Box Handle' ],
+	'platinum-outside-corner-roller' => [ 'brand_name' => 'Platinum Drywall Tools', 'category_name' => 'Corner Rollers', 'title' => 'Outside Corner Roller' ],
 	'surpro-s1' => [ 'brand_name' => 'SurPro', 'category_name' => 'Stilts', 'title' => 'S1' ],
 	'surpro-s1x' => [ 'brand_name' => 'SurPro', 'category_name' => 'Stilts', 'title' => 'S1X' ],
 	'surpro-s2' => [ 'brand_name' => 'SurPro', 'category_name' => 'Stilts', 'title' => 'S2' ],
 	'surpro-s2x' => [ 'brand_name' => 'SurPro', 'category_name' => 'Stilts', 'title' => 'S2X' ],
-	'tapetech-07tt' => [ 'brand_name' => 'TapeTech', 'category_name' => '07TT', 'title' => 'TapeTech EasyClean® Automatic Taper' ],
-	'tapetech-17tt' => [ 'brand_name' => 'TapeTech', 'category_name' => '17TT', 'title' => 'Corner Roller - Outside Corner (17TT)' ],
-	'tapetech-42tt' => [ 'brand_name' => 'TapeTech', 'category_name' => '42TT', 'title' => 'Corner Finisher - 2.5" (42TT)' ],
-	'tapetech-48tt' => [ 'brand_name' => 'TapeTech', 'category_name' => '48TT', 'title' => 'Corner Finisher - 3" EasyRoll Adjustable (48TT)' ],
-	'tapetech-76tt' => [ 'brand_name' => 'TapeTech', 'category_name' => '76TT', 'title' => 'TapeTech EasyClean® Pump - Standard' ],
-	'tapetech-80xxtt' => [ 'brand_name' => 'TapeTech', 'category_name' => '80XXTT', 'title' => 'TapeTech Finishing Box Handle Assemblies (80XXTT)' ],
-	'tapetech-81xxtt' => [ 'brand_name' => 'TapeTech', 'category_name' => '81XXTT', 'title' => 'TapeTech EasyFinish™ Box Handle Assemblies (81XXTT)' ],
-	'tapetech-85t' => [ 'brand_name' => 'TapeTech', 'category_name' => '85T', 'title' => 'TapeTech Gooseneck - Standard' ],
+	'tapetech-07tt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Automatic Tapers', 'title' => 'tapetech-tapetech-lock-block-for-07tt-050212f-sch-schematic-page-001.webp' ],
+	'tapetech-17tt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Corner Tools', 'title' => '17TT_SCH' ],
+	'tapetech-42tt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Corner Tools', 'title' => 'tapetech-90-inside-corner-edger-tapetech-42tt-sch-schematic-page-001.webp' ],
+	'tapetech-48tt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Corner Tools', 'title' => 'tapetech-90-inside-corner-edger-tapetech-48tt-sch-schematic-page-001.webp' ],
+	'tapetech-76tt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Pumps', 'title' => '76TT-page_1' ],
+	'tapetech-80xxtt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Handles', 'title' => '8034TT_SCH_page_1' ],
+	'tapetech-81xxtt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Handles', 'title' => '8154TT' ],
+	'tapetech-85t' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Pumps', 'title' => '85T_SCH-1' ],
 	'tapetech-88tte' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Handles', 'title' => 'TapeTech Box XTender Handle' ],
-	'tapetech-90t' => [ 'brand_name' => 'TapeTech', 'category_name' => '90T', 'title' => 'TapeTech Filler Adapter' ],
-	'tapetech-easyclean-finishing-box' => [ 'brand_name' => 'TapeTech', 'category_name' => 'EZ12TT', 'title' => 'EasyClean® Finishing Box' ],
-	'tapetech-maxxbox-ehc' => [ 'brand_name' => 'TapeTech', 'category_name' => 'EHC07', 'title' => 'MaxxBox® High Capacity Finishing Box' ],
-	'tapetech-power-assist-maxxbox' => [ 'brand_name' => 'TapeTech', 'category_name' => 'PAHC12', 'title' => 'Power Assist® MaxxBox® Finishing Box' ],
-	'tapetech-quickbox-qsx' => [ 'brand_name' => 'TapeTech', 'category_name' => 'QB08-QSX', 'title' => 'QuickBox® QSX Finishing Box' ],
-	'tapetech-xhtt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'XHTT', 'title' => 'TapeTech Support Handle - Extension' ],
+	'tapetech-90t' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Pumps', 'title' => '90T' ],
+	'tapetech-easyclean-finishing-box' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Finishing Boxes', 'title' => 'EZ12TT' ],
+	'tapetech-maxxbox-ehc' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Finishing Boxes', 'title' => 'EHC07_SCH_page_1' ],
+	'tapetech-power-assist-maxxbox' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Finishing Boxes', 'title' => 'PAHC12' ],
+	'tapetech-quickbox-qsx' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Finishing Boxes', 'title' => 'QB08-QSX_SCH_page_1' ],
+	'tapetech-xhtt' => [ 'brand_name' => 'TapeTech', 'category_name' => 'Handles', 'title' => 'XHTT_SCH_page_1' ],
 ];
 
-// Canonical schematic id -> family_id/variant_label, sourced from
-// Meta: _dtb_parent_product_sku / Meta: _dtb_variation_label columns in
-// products/launch/official/dtb_official_catalog.csv. Consumed by
-// Application/ReconcileSchematicSource.php to populate
-// DTB_Schematic_Record_Entity::$family_id/$variant_label so the public
-// API/frontend can group size/variant siblings of one WooCommerce parent
-// product under a single schematic family. variant_label is only present
-// when every variant row observed for that schematic id agrees on one
-// label (i.e. the schematic id unambiguously represents one variant).
 const DTB_SCHEMATIC_FAMILY_MAP = [
 	'columbia-2-way-internal-corner' => [ 'family_id' => 'col-billet-mud-applicator', 'variant_label' => 'Two-Way Internal Corner - 4 Wheels' ],
 	'columbia-angle-head' => [ 'family_id' => 'col-angle-head', 'variant_label' => '' ],
@@ -538,10 +554,6 @@ const DTB_SCHEMATIC_FAMILY_MAP = [
 	'tapetech-xhtt' => [ 'family_id' => 'tt-support-handle', 'variant_label' => 'Extension' ],
 ];
 
-// Canonical schematic id -> WooCommerce variations that intentionally share
-// one diagram record. This is a generated public projection used by the
-// detail API to render the legacy size/model navigator without making React
-// an authority for product or variation existence.
 const DTB_SCHEMATIC_SHARED_VARIANT_MAP = [
 	'columbia-angle-head' => [
 		[ 'key' => '2', 'label' => '2"', 'sku' => '2AH' ],
@@ -581,11 +593,84 @@ const DTB_SCHEMATIC_SHARED_VARIANT_MAP = [
 	],
 ];
 
-// Canonical schematic id -> exact hotspot JSON source/page relationships,
-// sourced from all_brands_schematic_parts_master.csv and resolved through
-// DTB_VERBOSE_SCHEMATIC_ID_MAP. Runtime migration uses this deterministic
-// map before any compatibility locator.
 const DTB_SCHEMATIC_HOTSPOT_SOURCE_MAP = [
+	'asgard-10-inch-maxxbox-finishing-box-ehc10-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EHC10-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-angle-head-2-5-ah25-ad-adapters-fa01-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Adapters/FA01-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-angle-head-2-5-ah25-ad-angleheads-ah25-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/AngleHeads/AH25-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-angle-head-3-5-ah35-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/AngleHeads/AH35-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-angle-head-3-ah30-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/AngleHeads/AH30-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-angle-head-adapter-cfa-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/AngleHeads/CFA-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-brakeless-box-extendable-handle-38-60-bbhe-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/BBHE-AD/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/BBHE-AD/schematic_data2.json', 'page' => 2 ],
+	],
+	'asgard-brakeless-box-handle-34-bbh-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/BBH-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-ca08-ad-applicator-box-head-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/AngleHeads/CA08-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-extendable-finishing-box-handle-41-63-fbhe-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/FBHE-AD/schematic_data.json', 'page' => 1 ],
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/FBHE-AD/schematic_data2.json', 'page' => 2 ],
+	],
+	'asgard-fh-ad-fiberglass-handle-43-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/FH-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-finishing-box-10-ez10-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EZ10-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-finishing-box-12-ez12-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EZ12-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-finishing-box-7-ez07-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EZ07-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-hammer-automatic-taper-at01-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Tapers/AT01-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-inside-corner-roller-cr01-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Rollers/CR01-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-loading-pump-lp01-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Pumps/LP01-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-maxxbox-finishing-box-12-ehc12-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EHC12-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-maxxbox-finishing-box-7-ehc07-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/EHC07-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-mud-pumps-gn01-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Other/GN01-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-nail-spotter-head-only-ns03-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Spotters/NS03-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-power-assist-maxxbox-10-pa10-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/PA10-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-power-assist-maxxbox-12-pa12-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/PA12-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-power-assist-maxxbox-7-pa07-ad-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/FinishingBoxes/PA07-AD/schematic_data.json', 'page' => 1 ],
+	],
+	'asgard-xh-ad-extension-support-handle-43-76-sch' => [
+		[ 'reference' => 'brands/Asgard/Schematics/Handles/XH-AD/schematic_data.json', 'page' => 1 ],
+	],
 	'columbia-2-way-internal-corner' => [
 		[ 'reference' => 'brands/Columbia/Schematics/Applicators/TwoWayInternalCorner/schematic_data.json', 'page' => 1 ],
 	],
