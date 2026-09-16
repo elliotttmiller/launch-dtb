@@ -7,6 +7,7 @@
   }
 
   .repair-landing .repair-hero__inner {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -139,10 +140,15 @@
     transform: scaleX(1);
   }
 
-  /* Desktop promise rail: deliberately quiet supporting proof, not cards. */
+  /* Desktop promise rail: anchored independently to the lower hero edge so the
+   * primary content remains visually centered while proof points form a footer rail. */
   .repair-landing .repair-hero .repair-guarantees {
-    width: min(1380px, 96%);
-    margin-top: clamp(28px, 2.2vw, 38px);
+    position: absolute;
+    right: 0;
+    bottom: clamp(14px, 1.15vw, 20px);
+    left: 0;
+    width: 100%;
+    margin: 0;
   }
 
   .repair-landing .repair-hero .repair-guarantees__grid {
