@@ -219,11 +219,10 @@ export default function RepairLanding() {
             <article className="repair-service-panel">
               <p className="repair-eyebrow">I Know the Service I Need</p>
               <h2>Choose a repair package.</h2>
-              <p>Select a package built around the tool family and service scope, then continue with symptoms, photos, shipping, and approval preferences.</p>
+              <p>Pick the service that fits your tool and the work it needs.</p>
               <ul>
-                <li>Tool-family service packages and tune-ups</li>
-                <li>Shipping and return preferences captured during intake</li>
-                <li>Approval rules remain attached to the repair request</li>
+                <li>Choose a tool-family package or tune-up</li>
+                <li>Set shipping and approval preferences during intake</li>
               </ul>
               <Link to="/repairs/packages">Compare repair packages <span aria-hidden="true">→</span></Link>
             </article>
@@ -231,11 +230,10 @@ export default function RepairLanding() {
             <article className="repair-service-panel repair-service-panel--diagnostic">
               <p className="repair-eyebrow">I Need the Tool Diagnosed</p>
               <h2>Start with physical inspection.</h2>
-              <p>Use Diagnose and Quote when the failure is unclear, or flag the request for warranty or coverage review during intake.</p>
+              <p>Not sure what is wrong? Send it in for inspection and an estimate before added work begins.</p>
               <ul>
-                <li>Photos and symptoms document the issue, but do not replace inspection</li>
-                <li>Final repair scope is determined after the tool is physically inspected</li>
-                <li>Additional quote-first work waits for your approval</li>
+                <li>Add photos and symptoms to help document the issue</li>
+                <li>Review inspection findings before quote-first work begins</li>
               </ul>
               <Link className="repair-button repair-button--primary" to="/repairs/start?package=diagnose_and_quote">
                 Start Diagnostic

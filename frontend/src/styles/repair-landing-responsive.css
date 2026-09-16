@@ -72,7 +72,7 @@
     background:linear-gradient(180deg,rgba(2,10,25,.01) 0%,rgba(2,10,25,.02) 31%,rgba(2,10,25,.13) 48%,rgba(2,10,25,.58) 69%,rgba(2,10,25,.90) 88%,#020b1b 100%),linear-gradient(90deg,rgba(2,10,25,.10) 0%,rgba(2,10,25,0) 72%),url('../assets/media/repairs/repair-hero.webp') 58% 35%/cover no-repeat,#020b1b;
   }
   .repair-landing .repair-hero__inner { min-height:100%; height:100%; align-items:flex-end; }
-  .repair-landing .repair-hero__content { width:100%; max-width:none; padding:0 0 clamp(20px,5.5vw,28px); }
+  .repair-landing .repair-hero__content { width:100%; max-width:none; padding:0 0 clamp(32px,8vw,36px); }
   .repair-landing .repair-hero .repair-eyebrow { margin:0 0 8px; color:#5e9cff; font-size:clamp(9px,2.4vw,10px); font-weight:800; line-height:1.1; letter-spacing:.1em; }
   .repair-landing .repair-hero h1 { max-width:11ch; margin:0 0 10px; font-size:clamp(30px,8vw,33px); line-height:.96; letter-spacing:-.045em; white-space:normal; }
   .repair-landing .repair-hero h1 br { display:none; }
@@ -105,9 +105,7 @@
     box-shadow:none;
   }
 
-  /* Render the transparent package artwork as intrinsic replaced content.
-   * The generated element has no rectangular background painting area: its
-   * native aspect ratio is scaled by height and positioned directly. */
+  /* Keep the package cutout above the card surface and behind its copy. */
   .repair-landing .repair-service-panel {
     position:relative;
     min-height:246px;
@@ -116,21 +114,19 @@
     background:#fff;
   }
   .repair-landing .repair-service-panel::after {
-    content:url('../assets/media/repairs/repair-service-package.webp');
+    content:'';
     position:absolute;
-    top:auto;
+    top:0;
     right:var(--repair-package-art-right);
-    bottom:-2%;
-    width:auto;
-    height:var(--repair-package-art-height);
+    bottom:0;
+    width:64%;
+    height:auto;
     max-width:none;
     max-height:none;
-    background:none;
-    object-fit:contain;
-    object-position:right bottom;
+    background:url('../assets/media/repairs/repair-service-package.webp') right bottom/contain no-repeat;
     opacity:1;
     pointer-events:none;
-    z-index:1;
+    z-index:0;
   }
   .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
   .repair-landing .repair-service-panel .repair-eyebrow { width:67%; margin:0 0 6px; font-size:var(--repair-mobile-eyebrow); font-weight:800; line-height:1.1; letter-spacing:.1em; }
@@ -150,9 +146,9 @@
     padding:13px 14px 12px;
     border:1px solid #06182f;
     background:
-      linear-gradient(180deg,#04172f 0%,#04172f 48%,rgba(4,23,47,.98) 59%,rgba(4,23,47,.76) 76%,rgba(4,23,47,.18) 100%),
-      linear-gradient(90deg,#04172f 0%,rgba(4,23,47,.97) 52%,rgba(4,23,47,.70) 72%,rgba(4,23,47,.05) 100%),
-      url('../assets/media/repairs/repair-service-diagnostic.webp') right bottom/auto 50% no-repeat,
+      linear-gradient(180deg,rgba(4,23,47,.72) 0%,rgba(4,23,47,.54) 43%,rgba(4,23,47,.82) 100%),
+      linear-gradient(90deg,#04172f 0%,#04172f 48%,rgba(4,23,47,.90) 61%,rgba(4,23,47,.38) 76%,rgba(4,23,47,.06) 100%),
+      url('../assets/media/repairs/repair-service-diagnostic.webp') 78% center/auto 108% no-repeat,
       #04172f;
   }
   .repair-landing .repair-service-panel--diagnostic::after { display:none; }
@@ -232,7 +228,7 @@
   .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
   .repair-landing .repair-service-panel ul { width:67%; }
-  .repair-landing .repair-service-panel::after { right:-5%; height:76%; }
+  .repair-landing .repair-service-panel::after { right:-5%; width:62%; }
 }
 
 @media (prefers-reduced-motion:reduce) {
