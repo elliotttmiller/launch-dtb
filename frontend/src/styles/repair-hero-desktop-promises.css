@@ -19,6 +19,10 @@
     padding: 0;
   }
 
+  .repair-landing .repair-hero h1 span {
+    color: #1769ff;
+  }
+
   .repair-landing .repair-hero__actions {
     display: flex;
     align-items: center;
