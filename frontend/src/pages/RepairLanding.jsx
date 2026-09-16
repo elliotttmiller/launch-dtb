@@ -5,6 +5,7 @@ import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/repair-landing.css';
 import '../styles/repair-merchandising.css';
 import '../styles/repair-landing-responsive.css';
+import '../styles/repair-landing-desktop.css';
 
 const HERO_PROOF_POINTS = [
   'Major repair brands supported',
