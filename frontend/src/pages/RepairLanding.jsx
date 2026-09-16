@@ -11,6 +11,7 @@ import '../styles/repair-landing-desktop.css';
 import '../styles/repair-landing-mobile-hero.css';
 import '../styles/repair-guarantees.css';
 import '../styles/repair-hero-desktop-promises.css';
+import '../styles/repair-service-cards-mobile.css';
 
 const PROCESS_STEPS = [
   { title: 'Identify the tool', description: 'Tell us the brand, tool family, model, symptoms, and service goal. Photos can be added during intake.' },
