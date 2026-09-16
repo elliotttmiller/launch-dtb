@@ -1,11 +1,9 @@
 /*
  * Schematics loading/render integration.
  *
- * This file does not define a separate motion language. It consumes the
- * global visual authorities from storefront-tokens.css and
- * loading-transitions.css so schematic catalog, diagram, hotspot, and modal
- * rendering follow the same timing, easing, shimmer, and reduced-motion
- * behavior as the rest of the storefront.
+ * Motion consumes the storefront timing/easing authorities. The detail-view
+ * loader is intentionally compact and centered; it does not impersonate the
+ * final schematic layout or introduce a second skeleton UI.
  */
 
 .dtb-schematic-viewer[aria-busy='true'],
@@ -13,7 +11,61 @@
   min-width: 0;
 }
 
-.dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status,
+/* Detail transition: replace the previous text + shimmer badge with one
+   quiet progress indicator centered in the available viewer canvas. */
+.dtb-schematic-viewer--loading {
+  min-height: clamp(18rem, 52dvh, 34rem);
+  align-items: center;
+  justify-content: center;
+  animation: dtb-schematics-content-enter var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, var(--dtb-ease-exit)) both;
+}
+
+.dtb-schematic-loader {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  color: var(--dtb-text-soft, #475569);
+}
+
+.dtb-schematic-loader__spinner {
+  position: relative;
+  display: block;
+  width: clamp(2.5rem, 8vw, 3rem);
+  height: clamp(2.5rem, 8vw, 3rem);
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(34, 85, 238, 0.08) 0deg,
+    rgba(34, 85, 238, 0.18) 115deg,
+    var(--dtb-primary, #2255ee) 300deg,
+    var(--dtb-primary-strong, #1945d8) 360deg
+  );
+  box-shadow: 0 5px 18px rgba(34, 85, 238, 0.12);
+  animation: dtb-schematic-loader-spin 820ms linear infinite;
+}
+
+.dtb-schematic-loader__spinner::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border-radius: inherit;
+  background: var(--dtb-surface, #ffffff);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.08);
+}
+
+.dtb-schematic-loader__label {
+  font-size: clamp(0.72rem, 1.8vw, 0.8rem);
+  line-height: 1;
+  font-weight: 650;
+  letter-spacing: 0.015em;
+  color: var(--dtb-muted, #64748b);
+  opacity: 0.78;
+}
+
+/* Catalog loading is a separate state and retains its existing compact
+   content placeholder rather than inheriting the detail-view spinner. */
 .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status {
   position: relative;
   flex-direction: column;
@@ -23,7 +75,6 @@
   animation: dtb-schematics-content-enter var(--dtb-document-fade-duration, 180ms) var(--dtb-loading-ease, var(--dtb-ease-exit)) both;
 }
 
-.dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status::after,
 .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status::after {
   content: '';
   display: block;
@@ -93,6 +144,10 @@
   animation-timing-function: var(--dtb-ease-emphasized, var(--dtb-ease)) !important;
 }
 
+@keyframes dtb-schematic-loader-spin {
+  to { transform: rotate(1turn); }
+}
+
 @keyframes dtb-schematics-content-enter {
   from {
     opacity: 0;
@@ -110,9 +165,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status,
+  .dtb-schematic-viewer--loading,
+  .dtb-schematic-loader__spinner,
   .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status,
-  .dtb-schematic-viewer[aria-busy='true'] .dtb-schematics-status::after,
   .dtb-schematics-catalog[aria-busy='true'] .dtb-schematics-status::after,
   .schematic-image-wrapper--loading .schematic-image-bounds::before,
   .dtb-schematic-hotspot-layer,
@@ -120,6 +175,12 @@
   .mobile-part-modal-overlay,
   .schematic-hotspot-card {
     animation: none !important;
+  }
+
+  .dtb-schematic-loader__spinner {
+    background: transparent;
+    border: 3px solid rgba(34, 85, 238, 0.18);
+    border-top-color: var(--dtb-primary, #2255ee);
   }
 
   .dtb-schematic-diagram__image {
