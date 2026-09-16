@@ -46,15 +46,15 @@
   .repair-landing {
     --repair-mobile-gutter:clamp(14px,3.75vw,16px);
     --repair-mobile-section:clamp(26px,7vw,32px);
-    --repair-mobile-radius:6px;
+    --repair-mobile-radius:8px;
     --repair-mobile-eyebrow:clamp(8px,2.05vw,9px);
     --repair-mobile-heading:clamp(20px,5.4vw,22px);
-    --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
-    --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
+    --repair-mobile-card-heading:clamp(22px,5.9vw,25px);
+    --repair-mobile-body:clamp(11.5px,2.95vw,12.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-6%;
+    --repair-package-art-right:-8%;
     --repair-package-art-bottom:-2%;
-    --repair-package-art-height:77%;
+    --repair-package-art-height:68%;
   }
 
   .repair-landing .repair-section-shell,
@@ -86,11 +86,11 @@
 
   /* Reference transition: compact intro and tightly composed decision cards. */
   .repair-landing .repair-service-details { padding:clamp(20px,5.4vw,24px) 0 clamp(24px,6.4vw,28px); background:#fff; }
-  .repair-landing .repair-service-details .repair-section-heading--center { max-width:100%; margin:0 auto clamp(18px,4.8vw,21px); text-align:center; }
+  .repair-landing .repair-service-details .repair-section-heading--center { max-width:100%; margin:0 auto clamp(20px,5.2vw,24px); text-align:center; }
   .repair-landing .repair-service-details .repair-section-heading--center .repair-eyebrow { margin:0 0 7px; font-size:var(--repair-mobile-eyebrow); font-weight:800; letter-spacing:.1em; }
-  .repair-landing .repair-service-details .repair-section-heading--center h2 { max-width:330px; margin-inline:auto; font-size:var(--repair-mobile-heading); line-height:1.03; letter-spacing:-.035em; text-wrap:balance; }
-  .repair-landing .repair-service-details .repair-section-heading--center > p:last-child { max-width:330px; margin:8px auto 0; color:#637898; font-size:var(--repair-mobile-body); line-height:1.42; }
-  .repair-landing .repair-service-details__grid { display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
+  .repair-landing .repair-service-details .repair-section-heading--center h2 { max-width:340px; margin-inline:auto; font-size:var(--repair-mobile-heading); line-height:1.03; letter-spacing:-.035em; text-wrap:balance; }
+  .repair-landing .repair-service-details .repair-section-heading--center > p:last-child { max-width:338px; margin:9px auto 0; color:#637898; font-size:var(--repair-mobile-body); line-height:1.42; }
+  .repair-landing .repair-service-details__grid { display:grid; grid-template-columns:minmax(0,1fr); gap:14px; }
 
   .repair-landing .repair-service-panel,
   .repair-landing .repair-service-panel--diagnostic {
@@ -103,17 +103,17 @@
     max-height:none;
     overflow:hidden;
     border-radius:var(--repair-mobile-radius);
-    box-shadow:none;
   }
 
-  /* Mobile package card: content owns the vertical rhythm while the transparent
-   * product art remains an independent lower-right layer. */
+  /* Approved mobile package card: strong content hierarchy with the transparent
+   * product art independently anchored to the lower-right. */
   .repair-landing .repair-service-panel--package {
     position:relative;
-    min-height:clamp(276px,63vw,310px);
-    padding:clamp(16px,3.8vw,19px) clamp(15px,3.7vw,18px) clamp(14px,3.5vw,17px);
-    border:1px solid #cedbed;
+    min-height:clamp(330px,82vw,365px);
+    padding:clamp(18px,4.5vw,21px) clamp(17px,4.25vw,20px) clamp(17px,4.25vw,20px);
+    border:1px solid #c9d9ec;
     background:#fff;
+    box-shadow:0 8px 24px rgba(20,52,96,.045);
   }
   .repair-landing .repair-service-panel--package::after { display:none; }
   .repair-landing .repair-service-panel__package-art {
@@ -132,106 +132,108 @@
   }
   .repair-landing .repair-service-panel > *:not(.repair-service-panel__package-art) { position:relative; z-index:2; min-width:0; }
   .repair-landing .repair-service-panel .repair-eyebrow {
-    width:64%;
-    margin:0 0 7px;
-    font-size:clamp(8.5px,2.15vw,9.5px);
+    width:100%;
+    margin:0 0 9px;
+    font-size:clamp(9px,2.35vw,10px);
     font-weight:800;
     line-height:1.1;
-    letter-spacing:.1em;
+    letter-spacing:.11em;
   }
   .repair-landing .repair-service-panel h2 {
-    width:64%;
-    max-width:none;
+    width:auto;
+    max-width:10ch;
     margin:0;
-    font-size:clamp(19px,4.9vw,22px);
-    line-height:1.03;
-    letter-spacing:-.038em;
+    font-size:var(--repair-mobile-card-heading);
+    line-height:1.01;
+    letter-spacing:-.04em;
   }
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow) {
-    width:62%;
-    max-width:34ch;
-    margin:8px 0 0;
+    width:61%;
+    max-width:26ch;
+    margin:10px 0 0;
     color:#5c7190;
-    font-size:clamp(11px,2.75vw,12px);
-    line-height:1.4;
+    font-size:var(--repair-mobile-body);
+    line-height:1.42;
   }
   .repair-landing .repair-service-panel ul {
-    width:63%;
-    max-width:none;
-    margin:11px 0 0;
+    width:61%;
+    max-width:27ch;
+    margin:15px 0 0;
     padding:0;
   }
   .repair-landing .repair-service-panel li {
     min-height:0;
-    padding:4px 0 4px 24px;
+    padding:5px 0 5px 28px;
     color:#102455;
-    font-size:clamp(10.5px,2.6vw,11.5px);
-    line-height:1.28;
+    font-size:clamp(11px,2.8vw,12px);
+    line-height:1.32;
   }
-  .repair-landing .repair-service-panel li::before { top:3px; left:0; width:17px; height:17px; }
-  .repair-landing .repair-service-panel li::after { top:2px; left:4px; font-size:7.5px; line-height:17px; }
+  .repair-landing .repair-service-panel li::before { top:4px; left:0; width:20px; height:20px; }
+  .repair-landing .repair-service-panel li::after { top:3px; left:5px; font-size:8px; line-height:20px; }
   .repair-landing .repair-service-panel > a {
     flex:0 0 auto;
     align-self:flex-start;
     margin-top:auto;
-    padding-top:10px;
+    padding-top:13px;
     position:relative;
     z-index:3;
   }
   .repair-landing .repair-service-panel > a:not(.repair-button) {
     color:#086cf4;
-    font-size:clamp(11px,2.75vw,12px);
-    font-weight:800;
+    font-size:clamp(12px,3vw,13px);
+    font-weight:850;
     line-height:1.2;
   }
 
-  /* Diagnostic card mirrors the package card's content density and baseline
-   * spacing while retaining its photographic treatment. */
+  /* Diagnostic card mirrors the package card's proportions while using the
+   * photography as a restrained lower-right atmospheric layer. */
   .repair-landing .repair-service-panel--diagnostic {
-    min-height:clamp(300px,68vw,335px);
-    padding:clamp(16px,3.8vw,19px) clamp(15px,3.7vw,18px) clamp(14px,3.5vw,17px);
+    min-height:clamp(350px,87vw,390px);
+    padding:clamp(18px,4.5vw,21px) clamp(17px,4.25vw,20px) clamp(17px,4.25vw,20px);
     border:1px solid #06182f;
     background:
-      linear-gradient(180deg,rgba(4,23,47,.72) 0%,rgba(4,23,47,.54) 43%,rgba(4,23,47,.82) 100%),
-      linear-gradient(90deg,#04172f 0%,#04172f 48%,rgba(4,23,47,.90) 61%,rgba(4,23,47,.38) 76%,rgba(4,23,47,.06) 100%),
-      url('../assets/media/repairs/repair-service-diagnostic.webp') 78% center/auto 108% no-repeat,
+      linear-gradient(180deg,rgba(4,23,47,.60) 0%,rgba(4,23,47,.44) 40%,rgba(4,23,47,.78) 100%),
+      linear-gradient(90deg,#04172f 0%,#04172f 45%,rgba(4,23,47,.96) 57%,rgba(4,23,47,.66) 72%,rgba(4,23,47,.18) 100%),
+      url('../assets/media/repairs/repair-service-diagnostic.webp') 70% center/cover no-repeat,
       #04172f;
+    box-shadow:0 8px 24px rgba(4,23,47,.12);
   }
   .repair-landing .repair-service-panel--diagnostic::after { display:none; }
-  .repair-landing .repair-service-panel--diagnostic .repair-eyebrow { width:68%; }
+  .repair-landing .repair-service-panel--diagnostic .repair-eyebrow { width:100%; color:#4a96ff; }
   .repair-landing .repair-service-panel--diagnostic h2 {
-    width:66%;
-    max-width:11ch;
+    width:auto;
+    max-width:10ch;
     color:#fff;
-    font-size:clamp(20px,5.1vw,23px);
-    line-height:1.01;
+    font-size:clamp(23px,6vw,26px);
+    line-height:1;
   }
   .repair-landing .repair-service-panel--diagnostic > p:not(.repair-eyebrow) {
-    width:65%;
-    max-width:34ch;
-    margin-top:9px;
-    color:rgba(255,255,255,.86);
-    font-size:clamp(11px,2.75vw,12px);
-    line-height:1.38;
+    width:64%;
+    max-width:28ch;
+    margin-top:11px;
+    color:rgba(255,255,255,.90);
+    font-size:var(--repair-mobile-body);
+    line-height:1.42;
   }
   .repair-landing .repair-service-panel--diagnostic ul {
     width:66%;
-    max-width:35ch;
-    margin-top:11px;
+    max-width:30ch;
+    margin-top:15px;
   }
   .repair-landing .repair-service-panel--diagnostic li {
-    color:rgba(255,255,255,.95);
-    font-size:clamp(10.25px,2.55vw,11.25px);
-    line-height:1.27;
+    color:rgba(255,255,255,.97);
+    font-size:clamp(11px,2.75vw,12px);
+    line-height:1.31;
   }
   .repair-landing .repair-service-panel--diagnostic .repair-button {
     width:auto;
-    min-height:36px;
-    height:36px;
+    min-height:42px;
+    height:42px;
     margin-top:auto;
-    padding:0 15px;
-    border-radius:5px;
-    font-size:9px;
+    padding:0 17px;
+    border-radius:6px;
+    font-size:clamp(9.5px,2.45vw,10.5px);
+    box-shadow:0 7px 18px rgba(0,0,0,.15);
   }
 
   .repair-landing .repair-assurance { display:none; }
@@ -299,14 +301,15 @@
 @media (max-width:22.5rem) {
   .repair-landing .repair-hero { height:102vw; }
   .repair-landing .repair-hero__lead { width:78%; }
-  .repair-landing .repair-service-panel .repair-eyebrow,
-  .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
-  .repair-landing .repair-service-panel ul { width:67%; }
+  .repair-landing .repair-service-panel ul { width:64%; }
   .repair-landing .repair-service-panel__package-art {
-    right:-6%;
+    right:-9%;
     bottom:-2%;
-    height:74%;
+    height:64%;
+  }
+  .repair-landing .repair-service-panel--diagnostic {
+    min-height:340px;
   }
 }
 
