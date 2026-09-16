@@ -16,11 +16,20 @@
   }
 
   .repair-landing .repair-hero__content {
-    width: min(650px, 47%);
+    width: min(720px, 52%);
     padding: 0;
   }
 
-  .repair-landing .repair-hero h1 span {
+  .repair-landing .repair-hero h1 .repair-hero__title-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  .repair-landing .repair-hero h1 .repair-hero__title-line--primary {
+    color: #fff;
+  }
+
+  .repair-landing .repair-hero h1 .repair-hero__title-line--accent {
     color: #1769ff;
   }
 
@@ -60,20 +69,14 @@
     min-width: 190px;
     border: 1px solid rgba(112, 169, 255, .88);
     background: linear-gradient(180deg, #2f80ff 0%, #0d61f5 100%);
-    box-shadow:
-      0 0 0 1px rgba(13, 97, 245, .16),
-      0 8px 22px rgba(0, 91, 255, .34),
-      inset 0 1px 0 rgba(255,255,255,.30);
+    box-shadow: 0 0 0 1px rgba(13, 97, 245, .16), 0 8px 22px rgba(0, 91, 255, .34), inset 0 1px 0 rgba(255,255,255,.30);
     color: #fff;
   }
 
   .repair-landing .repair-hero__actions .repair-button--primary:hover {
     border-color: rgba(142, 188, 255, .96);
     background: linear-gradient(180deg, #3b88ff 0%, #176bfa 100%);
-    box-shadow:
-      0 0 0 1px rgba(13, 97, 245, .18),
-      0 10px 26px rgba(0, 91, 255, .40),
-      inset 0 1px 0 rgba(255,255,255,.34);
+    box-shadow: 0 0 0 1px rgba(13, 97, 245, .18), 0 10px 26px rgba(0, 91, 255, .40), inset 0 1px 0 rgba(255,255,255,.34);
   }
 
   .repair-landing .repair-hero__actions .repair-button--secondary {
@@ -136,73 +139,71 @@
     transform: scaleX(1);
   }
 
-  /* Promise cards. */
+  /* Desktop promise rail: deliberately quiet supporting proof, not cards. */
   .repair-landing .repair-hero .repair-guarantees {
-    width: min(1080px, 82%);
-    margin-top: clamp(22px, 1.8vw, 30px);
+    width: min(1380px, 96%);
+    margin-top: clamp(28px, 2.2vw, 38px);
   }
 
   .repair-landing .repair-hero .repair-guarantees__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(16px, 1.4vw, 22px);
+    gap: 0;
     width: 100%;
-    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
   .repair-landing .repair-hero .repair-guarantees__item {
     position: relative;
-    display: grid;
-    grid-template-columns: 38px minmax(0, 1fr);
-    align-items: center;
-    gap: 14px;
-    min-height: 92px;
-    padding: 17px 18px 16px 16px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,.15);
-    border-radius: 13px;
-    background: linear-gradient(145deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.085) 48%, rgba(255,255,255,.055) 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 10px 24px rgba(0,0,0,.13);
-    backdrop-filter: blur(14px) saturate(115%);
-    -webkit-backdrop-filter: blur(14px) saturate(115%);
+    display: block;
+    min-height: 72px;
+    margin: 0;
+    padding: 3px clamp(30px, 2.7vw, 48px);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item:first-child {
+    padding-left: clamp(18px, 1.7vw, 28px);
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 1px;
+    background: rgba(188, 207, 231, .42);
   }
 
   .repair-landing .repair-hero .repair-guarantees__icon {
-    display: inline-grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border: 1px solid rgba(104, 164, 255, .48);
-    border-radius: 10px;
-    background: linear-gradient(145deg, rgba(31, 112, 255, .36), rgba(20, 74, 154, .18));
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 5px 14px rgba(0,62,160,.16);
-  }
-
-  .repair-landing .repair-hero .repair-guarantees__icon svg {
-    width: 20px;
-    height: 20px;
-    fill: none;
-    stroke: rgba(255,255,255,.96);
-    stroke-width: 1.65;
-    stroke-linecap: round;
-    stroke-linejoin: round;
+    display: none;
   }
 
   .repair-landing .repair-hero .repair-guarantees__item h2 {
-    margin: 0 0 5px;
-    color: #fff;
-    font-size: clamp(.88rem, .86vw, 1.02rem);
-    font-weight: 850;
-    line-height: 1.14;
-    letter-spacing: -.025em;
+    margin: 0 0 6px;
+    color: rgba(255,255,255,.98);
+    font-size: clamp(.94rem, .92vw, 1.08rem);
+    font-weight: 800;
+    line-height: 1.18;
+    letter-spacing: -.02em;
   }
 
   .repair-landing .repair-hero .repair-guarantees__item p {
-    max-width: 34ch;
+    max-width: 36ch;
     margin: 0;
-    color: rgba(255,255,255,.78);
-    font-size: clamp(.68rem, .64vw, .78rem);
-    line-height: 1.38;
+    color: rgba(224, 233, 245, .80);
+    font-size: clamp(.72rem, .69vw, .82rem);
+    font-weight: 450;
+    line-height: 1.42;
   }
 
   /* Service-card actions must share the exact left edge of each card's copy column. */
