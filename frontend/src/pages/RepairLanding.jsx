@@ -158,8 +158,8 @@ export default function RepairLanding() {
           <div className="repair-hero__content">
             <p className="repair-eyebrow">Professional Tool Repair</p>
             <h1 id="repair-hero-title">
-              Get Your Tools<br />
-              <span>Back on the Job.</span>
+              <span className="repair-hero__title-line repair-hero__title-line--primary">Get Your Tools</span>
+              <span className="repair-hero__title-line repair-hero__title-line--accent">Back On The Job.</span>
             </h1>
             <p className="repair-hero__lead">
               Professional repair for taping and finishing tools, with physical inspection, clear approval before added work, shipping options, and repair tracking through return.
