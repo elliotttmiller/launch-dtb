@@ -11,6 +11,7 @@
 const PUBLIC_ENV = {
   REACT_APP_ENV: process.env.REACT_APP_ENV,
   REACT_APP_DTB_CATALOG_PLATFORM: process.env.REACT_APP_DTB_CATALOG_PLATFORM,
+  REACT_APP_DTB_SCHEMATIC_HOTSPOT_GLOW: process.env.REACT_APP_DTB_SCHEMATIC_HOTSPOT_GLOW,
 };
 
 export function getFeatureFlag( key, defaultValue = false ) {
@@ -43,4 +44,11 @@ export function isRewardsEnabled() {
   // Do not allow localStorage/env overrides until the rewards program is
   // formally reintroduced and fully audited end-to-end.
   return false;
+}
+
+// The linked-product glow remains implemented but is intentionally withheld
+// from storefront rendering until the schematic callout treatment is approved
+// for another rollout.
+export function isSchematicHotspotGlowEnabled() {
+  return getFeatureFlag( 'dtb_schematic_hotspot_glow', false );
 }

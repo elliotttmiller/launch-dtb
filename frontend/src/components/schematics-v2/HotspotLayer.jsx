@@ -24,6 +24,11 @@
  */
 import { useMemo } from 'react';
 import { normalizePartRef } from '../../utils/string.js';
+import { isSchematicHotspotGlowEnabled } from '../../utils/featureFlags.js';
+
+// Keep the callout-glow implementation dormant by default. The hotspot's
+// interactive geometry and product relationship state remain unchanged.
+const showLinkedProductGlow = isSchematicHotspotGlowEnabled();
 
 // The REST API serializes normalized coordinates from post meta, which can
 // come back as numeric strings (e.g. "0.42") rather than JS numbers — coerce
@@ -93,7 +98,7 @@ export default function HotspotLayer({ hotspotDataset, parts, onSelectPart }) {
         return (
           <div
             key={occurrence.hotspot_id}
-            className={`hotspot hotspot-${shape}${isLinkedProduct ? ' hotspot--linked-product' : ''}`}
+            className={`hotspot hotspot-${shape}${showLinkedProductGlow && isLinkedProduct ? ' hotspot--linked-product' : ''}`}
             role="button"
             tabIndex={0}
             style={{
