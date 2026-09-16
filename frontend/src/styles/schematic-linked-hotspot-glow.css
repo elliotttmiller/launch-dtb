@@ -3,47 +3,74 @@
  *
  * Presentation-only affordance for schematic hotspots that are already
  * resolved by the backend and carry a real storefront product projection.
- * This does not alter hotspot geometry, hit areas, diagram layout, dialogs,
- * navigation, or product-linking behavior.
+ *
+ * Important: the interactive `.hotspot` hit area is intentionally much
+ * larger than a printed schematic callout on mobile. The linked affordance
+ * therefore must NOT paint the hit-area box itself. A small centered
+ * pseudo-element renders the visual glow while the existing hit target,
+ * coordinates, geometry, and interaction behavior remain untouched.
  */
 
 .hotspot.hotspot--linked-product {
-  background: rgba(37, 99, 235, 0.045);
-  border-color: rgba(37, 99, 235, 0.24);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.hotspot.hotspot--linked-product::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(9px, 2.7cqw, 13px);
+  height: clamp(9px, 2.7cqw, 13px);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: rgba(59, 130, 246, 0.10);
   box-shadow:
-    0 0 0 1px rgba(96, 165, 250, 0.10),
-    0 0 8px rgba(37, 99, 235, 0.34),
-    0 0 16px rgba(59, 130, 246, 0.18);
-  animation: dtb-linked-hotspot-soft-glow 2.8s ease-in-out infinite;
+    0 0 0 1px rgba(96, 165, 250, 0.20),
+    0 0 4px rgba(37, 99, 235, 0.34),
+    0 0 8px rgba(59, 130, 246, 0.18);
+  animation: dtb-linked-hotspot-tight-glow 2.8s ease-in-out infinite;
 }
 
 .hotspot.hotspot--linked-product:hover {
-  background: rgba(37, 99, 235, 0.055);
-  border-color: rgba(37, 99, 235, 0.28);
-  box-shadow:
-    0 0 0 1px rgba(96, 165, 250, 0.12),
-    0 0 9px rgba(37, 99, 235, 0.38),
-    0 0 18px rgba(59, 130, 246, 0.20);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
   transform: translate(-50%, -50%);
 }
 
-@keyframes dtb-linked-hotspot-soft-glow {
+.hotspot.hotspot--linked-product:hover::after {
+  background: rgba(59, 130, 246, 0.13);
+  box-shadow:
+    0 0 0 1px rgba(96, 165, 250, 0.25),
+    0 0 5px rgba(37, 99, 235, 0.40),
+    0 0 9px rgba(59, 130, 246, 0.20);
+}
+
+@keyframes dtb-linked-hotspot-tight-glow {
   0%, 100% {
+    opacity: 0.78;
     box-shadow:
-      0 0 0 1px rgba(96, 165, 250, 0.08),
-      0 0 7px rgba(37, 99, 235, 0.28),
-      0 0 14px rgba(59, 130, 246, 0.14);
+      0 0 0 1px rgba(96, 165, 250, 0.16),
+      0 0 3px rgba(37, 99, 235, 0.28),
+      0 0 6px rgba(59, 130, 246, 0.14);
   }
   50% {
+    opacity: 1;
     box-shadow:
-      0 0 0 1px rgba(96, 165, 250, 0.13),
-      0 0 10px rgba(37, 99, 235, 0.40),
-      0 0 20px rgba(59, 130, 246, 0.22);
+      0 0 0 1px rgba(96, 165, 250, 0.22),
+      0 0 5px rgba(37, 99, 235, 0.38),
+      0 0 9px rgba(59, 130, 246, 0.18);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hotspot.hotspot--linked-product {
+  .hotspot.hotspot--linked-product::after {
     animation: none;
+    opacity: 0.9;
   }
 }
