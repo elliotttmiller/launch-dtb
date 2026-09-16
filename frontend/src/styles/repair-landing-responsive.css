@@ -52,8 +52,9 @@
     --repair-mobile-card-heading:clamp(17px,4.65vw,19px);
     --repair-mobile-body:clamp(10.5px,2.8vw,11.5px);
     --repair-mobile-meta:clamp(10px,2.65vw,11px);
-    --repair-package-art-right:-5%;
-    --repair-package-art-height:78%;
+    --repair-package-art-right:-4%;
+    --repair-package-art-bottom:-2%;
+    --repair-package-art-height:77%;
   }
 
   .repair-landing .repair-section-shell,
@@ -105,30 +106,31 @@
     box-shadow:none;
   }
 
-  /* Keep the package cutout above the card surface and behind its copy. */
-  .repair-landing .repair-service-panel {
+  /* Package artwork is a real transparent image. Its intrinsic aspect ratio is
+   * authoritative; only height, right, bottom and the card clip are calibrated. */
+  .repair-landing .repair-service-panel--package {
     position:relative;
     min-height:246px;
     padding:13px 14px 12px;
     border:1px solid #cedbed;
     background:#fff;
   }
-  .repair-landing .repair-service-panel::after {
-    content:'';
+  .repair-landing .repair-service-panel--package::after { display:none; }
+  .repair-landing .repair-service-panel__package-art {
     position:absolute;
-    top:0;
+    z-index:0;
     right:var(--repair-package-art-right);
-    bottom:0;
-    width:64%;
-    height:auto;
+    bottom:var(--repair-package-art-bottom);
+    width:auto;
+    height:var(--repair-package-art-height);
     max-width:none;
     max-height:none;
-    background:url('../assets/media/repairs/repair-service-package.webp') right bottom/contain no-repeat;
-    opacity:1;
+    object-fit:contain;
+    object-position:right bottom;
     pointer-events:none;
-    z-index:0;
+    user-select:none;
   }
-  .repair-landing .repair-service-panel > * { position:relative; z-index:2; min-width:0; }
+  .repair-landing .repair-service-panel > *:not(.repair-service-panel__package-art) { position:relative; z-index:2; min-width:0; }
   .repair-landing .repair-service-panel .repair-eyebrow { width:67%; margin:0 0 6px; font-size:var(--repair-mobile-eyebrow); font-weight:800; line-height:1.1; letter-spacing:.1em; }
   .repair-landing .repair-service-panel h2 { width:68%; max-width:none; margin:0; font-size:var(--repair-mobile-card-heading); line-height:1.04; letter-spacing:-.035em; }
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow) { width:66%; max-width:36ch; margin:7px 0 0; color:#5c7190; font-size:var(--repair-mobile-body); line-height:1.38; }
@@ -228,7 +230,11 @@
   .repair-landing .repair-service-panel h2,
   .repair-landing .repair-service-panel > p:not(.repair-eyebrow),
   .repair-landing .repair-service-panel ul { width:67%; }
-  .repair-landing .repair-service-panel::after { right:-5%; width:62%; }
+  .repair-landing .repair-service-panel__package-art {
+    right:-5%;
+    bottom:-2%;
+    height:74%;
+  }
 }
 
 @media (prefers-reduced-motion:reduce) {
