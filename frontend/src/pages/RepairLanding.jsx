@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
 import { getOfficialRepairBrands } from '../data/repairCatalogMap.js';
 import { getBrandLogo } from '../utils/brandAssets.js';
+import repairServicePackageArt from '../assets/media/repairs/repair-service-package.webp';
 import '../styles/repair-landing.css';
 import '../styles/repair-merchandising.css';
 import '../styles/repair-landing-responsive.css';
@@ -198,7 +199,14 @@ export default function RepairLanding() {
           </div>
 
           <div className="repair-service-details__grid">
-            <article className="repair-service-panel">
+            <article className="repair-service-panel repair-service-panel--package">
+              <img
+                className="repair-service-panel__package-art"
+                src={repairServicePackageArt}
+                alt=""
+                aria-hidden="true"
+                decoding="async"
+              />
               <p className="repair-eyebrow">I Know the Service I Need</p>
               <h2>Choose a repair package.</h2>
               <p>Pick the service that fits your tool and the work it needs.</p>
