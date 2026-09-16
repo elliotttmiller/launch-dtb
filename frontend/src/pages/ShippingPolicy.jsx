@@ -168,7 +168,7 @@ export default function ShippingPolicy() {
           </div>
 
           <div className="store-policy-table store-policy-table--rates">
-            <div className="store-policy-table__row store-policy-table__row--head">
+            <div className="store-policy-table__row store-policy-table__row--head store-policy-table--rates">
               <span>Service</span>
               <span>Carrier</span>
               <span>Transit time</span>
