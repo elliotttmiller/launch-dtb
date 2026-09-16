@@ -1,28 +1,28 @@
 /* Mobile-only RepairLanding hero composition.
- * Loaded after the shared responsive layer so the approved mockup is authoritative
- * for phone hero presentation without changing desktop behavior. */
+ * Loaded after the shared responsive layer so phone presentation adapts the
+ * current desktop hero hierarchy without changing desktop behavior. */
 @media (max-width:47.99rem) {
   .repair-landing .repair-hero {
     position:relative;
-    min-height:0;
-    height:clamp(430px,108vw,540px);
+    min-height:clamp(610px,156vw,690px);
+    height:auto;
     max-height:none;
     overflow:hidden;
     border-bottom:0;
     background:
       linear-gradient(180deg,
         rgba(2,10,25,.02) 0%,
-        rgba(2,10,25,.03) 24%,
-        rgba(2,10,25,.10) 39%,
-        rgba(2,10,25,.34) 55%,
-        rgba(2,10,25,.72) 72%,
-        rgba(2,10,25,.94) 91%,
+        rgba(2,10,25,.03) 23%,
+        rgba(2,10,25,.12) 37%,
+        rgba(2,10,25,.42) 53%,
+        rgba(2,10,25,.80) 69%,
+        rgba(2,10,25,.97) 89%,
         #020b1b 100%),
       linear-gradient(90deg,
-        rgba(3,31,67,.38) 0%,
-        rgba(3,31,67,.17) 38%,
-        rgba(3,31,67,0) 70%),
-      url('../assets/media/repairs/repair-hero.webp') 60% 35%/cover no-repeat,
+        rgba(3,31,67,.34) 0%,
+        rgba(3,31,67,.14) 40%,
+        rgba(3,31,67,0) 72%),
+      url('../assets/media/repairs/repair-hero.webp') 60% 30%/cover no-repeat,
       #020b1b;
   }
 
@@ -33,31 +33,34 @@
     right:0;
     bottom:0;
     left:0;
-    height:26px;
+    height:22px;
     pointer-events:none;
-    background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.08));
+    background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.07));
   }
 
   .repair-landing .repair-hero__inner {
     position:relative;
     z-index:2;
     display:flex;
-    align-items:flex-end;
-    min-height:100%;
-    height:100%;
+    flex-direction:column;
+    justify-content:flex-end;
+    align-items:stretch;
+    min-height:inherit;
+    height:auto;
+    padding-bottom:clamp(14px,3.8vw,18px);
   }
 
   .repair-landing .repair-hero__content {
     width:100%;
     max-width:none;
-    padding:0 0 clamp(28px,7.4vw,34px);
+    padding:clamp(235px,60vw,280px) 0 0;
   }
 
   .repair-landing .repair-hero .repair-eyebrow {
     margin:0 0 9px;
-    color:#5f97ff;
+    color:#6ca3ff;
     font-size:clamp(9px,2.35vw,10px);
-    font-weight:800;
+    font-weight:850;
     line-height:1.1;
     letter-spacing:.11em;
   }
@@ -66,29 +69,33 @@
     max-width:none;
     margin:0 0 12px;
     color:#fff;
-    font-size:clamp(30px,7.9vw,33px);
+    font-size:clamp(30px,8vw,34px);
     font-weight:900;
     line-height:.96;
     letter-spacing:-.045em;
     text-wrap:initial;
   }
 
-  .repair-landing .repair-hero h1 br {
+  .repair-landing .repair-hero h1 .repair-hero__title-line {
     display:block;
+    white-space:nowrap;
   }
 
-  .repair-landing .repair-hero h1 span {
-    display:inline;
-    color:#4f86ff;
+  .repair-landing .repair-hero h1 .repair-hero__title-line--primary {
+    color:#fff;
+  }
+
+  .repair-landing .repair-hero h1 .repair-hero__title-line--accent {
+    color:#1769ff;
   }
 
   .repair-landing .repair-hero__lead {
-    width:min(82%,36ch);
+    width:min(92%,40ch);
     max-width:none;
-    margin:0 0 18px;
+    margin:0 0 17px;
     color:rgba(255,255,255,.94);
-    font-size:clamp(12px,3.2vw,13.5px);
-    line-height:1.45;
+    font-size:clamp(12px,3.15vw,13px);
+    line-height:1.46;
   }
 
   .repair-landing .repair-hero__actions {
@@ -102,11 +109,11 @@
   .repair-landing .repair-hero__actions .repair-button {
     width:100%;
     min-width:0;
-    min-height:48px;
-    height:48px;
-    padding:0 13px;
+    min-height:46px;
+    height:46px;
+    padding:0 12px;
     border-radius:7px;
-    font-size:clamp(10px,2.75vw,11px);
+    font-size:clamp(10px,2.7vw,11px);
     font-weight:900;
     line-height:1;
     letter-spacing:.04em;
@@ -114,37 +121,104 @@
   }
 
   .repair-landing .repair-hero__actions .repair-button--primary {
-    border:1px solid rgba(255,255,255,.94);
-    background:#fff;
-    color:#176cf4;
-    box-shadow:0 10px 28px rgba(0,0,0,.16);
+    border:1px solid rgba(112,169,255,.9);
+    background:linear-gradient(180deg,#2f80ff 0%,#0d61f5 100%);
+    color:#fff;
+    box-shadow:0 8px 22px rgba(0,91,255,.30),inset 0 1px 0 rgba(255,255,255,.28);
   }
 
   .repair-landing .repair-hero__actions .repair-button--secondary {
-    border:1px solid rgba(255,255,255,.82);
-    background:rgba(4,23,47,.34);
+    border:1px solid rgba(255,255,255,.52);
+    background:linear-gradient(180deg,rgba(12,29,51,.36),rgba(3,14,30,.28));
     color:#fff;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.04);
-    backdrop-filter:blur(2px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(7px);
+    -webkit-backdrop-filter:blur(7px);
   }
 
   .repair-landing .repair-hero__actions .repair-button--utility {
     display:none;
   }
 
+  /* Mobile adaptation of the desktop promise rail. Keep the rail quiet and
+   * compact so the hero remains focused on its headline and primary actions. */
+  .repair-landing .repair-hero .repair-guarantees {
+    position:static;
+    width:100%;
+    margin:clamp(16px,4.2vw,20px) 0 0;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__grid {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    width:100%;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item {
+    position:relative;
+    display:block;
+    min-height:0;
+    margin:0;
+    padding:10px 0 10px 15px;
+    border:0;
+    border-top:1px solid rgba(188,207,231,.22);
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item::before {
+    content:'';
+    position:absolute;
+    top:10px;
+    bottom:10px;
+    left:0;
+    width:2px;
+    border-radius:2px;
+    background:rgba(60,130,255,.72);
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item h2 {
+    margin:0 0 3px;
+    color:#fff;
+    font-size:clamp(11px,2.9vw,12px);
+    font-weight:850;
+    line-height:1.18;
+    letter-spacing:-.015em;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item p {
+    max-width:42ch;
+    margin:0;
+    color:rgba(224,233,245,.76);
+    font-size:clamp(9.5px,2.45vw,10.5px);
+    line-height:1.4;
+  }
+
   .repair-landing .repair-service-details {
-    padding-top:clamp(26px,6.8vw,30px);
+    padding-top:clamp(24px,6.2vw,28px);
   }
 }
 
 @media (max-width:22.5rem) {
   .repair-landing .repair-hero {
-    height:clamp(425px,116vw,500px);
-    background-position:59% 34%;
+    min-height:clamp(600px,168vw,670px);
+    background-position:59% 29%;
+  }
+
+  .repair-landing .repair-hero__content {
+    padding-top:clamp(220px,62vw,250px);
+  }
+
+  .repair-landing .repair-hero h1 {
+    font-size:clamp(28px,8.1vw,31px);
   }
 
   .repair-landing .repair-hero__lead {
-    width:86%;
+    width:96%;
   }
 
   .repair-landing .repair-hero__actions {
