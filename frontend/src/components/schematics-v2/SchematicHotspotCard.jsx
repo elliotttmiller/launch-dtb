@@ -81,20 +81,28 @@ function HotspotCardSkeleton({ displayCode, codeLabel }) {
 }
 
 function resolveHotspotProductUrl(wcProduct, fallbackUrl = '') {
-  // Variation resolution already supplies the precise parent-product deep link
-  // (`/products/{parentSlug}?variant={variationId}`), so preserve it first.
-  if (wcProduct?.product_url) return resolveStorefrontUrl(wcProduct.product_url);
-  if (wcProduct?.permalink) return resolveStorefrontUrl(wcProduct.permalink);
+  // Schematic product projections carry identity, while the React storefront
+  // owns route construction. Never prioritize a WooCommerce permalink here:
+  // it targets the legacy `/product/:slug` shell and may encode a variation as
+  // attributes instead of the PDP's `?variant=<id>` contract.
+  const variationId = Number(wcProduct?.id);
+  const parentId = Number(wcProduct?.parent_id ?? wcProduct?.parentId);
+  const parentSlug = String(wcProduct?.parent_slug ?? wcProduct?.parentSlug ?? '').trim();
+  if (parentId > 0 && Number.isFinite(variationId) && variationId > 0 && parentSlug) {
+    return `/products/${encodeURIComponent(parentSlug)}?variant=${variationId}`;
+  }
 
-  // Normalized simple/variable WooCommerce products expose their canonical
-  // product slug but intentionally do not carry WordPress permalink fields.
-  // The React storefront owns presentation/routing and its canonical product
-  // route is `/products/:slug`; never fall back to WordPress's legacy
-  // `?product={slug}` shape when the live product identity is available.
+  // A top-level normalized product exposes its own canonical slug.
   const slug = String(wcProduct?.slug || '').trim();
   if (slug) return `/products/${encodeURIComponent(slug)}`;
 
-  return resolveStorefrontUrl(fallbackUrl);
+  // Legacy payloads without product identity are handled by the exact-SKU
+  // lookup below. Retain a safe final fallback for schematic-only parts, but
+  // never preserve the old `/product/:slug` route.
+  const fallback = resolveStorefrontUrl(fallbackUrl);
+  const legacyMatch = fallback.match(/^\/product\/([^/?#]+)/);
+  if (legacyMatch) return `/products/${legacyMatch[1]}`;
+  return fallback.startsWith('/products/') ? fallback : '';
 }
 
 export default function SchematicHotspotCard({ part, onClose, onAddToCart, addingToCart }) {
@@ -104,8 +112,12 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const projectedProduct = part?.product && typeof part.product === 'object'
     ? part.product
     : null;
+  const projectedRouteIsComplete = Boolean(
+    projectedProduct?.slug
+    || (projectedProduct?.parent_id && projectedProduct?.parent_slug),
+  );
   const { product: fetchedProduct, stockStatus: liveStockStatus, isLoading } =
-    useHotspotProduct(projectedProduct ? null : part?.sku);
+    useHotspotProduct(projectedRouteIsComplete ? null : part?.sku);
 
   if (!part) return null;
 
@@ -113,7 +125,10 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
   const displayCode = part.sku || part.mpn || '';
   const codeLabel = 'SKU';
 
-  const wcProduct = projectedProduct || fetchedProduct;
+  // An older response can carry a compact product card but omit the route
+  // identity fields. In that case, prefer the exact-SKU resolver's fresh
+  // variation-aware result over the stale projection.
+  const wcProduct = fetchedProduct || projectedProduct;
   const isStaticResolved = part.resolution_state === 'resolved';
   const isStaticAvailable = part.available !== false;
   const staticStockStatus = isStaticResolved && isStaticAvailable ? 'instock' : 'unknown';

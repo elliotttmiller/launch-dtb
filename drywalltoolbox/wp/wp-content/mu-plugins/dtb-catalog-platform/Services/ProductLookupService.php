@@ -84,6 +84,7 @@ function dtb_catalog_lookup_storefront_projections_by_ids( array $ids ): array {
 
 	$projections = [];
 	foreach ( $products as $id => $product ) {
+		$is_variation = $product instanceof WC_Product_Variation;
 		$dto = $product instanceof WC_Product_Variation
 			? DTB_VariationReadModelService::get_normalized_by_id( $id )
 			: ( $top_level_dtos[ $id ] ?? null );
@@ -91,10 +92,21 @@ function dtb_catalog_lookup_storefront_projections_by_ids( array $ids ): array {
 			continue;
 		}
 
+		$parent_id = (int) ( $dto['parentId'] ?? 0 );
+		// A variation's own slug is not a storefront route. Preserve the parent
+		// product identity so consumers can construct the canonical React route
+		// without trusting a legacy WooCommerce permalink.
+		$parent_slug = '';
+		if ( $is_variation && $parent_id > 0 ) {
+			$parent_slug = sanitize_title( (string) get_post_field( 'post_name', $parent_id ) );
+		}
+
 		$projections[ $id ] = [
 			'id'          => (int) ( $dto['id'] ?? $id ),
-			'parent_id'   => (int) ( $dto['parentId'] ?? 0 ),
+			'parent_id'   => $parent_id,
+			'parent_slug' => $parent_slug,
 			'type'        => sanitize_key( (string) ( $dto['type'] ?? $product->get_type() ) ),
+			'slug'        => $is_variation ? '' : sanitize_title( (string) ( $dto['slug'] ?? '' ) ),
 			'name'        => sanitize_text_field( (string) ( $dto['name'] ?? $product->get_name() ) ),
 			'sku'         => sanitize_text_field( (string) ( $dto['sku'] ?? $product->get_sku() ) ),
 			'price'       => isset( $dto['price']['value'] ) ? (float) $dto['price']['value'] : null,
