@@ -10,6 +10,7 @@ import '../styles/repair-landing-responsive.css';
 import '../styles/repair-landing-desktop.css';
 import '../styles/repair-landing-mobile-hero.css';
 import '../styles/repair-guarantees.css';
+import '../styles/repair-hero-desktop-promises.css';
 
 const PROCESS_STEPS = [
   {
