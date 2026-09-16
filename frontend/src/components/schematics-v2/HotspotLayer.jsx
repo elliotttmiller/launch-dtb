@@ -16,6 +16,11 @@
  * coordinate is the marker's CENTER (matching x_pct/y_pct's center-anchored
  * semantics), `aria-label`/`title` of `"Hotspot: {name} ({sku})"`, and
  * Enter/Space keyboard activation via onKeyDown (the div-as-button pattern).
+ *
+ * Resolved occurrences whose authoritative schematic part also has a real
+ * storefront product projection receive only the presentation class
+ * `hotspot--linked-product`. The class is deliberately derived from existing
+ * API state; the frontend does not infer or create schematic/product links.
  */
 import { useMemo } from 'react';
 import { normalizePartRef } from '../../utils/string.js';
@@ -79,6 +84,7 @@ export default function HotspotLayer({ hotspotDataset, parts, onSelectPart }) {
         const label = occurrence.label || part?.title || 'Part';
         const sku = part?.sku || part?.mpn || '';
         const shape = occurrence.shape_type || 'circle';
+        const isLinkedProduct = part?.resolution_state === 'resolved' && part?.product != null;
 
         const activate = (event) => {
           onSelectPart(occurrence.part_ref, event.currentTarget.getBoundingClientRect());
@@ -87,7 +93,7 @@ export default function HotspotLayer({ hotspotDataset, parts, onSelectPart }) {
         return (
           <div
             key={occurrence.hotspot_id}
-            className={`hotspot hotspot-${shape}`}
+            className={`hotspot hotspot-${shape}${isLinkedProduct ? ' hotspot--linked-product' : ''}`}
             role="button"
             tabIndex={0}
             style={{
