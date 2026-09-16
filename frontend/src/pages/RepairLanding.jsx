@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
+import RepairGuarantees from '../components/RepairGuarantees';
 import { getOfficialRepairBrands } from '../data/repairCatalogMap.js';
 import { getBrandLogo } from '../utils/brandAssets.js';
 import repairServicePackageArt from '../assets/media/repairs/repair-service-package.webp';
@@ -8,6 +9,7 @@ import '../styles/repair-merchandising.css';
 import '../styles/repair-landing-responsive.css';
 import '../styles/repair-landing-desktop.css';
 import '../styles/repair-landing-mobile-hero.css';
+import '../styles/repair-guarantees.css';
 
 const PROCESS_STEPS = [
   {
@@ -223,6 +225,8 @@ export default function RepairLanding() {
           </div>
         </div>
       </section>
+
+      <RepairGuarantees />
 
       <section className="repair-process" aria-labelledby="repair-process-title">
         <div className="repair-section-shell">
