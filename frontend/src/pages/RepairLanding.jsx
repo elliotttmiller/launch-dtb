@@ -148,7 +148,7 @@ export default function RepairLanding() {
     <div className="repair-landing page-wrapper">
       <SEOHead
         title="Drywall Tool Repair Services"
-        description="Professional drywall tool repair, rebuild, diagnostic, shipping, approval, and tracking services for automatic finishing tools."
+        description="Professional repair, rebuild, diagnostic, shipping, approval, and tracking services for taping and finishing tools."
         canonical="/repairs"
       />
 
@@ -161,7 +161,7 @@ export default function RepairLanding() {
               <span>Back on the Job.</span>
             </h1>
             <p className="repair-hero__lead">
-              Professional repair for automatic drywall tools, with physical inspection, approval before additional quote-first work, structured shipping, and repair tracking through return.
+              Professional repair for taping and finishing tools, with physical inspection, clear approval before added work, shipping options, and repair tracking through return.
             </p>
 
             <div className="repair-hero__actions" aria-label="Repair service actions">
@@ -179,6 +179,8 @@ export default function RepairLanding() {
               </Link>
             </div>
           </div>
+
+          <RepairGuarantees />
         </div>
       </section>
 
@@ -225,8 +227,6 @@ export default function RepairLanding() {
           </div>
         </div>
       </section>
-
-      <RepairGuarantees />
 
       <section className="repair-process" aria-labelledby="repair-process-title">
         <div className="repair-section-shell">
