@@ -33,74 +33,97 @@ import '../styles/schematics-brand-header.css';
 import '../styles/schematic-hotspot-card-polish.css';
 import '../styles/schematic-linked-hotspot-glow.css';
 import '../styles/schematics-loading.css';
+import '../styles/schematic-diagram-fit.css';
 
 function SchematicsPageInner() {
   const routeState = useSchematicRouteState();
   const catalog = useSchematicCatalog();
 
+  const handleSelectBrand = useCallback((brandId) => {
+    routeState.navigateToBrand(brandId);
+  }, [routeState]);
+
+  const handleSelectCategory = useCallback((brandId, categoryId) => {
+    routeState.navigateToCategory(brandId, categoryId);
+  }, [routeState]);
+
+  const handleSelectTool = useCallback((schematicId) => {
+    routeState.navigateToSchematic(schematicId);
+  }, [routeState]);
+
+  const handleBack = useCallback((brandId, categoryId) => {
+    if (categoryId) {
+      routeState.navigateToCategory(brandId, categoryId);
+    } else if (brandId) {
+      routeState.navigateToBrand(brandId);
+    } else {
+      routeState.navigateToCatalog();
+    }
+  }, [routeState]);
+
   const handlePageChange = useCallback((pageNumber) => {
     routeState.setPage(pageNumber);
   }, [routeState]);
 
-  const handleBackFromViewer = useCallback((derivedBrandId, derivedCategoryId) => {
-    routeState.backFromViewer(derivedBrandId, derivedCategoryId);
-  }, [routeState]);
-
-  const handleSelectVariant = useCallback((selection) => {
-    if (selection.type === 'shared') {
-      routeState.setVariant(selection.id);
+  const handleSelectVariant = useCallback(({ type, id }) => {
+    if (type === 'shared') {
+      routeState.setVariant(id);
       return;
     }
-    routeState.goToSchematic(selection.id);
+    routeState.navigateToSchematic(id);
   }, [routeState]);
 
-  const isViewer = routeState.view === 'viewer';
+  const isViewer = routeState.view === 'schematic';
+  const title = isViewer ? 'Schematics' : 'Parts Schematics';
+  const description = isViewer
+    ? 'Interactive parts schematic with linked replacement parts.'
+    : 'Browse parts schematics by brand, category, and tool.';
 
   return (
-    <div className={`dtb-schematics-page${isViewer ? ' dtb-schematics-page--viewer' : ''}`}>
+    <>
       <SEOHead
-        title="Tool Schematics & Diagrams"
-        description="Interactive exploded-view schematics and part diagrams for professional drywall finishing tools. Find replacement parts for TapeTech, Columbia, and more."
-        canonical="/schematics"
-        schema={buildBreadcrumbSchema([
-          { label: 'Home', path: '/' },
-          { label: 'Schematics', path: '/schematics' },
+        title={title}
+        description={description}
+        canonicalPath="/schematics"
+        structuredData={buildBreadcrumbSchema([
+          { name: 'Home', path: '/' },
+          { name: 'Schematics', path: '/schematics' },
         ])}
       />
 
-      {routeState.view === 'catalog' && !routeState.brandId && (
+      {!isViewer && (
         <PageHeroBanner
-          eyebrow="Exploded-View Library"
-          title="Tool Schematics"
-          highlight="Find Parts With Confidence."
-          description="Browse brand schematics, drill into tool diagrams, and source exact replacement components from one streamlined parts workflow."
-          align="left"
+          title="Parts Schematics"
+          description="Find the diagram for your tool, then select a callout to identify and order the correct replacement part."
+          eyebrow="Parts & Service"
         />
       )}
 
-      <div className={`dtb-schematics-page__content${isViewer ? ' dtb-schematics-page__content--viewer' : ''}`}>
+      <main className="dtb-schematics-page__content">
         {isViewer ? (
           <SchematicViewerPage
             schematicId={routeState.schematicId}
             initialPage={routeState.page}
             initialVariant={routeState.variant}
-            onBack={handleBackFromViewer}
+            onBack={handleBack}
             onPageChange={handlePageChange}
             catalogItems={catalog.items}
             onSelectVariant={handleSelectVariant}
           />
         ) : (
-          <SchematicsCatalog catalog={catalog} routeState={routeState} />
+          <SchematicsCatalog
+            catalog={catalog}
+            routeState={routeState}
+            onSelectBrand={handleSelectBrand}
+            onSelectCategory={handleSelectCategory}
+            onSelectTool={handleSelectTool}
+          />
         )}
-      </div>
-    </div>
+      </main>
+    </>
   );
 }
 
-/**
- * Errors within the schematics route must never take down the storefront
- * shell — wrap the route content in its own error boundary.
- */
 export default function SchematicsPage() {
   return (
     <AppErrorBoundary>
