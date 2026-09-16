@@ -96,8 +96,11 @@ export default function SchematicViewerPage({
 
   if (status === 'loading') {
     return (
-      <div className="dtb-schematic-viewer" aria-busy="true">
-        <p className="dtb-schematics-status">Loading schematic…</p>
+      <div className="dtb-schematic-viewer dtb-schematic-viewer--loading" aria-busy="true">
+        <div className="dtb-schematic-loader" role="status" aria-label="Loading schematic">
+          <span className="dtb-schematic-loader__spinner" aria-hidden="true" />
+          <span className="dtb-schematic-loader__label">Loading schematic</span>
+        </div>
       </div>
     );
   }
