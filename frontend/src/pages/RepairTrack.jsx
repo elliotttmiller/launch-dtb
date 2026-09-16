@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SEOHead from '../components/shared/SEOHead';
+import '../styles/repair-track.css';
 
 function normalizeRepairId(value) {
   return String(value || '').trim().replace(/^DTB-/i, '');
 }
+
+const TRACKING_FEATURES = [
+  ['View current repair status', 'From intake to return shipment'],
+  ['See quote details and actions', 'Approve, decline, or request changes'],
+  ['Track shipping information', 'Inbound and return tracking'],
+  ['Read messages from our team', 'All communication in one place'],
+];
 
 export default function RepairTrack() {
   const navigate = useNavigate();
@@ -31,70 +39,99 @@ export default function RepairTrack() {
   }
 
   return (
-    <div className="page-wrapper" style={{ minHeight: '100vh', background: 'var(--alloy-base)' }}>
+    <div className="repair-track page-wrapper">
       <SEOHead
         title="Track Repair"
         description="Track a DTB drywall tool repair request by repair number and token."
         canonical="/repairs/track"
       />
 
-      <section style={{ padding: 'clamp(56px, 9vw, 92px) clamp(1.5rem, 5vw, 3rem)' }}>
-        <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-          <div style={{
-            background: 'white',
-            border: '1px solid var(--machined-border)',
-            borderRadius: '8px',
-            padding: 'clamp(24px, 5vw, 40px)',
-          }}>
-            <h1 style={{ margin: '0 0 10px', color: '#0f172a', fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', fontWeight: 950 }}>
-              Track a repair
-            </h1>
-            <p style={{ margin: '0 0 26px', color: 'rgba(15,23,42,0.62)', fontSize: '0.95rem', lineHeight: 1.6 }}>
-              Use the repair number and tracking token from your confirmation email to view status, quote actions, shipping, and messages.
+      <main className="repair-track__main">
+        <section className="repair-track__card" aria-labelledby="repair-track-title">
+          <div className="repair-track__form-panel">
+            <p className="repair-track__eyebrow">Repair Services</p>
+            <h1 id="repair-track-title">Track a repair</h1>
+            <p className="repair-track__intro">
+              Enter your repair number and tracking token from your confirmation email to view real-time status, quote actions, shipping details, and messages.
             </p>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div style={{ display: 'grid', gap: '16px' }}>
-                <label>
-                  <span className="machined-label" style={{ color: 'var(--primary-600)', marginBottom: 6, display: 'block' }}>
-                    Repair Number
-                  </span>
+            <form className="repair-track__form" onSubmit={handleSubmit} noValidate>
+              <label className="repair-track__field">
+                <span className="repair-track__field-icon" aria-hidden="true">#</span>
+                <span className="repair-track__field-content">
+                  <span className="repair-track__label">Repair Number</span>
                   <input
-                    className="machined-input text-black"
                     value={repairId}
                     onChange={(e) => { setRepairId(e.target.value); setError(''); }}
                     placeholder="DTB-1234"
                     autoComplete="off"
+                    aria-describedby={error ? 'repair-track-error' : undefined}
                   />
-                </label>
+                </span>
+              </label>
 
-                <label>
-                  <span className="machined-label" style={{ color: 'var(--primary-600)', marginBottom: 6, display: 'block' }}>
-                    Tracking Token
-                  </span>
+              <label className="repair-track__field">
+                <span className="repair-track__field-icon repair-track__field-icon--lock" aria-hidden="true">
+                  <span className="repair-track__lock" />
+                </span>
+                <span className="repair-track__field-content">
+                  <span className="repair-track__label">Tracking Token</span>
                   <input
-                    className="machined-input text-black"
                     value={token}
                     onChange={(e) => { setToken(e.target.value); setError(''); }}
                     placeholder="Token from confirmation email"
                     autoComplete="off"
+                    aria-describedby={error ? 'repair-track-error' : 'repair-track-token-help'}
                   />
-                </label>
-              </div>
+                  <span id="repair-track-token-help" className="repair-track__field-help">Found in your repair confirmation email</span>
+                </span>
+              </label>
 
               {error && (
-                <p style={{ color: '#dc2626', fontSize: '0.82rem', margin: '12px 0 0' }} role="alert">
+                <p id="repair-track-error" className="repair-track__error" role="alert">
                   {error}
                 </p>
               )}
 
-              <button type="submit" className="alloy-button" style={{ marginTop: '22px', cursor: 'pointer' }}>
-                View repair status
+              <button type="submit" className="repair-track__submit">
+                <span>View Repair Status</span>
+                <span aria-hidden="true">→</span>
               </button>
             </form>
+
+            <div className="repair-track__help">
+              <span aria-hidden="true" />
+              <b>OR</b>
+              <span aria-hidden="true" />
+            </div>
+            <a className="repair-track__help-link" href="mailto:support@drywalltoolbox.com?subject=Help%20finding%20repair%20tracking%20information">
+              Need help finding your repair information?
+            </a>
           </div>
-        </div>
-      </section>
+
+          <aside className="repair-track__updates" aria-labelledby="repair-track-updates-title">
+            <p className="repair-track__eyebrow">Stay Informed</p>
+            <h2 id="repair-track-updates-title">Real-time<br />repair updates</h2>
+
+            <ul className="repair-track__features">
+              {TRACKING_FEATURES.map(([title, description]) => (
+                <li key={title}>
+                  <span className="repair-track__check" aria-hidden="true">✓</span>
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{description}</small>
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <div className="repair-track__email-note">
+              <p>Your repair number and tracking token can be found in your confirmation email from Drywall Toolbox.</p>
+              <span className="repair-track__mail" aria-hidden="true" />
+            </div>
+          </aside>
+        </section>
+      </main>
     </div>
   );
 }
