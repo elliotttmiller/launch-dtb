@@ -1,0 +1,50 @@
+/*
+ * frontend/src/styles/schematic-diagram-fit.css
+ *
+ * Viewer-only fit correction. At scale=1 the complete authoritative diagram
+ * must fit inside the available schematic stage on both axes while preserving
+ * its natural aspect ratio. Hotspot coordinates remain percentage-based
+ * against `.schematic-image-bounds`, so image and overlay continue to share
+ * exactly the same coordinate space.
+ */
+
+.schematic-image-wrapper {
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(8px, 1.8cqw, 14px);
+  box-sizing: border-box;
+}
+
+.schematic-image-bounds {
+  /* Override the mobile width:100% rule. A portrait/tall source must derive
+     width from the viewer's available height instead of overflowing below
+     the clipped stage. Landscape sources remain constrained by max-width. */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  flex: 0 1 auto;
+  margin: auto;
+}
+
+/* With an explicit aspect-ratio on the bounds element, these constraints let
+   CSS choose whichever axis is limiting. This is equivalent to object-fit:
+   contain, but the bounds element itself is fitted so hotspot percentages
+   stay registered to the visible image rather than a letterboxed parent. */
+.schematic-image-bounds[style*='aspect-ratio'] {
+  width: min(100%, calc((100% - 0px) * var(--dtb-schematic-fit-ratio, 1)));
+}
+
+.dtb-schematic-diagram__image {
+  object-fit: contain;
+}
+
+@media (max-width: 47.999rem) {
+  .schematic-image-bounds {
+    /* The viewer is height-constrained on mobile. `height:100%` makes the
+       natural aspect ratio solve the width for tall diagrams; max-width then
+       becomes the limiting axis for wide diagrams. */
+    height: 100%;
+    width: auto;
+  }
+}
