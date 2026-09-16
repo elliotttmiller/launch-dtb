@@ -1,7 +1,7 @@
 /* Repair landing desktop composition.
  * Loaded after repair-landing-responsive.css so desktop scale is authoritative
  * without changing the locked phone composition. */
-@media (min-width:48rem) {
+@media (min-width:64rem) {
   .repair-landing {
     --repair-desktop-shell:min(1440px,calc(100% - clamp(64px,6vw,112px)));
     --repair-desktop-eyebrow:clamp(.7rem,.64vw,.82rem);
@@ -272,8 +272,8 @@
   }
 }
 
-/* Mid-desktop/tablet keeps the same hierarchy while avoiding cramped two-up content. */
-@media (min-width:48rem) and (max-width:72rem) {
+/* Mid-desktop keeps the same hierarchy while avoiding cramped two-up content. */
+@media (min-width:64rem) and (max-width:72rem) {
   .repair-landing {
     --repair-desktop-shell:min(100% - 48px,1120px);
   }
