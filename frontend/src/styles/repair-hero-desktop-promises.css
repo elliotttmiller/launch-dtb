@@ -1,0 +1,70 @@
+/* Desktop-only repair hero promise composition.
+ * Keeps the established mobile hero unchanged while extending the desktop hero
+ * to include the three service promises from the approved mockup. */
+@media (min-width: 64rem) {
+  .repair-landing .repair-hero {
+    min-height: clamp(560px, 39vw, 680px);
+  }
+
+  .repair-landing .repair-hero__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    min-height: inherit;
+    padding-block: clamp(42px, 3.8vw, 62px) clamp(26px, 2.2vw, 36px);
+  }
+
+  .repair-landing .repair-hero__content {
+    width: min(650px, 47%);
+    padding: 0;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees {
+    margin-top: clamp(28px, 2.5vw, 40px);
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__grid {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item {
+    position: relative;
+    padding: 0 clamp(34px, 3vw, 48px);
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item:first-child {
+    padding-left: 20px;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item:last-child {
+    padding-right: 0;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    left: 0;
+    width: 1px;
+    background: rgba(255, 255, 255, 0.32);
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item h2 {
+    margin-bottom: 6px;
+    color: #fff;
+    font-size: clamp(1rem, 1.08vw, 1.24rem);
+    font-weight: 850;
+    line-height: 1.16;
+    letter-spacing: -0.025em;
+  }
+
+  .repair-landing .repair-hero .repair-guarantees__item p {
+    max-width: 39ch;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: clamp(0.76rem, 0.72vw, 0.88rem);
+    line-height: 1.42;
+  }
+}
