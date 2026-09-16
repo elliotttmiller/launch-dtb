@@ -61,7 +61,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 170px;
+    min-width: 150px;
     min-height: 48px;
     padding-inline: 19px;
     border: 1px solid rgba(255,255,255,.17);
@@ -74,17 +74,6 @@
     text-decoration: none;
     backdrop-filter: blur(12px) saturate(115%);
     -webkit-backdrop-filter: blur(12px) saturate(115%);
-  }
-
-  .repair-landing .repair-hero__actions .repair-button--utility::before {
-    content: '';
-    width: 14px;
-    height: 14px;
-    margin-right: 10px;
-    border: 1.5px solid rgba(255,255,255,.88);
-    border-radius: 2px;
-    box-shadow: inset 4px -4px 0 -3px rgba(255,255,255,.88);
-    transform: rotate(30deg) skew(-5deg,-5deg);
   }
 
   .repair-landing .repair-hero__actions .repair-button--utility:hover {
