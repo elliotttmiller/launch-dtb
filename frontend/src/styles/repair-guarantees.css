@@ -1,0 +1,104 @@
+.repair-guarantees {
+  border-top: 1px solid var(--repair-line);
+  border-bottom: 1px solid var(--repair-line);
+  background: #f8fafc;
+}
+
+.repair-guarantees__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repair-guarantees__item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  min-width: 0;
+  padding: 28px clamp(22px, 2.4vw, 34px);
+}
+
+.repair-guarantees__item:not(:last-child) {
+  border-right: 1px solid var(--repair-line);
+}
+
+.repair-guarantees__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #cbd9ee;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--repair-blue);
+}
+
+.repair-guarantees__icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.repair-guarantees__item h2 {
+  margin: 0 0 6px;
+  color: var(--repair-ink);
+  font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+  font-weight: 850;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.repair-guarantees__item p {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--repair-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 47.99rem) {
+  .repair-guarantees__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .repair-guarantees__item {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 11px;
+    padding: 17px 0;
+  }
+
+  .repair-guarantees__item:not(:last-child) {
+    border-right: 0;
+    border-bottom: 1px solid var(--repair-line);
+  }
+
+  .repair-guarantees__icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .repair-guarantees__icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .repair-guarantees__item h2 {
+    margin-bottom: 4px;
+    font-size: clamp(13px, 3.45vw, 14px);
+    line-height: 1.2;
+  }
+
+  .repair-guarantees__item p {
+    max-width: none;
+    font-size: clamp(10.5px, 2.8vw, 11.5px);
+    line-height: 1.42;
+  }
+}
