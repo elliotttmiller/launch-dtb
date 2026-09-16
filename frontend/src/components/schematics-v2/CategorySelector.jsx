@@ -5,9 +5,10 @@
  * selector primitives own the 3:2 media-card presentation used consistently
  * by schematics and product brand/category discovery.
  */
-import { MediaSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
+import ProductsCategorySelector from '../catalog/ProductsCategorySelector.jsx';
+import { resolveSchematicBrandLogo } from './BrandSelector.jsx';
 
-export default function CategorySelector({ brandName, categories, onSelectCategory }) {
+export default function CategorySelector({ brandId, brandName, categories, onBack, onSelectCategory }) {
   if (categories.length === 0) {
     return (
       <div className="dtb-schematics-empty" role="status">
@@ -17,17 +18,15 @@ export default function CategorySelector({ brandName, categories, onSelectCatego
   }
 
   return (
-    <SelectorGrid variant="categories">
-      {categories.map((category) => (
-        <MediaSelectorCard
-          key={category.id}
-          title={category.name}
-          meta={`${category.count} tool${category.count === 1 ? '' : 's'}`}
-          image={category.preview?.url || ''}
-          imageAlt=""
-          onClick={() => onSelectCategory(category.id)}
-        />
-      ))}
-    </SelectorGrid>
+    <ProductsCategorySelector
+      brand={brandName || brandId}
+      brandLogo={resolveSchematicBrandLogo({ id: brandId, name: brandName })}
+      categories={categories.map((category) => ({ ...category, key: category.id, slug: category.id }))}
+      onBack={onBack}
+      onSelectCategory={(category) => onSelectCategory(category.id)}
+      includeAllProducts={false}
+      loadAllProductsPreview={false}
+      itemLabel="tool"
+    />
   );
 }

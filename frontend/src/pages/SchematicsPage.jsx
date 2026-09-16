@@ -40,24 +40,24 @@ function SchematicsPageInner() {
   const catalog = useSchematicCatalog();
 
   const handleSelectBrand = useCallback((brandId) => {
-    routeState.navigateToBrand(brandId);
+    routeState.goToBrand(brandId);
   }, [routeState]);
 
   const handleSelectCategory = useCallback((brandId, categoryId) => {
-    routeState.navigateToCategory(brandId, categoryId);
+    routeState.goToCategory(brandId, categoryId);
   }, [routeState]);
 
   const handleSelectTool = useCallback((schematicId) => {
-    routeState.navigateToSchematic(schematicId);
+    routeState.goToSchematic(schematicId);
   }, [routeState]);
 
   const handleBack = useCallback((brandId, categoryId) => {
     if (categoryId) {
-      routeState.navigateToCategory(brandId, categoryId);
+      routeState.goToCategory(brandId, categoryId);
     } else if (brandId) {
-      routeState.navigateToBrand(brandId);
+      routeState.goToBrand(brandId);
     } else {
-      routeState.navigateToCatalog();
+      routeState.goToCatalogRoot();
     }
   }, [routeState]);
 
@@ -70,10 +70,14 @@ function SchematicsPageInner() {
       routeState.setVariant(id);
       return;
     }
-    routeState.navigateToSchematic(id);
+    routeState.goToSchematic(id);
   }, [routeState]);
 
-  const isViewer = routeState.view === 'schematic';
+  // `useSchematicRouteState` exposes `viewer` whenever a schematic query
+  // parameter is present. Keep this value aligned with that URL-state
+  // contract so selecting a tool renders its detail view rather than falling
+  // back to the catalog selector.
+  const isViewer = routeState.view === 'viewer';
   const title = isViewer ? 'Schematics' : 'Parts Schematics';
   const description = isViewer
     ? 'Interactive parts schematic with linked replacement parts.'

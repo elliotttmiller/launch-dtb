@@ -215,9 +215,9 @@ function AllProductsSlideshow({ images }) {
   );
 }
 
-function ProductCategoryCard({ brand, category, index, onSelectCategory, allProductsImages = [] }) {
+function ProductCategoryCard({ brand, category, index, onSelectCategory, allProductsImages = [], itemLabel = 'product' }) {
   const isAllProducts = Boolean(category?.isAllProducts);
-  const resolvedImage = isAllProducts ? '' : resolveCategoryImage(brand, category);
+  const resolvedImage = isAllProducts ? '' : (category?.preview?.url || resolveCategoryImage(brand, category));
   const [failedImage, setFailedImage] = useState({ key: '', src: '' });
   const previewImage = resolvePreviewImageMeta(resolvedImage);
   const imageKey = `${brandToSlug(brand)}:${category.key || category.slug || category.name}:${previewImage.src}`;
@@ -249,7 +249,7 @@ function ProductCategoryCard({ brand, category, index, onSelectCategory, allProd
   return (
     <MediaSelectorCard
       title={category.name}
-      meta={`${category.count} product${category.count === 1 ? '' : 's'}`}
+      meta={`${category.count} ${itemLabel}${category.count === 1 ? '' : 's'}`}
       media={media}
       className={isAllProducts ? 'dtb-selector-card--all-products' : ''}
       onClick={() => onSelectCategory(category)}
@@ -263,6 +263,9 @@ export default function ProductsCategorySelector({
   categories,
   onSelectCategory,
   onBack,
+  includeAllProducts = true,
+  loadAllProductsPreview = true,
+  itemLabel = 'product',
 }) {
   const [previewState, setPreviewState] = useState({ brand: '', images: [], total: null });
   const normalizedCategories = Array.isArray(categories) ? categories : [];
@@ -276,7 +279,7 @@ export default function ProductsCategorySelector({
     : categoryCountFallback;
 
   useEffect(() => {
-    if (!brand) return undefined;
+    if (!brand || !includeAllProducts || !loadAllProductsPreview) return undefined;
 
     let cancelled = false;
     const loadPreviews = async () => {
@@ -307,17 +310,19 @@ export default function ProductsCategorySelector({
 
     loadPreviews();
     return () => { cancelled = true; };
-  }, [brand]);
+  }, [brand, includeAllProducts, loadAllProductsPreview]);
 
   const allProductsCard = {
     ...ALL_PRODUCTS_CATEGORY,
     count: allProductsCount,
     image: '',
   };
-  const displayCategories = [
-    allProductsCard,
-    ...normalizedCategories.filter((category) => !['all-products', 'all_products'].includes(String(category?.slug || category?.key || '').toLowerCase())),
-  ];
+  const displayCategories = includeAllProducts
+    ? [
+      allProductsCard,
+      ...normalizedCategories.filter((category) => !['all-products', 'all_products'].includes(String(category?.slug || category?.key || '').toLowerCase())),
+    ]
+    : normalizedCategories;
 
   return (
     <div className="product-selector">
@@ -351,6 +356,7 @@ export default function ProductsCategorySelector({
             index={index}
             onSelectCategory={onSelectCategory}
             allProductsImages={category.isAllProducts ? allProductsImages : []}
+            itemLabel={itemLabel}
           />
         ))}
       </SelectorGrid>

@@ -4,9 +4,8 @@
  * Schematics owns its brand data/count semantics; shared selector primitives
  * own the cross-storefront brand-card presentation and responsive geometry.
  */
-import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
+import ProductsBrandSelector from '../catalog/ProductsBrandSelector.jsx';
 import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
-import { resolveFeaturedBrandPresentation } from '../../utils/brandSelectorPresentation.js';
 
 export function resolveSchematicBrandLogo(name) {
   return resolveBrandLogo(name) || null;
@@ -39,25 +38,16 @@ export default function BrandSelector({ brands, onSelectBrand }) {
   }
 
   return (
-    <SelectorGrid variant="brands">
-      {brands.map((brand) => (
-        (() => {
-          const presentation = resolveFeaturedBrandPresentation(brand, { includeSchematicOnly: true });
-
-          return (
-            <BrandSelectorCard
-              key={brand.id}
-              name={brand.name}
-              logo={presentation?.logo || resolveBrandLogo(brand)}
-              meta={`${brand.count} schematic${brand.count === 1 ? '' : 's'}`}
-              className={presentation?.className || ''}
-              style={presentation?.cardStyle}
-              logoStyle={presentation?.logoStyle}
-              onClick={() => onSelectBrand(brand.id)}
-            />
-          );
-        })()
-      ))}
-    </SelectorGrid>
+    <ProductsBrandSelector
+      brands={brands.map((brand) => ({
+        ...brand,
+        key: brand.id,
+        slug: brand.id,
+        label: brand.name,
+      }))}
+      onSelectBrand={(brand) => onSelectBrand(brand.slug)}
+      showHero={false}
+      includeSchematicOnly={true}
+    />
   );
 }

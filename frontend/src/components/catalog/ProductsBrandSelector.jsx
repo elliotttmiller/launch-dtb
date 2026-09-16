@@ -5,10 +5,10 @@ import { resolveFeaturedBrandPresentation } from '../../utils/brandSelectorPrese
 import { BrandSelectorCard, SelectorGrid } from '../selectors/SelectorCards.jsx';
 import './products-selector.css';
 
-function normalizeBrandList(brands = []) {
+function normalizeBrandList(brands = [], { includeSchematicOnly = false } = {}) {
   if (!Array.isArray(brands) || brands.length === 0) return [];
   return dedupeCatalogBrandEntries(brands).map((brand) => {
-    const presentation = resolveFeaturedBrandPresentation(brand);
+    const presentation = resolveFeaturedBrandPresentation(brand, { includeSchematicOnly });
     return {
       ...brand,
       logo: presentation?.logo || resolveProductBrandLogo(brand),
@@ -19,12 +19,15 @@ function normalizeBrandList(brands = []) {
   });
 }
 
-export default function ProductsBrandSelector({ brands, onSelectBrand }) {
-  const sortedBrands = useMemo(() => normalizeBrandList(brands), [brands]);
+export default function ProductsBrandSelector({ brands, onSelectBrand, showHero = true, includeSchematicOnly = false }) {
+  const sortedBrands = useMemo(
+    () => normalizeBrandList(brands, { includeSchematicOnly }),
+    [brands, includeSchematicOnly],
+  );
 
   return (
     <div className="products-brand-selector">
-      <header className="products-brand-selector__hero">
+      {showHero && <header className="products-brand-selector__hero">
         <div className="products-brand-selector__hero-content">
           <div className="products-brand-selector__hero-heading">
             <div className="products-brand-selector__eyebrow-row">
@@ -50,7 +53,7 @@ export default function ProductsBrandSelector({ brands, onSelectBrand }) {
             <span className="products-brand-selector__statement-rule" />
           </div>
         </div>
-      </header>
+      </header>}
 
       <SelectorGrid variant="brands">
         {sortedBrands.map((brand) => {

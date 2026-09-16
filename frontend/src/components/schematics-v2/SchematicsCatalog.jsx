@@ -6,9 +6,8 @@
  * useSchematicRouteState; no data fetching of its own.
  */
 import { useMemo, useState } from 'react';
-import BackButton from '../shared/BackButton';
 import SearchBar from '../catalog/SearchBar';
-import BrandSelector, { SchematicBrandLogo } from './BrandSelector';
+import BrandSelector, { resolveSchematicBrandLogo } from './BrandSelector';
 import CategorySelector from './CategorySelector';
 import ToolSelector from './ToolSelector';
 
@@ -70,8 +69,11 @@ export default function SchematicsCatalog({ catalog, routeState }) {
           </p>
           {searchResults.length > 0 && (
             <ToolSelector
+              brandName="Schematics"
+              brandLogo=""
               categoryName="your search"
               tools={searchResults}
+              onBack={() => setSearchQuery('')}
               onSelectTool={(id) => goToSchematic(id)}
             />
           )}
@@ -79,42 +81,21 @@ export default function SchematicsCatalog({ catalog, routeState }) {
       ) : !brandId ? (
         <BrandSelector brands={brands} onSelectBrand={goToBrand} />
       ) : !categoryId ? (
-        <>
-          <div className="dtb-schematics-selector-header">
-            <BackButton
-              onClick={goToCatalogRoot}
-              label="Back to brands"
-              className="dtb-selector-nav-back"
-              iconOnly
-            />
-            <div className="dtb-schematics-brand-header">
-              <SchematicBrandLogo
-                brand={currentBrand || { id: brandId, name: brandId }}
-                className="dtb-schematics-brand-header__logo"
-              />
-              <span className="dtb-schematics-brand-header__name">
-                {currentBrand?.name || brandId}
-              </span>
-            </div>
-          </div>
-          <CategorySelector
-            brandName={currentBrand?.name}
-            categories={categories}
-            onSelectCategory={(id) => goToCategory(brandId, id)}
-          />
-        </>
+        <CategorySelector
+          brandId={brandId}
+          brandName={currentBrand?.name}
+          categories={categories}
+          onBack={goToCatalogRoot}
+          onSelectCategory={(id) => goToCategory(brandId, id)}
+        />
       ) : (
         <>
-          <BackButton
-            onClick={() => goToCategory(brandId, null)}
-            label="Back to categories"
-            className="dtb-selector-nav-back"
-            iconOnly
-          />
-          <h2 className="dtb-schematics-heading">{currentCategory?.name || categoryId}</h2>
           <ToolSelector
+            brandName={currentBrand?.name || brandId}
+            brandLogo={resolveSchematicBrandLogo(currentBrand || { id: brandId, name: brandId })}
             categoryName={currentCategory?.name}
             tools={tools}
+            onBack={() => goToBrand(brandId)}
             onSelectTool={(id) => goToSchematic(id)}
           />
         </>
