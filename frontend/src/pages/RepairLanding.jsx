@@ -8,13 +8,6 @@ import '../styles/repair-merchandising.css';
 import '../styles/repair-landing-responsive.css';
 import '../styles/repair-landing-desktop.css';
 
-const HERO_PROOF_POINTS = [
-  'Major repair brands supported',
-  'Approval before added work',
-  'Online repair tracking',
-  'Physical inspection before quote-first work',
-];
-
 const PROCESS_STEPS = [
   {
     title: 'Identify the tool',
@@ -182,10 +175,6 @@ export default function RepairLanding() {
                 <span aria-hidden="true">→</span>
               </Link>
             </div>
-
-            <ul className="repair-hero__assurance" aria-label="Repair service highlights">
-              {HERO_PROOF_POINTS.map((point) => <li key={point}>{point}</li>)}
-            </ul>
           </div>
         </div>
       </section>
