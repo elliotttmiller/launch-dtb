@@ -37,25 +37,6 @@ const PROCESS_STEPS = [
   },
 ];
 
-const ASSURANCE_ITEMS = [
-  {
-    title: 'No surprise additional work',
-    description: 'Choose quote-required approval or an eligible pre-approval amount during intake. Additional quote-first work waits for your authorization.',
-  },
-  {
-    title: 'The right tool stays attached to the repair',
-    description: 'Brand, tool family, model, symptoms, photos, shipping preferences, and service selection stay tied to one repair request.',
-  },
-  {
-    title: 'Know where the repair stands',
-    description: 'Use your repair number and token to review current status and any next action without opening a separate support thread.',
-  },
-  {
-    title: 'Physical inspection drives scope',
-    description: 'Photos and symptoms help document the problem, but final repair scope is determined after the tool is physically inspected.',
-  },
-];
-
 const SHIPPING_PREP_STEPS = [
   {
     title: 'Clean excess compound',
@@ -241,24 +222,6 @@ export default function RepairLanding() {
                 <span aria-hidden="true">→</span>
               </Link>
             </article>
-          </div>
-        </div>
-      </section>
-
-      <section className="repair-assurance" aria-labelledby="repair-assurance-title">
-        <div className="repair-section-shell">
-          <div className="repair-section-heading">
-            <p className="repair-eyebrow">Why Contractors Send Tools to DTB</p>
-            <h2 id="repair-assurance-title">Clear decisions from intake through return.</h2>
-            <p>Repair details, approval rules, tool identity, logistics, and status stay explicit throughout the request.</p>
-          </div>
-          <div className="repair-assurance__grid">
-            {ASSURANCE_ITEMS.map((item) => (
-              <article className="repair-assurance__item" key={item.title}>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </article>
-            ))}
           </div>
         </div>
       </section>
