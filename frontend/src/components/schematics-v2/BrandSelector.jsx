@@ -42,7 +42,7 @@ export default function BrandSelector({ brands, onSelectBrand }) {
     <SelectorGrid variant="brands">
       {brands.map((brand) => (
         (() => {
-          const presentation = resolveFeaturedBrandPresentation(brand);
+          const presentation = resolveFeaturedBrandPresentation(brand, { includeSchematicOnly: true });
 
           return (
             <BrandSelectorCard

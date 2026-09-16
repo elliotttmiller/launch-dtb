@@ -3,6 +3,20 @@ import { normalizeBrandAssetKey, resolveBrandLogo } from './brandLogoAssets.js';
 const sitegroundLogoAsset = (filename) => `/logos/${filename}`;
 
 export const FEATURED_BRAND_PRESENTATION = {
+  asgard: {
+    logo: resolveBrandLogo('Asgard'),
+    className: 'products-brand-selector__card--asgard',
+    cardStyle: {
+      backgroundColor: 'rgba(0, 116, 191, 1)',
+      padding: 0,
+    },
+    logoStyle: {
+      width: '72%',
+      height: 'auto',
+      maxWidth: '72%',
+      maxHeight: '54%',
+    },
+  },
   tapetech: {
     logo: resolveBrandLogo('TapeTech'),
     className: 'products-brand-selector__card--tapetech',
@@ -113,13 +127,14 @@ export const FEATURED_BRAND_PRESENTATION = {
   },
 };
 
-export function resolveFeaturedBrandPresentation(brand = {}) {
+export function resolveFeaturedBrandPresentation(brand = {}, { includeSchematicOnly = false } = {}) {
   const candidates = [brand.slug, brand.key, brand.label, brand.name, brand.id];
 
   for (const candidate of candidates) {
     const normalized = normalizeBrandAssetKey(candidate);
     if (!normalized) continue;
 
+    if (includeSchematicOnly && normalized === 'asgard') return FEATURED_BRAND_PRESENTATION.asgard;
     if (normalized.includes('columbia')) return FEATURED_BRAND_PRESENTATION.columbia;
     if (normalized === 'durastilts' || normalized === 'durastilt') return FEATURED_BRAND_PRESENTATION.durastilts;
     if (normalized === 'tapetech' || normalized === 'tapetechtools') return FEATURED_BRAND_PRESENTATION.tapetech;
