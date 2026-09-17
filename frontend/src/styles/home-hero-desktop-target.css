@@ -1,0 +1,99 @@
+/* Desktop homepage hero target calibration.
+ * Presentation-only: preserves the existing hero artwork, navigation, trust bar,
+ * quick links, routes, and mobile composition while matching the approved desktop
+ * mockup's scale, balance, and hierarchy. */
+
+.home-hero__title-set--desktop { display: none; }
+
+@media (min-width: 901px) {
+  .home-hero__stage {
+    height: clamp(500px, 31vw, 548px);
+  }
+
+  .home-hero__media-image {
+    object-position: 67% 50%;
+  }
+
+  .home-hero__scrim {
+    background: linear-gradient(
+      90deg,
+      rgba(4, 13, 30, 0.96) 0%,
+      rgba(5, 22, 48, 0.91) 21%,
+      rgba(9, 39, 74, 0.72) 40%,
+      rgba(15, 57, 96, 0.38) 58%,
+      rgba(15, 57, 96, 0.08) 77%,
+      transparent 100%
+    );
+  }
+
+  .home-hero__content {
+    top: clamp(56px, 4vw, 72px);
+    left: clamp(72px, 5.25vw, 102px);
+    width: min(680px, 43vw);
+  }
+
+  .home-hero__eyebrow {
+    gap: 14px;
+    margin-bottom: 20px;
+    font-size: clamp(12px, 0.82vw, 14px);
+    letter-spacing: 0.15em;
+  }
+
+  .home-hero__eyebrow-bar {
+    height: 18px;
+  }
+
+  .home-hero__title-set--mobile { display: none; }
+  .home-hero__title-set--desktop { display: inline; }
+
+  .home-hero__title {
+    max-width: 680px;
+    margin-bottom: 24px;
+    font-size: clamp(58px, 4vw, 76px);
+    font-weight: 800;
+    line-height: 0.94;
+    letter-spacing: -0.052em;
+  }
+
+  .home-hero__description {
+    max-width: 500px;
+    margin-bottom: 28px;
+    color: #c0c9da;
+    font-size: clamp(16px, 1.05vw, 19px);
+    font-weight: 550;
+    line-height: 1.48;
+  }
+
+  .home-hero__actions {
+    gap: 18px;
+  }
+
+  .home-hero__button {
+    min-height: 54px;
+    padding: 0.72em 1.7em;
+    font-size: clamp(16px, 1vw, 18px);
+  }
+
+  .home-hero__button--primary { min-width: 236px; }
+  .home-hero__button--secondary { min-width: 188px; }
+
+  .home-hero-trustbar {
+    width: min(1180px, calc(100% - 96px));
+    margin-top: -48px;
+  }
+
+  .home-hero-trustbar__item {
+    min-height: 76px;
+    padding-block: 18px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .home-hero__stage {
+    height: clamp(520px, 30vw, 560px);
+  }
+
+  .home-hero__content {
+    left: clamp(84px, 5.3vw, 110px);
+  }
+}
