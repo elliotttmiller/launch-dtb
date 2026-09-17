@@ -116,3 +116,14 @@ test('product cards do not introduce per-card merchandising requests', async () 
   assert.match(source, /getToolSetContentsSummary/);
   assert.doesNotMatch(source, /fetch\(|apiClient\(|axios\./);
 });
+
+test('product cards only show a regular-price strike-through for a real sale', async () => {
+  const source = await readFile(
+    new URL('frontend/src/components/storefront/StorefrontProductTile.jsx', repoRoot),
+    'utf8',
+  );
+
+  assert.match(source, /salePriceValue < regularPriceValue/);
+  assert.match(source, /salePriceValue !== null/);
+  assert.match(source, /regularPriceValue !== null/);
+});

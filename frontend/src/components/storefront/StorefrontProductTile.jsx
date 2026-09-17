@@ -55,8 +55,16 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
     ? `From $${money(displayProduct.min_price)}`
     : `$${money(commerceProduct.price ?? displayProduct.price ?? 0)}`;
 
-  const compareAtValue = parsePrice(commerceProduct.regular_price ?? displayProduct.regular_price ?? commerceProduct.compare_at_price ?? displayProduct.compare_at_price ?? commerceProduct.min_regular_price ?? displayProduct.min_regular_price);
-  const comparePriceStr = compareAtValue !== null && compareAtValue > 0 ? `$${money(compareAtValue)}` : null;
+  const salePriceValue = parsePrice(commerceProduct.sale_price ?? displayProduct.sale_price);
+  const regularPriceValue = parsePrice(commerceProduct.regular_price ?? displayProduct.regular_price ?? commerceProduct.compare_at_price ?? displayProduct.compare_at_price ?? commerceProduct.min_regular_price ?? displayProduct.min_regular_price);
+  // A regular price is only a comparison price when the product has a real,
+  // lower sale price. Never strike through an equal/current regular price.
+  const comparePriceStr = !isVariable
+    && salePriceValue !== null
+    && regularPriceValue !== null
+    && salePriceValue < regularPriceValue
+    ? `$${money(regularPriceValue)}`
+    : null;
   const image = variationContext?.image_thumbnail || variationContext?.image || displayProduct.image_thumbnail || displayProduct.image;
   const imageSrcset = variationContext?.image_srcset || displayProduct.image_srcset;
   const slug = displayProduct.slug || commerceProduct.slug;
