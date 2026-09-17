@@ -20,6 +20,7 @@ import './styles/reviews.css';
 import './styles/hero-section.css';
 import './styles/trusted-brands.css';
 import './styles/home-hero.css';
+import './styles/home-hero-desktop-target.css';
 import './styles/storefront-shell.css';
 import './styles/storefront-sections.css';
 import './styles/storefront-product-card.css';
@@ -117,5 +118,5 @@ createRoot(document.getElementById('root')).render(
         </ErrorBoundary>
       </GlobalMotionProvider>
     </HelmetProvider>
-  </StrictMode>
+  </StrictMode>,
 );
