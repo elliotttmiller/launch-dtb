@@ -88,6 +88,20 @@ final class DTB_DefaultVariationResolver {
 			return $product_dto;
 		}
 
+		// The listing represents the resolved variation, so its complete price
+		// context must replace the variable parent's range/default price. Keeping
+		// only the effective value loses the compare-at price and makes genuine
+		// variation sales indistinguishable from regular pricing to the storefront.
+		$variation_price = is_array( $default_variation['price'] ?? null )
+			? $default_variation['price']
+			: [];
+		$product_dto['price'] = [
+			'value'   => $variation_price['value'] ?? $product_dto['price']['value'] ?? null,
+			'regular' => $variation_price['regular'] ?? $product_dto['price']['regular'] ?? null,
+			'sale'    => $variation_price['sale'] ?? $product_dto['price']['sale'] ?? null,
+			'onSale'  => (bool) ( $variation_price['onSale'] ?? $product_dto['price']['onSale'] ?? false ),
+		];
+
 		$product_dto['defaultVariationId'] = $default_variation['id'];
 		$product_dto['cardProduct'] = [
 			'id'             => $default_variation['id'],
@@ -95,6 +109,9 @@ final class DTB_DefaultVariationResolver {
 			'sku'            => $default_variation['sku'] ?: $product_dto['sku'],
 			'name'           => $default_variation['name'] ?: $product_dto['name'],
 			'price'          => $default_variation['price']['value'],
+			'regularPrice'   => $variation_price['regular'] ?? null,
+			'salePrice'      => $variation_price['sale'] ?? null,
+			'onSale'         => (bool) ( $variation_price['onSale'] ?? false ),
 			'image'          => $default_variation['media']['image'] ?: $product_dto['media']['image'],
 			'stockStatus'    => $default_variation['inventory']['stockStatus'],
 			'variationLabel' => $default_variation['variation']['label'] ?: self::build_label( $default_variation ),
