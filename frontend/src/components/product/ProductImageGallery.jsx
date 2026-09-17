@@ -599,7 +599,7 @@ export default function ProductImageGallery({ product }) {
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false} custom={direction} mode="wait">
+          <AnimatePresence initial={false} custom={direction} mode={direction === 0 ? 'wait' : 'sync'}>
             <Motion.img
               key={`${activeIndex}-${images[activeIndex]}`}
               src={images[activeIndex]}
@@ -748,7 +748,7 @@ export default function ProductImageGallery({ product }) {
                 onTouchStart={onLightboxTouchStart}
                 onTouchEnd={onLightboxTouchEnd}
               >
-                <AnimatePresence initial={false} custom={lightbox.dir} mode="wait">
+                <AnimatePresence initial={false} custom={lightbox.dir}>
                   <Motion.img
                     key={`${activeLightboxIndex}-${images[activeLightboxIndex]}`}
                     src={images[activeLightboxIndex]}
