@@ -10,14 +10,14 @@ const LIGHTBOX_Z_INDEX = 10010;
 const parentGalleryCache = new Map();
 
 const slideVariants = {
-  enter: (direction) => ({ x: direction >= 0 ? '100%' : '-100%', opacity: 0 }),
+  enter: (direction) => ({ x: direction >= 0 ? '3.5%' : '-3.5%', opacity: 0 }),
   center: { x: 0, opacity: 1 },
-  exit: (direction) => ({ x: direction >= 0 ? '-80%' : '80%', opacity: 0 }),
+  exit: (direction) => ({ x: direction >= 0 ? '-2.5%' : '2.5%', opacity: 0 }),
 };
 
 const slideTransition = {
-  x: { type: 'spring', stiffness: 340, damping: 44, mass: 0.75 },
-  opacity: { duration: 0.14, ease: [0.4, 0, 0.2, 1] },
+  duration: 0.42,
+  ease: [0.22, 1, 0.36, 1],
 };
 
 // Used when the image set changes because a different variation/product was

@@ -163,9 +163,10 @@ function dtb_pricing_hard_floor( WC_Product $product, ?array $policy = null ): ?
 }
 
 /**
- * Hard save invariant. Existing regular/sale prices may never persist below the
- * resolved minimum economic floor or configured MAP. Variable parents remain
- * projections of their child variations.
+ * Calculate an advisory economics floor for operator reporting.
+ *
+ * Catalog pricing is authoritative from the reviewed official CSV. This helper
+ * must not mutate WooCommerce values during imports or catalog updates.
  */
 function dtb_pricing_enforce_hard_floor_on_product( $product ): void {
 	if ( ! $product instanceof WC_Product || $product->is_type( 'variable' ) ) {
@@ -194,11 +195,10 @@ function dtb_pricing_enforce_hard_floor_on_product( $product ): void {
 	}
 }
 
-/** Backward-compatible hook name retained for existing callers. */
+/** Backward-compatible advisory helper retained for existing callers. */
 function dtb_pricing_enforce_map_floor_on_product( $product ): void {
 	dtb_pricing_enforce_hard_floor_on_product( $product );
 }
-add_action( 'woocommerce_before_product_object_save', 'dtb_pricing_enforce_hard_floor_on_product', 50, 1 );
 
 /** Convert a price-owning WooCommerce product into a rules-engine snapshot. */
 function dtb_pricing_product_snapshot( WC_Product $product, ?float $target_margin_override = null ): array {
@@ -423,7 +423,6 @@ function dtb_pricing_update_product( int $product_id, array $fields ) {
 	if ( array_key_exists( 'map_source', $fields ) ) { $source = sanitize_text_field( (string) $fields['map_source'] ); '' === $source ? $product->delete_meta_data( DTB_PRICING_MAP_SOURCE_META ) : $product->update_meta_data( DTB_PRICING_MAP_SOURCE_META, $source ); }
 	if ( array_key_exists( 'regular_price', $fields ) ) { $raw = trim( (string) $fields['regular_price'] ); if ( '' === $raw || ! is_numeric( $raw ) || (float) $raw < 0 ) { return new WP_Error( 'dtb_pricing_invalid_price', __( 'Regular price must be a valid non-negative amount.', 'drywall-toolbox' ), [ 'status' => 400 ] ); } $product->set_regular_price( wc_format_decimal( $raw, wc_get_price_decimals() ) ); }
 	if ( array_key_exists( 'sale_price', $fields ) ) { $raw_sale = trim( (string) $fields['sale_price'] ); if ( '' === $raw_sale ) { $product->set_sale_price( '' ); } elseif ( is_numeric( $raw_sale ) && (float) $raw_sale >= 0 ) { $product->set_sale_price( wc_format_decimal( $raw_sale, wc_get_price_decimals() ) ); } else { return new WP_Error( 'dtb_pricing_invalid_sale_price', __( 'Sale price must be blank or a valid non-negative amount.', 'drywall-toolbox' ), [ 'status' => 400 ] ); } }
-	dtb_pricing_enforce_hard_floor_on_product( $product );
 	$product->save(); wc_delete_product_transients( $product_id ); dtb_pricing_invalidate_index();
 	$after_product = wc_get_product( $product_id ); $after = $after_product ? dtb_pricing_product_snapshot( $after_product ) : $before;
 	if ( function_exists( 'dtb_admin_audit_write' ) ) { dtb_admin_audit_write( 'catalog_pricing', $product_id, 'catalog_pricing.product_updated', [ 'before' => [ 'regular_price' => $before['regular_price'], 'sale_price' => $before['sale_price'], 'map_price' => $before['map_price'] ], 'after' => [ 'regular_price' => $after['regular_price'], 'sale_price' => $after['sale_price'], 'map_price' => $after['map_price'] ], 'reason_codes' => $before['reason_codes'], 'policy_source' => $before['policy_source'], 'minimum_margin' => $before['minimum_margin'], 'target_margin' => $before['target_margin'] ], [ 'source' => 'pricing_manager' ] ); }
