@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, Wrench } from 'lucide-react';
 import StorefrontRail from '../storefront/StorefrontRail.jsx';
 import { buildCategoryPageUrl } from '../../utils/catalogFacets.js';
@@ -60,7 +60,9 @@ function ToolTypeTile({ category }) {
  * 348x128 intrinsic ratio.
  */
 export default function ShopByToolType({ categories = [], onOpenFilters }) {
+  const location = useLocation();
   const items = Array.isArray(categories) ? categories : [];
+  const isAllProductsRoute = location.pathname === '/products';
   if (items.length === 0) return null;
 
   const handleViewAll = (event) => {
@@ -73,7 +75,7 @@ export default function ShopByToolType({ categories = [], onOpenFilters }) {
   };
 
   return (
-    <div className="dtb-tool-type-section mb-6 sm:mb-8">
+    <div className={`dtb-tool-type-section mb-6 sm:mb-8${isAllProductsRoute ? ' dtb-tool-type-section--all-products' : ''}`}>
       <div className="storefront-section__head">
         <div className="storefront-section__head-text">
           <h2 className="storefront-section__title">Shop by Tool Type</h2>
@@ -89,6 +91,19 @@ export default function ShopByToolType({ categories = [], onOpenFilters }) {
         {items.map((category) => (
           <ToolTypeTile key={category.slug} category={category} />
         ))}
+        {isAllProductsRoute && (
+          <a
+            href="#dtb-category-filters"
+            className="dtb-tool-type-view-all"
+            onClick={handleViewAll}
+            aria-label="View all product categories in filters"
+          >
+            <span className="dtb-tool-type-view-all__icon" aria-hidden="true">
+              <ArrowRight size={20} strokeWidth={2} />
+            </span>
+            <span>View All<br />Categories</span>
+          </a>
+        )}
       </StorefrontRail>
     </div>
   );
