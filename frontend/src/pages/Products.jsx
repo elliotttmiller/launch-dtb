@@ -1,3 +1,4 @@
+import { useLocation } from 'react-router-dom';
 import ProductsCatalogPlatform from './ProductsCatalogPlatform.jsx';
 import Breadcrumb from '../components/shared/Breadcrumb.jsx';
 import './products.css';
@@ -41,9 +42,12 @@ function ProductsHero() {
 }
 
 export default function Products(props) {
+  const location = useLocation();
+  const isAllProductsRoute = location.pathname === '/products';
+
   return (
     <div className="dtb-products-page">
-      <ProductsHero />
+      {isAllProductsRoute ? <ProductsHero /> : null}
       <ProductsCatalogPlatform {...props} />
     </div>
   );
