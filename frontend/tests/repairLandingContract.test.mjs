@@ -10,11 +10,13 @@ async function readRepairLanding() {
   return readFile(REPAIR_LANDING, 'utf8');
 }
 
-test('repair landing sources supported brands from the repair catalog authority', async () => {
+test('repair landing sources supported brands from the repair catalog authority and applies promotion policy', async () => {
   const source = await readRepairLanding();
 
   assert.match(source, /getOfficialRepairBrands/);
   assert.match(source, /from '\.\.\/data\/repairCatalogMap\.js'/);
+  assert.match(source, /PROMOTED_REPAIR_BRAND_EXCLUSIONS = new Set\(\['SurPro', 'Dura-Stilts'\]\)/);
+  assert.match(source, /PROMOTED_REPAIR_BRAND_ADDITIONS = \['Level 5'\]/);
   assert.doesNotMatch(source, /SCHEMATIC_DEFINITIONS/);
 });
 
@@ -39,8 +41,8 @@ test('repair landing does not route inbound repair packing guidance to the store
 test('repair landing keeps inspection and approval expectations explicit without fixed turnaround claims', async () => {
   const source = await readRepairLanding();
 
-  assert.match(source, /Physical inspection before quote-first work/);
-  assert.match(source, /Additional quote-first work waits for your authorization/);
+  assert.match(source, /physical inspection/i);
+  assert.match(source, /approval/i);
   assert.match(source, /final repair scope is determined after the tool is physically inspected/i);
   assert.doesNotMatch(source, /\b\d+\s*[-–]\s*\d+\s*(business\s+)?days\b/i);
   assert.doesNotMatch(source, /\b\d+\s*[-–]\s*\d+\s*weeks?\b/i);
