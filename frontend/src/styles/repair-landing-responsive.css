@@ -291,11 +291,73 @@
   .repair-landing .repair-faq summary::after { top:11px; }
   .repair-landing .repair-faq details p { font-size:10.5px; line-height:1.45; }
 
-  .repair-landing .repair-closing-cta { padding:26px 0 max(26px,env(safe-area-inset-bottom)); }
-  .repair-landing .repair-closing-cta__inner { width:100%; align-items:flex-start; flex-direction:column; gap:16px; }
-  .repair-landing .repair-closing-cta__actions { display:grid; grid-template-columns:minmax(0,1fr); gap:8px; width:100%; }
-  .repair-landing .repair-closing-cta__actions .repair-button,
-  .repair-landing .repair-closing-cta__actions > a { width:100%; min-height:40px; }
+  /* Closing conversion block: keep every element on the same mobile content
+   * rail, strengthen hierarchy, and give each action an explicit touch target. */
+  .repair-landing .repair-closing-cta {
+    padding:clamp(24px,6.4vw,28px) 0 max(clamp(26px,7vw,30px),env(safe-area-inset-bottom));
+  }
+  .repair-landing .repair-closing-cta__inner {
+    width:calc(100% - (2 * var(--repair-mobile-gutter)));
+    max-width:none;
+    margin-inline:auto;
+    align-items:stretch;
+    flex-direction:column;
+    gap:clamp(18px,4.8vw,21px);
+  }
+  .repair-landing .repair-closing-cta__inner > div:first-child { width:100%; min-width:0; }
+  .repair-landing .repair-closing-cta .repair-eyebrow {
+    margin:0 0 7px;
+    font-size:var(--repair-mobile-eyebrow);
+    font-weight:800;
+    line-height:1.1;
+    letter-spacing:.11em;
+  }
+  .repair-landing .repair-closing-cta h2 {
+    width:100%;
+    max-width:18ch;
+    margin:0;
+    font-size:clamp(21px,5.7vw,24px);
+    line-height:1.02;
+    letter-spacing:-.035em;
+    text-wrap:balance;
+  }
+  .repair-landing .repair-closing-cta__actions {
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:7px;
+    width:100%;
+    min-width:0;
+  }
+  .repair-landing .repair-closing-cta__actions .repair-button {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    min-width:0;
+    min-height:44px;
+    height:44px;
+    margin:0;
+    padding:0 16px;
+    border-radius:5px;
+    font-size:clamp(9.5px,2.5vw,10.5px);
+    line-height:1;
+    letter-spacing:.035em;
+  }
+  .repair-landing .repair-closing-cta__actions > a:not(.repair-button) {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    min-width:0;
+    min-height:40px;
+    margin:0;
+    padding:0 2px;
+    border-bottom:1px solid rgba(255,255,255,.13);
+    color:rgba(255,255,255,.88);
+    font-size:clamp(10.5px,2.75vw,11.5px);
+    line-height:1.2;
+  }
+  .repair-landing .repair-closing-cta__actions > a:not(.repair-button):last-child { border-bottom:0; }
 }
 
 @media (max-width:22.5rem) {
