@@ -55,12 +55,21 @@ const FAQ_GROUPS = [
   ] },
 ];
 
+const PROMOTED_REPAIR_BRAND_EXCLUSIONS = new Set(['SurPro', 'Dura-Stilts']);
+const PROMOTED_REPAIR_BRAND_ADDITIONS = ['Level 5'];
+
 function faqGroupId(title) {
   return `repair-faq-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 }
 
 export default function RepairLanding() {
-  const featuredBrands = getOfficialRepairBrands().map((brand) => ({ brand, logo: getBrandLogo(brand) })).filter(({ logo }) => Boolean(logo)).slice(0, 8);
+  const featuredBrands = [...new Set([
+    ...getOfficialRepairBrands().filter((brand) => !PROMOTED_REPAIR_BRAND_EXCLUSIONS.has(brand)),
+    ...PROMOTED_REPAIR_BRAND_ADDITIONS,
+  ])]
+    .map((brand) => ({ brand, logo: getBrandLogo(brand) }))
+    .filter(({ logo }) => Boolean(logo))
+    .slice(0, 8);
 
   return (
     <div className="repair-landing page-wrapper">
