@@ -1,0 +1,311 @@
+.dtb-products-page {
+  background: #fff;
+}
+
+/* The /products route owns this merchandising shell only. Catalog data,
+   filtering, sorting, cards, and navigation remain in ProductsCatalogPlatform. */
+.dtb-products-breadcrumb-shell {
+  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
+  margin: 0 auto;
+  padding: 1rem 0 0.85rem;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb {
+  margin: 0;
+}
+
+/* ProductsCatalogPlatform still renders its canonical breadcrumb for other
+   catalog routes. On the exact /products route the shell above owns placement. */
+.dtb-products-page > .page-wrapper > .dtb-container > .dtb-breadcrumb {
+  display: none;
+}
+
+.dtb-products-hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(214, 224, 239, 0.72);
+  background: #fff;
+  isolation: isolate;
+}
+
+.dtb-products-hero__inner {
+  position: relative;
+  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
+  min-height: clamp(10.5rem, 10.8vw, 12.25rem);
+  margin: 0 auto;
+}
+
+.dtb-products-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: min(58%, 52rem);
+  min-height: inherit;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.65rem, 2vw, 2.1rem) 0 clamp(1.55rem, 1.85vw, 1.95rem);
+  padding-left: clamp(2.05rem, 2.35vw, 2.55rem);
+}
+
+.dtb-products-hero__content::before {
+  content: '';
+  position: absolute;
+  top: clamp(1.65rem, 2vw, 2.1rem);
+  bottom: clamp(1.55rem, 1.85vw, 1.95rem);
+  left: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #0a2b57 0%, #0878ff 100%);
+}
+
+.dtb-products-hero__eyebrow-row {
+  display: flex;
+  align-items: center;
+  gap: clamp(1rem, 1.55vw, 1.4rem);
+  margin-bottom: 0.62rem;
+}
+
+.dtb-products-hero__eyebrow {
+  color: #0873ee;
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(0.76rem, 0.86vw, 0.9rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.27em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dtb-products-hero__eyebrow-rule {
+  display: block;
+  width: clamp(5.5rem, 8vw, 8.2rem);
+  height: 1px;
+  background: linear-gradient(90deg, #2784ff 0%, rgba(39, 132, 255, 0.2) 100%);
+}
+
+.dtb-products-hero__title {
+  margin: 0;
+  color: #071a38;
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(2.75rem, 3.55vw, 3.7rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.dtb-products-hero__description {
+  max-width: 44rem;
+  margin: clamp(0.68rem, 0.8vw, 0.82rem) 0 0;
+  color: #526d91;
+  font-size: clamp(1.05rem, 1.2vw, 1.22rem);
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+
+.dtb-products-hero__strapline {
+  margin: clamp(0.48rem, 0.62vw, 0.66rem) 0 0;
+  color: #10284d;
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(0.58rem, 0.64vw, 0.68rem);
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: 0.23em;
+  text-transform: uppercase;
+}
+
+.dtb-products-hero__art {
+  position: absolute;
+  z-index: 1;
+  inset: 0 0 0 52%;
+  overflow: hidden;
+  background: linear-gradient(104deg, rgba(249, 252, 255, 0) 0%, rgba(247, 250, 255, 0.8) 48%, #f8fbff 100%);
+  pointer-events: none;
+}
+
+.dtb-products-hero__slash {
+  position: absolute;
+  top: -32%;
+  width: clamp(5.25rem, 7.2vw, 7.9rem);
+  height: 168%;
+  transform: skewX(-30deg);
+  transform-origin: center;
+}
+
+.dtb-products-hero__slash--one {
+  left: 17%;
+  background: linear-gradient(180deg, rgba(232, 241, 252, 0.18), rgba(219, 232, 248, 0.62));
+}
+
+.dtb-products-hero__slash--two {
+  left: 36%;
+  background: linear-gradient(180deg, rgba(239, 246, 253, 0.3), rgba(209, 225, 245, 0.7));
+}
+
+.dtb-products-hero__slash--three {
+  left: 55%;
+  background: linear-gradient(180deg, rgba(246, 250, 254, 0.52), rgba(222, 234, 248, 0.72));
+}
+
+.dtb-products-hero__statement {
+  position: absolute;
+  top: 50%;
+  right: clamp(2rem, 5.25vw, 5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  transform: translateY(-50%);
+  color: #071a38;
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(0.7rem, 0.82vw, 0.84rem);
+  font-weight: 800;
+  line-height: 1.42;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.dtb-products-hero__statement-rule {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin-top: 0.75rem;
+  background: #0878ff;
+}
+
+/* Pull the existing catalog tightly under the hero. */
+.dtb-products-page > .page-wrapper .dtb-container--fluid {
+  padding-top: clamp(0.5rem, 0.75vw, 0.75rem);
+}
+
+/* The approved All Products composition uses the selector itself as the
+   section boundary; the separate heading would duplicate the hero hierarchy. */
+.dtb-products-page .dtb-tool-type-section .storefront-section__head {
+  display: none;
+}
+
+.dtb-products-page .dtb-tool-type-section {
+  margin-bottom: clamp(0.65rem, 0.9vw, 0.9rem) !important;
+}
+
+.dtb-products-page .dtb-tool-type-rail {
+  grid-auto-columns: clamp(164px, 11.2vw, 194px);
+  gap: clamp(0.68rem, 0.82vw, 0.88rem);
+  padding: 0 0 5px;
+}
+
+.dtb-products-page .dtb-tool-type-tile {
+  min-height: 152px;
+  border-color: rgba(198, 211, 228, 0.86);
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.045);
+}
+
+.dtb-products-page .dtb-tool-type-tile__media {
+  height: 92px;
+  flex-basis: 92px;
+  padding: 0.5rem 0.68rem 0.18rem;
+}
+
+.dtb-products-page .dtb-tool-type-tile__image {
+  transform: scale(1.08);
+  transform-origin: center;
+}
+
+.dtb-products-page .dtb-tool-type-tile__label {
+  min-height: 2.18em;
+  padding: 0.16rem 0.78rem 0;
+  font-size: 0.76rem;
+  line-height: 1.12;
+}
+
+.dtb-products-page .dtb-tool-type-tile__count {
+  padding: 0.16rem 0.78rem 0.62rem;
+  color: #587092;
+  font-size: 0.68rem;
+}
+
+@media (min-width: 1280px) {
+  .dtb-products-page .dtb-tool-type-rail {
+    grid-auto-columns: clamp(172px, 10.7vw, 196px);
+  }
+}
+
+@media (max-width: 900px) {
+  .dtb-products-hero__inner {
+    min-height: clamp(12.5rem, 28vw, 15rem);
+  }
+
+  .dtb-products-hero__content {
+    width: min(72%, 39rem);
+  }
+
+  .dtb-products-hero__art {
+    left: 58%;
+    opacity: 0.72;
+  }
+
+  .dtb-products-hero__statement {
+    display: none;
+  }
+
+  .dtb-products-page .dtb-tool-type-section .storefront-section__head {
+    display: flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .dtb-products-breadcrumb-shell {
+    padding: 0.75rem 0 0.55rem;
+  }
+
+  .dtb-products-hero__inner {
+    min-height: 12rem;
+  }
+
+  .dtb-products-hero__content {
+    width: 100%;
+    padding: 1.75rem 0 1.75rem 1.25rem;
+  }
+
+  .dtb-products-hero__content::before {
+    top: 1.75rem;
+    bottom: 1.75rem;
+  }
+
+  .dtb-products-hero__title {
+    font-size: clamp(2.3rem, 12vw, 3rem);
+  }
+
+  .dtb-products-hero__description {
+    max-width: 31ch;
+    font-size: 0.98rem;
+  }
+
+  .dtb-products-hero__strapline {
+    max-width: 34ch;
+    letter-spacing: 0.16em;
+  }
+
+  .dtb-products-hero__art {
+    left: 68%;
+    right: -18%;
+    opacity: 0.3;
+  }
+
+  .dtb-products-hero__eyebrow-rule {
+    width: 4rem;
+  }
+
+  .dtb-products-page .dtb-tool-type-tile__image {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-products-hero *,
+  .dtb-products-hero *::before,
+  .dtb-products-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
