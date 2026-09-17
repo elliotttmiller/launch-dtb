@@ -8,7 +8,7 @@ import homeHeroMobileUrl from '@assets/media/home/home-hero-mobile.webp';
 const HERO_COPY = {
   eyebrow: 'Pro Quality. Pro Results.',
   titleLines: ['A New', 'Standard in', 'Drywall.'],
-  description: 'Professional-grade tools that help you work faster, finish better, and build your reputation.',
+  description: 'Everything you need for taping and finishing—from professional tools and parts to expert repair service.',
 };
 
 export default function HomeHero({ brands = [] }) {
