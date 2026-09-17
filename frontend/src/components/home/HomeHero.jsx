@@ -7,13 +7,31 @@ import homeHeroMobileUrl from '@assets/media/home/home-hero-mobile.webp';
 
 const HERO_COPY = {
   eyebrow: 'Pro Quality. Pro Results.',
-  titleLines: ['A New', 'Standard in', 'Drywall.'],
+  mobileTitleLines: ['A New', 'Standard in', 'Drywall.'],
+  desktopTitleLines: ['A New Standard', 'in Drywall.'],
+  accessibleTitle: 'A New Standard in Drywall.',
   description: 'Everything you need for taping and finishing—from professional tools and parts to expert repair service.',
 };
 
-export default function HomeHero({ brands = [] }) {
-  const lastLineIndex = HERO_COPY.titleLines.length - 1;
+function HeroTitleLines({ lines, variant }) {
+  const lastLineIndex = lines.length - 1;
 
+  return (
+    <span className={`home-hero__title-set home-hero__title-set--${variant}`} aria-hidden="true">
+      {lines.map((line, index) => (
+        <span
+          className={`home-hero__title-line${index === lastLineIndex ? ' home-hero__title-line--accent' : ''}`}
+          key={line}
+        >
+          {line}
+          {index < lastLineIndex && <br />}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export default function HomeHero({ brands = [] }) {
   return (
     <section className="home-hero" aria-labelledby="home-hero-title">
       <div className="home-hero__stage">
@@ -42,16 +60,9 @@ export default function HomeHero({ brands = [] }) {
             <span className="home-hero__eyebrow-bar" aria-hidden="true" />
             {HERO_COPY.eyebrow}
           </p>
-          <h1 id="home-hero-title" className="home-hero__title">
-            {HERO_COPY.titleLines.map((line, index) => (
-              <span
-                className={`home-hero__title-line${index === lastLineIndex ? ' home-hero__title-line--accent' : ''}`}
-                key={line}
-              >
-                {line}
-                {index < lastLineIndex && <br />}
-              </span>
-            ))}
+          <h1 id="home-hero-title" className="home-hero__title" aria-label={HERO_COPY.accessibleTitle}>
+            <HeroTitleLines lines={HERO_COPY.mobileTitleLines} variant="mobile" />
+            <HeroTitleLines lines={HERO_COPY.desktopTitleLines} variant="desktop" />
           </h1>
           <p className="home-hero__description">{HERO_COPY.description}</p>
           <div className="home-hero__actions">
