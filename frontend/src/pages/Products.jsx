@@ -20,7 +20,6 @@ function ProductsHero() {
             </div>
             <h1 id="dtb-products-hero-title" className="dtb-products-hero__title">All Products</h1>
             <p className="dtb-products-hero__description">Professional drywall tools, parts and supplies.</p>
-            <p className="dtb-products-hero__strapline">Build better. Finish faster. Everything drywall in one place.</p>
           </div>
 
           <div className="dtb-products-hero__art" aria-hidden="true">
