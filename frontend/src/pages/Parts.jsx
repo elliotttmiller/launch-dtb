@@ -12,7 +12,6 @@ function PartsHero() {
           </div>
           <h1 id="dtb-parts-hero-title" className="dtb-parts-hero__title">Parts</h1>
           <p className="dtb-parts-hero__description">Replacement parts and service components.</p>
-          <p className="dtb-parts-hero__strapline">Keep your tools working. Genuine parts. Real support.</p>
         </div>
 
         <div className="dtb-parts-hero__art" aria-hidden="true">
