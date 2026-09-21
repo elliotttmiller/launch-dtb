@@ -5,46 +5,6 @@ const CATEGORY_THUMBNAIL_URL_BY_SLUG = {
   'powered-compound-applicators': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_14tt_01.webp',
 };
 
-// Keep decoded category thumbnails resident for the lifetime of the storefront
-// session. The mega-menu keeps visited renderers mounted, but the same thumbnail
-// resolver is also used by other storefront surfaces and can still create fresh
-// <img> elements. Warming each resolved URL once avoids repeated fetch/decode
-// work and gives subsequent renderers an already-resident browser image without
-// introducing a second catalog or media authority.
-const CATEGORY_THUMBNAIL_PRELOADS = new Map();
-
-function warmCategoryThumbnail(url) {
-  if (!url || typeof window === 'undefined' || typeof Image === 'undefined') return url;
-  if (CATEGORY_THUMBNAIL_PRELOADS.has(url)) return url;
-
-  const preload = { image: null, status: 'scheduled' };
-  CATEGORY_THUMBNAIL_PRELOADS.set(url, preload);
-
-  const start = () => {
-    const image = new Image();
-    preload.image = image;
-    preload.status = 'loading';
-    image.decoding = 'async';
-    image.onload = () => {
-      preload.status = 'ready';
-      image.decode?.().catch(() => {});
-    };
-    image.onerror = () => {
-      // A transient media failure must remain retryable later in the session.
-      CATEGORY_THUMBNAIL_PRELOADS.delete(url);
-    };
-    image.src = url;
-  };
-
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(start, { timeout: 1200 });
-  } else {
-    window.setTimeout(start, 0);
-  }
-
-  return url;
-}
-
 // Existing media filenames are retained as assets. Canonical taxonomy slugs
 // resolve to the closest current image without making media filenames a
 // classification authority.
@@ -118,13 +78,13 @@ export function resolveCategoryThumbnail(category) {
     .replace(/_/g, '-');
 
   if (CATEGORY_THUMBNAIL_URL_BY_SLUG[slug]) {
-    return warmCategoryThumbnail(CATEGORY_THUMBNAIL_URL_BY_SLUG[slug]);
+    return CATEGORY_THUMBNAIL_URL_BY_SLUG[slug];
   }
 
   const thumbnailSlug = CATEGORY_THUMBNAIL_FILE_BY_SLUG[slug] || slug;
   if (CATEGORY_THUMBNAIL_SLUGS.has(thumbnailSlug)) {
-    return warmCategoryThumbnail(`${CATEGORY_THUMBNAIL_ROOT}/${thumbnailSlug}.webp`);
+    return `${CATEGORY_THUMBNAIL_ROOT}/${thumbnailSlug}.webp`;
   }
 
-  return warmCategoryThumbnail(category?.image || '');
+  return category?.image || '';
 }

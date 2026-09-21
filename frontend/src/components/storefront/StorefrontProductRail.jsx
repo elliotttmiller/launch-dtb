@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
 import { toLegacyProductCardDTO } from '../../utils/catalogDtoAdapters.js';
 import { useCart } from '../../context/CartContext';
@@ -26,10 +26,27 @@ export default function StorefrontProductRail({
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [toast, setToast] = useState(null);
   const [modalProduct, setModalProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
+  const railRef = useRef(null);
+
+  useEffect(() => {
+    const target = railRef.current;
+    if (!target || typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setShouldLoad(true);
+      observer.disconnect();
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
@@ -43,6 +60,7 @@ export default function StorefrontProductRail({
   }, [closeModal]);
 
   useEffect(() => {
+    if (!shouldLoad) return undefined;
     let mounted = true;
 
     const query = {
@@ -63,7 +81,7 @@ export default function StorefrontProductRail({
     });
 
     return () => { mounted = false; };
-  }, [category, brand, sort, maxItems]);
+  }, [category, brand, sort, maxItems, shouldLoad]);
 
   const handleAddToCart = async (product) => {
     try {
@@ -83,29 +101,31 @@ export default function StorefrontProductRail({
 
   return (
     <>
-      <LoadingCardTransition
-        loading={loading}
-        skeleton={<StorefrontSkeletons count={4} variant="rail" />}
-        label={`Loading ${label.toLowerCase()}`}
-      >
-        <StorefrontRail label={label} className="storefront-rail--fixed-tiles storefront-rail--equal-height">
-          {products.map((product, index) => {
-            const cardProduct = product.cardProduct || product;
+      <div ref={railRef}>
+        <LoadingCardTransition
+          loading={loading}
+          skeleton={<StorefrontSkeletons count={4} variant="rail" />}
+          label={`Loading ${label.toLowerCase()}`}
+        >
+          <StorefrontRail label={label} className="storefront-rail--fixed-tiles storefront-rail--equal-height">
+            {products.map((product, index) => {
+              const cardProduct = product.cardProduct || product;
 
-            return (
-              <StorefrontProductTile
-                key={product.sku || product.id}
-                product={product}
-                cardProduct={cardProduct}
-                variant="rail"
-                onOpenModal={() => openModal(product)}
-                onAddToCart={() => handleAddToCart(cardProduct)}
-                index={index}
-              />
-            );
-          })}
-        </StorefrontRail>
-      </LoadingCardTransition>
+              return (
+                <StorefrontProductTile
+                  key={product.sku || product.id}
+                  product={product}
+                  cardProduct={cardProduct}
+                  variant="rail"
+                  onOpenModal={() => openModal(product)}
+                  onAddToCart={() => handleAddToCart(cardProduct)}
+                  index={index}
+                />
+              );
+            })}
+          </StorefrontRail>
+        </LoadingCardTransition>
+      </div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

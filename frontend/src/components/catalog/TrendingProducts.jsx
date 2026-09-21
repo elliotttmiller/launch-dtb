@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { getProducts } from '../../services/catalog';
 import { useCart } from '../../context/CartContext';
 import LoadingCardTransition from '../shared/LoadingCardTransition.jsx';
@@ -17,10 +17,31 @@ const ProductModal = lazy(() => import('../product/ProductModal'));
 export default function TrendingProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const [toast, setToast] = useState(null);
   const [modalProduct, setModalProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
+  const railRef = useRef(null);
+
+  // The rail begins below the mobile fold. Fetching the entire catalog before
+  // the shopper reaches it creates parse/evaluation work and prompts the
+  // browser to start decoding card media during LCP. Reserve the skeleton
+  // geometry, then begin the real request when the section enters view.
+  useEffect(() => {
+    const target = railRef.current;
+    if (!target || typeof IntersectionObserver === 'undefined') {
+      setShouldLoad(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setShouldLoad(true);
+      observer.disconnect();
+    });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const showToast = (message, type = 'cart') => {
     setToast({ message, type });
@@ -52,6 +73,7 @@ export default function TrendingProducts() {
   }, [addToCart]);
 
   useEffect(() => {
+    if (!shouldLoad) return undefined;
     let mounted = true;
 
     getProducts().then((allProducts) => {
@@ -96,35 +118,37 @@ export default function TrendingProducts() {
     });
 
     return () => { mounted = false; };
-  }, []);
+  }, [shouldLoad]);
 
   if (!loading && products.length === 0) return null;
 
   return (
     <StorefrontSection eyebrow="Featured" title="Trending Products" viewAllHref="/products?sort=popular">
-      <LoadingCardTransition
-        loading={loading}
-        skeleton={<StorefrontSkeletons count={4} variant="rail" />}
-        label="Loading trending products"
-      >
-        <StorefrontRail label="Trending products" className="storefront-rail--fixed-tiles storefront-rail--equal-height">
-          {products.map((product, index) => {
-            const cardProduct = product.cardProduct || product;
+      <div ref={railRef}>
+        <LoadingCardTransition
+          loading={loading}
+          skeleton={<StorefrontSkeletons count={4} variant="rail" />}
+          label="Loading trending products"
+        >
+          <StorefrontRail label="Trending products" className="storefront-rail--fixed-tiles storefront-rail--equal-height">
+            {products.map((product, index) => {
+              const cardProduct = product.cardProduct || product;
 
-            return (
-              <StorefrontProductTile
-                key={product.sku || product.id}
-                product={product}
-                cardProduct={cardProduct}
-                variant="rail"
-                onOpenModal={() => openModal(product)}
-                onAddToCart={() => handleAddToCart(cardProduct)}
-                index={index}
-              />
-            );
-          })}
-        </StorefrontRail>
-      </LoadingCardTransition>
+              return (
+                <StorefrontProductTile
+                  key={product.sku || product.id}
+                  product={product}
+                  cardProduct={cardProduct}
+                  variant="rail"
+                  onOpenModal={() => openModal(product)}
+                  onAddToCart={() => handleAddToCart(cardProduct)}
+                  index={index}
+                />
+              );
+            })}
+          </StorefrontRail>
+        </LoadingCardTransition>
+      </div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

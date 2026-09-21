@@ -20,6 +20,7 @@ import MobileInstallNudge from './components/pwa/MobileInstallNudge.jsx';
 import SmartBackButton from './components/navigation/SmartBackButton.jsx';
 import { isRewardsEnabled } from './utils/featureFlags.js';
 import { initializeWebpackPublicPath } from './setWebpackPublicPath.js';
+import Home from './pages/Home.jsx';
 
 const HOMEPAGE_SIGNUP_CTA_SEEN_KEY = 'dtb:homepage-signup-cta-seen:v1';
 const HOMEPAGE_SIGNUP_CTA_DELAY_MS = 900;
@@ -71,7 +72,10 @@ function lazyWithReload(importer) {
   }));
 }
 
-const Home = lazyWithReload(() => import('./pages/Home'));
+// The homepage contains the LCP element. It is intentionally part of the
+// entry route rather than a lazy boundary: a fallback-to-home swap moves the
+// shared footer by the full page height and was the direct source of the
+// measured 0.217 CLS regression on mobile Lighthouse.
 const Products = lazyWithReload(() => import('./pages/Products'));
 const Parts = lazyWithReload(() => import('./pages/Parts'));
 const Product = lazyWithReload(() => import('./pages/Product'));
