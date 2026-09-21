@@ -26,10 +26,10 @@ function BrandLink({ brand, isClone = false }) {
       aria-hidden={isClone || undefined}
       tabIndex={isClone ? -1 : undefined}
     >
-      {/* Eager, not lazy — this is a small, always-above-the-fold set of
-          logos that continuously scrolls into view; lazy-loading them makes
-          each one visibly pop in mid-scroll instead of already being ready. */}
-      <img src={brand.src} alt="" loading="eager" decoding="async" />
+      {/* These logos begin below the initial viewport on the audited mobile
+          route. Native lazy loading prevents the duplicated marquee lane from
+          competing with the LCP image and primary product content. */}
+      <img src={brand.src} alt="" width="120" height="36" loading="lazy" decoding="async" />
     </Link>
   );
 }

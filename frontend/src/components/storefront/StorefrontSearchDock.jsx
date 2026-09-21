@@ -28,8 +28,7 @@ export default function StorefrontSearchDock({
         placeholder={placeholder}
         aria-label="Search for products"
         aria-autocomplete="list"
-        aria-controls="storefront-search-results"
-        aria-expanded={active}
+        aria-controls={active ? 'storefront-search-results' : undefined}
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="none"

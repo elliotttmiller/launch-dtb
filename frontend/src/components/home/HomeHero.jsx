@@ -2,8 +2,8 @@ import HomeHeroBrands from './HomeHeroBrands';
 import HomeHeroButton from './HomeHeroButton';
 import HomeHeroQuickLinks from './HomeHeroQuickLinks';
 import HomeHeroTrustBar from './HomeHeroTrustBar';
-import homeHeroDesktopUrl from '@assets/media/home/home-hero-desktop.webp';
-import homeHeroMobileUrl from '@assets/media/home/home-hero-mobile.webp';
+import homeHeroDesktopUrl from '@assets/media/home/home-hero-desktop-1600.webp';
+import homeHeroMobileUrl from '@assets/media/home/home-hero-mobile-640.webp';
 
 const HERO_COPY = {
   eyebrow: 'Pro Quality. Pro Results.',
@@ -40,10 +40,15 @@ export default function HomeHero({ brands = [] }) {
             media="(max-width: 640px)"
             srcSet={homeHeroMobileUrl}
             type="image/webp"
+            width="640"
+            height="1138"
           />
           <img
             className="home-hero__media-image"
             src={homeHeroDesktopUrl}
+            width="1600"
+            height="640"
+            sizes="100vw"
             alt=""
             decoding="async"
             loading="eager"

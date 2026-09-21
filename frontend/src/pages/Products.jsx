@@ -3,6 +3,8 @@ import ProductsCatalogPlatform from './ProductsCatalogPlatform.jsx';
 import Breadcrumb from '../components/shared/Breadcrumb.jsx';
 import './products.css';
 import './products-selector.css';
+import '../styles/tool-selector.css';
+import '../styles/selector-cards.css';
 
 function ProductsHero() {
   return (

@@ -9,7 +9,10 @@ export default function StorefrontBrandTile({ name, logo, to }) {
             src={logo}
             alt={name}
             className="storefront-brand-tile__logo"
+            width="160"
+            height="52"
             loading="lazy"
+            decoding="async"
           />
         </span>
       ) : null}

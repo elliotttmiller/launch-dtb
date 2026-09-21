@@ -119,4 +119,4 @@
 .storefront-brand-tile { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; min-height:136px; padding:16px 12px; border-radius:var(--dtb-radius-md); border:1.5px solid var(--dtb-border); background:var(--dtb-surface); text-decoration:none; transition:border-color 140ms ease,box-shadow 140ms ease,transform 140ms var(--dtb-ease); box-shadow:var(--dtb-shadow-card); }
 .storefront-brand-tile:hover { border-color:var(--dtb-primary); transform:translateY(-1px); box-shadow:var(--dtb-shadow-elevated); }
 .storefront-brand-tile__logo-wrap { display:flex; align-items:center; justify-content:center; min-height:56px; width:100%; }
-.storefront-brand-tile__logo { max-height:52px; max-width:100%; object-fit:contain; }
+.storefront-brand-tile__logo { width:auto; height:auto; max-height:52px; max-width:100%; object-fit:contain; }

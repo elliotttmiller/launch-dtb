@@ -1,14 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { fetchCatalogProducts } from '../../services/catalogPlatformCache.js';
 import { toLegacyProductCardDTO } from '../../utils/catalogDtoAdapters.js';
 import { useCart } from '../../context/CartContext';
-import ProductDetail from '../product/ProductDetail';
-import ProductModal from '../product/ProductModal';
 import Toast from '../ui/Toast';
 import LoadingCardTransition from '../shared/LoadingCardTransition.jsx';
 import StorefrontRail from './StorefrontRail';
 import StorefrontProductTile from './StorefrontProductTile';
 import StorefrontSkeletons from './StorefrontSkeletons';
+
+// Do not ship quick-view's PDP implementation until the user opens it.
+const ProductDetail = lazy(() => import('../product/ProductDetail'));
+const ProductModal = lazy(() => import('../product/ProductModal'));
 
 /**
  * A horizontal product rail that fetches products from the catalog API.
@@ -107,19 +109,21 @@ export default function StorefrontProductRail({
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <ProductModal isOpen={isModalOpen && !!modalProduct} product={modalProduct?.product || modalProduct} onClose={closeModal}>
-        {modalProduct && (
-          <ProductDetail
-            key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
-            product={modalProduct.product || modalProduct}
-            onAddToCart={handleAddToCart}
-            onClose={closeModal}
-            initialVariations={[]}
-            initialResolvedVariation={modalProduct.initialResolvedVariation}
-            initialSelectedAttrs={modalProduct.initialSelectedAttrs}
-          />
-        )}
-      </ProductModal>
+      {isModalOpen && modalProduct ? (
+        <Suspense fallback={null}>
+          <ProductModal isOpen product={modalProduct.product || modalProduct} onClose={closeModal}>
+            <ProductDetail
+              key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
+              product={modalProduct.product || modalProduct}
+              onAddToCart={handleAddToCart}
+              onClose={closeModal}
+              initialVariations={[]}
+              initialResolvedVariation={modalProduct.initialResolvedVariation}
+              initialSelectedAttrs={modalProduct.initialSelectedAttrs}
+            />
+          </ProductModal>
+        </Suspense>
+      ) : null}
     </>
   );
 }

@@ -76,7 +76,7 @@ export default function Footer() {
         <div className="dtb-footer-template__grid">
           <section className="dtb-footer-template__brand" aria-label="Drywall Toolbox">
             <Link to="/" aria-label="Drywall Toolbox home">
-              <img className="dtb-footer-template__logo" src={LogoWhite} alt="Drywall Toolbox" />
+              <img className="dtb-footer-template__logo" src={LogoWhite} alt="Drywall Toolbox" width="230" height="70" loading="lazy" decoding="async" />
             </Link>
           </section>
 

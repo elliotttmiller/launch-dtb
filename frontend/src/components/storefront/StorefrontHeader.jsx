@@ -690,7 +690,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
             </div>
 
             <Link to="/" className="header-mobile-logo" onClick={closeMobileMenu}>
-              <img src={LogoWhite} alt="Drywall Toolbox Logo" className="logo-image-mobile" />
+              <img src={LogoWhite} alt="Drywall Toolbox Logo" className="logo-image-mobile" width="162" height="50" decoding="async" />
             </Link>
 
             <div className="header-mobile-slot header-mobile-slot--right">
@@ -722,7 +722,7 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
           </div>
 
           <div className={`header-desktop-layout${desktopSearchOpen ? ' is-desktop-search-open' : ''}`} style={{ display: isTablet ? 'none' : undefined }}>
-            <div className="header-left"><Link to="/" className="header-logo-link" aria-label="Drywall Toolbox home"><img src={LogoWhite} alt="Drywall Toolbox Logo" className="logo-image" /></Link></div>
+            <div className="header-left"><Link to="/" className="header-logo-link" aria-label="Drywall Toolbox home"><img src={LogoWhite} alt="Drywall Toolbox Logo" className="logo-image" width="230" height="70" decoding="async" /></Link></div>
             <div className="header-desktop-nav-row">
               <StorefrontDesktopNavigation
                 items={desktopNavItems}

@@ -12,11 +12,6 @@ import './styles/responsive-foundation.css';
 
 /* Shared feature and component authorities. */
 import './styles/machined-design.css';
-import './styles/tool-selector.css';
-import './styles/technical-specifications.css';
-import './styles/product-detail-modern.css';
-import './styles/product-variation-selector-overlay.css';
-import './styles/reviews.css';
 import './styles/hero-section.css';
 import './styles/trusted-brands.css';
 import './styles/home-hero.css';
@@ -31,29 +26,11 @@ import './styles/storefront-visibility.css';
 import './styles/account-hub.css';
 import './styles/account-hub-motion.css';
 import './styles/account-hub-cta.css';
-import './styles/order-item-images.css';
-import './styles/order-tracking-layout.css';
-import './styles/order-checkout-font-consistency.css';
 import './styles/global-loading.css';
 import './styles/cart-interaction-feedback.css';
 import './styles/add-to-cart-button.css';
 import './styles/loading-transitions.css';
-import './styles/cart-page.css';
 import './styles/global-typography.css';
-import './styles/product-detail-typography.css';
-import './styles/product-detail-production.css';
-import './styles/product-detail-desktop-polish.css';
-import './styles/product-detail-approved-mockup.css';
-/* Product description/tabs are a feature presentation authority and load after
- * the PDP production layers so their narrow-screen component rules can replace
- * legacy grid-tab behavior without escalating specificity. */
-import './styles/product-detail-description.css';
-/* Desktop full-page PDP target calibration. Scoped to non-modal product detail
- * so ProductModal keeps its independent quick-view presentation authority. */
-import './styles/product-detail-full-page-target.css';
-/* Selector grids/cards are shared presentation across product brand/category
- * discovery and schematics. Domain modules continue to own data and routing. */
-import './styles/selector-cards.css';
 
 /* Shared timing/easing authority loads after feature appearance styles so
  * component geometry remains local while transition behavior stays global. */
@@ -83,13 +60,13 @@ if (typeof window !== 'undefined') {
   const isHomePage = pathname === '/';
   const CATALOG_PREWARM_TIMEOUT_MS = 5000;
 
-  if (!isCatalogRoute) {
+  // Home owns its first catalog reads through its visible rails. A duplicate
+  // startup prewarm competes with the LCP image and repeats that work before
+  // the user has requested catalog navigation. Keep the prewarm for other
+  // non-catalog routes, after their initial rendering window.
+  if (!isCatalogRoute && !isHomePage) {
     const scheduleCatalogPrewarm = () => prewarmCatalog();
-    if (isHomePage) {
-      scheduleCatalogPrewarm();
-    } else {
-      window.setTimeout(scheduleCatalogPrewarm, CATALOG_PREWARM_TIMEOUT_MS);
-    }
+    window.setTimeout(scheduleCatalogPrewarm, CATALOG_PREWARM_TIMEOUT_MS);
   }
 }
 

@@ -1,14 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { lazy, Suspense, useState, useEffect, useCallback } from 'react';
 import { getProducts } from '../../services/catalog';
 import { useCart } from '../../context/CartContext';
-import ProductDetail from '../product/ProductDetail';
-import ProductModal from '../product/ProductModal';
 import LoadingCardTransition from '../shared/LoadingCardTransition.jsx';
 import StorefrontProductTile from '../storefront/StorefrontProductTile';
 import StorefrontSection from '../storefront/StorefrontSection';
 import StorefrontRail from '../storefront/StorefrontRail';
 import StorefrontSkeletons from '../storefront/StorefrontSkeletons.jsx';
 import Toast from '../ui/Toast';
+
+// Product detail and its gallery/variation dependencies are only needed after
+// a shopper explicitly opens Quick View. Keeping them out of the home-route
+// chunk prevents a modal-only feature from delaying first render and LCP.
+const ProductDetail = lazy(() => import('../product/ProductDetail'));
+const ProductModal = lazy(() => import('../product/ProductModal'));
 
 export default function TrendingProducts() {
   const [products, setProducts] = useState([]);
@@ -124,19 +128,21 @@ export default function TrendingProducts() {
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      <ProductModal isOpen={isModalOpen && !!modalProduct} product={modalProduct?.product || modalProduct} onClose={closeModal}>
-        {modalProduct && (
-          <ProductDetail
-            key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
-            product={modalProduct.product || modalProduct}
-            onAddToCart={handleAddToCart}
-            onClose={closeModal}
-            initialVariations={[]}
-            initialResolvedVariation={modalProduct.initialResolvedVariation}
-            initialSelectedAttrs={modalProduct.initialSelectedAttrs}
-          />
-        )}
-      </ProductModal>
+      {isModalOpen && modalProduct ? (
+        <Suspense fallback={null}>
+          <ProductModal isOpen product={modalProduct.product || modalProduct} onClose={closeModal}>
+            <ProductDetail
+              key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
+              product={modalProduct.product || modalProduct}
+              onAddToCart={handleAddToCart}
+              onClose={closeModal}
+              initialVariations={[]}
+              initialResolvedVariation={modalProduct.initialResolvedVariation}
+              initialSelectedAttrs={modalProduct.initialSelectedAttrs}
+            />
+          </ProductModal>
+        </Suspense>
+      ) : null}
     </StorefrontSection>
   );
 }

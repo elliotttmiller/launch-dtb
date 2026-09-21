@@ -14,6 +14,7 @@ import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import { beginCheckoutHandoff } from '../utils/checkoutHandoff.js';
 import { useEditableComponent } from '../designer/useEditableComponent.js';
 import useCheckoutReadiness from '../hooks/useCheckoutReadiness.js';
+import '../styles/cart-page.css';
 
 function parseStoreMoney(value, minorUnit) {
   const raw = Number(value);
