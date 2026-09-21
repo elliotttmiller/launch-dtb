@@ -180,12 +180,21 @@ for (const logicalName of ['main.js', 'main.css', 'runtime.js']) {
   }
 }
 
-const emittedHomeHeroAssets = Object.values(manifest.files || {}).filter(
-  (assetPath) => /\/assets\/images\/home-hero(?:-[a-z]+)?\.[a-f0-9]{8}\.webp$/i.test(assetPath),
-);
-if (emittedHomeHeroAssets.length === 0) {
-  throw new Error('The asset manifest is missing the content-hashed home hero image.');
-}
+// The responsive homepage art is an LCP contract: both independently sized
+// sources must be emitted with a content hash. Do not accept a generic
+// home-hero match here; that would allow one viewport to silently regress.
+const requiredHomeHeroAssets = [
+  'home-hero-mobile-640',
+  'home-hero-desktop-1600',
+];
+const emittedHomeHeroAssets = requiredHomeHeroAssets.map((logicalName) => {
+  const expectedAsset = new RegExp(`/assets/images/${logicalName}\\.[a-f0-9]{8}\\.webp$`, 'i');
+  const assetPath = Object.values(manifest.files || {}).find((candidate) => expectedAsset.test(candidate));
+  if (!assetPath) {
+    throw new Error(`The asset manifest is missing the content-hashed ${logicalName} image.`);
+  }
+  return assetPath;
+});
 if (appEnv === 'staging' && emittedHomeHeroAssets.some((p) => !p.startsWith('/staging/'))) {
   throw new Error('The staging home hero asset must be emitted below /staging/.');
 }
