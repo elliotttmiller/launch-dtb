@@ -14,6 +14,7 @@ export const dtbEase = {
 export const dtbDuration = {
   instant: 0.1,
   fast: 0.18,
+  async: 0.22,
   normal: 0.32,
   elevated: 0.36,
   overlay: 0.4,
@@ -23,6 +24,7 @@ export const dtbDuration = {
 export const dtbDurationMs = {
   instant: 100,
   fast: 180,
+  async: 220,
   normal: 320,
   elevated: 360,
   overlay: 400,
@@ -57,6 +59,7 @@ export const dtbSpring = {
 export const dtbTransition = {
   instant: { duration: dtbDuration.instant, ease: dtbEase.standard },
   fast: { duration: dtbDuration.fast, ease: dtbEase.standard },
+  async: { duration: dtbDuration.async, ease: dtbEase.standard },
   standard: { duration: dtbDuration.normal, ease: dtbEase.standard },
   emphasized: { duration: dtbDuration.elevated, ease: dtbEase.emphasized },
   overlay: { duration: dtbDuration.overlay, ease: dtbEase.emphasized },
