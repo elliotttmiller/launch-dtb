@@ -1,8 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useLayoutEffect, lazy, Suspense, useCallback, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, Suspense, useCallback, useRef } from 'react';
 import { LazyMotion } from 'framer-motion';
 import loadMotionFeatures from './motion/asyncFeatures.js';
 import PageTransition from './components/routing/PageTransition';
+import RouteIntentPreloader from './components/routing/RouteIntentPreloader.jsx';
+import RouteLoadingSurface from './components/routing/RouteLoadingSurface.jsx';
+import { createLazyRoute } from './routing/routeModules.js';
 import { CartProvider } from './context/CartContext';
 import { WooCommerceProvider } from './context/WooCommerceContext';
 import { WorkflowTransitionProvider } from './context/WorkflowTransitionContext.jsx';
@@ -47,77 +50,43 @@ function setLocalStorageFlag(key) {
   }
 }
 
-function lazyWithReload(importer) {
-  return lazy(() => importer().catch((error) => {
-    const message = String(error?.message || '');
-    const isChunkLoadFailure =
-      /ChunkLoadError/i.test(message) ||
-      /Loading chunk [\w-]+ failed/i.test(message) ||
-      /Failed to fetch dynamically imported module/i.test(message);
-
-    if (isChunkLoadFailure && typeof window !== 'undefined') {
-      const retryKey = `dtb:lazy-retry:${ window.location.pathname }`;
-      const hasRetried = window.sessionStorage.getItem(retryKey) === '1';
-
-      if (!hasRetried) {
-        window.sessionStorage.setItem(retryKey, '1');
-        window.location.reload();
-        return new Promise(() => {});
-      }
-
-      window.sessionStorage.removeItem(retryKey);
-    }
-
-    throw error;
-  }));
-}
-
 // The homepage contains the LCP element. It is intentionally part of the
 // entry route rather than a lazy boundary: a fallback-to-home swap moves the
 // shared footer by the full page height and was the direct source of the
 // measured 0.217 CLS regression on mobile Lighthouse.
-const Products = lazyWithReload(() => import('./pages/Products'));
-const Parts = lazyWithReload(() => import('./pages/Parts'));
-const Product = lazyWithReload(() => import('./pages/Product'));
-const ProductDetailPage = lazyWithReload(() => import('./pages/ProductDetailPage'));
-const CategoryLandingPage = lazyWithReload(() => import('./pages/CategoryLandingPage'));
-const Schematics = lazyWithReload(() => import('./pages/SchematicsPage'));
-const Repairs = lazyWithReload(() => import('./pages/RepairLanding'));
-const RepairStart = lazyWithReload(() => import('./pages/RepairStart'));
-const RepairPackages = lazyWithReload(() => import('./pages/RepairPackages'));
-const RepairTrack = lazyWithReload(() => import('./pages/RepairTrack'));
-const RepairStatus = lazyWithReload(() => import('./pages/RepairStatus'));
-const ReturnStatus = lazyWithReload(() => import('./pages/ReturnStatus'));
-const SupportStatus = lazyWithReload(() => import('./pages/SupportStatus'));
-const Cart = lazyWithReload(() => import('./pages/Cart'));
-const Checkout = lazyWithReload(() => import('./pages/WooNativeCheckout'));
-const CheckoutReturn = lazyWithReload(() => import('./pages/CheckoutReturn'));
-const OrderConfirmation = lazyWithReload(() => import('./pages/OrderConfirmation'));
-const OrderTracking = lazyWithReload(() => import('./pages/OrderTracking'));
-const Contact = lazyWithReload(() => import('./pages/Contact'));
-const WooCommerceSettings = lazyWithReload(() => import('./pages/WooCommerceSettings'));
-const Login = lazyWithReload(() => import('./pages/Login'));
-const Register = lazyWithReload(() => import('./pages/Register'));
-const ForgotPassword = lazyWithReload(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazyWithReload(() => import('./pages/ResetPassword'));
-const Dashboard = lazyWithReload(() => import('./pages/Dashboard'));
-const Calculators = lazyWithReload(() => import('./pages/Calculators'));
-const FAQ = lazyWithReload(() => import('./pages/FAQ'));
-const ShippingPolicy = lazyWithReload(() => import('./pages/ShippingPolicy'));
-const ReturnPortal = lazyWithReload(() => import('./pages/ReturnPortal'));
-const StorePolicies = lazyWithReload(() => import('./pages/StorePolicies'));
-const ReturnPolicy = lazyWithReload(() => import('./pages/ReturnPolicy'));
+const Products = createLazyRoute('products');
+const Parts = createLazyRoute('parts');
+const Product = createLazyRoute('productLegacy');
+const ProductDetailPage = createLazyRoute('productDetail');
+const CategoryLandingPage = createLazyRoute('category');
+const Schematics = createLazyRoute('schematics');
+const Repairs = createLazyRoute('repairs');
+const RepairStart = createLazyRoute('repairStart');
+const RepairPackages = createLazyRoute('repairPackages');
+const RepairTrack = createLazyRoute('repairTrack');
+const RepairStatus = createLazyRoute('repairStatus');
+const ReturnStatus = createLazyRoute('returnStatus');
+const SupportStatus = createLazyRoute('supportStatus');
+const Cart = createLazyRoute('cart');
+const Checkout = createLazyRoute('checkout');
+const CheckoutReturn = createLazyRoute('checkoutReturn');
+const OrderConfirmation = createLazyRoute('orderConfirmation');
+const OrderTracking = createLazyRoute('orderTracking');
+const Contact = createLazyRoute('contact');
+const WooCommerceSettings = createLazyRoute('wooCommerceSettings');
+const Login = createLazyRoute('login');
+const Register = createLazyRoute('register');
+const ForgotPassword = createLazyRoute('forgotPassword');
+const ResetPassword = createLazyRoute('resetPassword');
+const Dashboard = createLazyRoute('dashboard');
+const Calculators = createLazyRoute('calculators');
+const FAQ = createLazyRoute('faq');
+const ShippingPolicy = createLazyRoute('shippingPolicy');
+const ReturnPortal = createLazyRoute('returnPortal');
+const StorePolicies = createLazyRoute('storePolicies');
+const ReturnPolicy = createLazyRoute('returnPolicy');
 // const ToolsetBuilder = lazy(() => import('./pages/ToolsetBuilder')); // DISABLED: temporarily hide Toolset Builder
-const TechnicalSpecificationsPreview = lazyWithReload(() => import('./pages/TechnicalSpecificationsPreview'));
-
-function RouteChunkFallback() {
-  return (
-    <div className="dtb-route-chunk-fallback" role="status" aria-live="polite" aria-label="Loading page">
-      <span className="dtb-route-chunk-fallback__spinner" aria-hidden="true" />
-      <span className="sr-only">Loading page</span>
-    </div>
-  );
-}
+const TechnicalSpecificationsPreview = createLazyRoute('technicalSpecificationsPreview');
 
 function ScrollToTop() {
   const location = useLocation();
@@ -219,7 +188,7 @@ function AppRoutes() {
   const rewardsEnabled = isRewardsEnabled();
   const productSelectorElement = <Products title="Products" isPartsFilter={0} />;
   const routes = (
-    <Suspense fallback={<RouteChunkFallback />}>
+    <Suspense fallback={<RouteLoadingSurface pathname={location.pathname} />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products forceProductGrid title="Products" isPartsFilter={0} />} />
@@ -301,6 +270,7 @@ function App() {
                 <WorkflowTransitionProvider>
                   <Router basename={basename}>
                     <ScrollToTop />
+                    <RouteIntentPreloader />
                     <AppShell cartOpen={cartOpen} toggleCart={toggleCart} closeCart={closeCart} />
                   </Router>
                 </WorkflowTransitionProvider>
