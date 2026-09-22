@@ -70,8 +70,18 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Drywall Toolbox">
 
-    <!-- Covers an intermediate SPA document if the checkout route is rewritten before WordPress takes ownership. -->
+    <!--
+      Initial document continuity surface. It exists before React/CSS bundles
+      execute, then yields only after React has committed across two animation
+      frames. Checkout has its own dedicated handoff and suppresses this shell.
+    -->
     <style>
+      #dtb-app-boot-shell{position:fixed;z-index:2147482000;inset:0;display:grid;place-items:center;min-height:100svh;background:#f8fafc;color:#0f172a;opacity:1;transition:opacity 160ms cubic-bezier(.22,1,.36,1)}
+      #dtb-app-boot-shell__brand{display:grid;place-items:center;padding:24px}
+      #dtb-app-boot-shell__brand img{display:block;width:clamp(148px,26vw,220px);height:auto;max-height:76px;object-fit:contain}
+      html[data-dtb-app-mounted="true"] #dtb-app-boot-shell{opacity:0;pointer-events:none}
+      html.dtb-checkout-route-booting #dtb-app-boot-shell{display:none}
+      @media (prefers-reduced-motion:reduce){#dtb-app-boot-shell{transition-duration:1ms}}
       #dtb-checkout-route-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center}
       html.dtb-checkout-route-booting #dtb-checkout-route-loader{display:flex}
       .dtb-checkout-route-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
@@ -114,6 +124,11 @@
     </script>
   </head>
   <body>
+    <div id="dtb-app-boot-shell" aria-hidden="true">
+      <div id="dtb-app-boot-shell__brand">
+        <img src="<%= htmlWebpackPlugin.options.publicPath %>logo-black.svg" alt="" width="440" height="120" />
+      </div>
+    </div>
     <div id="dtb-checkout-route-loader" aria-live="polite" role="status">
       <div class="dtb-checkout-route-loader__content">
         <svg class="dtb-secure-checkout-spinner" viewBox="25 25 50 50" aria-hidden="true" focusable="false">
@@ -146,6 +161,8 @@
 
         function showFallback() {
           if (appHasMounted()) return;
+          var bootShell = document.getElementById('dtb-app-boot-shell');
+          if (bootShell) bootShell.remove();
           var root = document.getElementById('root');
           if (!root) return;
           root.innerHTML =
