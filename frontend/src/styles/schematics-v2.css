@@ -769,7 +769,7 @@
 }
 
 .dtb-schematics-page__content--viewer .dtb-schematic-viewer__header {
-  min-height: 74px;
+  min-height: 112px;
   padding: var(--dtb-space-2) var(--dtb-space-4);
   border-radius: 0;
   flex: 0 0 auto;
@@ -785,9 +785,11 @@
 
 .dtb-schematic-viewer__brand-logo {
   width: auto;
-  height: clamp(22px, 3.2vw, 34px);
-  max-width: clamp(90px, 14vw, 140px);
+  height: clamp(3.75rem, 7vw, 5.25rem);
+  max-width: min(72vw, 24rem);
+  max-height: 5.25rem;
   object-fit: contain;
+  object-position: center;
 }
 
 .back-button.dtb-schematic-viewer__back {
@@ -837,7 +839,7 @@
 
 @media (max-width: 48rem) {
   .dtb-schematics-page__content--viewer .dtb-schematic-viewer__header {
-    min-height: 62px;
+    min-height: 102px;
     padding: 8px;
   }
 
@@ -851,7 +853,11 @@
   .back-button.dtb-schematic-viewer__back span { display: none; }
   .dtb-schematics-page__content--viewer .dtb-schematic-viewer__heading { width: calc(100% - 104px); }
   .dtb-schematic-viewer__title { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .dtb-schematic-viewer__brand-logo { height: 23px; max-width: 100px; }
+  .dtb-schematic-viewer__brand-logo {
+    height: clamp(3.25rem, 12vw, 4rem);
+    max-width: min(74vw, 18rem);
+    max-height: 4rem;
+  }
   .dtb-schematics-page__content--viewer .dtb-schematic-diagram { min-height: 260px; }
 }
 

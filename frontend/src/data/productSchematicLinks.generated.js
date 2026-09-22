@@ -880,7 +880,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "variant": null,
     "url": "/schematics?brand=columbia&category=corner-rollers&schematic=columbia-inside-corner-roller"
   },
-  "D14-22": {
+  "DSS1422US": {
     "schematicId": "dura-stilts-dura-iii",
     "brand": "Dura-Stilts",
     "category": "Stilts",
@@ -889,7 +889,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "variant": null,
     "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=1"
   },
-  "D18-30": {
+  "DSS1830US": {
     "schematicId": "dura-stilts-dura-iii",
     "brand": "Dura-Stilts",
     "category": "Stilts",
@@ -898,7 +898,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "variant": null,
     "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=2"
   },
-  "D24-40": {
+  "DSS2440US": {
     "schematicId": "dura-stilts-dura-iii",
     "brand": "Dura-Stilts",
     "category": "Stilts",
@@ -907,7 +907,7 @@ export const PRODUCT_SCHEMATIC_LINKS = {
     "variant": null,
     "url": "/schematics?brand=dura-stilts&category=stilts&schematic=dura-stilts-dura-iii&page=3"
   },
-  "D38-64": {
+  "DSS3864US": {
     "schematicId": "dura-stilts-dura-iii",
     "brand": "Dura-Stilts",
     "category": "Stilts",
