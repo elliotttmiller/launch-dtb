@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, m as Motion } from 'framer-motion';
+import { AnimatePresence, m as Motion, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
 import { apiClient } from '../../api/client.js';
@@ -274,6 +274,7 @@ function mergeImageSets(...sets) {
 }
 
 export default function ProductImageGallery({ product }) {
+  const reduceMotion = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [imgLoaded, setImgLoaded] = useState({});
@@ -566,6 +567,16 @@ export default function ProductImageGallery({ product }) {
 
   const activeMeta = imageMeta[activeIndex] || imageMeta[0];
   const activeLightboxMeta = imageMeta[activeLightboxIndex] || imageMeta[0];
+  const activeImageKey = imageIdentity(images[activeIndex]);
+
+  // A variation can retain image index zero while its source changes. Keeping
+  // load state by index made the replacement inherit the previous image's
+  // loaded state, then briefly expose an unpainted layer during the transition.
+  const isActiveImageLoaded = Boolean(imgLoaded[activeImageKey]);
+  const galleryVariants = direction === 0 ? fadeVariants : slideVariants;
+  const galleryTransition = reduceMotion
+    ? { duration: 0.01, ease: 'linear' }
+    : (direction === 0 ? fadeTransition : slideTransition);
 
   return (
     <>
@@ -587,7 +598,7 @@ export default function ProductImageGallery({ product }) {
           }}
         >
           <AnimatePresence>
-            {!imgLoaded[activeIndex] && (
+            {!isActiveImageLoaded && (
               <Motion.div
                 key={`skeleton-${activeIndex}`}
                 className="product-image-gallery__skeleton absolute inset-0"
@@ -599,7 +610,7 @@ export default function ProductImageGallery({ product }) {
             )}
           </AnimatePresence>
 
-          <AnimatePresence initial={false} custom={direction} mode={direction === 0 ? 'wait' : 'sync'}>
+          <AnimatePresence initial={false} custom={direction} mode="sync">
             <Motion.img
               key={`${activeIndex}-${images[activeIndex]}`}
               src={images[activeIndex]}
@@ -607,22 +618,22 @@ export default function ProductImageGallery({ product }) {
               sizes={activeMeta?.sizes || '(max-width: 767px) 92vw, 48vw'}
               alt={`${product?.name || 'Product'} — image ${activeIndex + 1} of ${images.length}`}
               custom={direction}
-              variants={direction === 0 ? fadeVariants : slideVariants}
+              variants={galleryVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={direction === 0 ? fadeTransition : slideTransition}
+              transition={galleryTransition}
               loading={activeIndex === 0 ? 'eager' : 'lazy'}
               fetchPriority={activeIndex === 0 ? 'high' : undefined}
               decoding="async"
               draggable={false}
               className="product-image-gallery__image absolute inset-0 w-full h-full object-contain p-3 sm:p-4 bg-white"
               style={{ zIndex: 2, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
-              onLoad={() => setImgLoaded((state) => ({ ...state, [activeIndex]: true }))}
+              onLoad={() => setImgLoaded((state) => ({ ...state, [activeImageKey]: true }))}
               onError={(event) => {
                 event.currentTarget.onerror = null;
                 event.currentTarget.src = PLACEHOLDER_IMAGE;
-                setImgLoaded((state) => ({ ...state, [activeIndex]: true }));
+                setImgLoaded((state) => ({ ...state, [activeImageKey]: true }));
               }}
             />
           </AnimatePresence>
