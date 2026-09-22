@@ -2,8 +2,8 @@
 """Apply approved All-Wall exact-MPN prices to the official WooCommerce CSV.
 
 Only HIGH-confidence EXACT_MPN rows with a numeric current price are eligible.
-Both WooCommerce price fields receive that current advertised price, as explicitly
-requested. The canonical catalog is backed up and replaced atomically on apply.
+WooCommerce `Sale price` receives that current advertised price. `Regular price`
+is intentionally preserved. The canonical catalog is backed up and replaced atomically on apply.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG = ROOT / "products/launch/official/dtb_official_catalog.csv"
 DEFAULT_EVIDENCE = ROOT / "docs/catalog_prices/allwall/allwall_pricing_master.csv"
-PRICE_FIELDS = ("Regular price", "Sale price")
+PRICE_FIELD = "Sale price"
 
 
 def digest(path: Path) -> str:
@@ -100,8 +100,8 @@ def main() -> int:
     catalog, evidence = args.catalog.resolve(), args.evidence.resolve()
     before_hash = digest(catalog)
     fields, rows = load_csv(catalog)
-    if any(field not in fields for field in PRICE_FIELDS):
-        raise ValueError("Official catalog does not contain both WooCommerce price fields")
+    if PRICE_FIELD not in fields:
+        raise ValueError("Official catalog does not contain WooCommerce Sale price field")
     prices = approved_prices(evidence)
     catalog_skus = {row.get("SKU", "") for row in rows}
     missing = sorted(set(prices) - catalog_skus)
@@ -113,10 +113,9 @@ def main() -> int:
         price = prices.get(row.get("SKU", ""))
         if price is None:
             continue
-        for field in PRICE_FIELDS:
-            if row[field] != price:
-                changes.append({"sku": row["SKU"], "field": field, "before": row[field], "after": price})
-                row[field] = price
+        if row[PRICE_FIELD] != price:
+            changes.append({"sku": row["SKU"], "field": PRICE_FIELD, "before": row[PRICE_FIELD], "after": price})
+            row[PRICE_FIELD] = price
 
     result: dict[str, object] = {
         "mode": "apply" if args.apply else "preview",
@@ -125,7 +124,7 @@ def main() -> int:
         "before_sha256": before_hash,
         "approved_sku_count": len(prices),
         "change_count": len(changes),
-        "changes_by_field": {field: sum(change["field"] == field for change in changes) for field in PRICE_FIELDS},
+        "changes_by_field": {PRICE_FIELD: len(changes)},
     }
     if args.apply and changes:
         backup = Path(f"{catalog}.bak")
