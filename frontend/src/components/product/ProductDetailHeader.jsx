@@ -25,30 +25,6 @@ function toFinitePrice(value) {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-function getPriceObject(product) {
-  return product?.price && typeof product.price === 'object' ? product.price : null;
-}
-
-function getExplicitSalePrice(product) {
-  const priceObject = getPriceObject(product);
-  return [product?.sale_price, product?.salePrice, priceObject?.sale]
-    .map(toFinitePrice)
-    .find((value) => value != null) ?? null;
-}
-
-function getExplicitRegularPrice(product) {
-  const priceObject = getPriceObject(product);
-  return [
-    product?.regular_price,
-    product?.regularPrice,
-    product?.compare_at_price,
-    product?.compareAtPrice,
-    priceObject?.regular,
-  ]
-    .map(toFinitePrice)
-    .find((value) => value != null) ?? null;
-}
-
 export default function ProductDetailHeader({
   product,
   productUrl: productUrlOverride,
@@ -68,12 +44,13 @@ export default function ProductDetailHeader({
   const productUrl = productUrlOverride || getProductUrl(product);
   const title = effectiveName || product.sku || product.part_number;
   const summary = toPlainSummary(product?.short_description || product?.shortDescription || '');
+  // ProductDetail owns variation resolution and passes the effective selected
+  // variation's price explicitly. Do not re-read price fields from `product`
+  // here: for variable PDPs that object is the parent/default-card context and
+  // can legitimately carry the first/default variation price.
   const rawPriceValue = toFinitePrice(rawPrice);
-  const explicitSalePrice = getExplicitSalePrice(product);
-  const explicitRegularPrice = getExplicitRegularPrice(product);
-  const resolvedRegularPrice = explicitRegularPrice ?? toFinitePrice(compareAt);
-  const primaryPriceValue = explicitSalePrice ?? rawPriceValue;
-  const primaryPrice = primaryPriceValue != null ? money(primaryPriceValue) : displayPrice;
+  const resolvedRegularPrice = toFinitePrice(compareAt);
+  const primaryPrice = rawPriceValue != null ? money(rawPriceValue) : displayPrice;
 
   return (
     <header className="dtb-pdp-header">
