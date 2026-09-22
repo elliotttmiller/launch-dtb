@@ -9,16 +9,6 @@ import { navigateDocument } from '../utils/documentNavigation.js';
 import { getWooCheckoutUrl } from '../utils/checkoutUrl.js';
 import '../styles/auth-form-templates.css';
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 18, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: dtbDuration.normal, ease: dtbEase.standard },
-  },
-};
-
 const errorVariants = {
   initial: { opacity: 0, y: -6, height: 0 },
   animate: {
@@ -123,9 +113,6 @@ export default function Login() {
     <main className="page-wrapper dtb-auth-template dtb-auth-template--login">
       <Motion.section
         className="dtb-auth-template__card"
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
         aria-labelledby="signin-title"
       >
         <header className="dtb-auth-template__header">
