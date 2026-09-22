@@ -49,3 +49,23 @@ test('remediated route roots do not replay opacity-zero page entrances', async (
   assert.doesNotMatch(repair, /initial=\{\{ opacity: 0 \}\}[\s\S]{0,180}dtb-container dtb-container--narrow/);
   assert.doesNotMatch(tracking, /initial=\{\{ opacity: 0, y: 12 \}\}[\s\S]{0,180}dtb-order-tracking-shell/);
 });
+
+
+test('auth and repair entry surfaces render opaque on first paint', async () => {
+  const [login, register, forgot, reset, repair] = await Promise.all([
+    read('src/pages/Login.jsx'),
+    read('src/pages/Register.jsx'),
+    read('src/pages/ForgotPassword.jsx'),
+    read('src/pages/ResetPassword.jsx'),
+    read('src/pages/RepairStatus.jsx'),
+  ]);
+
+  for (const source of [login, register, forgot, reset]) {
+    assert.doesNotMatch(source, /const cardVariants =/);
+    assert.doesNotMatch(source, /variants=\{cardVariants\}/);
+  }
+
+  assert.doesNotMatch(repair, /initial=\{\{ opacity: 0, y: 24 \}\}/);
+  assert.doesNotMatch(repair, /initial=\{\{ opacity: 0, scale: 0\.96, y: 12 \}\}/);
+  assert.doesNotMatch(repair, /initial=\{\{ opacity: 0, y: -10 \}\}/);
+});
