@@ -771,7 +771,7 @@ export default function ProductImageGallery({ product }) {
                     initial="enter"
                     animate="center"
                     exit="exit"
-                    transition={slideTransition}
+                    transition={reduceMotion ? { duration: 0.01, ease: 'linear' } : slideTransition}
                     className="max-w-[90vw] max-h-[78vh] w-auto h-auto object-contain select-none"
                     draggable={false}
                     style={{ pointerEvents: 'none', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}

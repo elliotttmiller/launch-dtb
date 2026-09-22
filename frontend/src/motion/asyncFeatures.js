@@ -10,8 +10,8 @@
  * We load `domMax` (the full feature set: animate/variants/exit, hover/tap
  * gestures, drag, and layout projection) rather than the smaller
  * `domAnimation` bundle because a handful of consumers rely on layout
- * projection: PageTransition's `mode="popLayout"`, Cart.jsx's row `layout`
- * prop, ProductModal's `layout="position"`, and RepairPackages' `layout`
+ * projection: Cart.jsx's row `layout` prop, ProductModal's
+ * `layout="position"`, and RepairPackages' `layout`
  * prop. LazyMotion requires one shared feature set for every `m` component
  * under the provider, so domMax keeps behavior identical to the previous
  * full `framer-motion` import for all ~30 consumers — the only change is

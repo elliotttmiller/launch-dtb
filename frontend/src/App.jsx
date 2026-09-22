@@ -146,10 +146,6 @@ function ScrollToTop() {
     if (lastRouteRef.current === routeKey) return undefined;
     lastRouteRef.current = routeKey;
 
-    let cancelled = false;
-    const timeoutIds = [];
-    const frameIds = [];
-
     const scrollNestedContainers = () => {
       document.querySelectorAll('[data-route-scroll-container], [data-scroll-container], .overflow-y-auto, .overflow-auto').forEach((element) => {
         if (!(element instanceof HTMLElement)) return;
@@ -160,8 +156,6 @@ function ScrollToTop() {
     };
 
     const scrollToRouteStart = () => {
-      if (cancelled) return;
-
       if (location.hash) {
         const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
         if (target) {
@@ -176,23 +170,11 @@ function ScrollToTop() {
       scrollNestedContainers();
     };
 
-    const scheduleFrame = () => {
-      const frameId = window.requestAnimationFrame(scrollToRouteStart);
-      frameIds.push(frameId);
-    };
-
+    // Run once in the layout phase, before the browser paints the new route.
+    // Repeated delayed scroll writes made the viewport visibly snap as lazy
+    // content, images, and headers settled after a navigation.
     scrollToRouteStart();
-    scheduleFrame();
-    timeoutIds.push(window.setTimeout(scrollToRouteStart, 60));
-    timeoutIds.push(window.setTimeout(scheduleFrame, 140));
-    timeoutIds.push(window.setTimeout(scrollToRouteStart, 320));
-    timeoutIds.push(window.setTimeout(scrollToRouteStart, 650));
-
-    return () => {
-      cancelled = true;
-      frameIds.forEach((frameId) => window.cancelAnimationFrame(frameId));
-      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
-    };
+    return undefined;
   }, [location.pathname, location.hash]);
 
   return null;

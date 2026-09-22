@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { AnimatePresence, m as Motion } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import SEOHead from '../components/shared/SEOHead';
 import NavbarTabs from '../components/ui/NavbarTabs';
 import Accordion from '../components/ui/Accordion';
@@ -116,7 +116,7 @@ export default function FAQ() {
                 <h2 style={{ fontSize: 'clamp(1.15rem, 4vw, 1.4rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 2px 0', letterSpacing: '-0.02em' }}>{activeData?.label}</h2>
                 <p style={{ fontSize: '0.75rem', color: 'rgba(15,23,42,0.45)', margin: 0 }}>{activeData?.questions.length} questions</p>
               </div>
-              <AnimatePresence mode="wait"><Motion.div key={activeCategory} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}><Accordion items={accordionItems} isMobile /></Motion.div></AnimatePresence>
+              <Motion.div key={activeCategory} initial={{ opacity: 1, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}><Accordion items={accordionItems} isMobile /></Motion.div>
             </>
           ) : (
             <div style={{ display: 'flex', gap: 'clamp(2rem, 5vw, 4rem)', alignItems: 'flex-start' }}>
@@ -132,7 +132,7 @@ export default function FAQ() {
                   <h2 style={{ fontSize: 'clamp(1.25rem, 3vw, 1.6rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>{activeData?.label}</h2>
                   <p style={{ fontSize: '0.8rem', color: 'rgba(15,23,42,0.45)', margin: 0 }}>{activeData?.questions.length} questions</p>
                 </div>
-                <AnimatePresence mode="wait"><Motion.div key={activeCategory} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.18 }}><Accordion items={accordionItems} /></Motion.div></AnimatePresence>
+                <Motion.div key={activeCategory} initial={{ opacity: 1, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}><Accordion items={accordionItems} /></Motion.div>
               </div>
             </div>
           )}

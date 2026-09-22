@@ -71,28 +71,21 @@ export const motionConfigTransition = dtbSpring.responsive;
 
 export const routeVariants = {
   initial: {
-    opacity: 0,
-    y: dtbDistance.small,
-    scale: 0.998,
+    // Route-level motion may never hide a fully rendered page. Keeping the
+    // surface opaque prevents a white/blank compositor frame between routes.
+    opacity: 1,
+    y: dtbDistance.micro,
   },
   animate: {
     opacity: 1,
     y: 0,
-    scale: 1,
-    transition: dtbTransition.standard,
-  },
-  exit: {
-    opacity: 0,
-    y: -dtbDistance.micro,
-    scale: 0.999,
-    transition: dtbTransition.exit,
+    transition: dtbTransition.fast,
   },
 };
 
 export const reducedRouteVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.01, ease: 'linear' } },
-  exit: { opacity: 0, transition: { duration: 0.01, ease: 'linear' } },
+  initial: { opacity: 1, y: 0 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.01, ease: 'linear' } },
 };
 
 // Generic component/content reveal. Use this for tab panels, empty states,

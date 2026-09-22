@@ -19,6 +19,17 @@
   transform: translateY(-1px);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .dtb-brands-track {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .dtb-trusted-brand-link {
+    transition: none;
+  }
+}
+
 @media (min-width: 1025px) {
   .dtb-trusted-brand-link {
     padding: 0 clamp(var(--dtb-space-5), 4vw, 54px) !important;

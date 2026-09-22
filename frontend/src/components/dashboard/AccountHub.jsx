@@ -18,7 +18,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { m as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import {
   Headphones, LayoutDashboard, Package, Wrench, RotateCcw, Settings, LogOut, User,
 } from 'lucide-react';
@@ -52,9 +52,8 @@ const BASE_TABS = [
 // ─── Animation variants ───────────────────────────────────────────────────────
 
 const tabTransition = {
-  initial: { opacity: 0, scale: 0.985 },
-  animate: { opacity: 1, scale: 1,      transition: { duration: 0.22, ease: [ 0.4, 0, 0.2, 1 ] } },
-  exit:    { opacity: 0, scale: 0.985,  transition: { duration: 0.16, ease: [ 0.4, 0, 1,   1 ] } },
+  initial: { opacity: 1, y: 4 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.18, ease: [ 0.22, 1, 0.36, 1 ] } },
 };
 
 // Dot-grid hero overlay
@@ -304,17 +303,15 @@ export default function AccountHub() {
         onTouchEnd={ handleTouchEnd }
       >
         <div style={ { maxWidth: '1200px', margin: '0 auto' } }>
-          <AnimatePresence mode="wait">
-            <Motion.div
-              key={ activeTab }
-              variants={ tabTransition }
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              style={ {
-                background:   'transparent',
-              } }
-            >
+          <Motion.div
+            key={ activeTab }
+            variants={ tabTransition }
+            initial="initial"
+            animate="animate"
+            style={ {
+              background:   'transparent',
+            } }
+          >
               {/* Thin accent rule */}
               <div style={ { height: '3px', width: '32px', borderRadius: '999px', background: '#2255ee', marginBottom: '18px', opacity: 0.7 } } />
 
@@ -334,8 +331,7 @@ export default function AccountHub() {
               { TABS[ activeTab ]?.id === 'returns' && <ReturnsTab /> }
               { TABS[ activeTab ]?.id === 'support' && <SupportTicketsTab /> }
               { TABS[ activeTab ]?.id === 'settings' && <SettingsTab user={ user } /> }
-            </Motion.div>
-          </AnimatePresence>
+          </Motion.div>
         </div>
       </div>
 

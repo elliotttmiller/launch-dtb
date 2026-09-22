@@ -51,7 +51,7 @@ export default function StorefrontMobileDrawer({ isOpen, onClose, labelledBy = '
 
   return (
     <div className="storefront-mobile-drawer" data-open={isOpen ? 'true' : 'false'}>
-      <MotionPresence mode="wait" initial={false}>
+      <MotionPresence mode="sync" initial={false}>
         {isOpen ? (
           <>
             <MotionBackdrop

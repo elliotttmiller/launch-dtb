@@ -638,6 +638,14 @@
   to { transform: translateX(110%); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .storefront-search-loading__thumb::after,
+  .storefront-search-loading__line::after {
+    animation: none;
+    transform: none;
+  }
+}
+
 .storefront-search-overlay__body.is-browsing {
   padding-top: var(--dtb-space-4);
 }

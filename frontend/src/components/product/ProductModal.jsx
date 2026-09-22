@@ -123,7 +123,7 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
   const PanelComponent = isMobile ? MotionDrawer : MotionDialog;
 
   return createPortal(
-    <MotionPresence mode="wait" initial={false}>
+    <MotionPresence mode="sync" initial={false}>
       {isOpen && product && (
         <>
           <MotionBackdrop

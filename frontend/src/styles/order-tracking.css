@@ -382,6 +382,14 @@
   50% { opacity: 1; transform: scale(1.08); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .dtb-order-live-badge > span {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .dtb-order-alert-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

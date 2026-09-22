@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { m as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
+import { dtbTransition } from '../motion/dtbMotion.js';
 import {
   ArrowRight,
   Check,
@@ -56,10 +57,9 @@ function AnimatedPrice({ price }) {
     <Motion.span
       key={price}
       className="repair-package-card__price-value"
-      initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      exit={{ opacity: 0, y: -6, filter: 'blur(4px)' }}
-      transition={{ duration: 0.28, ease: 'easeOut' }}
+      initial={{ opacity: 1, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={dtbTransition.fast}
     >
       {price}
     </Motion.span>
@@ -183,11 +183,10 @@ function PackageCard({ pkg, index, packageCount, resumeState }) {
     <Motion.article
       layout
       className={`repair-package-card${featured ? ' repair-package-card--featured' : ''}`}
-      initial={{ y: 18, opacity: 0 }}
+      initial={{ y: 6, opacity: 1 }}
       animate={{ y: 0, opacity: 1 }}
-      exit={{ y: 12, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 180, damping: 20 }}
-      whileHover={{ y: -4 }}
+      transition={dtbTransition.fast}
+      whileHover={{ y: -2 }}
     >
       {featured && (
         <div className="repair-package-card__recommended">
@@ -204,9 +203,7 @@ function PackageCard({ pkg, index, packageCount, resumeState }) {
 
       <div className="repair-package-card__price">
         <span className="repair-package-card__price-label">{price.label}</span>
-        <AnimatePresence mode="wait">
-          <AnimatedPrice price={price.value} />
-        </AnimatePresence>
+        <AnimatedPrice price={price.value} />
       </div>
       <p className="repair-package-card__price-note">
         {price.note}
@@ -324,29 +321,26 @@ export default function RepairPackages() {
             </Link>
           </div>
 
-          <AnimatePresence mode="wait">
-            <Motion.section
-              key={activeGroup.id}
-              id={`repair-packages-panel-${activeGroup.id}`}
-              role="tabpanel"
-              aria-labelledby={`repair-package-tab-${activeGroup.id}`}
-              className="repair-packages-grid"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.22, ease: 'easeOut' }}
-            >
-              {activeGroup.packages.map((pkg, index) => (
-                <PackageCard
-                  key={pkg.id}
-                  pkg={pkg}
-                  index={index}
-                  packageCount={activeGroup.packages.length}
-                  resumeState={resumeState}
-                />
-              ))}
-            </Motion.section>
-          </AnimatePresence>
+          <Motion.section
+            key={activeGroup.id}
+            id={`repair-packages-panel-${activeGroup.id}`}
+            role="tabpanel"
+            aria-labelledby={`repair-package-tab-${activeGroup.id}`}
+            className="repair-packages-grid"
+            initial={{ opacity: 1, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={dtbTransition.fast}
+          >
+            {activeGroup.packages.map((pkg, index) => (
+              <PackageCard
+                key={pkg.id}
+                pkg={pkg}
+                index={index}
+                packageCount={activeGroup.packages.length}
+                resumeState={resumeState}
+              />
+            ))}
+          </Motion.section>
         </div>
       </main>
     </div>

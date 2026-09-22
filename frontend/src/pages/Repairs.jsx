@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
-import { m as Motion, AnimatePresence } from 'framer-motion';
+import { m as Motion } from 'framer-motion';
 import { PackageCheck } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead';
 import Dropdown from '../components/ui/Dropdown';
@@ -857,9 +857,8 @@ function PhotoUploader({ photos, onChange }) {
    Multi-tab pricing component — shows all repair categories with tier cards
    ───────────────────────────────────────────────────────────────────────── */
 const tabPanelVariants = {
-  enter: { opacity: 0, y: 10 },
-  center: { opacity: 1, y: 0, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
-  exit: { opacity: 0, y: -6, transition: { duration: 0.16, ease: [0.36, 0, 0.66, 0] } },
+  enter: { opacity: 1, y: 4 },
+  center: { opacity: 1, y: 0, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } },
 };
 
 function PricingTabs() {
@@ -931,14 +930,12 @@ function PricingTabs() {
       )}
 
       {/* Tab content with animation */}
-      <AnimatePresence mode="wait" initial={false}>
-        <Motion.div
-          key={tab.id}
-          variants={tabPanelVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-        >
+      <Motion.div
+        key={tab.id}
+        variants={tabPanelVariants}
+        initial="enter"
+        animate="center"
+      >
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(220px, 28vw, 280px), 1fr))',
@@ -1062,8 +1059,7 @@ function PricingTabs() {
               );
             })}
           </div>
-        </Motion.div>
-      </AnimatePresence>
+      </Motion.div>
 
       {/* Disclaimer */}
       <p style={{
