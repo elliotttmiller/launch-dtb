@@ -2,8 +2,8 @@
   --dtb-loading-base: #e8edf5;
   --dtb-loading-mid: #dce4ef;
   --dtb-loading-highlight: #f8fafc;
-  --dtb-loading-crossfade-duration: 460ms;
-  --dtb-loading-ease: var(--dtb-ease-exit);
+  --dtb-loading-crossfade-duration: var(--dtb-motion-duration-async, 220ms);
+  --dtb-loading-ease: var(--dtb-motion-ease-standard);
   --dtb-document-fade-duration: 180ms;
 }
 
