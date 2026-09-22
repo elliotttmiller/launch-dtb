@@ -5,7 +5,7 @@
  *
  * Behaviour:
  *   - While the session check is still in progress (isLoading === true):
- *       Renders a full-page loading spinner so there is no premature redirect.
+ *       Renders a geometry-preserving pending surface so there is no premature redirect or second full-page spinner.
  *   - Session check complete, user is NOT authenticated:
  *       Redirects to /login, preserving the originally requested path in
  *       router location state ({ from: location }) so Login.jsx can return
@@ -26,7 +26,7 @@
 
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../auth/AuthContext.js';
-import LoadingSpinner from '../shared/LoadingSpinner';
+import RouteLoadingSurface from './RouteLoadingSurface.jsx';
 
 export default function ProtectedRoute( { children } ) {
   const { isAuthenticated, isLoading } = useAuthContext();
@@ -34,7 +34,7 @@ export default function ProtectedRoute( { children } ) {
 
   // Still waiting for the /validate round-trip — don't redirect yet.
   if ( isLoading ) {
-    return <LoadingSpinner size="md" label="Checking session…" fullPage />;
+    return <RouteLoadingSurface pathname={location.pathname} label="Checking your session" />;
   }
 
   // Session confirmed invalid → send to login, remember where we came from.
