@@ -78,7 +78,7 @@ export default function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="dtb-cart-empty">
+      <div className="dtb-cart-empty">
         <SEOHead noindex title="Shopping Cart" />
         <div className="dtb-cart-empty__card">
           <div className="dtb-cart-empty__icon"><ShoppingBag aria-hidden="true" strokeWidth={1.5} /></div>
@@ -86,7 +86,7 @@ export default function Cart() {
           <p>Discover professional drywall tools and equipment for every job.</p>
           <Link to="/products" className="dtb-cart-empty__action"><ShoppingBag size={16} aria-hidden="true" />Browse products</Link>
         </div>
-      </Motion.div>
+      </div>
     );
   }
 
@@ -94,7 +94,7 @@ export default function Cart() {
     <div className="page-wrapper dtb-cart-page">
       <SEOHead noindex title="Shopping Cart" />
       <Container width="wide" className="dtb-cart-page__container">
-        <Motion.header initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="dtb-listing-heading dtb-listing-heading--standard">
+        <header className="dtb-listing-heading dtb-listing-heading--standard">
           <button type="button" onClick={() => navigate('/products')} className="dtb-listing-heading__back-pill sm:hidden">
             <ArrowLeft size={14} aria-hidden="true" />
             <span>Products</span>
@@ -108,7 +108,7 @@ export default function Cart() {
               <p className="dtb-listing-heading__meta">{cartItems.length} item{cartItems.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-        </Motion.header>
+        </header>
 
         {checkoutNotice && (
           <div role="alert" className="dtb-cart-page__notice">
@@ -117,7 +117,7 @@ export default function Cart() {
           </div>
         )}
 
-        <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="dtb-cart-sheet">
+        <div className="dtb-cart-sheet">
           <div {...itemsList.rootProps} className="dtb-cart-sheet__items">
             <AnimatePresence mode="popLayout" initial={false}>
               {cartItems.map((item, index) => {
@@ -170,7 +170,7 @@ export default function Cart() {
               className="dtb-cart-sheet__express-checkout"
             />
           </div>
-        </Motion.div>
+        </div>
       </Container>
     </div>
   );
