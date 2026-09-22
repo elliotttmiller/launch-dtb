@@ -2259,11 +2259,11 @@ export function RepairStartExperience() {
                       gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
                       gap: '0 20px',
                     }}>
-                      <Field label="How will the tool get to DTB?">
+                      <Field label="How will the tool get to our repair center?">
                         <Dropdown
                           value={formData.inboundShippingMethod}
                           options={[
-                            { value: 'ship_to_dtb', label: 'Ship to DTB with a label' },
+                            { value: 'ship_to_dtb', label: 'Ship with a prepaid label' },
                             { value: 'local_dropoff', label: 'Local drop-off' },
                             { value: 'partner_dropoff', label: 'Partner drop-off' },
                           ]}
@@ -2655,7 +2655,7 @@ export function RepairStartExperience() {
                       <ReviewRow label="State"      value={formData.state} />
                       <ReviewRow label="ZIP"        value={formData.zip} />
                       <ReviewRow label="Country"    value={formData.country} />
-                      <ReviewRow label="Inbound"    value={formData.inboundShippingMethod === 'local_dropoff' ? 'Local drop-off' : formData.inboundShippingMethod === 'partner_dropoff' ? 'Partner drop-off' : 'Ship to DTB'} />
+                      <ReviewRow label="Inbound"    value={formData.inboundShippingMethod === 'local_dropoff' ? 'Local drop-off' : formData.inboundShippingMethod === 'partner_dropoff' ? 'Partner drop-off' : 'Ship to our repair center'} />
                       <ReviewRow label="Return"     value={formData.returnShippingPreference === 'expedited' ? 'Expedited if available' : formData.returnShippingPreference === 'hold_for_pickup' ? 'Hold for pickup' : 'Standard return shipping'} />
                       <ReviewRow label="Old Parts"  value={formData.oldPartsReturn === 'return' ? 'Return replaced parts' : 'Recycle or discard'} />
                       <ReviewRow

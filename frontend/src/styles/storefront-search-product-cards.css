@@ -11,17 +11,8 @@
 }
 
 .storefront-search-overlay__result-entry {
-  opacity: 0;
-  transform: translateY(7px);
-  animation: storefront-search-result-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  animation-delay: calc(var(--search-result-index, 0) * 42ms);
-}
-
-@keyframes storefront-search-result-enter {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  opacity: 1;
+  transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

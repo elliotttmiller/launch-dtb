@@ -104,7 +104,9 @@ export default function ProductCardImage({
           inset: 0,
           background: 'linear-gradient(90deg, #f5f5f5 25%, #ebebeb 50%, #f5f5f5 75%)',
           backgroundSize: '200% 100%',
-          animation: loaded ? 'none' : 'dtb-shimmer 1.4s ease-in-out infinite',
+          // A static reserved image bed prevents dozens of independently
+          // animated gradients from flashing while a catalog grid resolves.
+          animation: 'none',
           opacity: loaded ? 0 : 1,
           transition: `opacity 200ms ${EASE_OUT_EXPO}`,
           borderRadius: 'inherit',

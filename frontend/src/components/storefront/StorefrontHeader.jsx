@@ -490,8 +490,9 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       });
     };
 
-    updateHeaderHeight();
-
+    // The initial synchronous measurement happens after this effect's first
+    // paint. Let the single scheduled read handle it so CSS/header writes are
+    // batched with other frame work instead of forcing two layouts on boot.
     scheduleHeaderHeightUpdate();
     const resizeObserver = typeof ResizeObserver !== 'undefined'
       ? new ResizeObserver(scheduleHeaderHeightUpdate)
