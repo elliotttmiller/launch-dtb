@@ -81,6 +81,9 @@ test('initial boot handoff and history navigation preserve visual continuity', a
   assert.match(app, /useNavigationType/);
   assert.match(app, /navigationType === 'POP'/);
   assert.match(app, /scrollPositionsRef = useRef\(new Map\(\)\)/);
+  assert.match(app, /lastKnownScrollRef = useRef/);
+  assert.match(app, /window\.addEventListener\('scroll', captureScroll/);
+  assert.match(app, /scrollPositionsRef\.current\.set\(previousLocation\.key, lastKnownScrollRef\.current\)/);
   assert.match(app, /scrollPositionsRef\.current\.size > 100/);
   assert.match(app, /<LazyMotion features=\{loadMotionFeatures\} strict>/);
 
