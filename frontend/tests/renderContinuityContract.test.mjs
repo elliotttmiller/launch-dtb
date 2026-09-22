@@ -69,3 +69,28 @@ test('auth and repair entry surfaces render opaque on first paint', async () => 
   assert.doesNotMatch(repair, /initial=\{\{ opacity: 0, scale: 0\.96, y: 12 \}\}/);
   assert.doesNotMatch(repair, /initial=\{\{ opacity: 0, y: -10 \}\}/);
 });
+
+
+test('initial boot handoff and history navigation preserve visual continuity', async () => {
+  const [app, main, html] = await Promise.all([
+    read('src/App.jsx'),
+    read('src/main.jsx'),
+    read('index.html'),
+  ]);
+
+  assert.match(app, /useNavigationType/);
+  assert.match(app, /navigationType === 'POP'/);
+  assert.match(app, /scrollPositionsRef = useRef\(new Map\(\)\)/);
+  assert.match(app, /scrollPositionsRef\.current\.size > 100/);
+  assert.match(app, /<LazyMotion features=\{loadMotionFeatures\} strict>/);
+
+  assert.match(main, /requestAnimationFrame\(\(\) => \{[\s\S]*requestAnimationFrame\(\(\) => \{/);
+  assert.match(main, /data-dtb-app-mounted/);
+  assert.match(main, /getElementById\('dtb-app-boot-shell'\)/);
+
+  assert.match(html, /id="dtb-app-boot-shell"/);
+  assert.match(html, /html\[data-dtb-app-mounted="true"\] #dtb-app-boot-shell/);
+  assert.match(html, /html\.dtb-checkout-route-booting #dtb-app-boot-shell\{display:none\}/);
+  assert.match(html, /prefers-reduced-motion:reduce/);
+  assert.match(html, /if \(bootShell\) bootShell\.remove\(\)/);
+});
