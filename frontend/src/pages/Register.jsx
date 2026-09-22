@@ -17,16 +17,6 @@ const STRENGTH_META = [
   { label: 'Very strong', color: '#15803d' },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 18, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: dtbDuration.normal, ease: dtbEase.standard },
-  },
-};
-
 const errorVariants = {
   initial: { opacity: 0, y: -6, height: 0 },
   animate: {
@@ -229,9 +219,6 @@ export default function Register() {
     <main className="page-wrapper dtb-auth-template dtb-auth-template--register">
       <Motion.section
         className="dtb-auth-template__card"
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
         aria-labelledby="signup-title"
       >
         <header className="dtb-auth-template__header">
