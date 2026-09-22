@@ -69,17 +69,49 @@ if (typeof window !== 'undefined') {
 }
 
 function markAppMounted() {
-  if (typeof document !== 'undefined') {
-    document.documentElement.classList.remove('dtb-document-transition-active');
-    document.documentElement.classList.remove('dtb-checkout-handoff-active');
-    document.documentElement.setAttribute('data-dtb-app-mounted', 'true');
+  if (typeof document === 'undefined') return;
+
+  document.documentElement.classList.remove('dtb-document-transition-active');
+  document.documentElement.classList.remove('dtb-checkout-handoff-active');
+  document.documentElement.setAttribute('data-dtb-app-mounted', 'true');
+
+  // The boot watchdog uses this session flag only while recovering from an
+  // entry-bundle failure. Clear it as soon as a healthy React frame commits.
+  try {
+    window.sessionStorage.removeItem('dtb:boot-retry');
+  } catch {
+    // Session storage can be unavailable in strict/private browsing modes.
   }
 }
 
 function AppBootMarker() {
   useEffect(() => {
-    markAppMounted();
+    let firstFrame = 0;
+    let secondFrame = 0;
+    let removeTimer = 0;
+
+    // Keep the static HTML boot surface in place until React has committed and
+    // the browser has crossed two paint opportunities. This prevents the
+    // document shell from disappearing into a blank/intermediate frame while
+    // startup JS, providers, and route rendering settle.
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        markAppMounted();
+
+        const bootShell = document.getElementById('dtb-app-boot-shell');
+        if (bootShell) {
+          removeTimer = window.setTimeout(() => bootShell.remove(), 180);
+        }
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(removeTimer);
+    };
   }, []);
+
   return null;
 }
 
