@@ -18,7 +18,8 @@
     "test:home-hero": "node --test tests/homeHeroResponsiveMediaContract.test.mjs",
     "test:repair-landing": "node --test tests/repairLandingContract.test.mjs",
     "test:returns-portal": "node --test tests/returnsPortalContract.test.mjs",
-    "preview": "webpack serve --config webpack.config.cjs --mode production"
+    "preview": "webpack serve --config webpack.config.cjs --mode production",
+    "test:render-continuity": "node --test tests/renderContinuityContract.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
