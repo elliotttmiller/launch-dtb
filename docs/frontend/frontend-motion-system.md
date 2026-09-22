@@ -11,7 +11,7 @@ The motion system has two canonical timing authorities:
 
 `frontend/src/styles/storefront-motion.css` is the shared CSS timing layer. Feature styles continue to own geometry, appearance, layout, and component-specific states.
 
-`frontend/src/components/motion/GlobalMotionProvider.jsx` applies the application-wide Framer Motion default and `reducedMotion="user"`.
+`frontend/src/components/motion/GlobalMotionProvider.jsx` applies the application-wide Framer Motion default and `reducedMotion="user"`. `App.jsx` mounts the single application `LazyMotion` boundary with `strict` enabled so feature code must continue using the lightweight `m` components and cannot silently bypass the async animation-engine contract.
 
 ## Render-continuity contract
 
@@ -57,6 +57,31 @@ The pending surface is intentionally static and geometry-oriented:
 These surfaces do not attempt to reproduce business data and do not own loading state after the route module has rendered. Route components remain responsible for their own data skeletons and unresolved regions.
 
 Protected routes use the same pending-surface language while authentication is validating. Authentication and redirect behavior remain unchanged.
+
+## Initial document handoff
+
+`frontend/index.html` owns a minimal static boot surface that can paint before the React entry bundle executes. It is presentation-only and contains no commerce, authentication, routing, or data authority.
+
+`frontend/src/main.jsx` owns the handoff. `AppBootMarker` waits for React to commit and for two `requestAnimationFrame` boundaries before setting `data-dtb-app-mounted="true"`. The static shell then performs only a short opacity release and is removed from the document.
+
+The boot surface must remain visually quiet: stable application background, DTB branding, no full-screen progress animation, no artificial minimum display duration. Under `prefers-reduced-motion: reduce`, its transition is effectively immediate.
+
+Checkout retains its dedicated document-level handoff. `dtb-checkout-route-booting` suppresses the ordinary application boot surface so the two loaders never compete.
+
+The boot watchdog remains the failure authority when the entry bundle does not mount. Before showing its recovery UI it removes the static boot shell, ensuring a failed boot cannot leave the recovery action obscured.
+
+## History scroll restoration
+
+`ScrollToTop` remains the sole route viewport authority. It sets native `history.scrollRestoration` to `manual` while the SPA is mounted and stores window scroll positions by React Router history `location.key`.
+
+Navigation semantics are:
+
+- `PUSH` / ordinary route change: reset to the new route start before paint.
+- `POP` / browser Back or Forward: restore the previously recorded position for that history entry when available.
+- query-only changes on the same pathname/hash: preserve the current viewport because those query parameters represent in-page state such as filters and tabs.
+- hash navigation without a saved POP position: resolve the hash target before falling back to the route start.
+
+Saved positions are session-memory UI state only and are bounded to 100 entries. They are not persisted, sent to the backend, or treated as application data.
 
 ## Application-shell boundary
 
@@ -156,10 +181,13 @@ Reduced motion removes nonessential transforms, smooth scrolling, shimmer animat
 - Internal route preloading must remain same-origin and de-duplicated.
 - Geometry measurement must batch reads before writes where possible to avoid forced synchronous layout.
 - Persistent shell components stay mounted during route transitions.
+- The static document boot shell must yield only after a committed React frame; it must never become a route-loading surface.
+- Browser-history restoration must remain synchronous in the layout phase and must not add delayed corrective scroll writes.
+- Keep `LazyMotion` strict; new animated components use `m` under the shared async feature provider rather than importing the full `motion` component.
 
 ## Regression contract
 
-`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, and absence of root fades on the specifically remediated cart/repair/order-tracking surfaces.
+`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, absence of root fades on the specifically remediated cart/repair/order-tracking surfaces, history-aware POP restoration, strict LazyMotion usage, and the initial HTML-to-React boot handoff.
 
 This test supplements browser profiling; it does not prove runtime frame pacing. Lighthouse/Chrome Performance traces remain required when changing startup providers, global CSS, large navigation surfaces, or animation-heavy components.
 
