@@ -1,0 +1,146 @@
+{
+  "source": "docs/catalog_prices/allwall/allwall_pricing_master.csv",
+  "target": "products/launch/official/dtb_official_catalog.csv",
+  "authority_rule": "VERIFIED_PRODUCT + HIGH + EXACT_MPN + positive allwall_current_price",
+  "field_updated": "Sale price",
+  "regular_price_policy": "preserved",
+  "approved_sku_count": 362,
+  "changed_sale_price_rows": 162,
+  "unchanged_matching_sale_price_rows": 200,
+  "changes_by_type": {
+    "simple": 147,
+    "variation": 15
+  },
+  "approved_skus_missing_from_catalog": [],
+  "sale_not_below_regular_count": 186,
+  "sale_not_below_regular_examples": [
+    {
+      "sku": "FA280",
+      "sale": "1.05",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA270",
+      "sale": "2.1",
+      "regular": "2.00"
+    },
+    {
+      "sku": "FA253",
+      "sale": "1.05",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA252",
+      "sale": "1.15",
+      "regular": "1.00"
+    },
+    {
+      "sku": "CT109",
+      "sale": "6.4",
+      "regular": "6.00"
+    },
+    {
+      "sku": "FA296",
+      "sale": "1",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA295",
+      "sale": "1.05",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA288",
+      "sale": "2.36",
+      "regular": "2.00"
+    },
+    {
+      "sku": "FA300",
+      "sale": "3.83",
+      "regular": "3.00"
+    },
+    {
+      "sku": "FA294",
+      "sale": "2.75",
+      "regular": "2.00"
+    },
+    {
+      "sku": "FA297",
+      "sale": "2.75",
+      "regular": "2.00"
+    },
+    {
+      "sku": "FA298",
+      "sale": "1.05",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA302",
+      "sale": "2.15",
+      "regular": "2.00"
+    },
+    {
+      "sku": "HFFB14-8",
+      "sale": "45.2",
+      "regular": "45.2"
+    },
+    {
+      "sku": "HFFB14-10",
+      "sale": "45.2",
+      "regular": "45.2"
+    },
+    {
+      "sku": "HFFB14-12",
+      "sale": "45.2",
+      "regular": "45.2"
+    },
+    {
+      "sku": "FFB25-10",
+      "sale": "7.5",
+      "regular": "7.5"
+    },
+    {
+      "sku": "FFB25-12",
+      "sale": "7.5",
+      "regular": "7.5"
+    },
+    {
+      "sku": "AH3-2",
+      "sale": "36.34",
+      "regular": "36.34"
+    },
+    {
+      "sku": "AH3-2.5",
+      "sale": "36.34",
+      "regular": "36.34"
+    },
+    {
+      "sku": "AH3-3",
+      "sale": "36.34",
+      "regular": "36.34"
+    },
+    {
+      "sku": "AH3-3.5",
+      "sale": "36.34",
+      "regular": "36.34"
+    },
+    {
+      "sku": "FA225",
+      "sale": "2.1",
+      "regular": "2.00"
+    },
+    {
+      "sku": "FA224",
+      "sale": "1.15",
+      "regular": "1.00"
+    },
+    {
+      "sku": "FA312",
+      "sale": "2.15",
+      "regular": "2.00"
+    }
+  ],
+  "blank_regular_price_count": 0,
+  "blank_regular_price_examples": [],
+  "representative_variations": []
+}
