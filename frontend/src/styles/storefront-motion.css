@@ -8,7 +8,7 @@
  */
 
 :root {
-  --dtb-loading-crossfade-duration: var(--dtb-motion-duration-slow);
+  --dtb-loading-crossfade-duration: var(--dtb-motion-duration-async);
   --dtb-loading-ease: var(--dtb-motion-ease-standard);
   --dtb-document-fade-duration: var(--dtb-motion-duration-fast);
 }
@@ -16,7 +16,7 @@
 /* Shared async/skeleton replacement. */
 .dtb-card-loading-transition__skeleton,
 .dtb-card-loading-transition__content {
-  transition: opacity var(--dtb-motion-duration-slow) var(--dtb-motion-ease-standard);
+  transition: opacity var(--dtb-motion-duration-async) var(--dtb-motion-ease-standard);
 }
 
 /* Category hero metadata/image reveal uses the same semantic timing as the
