@@ -234,12 +234,7 @@ export default function RepairStatus() {
     <>
       <SEOHead title={data ? `${displayId} — ${label} | Drywall Toolbox` : 'Repair Status | Drywall Toolbox'} />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="dtb-container dtb-container--narrow space-y-4 py-8"
-      >
+      <div className="dtb-container dtb-container--narrow space-y-4 py-8">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -314,7 +309,7 @@ export default function RepairStatus() {
             Need help with your repair?
           </Link>
         </div>
-      </motion.div>
+      </div>
     </>
   );
 }
