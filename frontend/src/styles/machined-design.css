@@ -142,20 +142,6 @@ body {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/*
-  dtb-page-in: smooth fade + micro-lift used by PageTransition.jsx on every
-  route change. Previously this class was referenced in JSX but never defined
-  in CSS, causing a hard snap (instant unmount/remount with no transition).
-  Kept short (220ms) so navigation feels instant on mobile.
-*/
-.dtb-page-in {
-    animation: dtbPageIn 0.22s var(--ease-tension) both;
-}
-
-@keyframes dtbPageIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
 
 /* --- TYPOGRAPHY --- */
 .machined-title {
