@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigationType, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useLayoutEffect, Suspense, useCallback, useRef } from 'react';
 import { LazyMotion } from 'framer-motion';
 import loadMotionFeatures from './motion/asyncFeatures.js';
@@ -90,7 +90,12 @@ const TechnicalSpecificationsPreview = createLazyRoute('technicalSpecificationsP
 
 function ScrollToTop() {
   const location = useLocation();
-  const lastRouteRef = useRef('');
+  const navigationType = useNavigationType();
+  const scrollPositionsRef = useRef(new Map());
+  const previousLocationRef = useRef({
+    key: location.key,
+    routeKey: `${location.pathname}${location.hash}`,
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('scrollRestoration' in window.history)) {
@@ -109,11 +114,30 @@ function ScrollToTop() {
     if (typeof window === 'undefined') return undefined;
 
     // Query parameters represent in-page state on routes such as repair
-    // package tabs and catalog filters. Only a document route or hash change
-    // should reset the viewport.
+    // package tabs and catalog filters. They intentionally do not define a
+    // new viewport position. Path/hash changes do.
     const routeKey = `${location.pathname}${location.hash}`;
-    if (lastRouteRef.current === routeKey) return undefined;
-    lastRouteRef.current = routeKey;
+    const previousLocation = previousLocationRef.current;
+
+    if (previousLocation.key !== location.key) {
+      scrollPositionsRef.current.set(previousLocation.key, {
+        top: window.scrollY,
+        left: window.scrollX,
+      });
+
+      // History-key positions are session-only UI state. Bound the map so a
+      // very long SPA session cannot grow it without limit.
+      if (scrollPositionsRef.current.size > 100) {
+        const oldestKey = scrollPositionsRef.current.keys().next().value;
+        scrollPositionsRef.current.delete(oldestKey);
+      }
+    }
+
+    previousLocationRef.current = { key: location.key, routeKey };
+
+    if (previousLocation.routeKey === routeKey) {
+      return undefined;
+    }
 
     const scrollNestedContainers = () => {
       document.querySelectorAll('[data-route-scroll-container], [data-scroll-container], .overflow-y-auto, .overflow-auto').forEach((element) => {
@@ -124,27 +148,43 @@ function ScrollToTop() {
       });
     };
 
-    const scrollToRouteStart = () => {
-      if (location.hash) {
-        const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
-        if (target) {
-          target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' });
-          return;
-        }
+    const savedPosition = navigationType === 'POP'
+      ? scrollPositionsRef.current.get(location.key)
+      : null;
+
+    if (savedPosition) {
+      window.scrollTo({
+        top: savedPosition.top,
+        left: savedPosition.left,
+        behavior: 'auto',
+      });
+      return undefined;
+    }
+
+    if (location.hash) {
+      let targetId = location.hash.slice(1);
+      try {
+        targetId = decodeURIComponent(targetId);
+      } catch {
+        // A malformed encoded hash should not break route rendering.
       }
 
-      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-      scrollNestedContainers();
-    };
+      const target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' });
+        return undefined;
+      }
+    }
 
-    // Run once in the layout phase, before the browser paints the new route.
-    // Repeated delayed scroll writes made the viewport visibly snap as lazy
-    // content, images, and headers settled after a navigation.
-    scrollToRouteStart();
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    scrollNestedContainers();
+
+    // All writes remain in the layout phase. Delayed scroll corrections make
+    // lazy content and images visibly snap after navigation.
     return undefined;
-  }, [location.pathname, location.hash]);
+  }, [location.hash, location.key, location.pathname, navigationType]);
 
   return null;
 }
@@ -266,7 +306,7 @@ function App() {
         <DesignConfigProvider>
           <WooCommerceProvider>
             <CartProvider>
-              <LazyMotion features={loadMotionFeatures}>
+              <LazyMotion features={loadMotionFeatures} strict>
                 <WorkflowTransitionProvider>
                   <Router basename={basename}>
                     <ScrollToTop />
