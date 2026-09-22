@@ -22,16 +22,6 @@ import { useAuthContext } from '../auth/AuthContext.js';
 import { dtbDuration, dtbEase } from '../motion/dtbMotion.js';
 import '../styles/auth-form-templates.css';
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 18, scale: 0.985 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: dtbDuration.normal, ease: dtbEase.standard },
-  },
-};
-
 const noticeVariants = {
   initial: { opacity: 0, y: -6, height: 0 },
   animate: {
@@ -107,9 +97,6 @@ export default function ResetPassword() {
     <main className="page-wrapper dtb-auth-template dtb-auth-template--recovery">
       <Motion.section
         className="dtb-auth-template__card"
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
         aria-labelledby="reset-password-title"
       >
         <header className="dtb-auth-template__header">
