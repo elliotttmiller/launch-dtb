@@ -92,6 +92,11 @@ function ScrollToTop() {
   const location = useLocation();
   const navigationType = useNavigationType();
   const scrollPositionsRef = useRef(new Map());
+  const lastKnownScrollRef = useRef(
+    typeof window === 'undefined'
+      ? { top: 0, left: 0 }
+      : { top: window.scrollY, left: window.scrollX },
+  );
   const previousLocationRef = useRef({
     key: location.key,
     routeKey: `${location.pathname}${location.hash}`,
@@ -110,6 +115,21 @@ function ScrollToTop() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const captureScroll = () => {
+      lastKnownScrollRef.current = {
+        top: window.scrollY,
+        left: window.scrollX,
+      };
+    };
+
+    captureScroll();
+    window.addEventListener('scroll', captureScroll, { passive: true });
+    return () => window.removeEventListener('scroll', captureScroll);
+  }, []);
+
   useLayoutEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
@@ -120,10 +140,7 @@ function ScrollToTop() {
     const previousLocation = previousLocationRef.current;
 
     if (previousLocation.key !== location.key) {
-      scrollPositionsRef.current.set(previousLocation.key, {
-        top: window.scrollY,
-        left: window.scrollX,
-      });
+      scrollPositionsRef.current.set(previousLocation.key, lastKnownScrollRef.current);
 
       // History-key positions are session-only UI state. Bound the map so a
       // very long SPA session cannot grow it without limit.
@@ -158,6 +175,7 @@ function ScrollToTop() {
         left: savedPosition.left,
         behavior: 'auto',
       });
+      lastKnownScrollRef.current = savedPosition;
       return undefined;
     }
 
@@ -172,6 +190,10 @@ function ScrollToTop() {
       const target = document.getElementById(targetId);
       if (target) {
         target.scrollIntoView({ block: 'start', inline: 'nearest', behavior: 'auto' });
+        lastKnownScrollRef.current = {
+          top: window.scrollY,
+          left: window.scrollX,
+        };
         return undefined;
       }
     }
@@ -179,6 +201,7 @@ function ScrollToTop() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
+    lastKnownScrollRef.current = { top: 0, left: 0 };
     scrollNestedContainers();
 
     // All writes remain in the layout phase. Delayed scroll corrections make
