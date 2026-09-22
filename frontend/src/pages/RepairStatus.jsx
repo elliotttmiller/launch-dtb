@@ -37,12 +37,7 @@ function TokenEntryForm({ onSubmit }) {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center" style={{ paddingInline: 'var(--dtb-viewport-gutter)' }}>
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="w-full max-w-md"
-      >
+      <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 shadow-sm">
             <Search size={26} className="text-blue-500" strokeWidth={1.75} />
@@ -108,7 +103,7 @@ function TokenEntryForm({ onSubmit }) {
         <p className="mt-4 text-center text-xs text-neutral-400">
           Need help? <Link to="/contact" className="text-blue-600 hover:underline">Contact us</Link>
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -143,12 +138,7 @@ function ErrorDisplay({ message, onRetry }) {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center" style={{ paddingInline: 'var(--dtb-viewport-gutter)' }}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="max-w-sm text-center"
-      >
+      <div className="max-w-sm text-center">
         <div className={`mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${isNotFound ? 'bg-neutral-100' : 'bg-yellow-50'}`}>
           {isNotFound
             ? <SearchX size={28} className="text-neutral-400" strokeWidth={1.5} />
@@ -178,7 +168,7 @@ function ErrorDisplay({ message, onRetry }) {
             Submit a Repair
           </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -235,12 +225,7 @@ export default function RepairStatus() {
       <SEOHead title={data ? `${displayId} — ${label} | Drywall Toolbox` : 'Repair Status | Drywall Toolbox'} />
 
       <div className="dtb-container dtb-container--narrow space-y-4 py-8">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex items-center justify-between"
-        >
+        <div className="flex items-center justify-between">
           <div>
             <div className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400">Repair Number</div>
             <div className="mt-0.5 flex items-center gap-2">
@@ -256,7 +241,7 @@ export default function RepairStatus() {
           >
             <RefreshCw size={17} className={loading ? 'animate-spin' : ''} />
           </button>
-        </motion.div>
+        </div>
 
         {loading && !data ? (
           <StatusSkeleton />
