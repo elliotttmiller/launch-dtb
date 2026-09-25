@@ -1,4 +1,43 @@
 
+/* Integrate category navigation into the hero itself so the category band
+   begins directly beneath the storefront header with no detached white strip. */
+.dtb-catalog-category-layout {
+  padding-top: 0 !important;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .72rem var(--dtb-category-layout-gutter) .35rem;
+  color: rgba(255, 255, 255, .78);
+  pointer-events: none;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content {
+  pointer-events: auto;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero-card {
+  padding-top: 2.75rem;
+  border-top: 0;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero-card__content {
+  margin-top: -2.75rem;
+  padding-top: calc(clamp(1.4rem, 2vw, 2rem) + 2.75rem);
+}
+
+.dtb-catalog-category-layout .dtb-category-hero-card__media {
+  margin-top: -2.75rem;
+  height: calc(100% + 2.75rem);
+  padding-top: calc(clamp(.5rem, .9vw, .85rem) + 2.75rem);
+}
+
+
 /* Category routes use a full-bleed hero band rather than a floating card.
    The catalog below remains on the normal fluid content grid. */
 .dtb-catalog-category-layout {
@@ -277,3 +316,26 @@
     transform: none !important;
   }
 }
+
+@media (max-width: 767px) {
+  .dtb-catalog-category-layout .dtb-category-hero-card {
+    padding-top: 2.6rem;
+  }
+
+  .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-stage {
+    min-height: 2.6rem;
+    padding-top: .65rem;
+  }
+
+  .dtb-catalog-category-layout .dtb-category-hero-card__media {
+    margin-top: -2.6rem;
+    height: auto;
+    padding-top: calc(.8rem + 2.6rem);
+  }
+
+  .dtb-catalog-category-layout .dtb-category-hero-card__content {
+    margin-top: 0;
+    padding-top: 1.5rem;
+  }
+}
+
