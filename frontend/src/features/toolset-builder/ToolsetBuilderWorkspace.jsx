@@ -344,10 +344,27 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
           <span aria-hidden="true">/</span>
           <span>{workflow.label}</span>
         </nav>
-        <div className="dtb-toolset-workspace__title-row">
-          <div>
+
+        <div className="dtb-toolset-workspace__hero">
+          <div className="dtb-toolset-workspace__hero-content">
+            <div className="dtb-toolset-workspace__eyebrow-row">
+              <span className="dtb-toolset-workspace__eyebrow">Toolset Builder</span>
+              <span className="dtb-toolset-workspace__eyebrow-rule" aria-hidden="true" />
+            </div>
             <h1>{workflow.label}</h1>
             <p>Customize your setup. Configure each required tool before review.</p>
+          </div>
+
+          <div className="dtb-toolset-workspace__hero-art" aria-hidden="true">
+            <span className="dtb-toolset-workspace__slash dtb-toolset-workspace__slash--one" />
+            <span className="dtb-toolset-workspace__slash dtb-toolset-workspace__slash--two" />
+            <span className="dtb-toolset-workspace__slash dtb-toolset-workspace__slash--three" />
+            <div className="dtb-toolset-workspace__statement">
+              <span>Choose Your Tools</span>
+              <span>Configure Your Set</span>
+              <span>Build Your System</span>
+              <span className="dtb-toolset-workspace__statement-rule" />
+            </div>
           </div>
         </div>
       </header>
