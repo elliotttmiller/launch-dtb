@@ -146,8 +146,8 @@
   inset: 0 0 0 39%;
   overflow: hidden;
   background:
-    linear-gradient(90deg, rgba(244, 249, 255, 0.55), rgba(248, 251, 255, 0.18)),
-    #f8fbff;
+    linear-gradient(90deg, rgba(244, 249, 255, 0.2), rgba(248, 251, 255, 0.04)),
+    url('../../assets/media/hero-background.webp') center / cover no-repeat;
   pointer-events: none;
 }
 
