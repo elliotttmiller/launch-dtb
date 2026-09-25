@@ -58,6 +58,15 @@ export default function ToolsetBuilderProductCard({
   const image = productImage(product);
   const price = productPrice(product);
   const brand = productBrand(product);
+  const selectedVariationSku = isVariable
+    ? selectedProductItems.find((item) => item?.variationId)?.sku || ''
+    : '';
+  const activeVariation = variations.find(
+    (item) => String(item?.id || item?.variationId) === String(selectedVariationId),
+  );
+  const displayedSku = isVariable
+    ? activeVariation?.sku || selectedVariationSku
+    : product?.sku || '';
 
   const requestVariations = async () => {
     if (variationLoading) return;
@@ -107,9 +116,6 @@ export default function ToolsetBuilderProductCard({
     onSelect?.(normalized);
   };
 
-  const activeVariation = variations.find(
-    (item) => String(item?.id || item?.variationId) === String(selectedVariationId),
-  );
   const activeVariationSelection = activeVariation
     ? normalizeToolsetSelection(product, activeVariation)
     : null;
@@ -146,7 +152,7 @@ export default function ToolsetBuilderProductCard({
         <div className="dtb-toolset-product-card__identity">
           {brand ? <span className="dtb-toolset-product-card__brand">{brand}</span> : null}
           <h3>{product?.name || 'Unnamed product'}</h3>
-          {product?.sku ? <span className="dtb-toolset-product-card__sku">SKU {product.sku}</span> : null}
+          {displayedSku ? <span className="dtb-toolset-product-card__sku">SKU {displayedSku}</span> : null}
         </div>
 
         <div className="dtb-toolset-product-card__commerce">
