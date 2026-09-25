@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useReducedMotion } from 'framer-motion';
+import { m as Motion, useReducedMotion } from 'framer-motion';
 import MotionBackdrop from '../motion/MotionBackdrop.jsx';
 import MotionDialog from '../motion/MotionDialog.jsx';
 import MotionDrawer from '../motion/MotionDrawer.jsx';
@@ -8,7 +8,9 @@ import MotionPresence from '../motion/MotionPresence.jsx';
 import {
   productModalBackdropTransition,
   productModalDesktopVariants,
+  productModalDesktopCardVariants,
   productModalMobileVariants,
+  reducedProductModalCardVariants,
   productModalTransition,
   reducedTransition,
 } from '../../motion/dtbMotion.js';
@@ -174,7 +176,7 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
   const PanelComponent = isMobile ? MotionDrawer : MotionDialog;
 
   return createPortal(
-    <MotionPresence mode="sync" initial={false}>
+    <MotionPresence mode="sync" initial>
       {isOpen && product && (
         <>
           <MotionBackdrop
@@ -209,12 +211,17 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
               className="product-modal-scroll-inner flex items-end md:items-center justify-center min-h-full px-0 py-0 md:px-4 md:py-6 lg:px-6"
               onClick={onClose}
             >
-              <div
+              <Motion.div
                 className="product-modal-card-shell dtb-product-page-shell w-full max-w-6xl"
+                variants={
+                  isMobile
+                    ? undefined
+                    : (reduceMotion ? reducedProductModalCardVariants : productModalDesktopCardVariants)
+                }
                 onClick={(e) => e.stopPropagation()}
               >
                 {children}
-              </div>
+              </Motion.div>
             </div>
           </PanelComponent>
 
