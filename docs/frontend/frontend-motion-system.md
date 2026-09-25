@@ -171,9 +171,11 @@ These constraints prioritize frame continuity over decorative movement. A stable
 
 Desktop Quick View is a large overlay surface and follows stricter lifecycle rules than small dialogs:
 
-- The desktop Quick View panel is opacity-only. Do not scale or vertically translate the viewport-sized modal scroll shell.
+- The desktop Quick View scroll shell is structural and remains fully opaque. Do not fade, scale, or translate the viewport-sized shell. The bounded white card owns the visible entrance/exit presentation.
 - The modal shell must not use persistent `will-change`, `translateZ(0)`, or `contain: layout paint` as blanket compositor hints.
 - Full-screen backdrop blur is prohibited for routine Quick View open/close; use a stable translucent backdrop instead.
+- Quick View must animate on its first mounted open. Do not suppress the initial presence animation when `ProductModal` mounts already open.
+- Desktop close must never fade the white product card to transparency over the darkened storefront. The card remains opaque during dismissal and may use only a restrained micro-translation while the backdrop releases.
 - Body scroll locking must compensate for the removed scrollbar and preserve that lock until the exit animation has completed. Restoring overflow before exit completion causes the storefront to shift underneath a still-visible modal.
 - Quick View shell geometry CSS must live in a persistent imported stylesheet, not a conditional `<style>` node inside the presence subtree.
 - Product data must remain mounted through the exit interval. Owners set visibility false first and clear the selected product only after the 180 ms exit has completed.
