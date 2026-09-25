@@ -235,3 +235,15 @@
     transition: none !important;
   }
 }
+
+
+/* The primary hero title already establishes page identity. Keep the accent
+   line as the sole pre-title element rather than repeating that identity. */
+.dtb-parts-hero__eyebrow-row {
+  width: min(58%, 52rem);
+  gap: 0;
+}
+
+.dtb-parts-hero__eyebrow-rule {
+  width: clamp(7.5rem, 11vw, 11.5rem);
+}
