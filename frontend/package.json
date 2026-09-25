@@ -20,7 +20,8 @@
     "test:returns-portal": "node --test tests/returnsPortalContract.test.mjs",
     "preview": "webpack serve --config webpack.config.cjs --mode production",
     "test:render-continuity": "node --test tests/renderContinuityContract.test.mjs",
-    "test:toolset-builder": "node --test tests/toolsetBuilderFrontendContract.test.mjs"
+    "test:toolset-builder": "node --test tests/toolsetBuilderFrontendContract.test.mjs",
+    "test:breadcrumb": "node --test tests/breadcrumbContract.test.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
