@@ -10,13 +10,13 @@
   padding: 1rem 0 0.85rem;
 }
 
-.dtb-products-breadcrumb-shell .dtb-breadcrumb {
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-bar {
   margin: 0;
 }
 
 /* ProductsCatalogPlatform still renders its canonical breadcrumb for other
    catalog routes. On the exact /products route the shell above owns placement. */
-.dtb-products-page > .page-wrapper > .dtb-container > .dtb-breadcrumb {
+.dtb-products-page > .page-wrapper > .dtb-container > .dtb-breadcrumb-bar {
   display: none;
 }
 
