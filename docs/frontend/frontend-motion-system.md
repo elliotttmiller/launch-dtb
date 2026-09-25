@@ -177,6 +177,9 @@ Desktop Quick View is a large overlay surface and follows stricter lifecycle rul
 - Body scroll locking must compensate for the removed scrollbar and preserve that lock until the exit animation has completed. Restoring overflow before exit completion causes the storefront to shift underneath a still-visible modal.
 - Quick View shell geometry CSS must live in a persistent imported stylesheet, not a conditional `<style>` node inside the presence subtree.
 - Product data must remain mounted through the exit interval. Owners set visibility false first and clear the selected product only after the 180 ms exit has completed.
+- `ProductModal` is the sole document scroll-lock owner for Quick View. `ProductDetail` and nested PDP children must never write `body.style.overflow`, `body.style.paddingRight`, or equivalent document geometry.
+- Desktop product-card intent prewarms both the Quick View component modules and the canonical `/catalog/products/:slug/detail` request through the same in-flight/cache authority consumed by the modal.
+- `product-quick-view-desktop.css` is the sole Quick View geometry authority. General PDP polish styles must not redeclare `.product-modal-card-shell` geometry.
 - Nested Quick View owners such as search and cart must restore the prior scroll-lock state rather than assuming the body was originally unlocked.
 - Product imagery may animate locally inside its bounded gallery; those image transitions must not promote or transform the complete modal shell.
 
