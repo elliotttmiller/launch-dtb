@@ -16,6 +16,32 @@ body {
   padding-top: 0;
 }
 
+/* Keep the fixed storefront chrome optically flush with the document surface.
+ * The browser scrollbar remains usable, but its track must not create a false
+ * right-edge shadow or gutter. */
+.storefront-header-stack,
+.site-header {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html,
+body {
+  scrollbar-color: auto transparent;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: transparent;
+  box-shadow: none;
+}
+
+
 main.main-content {
   position: relative;
   flex: 1 0 auto;
