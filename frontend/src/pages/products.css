@@ -44,7 +44,7 @@
   min-height: inherit;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(1.65rem, 2vw, 2.1rem) 0 clamp(1.55rem, 1.85vw, 1.95rem);
+  padding: clamp(2.7rem, 3.15vw, 3.15rem) 0 clamp(1.55rem, 1.85vw, 1.95rem);
   padding-left: clamp(2.05rem, 2.35vw, 2.55rem);
 }
 
@@ -55,7 +55,21 @@
   bottom: clamp(1.55rem, 1.85vw, 1.95rem);
   left: 0;
   width: 3px;
-  background: linear-gradient(180deg, #0a2b57 0%, #0878ff 100%);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0a2b57 0%, #1769d8 42%, #1685ff 100%);
+  box-shadow: 0 0 0 1px rgba(22, 133, 255, 0.04), 0 5px 14px rgba(8, 120, 255, 0.14);
+}
+
+.dtb-products-hero__content::after {
+  content: '';
+  position: absolute;
+  top: clamp(2.08rem, 2.48vw, 2.62rem);
+  left: clamp(2.05rem, 2.35vw, 2.55rem);
+  width: clamp(4.25rem, 5vw, 5.5rem);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #0878ff 0 24%, #4d9cff 24% 54%, rgba(77, 156, 255, 0.08) 100%);
+  box-shadow: 0 2px 8px rgba(8, 120, 255, 0.08);
 }
 
 .dtb-products-hero__eyebrow-row {
@@ -264,12 +278,18 @@
 
   .dtb-products-hero__content {
     width: 100%;
-    padding: 1.75rem 0 1.75rem 1.25rem;
+    padding: 2.65rem 0 1.75rem 1.25rem;
   }
 
   .dtb-products-hero__content::before {
     top: 1.75rem;
     bottom: 1.75rem;
+  }
+
+  .dtb-products-hero__content::after {
+    top: 2.2rem;
+    left: 1.25rem;
+    width: 4rem;
   }
 
   .dtb-products-hero__title {
