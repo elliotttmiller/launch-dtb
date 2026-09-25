@@ -72,16 +72,16 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
   return (
     <>
       <div className={`dtb-category-hero mb-5 sm:mb-6${heroReady ? ' is-ready' : ' is-loading'}`}>
-        <div className="dtb-category-hero__breadcrumb-stage">
-          <div className="dtb-category-hero__breadcrumb-content">
-            <Breadcrumb items={breadcrumbs} />
-          </div>
-          <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
-            <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
-          </div>
-        </div>
-
         <div className="dtb-category-hero-card">
+          <div className="dtb-category-hero__breadcrumb-stage">
+            <div className="dtb-category-hero__breadcrumb-content">
+              <Breadcrumb items={breadcrumbs} />
+            </div>
+            <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
+              <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
+            </div>
+          </div>
+
           <div className="dtb-category-hero-card__loading-layer" aria-hidden="true">
             <CategoryHeroSkeletonCard />
           </div>
