@@ -126,3 +126,42 @@ test('desktop rendering avoids large-surface compositor flicker paths', async ()
   assert.match(performanceCss, /@media \(max-width: 1024px\)[\s\S]*content-visibility:\s*auto/);
   assert.doesNotMatch(performanceCss, /^\.dtb-product-card\s*\{[\s\S]{0,100}content-visibility:\s*auto/m);
 });
+
+test('desktop Quick View keeps geometry stable through open and exit', async () => {
+  const [modal, motion, quickViewCss, catalog, trending, rail, searchOverlay, cartSheet] = await Promise.all([
+    read('src/components/product/ProductModal.jsx'),
+    read('src/motion/dtbMotion.js'),
+    read('src/styles/product-quick-view-desktop.css'),
+    read('src/pages/ProductsCatalogPlatform.jsx'),
+    read('src/components/catalog/TrendingProducts.jsx'),
+    read('src/components/storefront/StorefrontProductRail.jsx'),
+    read('src/components/storefront/StorefrontSearchOverlay.jsx'),
+    read('src/components/storefront/StorefrontCartSheet.jsx'),
+  ]);
+
+  assert.match(modal, /scrollbarWidth = Math\.max\(0, window\.innerWidth - document\.documentElement\.clientWidth\)/);
+  assert.match(modal, /computedPaddingRight \+ scrollbarWidth/);
+  assert.match(modal, /reduceMotion \? 20 : 190/);
+  assert.doesNotMatch(modal, /willChange:\s*'transform, opacity'/);
+  assert.doesNotMatch(modal, /translateZ\(0\)/);
+  assert.doesNotMatch(modal, /contain:\s*layout paint/);
+  assert.doesNotMatch(modal, /<style>\{`/);
+  assert.doesNotMatch(modal, /layout="position"/);
+
+  assert.match(motion, /productModalDesktopVariants[\s\S]*hidden:\s*\{ opacity: 0 \}[\s\S]*visible:[\s\S]*opacity: 1/);
+  assert.doesNotMatch(motion, /productModalDesktopVariants[\s\S]{0,260}scale:/);
+  assert.doesNotMatch(motion, /productModalDesktopVariants[\s\S]{0,260}y:/);
+  assert.match(motion, /productModalBackdropTransition = \{[\s\S]*duration: dtbDuration\.fast/);
+
+  assert.match(quickViewCss, /product-modal-scroll-shell[\s\S]*top:\s*0/);
+  assert.match(quickViewCss, /product-modal-scroll-inner[\s\S]*min-height:\s*100dvh/);
+
+  for (const owner of [catalog, trending, rail, searchOverlay]) {
+    assert.match(owner, /220/);
+    assert.match(owner, /setIsModalOpen\(false\)/);
+  }
+
+  assert.match(cartSheet, /isProductModalOpen/);
+  assert.match(cartSheet, /productModalClearTimerRef/);
+  assert.match(cartSheet, /isOpen=\{isProductModalOpen && Boolean\(productModalState\?\.product\)\}/);
+});
