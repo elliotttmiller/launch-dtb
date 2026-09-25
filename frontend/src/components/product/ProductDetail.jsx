@@ -806,17 +806,6 @@ export default function ProductDetail({
     return meta;
   }, [variationAttributes, variations, selectedAttrs, computedData]);
 
-  useEffect(() => {
-    if (!product || !onClose) return;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.overflow = 'hidden';
-    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
-    };
-  }, [product, onClose]);
-
   if (!product) return null;
 
   const stripSpecsFromHtml = (html) => {
