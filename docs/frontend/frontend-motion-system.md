@@ -184,6 +184,7 @@ Desktop Quick View is a large overlay surface and follows stricter lifecycle rul
 - `product-quick-view-desktop.css` is the sole Quick View geometry authority. General PDP polish styles must not redeclare `.product-modal-card-shell` geometry.
 - Nested Quick View owners such as search and cart must restore the prior scroll-lock state rather than assuming the body was originally unlocked.
 - Product imagery may animate locally inside its bounded gallery; those image transitions must not promote or transform the complete modal shell.
+- Once Quick View has painted a real gallery for a product/variation identity, late detail hydration must not replace that primary image or change gallery control geometry during the same open interaction. A placeholder may yield to the first real image, but a valid painted media set remains stable until the product/variation identity changes or the modal is reopened.
 
 These rules apply to catalog, homepage/product rails, search, and cart Quick View entry points.
 
