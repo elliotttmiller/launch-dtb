@@ -31,6 +31,14 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 - Skeleton, spinner, inline progress, alert, toast, and confirmation
 - Drawer, bottom sheet, dialog, backdrop, close affordance, and sticky action bar
 
+### Breadcrumb and active-filter trail contract
+
+The shared storefront breadcrumb is owned by `frontend/src/components/shared/Breadcrumb.jsx` and `frontend/src/styles/breadcrumb.css`. All frontend breadcrumb trails should use this primitive rather than introducing route-specific breadcrumb markup or separators.
+
+The component renders semantic navigation crumbs in an ordered list and may also render removable active-filter chips in a separate list. Filter chips are presentation/control projections of existing route/query state only; the breadcrumb never owns catalog filtering state. Catalog pages pass canonical active filter descriptors into the shared component and route chip removal back through the existing catalog URL/query mutation path.
+
+The component supports a default surface treatment and an inverse treatment for dark merchandising heroes. It preserves wrapping, keyboard focus, reduced-motion behavior, and explicit remove-filter labels. Toolset Builder action-style breadcrumbs use the same shared component through non-navigational crumb actions.
+
 ## Catalog and product
 
 - Home hero and quick links
@@ -46,9 +54,9 @@ Use this inventory to keep Stitch exploration complete and consistent. It descri
 
 ### Category hero media contract
 
-Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. Every category route uses one unified bounded hero composition with restrained radius/elevation, left-side text hierarchy, a compact icon-plus-count treatment, and right-side category artwork.
+Category hero presentation is owned by `frontend/src/components/catalog/CategoryHero.jsx` and `frontend/src/styles/category-hero.css`; category metadata and hero-image selection remain backend/catalog concerns. Every category route uses one unified full-bleed hero composition beneath the storefront header, with breadcrumb navigation integrated into the hero surface, left-side text hierarchy, and right-side category artwork.
 
-The hero card owns one continuous white-to-silver gradient surface across both content and media. The media viewport itself must remain transparent so isolated hero artwork reveals that same card surface and does not introduce a second painted background. The default desktop composition keeps the content/media split near 48/52 and uses a stable bounded hero height rather than allowing source-image dimensions to determine page geometry.
+The hero surface owns one continuous merchandising composition across both content and media. The media viewport itself must remain transparent so isolated hero artwork reveals that same surface and does not introduce a second painted background. Desktop category routes use a stable full-width hero band rather than a floating card, while preserving bounded internal content/media proportions and predictable height.
 
 Transparent or isolated category hero artwork uses `object-fit: contain` with centered positioning so complete tools remain visible without cropping or distortion. Hero source assets should contain only the intended product/tool composition with modest transparent safety space; baked white/gray studio backgrounds should not be used when the unified card surface is intended to show through. Narrow layouts may use a taller media viewport while retaining the same single-surface treatment.
 
