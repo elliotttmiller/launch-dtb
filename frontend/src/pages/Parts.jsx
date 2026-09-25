@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductsCatalogPlatform from './ProductsCatalogPlatform.jsx';
 import Breadcrumb from '../components/shared/Breadcrumb.jsx';
+import partsHeroImage from '../assets/media/parts/hero.webp';
 import {
   buildCatalogUrl,
   canonicalBrandLabel,
@@ -28,15 +29,27 @@ function PartsHero({ activeFilters = [], onRemoveFilter = null }) {
             />
           </div>
           <div className="dtb-parts-hero__content">
-            <hr className="dtb-parts-hero__divider" aria-hidden="true" />
-            <h1 id="dtb-parts-hero-title" className="dtb-parts-hero__title">Parts</h1>
-            <p className="dtb-parts-hero__description">Replacement parts and service components.</p>
+            <div className="dtb-parts-hero__eyebrow-row">
+              <span className="dtb-parts-hero__eyebrow">Parts</span>
+              <span className="dtb-parts-hero__eyebrow-rule" aria-hidden="true" />
+            </div>
+            <h1 id="dtb-parts-hero-title" className="dtb-parts-hero__title">
+              Keep your tools working like they should.
+            </h1>
+            <p className="dtb-parts-hero__description">
+              Find replacement parts and service components for professional drywall tools.
+            </p>
           </div>
 
-          <div className="dtb-parts-hero__art" aria-hidden="true">
-            <span className="dtb-parts-hero__slash dtb-parts-hero__slash--one" />
-            <span className="dtb-parts-hero__slash dtb-parts-hero__slash--two" />
-            <span className="dtb-parts-hero__slash dtb-parts-hero__slash--three" />
+          <div className="dtb-parts-hero__media" aria-hidden="true">
+            <img
+              src={partsHeroImage}
+              alt=""
+              className="dtb-parts-hero__image"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
         </div>
       </header>
