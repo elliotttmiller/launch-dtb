@@ -10,10 +10,10 @@
   top: 0;
   left: 0;
   z-index: 4;
-  width: 100%;
+  width: min(42.5%, 46rem);
   min-height: 2.75rem;
-  padding: .72rem var(--dtb-category-layout-gutter) .35rem;
-  color: rgba(255, 255, 255, .78);
+  padding: 0.58rem clamp(2.2rem, 3.4vw, 4rem) 0.3rem;
+  color: rgba(255, 255, 255, 0.76);
   pointer-events: none;
 }
 
@@ -21,21 +21,83 @@
   pointer-events: auto;
 }
 
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb-bar {
+  margin: 0;
+  gap: 0.4rem 0.65rem;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb ol {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb li {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb li:first-child {
+  flex: 0 0 auto;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb li + li::before {
+  margin-inline: 0.38rem;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.76rem;
+}
+
 .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a,
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current,
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb li::before {
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current {
+  min-height: 1.55rem;
+  padding: 0.18rem 0.18rem;
   color: #fff;
+  font-size: clamp(0.68rem, 0.72vw, 0.76rem);
+  line-height: 1;
 }
 
 .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a {
-  opacity: .82;
+  font-weight: 560;
+  opacity: 0.72;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current {
+  max-width: 15rem;
+  font-weight: 700;
+  opacity: 1;
 }
 
 .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a:hover,
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a:focus-visible,
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current {
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
   opacity: 1;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb-filters {
+  gap: 0.34rem;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb-filter-chip {
+  min-height: 1.55rem;
+  padding: 0.22rem 0.28rem 0.22rem 0.54rem;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.67rem;
+  font-weight: 650;
+  backdrop-filter: none;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb-filter-chip button {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-basis: 1.05rem;
+  -webkit-mask-size: 0.62rem;
+  mask-size: 0.62rem;
 }
 
 
@@ -69,9 +131,6 @@
   margin-right: calc(-1 * var(--dtb-category-layout-gutter));
 }
 
-.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-stage {
-  padding-inline: var(--dtb-category-layout-gutter);
-}
 
 .dtb-catalog-category-layout .dtb-category-hero-card {
   border-right: 0;
@@ -341,8 +400,17 @@
   }
 
   .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-stage {
+    width: 100%;
     min-height: 2.6rem;
-    padding-top: .65rem;
+    padding: 0.55rem 1.15rem 0.3rem;
+  }
+
+  .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb ol {
+    flex-wrap: wrap;
+  }
+
+  .dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current {
+    max-width: 52vw;
   }
 
   .dtb-catalog-category-layout .dtb-category-hero-card__media {
