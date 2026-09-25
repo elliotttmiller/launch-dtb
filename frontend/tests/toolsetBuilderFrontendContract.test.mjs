@@ -68,6 +68,10 @@ test('builder product cards load exact variations on demand', async () => {
   assert.match(productCard, /normalizeToolsetSelection/);
   assert.match(productCard, /Select configuration/);
   assert.match(productCard, /variationId/);
+  assert.match(productCard, /const displayedSku = isVariable/);
+  assert.match(productCard, /activeVariation\?\.sku \|\| selectedVariationSku/);
+  assert.match(productCard, /SKU \{displayedSku\}/);
+  assert.doesNotMatch(productCard, /SKU \{product\.sku\}/);
 });
 
 test('builder styling replaces the legacy tsb prototype and includes responsive and reduced-motion behavior', async () => {
