@@ -128,7 +128,7 @@ final class DTB_CatalogProductsController {
 			// Listing enrichment for variable products: resolve and apply the
 			// default variation directly into cardProduct for storefront cards.
 			if ( 'variable' === $dto['type'] ) {
-				$variations  = DTB_VariationReadModelService::get_normalized( $dto['id'], $raw_by_id[ $id ] );
+				$variations  = DTB_VariationReadModelService::get_normalized( $dto['id'], $raw_by_id[ $id ], false );
 				$default_var = dtb_catalog_resolve_default_variation( $dto, $variations );
 				$dto         = dtb_catalog_apply_default_variation_to_card( $dto, $default_var );
 			}
