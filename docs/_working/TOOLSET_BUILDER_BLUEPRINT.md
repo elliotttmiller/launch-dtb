@@ -1656,12 +1656,10 @@ Your existing catalog already has canonical tool families such as:
 ```text
 automatic_taper
 flat_box
-flat_box_handle
+handle
 angle_head
-angle_head_handle
 corner_box
 corner_roller
-corner_roller_handle
 pump
 filler_adapter
 gooseneck
@@ -1674,8 +1672,7 @@ For example:
 | Tool family | Default visual behavior |
 |---|---|
 | Automatic taper | Full-width horizontal |
-| Flat-box handle | Horizontal row |
-| Angle-head handle | Horizontal row |
+| Handle | Horizontal row |
 | Pump | Vertical cluster |
 | Flat box | Large bottom-row object |
 | Corner box | Medium object |

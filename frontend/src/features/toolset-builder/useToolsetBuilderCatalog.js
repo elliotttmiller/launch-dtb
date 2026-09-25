@@ -19,6 +19,7 @@ function normalizePagination(payload, fallbackPage = 1) {
 
 export default function useToolsetBuilderCatalog({
   toolFamily,
+  displayCategory = '',
   brand = '',
   search = '',
   page = 1,
@@ -33,8 +34,8 @@ export default function useToolsetBuilderCatalog({
   const requestIdRef = useRef(0);
 
   const requestKey = useMemo(
-    () => JSON.stringify({ toolFamily, brand, search, page }),
-    [brand, page, search, toolFamily],
+    () => JSON.stringify({ toolFamily, displayCategory, brand, search, page }),
+    [brand, displayCategory, page, search, toolFamily],
   );
 
   const load = useCallback(async () => {
@@ -55,6 +56,7 @@ export default function useToolsetBuilderCatalog({
     try {
       const payload = await fetchToolsetProducts({
         toolFamily,
+        displayCategory,
         brand,
         search,
         page,
@@ -82,7 +84,7 @@ export default function useToolsetBuilderCatalog({
         },
       }));
     }
-  }, [brand, enabled, page, search, toolFamily]);
+  }, [brand, displayCategory, enabled, page, search, toolFamily]);
 
   useEffect(() => {
     void requestKey;
