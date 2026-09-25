@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { brandToSlug } from '../../utils/catalogUrlState.js';
 import { buildDisplayCategoryUrl, normalizeCatalogCategoryEntry } from '../../utils/catalogFacets.js';
 import ProductModal from '../product/ProductModal.jsx';
@@ -27,6 +27,7 @@ export default function StorefrontSearchOverlay({
   const { addToCart } = useCart();
   const [modalProduct, setModalProduct] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const modalClearTimerRef = useRef(null);
   const hasQuery = useMemo(() => query.trim().length > 0, [query]);
   const productResults = useMemo(() => (Array.isArray(results) ? results : []), [results]);
   const hasLoadedResults = !loading && productResults.length > 0;
@@ -39,7 +40,11 @@ export default function StorefrontSearchOverlay({
 
   const closeQuickView = useCallback(() => {
     setIsModalOpen(false);
-    setModalProduct(null);
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+    modalClearTimerRef.current = window.setTimeout(() => {
+      setModalProduct(null);
+      modalClearTimerRef.current = null;
+    }, 220);
   }, []);
 
   const closeSearch = useCallback(() => {
@@ -69,8 +74,16 @@ export default function StorefrontSearchOverlay({
 
   const openQuickView = useCallback((product) => {
     if (!product?.id) return;
+    if (modalClearTimerRef.current) {
+      window.clearTimeout(modalClearTimerRef.current);
+      modalClearTimerRef.current = null;
+    }
     setModalProduct(product);
     setIsModalOpen(true);
+  }, []);
+
+  useEffect(() => () => {
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
   }, []);
 
   const handleAddToCart = useCallback(async (product, quantity = 1) => {
