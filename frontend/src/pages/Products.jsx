@@ -21,16 +21,15 @@ function formatFilterLabel(value = '') {
 function ProductsHero({ activeFilters = [], onRemoveFilter = null }) {
   return (
     <>
-      <div className="dtb-products-breadcrumb-shell">
-        <Breadcrumb
-          items={[{ label: 'Home', path: '/' }, { label: 'All Products' }]}
-          activeFilters={activeFilters}
-          onRemoveFilter={onRemoveFilter}
-        />
-      </div>
-
       <header className="dtb-products-hero" aria-labelledby="dtb-products-hero-title">
         <div className="dtb-products-hero__inner">
+          <div className="dtb-products-breadcrumb-shell">
+            <Breadcrumb
+              items={[{ label: 'Home', path: '/' }, { label: 'All Products' }]}
+              activeFilters={activeFilters}
+              onRemoveFilter={onRemoveFilter}
+            />
+          </div>
           <div className="dtb-products-hero__content">
             <hr className="dtb-products-hero__divider" aria-hidden="true" />
             <h1 id="dtb-products-hero-title" className="dtb-products-hero__title">All Products</h1>
