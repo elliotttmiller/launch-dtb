@@ -9,9 +9,9 @@
  *   WP-CLI:  wp dtb catalog backfill-meta [--dry-run] [--batch=50]
  *   Admin AJAX: action=dtb_catalog_meta_backfill (dtb_admin_ops cap required)
  *
- * The tool is idempotent: it only writes values that are currently absent or
- * explicitly empty.  Existing non-empty meta values are preserved unless
- * --force is passed (CLI only).
+ * The tool is idempotent: it writes missing values and performs only explicitly
+ * allowlisted canonical-family repairs for known historical misclassifications.
+ * Other existing non-empty values are preserved unless --force is passed.
  *
  * @package drywall-toolbox
  */
@@ -206,9 +206,11 @@ final class DTB_MetaBackfillTool {
 		$builder_slots       = DTB_CatalogProductNormalizer::decode_csv_or_array(
 			(string) get_post_meta( $post_id, DTB_ProductMeta::BUILDER_SLOTS, true )
 		);
-		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug(
-			(string) get_post_meta( $post_id, DTB_ProductMeta::DISPLAY_CATEGORY_KEY, true )
-		);
+		$display_category_raw = (string) get_post_meta( $post_id, DTB_ProductMeta::DISPLAY_CATEGORY_KEY, true );
+		if ( '' === $display_category_raw && $parent_id > 0 ) {
+			$display_category_raw = (string) get_post_meta( $parent_id, DTB_ProductMeta::DISPLAY_CATEGORY_KEY, true );
+		}
+		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug( $display_category_raw );
 		$tool_family = DTB_ToolFamilyResolver::resolve(
 			$existing_family,
 			$builder_slots,
@@ -258,16 +260,29 @@ final class DTB_MetaBackfillTool {
 
 		foreach ( $candidates as $meta_key => $new_value ) {
 			$existing = get_post_meta( $post_id, $meta_key, true );
-			if ( ! $force && '' !== $existing ) {
+			$canonical_family_repair = DTB_ProductMeta::TOOL_FAMILY === $meta_key
+				&& DTB_ToolFamilyResolver::is_canonical_repair(
+					(string) $existing,
+					(string) $new_value,
+					$display_category_key,
+					$wc_product->get_name()
+				);
+
+			if ( ! $force && '' !== $existing && ! $canonical_family_repair ) {
 				$skipped++;
 				$fields[ $meta_key ] = [ 'action' => 'skip', 'current' => $existing ];
 				continue;
 			}
+
 			if ( ! $dry_run ) {
 				update_post_meta( $post_id, $meta_key, $new_value );
 			}
 			$written++;
-			$fields[ $meta_key ] = [ 'action' => $dry_run ? 'would_set' : 'set', 'value' => $new_value ];
+			$fields[ $meta_key ] = [
+				'action'   => $dry_run ? 'would_set' : 'set',
+				'value'    => $new_value,
+				'previous' => $canonical_family_repair ? $existing : '',
+			];
 		}
 
 		return compact( 'written', 'skipped', 'fields' ) + [ 'id' => $post_id ];
