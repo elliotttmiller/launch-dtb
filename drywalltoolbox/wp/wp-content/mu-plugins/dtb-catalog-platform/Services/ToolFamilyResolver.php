@@ -2,19 +2,16 @@
 /**
  * DTB_ToolFamilyResolver
  *
- * Determines the canonical tool family key for a product.
+ * Resolves canonical functional tool families from the strongest available
+ * catalog evidence while preserving one authority for classification.
  *
  * Priority:
- *   1. _dtb_tool_family meta (explicit) — always wins if set and valid.
- *   2. _dtb_builder_slots meta — infer family from the first slot's allowed families.
- *   3. Exact display-category classification when that category maps one-to-one.
- *   4. Narrow broad-category heuristic for categories that map one-to-one.
- *   5. Product-name keyword heuristic — last resort, transition only.
- *
- * Broad categories such as taping, finishing, corner, handles, and mudboxes are
- * intentionally NOT mapped directly because each contains multiple distinct
- * tool families. Ambiguous classifications remain unassigned instead of being
- * guessed.
+ *   1. Deterministic migration of known legacy/misclassified family values.
+ *   2. Valid explicit _dtb_tool_family meta.
+ *   3. Builder-slot metadata.
+ *   4. Exact one-to-one display category.
+ *   5. Narrow one-to-one broad category.
+ *   6. Bounded product-name fallback.
  *
  * @package drywall-toolbox
  */
@@ -23,35 +20,19 @@ defined( 'ABSPATH' ) || exit;
 
 final class DTB_ToolFamilyResolver {
 
-	/**
-	 * Exact display category → tool family mappings.
-	 *
-	 * Only one-to-one mappings belong here. Ambiguous display categories such
-	 * as handles, toolsets, semi-automatic tapers/banjos, and mixed
-	 * gooseneck/filler-adapter buckets are intentionally omitted.
-	 *
-	 * @var array<string, string>
-	 */
 	const DISPLAY_CATEGORY_FAMILY_HINTS = [
-		'automatic_tapers'          => DTB_ToolFamilies::AUTOMATIC_TAPER,
-		'flat_boxes'                => DTB_ToolFamilies::FLAT_BOX,
-		'corner_finishers'          => DTB_ToolFamilies::ANGLE_HEAD,
-		'automatic_corner_rollers'  => DTB_ToolFamilies::CORNER_ROLLER,
-		'automatic_loading_pumps'   => DTB_ToolFamilies::PUMP,
-		'smoothing_blades'          => DTB_ToolFamilies::SKIMMING_BLADE,
-		'parts'                     => DTB_ToolFamilies::REPLACEMENT_PART,
-		'stilts'                    => DTB_ToolFamilies::STILT,
+		'automatic_tapers'                         => DTB_ToolFamilies::AUTOMATIC_TAPER,
+		'flat_boxes'                               => DTB_ToolFamilies::FLAT_BOX,
+		'handles'                                  => DTB_ToolFamilies::HANDLE,
+		'corner_finishers'                         => DTB_ToolFamilies::ANGLE_HEAD,
+		'automatic_angle_boxes_corner_applicators'=> DTB_ToolFamilies::CORNER_BOX,
+		'automatic_corner_rollers'                 => DTB_ToolFamilies::CORNER_ROLLER,
+		'automatic_loading_pumps'                  => DTB_ToolFamilies::PUMP,
+		'smoothing_blades'                         => DTB_ToolFamilies::SKIMMING_BLADE,
+		'parts'                                    => DTB_ToolFamilies::REPLACEMENT_PART,
+		'stilts'                                   => DTB_ToolFamilies::STILT,
 	];
 
-	/**
-	 * Broad DTB category → default family mappings.
-	 *
-	 * Keep this list limited to categories that represent one functional family.
-	 * Multi-family categories must remain unresolved until stronger evidence
-	 * (explicit meta, builder slot, exact display category, or name) exists.
-	 *
-	 * @var array<string, string>
-	 */
 	const CATEGORY_FAMILY_HINTS = [
 		'sanding'  => DTB_ToolFamilies::ACCESSORY,
 		'stilts'   => DTB_ToolFamilies::STILT,
@@ -60,44 +41,27 @@ final class DTB_ToolFamilyResolver {
 		'services' => DTB_ToolFamilies::SERVICE,
 	];
 
-	/**
-	 * Keyword → tool family mapping used only as a fallback heuristic.
-	 * Kept intentionally narrow so it does not over-classify.
-	 *
-	 * @var array<string, string>
-	 */
 	const NAME_KEYWORD_HINTS = [
-		'automatic taper' => DTB_ToolFamilies::AUTOMATIC_TAPER,
-		'flat box'        => DTB_ToolFamilies::FLAT_BOX,
-		'finishing box'   => DTB_ToolFamilies::FLAT_BOX,
-		'skimming box'    => DTB_ToolFamilies::FLAT_BOX,
-		'fat boy'         => DTB_ToolFamilies::FLAT_BOX,
-		'angle head'      => DTB_ToolFamilies::ANGLE_HEAD,
-		'corner applicator' => DTB_ToolFamilies::CORNER_BOX,
-		'corner box'      => DTB_ToolFamilies::CORNER_BOX,
-		'box handle'      => DTB_ToolFamilies::FLAT_BOX_HANDLE,
-		'angle head handle' => DTB_ToolFamilies::ANGLE_HEAD_HANDLE,
-		'corner roller'   => DTB_ToolFamilies::CORNER_ROLLER,
+		'automatic taper'      => DTB_ToolFamilies::AUTOMATIC_TAPER,
+		'flat box'             => DTB_ToolFamilies::FLAT_BOX,
+		'finishing box'        => DTB_ToolFamilies::FLAT_BOX,
+		'skimming box'         => DTB_ToolFamilies::FLAT_BOX,
+		'fat boy'              => DTB_ToolFamilies::FLAT_BOX,
+		'angle head'           => DTB_ToolFamilies::ANGLE_HEAD,
+		'corner finisher'      => DTB_ToolFamilies::ANGLE_HEAD,
+		'corner applicator'    => DTB_ToolFamilies::CORNER_BOX,
+		'corner box'           => DTB_ToolFamilies::CORNER_BOX,
+		'corner roller'        => DTB_ToolFamilies::CORNER_ROLLER,
 		'inside corner roller' => DTB_ToolFamilies::CORNER_ROLLER,
-		'loading pump'    => DTB_ToolFamilies::PUMP,
-		'hot mud pump'    => DTB_ToolFamilies::PUMP,
-		'gooseneck'       => DTB_ToolFamilies::GOOSENECK,
-		'filler adapter'  => DTB_ToolFamilies::FILLER_ADAPTER,
-		'box filler'      => DTB_ToolFamilies::FILLER_ADAPTER,
-		'skimming blade'  => DTB_ToolFamilies::SKIMMING_BLADE,
+		'loading pump'         => DTB_ToolFamilies::PUMP,
+		'hot mud pump'         => DTB_ToolFamilies::PUMP,
+		'gooseneck'            => DTB_ToolFamilies::GOOSENECK,
+		'filler adapter'       => DTB_ToolFamilies::FILLER_ADAPTER,
+		'box filler'           => DTB_ToolFamilies::FILLER_ADAPTER,
+		'handle'               => DTB_ToolFamilies::HANDLE,
+		'skimming blade'       => DTB_ToolFamilies::SKIMMING_BLADE,
 	];
 
-	/**
-	 * Resolve the tool family for a product.
-	 *
-	 * @param  string   $meta_family          _dtb_tool_family meta value (may be empty).
-	 * @param  string[] $builder_slots        _dtb_builder_slots meta (decoded array).
-	 * @param  string   $category_key         Resolved broad DTB category key.
-	 * @param  string   $display_category_key Canonical display category key.
-	 * @param  string   $product_name         Raw product name.
-	 * @param  bool     $is_parts             Whether this is a replacement part.
-	 * @return string   Tool family key, or empty string if undetermined.
-	 */
 	public static function resolve(
 		string $meta_family,
 		array  $builder_slots,
@@ -106,27 +70,37 @@ final class DTB_ToolFamilyResolver {
 		string $product_name,
 		bool   $is_parts = false
 	): string {
-		// 1. Explicit meta — always authoritative.
+		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
+
+		// 1. Deterministic repair of known historical values.
+		$migration_target = self::canonical_migration_target(
+			$meta_family,
+			$display_category_key,
+			$product_name
+		);
+		if ( '' !== $migration_target ) {
+			return $migration_target;
+		}
+
+		// 2. Valid explicit meta remains authoritative.
 		if ( '' !== $meta_family && DTB_ToolFamilies::is_valid( $meta_family ) ) {
 			return $meta_family;
 		}
 
-		// Known parts are never tool-family candidates for customer tool slots.
 		if ( $is_parts ) {
 			return DTB_ToolFamilies::REPLACEMENT_PART;
 		}
 
-		// 2. Infer from builder slots meta.
+		// 3. Builder-slot evidence.
 		if ( ! empty( $builder_slots ) ) {
-			$first_slot    = $builder_slots[0];
+			$first_slot    = (string) $builder_slots[0];
 			$slot_families = DTB_ToolFamilies::families_for_slot( $first_slot );
 			if ( ! empty( $slot_families ) ) {
 				return $slot_families[0];
 			}
 		}
 
-		// 3. Exact display-category classification.
-		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
+		// 4. Exact one-to-one display category.
 		if (
 			'' !== $display_category_key
 			&& isset( self::DISPLAY_CATEGORY_FAMILY_HINTS[ $display_category_key ] )
@@ -134,22 +108,27 @@ final class DTB_ToolFamilyResolver {
 			return self::DISPLAY_CATEGORY_FAMILY_HINTS[ $display_category_key ];
 		}
 
-		// Explicitly ambiguous/non-automatic taper buckets must not fall through
-		// to the "automatic taper" name heuristic.
-		if ( in_array( $display_category_key, [ 'toolsets', 'semi_automatic_tapers_banjos' ], true ) ) {
+		// These buckets are intentionally not tool-family authorities.
+		if ( in_array(
+			$display_category_key,
+			[ 'toolsets', 'semi_automatic_tapers_banjos', 'automatic_nail_spotters', 'tool_storage_cases' ],
+			true
+		) ) {
 			return '';
 		}
 
-		// 4. Narrow broad-category heuristic.
+		// Mixed gooseneck/filler display category: name semantics are required.
+		if ( 'automatic_goosenecks_box_fillers' === $display_category_key ) {
+			return self::resolve_loading_adapter_name( $product_name );
+		}
+
+		// 5. Narrow one-to-one broad category.
 		if ( '' !== $category_key && isset( self::CATEGORY_FAMILY_HINTS[ $category_key ] ) ) {
 			return self::CATEGORY_FAMILY_HINTS[ $category_key ];
 		}
 
-		// 5. Name keyword heuristic (transition only — avoid over-classifying).
+		// 6. Bounded name fallback.
 		$lower = strtolower( $product_name );
-
-		// "Semi Automatic Taper" contains the substring "automatic taper" but is
-		// a different product class and must never enter the automatic-taper slot.
 		if ( preg_match( '/\bsemi[-\s]?automatic\b.*\btaper\b/i', $lower ) ) {
 			return '';
 		}
@@ -158,6 +137,72 @@ final class DTB_ToolFamilyResolver {
 			if ( str_contains( $lower, $keyword ) ) {
 				return $family;
 			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * True when a non-forced backfill may safely replace an existing family.
+	 */
+	public static function is_canonical_repair(
+		string $existing_family,
+		string $resolved_family,
+		string $display_category_key,
+		string $product_name
+	): bool {
+		if ( '' === $existing_family || '' === $resolved_family || $existing_family === $resolved_family ) {
+			return false;
+		}
+
+		return $resolved_family === self::canonical_migration_target(
+			$existing_family,
+			DTB_CategoryNormalizer::canonical_display_slug( $display_category_key ),
+			$product_name
+		);
+	}
+
+	private static function canonical_migration_target(
+		string $meta_family,
+		string $display_category_key,
+		string $product_name
+	): string {
+		if ( DTB_ToolFamilies::is_legacy_handle_family( $meta_family ) ) {
+			return DTB_ToolFamilies::HANDLE;
+		}
+
+		if ( DTB_ToolFamilies::CORNER_BOX === $meta_family ) {
+			if ( 'corner_finishers' === $display_category_key ) {
+				return DTB_ToolFamilies::ANGLE_HEAD;
+			}
+			if ( 'automatic_corner_rollers' === $display_category_key ) {
+				return DTB_ToolFamilies::CORNER_ROLLER;
+			}
+		}
+
+		if (
+			DTB_ToolFamilies::PUMP === $meta_family
+			&& 'automatic_goosenecks_box_fillers' === $display_category_key
+		) {
+			return self::resolve_loading_adapter_name( $product_name );
+		}
+
+		return '';
+	}
+
+	private static function resolve_loading_adapter_name( string $product_name ): string {
+		$lower = strtolower( $product_name );
+
+		if ( str_contains( $lower, 'gooseneck' ) ) {
+			return DTB_ToolFamilies::GOOSENECK;
+		}
+
+		if (
+			str_contains( $lower, 'filler adapter' )
+			|| str_contains( $lower, 'box filler' )
+			|| str_contains( $lower, 'filler attachment' )
+		) {
+			return DTB_ToolFamilies::FILLER_ADAPTER;
 		}
 
 		return '';

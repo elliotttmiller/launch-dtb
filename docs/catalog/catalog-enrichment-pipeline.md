@@ -76,7 +76,15 @@ Cross-cutting display values such as `predator_family`, `toolsets` without `prod
 
 `scripts/catalog/catalog_taxonomy_policy.py` owns the deterministic catalog-tooling policy. `scripts/catalog/normalize_official_taxonomy.py` previews/applies only mutation-safe results. The runtime `DTB_CategoryNormalizer` remains the application-side resolver and must stay semantically aligned. The React storefront consumes backend category/display-category DTOs; it does not own classification truth.
 
-Runtime tool-family resolution is intentionally stricter than broad category classification. Broad categories such as `taping`, `finishing`, `corner`, `handles`, and `mudboxes` contain multiple functional tool families and therefore must not directly imply `_dtb_tool_family`. The runtime resolver may use explicit tool-family meta, builder-slot evidence, exact one-to-one display categories, narrow one-to-one broad categories, and finally bounded name heuristics. In particular, only the canonical `automatic_tapers` display class may deterministically imply `automatic_taper`; toolsets, nail spotters, and semi-automatic tapers/banjos must not enter the Automatic Taper Toolset Builder slot.
+Runtime tool-family resolution is intentionally stricter than broad category classification. Broad categories such as `taping`, `finishing`, `corner`, `handles`, and `mudboxes` contain multiple functional tool families and therefore must not directly imply `_dtb_tool_family`. The runtime resolver may use explicit tool-family meta, builder-slot evidence, exact one-to-one display categories, narrow one-to-one broad categories, and finally bounded name heuristics.
+
+The canonical Toolset Builder family model is:
+
+`automatic_taper`, `flat_box`, `handle`, `angle_head`, `corner_box`, `corner_roller`, `pump`, `gooseneck`, and `filler_adapter`.
+
+`handle` is intentionally universal. Historical `flat_box_handle`, `angle_head_handle`, and `corner_roller_handle` values are migration-only aliases and must not be emitted by new writes. A handle's compatible tools are a separate compatibility concern, not a tool-family concern.
+
+Exact display classifications provide deterministic repairs for known historical mistakes: `automatic_tapers → automatic_taper`, `corner_finishers → angle_head`, `automatic_corner_rollers → corner_roller`, `handles → handle`, and `automatic_loading_pumps → pump`. The mixed `automatic_goosenecks_box_fillers` display bucket requires bounded product semantics to distinguish `gooseneck` from `filler_adapter`. Toolsets, nail spotters, and semi-automatic tapers/banjos must not enter automatic-tool builder families.
 
 ## Taxonomy finding classes
 

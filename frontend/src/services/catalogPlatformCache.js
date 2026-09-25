@@ -8,7 +8,7 @@ import {
 
 const FRESH_CACHE_TTL = 5 * 60 * 1000;
 const STALE_CACHE_TTL = 24 * 60 * 60 * 1000;
-const CACHE_VERSION = 'v13';
+const CACHE_VERSION = 'v14-tool-family';
 export const CATALOG_FACETS_CONTRACT_VERSION = '2.0';
 const FACETS_CACHE_VERSION = 'v14-contract-2';
 const CATEGORY_CACHE_VERSION = 'v14-contract-2';

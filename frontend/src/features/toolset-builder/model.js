@@ -1,11 +1,13 @@
 /**
  * Frontend presentation model for the Universal Toolset Builder.
  *
- * This file intentionally owns only customer-facing workflow copy, ordering,
- * and cardinality hints used to render the in-progress frontend. It is NOT an
- * authority for product eligibility, compatibility, pricing, stock, discounts,
- * cart validity, or checkout. Those rules remain server-owned and will replace
- * these presentation hints through the Toolset Builder API contract.
+ * This file owns customer-facing workflow copy, ordering, and presentation
+ * cardinality only. Product eligibility, compatibility, pricing, stock,
+ * discounts, cart validity, and checkout remain server-owned.
+ *
+ * Handles intentionally use one universal functional family. A handle's
+ * compatibility with a selected box/corner tool is a separate domain concern
+ * and must not be inferred from the family name in React.
  */
 
 export const TOOLSET_WORKFLOWS = Object.freeze([
@@ -18,12 +20,10 @@ export const TOOLSET_WORKFLOWS = Object.freeze([
     capabilities: [
       { id: 'taper', label: 'Automatic Taper', toolFamily: 'automatic_taper', minimum: 1, maximum: 1, description: 'Applies tape and compound in one pass.' },
       { id: 'flat-boxes', label: 'Finishing Boxes', toolFamily: 'flat_box', minimum: 1, maximum: 2, description: 'Choose one or two flat boxes for finishing flats.' },
-      { id: 'flat-box-handles', label: 'Flat Box Handles', toolFamily: 'flat_box_handle', minimum: 1, maximum: 2, description: 'Handles matched to the finishing-box workflow.' },
+      { id: 'handles', label: 'Handles', toolFamily: 'handle', minimum: 1, maximum: 3, description: 'Choose the handles needed for your finishing and corner tools.' },
       { id: 'angle-heads', label: 'Angle Heads', toolFamily: 'angle_head', minimum: 1, maximum: 2, description: 'Finish inside corners and angles.' },
-      { id: 'angle-head-handle', label: 'Angle Head Handle', toolFamily: 'angle_head_handle', minimum: 1, maximum: 1, description: 'Reach and control for angle-head work.' },
       { id: 'corner-tool', label: 'Corner Applicator', toolFamily: 'corner_box', minimum: 1, maximum: 1, description: 'Apply compound through the corner workflow.' },
-      { id: 'corner-roller', label: 'Inside Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape into inside corners.' },
-      { id: 'corner-roller-handle', label: 'Corner Roller Handle', toolFamily: 'corner_roller_handle', minimum: 1, maximum: 1, description: 'Control and extend the corner roller.' },
+      { id: 'corner-roller', label: 'Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape and work corner joints with a corner roller.' },
       { id: 'pump', label: 'Loading Pump', toolFamily: 'pump', minimum: 1, maximum: 1, description: 'Load compound into automatic finishing tools.' },
     ],
   },
@@ -35,12 +35,10 @@ export const TOOLSET_WORKFLOWS = Object.freeze([
     recommendedFor: 'Dedicated finishing crews or contractors upgrading finishing equipment.',
     capabilities: [
       { id: 'flat-boxes', label: 'Finishing Boxes', toolFamily: 'flat_box', minimum: 1, maximum: 2, description: 'Choose one or two finishing boxes.' },
-      { id: 'flat-box-handles', label: 'Flat Box Handles', toolFamily: 'flat_box_handle', minimum: 1, maximum: 2, description: 'Handles for your selected finishing boxes.' },
+      { id: 'handles', label: 'Handles', toolFamily: 'handle', minimum: 1, maximum: 3, description: 'Choose handles for the finishing and corner tools in this set.' },
       { id: 'angle-heads', label: 'Angle Heads', toolFamily: 'angle_head', minimum: 1, maximum: 2, description: 'Finish inside corners and angles.' },
-      { id: 'angle-head-handle', label: 'Angle Head Handle', toolFamily: 'angle_head_handle', minimum: 1, maximum: 1, description: 'Reach and control for angle-head work.' },
       { id: 'corner-tool', label: 'Corner Applicator', toolFamily: 'corner_box', minimum: 1, maximum: 1, description: 'Apply compound through the corner workflow.' },
-      { id: 'corner-roller', label: 'Inside Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape into inside corners.' },
-      { id: 'corner-roller-handle', label: 'Corner Roller Handle', toolFamily: 'corner_roller_handle', minimum: 1, maximum: 1, description: 'Control and extend the corner roller.' },
+      { id: 'corner-roller', label: 'Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape and work corner joints with a corner roller.' },
       { id: 'pump', label: 'Loading Pump', toolFamily: 'pump', minimum: 1, maximum: 1, description: 'Load compound into finishing tools.' },
     ],
   },
@@ -52,10 +50,9 @@ export const TOOLSET_WORKFLOWS = Object.freeze([
     recommendedFor: 'Taping specialists and crews replacing the taping side of an existing setup.',
     capabilities: [
       { id: 'taper', label: 'Automatic Taper', toolFamily: 'automatic_taper', minimum: 1, maximum: 1, description: 'The core automatic taping tool.' },
+      { id: 'handles', label: 'Handles', toolFamily: 'handle', minimum: 1, maximum: 2, description: 'Choose handles for the selected corner tools.' },
       { id: 'angle-head', label: 'Angle Head', toolFamily: 'angle_head', minimum: 1, maximum: 1, description: 'Finish inside corners and angles.' },
-      { id: 'angle-head-handle', label: 'Angle Head Handle', toolFamily: 'angle_head_handle', minimum: 1, maximum: 1, description: 'Reach and control for angle-head work.' },
-      { id: 'corner-roller', label: 'Inside Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape into inside corners.' },
-      { id: 'corner-roller-handle', label: 'Corner Roller Handle', toolFamily: 'corner_roller_handle', minimum: 1, maximum: 1, description: 'Control and extend the corner roller.' },
+      { id: 'corner-roller', label: 'Corner Roller', toolFamily: 'corner_roller', minimum: 1, maximum: 1, description: 'Embed tape and work corner joints.' },
       { id: 'pump', label: 'Loading Pump', toolFamily: 'pump', minimum: 1, maximum: 1, description: 'Load compound into automatic taping tools.' },
       { id: 'gooseneck', label: 'Gooseneck', toolFamily: 'gooseneck', minimum: 1, maximum: 1, description: 'Connect the pump to the taper loading workflow.' },
     ],
@@ -68,7 +65,7 @@ export const TOOLSET_WORKFLOWS = Object.freeze([
     recommendedFor: 'Flat-box upgrades, replacements, and focused finishing setups.',
     capabilities: [
       { id: 'flat-boxes', label: 'Finishing Boxes', toolFamily: 'flat_box', minimum: 1, maximum: 2, description: 'Choose one or two box sizes.' },
-      { id: 'flat-box-handles', label: 'Flat Box Handles', toolFamily: 'flat_box_handle', minimum: 1, maximum: 2, description: 'Choose handles for the selected boxes.' },
+      { id: 'handles', label: 'Handles', toolFamily: 'handle', minimum: 1, maximum: 2, description: 'Choose one or two handles for the selected finishing boxes.' },
       { id: 'pump', label: 'Loading Pump', toolFamily: 'pump', minimum: 1, maximum: 1, description: 'Load compound into the finishing boxes.' },
       { id: 'filler-adapter', label: 'Filler Adapter', toolFamily: 'filler_adapter', minimum: 1, maximum: 1, description: 'Connect the pump to the box-loading workflow.' },
     ],

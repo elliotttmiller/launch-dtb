@@ -2,8 +2,9 @@
 /**
  * DTB_ToolsetData
  *
- * Canonical toolset template definitions — the backend source of truth for
- * Toolset Builder sets.  These mirror the SET_TEMPLATES array in
+ * Legacy brand-template definitions used by the existing /toolsets endpoints.
+ * Universal Toolset Builder reads canonical catalog families directly; these
+ * templates remain supported but use the same family taxonomy.  These mirror the SET_TEMPLATES array in
  * frontend/src/data/toolsetTemplates.js but use tool-family-based slot
  * definitions instead of keyword filter functions.
  *
@@ -24,7 +25,7 @@ final class DTB_ToolsetData {
 	const SEED_VERSION_KEY = 'dtb_toolset_templates_seed_v';
 
 	/** Bump this when SEED_TEMPLATES changes to force a re-seed. */
-	const SEED_VERSION = 1;
+	const SEED_VERSION = 2;
 
 	/**
 	 * Canonical template definitions.
@@ -52,14 +53,14 @@ final class DTB_ToolsetData {
 				[ 'id' => 'taper',                   'label' => 'Automatic Taper',              'required' => true,  'icon' => 'taper',     'hint' => 'The taper applies tape and mud in one pass.',             'allowedFamilies' => [ 'automatic_taper' ] ],
 				[ 'id' => 'flatBox',                 'label' => 'Flat Box #1',                  'required' => true,  'icon' => 'flatbox',   'hint' => 'Choose your primary flat finishing box size.',             'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',                'label' => 'Flat Box #2 (Optional)',        'required' => false, 'icon' => 'flatbox',   'hint' => 'Add a second flat box for faster two-coat finishing.',     'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle',               'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',    'hint' => 'Controls the angle and reach of your flat boxes.',         'allowedFamilies' => [ 'flat_box_handle' ] ],
-				[ 'id' => 'boxHandle2',              'label' => 'Second Box Handle (Optional)', 'required' => false, 'icon' => 'handle',    'hint' => 'Match with your second flat box selection.',               'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle',               'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',    'hint' => 'Controls the angle and reach of your flat boxes.',         'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'boxHandle2',              'label' => 'Second Box Handle (Optional)', 'required' => false, 'icon' => 'handle',    'hint' => 'Match with your second flat box selection.',               'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead',               'label' => 'Angle Head',                   'required' => true,  'icon' => 'anglehead', 'hint' => 'Finishes inside angles where walls meet.',                 'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'angleHead2',              'label' => 'Second Angle Head (Optional)', 'required' => false, 'icon' => 'anglehead', 'hint' => 'Having two angle heads speeds up inside angle work.',       'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerApplicator',        'label' => 'Corner Applicator',            'required' => true,  'icon' => 'cornerbox', 'hint' => 'Applies mud to outside and inside corners.',               'allowedFamilies' => [ 'corner_box' ] ],
-				[ 'id' => 'angleHeadHandle',         'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',    'hint' => 'Extends reach for ceiling angle work.',                   'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',            'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',    'hint' => 'Used with the inside corner roller.',                     'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
-				[ 'id' => 'cornerApplicatorHandle',  'label' => 'Corner Applicator Handle',     'required' => true,  'icon' => 'handle',    'hint' => 'Provides leverage when applying corner mud.',              'allowedFamilies' => [ 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle',         'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',    'hint' => 'Extends reach for ceiling angle work.',                   'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',            'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',    'hint' => 'Used with the inside corner roller.',                     'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'cornerApplicatorHandle',  'label' => 'Corner Applicator Handle',     'required' => true,  'icon' => 'handle',    'hint' => 'Provides leverage when applying corner mud.',              'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'TapeTech® EasyClean® Loading Pump',
@@ -85,14 +86,14 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',                'label' => 'Flat Box #1',                  'required' => true,  'icon' => 'flatbox',   'hint' => 'Choose your primary flat finishing box size.',         'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',               'label' => 'Flat Box #2 (Optional)',        'required' => false, 'icon' => 'flatbox',   'hint' => 'Add a second flat box for two-coat work.',             'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle',              'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',    'hint' => 'Controls angle and reach of your flat boxes.',         'allowedFamilies' => [ 'flat_box_handle' ] ],
-				[ 'id' => 'boxHandle2',             'label' => 'Second Box Handle (Optional)', 'required' => false, 'icon' => 'handle',    'hint' => 'Match with your second flat box.',                     'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle',              'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',    'hint' => 'Controls angle and reach of your flat boxes.',         'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'boxHandle2',             'label' => 'Second Box Handle (Optional)', 'required' => false, 'icon' => 'handle',    'hint' => 'Match with your second flat box.',                     'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead',              'label' => 'Angle Head',                   'required' => true,  'icon' => 'anglehead', 'hint' => 'Finishes inside angles where walls meet.',             'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'angleHead2',             'label' => 'Second Angle Head (Optional)', 'required' => false, 'icon' => 'anglehead', 'hint' => 'Two angle heads speeds up angle work.',                'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerApplicator',       'label' => 'Corner Applicator',            'required' => true,  'icon' => 'cornerbox', 'hint' => 'Applies mud to outside and inside corners.',           'allowedFamilies' => [ 'corner_box' ] ],
-				[ 'id' => 'angleHeadHandle',        'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',    'hint' => 'Extends reach for ceiling angle work.',               'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',           'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',    'hint' => 'Used with the inside corner roller.',                 'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
-				[ 'id' => 'cornerApplicatorHandle', 'label' => 'Corner Applicator Handle',     'required' => true,  'icon' => 'handle',    'hint' => 'Leverage when applying corner mud.',                  'allowedFamilies' => [ 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle',        'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',    'hint' => 'Extends reach for ceiling angle work.',               'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',           'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',    'hint' => 'Used with the inside corner roller.',                 'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'cornerApplicatorHandle', 'label' => 'Corner Applicator Handle',     'required' => true,  'icon' => 'handle',    'hint' => 'Leverage when applying corner mud.',                  'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'TapeTech® EasyClean® Loading Pump',
@@ -117,8 +118,8 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'taper',           'label' => 'Automatic Taper',   'required' => true, 'icon' => 'taper',    'hint' => 'The core of the taping set.',           'allowedFamilies' => [ 'automatic_taper' ] ],
 				[ 'id' => 'angleHead',       'label' => 'Angle Head',        'required' => true, 'icon' => 'anglehead','hint' => 'Finishes inside angles.',               'allowedFamilies' => [ 'angle_head' ] ],
-				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle', 'required' => true, 'icon' => 'handle',   'hint' => 'Extends reach for angle work.',         'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',     'required' => true, 'icon' => 'roller',   'hint' => 'For use with the inside corner roller.', 'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle', 'required' => true, 'icon' => 'handle',   'hint' => 'Extends reach for angle work.',         'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',     'required' => true, 'icon' => 'roller',   'hint' => 'For use with the inside corner roller.', 'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'TapeTech® EasyClean® Loading Pump',
@@ -144,13 +145,13 @@ final class DTB_ToolsetData {
 				[ 'id' => 'taper',           'label' => 'Automatic Taper',              'required' => true,  'icon' => 'taper',    'hint' => 'Applies tape and mud simultaneously.',    'allowedFamilies' => [ 'automatic_taper' ] ],
 				[ 'id' => 'flatBox',         'label' => 'Flat Box #1',                  'required' => true,  'icon' => 'flatbox',  'hint' => 'Choose your primary flat box size.',      'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',        'label' => 'Flat Box #2 (Optional)',        'required' => false, 'icon' => 'flatbox',  'hint' => 'Add a second flat box for two coats.',    'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle',       'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',   'hint' => 'Controls box angle and reach.',           'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle',       'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',   'hint' => 'Controls box angle and reach.',           'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead',       'label' => 'Angle Head',                   'required' => true,  'icon' => 'anglehead','hint' => 'Finishes wall-ceiling angles.',           'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'angleHead2',      'label' => 'Second Angle Head (Optional)', 'required' => false, 'icon' => 'anglehead','hint' => 'Speed up angle work with two heads.',     'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerBox',       'label' => 'Corner Box',                   'required' => true,  'icon' => 'cornerbox','hint' => 'Finishes drywall corner joints.',         'allowedFamilies' => [ 'corner_box' ] ],
-				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Extension for angle head reach.',         'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',   'hint' => 'For use with inside corner roller.',      'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
-				[ 'id' => 'cornerBoxHandle', 'label' => 'Corner Box Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Provides reach for corner box work.',     'allowedFamilies' => [ 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Extension for angle head reach.',         'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',   'hint' => 'For use with inside corner roller.',      'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'cornerBoxHandle', 'label' => 'Corner Box Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Provides reach for corner box work.',     'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'Columbia Hot Mud Pump',
@@ -176,13 +177,13 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',         'label' => 'Flat Box #1',                  'required' => true,  'icon' => 'flatbox',  'hint' => 'Choose your primary flat box size.',  'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',        'label' => 'Flat Box #2 (Optional)',        'required' => false, 'icon' => 'flatbox',  'hint' => 'Add a second flat box for two coats.','allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle',       'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',   'hint' => 'Controls box angle and reach.',       'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle',       'label' => 'Flat Box Handle',              'required' => true,  'icon' => 'handle',   'hint' => 'Controls box angle and reach.',       'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead',       'label' => 'Angle Head',                   'required' => true,  'icon' => 'anglehead','hint' => 'Finishes wall-ceiling angles.',       'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'angleHead2',      'label' => 'Second Angle Head (Optional)', 'required' => false, 'icon' => 'anglehead','hint' => 'Speed up angle work with two heads.', 'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerBox',       'label' => 'Corner Box',                   'required' => true,  'icon' => 'cornerbox','hint' => 'Finishes drywall corner joints.',     'allowedFamilies' => [ 'corner_box' ] ],
-				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Extension for angle head reach.',     'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',   'hint' => 'For use with inside corner roller.',  'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
-				[ 'id' => 'cornerBoxHandle', 'label' => 'Corner Box Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Provides reach for corner box work.', 'allowedFamilies' => [ 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Extension for angle head reach.',     'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',                'required' => true,  'icon' => 'roller',   'hint' => 'For use with inside corner roller.',  'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'cornerBoxHandle', 'label' => 'Corner Box Handle',            'required' => true,  'icon' => 'handle',   'hint' => 'Provides reach for corner box work.', 'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'Columbia Hot Mud Pump',
@@ -207,8 +208,8 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'taper',           'label' => 'Automatic Taper',   'required' => true, 'icon' => 'taper',    'hint' => 'The core of the set.',             'allowedFamilies' => [ 'automatic_taper' ] ],
 				[ 'id' => 'angleHead',       'label' => 'Angle Head',        'required' => true, 'icon' => 'anglehead','hint' => 'Finishes wall-ceiling angles.',     'allowedFamilies' => [ 'angle_head' ] ],
-				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle', 'required' => true, 'icon' => 'handle',   'hint' => 'Extension for angle head reach.',   'allowedFamilies' => [ 'angle_head_handle' ] ],
-				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',     'required' => true, 'icon' => 'roller',   'hint' => 'For inside corner roller work.',    'allowedFamilies' => [ 'corner_roller', 'corner_roller_handle' ] ],
+				[ 'id' => 'angleHeadHandle', 'label' => 'Angle Head Handle', 'required' => true, 'icon' => 'handle',   'hint' => 'Extension for angle head reach.',   'allowedFamilies' => [ 'handle' ] ],
+				[ 'id' => 'rollerHandle',    'label' => 'Roller Handle',     'required' => true, 'icon' => 'roller',   'hint' => 'For inside corner roller work.',    'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'Columbia Hot Mud Pump',
@@ -233,7 +234,7 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1',            'required' => true,  'icon' => 'flatbox', 'hint' => 'Choose your primary flat box.',  'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2 (Optional)', 'required' => false, 'icon' => 'flatbox', 'hint' => 'Add a second flat box size.',     'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Flat Box Handle',        'required' => true,  'icon' => 'handle',  'hint' => 'Controls box angle and reach.',  'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Flat Box Handle',        'required' => true,  'icon' => 'handle',  'hint' => 'Controls box angle and reach.',  'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [
 				'Columbia Hot Mud Pump',
@@ -256,7 +257,7 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1', 'required' => true,  'icon' => 'flatbox',   'hint' => 'Choose your primary flat box.',      'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2', 'required' => false, 'icon' => 'flatbox',   'hint' => 'Add a second flat box size.',          'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',    'hint' => 'Controls flat box angle and reach.',  'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',    'hint' => 'Controls flat box angle and reach.',  'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead', 'label' => 'Angle Head',  'required' => true,  'icon' => 'anglehead', 'hint' => 'Finishes inside angles.',              'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerBox', 'label' => 'Corner Tool', 'required' => true,  'icon' => 'cornerbox', 'hint' => 'Finishes corner joints.',              'allowedFamilies' => [ 'corner_box' ] ],
 			],
@@ -281,7 +282,7 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1', 'required' => true,  'icon' => 'flatbox',   'hint' => 'Primary flat box selection.',        'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2', 'required' => false, 'icon' => 'flatbox',   'hint' => 'Optional second flat box.',           'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',    'hint' => 'Controls flat box angle and reach.', 'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',    'hint' => 'Controls flat box angle and reach.', 'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead', 'label' => 'Angle Head',  'required' => true,  'icon' => 'anglehead', 'hint' => 'Finishes inside angles.',              'allowedFamilies' => [ 'angle_head' ] ],
 			],
 			'alwaysIncluded' => [
@@ -305,7 +306,7 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1', 'required' => true,  'icon' => 'flatbox', 'hint' => 'Choose your primary flat box.',      'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2', 'required' => false, 'icon' => 'flatbox', 'hint' => 'Optional second flat box.',           'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',  'hint' => 'Controls flat box angle and reach.', 'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',  'hint' => 'Controls flat box angle and reach.', 'allowedFamilies' => [ 'handle' ] ],
 			],
 			'alwaysIncluded' => [ 'Level 5 Pump & Filler' ],
 		],
@@ -326,7 +327,7 @@ final class DTB_ToolsetData {
 				[ 'id' => 'taper',     'label' => 'Automatic Taper', 'required' => true,  'icon' => 'taper',    'hint' => 'Core taping tool.',                  'allowedFamilies' => [ 'automatic_taper' ] ],
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1',     'required' => true,  'icon' => 'flatbox',  'hint' => 'Primary flat box selection.',         'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2',     'required' => false, 'icon' => 'flatbox',  'hint' => 'Optional second flat box.',            'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Box Handle',      'required' => true,  'icon' => 'handle',   'hint' => 'Controls flat box angle and reach.',  'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Box Handle',      'required' => true,  'icon' => 'handle',   'hint' => 'Controls flat box angle and reach.',  'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead', 'label' => 'Angle Head',      'required' => true,  'icon' => 'anglehead','hint' => 'Finishes inside angles.',              'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerBox', 'label' => 'Corner Tool',     'required' => true,  'icon' => 'cornerbox','hint' => 'Finishes corner joints.',              'allowedFamilies' => [ 'corner_box' ] ],
 			],
@@ -351,7 +352,7 @@ final class DTB_ToolsetData {
 			'slots'          => [
 				[ 'id' => 'flatBox',   'label' => 'Flat Box #1', 'required' => true,  'icon' => 'flatbox',  'hint' => 'Primary flat box.',           'allowedFamilies' => [ 'flat_box' ] ],
 				[ 'id' => 'flatBox2',  'label' => 'Flat Box #2', 'required' => false, 'icon' => 'flatbox',  'hint' => 'Optional second flat box.',    'allowedFamilies' => [ 'flat_box' ] ],
-				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',   'hint' => 'Controls flat box reach.',     'allowedFamilies' => [ 'flat_box_handle' ] ],
+				[ 'id' => 'boxHandle', 'label' => 'Box Handle',  'required' => true,  'icon' => 'handle',   'hint' => 'Controls flat box reach.',     'allowedFamilies' => [ 'handle' ] ],
 				[ 'id' => 'angleHead', 'label' => 'Angle Head',  'required' => true,  'icon' => 'anglehead','hint' => 'Finishes inside angles.',       'allowedFamilies' => [ 'angle_head' ] ],
 				[ 'id' => 'cornerBox', 'label' => 'Corner Tool', 'required' => true,  'icon' => 'cornerbox','hint' => 'Finishes corner joints.',       'allowedFamilies' => [ 'corner_box' ] ],
 			],
