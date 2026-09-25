@@ -205,12 +205,12 @@ function collectVariationImageMeta(product = {}) {
 
   // Path 2 — WooCommerce persisted images[] on the variation object itself.
   // Keep the primary image first, then append the persisted gallery.
-  if (Array.isArray(product?.images) && product.images.length > 0) {
+  if (Array.isArray(product?.images) && product.stableImages.length > 0) {
     pushPrimary();
     product.images.forEach((image) => push(image));
     if (out.length > 0) return out;
   }
-  if (Array.isArray(product?.media?.images) && product.media.images.length > 0) {
+  if (Array.isArray(product?.media?.images) && product.media.stableImages.length > 0) {
     pushPrimary();
     product.media.images.forEach((image) => push(image));
     if (out.length > 0) return out;
@@ -308,6 +308,26 @@ export default function ProductImageGallery({ product }) {
   const images = useMemo(() => imageMeta.map((image) => image.src), [imageMeta]);
   const imageSetKey = useMemo(() => images.map((image) => imageIdentity(image)).join('|'), [images]);
   const resetKey = `${product?.id ?? ''}|${product?.sku ?? ''}|${parentId ?? ''}`;
+  const stablePrimaryRef = useRef({ resetKey, image: imageMeta[0] || null });
+  if (stablePrimaryRef.current.resetKey !== resetKey) {
+    stablePrimaryRef.current = { resetKey, image: imageMeta[0] || null };
+  } else if (!stablePrimaryRef.current.image && imageMeta[0]) {
+    stablePrimaryRef.current.image = imageMeta[0];
+  }
+
+  const stableImageMeta = useMemo(() => {
+    if (!stablePrimaryRef.current.image || imageMeta.length === 0) return imageMeta;
+    const primary = stablePrimaryRef.current.image;
+    const primaryKey = imageIdentity(primary.src);
+    const rest = imageMeta.filter((image, index) => index !== 0 && imageIdentity(image.src) !== primaryKey);
+    return [primary, ...rest];
+  }, [imageMeta, resetKey]);
+
+  const stableImages = useMemo(
+    () => stableImageMeta.map((image) => image.src),
+    [stableImageMeta],
+  );
+
   const [lastResetKey, setLastResetKey] = useState(resetKey);
 
   if (resetKey !== lastResetKey) {
@@ -319,9 +339,9 @@ export default function ProductImageGallery({ product }) {
     setParentImageMeta([]);
   }
 
-  const hasMultiple = images.length > 1;
-  const activeIndex = images.length > 0 ? Math.min(currentIndex, images.length - 1) : 0;
-  const activeLightboxIndex = images.length > 0 ? Math.min(lightbox.index, images.length - 1) : 0;
+  const hasMultiple = stableImages.length > 1;
+  const activeIndex = stableImages.length > 0 ? Math.min(currentIndex, stableImages.length - 1) : 0;
+  const activeLightboxIndex = stableImages.length > 0 ? Math.min(lightbox.index, stableImages.length - 1) : 0;
 
   const updateThumbRailState = useCallback(() => {
     const rail = thumbsRef.current;
@@ -356,15 +376,15 @@ export default function ProductImageGallery({ product }) {
   // only after the shopper clicked an arrow on some browsers/layout passes.
   useLayoutEffect(() => {
     const rail = thumbsRef.current;
-    if (!rail || images.length <= 1) return;
+    if (!rail || stableImages.length <= 1) return;
     rail.scrollTop = 0;
     rail.scrollLeft = 0;
     updateThumbRailState();
-  }, [imageSetKey, images.length, updateThumbRailState]);
+  }, [resetKey, stableImages.length, updateThumbRailState]);
 
   useEffect(() => {
     const rail = thumbsRef.current;
-    if (!rail || images.length <= 1) return undefined;
+    if (!rail || stableImages.length <= 1) return undefined;
 
     const handleRailChange = () => updateThumbRailState();
     rail.addEventListener('scroll', handleRailChange, { passive: true });
@@ -380,7 +400,7 @@ export default function ProductImageGallery({ product }) {
       rail.removeEventListener('scroll', handleRailChange);
       resizeObserver?.disconnect();
     };
-  }, [imageSetKey, images.length, updateThumbRailState]);
+  }, [resetKey, stableImages.length, updateThumbRailState]);
 
   const scrollThumb = useCallback((index) => {
     thumbsRef.current?.children[index]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -448,8 +468,8 @@ export default function ProductImageGallery({ product }) {
   useEffect(() => {
     currentIndexRef.current = activeIndex;
     lightboxRef.current = lightbox;
-    imagesRef.current = images;
-  }, [activeIndex, lightbox, images]);
+    imagesRef.current = stableImages;
+  }, [activeIndex, lightbox, stableImages]);
 
   useEffect(() => {
     const handler = (event) => {
@@ -492,14 +512,14 @@ export default function ProductImageGallery({ product }) {
   }, [lightbox.open]);
 
   useEffect(() => {
-    if (images.length <= 1) return;
-    const length = images.length;
-    [images[(activeIndex + 1) % length], images[(activeIndex - 1 + length) % length]].forEach((src) => {
+    if (stableImages.length <= 1) return;
+    const length = stableImages.length;
+    [stableImages[(activeIndex + 1) % length], stableImages[(activeIndex - 1 + length) % length]].forEach((src) => {
       if (!src) return;
       const image = new Image();
       image.src = src;
     });
-  }, [activeIndex, images]);
+  }, [activeIndex, stableImages]);
 
   useEffect(() => {
     const element = galleryRef.current;
@@ -565,9 +585,9 @@ export default function ProductImageGallery({ product }) {
     scrollThumbRail(1);
   };
 
-  const activeMeta = imageMeta[activeIndex] || imageMeta[0];
-  const activeLightboxMeta = imageMeta[activeLightboxIndex] || imageMeta[0];
-  const activeImageKey = imageIdentity(images[activeIndex]);
+  const activeMeta = stableImageMeta[activeIndex] || stableImageMeta[0];
+  const activeLightboxMeta = stableImageMeta[activeLightboxIndex] || stableImageMeta[0];
+  const activeImageKey = imageIdentity(stableImages[activeIndex]);
 
   // A variation can retain image index zero while its source changes. Keeping
   // load state by index made the replacement inherit the previous image's
@@ -612,11 +632,11 @@ export default function ProductImageGallery({ product }) {
 
           <AnimatePresence initial={false} custom={direction} mode="sync">
             <Motion.img
-              key={`${activeIndex}-${images[activeIndex]}`}
-              src={images[activeIndex]}
+              key={`${activeIndex}-${stableImages[activeIndex]}`}
+              src={stableImages[activeIndex]}
               srcSet={activeMeta?.srcSet || undefined}
               sizes={activeMeta?.sizes || '(max-width: 767px) 92vw, 48vw'}
-              alt={`${product?.name || 'Product'} — image ${activeIndex + 1} of ${images.length}`}
+              alt={`${product?.name || 'Product'} — image ${activeIndex + 1} of ${stableImages.length}`}
               custom={direction}
               variants={galleryVariants}
               initial="enter"
@@ -658,10 +678,10 @@ export default function ProductImageGallery({ product }) {
               </button>
 
               <div className="product-image-gallery__counter absolute bottom-3 right-3 z-10 flex items-center pointer-events-none">
-                {activeIndex + 1} / {images.length}
+                {activeIndex + 1} / {stableImages.length}
               </div>
 
-              {images.length <= 8 && (
+              {stableImages.length <= 8 && (
                 <div className="absolute bottom-3 left-3 right-16 flex items-center gap-1.5 z-10 pointer-events-none">
                   {images.map((_, index) => (
                     <span
@@ -688,7 +708,7 @@ export default function ProductImageGallery({ product }) {
             </button>
 
             <div ref={thumbsRef} className="product-image-gallery__thumbs flex gap-2 overflow-x-auto md:px-10" style={{ scrollbarWidth: 'none' }} aria-label="Product image thumbnails">
-              {images.map((image, index) => (
+              {stableImages.map((image, index) => (
                 <button
                   key={`${image}-${index}`}
                   type="button"
@@ -709,14 +729,14 @@ export default function ProductImageGallery({ product }) {
                   />
                 </button>
               ))}
-              {images.length > 4 ? (
+              {stableImages.length > 4 ? (
                 <button
                   type="button"
                   className="product-image-gallery__mobile-more"
                   onClick={() => openLightbox(4)}
-                  aria-label={`View ${images.length - 4} more product ${images.length - 4 === 1 ? 'image' : 'images'}`}
+                  aria-label={`View ${stableImages.length - 4} more product ${stableImages.length - 4 === 1 ? 'image' : 'images'}`}
                 >
-                  +{images.length - 4}
+                  +{stableImages.length - 4}
                 </button>
               ) : null}
             </div>
@@ -761,11 +781,11 @@ export default function ProductImageGallery({ product }) {
               >
                 <AnimatePresence initial={false} custom={lightbox.dir}>
                   <Motion.img
-                    key={`${activeLightboxIndex}-${images[activeLightboxIndex]}`}
-                    src={images[activeLightboxIndex]}
+                    key={`${activeLightboxIndex}-${stableImages[activeLightboxIndex]}`}
+                    src={stableImages[activeLightboxIndex]}
                     srcSet={activeLightboxMeta?.srcSet || undefined}
                     sizes={activeLightboxMeta?.sizes || '100vw'}
-                    alt={`${product?.name || 'Product'} — image ${activeLightboxIndex + 1} of ${images.length}`}
+                    alt={`${product?.name || 'Product'} — image ${activeLightboxIndex + 1} of ${stableImages.length}`}
                     custom={lightbox.dir}
                     variants={slideVariants}
                     initial="enter"
@@ -791,7 +811,7 @@ export default function ProductImageGallery({ product }) {
                       <ChevronRight size={26} />
                     </button>
                     <div className="product-image-gallery__lb-counter absolute bottom-4 left-1/2 -translate-x-1/2">
-                      {activeLightboxIndex + 1} / {images.length}
+                      {activeLightboxIndex + 1} / {stableImages.length}
                     </div>
                   </>
                 )}
