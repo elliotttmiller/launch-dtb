@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ProductsCatalogPlatform from './ProductsCatalogPlatform.jsx';
 import Breadcrumb from '../components/shared/Breadcrumb.jsx';
+import productsHeroImage from '../assets/media/hero-background.webp';
 import {
   buildCatalogUrl,
   canonicalBrandLabel,
@@ -31,15 +32,23 @@ function ProductsHero({ activeFilters = [], onRemoveFilter = null }) {
             />
           </div>
           <div className="dtb-products-hero__content">
-            <hr className="dtb-products-hero__divider" aria-hidden="true" />
+            <div className="dtb-products-hero__eyebrow-row">
+              <span className="dtb-products-hero__eyebrow">Products</span>
+              <span className="dtb-products-hero__eyebrow-rule" aria-hidden="true" />
+            </div>
             <h1 id="dtb-products-hero-title" className="dtb-products-hero__title">All Products</h1>
             <p className="dtb-products-hero__description">Professional drywall tools, parts and supplies.</p>
           </div>
 
-          <div className="dtb-products-hero__art" aria-hidden="true">
-            <span className="dtb-products-hero__slash dtb-products-hero__slash--one" />
-            <span className="dtb-products-hero__slash dtb-products-hero__slash--two" />
-            <span className="dtb-products-hero__slash dtb-products-hero__slash--three" />
+          <div className="dtb-products-hero__media" aria-hidden="true">
+            <img
+              src={productsHeroImage}
+              alt=""
+              className="dtb-products-hero__image"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
           </div>
         </div>
       </header>
