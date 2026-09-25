@@ -197,9 +197,9 @@
   text-align: left;
   cursor: pointer;
   transition:
-    border-color var(--dtb-motion-normal),
-    box-shadow var(--dtb-motion-normal),
-    transform var(--dtb-motion-normal);
+    border-color var(--dtb-motion-standard),
+    box-shadow var(--dtb-motion-standard),
+    transform var(--dtb-motion-standard);
 }
 
 .dtb-toolset-workflow-card:hover {
@@ -639,9 +639,9 @@
   border-radius: var(--dtb-radius-lg);
   background: var(--dtb-surface);
   transition:
-    border-color var(--dtb-motion-normal),
-    box-shadow var(--dtb-motion-normal),
-    transform var(--dtb-motion-normal);
+    border-color var(--dtb-motion-standard),
+    box-shadow var(--dtb-motion-standard),
+    transform var(--dtb-motion-standard);
 }
 
 .dtb-toolset-product-card:hover {
