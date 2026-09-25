@@ -4,7 +4,7 @@ import '../../styles/breadcrumb.css';
 /**
  * Shared breadcrumb + active-filter trail.
  *
- * `items` is an ordered array of `{ label, path }`; the last entry renders
+ * `items` is an ordered array of `{ label, path? , onClick? }`; the last entry renders
  * as the current page. `activeFilters` is an optional array of
  * `{ id, label, type?, value? }` tokens. When `onRemoveFilter` is supplied,
  * each token becomes independently removable without owning filter state here.
