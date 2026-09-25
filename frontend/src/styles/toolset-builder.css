@@ -805,7 +805,10 @@
 
 .dtb-toolset-product-card__variation-option-copy small {
   color: var(--dtb-muted);
-  font-size: 0.68rem;
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 620;
+  line-height: 1.25;
 }
 
 .dtb-toolset-product-card__variation-option-price {
