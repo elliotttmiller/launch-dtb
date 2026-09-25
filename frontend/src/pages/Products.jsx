@@ -16,6 +16,7 @@ function ProductsHero() {
       <header className="dtb-products-hero" aria-labelledby="dtb-products-hero-title">
         <div className="dtb-products-hero__inner">
           <div className="dtb-products-hero__content">
+            <hr className="dtb-products-hero__divider" aria-hidden="true" />
             <h1 id="dtb-products-hero-title" className="dtb-products-hero__title">All Products</h1>
             <p className="dtb-products-hero__description">Professional drywall tools, parts and supplies.</p>
           </div>
