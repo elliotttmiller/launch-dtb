@@ -86,6 +86,17 @@ The canonical Toolset Builder family model is:
 
 Exact display classifications provide deterministic repairs for known historical mistakes: `automatic_tapers → automatic_taper`, `corner_finishers → angle_head`, `automatic_corner_rollers → corner_roller`, `handles → handle`, and `automatic_loading_pumps → pump`. The mixed `automatic_goosenecks_box_fillers` display bucket requires bounded product semantics to distinguish `gooseneck` from `filler_adapter`. Toolsets, nail spotters, and semi-automatic tapers/banjos must not enter automatic-tool builder families.
 
+## Variation read contract
+
+Variable-product reads have two distinct consumer contracts:
+
+- PDP/detail reads may use full variation normalization and catalog media-gallery enrichment when the product page needs the complete ordered media projection.
+- Configuration-selector and catalog-card reads must remain bounded. They read authoritative WooCommerce child variations directly, normalize identity/attributes/price/inventory/purchasability and the already-persisted primary image, and skip catalog media-manifest/filesystem gallery enrichment.
+
+`GET /wp-json/dtb/v1/catalog/products/:id/variations` is the bounded selector contract. It must not scan the catalog media directory merely to open a size/configuration control. Catalog listing default-variation resolution likewise disables gallery enrichment.
+
+This separation preserves one WooCommerce variation authority while preventing PDP media work from becoming a latency/failure dependency for Toolset Builder and product-card configuration.
+
 ## Taxonomy finding classes
 
 The audit separates taxonomy findings by mutation safety:
