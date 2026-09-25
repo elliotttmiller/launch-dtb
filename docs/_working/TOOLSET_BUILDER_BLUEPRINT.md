@@ -1397,3 +1397,776 @@ Your responsibility is to:
 Do not optimize for matching this document line-for-line.
 
 Optimize for delivering the intended Drywall Toolbox Toolset Builder correctly, safely, maintainably, and coherently within the active repository.
+
+
+Yes. **The workflow is production-realistic**, but only if we distinguish between a **real-time visual composition** and a **new raster image file being generated on every click**.
+
+The production design I would use is:
+
+> **Compose the customer's selected real product assets instantly in the browser while they build the set. Generate a persistent image file only when there is a reason to persist one.**
+
+That is technically straightforward, fast, deterministic, and considerably simpler than AI image generation.
+
+## 1. Architecture
+
+### What “real time” should mean
+
+When a customer adds a flat box, the builder should update essentially instantly:
+
+```text
+Customer selects product
+        ↓
+React updates selections
+        ↓
+Collage layout recalculates
+        ↓
+Existing transparent product assets reposition
+        ↓
+Visible result updates immediately
+```
+
+Nothing needs to be sent to an image-generation service.
+
+Nothing needs to go through Action Scheduler.
+
+Nothing needs to be uploaded into WordPress Media Library during normal configuration.
+
+The browser is simply displaying several real product images inside one composition.
+
+Think of it as:
+
+```html
+<div class="toolset-collage">
+    <img class="long-tool" ... />
+    <img class="handle" ... />
+    <img class="flat-box" ... />
+    <img class="flat-box" ... />
+    <img class="pump" ... />
+</div>
+```
+
+with the positions calculated automatically.
+
+That is completely normal frontend engineering.
+
+---
+
+## The important distinction
+
+There are really **two separate outputs**.
+
+### A. Live Builder Preview
+
+This isn't necessarily an image file.
+
+It's a rendered composition:
+
+```text
+React
++
+CSS / Canvas
++
+real product assets
+```
+
+It updates immediately.
+
+### B. Persisted Toolset Image
+
+Only create this when needed:
+
+```text
+Save Toolset
+Add Set to Cart
+Generate Quote
+Share Toolset
+Order Placement
+```
+
+At that point, render the exact composition into:
+
+```text
+toolset-{configurationHash}.webp
+```
+
+The persistent raster can then be used outside the builder.
+
+This split is what makes the architecture practical.
+
+---
+
+# How fast would the live version be?
+
+Very fast.
+
+Once the individual product assets are downloaded, changing the collage basically involves:
+
+```text
+calculate 5–15 rectangles
++
+move 5–15 <img> elements
+```
+
+That's trivial work for a browser.
+
+There should be no perceptible “image generation” wait.
+
+For example:
+
+```text
+Add 10" flat box
+→ ~instant UI update
+
+Change 10" → 12"
+→ image source swaps/reflows
+
+Remove angle head
+→ remaining elements reposition
+
+Add second box
+→ boxes redistribute across bottom row
+```
+
+This isn't computationally expensive.
+
+---
+
+# Your reference style makes this much more feasible
+
+The examples you provided are almost ideal for automated composition.
+
+They don't require:
+
+- believable photographic shadows
+- shared scene perspective
+- matching floor plane
+- matching light source
+- object-to-object reflections
+- realistic physical staging
+- image synthesis
+
+They are essentially:
+
+> **accurately scaled ecommerce product images arranged intelligently on a white canvas.**
+
+That can be done deterministically.
+
+For example:
+
+```text
+┌─────────────────────────────────────────────────┐
+
+ AUTOMATIC TAPER ────────────────────────────────
+
+ HANDLE ─────────────────────────────────────────
+
+ HANDLE ─────────────────────────────────────────
+
+ ANGLE HEAD HANDLE ──────────────────────────────
+
+                         [pump]
+ box   angle  roller      [pump]
+ tool  head   adapter
+
+ [    10" flat box    ] [    12" flat box    ]
+
+└─────────────────────────────────────────────────┘
+```
+
+The products do not even have to share the same original photograph.
+
+They just need good isolated source assets.
+
+---
+
+# Where projects like this fail
+
+The layout algorithm isn't really the difficult part.
+
+**Asset consistency is.**
+
+If one product image looks like:
+
+```text
+1500×1500
+perfect transparent product
+tight crop
+```
+
+while another is:
+
+```text
+500×500
+product occupies 20% of frame
+white JPEG background
+heavy embedded shadow
+```
+
+the finished collage will look amateurish regardless of how good the renderer is.
+
+Therefore, I'd establish a canonical **builder asset pipeline**.
+
+For every builder-compatible product/variation:
+
+```text
+source product image
+       ↓
+background normalization
+       ↓
+trim whitespace
+       ↓
+consistent padding
+       ↓
+correct orientation
+       ↓
+quality validation
+       ↓
+builder asset
+```
+
+This is done **once per product**, not once per toolset.
+
+That's manageable.
+
+---
+
+# You probably do not even need every asset to be transparent
+
+Because your desired background is white, high-quality white-background source photography can work too.
+
+But transparent assets are more robust because they let us:
+
+- pack items closer
+- overlap selectively
+- use non-white backgrounds later
+- normalize inconsistent whitespace
+- create responsive crops
+- position objects accurately
+
+So transparent WebP/PNG would still be the preferred canonical format.
+
+---
+
+# You don't need to manually position every product
+
+The renderer should understand **tool families**.
+
+Your existing catalog already has canonical tool families such as:
+
+```text
+automatic_taper
+flat_box
+flat_box_handle
+angle_head
+angle_head_handle
+corner_box
+corner_roller
+corner_roller_handle
+pump
+filler_adapter
+gooseneck
+```
+
+Those can drive visual layout too.
+
+For example:
+
+| Tool family | Default visual behavior |
+|---|---|
+| Automatic taper | Full-width horizontal |
+| Flat-box handle | Horizontal row |
+| Angle-head handle | Horizontal row |
+| Pump | Vertical cluster |
+| Flat box | Large bottom-row object |
+| Corner box | Medium object |
+| Angle head | Small/medium object |
+| Roller | Small object |
+| Adapter | Small filler object |
+
+That means adding a new product usually requires **no image-layout configuration at all**.
+
+If it is correctly classified:
+
+```text
+toolFamily = flat_box
+```
+
+the renderer knows how to treat it.
+
+---
+
+# We should support occasional exceptions
+
+There will inevitably be odd-shaped products.
+
+So use defaults plus an override.
+
+Normally:
+
+```json
+{
+  "toolFamily": "flat_box"
+}
+```
+
+is enough.
+
+For a weird product:
+
+```json
+{
+  "builderMedia": {
+    "scale": 0.86,
+    "rotation": 0,
+    "visualClass": "wide_low"
+  }
+}
+```
+
+Most products never need an override.
+
+This is a realistic compromise between:
+
+> totally automatic
+
+and:
+
+> pixel-perfect control.
+
+---
+
+# Dynamic arrangement can remain deterministic
+
+I would **not** use random packing.
+
+The same set should always produce the same image.
+
+That means:
+
+```text
+same products
++ same variations
++ same quantities
++ same layout algorithm version
+=
+same composition
+```
+
+This has several advantages:
+
+- predictable UI
+- easy caching
+- easier debugging
+- screenshots/tests work
+- shareable configurations match
+- persisted render matches browser preview
+
+---
+
+# How I would actually implement the live layout
+
+I would start with CSS/React rather than Canvas.
+
+Something conceptually like:
+
+```text
+ToolsetCollage
+├── LongToolBand
+├── HandleBand
+├── MediumToolBand
+└── BottomToolBand
+```
+
+And classify products:
+
+```text
+selected items
+       ↓
+groupByVisualClass()
+       ↓
+layoutLongTools()
+layoutMediumTools()
+layoutBoxes()
+layoutAccessories()
+```
+
+Each function returns:
+
+```text
+x
+y
+width
+height
+zIndex
+```
+
+Then React renders it.
+
+This gives us accessible, responsive DOM content and simpler debugging.
+
+Canvas becomes useful only when we need the final exported bitmap.
+
+---
+
+# Responsive compositions
+
+A major advantage is that the collage can rearrange rather than merely shrink.
+
+Desktop:
+
+```text
+1200 × 800
+```
+
+might show the TapeTech-style full presentation.
+
+Mobile:
+
+```text
+600 × 700
+```
+
+could reorganize:
+
+```text
+Taper
+────────────
+
+Handle
+────────────
+
+Handle
+────────────
+
+box      pump
+
+box    accessories
+```
+
+Same products.
+
+Different composition.
+
+You don't need separate manually-created imagery.
+
+---
+
+# Persisted image generation is also realistic
+
+When the customer finalizes the set, the backend receives something like:
+
+```json
+{
+  "items": [
+    {"productId": 123, "variationId": 129},
+    {"productId": 220, "variationId": 225},
+    {"productId": 341, "variationId": 0}
+  ]
+}
+```
+
+It does **not** trust supplied image URLs.
+
+It resolves:
+
+```text
+WooCommerce ID
+→ catalog DTO
+→ builder media asset
+```
+
+Then runs the same deterministic layout algorithm and produces:
+
+```text
+1200×1200 WebP
+```
+
+For 5–20 product layers, that is not an extreme workload.
+
+ImageMagick can absolutely handle it.
+
+Sharp can handle it easily too.
+
+---
+
+# Do we even need Action Scheduler?
+
+Not necessarily for the basic preview or even every final render.
+
+A moderate-size collage could probably be rendered synchronously if sufficiently optimized.
+
+But for DTB I'd still separate it:
+
+### Live
+
+Browser:
+
+```text
+instant
+```
+
+### Saved/final image
+
+Backend cache lookup:
+
+```text
+existing image?
+    YES → return immediately
+    NO  → render
+```
+
+For a small render, synchronous rendering can be acceptable.
+
+For multiple derivatives:
+
+```text
+400×400
+800×800
+1600×1600
+mobile crop
+```
+
+I'd queue the larger derivatives through Action Scheduler.
+
+That prevents image processing from competing with cart/checkout requests.
+
+---
+
+# Never put rendering in checkout's critical path
+
+This is an important production rule.
+
+The customer should never see:
+
+> Processing toolset artwork...
+
+while waiting to complete payment.
+
+Image generation is presentation.
+
+It should never gate:
+
+```text
+cart
+checkout
+payment
+order creation
+inventory
+fulfillment
+```
+
+If the image is unavailable:
+
+```text
+order still succeeds
+```
+
+and the image can render asynchronously afterward.
+
+That's the correct reliability boundary.
+
+---
+
+# Cache it by configuration
+
+Suppose this combination exists:
+
+```text
+TapeTech taper
+TapeTech handle 34"
+TapeTech handle 42"
+10" box
+12" box
+angle head
+pump
+roller
+gooseneck
+```
+
+Canonicalize:
+
+```text
+123:129:1
+220:0:1
+235:0:1
+...
+```
+
+Hash it plus renderer version:
+
+```text
+SHA256(
+  layoutVersion +
+  normalizedSelection
+)
+```
+
+Perhaps:
+
+```text
+a919edbe...
+```
+
+Before rendering:
+
+```text
+does a919edbe.webp exist?
+```
+
+If yes, reuse it.
+
+So popular configurations become essentially free after their first render.
+
+---
+
+# Source image changes need cache invalidation
+
+Include each asset revision in the fingerprint.
+
+For example:
+
+```text
+productId
+variationId
+mediaAttachmentId
+mediaModifiedTimestamp
+rendererVersion
+```
+
+Then replacing a product photo automatically yields a different output hash.
+
+You do not have to track generated bundle images manually.
+
+---
+
+# SiteGround realism
+
+This is where I would be conservative.
+
+A simple PHP/Imagick implementation is realistic **if the production SiteGround environment exposes the required Imagick capabilities and sufficient resource limits**.
+
+I would verify that rather than assume it.
+
+If SiteGround has restrictive image-processing limits, you have alternatives:
+
+```text
+WordPress
+     ↓
+queue render request
+     ↓
+small image-render service
+     ↓
+object/media storage
+```
+
+But I would not introduce that infrastructure until it proves necessary.
+
+The browser preview does not depend on it either way.
+
+---
+
+# A realistic V1
+
+I would make V1 deliberately simple.
+
+### V1
+
+Browser-only dynamic collage:
+
+```text
+white background
+actual product images
+4 visual classes
+deterministic bands
+no shadows
+no rotations except known orientations
+```
+
+Use it directly inside:
+
+> Your Tool Set
+
+This validates the UX and asset quality.
+
+### V1.5
+
+Create transparent normalized builder assets.
+
+### V2
+
+Server-side persistent WebP rendering for:
+
+- saved sets
+- share pages
+- finalized carts
+
+### V3
+
+Fine tuning:
+
+- family scale factors
+- layout density optimization
+- intelligent whitespace packing
+- product overrides
+- multiple aspect ratios
+
+You do not need V3 to launch a useful system.
+
+---
+
+# I would not promise pixel-perfect automation for every product immediately
+
+That's the one caveat.
+
+You can absolutely automate the system.
+
+But if you dump 500 inconsistent catalog images into it and expect every combination to look like a human-designed TapeTech catalog composition on day one, that's unrealistic.
+
+A realistic quality curve is:
+
+```text
+good product assets
++
+family layout rules
+=
+~90% automatic output
+
+remaining unusual products
+=
+small per-product visual overrides
+```
+
+That is still radically less work than creating thousands or millions of possible toolset images manually.
+
+---
+
+# Production target
+
+The system I'd be comfortable putting into DTB is:
+
+```text
+Canonical catalog
+       │
+       ├── product identity
+       ├── variation identity
+       ├── tool family
+       └── normalized builder asset
+                 │
+                 ▼
+          Toolset selections
+                 │
+           ┌─────┴─────┐
+           ▼           ▼
+    React collage   Final render
+      instant       on demand
+           │           │
+           └─────┬─────┘
+                 ▼
+      deterministic layout
+```
+
+That is **plausible, maintainable, performant, and production realistic**.
+
+The key correction from the earlier concept is that I would **not describe the live builder as repeatedly “generating images.”** The live experience should be compositing existing product assets in the browser. Actual file generation should happen only when a durable image is useful.
+
+That is the architecture I'd recommend for Drywall Toolbox.
