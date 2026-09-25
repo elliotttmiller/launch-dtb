@@ -1036,10 +1036,7 @@ aside input[type="range"],
         radial-gradient(circle at 50% 110%, rgba(56,189,248,0.13) 0%, transparent 55%),
         #070d1c;
     border-bottom: 1px solid rgba(34, 85, 238, 0.15);
-    box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.04),
-        inset 0 0 40px rgba(34, 85, 238, 0.08),
-        0 4px 24px rgba(0,0,0,0.5);
+    box-shadow: none;
     z-index: 9999;
     overflow: visible;
     padding: 0.75rem 0;
