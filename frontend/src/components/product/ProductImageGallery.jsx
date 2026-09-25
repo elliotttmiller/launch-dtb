@@ -602,7 +602,7 @@ export default function ProductImageGallery({ product }) {
               <Motion.div
                 key={`skeleton-${activeIndex}`}
                 className="product-image-gallery__skeleton absolute inset-0"
-                style={{ zIndex: 1 }}
+                style={{ zIndex: 3, pointerEvents: 'none' }}
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
@@ -628,7 +628,7 @@ export default function ProductImageGallery({ product }) {
               decoding="async"
               draggable={false}
               className="product-image-gallery__image absolute inset-0 w-full h-full object-contain p-3 sm:p-4 bg-white"
-              style={{ zIndex: 2, backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+              style={{ zIndex: 2 }}
               onLoad={() => setImgLoaded((state) => ({ ...state, [activeImageKey]: true }))}
               onError={(event) => {
                 event.currentTarget.onerror = null;
