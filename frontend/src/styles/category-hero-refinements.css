@@ -21,6 +21,24 @@
   pointer-events: auto;
 }
 
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb li::before {
+  color: #fff;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a {
+  opacity: .82;
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a:hover,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb a:focus-visible,
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-content .dtb-breadcrumb__current {
+  opacity: 1;
+}
+
+
 .dtb-catalog-category-layout .dtb-category-hero-card {
   padding-top: 2.75rem;
   border-top: 0;
