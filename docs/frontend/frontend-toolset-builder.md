@@ -96,6 +96,18 @@ Catalog responses remain server-owned data. Displayed subtotal is explicitly lab
 
 Each workflow is expressed as functional tool families with minimum/maximum presentation cardinality.
 
+The handle model is universal: `handle` is the only canonical handle family exposed to the builder. The frontend does not create separate `flat_box_handle`, `angle_head_handle`, or `corner_roller_handle` authorities. Handle-to-tool compatibility is a separate server-owned concern and must be enforced through explicit compatibility metadata/validation rather than inferred from a React family name.
+
+The Complete Automatic Set currently presents seven capability steps:
+
+1. Automatic Taper
+2. Finishing Boxes
+3. Handles
+4. Angle Heads
+5. Corner Applicator
+6. Corner Roller
+7. Loading Pump
+
 This model is intentionally temporary. During the backend phase, authoritative workflow/capability/cardinality policy should be supplied by a backend contract and this frontend model should become fallback copy/configuration only or be removed.
 
 ## Cart boundary
@@ -145,7 +157,7 @@ The test protects the following invariants:
 
 - route remains lazy loaded;
 - storefront navigation points to the route;
-- catalog reads use the canonical catalog layer;
+- catalog reads use the canonical catalog layer and require `product_kind=tool` for selectable builder products;
 - the legacy `/toolsets` API is not introduced as frontend authority;
 - workflow presentation does not contain shipping/discount/pricing authority;
 - the workspace does not import or call cart mutation APIs;
