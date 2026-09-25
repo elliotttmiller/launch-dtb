@@ -13,7 +13,7 @@ import { routeVariants, reducedRouteVariants } from '../../motion/dtbMotion.js';
 export default function PageTransition({ children, locationKey }) {
   const reduceMotion = useReducedMotion();
   const [desktopViewport, setDesktopViewport] = useState(() => (
-    typeof window !== 'undefined'
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia('(min-width: 1025px)').matches
       : false
   ));
