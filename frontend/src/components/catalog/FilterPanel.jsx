@@ -366,12 +366,12 @@ function FilterCheckboxGroup({ title, items, selectedIds, onToggle }) {
         <button
           type="button"
           onClick={() => setShowAll((current) => !current)}
-          className="group mx-auto mt-0.5 inline-flex h-7 items-center justify-center gap-1 rounded px-1.5 text-[11px] font-medium leading-none text-primary-600 transition-colors hover:bg-primary-50/60 hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+          className="group mt-0.5 flex h-6 w-full items-center justify-center gap-0.5 rounded text-[10px] font-medium leading-none text-primary-600 transition-colors hover:text-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
           aria-expanded={showAll}
         >
           <span>{showAll ? 'Show fewer' : `Show ${hiddenCount} more`}</span>
           <ChevronDown
-            size={12}
+            size={10}
             className={`shrink-0 text-primary-500 transition-transform duration-200 group-hover:text-primary-700 ${showAll ? 'rotate-180' : ''}`}
             aria-hidden="true"
           />
