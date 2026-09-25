@@ -69,6 +69,8 @@ Variable products resolve on demand through:
 GET /wp-json/dtb/v1/catalog/products/:id/variations
 ```
 
+That endpoint is a bounded configuration-selector read, not a PDP gallery endpoint. It returns authoritative variation identity, attributes/label, price, inventory/purchasability, and the already-persisted primary image. Catalog media-manifest/filesystem gallery enrichment is explicitly excluded from this selector path so opening a configuration control does not trigger expensive disk-index work.
+
 The builder deliberately does not use the existing brand-specific Toolset Builder template endpoints.
 
 ## State model

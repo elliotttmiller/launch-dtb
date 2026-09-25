@@ -6,8 +6,9 @@
  *   GET /wp-json/dtb/v1/catalog/products/:slug/detail
  *   GET /wp-json/dtb/v1/catalog/products/:id/variations
  *
- * Returns a normalized parent product + full variation matrix + computed
- * default-variation context. This is the canonical product detail endpoint.
+ * The detail route returns the normalized PDP projection with full variation
+ * context. The ID-based variations route returns a bounded configuration
+ * selector projection without media-manifest/filesystem gallery enrichment.
  *
  * @package drywall-toolbox
  */
@@ -132,7 +133,12 @@ final class DTB_ProductDetailController {
 		) );
 	}
 
-	/** GET /dtb/v1/catalog/products/:id/variations */
+	/**
+	 * GET /dtb/v1/catalog/products/:id/variations
+	 *
+	 * Returns the bounded configuration-selector projection. Full PDP variation
+	 * gallery enrichment is intentionally excluded from this endpoint.
+	 */
 	public static function handle_variations( WP_REST_Request $request ): WP_REST_Response {
 		$product_id = absint( $request->get_param( 'id' ) );
 
@@ -153,7 +159,7 @@ final class DTB_ProductDetailController {
 			return new WP_REST_Response( dtb_error_envelope( 'not_found', 'Product not found.', 404 ), 404 );
 		}
 
-		$variations = DTB_VariationReadModelService::get_normalized( $product_id, $wc_parent );
+		$variations = DTB_VariationReadModelService::get_selector_options( $product_id, $wc_parent );
 		$variation_diagnostics = method_exists( 'DTB_VariationReadModelService', 'get_last_diagnostics' )
 			? DTB_VariationReadModelService::get_last_diagnostics()
 			: [ 'available' => false ];

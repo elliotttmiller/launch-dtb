@@ -31,7 +31,7 @@ final class DTB_VariationReadModelService {
 	 * @param  array $parent_wc  Raw parent WC product array (for image/meta fallback).
 	 * @return array[]           Array of DTB variation DTOs.
 	 */
-	public static function get_normalized( int $parent_id, array $parent_wc ): array {
+	public static function get_normalized( int $parent_id, array $parent_wc, bool $include_gallery = true ): array {
 		self::$last_diagnostics = [
 			'parentId'                => $parent_id,
 			'parentSku'               => (string) ( $parent_wc['sku'] ?? '' ),
@@ -41,6 +41,7 @@ final class DTB_VariationReadModelService {
 			'normalizedCount'         => 0,
 			'explicitGalleryCount'    => 0,
 			'inheritedGalleryCount'   => 0,
+			'galleryEnrichment'       => $include_gallery ? 'enabled' : 'disabled',
 			'source'                  => 'none',
 		];
 
@@ -77,10 +78,12 @@ final class DTB_VariationReadModelService {
 			}
 			$raw['type'] = 'variation';
 			$dto          = dtb_catalog_normalize_product( $raw, $parent_wc );
-			$variations[] = self::enrich_variation_gallery(
-				$dto,
-				(string) ( $parent_wc['sku'] ?? '' )
-			);
+			$variations[] = $include_gallery
+				? self::enrich_variation_gallery(
+					$dto,
+					(string) ( $parent_wc['sku'] ?? '' )
+				)
+				: $dto;
 		}
 
 		usort( $variations, static function ( array $a, array $b ): int {
@@ -232,6 +235,57 @@ final class DTB_VariationReadModelService {
 		}
 
 		return $gallery;
+	}
+
+	/**
+	 * Return the bounded variation projection used by configuration selectors.
+	 *
+	 * This intentionally skips catalog-media manifest/disk enrichment. Selectors
+	 * only need authoritative identity, attributes, commerce state, and the
+	 * already-persisted primary image. PDP gallery enrichment remains available
+	 * through get_normalized() with its default include_gallery=true behavior.
+	 *
+	 * @param int                 $parent_id WC variable product ID.
+	 * @param array<string,mixed> $parent_wc Raw parent product payload.
+	 * @return array<int,array<string,mixed>>
+	 */
+	public static function get_selector_options( int $parent_id, array $parent_wc ): array {
+		$variations = self::get_normalized( $parent_id, $parent_wc, false );
+
+		return array_values( array_map(
+			static function ( array $variation ): array {
+				$media = is_array( $variation['media'] ?? null ) ? $variation['media'] : [];
+
+				return [
+					'id'        => absint( $variation['id'] ?? 0 ),
+					'parentId'  => absint( $variation['parentId'] ?? 0 ) ?: null,
+					'sku'       => (string) ( $variation['sku'] ?? '' ),
+					'name'      => (string) ( $variation['name'] ?? '' ),
+					'price'     => $variation['price'] ?? [
+						'value'   => null,
+						'regular' => null,
+						'sale'    => null,
+						'onSale'  => false,
+					],
+					'inventory' => $variation['inventory'] ?? [
+						'stockStatus'   => 'instock',
+						'stockQuantity' => null,
+						'purchasable'   => true,
+					],
+					'media'     => [
+						'image' => (string) ( $media['image'] ?? '' ),
+					],
+					'variation' => $variation['variation'] ?? [
+						'axis'               => '',
+						'value'              => '',
+						'label'              => '',
+						'sort'               => 0,
+						'inheritParentImage' => false,
+					],
+				];
+			},
+			$variations
+		) );
 	}
 
 	/** Return diagnostics for the last variation read. */
