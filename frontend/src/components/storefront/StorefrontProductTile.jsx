@@ -5,6 +5,8 @@ import ProductCardImage from '../product/ProductCardImage';
 import AddToCartButton from '../ui/AddToCartButton.jsx';
 import '../../styles/contractor-shopping.css';
 import { preloadRoute } from '../../routing/routeModules.js';
+import { preloadQuickViewModules } from '../../routing/quickViewModules.js';
+import { preloadProductDetail } from '../../hooks/useProductDetail.js';
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches);
@@ -103,7 +105,13 @@ export default function StorefrontProductTile({ product, cardProduct, onOpenModa
     if (productUrl) navigate(productUrl);
   }, [closeOverlay, isMobile, navigate, onOpenModal, productUrl]);
 
-  const warmProductRoute = useCallback(() => { if (productUrl) preloadRoute(productUrl); }, [productUrl]);
+  const warmProductRoute = useCallback(() => {
+    if (productUrl) preloadRoute(productUrl);
+    if (slug) {
+      preloadQuickViewModules().catch(() => null);
+      preloadProductDetail(slug).catch(() => null);
+    }
+  }, [productUrl, slug]);
   const handleMouseEnter = useCallback(() => { warmProductRoute(); if (showDesktopOverlay) setOverlayActive(true); }, [showDesktopOverlay, warmProductRoute]);
   const handleMouseLeave = useCallback(() => { if (showDesktopOverlay) closeOverlay(); }, [closeOverlay, showDesktopOverlay]);
   const handleTitleClick = useCallback((event) => {
