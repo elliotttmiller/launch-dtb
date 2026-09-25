@@ -682,7 +682,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   return (
     <div className="min-h-screen page-wrapper">
       <SEOHead title={categorySeoTitle} description={categorySeoDescription} canonical={canonicalUrl} schema={categorySeoSchema} noindex={isCategoryPageRoute && (categoryMetaLoading || itemsLoading || Boolean(categoryMetaError))} />
-      <div className={`dtb-container dtb-container--fluid py-4 pt-6${isCategoryPageRoute ? ' dtb-catalog-category-layout' : ''}`}>
+      <div className={`dtb-container dtb-container--fluid py-4 pt-6${isCategoryPageRoute ? ' dtb-catalog-category-layout' : ''}${showBrandLanding ? ' dtb-catalog-brand-layout' : ''}`}>
         {isCategoryPageRoute && (
           categoryMeta ? (
             <>
