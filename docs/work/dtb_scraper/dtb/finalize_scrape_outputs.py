@@ -19,7 +19,7 @@ from collections import Counter
 from pathlib import Path
 from urllib.parse import urlparse
 
-from competitor_pricing_core import BRAND_ALIASES, clean_description
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import BRAND_ALIASES, clean_description
 
 GENERIC_SLUGS = {
     "about", "about-us", "account", "address-book", "brands", "brand", "buy-again",
@@ -94,7 +94,7 @@ def build_manual_all_wall_evidence(output_dir: Path, refresh: bool) -> int:
 
     if refresh:
         import cloudscraper
-        from competitor_catalog_scraper import SITES, record_from_suitecommerce_item
+        from docs.work.dtb_scraper.dtb.competitor_catalog_scraper import SITES, record_from_suitecommerce_item
 
         site = SITES["all_wall"]
         endpoint = site.base_url.rstrip("/") + "/api/cacheable/items"

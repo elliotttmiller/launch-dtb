@@ -12,7 +12,7 @@ import csv
 from collections import Counter
 from pathlib import Path
 
-from competitor_identity import canonical_identifier
+from docs.work.dtb_scraper.dtb.competitor_identity import canonical_identifier
 
 ROOT = Path(__file__).resolve().parent
 REPORT_DIR = ROOT / "reports" / "competitor-catalog"

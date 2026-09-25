@@ -7,8 +7,8 @@ from collections import Counter, defaultdict
 from decimal import Decimal
 from pathlib import Path
 
-from competitor_identity import canonical_identifier, identity_key, resolved_identifier
-from competitor_pricing_core import (
+from docs.work.dtb_scraper.dtb.competitor_identity import canonical_identifier, identity_key, resolved_identifier
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import (
     SITE_KEYS,
     SITE_LABELS,
     canonical_brand,

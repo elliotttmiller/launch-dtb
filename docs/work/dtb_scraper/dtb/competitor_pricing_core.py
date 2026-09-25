@@ -21,7 +21,7 @@ from typing import Iterable, Mapping, Sequence
 from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from rapidfuzz import fuzz
 
-from competitor_identity import (
+from docs.work.dtb_scraper.dtb.competitor_identity import (
     canonical_identifier,
     identity_key,
     identifier_title_contradictions,

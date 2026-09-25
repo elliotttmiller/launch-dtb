@@ -6,14 +6,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from competitor_identity import (
+from docs.work.dtb_scraper.dtb.competitor_identity import (
     canonical_identifier,
     identity_key,
     identifier_title_contradictions,
     normalization_collisions,
     resolved_identifier,
 )
-from competitor_pricing_core import (
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import (
     canonical_brand,
     classify_match,
     clean_description,

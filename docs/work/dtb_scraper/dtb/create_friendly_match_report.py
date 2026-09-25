@@ -8,7 +8,7 @@ from collections import Counter
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from competitor_pricing_core import SITE_LABELS
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import SITE_LABELS
 
 ROOT = Path(__file__).resolve().parent
 REPORT_DIR = ROOT / "reports" / "competitor-catalog"

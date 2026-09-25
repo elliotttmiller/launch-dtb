@@ -6,8 +6,8 @@ import csv
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from competitor_identity import canonical_identifier, resolved_identifier
-from competitor_pricing_core import CANONICAL_BRAND_LABELS, canonical_brand, clean_description
+from docs.work.dtb_scraper.dtb.competitor_identity import canonical_identifier, resolved_identifier
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import CANONICAL_BRAND_LABELS, canonical_brand, clean_description
 
 ROOT = Path(__file__).resolve().parent
 INPUT_CSV = ROOT / "reports" / "competitor-catalog" / "all_competitor_products.csv"

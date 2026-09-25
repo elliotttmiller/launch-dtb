@@ -12,14 +12,14 @@ import csv
 from collections import defaultdict
 from pathlib import Path
 
-from competitor_identity import (
+from docs.work.dtb_scraper.dtb.competitor_identity import (
     canonical_identifier,
     identity_key,
     legacy_compact_identifier,
     normalization_collisions,
     resolved_identifier,
 )
-from competitor_pricing_core import (
+from docs.work.dtb_scraper.dtb.competitor_pricing_core import (
     SITE_KEYS,
     SITE_LABELS,
     canonical_brand,
