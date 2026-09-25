@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react';
+import Breadcrumb from '../../components/shared/Breadcrumb.jsx';
 import ToolsetBuilderProductCard from './ToolsetBuilderProductCard.jsx';
 import useToolsetBuilderCatalog from './useToolsetBuilderCatalog.js';
 import {
@@ -339,11 +340,12 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
   return (
     <div className="dtb-toolset-workspace">
       <header className="dtb-toolset-workspace__heading">
-        <nav className="dtb-toolset-breadcrumb" aria-label="Breadcrumb">
-          <button type="button" onClick={onChangeWorkflow}>Toolset Builder</button>
-          <span aria-hidden="true">/</span>
-          <span>{workflow.label}</span>
-        </nav>
+        <Breadcrumb
+          items={[
+            { label: 'Toolset Builder', onClick: onChangeWorkflow },
+            { label: workflow.label },
+          ]}
+        />
 
         <div className="dtb-toolset-workspace__hero">
           <div className="dtb-toolset-workspace__hero-content">
