@@ -366,7 +366,7 @@ function FilterCheckboxGroup({ title, items, selectedIds, onToggle }) {
         <button
           type="button"
           onClick={() => setShowAll((current) => !current)}
-          className="group mt-1 flex min-h-9 w-full items-center justify-between rounded-md px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
+          className="group mx-auto mt-1 flex min-h-9 w-fit items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1"
           aria-expanded={showAll}
         >
           <span>{showAll ? 'Show fewer' : `Show ${hiddenCount} more`}</span>
