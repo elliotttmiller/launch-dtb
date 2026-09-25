@@ -141,13 +141,21 @@
 .products-brand-selector__hero-art {
   position: absolute;
   z-index: 1;
-  inset: 0 0 0 39%;
+  inset: 0;
   overflow: hidden;
   border: 0;
   outline: 0;
   box-shadow: none;
   background:
-    linear-gradient(90deg, rgba(244, 249, 255, 0.2), rgba(248, 251, 255, 0.04)),
+    linear-gradient(
+      90deg,
+      #fff 0%,
+      rgba(255, 255, 255, 0.995) 28%,
+      rgba(248, 251, 255, 0.96) 38%,
+      rgba(244, 249, 255, 0.64) 46%,
+      rgba(244, 249, 255, 0.16) 57%,
+      rgba(248, 251, 255, 0.03) 72%
+    ),
     url('../../assets/media/hero-background.webp') center / cover no-repeat;
   pointer-events: none;
 }
