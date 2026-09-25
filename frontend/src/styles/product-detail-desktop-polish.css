@@ -403,68 +403,7 @@
     font-weight: 650;
   }
 
-  /* ------------------------------------------------------------------ */
-  /* Quick-view desktop                                                  */
-  /* ------------------------------------------------------------------ */
-  .product-modal-card-shell.dtb-product-page-shell {
-    max-width: 1180px;
-  }
 
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp {
-    padding: 30px 34px 34px;
-    background: #fff;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__hero {
-    grid-template-columns: minmax(0, 1.08fr) minmax(410px, 0.92fr) !important;
-    gap: 40px !important;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__info-column {
-    padding: 24px 0 6px 32px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__title {
-    font-size: clamp(29px, 2.2vw, 34px);
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__price {
-    font-size: 33px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__identity-row {
-    margin-top: 16px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__desktop-reviews-row {
-    margin-top: 7px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-header__price-block {
-    margin-top: 16px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .product-variation-rail,
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp__purchase-region {
-    margin-top: 24px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-sections {
-    margin-top: 26px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-section__content {
-    padding: 30px 6px 10px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-overview {
-    grid-template-columns: minmax(0, 1.55fr) minmax(270px, 0.72fr);
-    gap: 34px;
-  }
-
-  .product-modal-card-shell.dtb-product-page-shell .dtb-pdp-overview__quick {
-    position: static;
-  }
 }
 
 @media (min-width: 1280px) {
