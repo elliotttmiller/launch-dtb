@@ -38,6 +38,7 @@ export function fetchToolsetProducts({
     page,
     perPage,
     sort,
+    productKind: 'tool',
     isParts: 0,
   });
 }
