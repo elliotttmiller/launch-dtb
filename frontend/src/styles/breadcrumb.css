@@ -45,6 +45,7 @@
 }
 
 .dtb-breadcrumb a,
+.dtb-breadcrumb__action,
 .dtb-breadcrumb__current {
   display: inline-flex;
   min-height: 1.75rem;
@@ -56,18 +57,25 @@
   text-decoration: none;
 }
 
-.dtb-breadcrumb a {
+.dtb-breadcrumb a,
+.dtb-breadcrumb__action {
+  border: 0;
+  background: transparent;
   color: var(--dtb-muted, #64748b);
+  cursor: pointer;
+  font: inherit;
   font-weight: 600;
   transition: color 150ms ease, background-color 150ms ease;
 }
 
-.dtb-breadcrumb a:hover {
+.dtb-breadcrumb a:hover,
+.dtb-breadcrumb__action:hover {
   color: var(--dtb-primary, #2255ee);
   background: color-mix(in srgb, var(--dtb-primary, #2255ee) 6%, transparent);
 }
 
-.dtb-breadcrumb a:focus-visible {
+.dtb-breadcrumb a:focus-visible,
+.dtb-breadcrumb__action:focus-visible {
   outline: 2px solid var(--dtb-primary, #2255ee);
   outline-offset: 2px;
 }
@@ -152,25 +160,31 @@
 }
 
 .dtb-breadcrumb-bar--inverse .dtb-breadcrumb a,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action,
 .dtb-breadcrumb-bar--inverse .dtb-breadcrumb__current {
   color: #fff;
 }
 
-.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a {
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action {
   opacity: 0.82;
 }
 
 .dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:hover,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action:hover,
 .dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:focus-visible,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action:focus-visible,
 .dtb-breadcrumb-bar--inverse .dtb-breadcrumb__current {
   opacity: 1;
 }
 
-.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:hover {
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:hover,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
-.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:focus-visible {
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:focus-visible,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__action:focus-visible {
   outline-color: #fff;
 }
 
@@ -208,6 +222,7 @@
   }
 
   .dtb-breadcrumb a,
+  .dtb-breadcrumb__action,
   .dtb-breadcrumb__current {
     min-height: 1.65rem;
     font-size: 0.74rem;
@@ -230,6 +245,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .dtb-breadcrumb a,
+  .dtb-breadcrumb__action,
   .dtb-breadcrumb-filter-chip,
   .dtb-breadcrumb-filter-chip button {
     transition: none;
