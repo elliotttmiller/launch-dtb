@@ -4,8 +4,6 @@ import {
   ArrowRight,
   Box,
   Boxes,
-  Check,
-  ClipboardList,
   Layers3,
   Settings2,
   WandSparkles,
@@ -17,6 +15,7 @@ import {
   getToolsetWorkflow,
 } from '../features/toolset-builder/model.js';
 import { getBrandLogo } from '../utils/brandAssets.js';
+import toolsetHeroImage from '../assets/media/toolset/toolset-hero-automatic-tapers.webp';
 import '../styles/toolset-builder.css';
 
 const WORKFLOW_ICONS = {
@@ -63,41 +62,47 @@ function BuilderLanding({ onSelectWorkflow }) {
   return (
     <>
       <section className="dtb-toolset-hero">
+        <img
+          className="dtb-toolset-hero__media"
+          src={toolsetHeroImage}
+          alt=""
+          aria-hidden="true"
+          fetchPriority="high"
+          decoding="async"
+        />
         <div className="dtb-container dtb-container--wide">
           <div className="dtb-toolset-hero__grid">
             <div className="dtb-toolset-hero__copy">
               <span className="dtb-toolset-kicker">Toolset Builder</span>
               <h1>Build Your <em>Drywall Tool Set</em></h1>
               <p>
-                Configure the exact setup you need. Mix compatible brands and
-                tools for a professional set built around your workflow.
+                Configure the exact setup for the work you do, with compatible
+                tools from the brands professionals trust.
               </p>
-              <ul className="dtb-toolset-hero__assurances" aria-label="Toolset builder benefits">
-                <li><Check size={19} aria-hidden="true" /> All major brands</li>
-                <li><Check size={19} aria-hidden="true" /> Exact configurations</li>
-                <li><Check size={19} aria-hidden="true" /> Mix compatible tools</li>
-              </ul>
               <div className="dtb-toolset-hero__actions">
                 <button type="button" className="dtb-toolset-hero__primary" onClick={() => onSelectWorkflow('full')}>
                   Start building <ArrowRight size={19} aria-hidden="true" />
                 </button>
                 <a className="dtb-toolset-hero__secondary" href="#toolset-workflow-title">
-                  Explore workflows
+                  Explore workflows <ArrowRight size={17} aria-hidden="true" />
                 </a>
               </div>
             </div>
-
-            <div className="dtb-toolset-hero__visual" aria-hidden="true">
-              <div className="dtb-toolset-hero__visual-halo" />
-              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--taper"><WandSparkles size={80} /></div>
-              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--box"><Box size={104} /></div>
-              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--handle"><Settings2 size={76} /></div>
-              <div className="dtb-toolset-hero__visual-card">
-                <ClipboardList size={22} />
-                <strong>Built around your workflow</strong>
-              </div>
-            </div>
           </div>
+          <dl className="dtb-toolset-hero__proofs" aria-label="Toolset builder benefits">
+            <div>
+              <dt>Built for your workflow</dt>
+              <dd>Select a proven starting point, then configure the details.</dd>
+            </div>
+            <div>
+              <dt>Compatible brand mix</dt>
+              <dd>Build with the major drywall-tool brands you already use.</dd>
+            </div>
+            <div>
+              <dt>Clear selections</dt>
+              <dd>See every chosen tool together as your set takes shape.</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
