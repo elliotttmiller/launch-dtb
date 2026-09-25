@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Check, ChevronDown, PackageCheck, RefreshCw } from 'lucide-react';
 import { fetchToolsetVariations, normalizeToolsetSelection } from '../../api/toolsetBuilderApi.js';
+import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
 
 function formatCurrency(value) {
   const number = Number(value);
@@ -58,6 +59,7 @@ export default function ToolsetBuilderProductCard({
   const image = productImage(product);
   const price = productPrice(product);
   const brand = productBrand(product);
+  const brandLogo = resolveBrandLogo(product?.brand || brand);
   const selectedVariationSku = isVariable
     ? selectedProductItems.find((item) => item?.variationId)?.sku || ''
     : '';
@@ -150,7 +152,19 @@ export default function ToolsetBuilderProductCard({
 
       <div className="dtb-toolset-product-card__body">
         <div className="dtb-toolset-product-card__identity">
-          {brand ? <span className="dtb-toolset-product-card__brand">{brand}</span> : null}
+          {brandLogo ? (
+            <span className="dtb-toolset-product-card__brand-logo-wrap">
+              <img
+                src={brandLogo}
+                alt={`${brand || 'Product brand'} logo`}
+                className="dtb-toolset-product-card__brand-logo"
+                loading="lazy"
+                decoding="async"
+              />
+            </span>
+          ) : brand ? (
+            <span className="dtb-toolset-product-card__brand">{brand}</span>
+          ) : null}
           <h3>{product?.name || 'Unnamed product'}</h3>
           {displayedSku ? <span className="dtb-toolset-product-card__sku">SKU {displayedSku}</span> : null}
         </div>
