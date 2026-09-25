@@ -165,3 +165,28 @@ test('desktop Quick View keeps geometry stable through open and exit', async () 
   assert.match(cartSheet, /productModalClearTimerRef/);
   assert.match(cartSheet, /isOpen=\{isProductModalOpen && Boolean\(productModalState\?\.product\)\}/);
 });
+
+
+test('Quick View content does not re-own document geometry or cold-load after intent', async () => {
+  const [detail, detailHook, tile, quickViewModules, desktopPolish] = await Promise.all([
+    read('src/components/product/ProductDetail.jsx'),
+    read('src/hooks/useProductDetail.js'),
+    read('src/components/storefront/StorefrontProductTile.jsx'),
+    read('src/routing/quickViewModules.js'),
+    read('src/styles/product-detail-desktop-polish.css'),
+  ]);
+
+  assert.doesNotMatch(detail, /document\.body\.style\.overflow\s*=\s*'hidden'/);
+  assert.doesNotMatch(detail, /document\.body\.style\.paddingRight/);
+
+  assert.match(detailHook, /export function preloadProductDetail/);
+  assert.match(detailHook, /detailInflight = new Map\(\)/);
+  assert.match(detailHook, /preloadProductDetail\(slug\)/);
+
+  assert.match(tile, /preloadQuickViewModules\(\)/);
+  assert.match(tile, /preloadProductDetail\(slug\)/);
+  assert.match(quickViewModules, /import\('\.\.\/components\/product\/ProductModal\.jsx'\)/);
+  assert.match(quickViewModules, /import\('\.\.\/components\/product\/ProductDetail\.jsx'\)/);
+
+  assert.doesNotMatch(desktopPolish, /product-modal-card-shell\.dtb-product-page-shell/);
+});
