@@ -147,10 +147,13 @@ test('desktop Quick View keeps geometry stable through open and exit', async () 
   assert.doesNotMatch(modal, /contain:\s*layout paint/);
   assert.doesNotMatch(modal, /<style>\{`/);
   assert.doesNotMatch(modal, /layout="position"/);
+  assert.match(modal, /<MotionPresence mode="sync" initial>/);
+  assert.match(modal, /variants=\{[\s\S]*productModalDesktopCardVariants/);
 
-  assert.match(motion, /productModalDesktopVariants[\s\S]*hidden:\s*\{ opacity: 0 \}[\s\S]*visible:[\s\S]*opacity: 1/);
+  assert.match(motion, /productModalDesktopVariants[\s\S]*hidden:\s*\{ opacity: 1 \}[\s\S]*visible:\s*\{ opacity: 1 \}[\s\S]*exit:\s*\{ opacity: 1 \}/);
   assert.doesNotMatch(motion, /productModalDesktopVariants[\s\S]{0,260}scale:/);
   assert.doesNotMatch(motion, /productModalDesktopVariants[\s\S]{0,260}y:/);
+  assert.match(motion, /productModalDesktopCardVariants[\s\S]*hidden:\s*\{ opacity: 0, y: dtbDistance\.micro \}[\s\S]*exit:\s*\{[\s\S]*opacity: 1/);
   assert.match(motion, /productModalBackdropTransition = \{[\s\S]*duration: dtbDuration\.fast/);
 
   assert.match(quickViewCss, /product-modal-scroll-shell[\s\S]*top:\s*0/);
