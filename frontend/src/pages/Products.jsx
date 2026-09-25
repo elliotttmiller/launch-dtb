@@ -27,13 +27,6 @@ function ProductsHero() {
             <span className="dtb-products-hero__slash dtb-products-hero__slash--one" />
             <span className="dtb-products-hero__slash dtb-products-hero__slash--two" />
             <span className="dtb-products-hero__slash dtb-products-hero__slash--three" />
-            <div className="dtb-products-hero__statement">
-              <span>The Tools</span>
-              <span>The Parts</span>
-              <span>The Expertise</span>
-              <span>You Need</span>
-              <span className="dtb-products-hero__statement-rule" />
-            </div>
           </div>
         </div>
       </header>
