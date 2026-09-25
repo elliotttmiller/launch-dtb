@@ -1,3 +1,28 @@
+
+/* Category routes use a full-bleed hero band rather than a floating card.
+   The catalog below remains on the normal fluid content grid. */
+.dtb-catalog-category-layout {
+  --dtb-category-layout-gutter: clamp(1rem, 2vw, 2rem);
+}
+
+.dtb-catalog-category-layout > .dtb-category-hero {
+  width: calc(100% + (2 * var(--dtb-category-layout-gutter)));
+  max-width: none;
+  margin-left: calc(-1 * var(--dtb-category-layout-gutter));
+  margin-right: calc(-1 * var(--dtb-category-layout-gutter));
+}
+
+.dtb-catalog-category-layout .dtb-category-hero__breadcrumb-stage {
+  padding-inline: var(--dtb-category-layout-gutter);
+}
+
+.dtb-catalog-category-layout .dtb-category-hero-card {
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* Category hero presentation layer.
    Category routing, catalog state, merchandising, and media resolution remain
    owned by their existing modules. This file only art-directs the hero card. */
@@ -219,6 +244,7 @@
 
 @media (max-width: 767px) {
   .dtb-category-hero-card { border-radius: 13px; background: #f8fbff; }
+  .dtb-catalog-category-layout .dtb-category-hero-card { border-radius: 0; }
   .dtb-category-hero-card::before,
   .dtb-category-hero-card::after { opacity: .55; }
 
