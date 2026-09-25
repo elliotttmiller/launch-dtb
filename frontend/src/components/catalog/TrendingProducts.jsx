@@ -23,6 +23,7 @@ export default function TrendingProducts() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
   const railRef = useRef(null);
+  const modalClearTimerRef = useRef(null);
 
   // The rail begins below the mobile fold. Fetching the entire catalog before
   // the shopper reaches it creates parse/evaluation work and prompts the
@@ -48,13 +49,21 @@ export default function TrendingProducts() {
   };
 
   const openModal = useCallback((product) => {
+    if (modalClearTimerRef.current) {
+      window.clearTimeout(modalClearTimerRef.current);
+      modalClearTimerRef.current = null;
+    }
     setModalProduct({ product });
     setIsModalOpen(true);
   }, []);
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setModalProduct(null);
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+    modalClearTimerRef.current = window.setTimeout(() => {
+      setModalProduct(null);
+      modalClearTimerRef.current = null;
+    }, 220);
   }, []);
 
   useEffect(() => {
@@ -71,6 +80,10 @@ export default function TrendingProducts() {
       throw error;
     }
   }, [addToCart]);
+
+  useEffect(() => () => {
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!shouldLoad) return undefined;
@@ -152,9 +165,9 @@ export default function TrendingProducts() {
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {isModalOpen && modalProduct ? (
+      {modalProduct ? (
         <Suspense fallback={null}>
-          <ProductModal isOpen product={modalProduct.product || modalProduct} onClose={closeModal}>
+          <ProductModal isOpen={isModalOpen} product={modalProduct.product || modalProduct} onClose={closeModal}>
             <ProductDetail
               key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
               product={modalProduct.product || modalProduct}
