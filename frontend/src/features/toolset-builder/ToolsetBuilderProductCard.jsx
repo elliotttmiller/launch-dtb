@@ -255,7 +255,7 @@ export default function ToolsetBuilderProductCard({
                     >
                       <span className="dtb-toolset-product-card__variation-option-copy">
                         <strong>{variationLabel(variation)}</strong>
-                        <small>{stock === 'outofstock' ? 'Out of stock' : 'Available'}</small>
+                        {variation?.sku ? <small>SKU {variation.sku}</small> : null}
                       </span>
                       <span className="dtb-toolset-product-card__variation-option-price">
                         {formatCurrency(priceValue)}
