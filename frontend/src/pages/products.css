@@ -2,47 +2,47 @@
   background: #fff;
 }
 
-/* The /products route owns this merchandising shell only. Catalog data,
-   filtering, sorting, cards, and navigation remain in ProductsCatalogPlatform. */
+.dtb-products-page > .page-wrapper > .dtb-container > .dtb-breadcrumb-bar {
+  display: none;
+}
+
+.dtb-products-hero {
+  --products-hero-navy: #061c3d;
+  --products-hero-blue: #0878ff;
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(184, 204, 228, 0.72);
+  background: #f8fbff;
+  isolation: isolate;
+}
+
+.dtb-products-hero__inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 39%) minmax(0, 61%);
+  width: 100%;
+  min-height: clamp(18rem, 20vw, 22rem);
+  margin: 0 auto;
+  background: #f8fbff;
+}
+
 .dtb-products-breadcrumb-shell {
   position: absolute;
   top: 0;
-  left: clamp(2.05rem, 2.35vw, 2.55rem);
-  z-index: 4;
-  width: min(calc(58% - clamp(2.05rem, 2.35vw, 2.55rem)), 46rem);
+  left: var(--dtb-viewport-gutter);
+  z-index: 5;
+  width: min(36%, 42rem);
   min-height: 2.75rem;
-  padding: 0.58rem 0 0.3rem;
+  padding: 0.7rem 0 0.3rem;
 }
 
-.dtb-products-breadcrumb-shell .dtb-breadcrumb-bar {
-  margin: 0;
-  gap: 0.4rem 0.65rem;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb ol {
-  min-width: 0;
-  flex-wrap: nowrap;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb li {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb li:first-child {
-  flex: 0 0 auto;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb li + li::before {
-  margin-inline: 0.38rem;
-  font-size: 0.76rem;
-}
-
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-bar { margin: 0; gap: 0.4rem 0.65rem; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb { min-width: 0; overflow: hidden; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb ol { min-width: 0; flex-wrap: nowrap; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li { flex: 0 1 auto; min-width: 0; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li:first-child { flex: 0 0 auto; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li + li::before { margin-inline: 0.38rem; font-size: 0.76rem; }
 .dtb-products-breadcrumb-shell .dtb-breadcrumb a,
 .dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
   min-height: 1.55rem;
@@ -50,20 +50,9 @@
   font-size: clamp(0.68rem, 0.72vw, 0.76rem);
   line-height: 1;
 }
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb a {
-  font-weight: 560;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
-  max-width: 15rem;
-  font-weight: 700;
-}
-
-.dtb-products-breadcrumb-shell .dtb-breadcrumb-filters {
-  gap: 0.34rem;
-}
-
+.dtb-products-breadcrumb-shell .dtb-breadcrumb a { font-weight: 560; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb__current { max-width: 15rem; font-weight: 700; }
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-filters { gap: 0.34rem; }
 .dtb-products-breadcrumb-shell .dtb-breadcrumb-filter-chip {
   min-height: 1.55rem;
   padding: 0.22rem 0.28rem 0.22rem 0.54rem;
@@ -71,185 +60,93 @@
   font-weight: 650;
 }
 
-.dtb-products-breadcrumb-shell .dtb-breadcrumb-filter-chip button {
-  width: 1.05rem;
-  height: 1.05rem;
-  flex-basis: 1.05rem;
-  -webkit-mask-size: 0.62rem;
-  mask-size: 0.62rem;
-}
-.dtb-products-breadcrumb-shell .dtb-breadcrumb-bar {
-  margin: 0;
-}
-
-/* ProductsCatalogPlatform still renders its canonical breadcrumb for other
-   catalog routes. On the exact /products route the shell above owns placement. */
-.dtb-products-page > .page-wrapper > .dtb-container > .dtb-breadcrumb-bar {
-  display: none;
-}
-
-.dtb-products-hero {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  border-bottom: 1px solid rgba(214, 224, 239, 0.72);
-  background: #fff;
-  isolation: isolate;
-}
-
-.dtb-products-hero__inner {
-  position: relative;
-  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
-  min-height: clamp(10.5rem, 10.8vw, 12.25rem);
-  margin: 0 auto;
-}
-
 .dtb-products-hero__content {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   display: flex;
-  width: min(58%, 52rem);
-  min-height: inherit;
+  min-width: 0;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(2.7rem, 3.15vw, 3.15rem) 0 clamp(1.55rem, 1.85vw, 1.95rem);
-  padding-left: clamp(2.05rem, 2.35vw, 2.55rem);
+  padding: clamp(4.4rem, 5.2vw, 5.6rem) clamp(3.5rem, 5.2vw, 6.2rem) clamp(2.5rem, 3.3vw, 3.5rem) var(--dtb-viewport-gutter);
+  background:
+    radial-gradient(circle at 100% 14%, rgba(8, 120, 255, 0.06), transparent 37%),
+    linear-gradient(104deg, #fff 0%, #fbfdff 72%, #f3f8ff 100%);
 }
 
-.dtb-products-hero__content::before {
+.dtb-products-hero__content::after {
   content: '';
   position: absolute;
-  top: clamp(1.65rem, 2vw, 2.1rem);
-  bottom: clamp(1.55rem, 1.85vw, 1.95rem);
-  left: 0;
-  width: 3px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, transparent 0%, #0878ff 18%, #0878ff 82%, transparent 100%);
-}
-
-
-.dtb-products-hero__eyebrow-row {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 1.55vw, 1.4rem);
-  margin-bottom: 0.62rem;
-}
-
-.dtb-products-hero__eyebrow {
-  color: #0873ee;
-  font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.76rem, 0.86vw, 0.9rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.27em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.dtb-products-hero__eyebrow-rule {
-  display: block;
-  width: clamp(5.5rem, 8vw, 8.2rem);
-  height: 1px;
-  background: linear-gradient(90deg, #2784ff 0%, rgba(39, 132, 255, 0.2) 100%);
-}
-
-.dtb-products-hero__divider {
-  width: clamp(7.5rem, 9vw, 10rem);
-  height: 2px;
-  margin: 0 0 clamp(0.95rem, 1.15vw, 1.15rem);
-  border: 0;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, rgba(8, 120, 255, 0.35) 14%, #0878ff 50%, rgba(8, 120, 255, 0.35) 86%, transparent 100%);
-}
-
-.dtb-products-hero__title {
-  margin: 0;
-  color: #071a38;
-  font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(2.75rem, 3.55vw, 3.7rem);
-  font-weight: 800;
-  line-height: 0.95;
-  letter-spacing: -0.05em;
-}
-
-
-.dtb-products-hero__description {
-  max-width: 44rem;
-  margin: clamp(0.68rem, 0.8vw, 0.82rem) 0 0;
-  color: #526d91;
-  font-size: clamp(1.05rem, 1.2vw, 1.22rem);
-  font-weight: 400;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
-}
-
-.dtb-products-hero__strapline {
-  margin: clamp(0.48rem, 0.62vw, 0.66rem) 0 0;
-  color: #10284d;
-  font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.58rem, 0.64vw, 0.68rem);
-  font-weight: 800;
-  line-height: 1.45;
-  letter-spacing: 0.23em;
-  text-transform: uppercase;
-}
-
-.dtb-products-hero__art {
-  position: absolute;
-  z-index: 1;
-  inset: 0 0 0 52%;
-  overflow: hidden;
-  background: linear-gradient(104deg, rgba(249, 252, 255, 0) 0%, rgba(247, 250, 255, 0.8) 48%, #f8fbff 100%);
+  top: 0;
+  right: clamp(-5rem, -4.4vw, -3.5rem);
+  bottom: 0;
+  z-index: -1;
+  width: clamp(7rem, 8vw, 9rem);
+  transform: skewX(-24deg);
+  transform-origin: bottom;
+  background: linear-gradient(90deg, rgba(248, 251, 255, 0.98), rgba(238, 246, 255, 0.86) 62%, rgba(221, 237, 255, 0.42));
   pointer-events: none;
 }
 
-.dtb-products-hero__slash {
-  position: absolute;
-  top: -32%;
-  width: clamp(5.25rem, 7.2vw, 7.9rem);
-  height: 168%;
-  transform: skewX(-30deg);
-  transform-origin: center;
-}
-
-.dtb-products-hero__slash--one {
-  left: 17%;
-  background: linear-gradient(180deg, rgba(232, 241, 252, 0.18), rgba(219, 232, 248, 0.62));
-}
-
-.dtb-products-hero__slash--two {
-  left: 36%;
-  background: linear-gradient(180deg, rgba(239, 246, 253, 0.3), rgba(209, 225, 245, 0.7));
-}
-
-.dtb-products-hero__slash--three {
-  left: 55%;
-  background: linear-gradient(180deg, rgba(246, 250, 254, 0.52), rgba(222, 234, 248, 0.72));
-}
-
-.dtb-products-hero__statement {
-  position: absolute;
-  top: 50%;
-  right: clamp(2rem, 5.25vw, 5rem);
-  display: flex;
-  flex-direction: column;
-  gap: 0.05rem;
-  transform: translateY(-50%);
-  color: #071a38;
+.dtb-products-hero__eyebrow-row { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1rem; }
+.dtb-products-hero__eyebrow {
+  color: var(--products-hero-blue);
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
-  font-size: clamp(0.7rem, 0.82vw, 0.84rem);
-  font-weight: 800;
-  line-height: 1.42;
-  letter-spacing: 0.19em;
+  font-size: clamp(0.68rem, 0.72vw, 0.78rem);
+  font-weight: 850;
+  line-height: 1;
+  letter-spacing: 0.27em;
   text-transform: uppercase;
 }
-
-.dtb-products-hero__statement-rule {
-  display: block;
-  width: 3rem;
+.dtb-products-hero__eyebrow-rule {
+  width: clamp(3rem, 4.4vw, 4.8rem);
   height: 2px;
-  margin-top: 0.75rem;
-  background: #0878ff;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--products-hero-blue), rgba(8, 120, 255, 0.08));
+}
+.dtb-products-hero__title {
+  max-width: 12ch;
+  margin: 0;
+  color: var(--products-hero-navy);
+  font-family: var(--dtb-font-display, var(--dtb-font-ui));
+  font-size: clamp(2.45rem, 3.25vw, 3.75rem);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+}
+.dtb-products-hero__description {
+  max-width: 38rem;
+  margin: 1rem 0 0;
+  color: #526d91;
+  font-size: clamp(0.98rem, 1.05vw, 1.12rem);
+  font-weight: 450;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  text-wrap: pretty;
+}
+.dtb-products-hero__media {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: inherit;
+  overflow: hidden;
+  background: #eef4fb;
+}
+.dtb-products-hero__media::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(90deg, rgba(241, 248, 255, 0.5) 0%, transparent 12%);
+  pointer-events: none;
+}
+.dtb-products-hero__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  object-position: center;
 }
 
 /* Pull the existing catalog tightly under the hero. */
@@ -310,92 +207,42 @@
   }
 }
 
-@media (max-width: 900px) {
-  .dtb-products-hero__inner {
-    min-height: clamp(12.5rem, 28vw, 15rem);
-  }
-
-  .dtb-products-hero__content {
-    width: min(72%, 39rem);
-  }
-
-  .dtb-products-hero__art {
-    left: 58%;
-    opacity: 0.72;
-  }
-
-  .dtb-products-hero__statement {
-    display: none;
-  }
-
-  .dtb-products-page .dtb-tool-type-section .storefront-section__head {
-    display: flex;
-  }
+@media (max-width: 1023px) {
+  .dtb-products-hero__inner { grid-template-columns: minmax(0, 46%) minmax(0, 54%); min-height: 18rem; }
+  .dtb-products-hero__content { padding-right: 3rem; }
+  .dtb-products-hero__title { max-width: 11ch; font-size: clamp(2.2rem, 4.2vw, 3rem); }
+  .dtb-products-page .dtb-tool-type-section .storefront-section__head { display: flex; }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
+  .dtb-products-hero__inner { display: flex; min-height: 0; flex-direction: column; }
   .dtb-products-breadcrumb-shell {
-    left: 1.25rem;
-    width: calc(100% - 2.5rem);
+    left: var(--dtb-viewport-gutter);
+    width: calc(100% - (2 * var(--dtb-viewport-gutter)));
     min-height: 2.6rem;
-    padding: 0.55rem 0 0.3rem;
+    padding-top: 0.55rem;
   }
-
-  .dtb-products-breadcrumb-shell .dtb-breadcrumb ol {
-    flex-wrap: wrap;
-  }
-
-  .dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
-    max-width: 52vw;
-  }
-
-  .dtb-products-hero__inner {
-    min-height: 12rem;
-  }
-
+  .dtb-products-breadcrumb-shell .dtb-breadcrumb ol { flex-wrap: wrap; }
+  .dtb-products-breadcrumb-shell .dtb-breadcrumb__current { max-width: 52vw; }
+  .dtb-products-hero__media { order: 1; min-height: 0; aspect-ratio: 2 / 1; }
+  .dtb-products-hero__image { min-height: 0; object-position: 64% center; }
   .dtb-products-hero__content {
-    width: 100%;
-    padding: 2.65rem 0 1.75rem 1.25rem;
+    order: 2;
+    padding: clamp(1.65rem, 6vw, 2.2rem) var(--dtb-viewport-gutter) clamp(1.8rem, 7vw, 2.5rem);
   }
-
-  .dtb-products-hero__content::before {
-    top: 1.75rem;
-    bottom: 1.75rem;
-  }
-
   .dtb-products-hero__content::after {
-    top: 2.2rem;
-    left: 1.25rem;
-    width: 4rem;
+    top: -2rem; right: 0; bottom: auto; left: 0; width: 100%; height: 2.25rem;
+    transform: skewY(-2.5deg); transform-origin: right bottom;
   }
+  .dtb-products-hero__eyebrow-row { margin-bottom: 0.75rem; }
+  .dtb-products-hero__title { max-width: 14ch; font-size: clamp(2.1rem, 10vw, 3rem); }
+  .dtb-products-hero__description { max-width: 34ch; margin-top: 0.8rem; font-size: 0.96rem; }
+  .dtb-products-page .dtb-tool-type-tile__image { transform: none; }
+}
 
-  .dtb-products-hero__title {
-    font-size: clamp(2.3rem, 12vw, 3rem);
-  }
-
-  .dtb-products-hero__description {
-    max-width: 31ch;
-    font-size: 0.98rem;
-  }
-
-  .dtb-products-hero__strapline {
-    max-width: 34ch;
-    letter-spacing: 0.16em;
-  }
-
-  .dtb-products-hero__art {
-    left: 68%;
-    right: -18%;
-    opacity: 0.3;
-  }
-
-  .dtb-products-hero__eyebrow-rule {
-    width: 4rem;
-  }
-
-  .dtb-products-page .dtb-tool-type-tile__image {
-    transform: none;
-  }
+@media (max-width: 479px) {
+  .dtb-products-hero__media { aspect-ratio: 1.55 / 1; }
+  .dtb-products-hero__image { object-position: 67% center; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -404,39 +251,5 @@
   .dtb-products-hero *::after {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-
-/* The primary hero title already establishes page identity. Keep the accent
-   line as the sole pre-title element rather than repeating that identity. */
-.dtb-products-hero__eyebrow-row {
-  width: min(58%, 52rem);
-  gap: 0;
-}
-
-.dtb-products-hero__eyebrow-rule {
-  width: clamp(7.5rem, 11vw, 11.5rem);
-}
-
-
-/* Refined title-led hero: the H1 is the visual anchor. The accent is attached
-   to the title block instead of floating in the former eyebrow position. */
-.dtb-products-hero__content {
-  justify-content: center;
-}
-
-.dtb-products-hero__title {
-  position: relative;
-  padding-top: clamp(0.9rem, 1vw, 1.05rem);
-}
-
-.dtb-products-hero__description {
-  margin-top: clamp(0.72rem, 0.85vw, 0.9rem);
-}
-
-@media (max-width: 600px) {
-  .dtb-products-hero__title {
-    padding-top: 0.8rem;
   }
 }
