@@ -196,14 +196,19 @@ export const productModalBackdropTransition = {
   ease: dtbEase.exit,
 };
 
+// Desktop Quick View covers a large portion of the viewport. Keep its outer
+// dialog surface geometrically stable and animate opacity only; translating or
+// scaling the viewport-sized scroll shell causes large compositor/raster
+// changes and can flash on open/close.
 export const productModalDesktopVariants = {
-  hidden: { opacity: 0, y: dtbDistance.large, scale: 0.985 },
-  visible: { opacity: 1, y: 0, scale: 1 },
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: dtbTransition.fast,
+  },
   exit: {
     opacity: 0,
-    y: dtbDistance.medium,
-    scale: 0.988,
-    transition: dtbTransition.exit,
+    transition: dtbTransition.fast,
   },
 };
 
