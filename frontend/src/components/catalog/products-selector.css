@@ -10,9 +10,12 @@
   --brands-hero-navy: #061c3d;
   --brands-hero-blue: #0878ff;
   position: relative;
-  width: 100%;
+  width: calc(100% + (2 * var(--dtb-viewport-gutter)));
   min-height: clamp(18rem, 20vw, 22rem);
-  margin: 0 0 clamp(1.75rem, 3vw, 2.75rem);
+  margin:
+    0
+    calc(-1 * var(--dtb-viewport-gutter))
+    clamp(1.75rem, 3vw, 2.75rem);
   overflow: hidden;
   border: 0;
   background: #f8fbff;
