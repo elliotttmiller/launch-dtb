@@ -18,7 +18,7 @@ function normalizeBrandFilter(value = '') {
  */
 export function fetchToolsetProducts({
   toolFamily,
-  displayCategory = [],
+  displayCategory = '',
   brand = '',
   search = '',
   page = 1,
@@ -34,7 +34,7 @@ export function fetchToolsetProducts({
 
   return fetchCatalogProducts({
     toolFamily,
-    displayCategory,
+    displayCategory: displayCategory ? [displayCategory] : [],
     brands: normalizeBrandFilter(brand),
     search,
     page,
