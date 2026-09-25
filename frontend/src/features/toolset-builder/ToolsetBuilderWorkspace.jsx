@@ -272,7 +272,7 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
     retry,
   } = useToolsetBuilderCatalog({
     toolFamily: capability.toolFamily,
-    displayCategory: capability.displayCategory || [],
+    displayCategory: capability.displayCategory || '',
     brand,
     search,
     page,
