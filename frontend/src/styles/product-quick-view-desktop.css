@@ -1,3 +1,100 @@
+
+/* Quick View shell geometry must remain available for the complete
+ * AnimatePresence lifecycle. Do not inject these rules from inside the
+ * conditional modal subtree: removing them before exit completes changes
+ * viewport/dialog geometry mid-animation. */
+.product-modal-backdrop {
+  background: rgba(2, 6, 23, 0.58);
+}
+
+.product-modal-scroll-shell {
+  top: 0;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-modal-scroll-shell::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+.product-modal-scroll-inner {
+  min-height: 100dvh;
+  align-items: stretch;
+  background: #fff;
+}
+
+.product-modal-card-shell.dtb-product-page-shell {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+.product-modal-card-shell > * {
+  min-height: 100dvh;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+@media (min-width: 48rem) {
+  .product-modal-scroll-shell {
+    top: 0;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .product-modal-scroll-inner {
+    min-height: 100%;
+    align-items: center;
+    background: transparent;
+  }
+
+  .product-modal-card-shell.dtb-product-page-shell {
+    width: 100%;
+    max-width: 72rem;
+    min-height: 0;
+    margin-inline: auto;
+    background: transparent;
+  }
+
+  .product-modal-card-shell > * {
+    min-height: 0;
+    border-radius: 26px;
+    box-shadow: 0 32px 90px rgba(15, 23, 42, 0.28), 0 8px 22px rgba(15, 23, 42, 0.16);
+  }
+
+  .product-modal-scroll-shell::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .product-modal-scroll-shell.product-modal-scroll-shell--active::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.32);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
+  }
+
+  .product-modal-scroll-shell.product-modal-scroll-shell--active::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .product-modal-scroll-shell.product-modal-scroll-shell--active {
+    scrollbar-color: rgba(148, 163, 184, 0.32) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-modal-backdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* Desktop product quick-view visual authority.
  *
  * ProductModal owns dialog lifecycle/focus/scroll behavior and ProductDetail owns
