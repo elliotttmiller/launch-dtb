@@ -388,6 +388,32 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return `${labels[0]} +${labels.length - 1} more`;
   }, [brandCategoryCards, filterCategories, selectedDisplayCategories]);
 
+  const activeBreadcrumbFilters = useMemo(() => {
+    const filters = [];
+
+    if (selectedBrand) {
+      filters.push({
+        id: `brand:${brandToSlug(selectedBrand)}`,
+        type: 'brand',
+        value: selectedBrand,
+        label: selectedBrandFacet?.label || canonicalBrandLabel(selectedBrand),
+      });
+    }
+
+    selectedDisplayCategories.forEach((slug) => {
+      const match = [...filterCategories, ...brandCategoryCards]
+        .find((category) => category.slug === slug || category.key === slug || category.id === slug);
+      filters.push({
+        id: `display-category:${slug}`,
+        type: 'displayCategory',
+        value: slug,
+        label: match?.name || formatCategoryLabel(slug),
+      });
+    });
+
+    return filters;
+  }, [brandCategoryCards, filterCategories, selectedBrand, selectedBrandFacet, selectedDisplayCategories]);
+
   const activeFilterCount = (selectedBrand ? 1 : 0) + selectedDisplayCategories.length;
   const categoryScopeLabel = selectedBrandFacet?.label || selectedBrand;
   const pageHeading = selectedCategoryLabel
@@ -580,6 +606,25 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       : [...current, displayCategory];
     setQuery({ displayCategory: next, category: '', ...(next.length > 0 ? { search: '' } : {}) });
   };
+
+  const removeBreadcrumbFilter = useCallback((filter) => {
+    if (!filter) return;
+    if (filter.type === 'brand') {
+      setQuery({
+        brands: [],
+        displayCategory: [],
+        category: '',
+        search: query.search || '',
+        sort: query.sort || 'popular',
+        perPage: query.perPage || 24,
+      });
+      return;
+    }
+    if (filter.type === 'displayCategory') {
+      const next = (query.displayCategory || []).filter((slug) => slug !== filter.value);
+      setQuery({ displayCategory: next, category: '', ...(next.length > 0 ? { search: '' } : {}) });
+    }
+  }, [query, setQuery]);
   const resetToBrandList = () => navigate('/products/brands');
   const resetToCategoryCards = () => navigate(`/products/brands/${brandToSlug(selectedBrand)}`);
   const getCardDisplayProduct = useCallback((product) => product?.cardProduct || null, []);
@@ -641,7 +686,13 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
         {isCategoryPageRoute && (
           categoryMeta ? (
             <>
-              <CategoryHero category={categoryMeta} breadcrumbs={categoryBreadcrumbs} productCount={total} />
+              <CategoryHero
+                category={categoryMeta}
+                breadcrumbs={categoryBreadcrumbs}
+                activeFilters={activeBreadcrumbFilters}
+                onRemoveFilter={removeBreadcrumbFilter}
+                productCount={total}
+              />
               {Array.isArray(categoryMeta.children) && categoryMeta.children.length > 0 && (
                 <ShopByToolType categories={categoryToolTypes} onOpenFilters={() => setShowFilters(true)} />
               )}
@@ -660,7 +711,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
 
         {isAllProductsRoute && !showCategoryLanding && !showBrandLanding && (
           <>
-            <Breadcrumb items={allProductsBreadcrumbs} />
+            <Breadcrumb items={allProductsBreadcrumbs} activeFilters={activeBreadcrumbFilters} onRemoveFilter={removeBreadcrumbFilter} />
             {allProductsToolTypes.length > 0 && (
               <ShopByToolType categories={allProductsToolTypes} onOpenFilters={() => setShowFilters(true)} />
             )}
