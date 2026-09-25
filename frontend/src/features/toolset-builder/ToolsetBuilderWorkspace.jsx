@@ -151,7 +151,7 @@ function ToolsetSummary({
         <span>{completion.completed}/{completion.total}</span>
       </div>
 
-      <div className="dtb-toolset-summary__items">
+      <div className="dtb-toolset-summary__selection-list">
         {items.length === 0 ? (
           <p className="dtb-toolset-summary__empty">Choose your first tool to begin the set.</p>
         ) : items.map((item) => (
