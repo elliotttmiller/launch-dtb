@@ -739,10 +739,10 @@
 .dtb-toolset-product-card__identity h3 {
   margin: 0;
   color: var(--dtb-text);
-  font-size: 0.94rem;
-  font-weight: 780;
-  letter-spacing: -0.015em;
-  line-height: 1.28;
+  font-size: 1.08rem;
+  font-weight: 800;
+  letter-spacing: -0.022em;
+  line-height: 1.22;
 }
 
 .dtb-toolset-product-card__sku {
@@ -1860,7 +1860,7 @@
 .dtb-toolset-product-card__media { aspect-ratio:1 / .83; background:#f7f9fc; }
 .dtb-toolset-product-card__body { padding: .8rem .9rem .9rem; }
 .dtb-toolset-product-card__brand { color:var(--dtb-primary); font-size:.67rem; }
-.dtb-toolset-product-card__identity h3 { min-height:2.45em; font-size:.92rem; }
+.dtb-toolset-product-card__identity h3 { min-height:2.5em; font-size:1.05rem; line-height:1.2; }
 .dtb-toolset-product-card__select { border-radius:.45rem; }
 .dtb-toolset-product-card__body { gap: .72rem; padding: .85rem; }
 .dtb-toolset-summary { position: sticky; top: calc(var(--dtb-header-height) + 1rem); border-radius: var(--dtb-radius-md); box-shadow: none; }
