@@ -37,6 +37,10 @@ export default function Breadcrumb({
                 <li key={item.path || item.label} aria-current={isLast ? 'page' : undefined}>
                   {isLast ? (
                     <span className="dtb-breadcrumb__current">{item.label}</span>
+                  ) : item.onClick ? (
+                    <button type="button" className="dtb-breadcrumb__action" onClick={item.onClick}>
+                      {item.label}
+                    </button>
                   ) : (
                     <Link to={item.path}>{item.label}</Link>
                   )}
