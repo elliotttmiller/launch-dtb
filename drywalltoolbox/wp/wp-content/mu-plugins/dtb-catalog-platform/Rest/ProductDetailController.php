@@ -31,7 +31,10 @@ final class DTB_ProductDetailController {
 			'callback'            => [ self::class, 'handle_variations' ],
 			'permission_callback' => '__return_true',
 			'args'                => [
-				'id' => [ 'validate_callback' => 'is_numeric' ],
+				'id' => [
+					'validate_callback' => static fn( $value, $request = null, $param = null ): bool =>
+						is_numeric( $value ) && (int) $value > 0,
+				],
 			],
 		] );
 	}
