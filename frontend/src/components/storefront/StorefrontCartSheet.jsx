@@ -116,6 +116,8 @@ export default function StorefrontCartSheet({
   const [syncingKeys, setSyncingKeys] = useState(() => new Set());
   const [localQuantities, setLocalQuantities] = useState({});
   const [productModalState, setProductModalState] = useState(null);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const productModalClearTimerRef = useRef(null);
   const [productModalLoadingKey, setProductModalLoadingKey] = useState('');
 
   const setItemSyncing = useCallback((key, isSyncing) => {
@@ -139,7 +141,12 @@ export default function StorefrontCartSheet({
     if (overlayRef.current?.contains(document.activeElement)) {
       document.activeElement?.blur?.();
     }
-    setProductModalState(null);
+    setIsProductModalOpen(false);
+    if (productModalClearTimerRef.current) window.clearTimeout(productModalClearTimerRef.current);
+    productModalClearTimerRef.current = window.setTimeout(() => {
+      setProductModalState(null);
+      productModalClearTimerRef.current = null;
+    }, 220);
     onClose?.();
   }, [onClose]);
 
@@ -149,8 +156,13 @@ export default function StorefrontCartSheet({
   }, [handleClose]);
 
   const closeProductModal = useCallback(() => {
-    setProductModalState(null);
+    setIsProductModalOpen(false);
     setProductModalLoadingKey('');
+    if (productModalClearTimerRef.current) window.clearTimeout(productModalClearTimerRef.current);
+    productModalClearTimerRef.current = window.setTimeout(() => {
+      setProductModalState(null);
+      productModalClearTimerRef.current = null;
+    }, 220);
   }, []);
 
   const handleProductModalAddToCart = useCallback(async (product, quantity = 1) => {
@@ -166,6 +178,10 @@ export default function StorefrontCartSheet({
     const parentId = toNumericId(item?.parent_id);
     const variationId = toNumericId(item?.variation_id);
 
+    if (productModalClearTimerRef.current) {
+      window.clearTimeout(productModalClearTimerRef.current);
+      productModalClearTimerRef.current = null;
+    }
     setProductModalLoadingKey(key);
 
     try {
@@ -207,6 +223,7 @@ export default function StorefrontCartSheet({
       });
     } finally {
       setProductModalLoadingKey((current) => (current === key ? '' : current));
+      setIsProductModalOpen(true);
     }
   }, [productModalLoadingKey]);
 
@@ -303,6 +320,7 @@ export default function StorefrontCartSheet({
   useEffect(() => () => {
     syncTimersRef.current.forEach((timer) => window.clearTimeout(timer));
     syncTimersRef.current.clear();
+    if (productModalClearTimerRef.current) window.clearTimeout(productModalClearTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -547,7 +565,7 @@ export default function StorefrontCartSheet({
       </aside>
 
       <ProductModal
-        isOpen={Boolean(productModalState?.product)}
+        isOpen={isProductModalOpen && Boolean(productModalState?.product)}
         product={productModalState?.product || null}
         onClose={closeProductModal}
       >
