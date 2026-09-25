@@ -59,14 +59,8 @@ export default function ToolsetBuilderProductCard({
   const price = productPrice(product);
   const brand = productBrand(product);
 
-  const loadVariations = async () => {
-    if (variationOpen) {
-      setVariationOpen(false);
-      return;
-    }
-
-    setVariationOpen(true);
-    if (variations.length > 0 || variationLoading) return;
+  const requestVariations = async () => {
+    if (variationLoading) return;
 
     setVariationLoading(true);
     setVariationError('');
@@ -75,9 +69,18 @@ export default function ToolsetBuilderProductCard({
       const payload = await fetchToolsetVariations(product?.id);
       setVariations(Array.isArray(payload?.variations) ? payload.variations : []);
     } catch (error) {
+      setVariations([]);
       setVariationError(error?.message || 'Could not load options for this product.');
     } finally {
       setVariationLoading(false);
+    }
+  };
+
+  const toggleVariations = () => {
+    const nextOpen = !variationOpen;
+    setVariationOpen(nextOpen);
+    if (nextOpen && variations.length === 0 && !variationLoading) {
+      void requestVariations();
     }
   };
 
@@ -158,7 +161,7 @@ export default function ToolsetBuilderProductCard({
             <button
               type="button"
               className="dtb-toolset-product-card__options-toggle"
-              onClick={loadVariations}
+              onClick={toggleVariations}
               aria-expanded={variationOpen}
             >
               <span>Choose configuration</span>
@@ -175,12 +178,7 @@ export default function ToolsetBuilderProductCard({
                 ) : variationError ? (
                   <div className="dtb-toolset-product-card__variation-error" role="alert">
                     <span>{variationError}</span>
-                    <button type="button" onClick={() => {
-                      setVariations([]);
-                      setVariationError('');
-                      setVariationOpen(false);
-                      window.setTimeout(() => void loadVariations(), 0);
-                    }}>
+                    <button type="button" onClick={() => void requestVariations()}>
                       Retry
                     </button>
                   </div>
