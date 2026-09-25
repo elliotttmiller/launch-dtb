@@ -45,7 +45,7 @@ export function CategoryHeroSkeleton() {
  * merchandising is an additive presentation layer over the same authoritative
  * category metadata; it never defines taxonomy or product truth.
  */
-export default function CategoryHero({ category, breadcrumbs = [] }) {
+export default function CategoryHero({ category, breadcrumbs = [], activeFilters = [], onRemoveFilter = null }) {
   const resolvedHero = resolveCategoryHeroImage(category || {});
   const heroCacheKey = resolvedHero.src || '';
   const [heroReady, setHeroReady] = useState(() => !heroCacheKey || READY_CATEGORY_HERO_IMAGES.has(heroCacheKey));
@@ -75,7 +75,7 @@ export default function CategoryHero({ category, breadcrumbs = [] }) {
         <div className="dtb-category-hero-card">
           <div className="dtb-category-hero__breadcrumb-stage">
             <div className="dtb-category-hero__breadcrumb-content">
-              <Breadcrumb items={breadcrumbs} />
+              <Breadcrumb items={breadcrumbs} activeFilters={activeFilters} onRemoveFilter={onRemoveFilter} tone="inverse" />
             </div>
             <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
               <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
