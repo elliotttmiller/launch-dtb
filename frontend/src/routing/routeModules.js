@@ -32,6 +32,7 @@ const moduleLoaders = {
   returnPortal: () => import('../pages/ReturnPortal.jsx'),
   storePolicies: () => import('../pages/StorePolicies.jsx'),
   returnPolicy: () => import('../pages/ReturnPolicy.jsx'),
+  toolsetBuilder: () => import('../pages/ToolsetBuilder.jsx'),
   technicalSpecificationsPreview: () => import('../pages/TechnicalSpecificationsPreview.jsx'),
 };
 
@@ -91,6 +92,7 @@ export function resolveRouteModuleKey(input) {
   if (pathname === '/returns') return 'returnPortal';
   if (pathname === '/return-policy') return 'returnPolicy';
   if (pathname === '/policies') return 'storePolicies';
+  if (pathname === '/toolset-builder') return 'toolsetBuilder';
   if (pathname === '/cart') return 'cart';
   if (pathname === '/checkout') return 'checkout';
   if (pathname.startsWith('/checkout/')) return 'checkoutReturn';

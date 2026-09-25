@@ -85,7 +85,7 @@ const ShippingPolicy = createLazyRoute('shippingPolicy');
 const ReturnPortal = createLazyRoute('returnPortal');
 const StorePolicies = createLazyRoute('storePolicies');
 const ReturnPolicy = createLazyRoute('returnPolicy');
-// const ToolsetBuilder = lazy(() => import('./pages/ToolsetBuilder')); // DISABLED: temporarily hide Toolset Builder
+const ToolsetBuilder = createLazyRoute('toolsetBuilder');
 const TechnicalSpecificationsPreview = createLazyRoute('technicalSpecificationsPreview');
 
 function ScrollToTop() {
@@ -278,7 +278,7 @@ function AppRoutes() {
         <Route path="/returns/status/:id" element={<ReturnStatus />} />
         <Route path="/return-policy" element={<ReturnPolicy />} />
         <Route path="/policies" element={<StorePolicies />} />
-        {/* <Route path="/toolset-builder" element={<ToolsetBuilder />} /> */}
+        <Route path="/toolset-builder" element={<ToolsetBuilder />} />
         <Route path="/preview/technical-specifications" element={<TechnicalSpecificationsPreview />} />
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />

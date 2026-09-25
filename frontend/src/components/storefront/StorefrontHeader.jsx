@@ -34,7 +34,7 @@ const MAX_SEARCH_PRODUCTS = 6;
 
 const DRAWER_NAV_ROWS = [
   { to: '/products?sort=newest', label: 'New Arrivals' },
-  // { to: '/toolset-builder', label: 'Toolset Builder' }, // DISABLED: temporarily hide Toolset Builder
+  { to: '/toolset-builder', label: 'Toolset Builder' },
   { to: '/calculators', label: 'Calculators' },
   { to: '/faq', label: 'FAQ' },
   { to: '/contact', label: 'Contact' },
@@ -282,6 +282,13 @@ export default function Header({ onCartToggle, onMobileMenuOpen }) {
       label: 'New Arrivals',
       landingTo: '/products?sort=newest',
       activePrefixes: [],
+      items: [],
+    },
+    {
+      id: 'toolset-builder',
+      label: 'Toolset Builder',
+      landingTo: '/toolset-builder',
+      activePrefixes: ['/toolset-builder'],
       items: [],
     },
     {

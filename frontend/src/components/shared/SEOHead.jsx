@@ -41,6 +41,7 @@ const STATIC_ROUTE_TITLES = {
   '/returns': 'Returns',
   '/return-policy': 'Return Policy',
   '/policies': 'Store Policies',
+  '/toolset-builder': 'Toolset Builder',
   '/cart': 'Cart',
   '/checkout': 'Checkout',
   '/checkout/complete': 'Order Complete',
