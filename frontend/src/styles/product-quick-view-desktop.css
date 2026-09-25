@@ -107,6 +107,11 @@
  */
 
 @media (min-width: 1024px) {
+  .product-modal-card-shell .product-image-gallery__skeleton {
+    animation: none !important;
+    background: #f8fafc !important;
+  }
+
   .product-modal-card-shell.dtb-product-page-shell {
     width: min(1504px, calc(100vw - 96px)) !important;
     max-width: 1504px !important;
