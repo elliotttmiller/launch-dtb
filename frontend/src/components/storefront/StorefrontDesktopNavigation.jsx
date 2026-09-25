@@ -24,7 +24,6 @@ const CATALOG_BACKED_DROPDOWN_IDS = new Set(['products', 'brands', 'parts']);
 const POINTER_OPEN_INTENT_MS = 85;
 const POINTER_SWITCH_INTENT_MS = 42;
 const POINTER_CLOSE_DELAY_MS = 210;
-const CONTENT_EXIT_MS = 92;
 
 const ENTRY_ICONS = [Wrench, Layers, Box, PenTool, Ruler, Hammer, Package, Settings2, ShoppingBag, Award];
 const ENTRY_ICON_ELEMENTS_LARGE = ENTRY_ICONS.map((Icon, index) => (
@@ -402,11 +401,8 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const dropdownItemsById = new Map(dropdownItems.map((item) => [item.id, item]));
   const [renderedMenuId, setRenderedMenuId] = useState(() => openMenuId || null);
   const [mountedMenuIds, setMountedMenuIds] = useState(() => new Set(openMenuId ? [openMenuId] : []));
-  const [contentVisible, setContentVisible] = useState(() => Boolean(openMenuId));
   const openTimerRef = useRef(null);
   const closeTimerRef = useRef(null);
-  const switchTimerRef = useRef(null);
-  const frameRef = useRef(null);
 
   const renderedItem = renderedMenuId ? dropdownItemsById.get(renderedMenuId) : null;
   const mountedItems = dropdownItems.filter((item) => mountedMenuIds.has(item.id));
@@ -416,13 +412,6 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     if (ref.current !== null) {
       window.clearTimeout(ref.current);
       ref.current = null;
-    }
-  };
-
-  const clearFrame = () => {
-    if (frameRef.current !== null) {
-      window.cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
     }
   };
 
@@ -439,48 +428,16 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     clearTimer(closeTimerRef);
   };
 
-  const revealContent = () => {
-    clearFrame();
-    if (reducedMotion) {
-      setContentVisible(true);
-      return;
-    }
-    frameRef.current = window.requestAnimationFrame(() => {
-      frameRef.current = window.requestAnimationFrame(() => {
-        frameRef.current = null;
-        setContentVisible(true);
-      });
-    });
-  };
-
-  const commitOpen = (id, immediate = false) => {
+  const commitOpen = (id) => {
     cancelPendingClose();
-    clearTimer(switchTimerRef);
     rememberMountedMenu(id);
 
-    if (immediate) {
-      clearFrame();
-      setRenderedMenuId(id);
-      onOpen(id);
-      setContentVisible(true);
-      return;
-    }
-
-    if (!renderedMenuId || renderedMenuId === id || reducedMotion) {
-      setRenderedMenuId(id);
-      onOpen(id);
-      setContentVisible(reducedMotion ? true : false);
-      revealContent();
-      return;
-    }
-
-    setContentVisible(false);
-    switchTimerRef.current = window.setTimeout(() => {
-      switchTimerRef.current = null;
-      setRenderedMenuId(id);
-      onOpen(id);
-      revealContent();
-    }, CONTENT_EXIT_MS);
+    // Keep the already-open desktop sheet continuously painted. Switching
+    // taxonomy tabs is an atomic content replacement; deliberately fading the
+    // current panel to zero and waiting multiple frames created a visible blank
+    // interval on desktop.
+    setRenderedMenuId(id);
+    onOpen(id);
   };
 
   const requestOpen = (id, immediate = false) => {
@@ -495,21 +452,19 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
         : POINTER_OPEN_INTENT_MS;
 
     if (delay === 0) {
-      commitOpen(id, immediate || reducedMotion);
+      commitOpen(id);
       return;
     }
 
     openTimerRef.current = window.setTimeout(() => {
       openTimerRef.current = null;
-      commitOpen(id, false);
+      commitOpen(id);
     }, delay);
   };
 
   const closeImmediately = () => {
     clearTimer(openTimerRef);
-    clearTimer(switchTimerRef);
     clearTimer(closeTimerRef);
-    setContentVisible(true);
     onClose();
   };
 
@@ -527,15 +482,13 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     rememberMountedMenu(openMenuId);
     if (!renderedMenuId) {
       setRenderedMenuId(openMenuId);
-      setContentVisible(true);
     }
   }, [openMenuId, renderedMenuId]);
 
   useEffect(() => () => {
     clearTimer(openTimerRef);
     clearTimer(closeTimerRef);
-    clearTimer(switchTimerRef);
-    clearFrame();
+
   }, []);
 
   const shellTransition = reducedMotion
@@ -543,12 +496,6 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     : shellOpen
       ? 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 285ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0s'
       : 'opacity 190ms cubic-bezier(0.4, 0, 1, 1), transform 230ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 230ms';
-
-  const contentTransition = reducedMotion
-    ? 'none'
-    : contentVisible
-      ? 'opacity 190ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.16, 1, 0.3, 1)'
-      : `opacity ${CONTENT_EXIT_MS}ms ease-out, transform ${CONTENT_EXIT_MS}ms ease-out`;
 
   return (
     <nav
@@ -613,7 +560,6 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
                 ? 'translateX(-50%) translateY(0) scale(1)'
                 : 'translateX(-50%) translateY(-5px) scale(0.996)',
               transition: shellTransition,
-              willChange: reducedMotion ? 'auto' : 'opacity, transform',
             }}
           >
             <div className="dtb-desktop-nav-dropdown__scroller">
@@ -625,10 +571,9 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
                     hidden={!isRendered}
                     aria-hidden={!isRendered ? true : undefined}
                     style={{
-                      opacity: isRendered && contentVisible ? 1 : 0,
-                      transform: isRendered && contentVisible ? 'translateY(0)' : 'translateY(4px)',
-                      transition: isRendered ? contentTransition : 'none',
-                      willChange: isRendered && !reducedMotion ? 'opacity, transform' : 'auto',
+                      opacity: 1,
+                      transform: 'none',
+                      transition: 'none',
                     }}
                   >
                     <DeliberatePanelRenderer item={item} onNavigate={onNavigate} />
