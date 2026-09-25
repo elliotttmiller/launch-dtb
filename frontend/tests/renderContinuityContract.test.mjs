@@ -97,3 +97,32 @@ test('initial boot handoff and history navigation preserve visual continuity', a
   assert.match(html, /prefers-reduced-motion:reduce/);
   assert.match(html, /if \(bootShell\) bootShell\.remove\(\)/);
 });
+
+
+test('desktop rendering avoids large-surface compositor flicker paths', async () => {
+  const [pageTransition, desktopNav, desktopNavCss, motionCss, performanceCss] = await Promise.all([
+    read('src/components/routing/PageTransition.jsx'),
+    read('src/components/storefront/StorefrontDesktopNavigation.jsx'),
+    read('src/styles/storefront-desktop-navigation.css'),
+    read('src/styles/storefront-motion.css'),
+    read('src/styles/performance-overrides.css'),
+  ]);
+
+  assert.match(pageTransition, /desktopViewport/);
+  assert.match(pageTransition, /reduceMotion \|\| desktopViewport \? reducedRouteVariants : routeVariants/);
+  assert.doesNotMatch(pageTransition, /willChange:\s*'transform'/);
+  assert.doesNotMatch(pageTransition, /backfaceVisibility:\s*'hidden'/);
+
+  assert.doesNotMatch(desktopNav, /contentVisible/);
+  assert.doesNotMatch(desktopNav, /CONTENT_EXIT_MS/);
+  assert.doesNotMatch(desktopNav, /requestAnimationFrame/);
+  assert.match(desktopNav, /transform:\s*'translateX\(-50%\)'/);
+  assert.doesNotMatch(desktopNav, /willChange:\s*reducedMotion/);
+
+  assert.doesNotMatch(desktopNavCss, /transition:\s*all 0\.4s/);
+  assert.doesNotMatch(desktopNavCss, /translateY\(-8px\) scale\(0\.992\)/);
+  assert.doesNotMatch(motionCss, /dtb-desktop-nav-dropdown[\s\S]{0,220}transform var\(--dtb-motion-duration-elevated\)/);
+
+  assert.match(performanceCss, /@media \(max-width: 1024px\)[\s\S]*content-visibility:\s*auto/);
+  assert.doesNotMatch(performanceCss, /^\.dtb-product-card\s*\{[\s\S]{0,100}content-visibility:\s*auto/m);
+});
