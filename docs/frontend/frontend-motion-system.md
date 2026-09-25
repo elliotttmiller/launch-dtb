@@ -87,7 +87,7 @@ Saved positions are session-memory UI state only and are bounded to 100 entries.
 
 `GlobalMotionProvider` is mounted in `frontend/src/main.jsx` above `App`, routing, header, footer, cart/sidebar surfaces, route content, dialogs, drawers, and other application UI.
 
-`PageTransition` animates only the changing route surface. Its route variant must remain fully opaque from the first frame. The current route motion is a 4 px settle using the fast 180 ms semantic tween. Do not change it to an entire-page fade.
+`PageTransition` animates only the changing route surface. Its route variant must remain fully opaque from the first frame. Mobile/tablet retain the restrained 4 px / 180 ms settle. Desktop route commits are intentionally static and consume the reduced/static route variant because translating a full desktop page promotes a very large raster surface and can destabilize sticky/fixed descendants. Do not restore whole-page desktop transforms or entire-page fades.
 
 Checkout is excluded from the normal route wrapper because payment-provider rendering and checkout integrity take precedence over decorative page motion. Provider-owned payment controls must never be wrapped in transforms or transitions that could interfere with focus, authentication, or payment behavior.
 
@@ -154,6 +154,19 @@ Use the narrowest valid loading boundary:
 
 Avoid sequential replacement chains such as route spinner → page spinner → skeleton → content.
 
+## Desktop stability contract
+
+Desktop has a larger composited paint surface than mobile and therefore uses stricter large-surface rules:
+
+- Do not apply a transform or persistent `will-change` to the complete desktop route tree.
+- Desktop mega-menu taxonomy switching is atomic. The open sheet remains painted while its rendered panel changes; there is no fade-to-zero or multi-frame blank interval between menu tabs.
+- The desktop mega-menu keeps a constant centering transform and may animate opacity only. Do not scale or vertically translate the full 1000–1240 px fixed sheet during routine open/close.
+- Desktop navigation must use explicit transitioned properties. `transition: all` is prohibited on primary navigation controls.
+- Product-card `content-visibility: auto` is restricted to viewports at or below 1024 px. Desktop product grids remain continuously painted to avoid visibility-heuristic pop-in during hover and scrolling.
+- Local transforms remain appropriate for small controls, chevrons, buttons, and bounded cards when they do not force a large subtree into its own compositor layer.
+
+These constraints prioritize frame continuity over decorative movement. A stable desktop frame is the primary requirement.
+
 ## Responsive contract
 
 Motion semantics are shared across breakpoints. Mobile differences are limited to interaction geometry where the interaction itself differs.
@@ -187,7 +200,7 @@ Reduced motion removes nonessential transforms, smooth scrolling, shimmer animat
 
 ## Regression contract
 
-`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, absence of root fades on the specifically remediated cart/repair/order-tracking surfaces, history-aware POP restoration, strict LazyMotion usage, and the initial HTML-to-React boot handoff.
+`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, absence of root fades on the specifically remediated cart/repair/order-tracking surfaces, history-aware POP restoration, strict LazyMotion usage, the initial HTML-to-React boot handoff, static desktop route composition, atomic desktop mega-menu switching, bounded navigation transitions, and desktop product-card paint continuity.
 
 This test supplements browser profiling; it does not prove runtime frame pacing. Lighthouse/Chrome Performance traces remain required when changing startup providers, global CSS, large navigation surfaces, or animation-heavy components.
 
