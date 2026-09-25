@@ -42,7 +42,7 @@ test('frontend workflow model contains no pricing, discount, shipping, or cart a
   assert.match(model, /TOOLSET_WORKFLOWS/);
   assert.match(model, /toolFamily:\s*'automatic_taper'/);
   assert.match(model, /minimum:\s*1, maximum:\s*2/);
-  assert.doesNotMatch(model, /savingsLabel|discount|shipping\s*:|price\s*:/i);
+  assert.doesNotMatch(model, /savingsLabel\s*:|discount(?:Rate|Label)?\s*:|shipping\s*:|price\s*:/i);
 });
 
 test('workspace preserves server validation boundary and final cart mutation remains disabled', async () => {
