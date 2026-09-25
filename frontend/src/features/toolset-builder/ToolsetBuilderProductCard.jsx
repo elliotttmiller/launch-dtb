@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, PackageCheck, RefreshCw } from 'lucide-react';
 import { fetchToolsetVariations, normalizeToolsetSelection } from '../../api/toolsetBuilderApi.js';
 import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
@@ -46,6 +46,7 @@ export default function ToolsetBuilderProductCard({
   const [variationLoading, setVariationLoading] = useState(false);
   const [variationError, setVariationError] = useState('');
   const [selectedVariationId, setSelectedVariationId] = useState('');
+  const variationMenuRef = useRef(null);
 
   const isVariable = product?.type === 'variable';
   const selectedProductItems = useMemo(
@@ -70,6 +71,24 @@ export default function ToolsetBuilderProductCard({
     ? activeVariation?.sku || selectedVariationSku
     : product?.sku || '';
 
+  useEffect(() => {
+    if (!variationOpen) return undefined;
+
+    const closeOnPointerOutside = (event) => {
+      if (!variationMenuRef.current?.contains(event.target)) setVariationOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setVariationOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnPointerOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnPointerOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [variationOpen]);
+
   const requestVariations = async () => {
     if (variationLoading) return;
 
@@ -93,6 +112,11 @@ export default function ToolsetBuilderProductCard({
     if (nextOpen && variations.length === 0 && !variationLoading) {
       void requestVariations();
     }
+  };
+
+  const chooseVariation = (variationId) => {
+    setSelectedVariationId(String(variationId));
+    setVariationOpen(false);
   };
 
   const handleSimpleSelect = () => {
@@ -177,19 +201,29 @@ export default function ToolsetBuilderProductCard({
         </div>
 
         {isVariable ? (
-          <div className="dtb-toolset-product-card__variation">
+          <div ref={variationMenuRef} className="dtb-toolset-product-card__variation">
             <button
               type="button"
               className="dtb-toolset-product-card__options-toggle"
               onClick={toggleVariations}
               aria-expanded={variationOpen}
+              aria-controls={'toolset-variation-menu-' + product.id}
             >
-              <span>Choose configuration</span>
+              <span>
+                {activeVariation
+                  ? variationLabel(activeVariation) + ' · ' + formatCurrency(activeVariation?.price?.value ?? activeVariation?.price ?? null)
+                  : 'Choose configuration'}
+              </span>
               <ChevronDown size={17} aria-hidden="true" />
             </button>
 
             {variationOpen ? (
-              <div className="dtb-toolset-product-card__variation-panel">
+              <div
+                id={'toolset-variation-menu-' + product.id}
+                className="dtb-toolset-product-card__variation-menu"
+                role="menu"
+                aria-label={'Choose configuration for ' + (product?.name || 'product')}
+              >
                 {variationLoading ? (
                   <div className="dtb-toolset-product-card__variation-status" role="status">
                     <RefreshCw size={16} aria-hidden="true" />
@@ -204,38 +238,44 @@ export default function ToolsetBuilderProductCard({
                   </div>
                 ) : variations.length === 0 ? (
                   <p className="dtb-toolset-product-card__variation-status">No purchasable configurations are available.</p>
-                ) : (
-                  <>
-                    <label htmlFor={'toolset-variation-' + product.id}>Configuration</label>
-                    <select
-                      id={'toolset-variation-' + product.id}
-                      value={selectedVariationId}
-                      onChange={(event) => setSelectedVariationId(event.target.value)}
-                    >
-                      <option value="">Select an option</option>
-                      {variations.map((variation) => {
-                        const id = variation?.id || variation?.variationId;
-                        const stock = variation?.inventory?.stockStatus || variation?.stockStatus || 'instock';
-                        const priceValue = variation?.price?.value ?? variation?.price ?? null;
-                        return (
-                          <option key={id} value={id} disabled={stock === 'outofstock'}>
-                            {variationLabel(variation)} · {formatCurrency(priceValue)}
-                            {stock === 'outofstock' ? ' · Out of stock' : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
+                ) : variations.map((variation) => {
+                  const id = variation?.id || variation?.variationId;
+                  const stock = variation?.inventory?.stockStatus || variation?.stockStatus || 'instock';
+                  const priceValue = variation?.price?.value ?? variation?.price ?? null;
+                  const selected = String(id) === String(selectedVariationId);
+                  return (
                     <button
                       type="button"
-                      className="dtb-toolset-product-card__select"
-                      disabled={!selectedVariationId || (atMaximum && !activeVariationAlreadySelected)}
-                      onClick={handleVariationSelect}
+                      key={id}
+                      role="menuitemradio"
+                      aria-checked={selected}
+                      className={selected ? 'is-selected' : ''}
+                      disabled={stock === 'outofstock'}
+                      onClick={() => chooseVariation(id)}
                     >
-                      {activeVariationAlreadySelected ? 'Remove selection' : 'Select configuration'}
+                      <span className="dtb-toolset-product-card__variation-option-copy">
+                        <strong>{variationLabel(variation)}</strong>
+                        <small>{stock === 'outofstock' ? 'Out of stock' : 'Available'}</small>
+                      </span>
+                      <span className="dtb-toolset-product-card__variation-option-price">
+                        {formatCurrency(priceValue)}
+                        {selected ? <Check size={16} aria-hidden="true" /> : null}
+                      </span>
                     </button>
-                  </>
-                )}
+                  );
+                })}
               </div>
+            ) : null}
+
+            {selectedVariationId ? (
+              <button
+                type="button"
+                className="dtb-toolset-product-card__select"
+                disabled={atMaximum && !activeVariationAlreadySelected}
+                onClick={handleVariationSelect}
+              >
+                {activeVariationAlreadySelected ? 'Remove selection' : 'Select configuration'}
+              </button>
             ) : null}
           </div>
         ) : (

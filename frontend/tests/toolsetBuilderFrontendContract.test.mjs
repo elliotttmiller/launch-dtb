@@ -67,6 +67,8 @@ test('builder product cards load exact variations on demand', async () => {
   assert.match(productCard, /fetchToolsetVariations/);
   assert.match(productCard, /normalizeToolsetSelection/);
   assert.match(productCard, /Select configuration/);
+  assert.match(productCard, /dtb-toolset-product-card__variation-menu/);
+  assert.doesNotMatch(productCard, /<select/);
   assert.match(productCard, /variationId/);
   assert.match(productCard, /const displayedSku = isVariable/);
   assert.match(productCard, /activeVariation\?\.sku \|\| selectedVariationSku/);
