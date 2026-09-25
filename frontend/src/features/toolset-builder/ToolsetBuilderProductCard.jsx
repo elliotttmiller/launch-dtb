@@ -150,7 +150,7 @@ export default function ToolsetBuilderProductCard({
     : false;
 
   return (
-    <article className={'dtb-toolset-product-card' + (isSelected ? ' is-selected' : '')}>
+    <article className={'dtb-toolset-product-card' + (isSelected ? ' is-selected' : '') + (variationOpen ? ' is-config-open' : '')}>
       <div className="dtb-toolset-product-card__media">
         {image ? (
           <img
