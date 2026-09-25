@@ -19,7 +19,7 @@ function normalizePagination(payload, fallbackPage = 1) {
 
 export default function useToolsetBuilderCatalog({
   toolFamily,
-  displayCategory = [],
+  displayCategory = '',
   brand = '',
   search = '',
   page = 1,
