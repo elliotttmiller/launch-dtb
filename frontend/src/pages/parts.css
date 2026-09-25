@@ -1,3 +1,13 @@
+.dtb-parts-breadcrumb-shell {
+  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
+  margin: 0 auto;
+  padding: 1rem 0 0.85rem;
+}
+
+.dtb-parts-breadcrumb-shell .dtb-breadcrumb-bar {
+  margin: 0;
+}
+
 .dtb-parts-page {
   background: #fff;
 }
