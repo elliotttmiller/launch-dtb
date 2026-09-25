@@ -6,6 +6,10 @@
   margin: 0;
 }
 
+.dtb-catalog-brand-layout {
+  padding-top: 0 !important;
+}
+
 .products-brand-selector__hero {
   --brands-hero-navy: #061c3d;
   --brands-hero-blue: #0878ff;
@@ -71,23 +75,7 @@
   flex-direction: column;
   justify-content: center;
   padding: clamp(4.4rem, 5.2vw, 5.6rem) clamp(3.5rem, 5.2vw, 6.2rem) clamp(2.5rem, 3.3vw, 3.5rem) var(--dtb-viewport-gutter);
-  background:
-    radial-gradient(circle at 100% 14%, rgba(8, 120, 255, 0.06), transparent 37%),
-    linear-gradient(104deg, #fff 0%, #fbfdff 72%, #f3f8ff 100%);
-}
-
-.products-brand-selector__hero-content::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: clamp(-5rem, -4.4vw, -3.5rem);
-  bottom: 0;
-  z-index: -1;
-  width: clamp(7rem, 8vw, 9rem);
-  transform: skewX(-24deg);
-  transform-origin: bottom;
-  background: linear-gradient(90deg, rgba(248, 251, 255, 0.98), rgba(238, 246, 255, 0.86) 62%, rgba(221, 237, 255, 0.42));
-  pointer-events: none;
+  background: transparent;
 }
 
 .products-brand-selector__eyebrow-row {
@@ -150,11 +138,14 @@
     linear-gradient(
       90deg,
       #fff 0%,
-      rgba(255, 255, 255, 0.995) 28%,
-      rgba(248, 251, 255, 0.96) 38%,
-      rgba(244, 249, 255, 0.64) 46%,
-      rgba(244, 249, 255, 0.16) 57%,
-      rgba(248, 251, 255, 0.03) 72%
+      #fff 25%,
+      rgba(255, 255, 255, 0.995) 31%,
+      rgba(252, 254, 255, 0.96) 36%,
+      rgba(248, 252, 255, 0.82) 41%,
+      rgba(245, 250, 255, 0.58) 46%,
+      rgba(244, 249, 255, 0.30) 51%,
+      rgba(244, 249, 255, 0.10) 57%,
+      rgba(248, 251, 255, 0.02) 66%
     ),
     url('../../assets/media/hero-background.webp') center / cover no-repeat;
   pointer-events: none;
