@@ -32,6 +32,7 @@ export default function StorefrontProductRail({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { addToCart } = useCart();
   const railRef = useRef(null);
+  const modalClearTimerRef = useRef(null);
 
   useEffect(() => {
     const target = railRef.current;
@@ -50,7 +51,11 @@ export default function StorefrontProductRail({
 
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setModalProduct(null);
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+    modalClearTimerRef.current = window.setTimeout(() => {
+      setModalProduct(null);
+      modalClearTimerRef.current = null;
+    }, 220);
   }, []);
 
   useEffect(() => {
@@ -58,6 +63,10 @@ export default function StorefrontProductRail({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [closeModal]);
+
+  useEffect(() => () => {
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!shouldLoad) return undefined;
@@ -93,6 +102,10 @@ export default function StorefrontProductRail({
   };
 
   const openModal = (product) => {
+    if (modalClearTimerRef.current) {
+      window.clearTimeout(modalClearTimerRef.current);
+      modalClearTimerRef.current = null;
+    }
     setModalProduct({ product });
     setIsModalOpen(true);
   };
@@ -129,9 +142,9 @@ export default function StorefrontProductRail({
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
-      {isModalOpen && modalProduct ? (
+      {modalProduct ? (
         <Suspense fallback={null}>
-          <ProductModal isOpen product={modalProduct.product || modalProduct} onClose={closeModal}>
+          <ProductModal isOpen={isModalOpen} product={modalProduct.product || modalProduct} onClose={closeModal}>
             <ProductDetail
               key={`${modalProduct.product?.id || modalProduct.id}:${modalProduct.initialResolvedVariation?.id || 'parent'}`}
               product={modalProduct.product || modalProduct}
