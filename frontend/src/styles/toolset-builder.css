@@ -7,10 +7,7 @@
  * authorities remain in responsive-foundation.css and storefront-motion.css.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
-
 .dtb-toolset-page {
-  --dtb-toolset-font: "Nunito", ui-sans-serif, system-ui, sans-serif;
   background: var(--dtb-page-bg);
 }
 
@@ -1664,21 +1661,9 @@
 .dtb-toolset-brand-rail__logos a:hover { background: var(--dtb-surface-subtle); transform: translateY(-1px); }
 .dtb-toolset-brand-rail__logos img { display: block; width: 100%; max-width: 9.4rem; height: 2.25rem; object-fit: contain; }
 
-/* Type is a deliberate application of the global Geist authority. The page
- * does not introduce a feature font or rely on browser default weights. */
-.dtb-toolset-page,
-.dtb-toolset-page *,
-.dtb-toolset-page *::before,
-.dtb-toolset-page *::after,
-.dtb-toolset-page button,
-.dtb-toolset-page input,
-.dtb-toolset-page select {
-  font-family: var(--dtb-toolset-font) !important;
-}
-.dtb-toolset-page :is(h1, h2, h3, .dtb-toolset-workflow-card__label, .dtb-toolset-summary__head h2) {
-  font-family: var(--dtb-toolset-font) !important;
-  font-kerning: normal;
-}
+/* Toolset Builder inherits the shared Geist typography authority used by the
+ * Repairs experience. This feature owns hierarchy and density only; it never
+ * introduces a route-specific font family. */
 .dtb-toolset-page :is(h1, h2) { font-weight: 700; letter-spacing: -.04em; line-height: 1.03; }
 .dtb-toolset-page h3 { font-weight: 650; letter-spacing: -.024em; line-height: 1.25; }
 .dtb-toolset-page :is(p, li, .dtb-toolset-workflow-card__description, .dtb-toolset-catalog__title-row p) {
