@@ -13,6 +13,7 @@ const MotionDrawer = forwardRef(function MotionDrawer({
   style,
   children,
   onScroll,
+  variants: requestedVariants,
   ...rest
 }, ref) {
   return (
@@ -20,7 +21,7 @@ const MotionDrawer = forwardRef(function MotionDrawer({
       ref={ref}
       className={className}
       style={style}
-      variants={reduceMotion ? reducedSurfaceVariants : mobileSheetVariants}
+      variants={reduceMotion ? reducedSurfaceVariants : (requestedVariants || mobileSheetVariants)}
       initial="hidden"
       animate="visible"
       exit="exit"

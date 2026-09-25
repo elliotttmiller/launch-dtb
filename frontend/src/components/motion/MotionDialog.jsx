@@ -13,6 +13,7 @@ const MotionDialog = forwardRef(function MotionDialog({
   style,
   children,
   onScroll,
+  variants: requestedVariants,
   ...rest
 }, ref) {
   return (
@@ -20,7 +21,11 @@ const MotionDialog = forwardRef(function MotionDialog({
       ref={ref}
       className={className}
       style={style}
-      variants={reduceMotion ? reducedSurfaceVariants : surfaceVariants}
+      // Callers such as ProductModal own their panel geometry. Ignoring their
+      // supplied variants made the desktop Quick View use the generic surface
+      // transition instead of its opacity-only lifecycle, forcing a large
+      // rasterized dialog through unintended geometry changes on open/close.
+      variants={reduceMotion ? reducedSurfaceVariants : (requestedVariants || surfaceVariants)}
       initial="hidden"
       animate="visible"
       exit="exit"
