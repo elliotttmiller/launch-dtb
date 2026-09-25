@@ -167,6 +167,21 @@ Desktop has a larger composited paint surface than mobile and therefore uses str
 
 These constraints prioritize frame continuity over decorative movement. A stable desktop frame is the primary requirement.
 
+## Product Quick View continuity
+
+Desktop Quick View is a large overlay surface and follows stricter lifecycle rules than small dialogs:
+
+- The desktop Quick View panel is opacity-only. Do not scale or vertically translate the viewport-sized modal scroll shell.
+- The modal shell must not use persistent `will-change`, `translateZ(0)`, or `contain: layout paint` as blanket compositor hints.
+- Full-screen backdrop blur is prohibited for routine Quick View open/close; use a stable translucent backdrop instead.
+- Body scroll locking must compensate for the removed scrollbar and preserve that lock until the exit animation has completed. Restoring overflow before exit completion causes the storefront to shift underneath a still-visible modal.
+- Quick View shell geometry CSS must live in a persistent imported stylesheet, not a conditional `<style>` node inside the presence subtree.
+- Product data must remain mounted through the exit interval. Owners set visibility false first and clear the selected product only after the 180 ms exit has completed.
+- Nested Quick View owners such as search and cart must restore the prior scroll-lock state rather than assuming the body was originally unlocked.
+- Product imagery may animate locally inside its bounded gallery; those image transitions must not promote or transform the complete modal shell.
+
+These rules apply to catalog, homepage/product rails, search, and cart Quick View entry points.
+
 ## Responsive contract
 
 Motion semantics are shared across breakpoints. Mobile differences are limited to interaction geometry where the interaction itself differs.
@@ -200,7 +215,7 @@ Reduced motion removes nonessential transforms, smooth scrolling, shimmer animat
 
 ## Regression contract
 
-`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, absence of root fades on the specifically remediated cart/repair/order-tracking surfaces, history-aware POP restoration, strict LazyMotion usage, the initial HTML-to-React boot handoff, static desktop route composition, atomic desktop mega-menu switching, bounded navigation transitions, and desktop product-card paint continuity.
+`frontend/tests/renderContinuityContract.test.mjs` statically protects the critical continuity rules: centralized route loading, no legacy route spinner, opaque route motion, the 220 ms async replacement token, absence of root fades on the specifically remediated cart/repair/order-tracking surfaces, history-aware POP restoration, strict LazyMotion usage, the initial HTML-to-React boot handoff, static desktop route composition, atomic desktop mega-menu switching, bounded navigation transitions, desktop product-card paint continuity, and geometry-stable Quick View open/close lifecycle.
 
 This test supplements browser profiling; it does not prove runtime frame pacing. Lighthouse/Chrome Performance traces remain required when changing startup providers, global CSS, large navigation surfaces, or animation-heavy components.
 
