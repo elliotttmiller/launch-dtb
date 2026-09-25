@@ -6,9 +6,15 @@
  * to render while preserving the existing visual system.
  */
 
-.dtb-product-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 460px 260px;
+/* content-visibility can visibly pop cards in/out on large desktop grids as
+ * browser visibility heuristics and composited hover layers change. Keep the
+ * optimization for smaller viewports where it materially reduces work, while
+ * desktop cards remain continuously painted. */
+@media (max-width: 1024px) {
+  .dtb-product-card {
+    content-visibility: auto;
+    contain-intrinsic-size: 460px 260px;
+  }
 }
 
 .dtb-product-card__qv-overlay {
