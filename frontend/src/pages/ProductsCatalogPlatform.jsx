@@ -301,6 +301,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
     return saved === 'grid' || saved === 'list' ? saved : 'grid';
   });
   const [modalProduct, setModalProduct] = useState(null);
+  const modalClearTimerRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -549,13 +550,21 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
   };
 
   const openModal = (product) => {
+    if (modalClearTimerRef.current) {
+      window.clearTimeout(modalClearTimerRef.current);
+      modalClearTimerRef.current = null;
+    }
     setModalProduct({ product });
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setModalProduct(null);
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+    modalClearTimerRef.current = window.setTimeout(() => {
+      setModalProduct(null);
+      modalClearTimerRef.current = null;
+    }, 220);
   };
 
   const toggleBrand = (brand) => {
@@ -620,6 +629,10 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
       )}
     </>
   );
+
+  useEffect(() => () => {
+    if (modalClearTimerRef.current) window.clearTimeout(modalClearTimerRef.current);
+  }, []);
 
   return (
     <div className="min-h-screen page-wrapper">
