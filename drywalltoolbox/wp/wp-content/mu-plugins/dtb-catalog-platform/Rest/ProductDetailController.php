@@ -6,8 +6,9 @@
  *   GET /wp-json/dtb/v1/catalog/products/:slug/detail
  *   GET /wp-json/dtb/v1/catalog/products/:id/variations
  *
- * Returns a normalized parent product + full variation matrix + computed
- * default-variation context. This is the canonical product detail endpoint.
+ * The detail route returns the normalized PDP projection with full variation
+ * context. The ID-based variations route returns a bounded configuration
+ * selector projection without media-manifest/filesystem gallery enrichment.
  *
  * @package drywall-toolbox
  */
