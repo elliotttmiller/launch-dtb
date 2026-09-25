@@ -7,10 +7,14 @@
  * Priority:
  *   1. _dtb_tool_family meta (explicit) — always wins if set and valid.
  *   2. _dtb_builder_slots meta — infer family from the first slot's allowed families.
- *   3. Category key heuristic — map DTB category → most likely tool family.
- *   4. Product name keyword heuristic — last resort, transition only.
+ *   3. Exact display-category classification when that category maps one-to-one.
+ *   4. Narrow broad-category heuristic for categories that map one-to-one.
+ *   5. Product-name keyword heuristic — last resort, transition only.
  *
- * The goal is to eliminate (4) entirely once all products have been tagged.
+ * Broad categories such as taping, finishing, corner, handles, and mudboxes are
+ * intentionally NOT mapped directly because each contains multiple distinct
+ * tool families. Ambiguous classifications remain unassigned instead of being
+ * guessed.
  *
  * @package drywall-toolbox
  */
@@ -20,22 +24,40 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_ToolFamilyResolver {
 
 	/**
-	 * DTB category key → default tool family when no explicit meta exists.
-	 * Used only as a category-level heuristic (priority 3).
+	 * Exact display category → tool family mappings.
+	 *
+	 * Only one-to-one mappings belong here. Ambiguous display categories such
+	 * as handles, toolsets, semi-automatic tapers/banjos, and mixed
+	 * gooseneck/filler-adapter buckets are intentionally omitted.
+	 *
+	 * @var array<string, string>
+	 */
+	const DISPLAY_CATEGORY_FAMILY_HINTS = [
+		'automatic_tapers'          => DTB_ToolFamilies::AUTOMATIC_TAPER,
+		'flat_boxes'                => DTB_ToolFamilies::FLAT_BOX,
+		'corner_finishers'          => DTB_ToolFamilies::ANGLE_HEAD,
+		'automatic_corner_rollers'  => DTB_ToolFamilies::CORNER_ROLLER,
+		'automatic_loading_pumps'   => DTB_ToolFamilies::PUMP,
+		'smoothing_blades'          => DTB_ToolFamilies::SKIMMING_BLADE,
+		'parts'                     => DTB_ToolFamilies::REPLACEMENT_PART,
+		'stilts'                    => DTB_ToolFamilies::STILT,
+	];
+
+	/**
+	 * Broad DTB category → default family mappings.
+	 *
+	 * Keep this list limited to categories that represent one functional family.
+	 * Multi-family categories must remain unresolved until stronger evidence
+	 * (explicit meta, builder slot, exact display category, or name) exists.
 	 *
 	 * @var array<string, string>
 	 */
 	const CATEGORY_FAMILY_HINTS = [
-		'taping'    => DTB_ToolFamilies::AUTOMATIC_TAPER,
-		'finishing' => DTB_ToolFamilies::FLAT_BOX,
-		'corner'    => DTB_ToolFamilies::CORNER_BOX,
-		'handles'   => DTB_ToolFamilies::FLAT_BOX_HANDLE,
-		'mudboxes'  => DTB_ToolFamilies::PUMP,
-		'sanding'   => DTB_ToolFamilies::ACCESSORY,
-		'stilts'    => DTB_ToolFamilies::STILT,
-		'texture'   => DTB_ToolFamilies::SPRAYER,
-		'parts'     => DTB_ToolFamilies::REPLACEMENT_PART,
-		'services'  => DTB_ToolFamilies::SERVICE,
+		'sanding'  => DTB_ToolFamilies::ACCESSORY,
+		'stilts'   => DTB_ToolFamilies::STILT,
+		'texture'  => DTB_ToolFamilies::SPRAYER,
+		'parts'    => DTB_ToolFamilies::REPLACEMENT_PART,
+		'services' => DTB_ToolFamilies::SERVICE,
 	];
 
 	/**
@@ -59,7 +81,6 @@ final class DTB_ToolFamilyResolver {
 		'inside corner roller' => DTB_ToolFamilies::CORNER_ROLLER,
 		'loading pump'    => DTB_ToolFamilies::PUMP,
 		'hot mud pump'    => DTB_ToolFamilies::PUMP,
-		'easyclean'       => DTB_ToolFamilies::PUMP,
 		'gooseneck'       => DTB_ToolFamilies::GOOSENECK,
 		'filler adapter'  => DTB_ToolFamilies::FILLER_ADAPTER,
 		'box filler'      => DTB_ToolFamilies::FILLER_ADAPTER,
@@ -69,17 +90,19 @@ final class DTB_ToolFamilyResolver {
 	/**
 	 * Resolve the tool family for a product.
 	 *
-	 * @param  string   $meta_family    _dtb_tool_family meta value (may be empty).
-	 * @param  string[] $builder_slots  _dtb_builder_slots meta (decoded array).
-	 * @param  string   $category_key   Resolved DTB category key.
-	 * @param  string   $product_name   Raw product name.
-	 * @param  bool     $is_parts       Whether this is a replacement part.
+	 * @param  string   $meta_family          _dtb_tool_family meta value (may be empty).
+	 * @param  string[] $builder_slots        _dtb_builder_slots meta (decoded array).
+	 * @param  string   $category_key         Resolved broad DTB category key.
+	 * @param  string   $display_category_key Canonical display category key.
+	 * @param  string   $product_name         Raw product name.
+	 * @param  bool     $is_parts             Whether this is a replacement part.
 	 * @return string   Tool family key, or empty string if undetermined.
 	 */
 	public static function resolve(
 		string $meta_family,
 		array  $builder_slots,
 		string $category_key,
+		string $display_category_key,
 		string $product_name,
 		bool   $is_parts = false
 	): string {
@@ -88,7 +111,7 @@ final class DTB_ToolFamilyResolver {
 			return $meta_family;
 		}
 
-		// Short-circuit for known parts.
+		// Known parts are never tool-family candidates for customer tool slots.
 		if ( $is_parts ) {
 			return DTB_ToolFamilies::REPLACEMENT_PART;
 		}
@@ -102,13 +125,35 @@ final class DTB_ToolFamilyResolver {
 			}
 		}
 
-		// 3. Category key heuristic.
+		// 3. Exact display-category classification.
+		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug( $display_category_key );
+		if (
+			'' !== $display_category_key
+			&& isset( self::DISPLAY_CATEGORY_FAMILY_HINTS[ $display_category_key ] )
+		) {
+			return self::DISPLAY_CATEGORY_FAMILY_HINTS[ $display_category_key ];
+		}
+
+		// Explicitly ambiguous/non-automatic taper buckets must not fall through
+		// to the "automatic taper" name heuristic.
+		if ( in_array( $display_category_key, [ 'toolsets', 'semi_automatic_tapers_banjos' ], true ) ) {
+			return '';
+		}
+
+		// 4. Narrow broad-category heuristic.
 		if ( '' !== $category_key && isset( self::CATEGORY_FAMILY_HINTS[ $category_key ] ) ) {
 			return self::CATEGORY_FAMILY_HINTS[ $category_key ];
 		}
 
-		// 4. Name keyword heuristic (transition only — avoid over-classifying).
+		// 5. Name keyword heuristic (transition only — avoid over-classifying).
 		$lower = strtolower( $product_name );
+
+		// "Semi Automatic Taper" contains the substring "automatic taper" but is
+		// a different product class and must never enter the automatic-taper slot.
+		if ( preg_match( '/\bsemi[-\s]?automatic\b.*\btaper\b/i', $lower ) ) {
+			return '';
+		}
+
 		foreach ( self::NAME_KEYWORD_HINTS as $keyword => $family ) {
 			if ( str_contains( $lower, $keyword ) ) {
 				return $family;
