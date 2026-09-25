@@ -203,15 +203,32 @@ export const productModalBackdropTransition = {
 // scaling the viewport-sized scroll shell causes large compositor/raster
 // changes and can flash on open/close.
 export const productModalDesktopVariants = {
-  hidden: { opacity: 0 },
+  hidden: { opacity: 1 },
+  visible: { opacity: 1 },
+  exit: { opacity: 1 },
+};
+
+// The desktop scroll shell is structural. The bounded card owns the visible
+// presentation motion so the storefront is never seen through a translucent
+// white dialog during close.
+export const productModalDesktopCardVariants = {
+  hidden: { opacity: 0, y: dtbDistance.micro },
   visible: {
     opacity: 1,
+    y: 0,
     transition: dtbTransition.fast,
   },
   exit: {
-    opacity: 0,
+    opacity: 1,
+    y: dtbDistance.micro,
     transition: dtbTransition.fast,
   },
+};
+
+export const reducedProductModalCardVariants = {
+  hidden: { opacity: 0, y: 0 },
+  visible: { opacity: 1, y: 0, transition: reducedTransition },
+  exit: { opacity: 1, y: 0, transition: reducedTransition },
 };
 
 export const productModalMobileVariants = {
