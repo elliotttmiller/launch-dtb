@@ -137,6 +137,7 @@ export default function ToolsetBuilder() {
         title="Toolset Builder"
         description="Build a custom professional drywall tool set from live catalog products, exact variations, and workflow-focused tool categories."
         canonical="/toolset-builder"
+        noindex
       />
 
       {workflow ? (
