@@ -168,12 +168,14 @@ test('desktop Quick View keeps geometry stable through open and exit', async () 
 
 
 test('Quick View content does not re-own document geometry or cold-load after intent', async () => {
-  const [detail, detailHook, tile, quickViewModules, desktopPolish] = await Promise.all([
+  const [detail, detailHook, tile, quickViewModules, desktopPolish, gallery, quickViewCss] = await Promise.all([
     read('src/components/product/ProductDetail.jsx'),
     read('src/hooks/useProductDetail.js'),
     read('src/components/storefront/StorefrontProductTile.jsx'),
     read('src/routing/quickViewModules.js'),
     read('src/styles/product-detail-desktop-polish.css'),
+    read('src/components/product/ProductImageGallery.jsx'),
+    read('src/styles/product-quick-view-desktop.css'),
   ]);
 
   assert.doesNotMatch(detail, /document\.body\.style\.overflow\s*=\s*'hidden'/);
@@ -189,4 +191,7 @@ test('Quick View content does not re-own document geometry or cold-load after in
   assert.match(quickViewModules, /import\('\.\.\/components\/product\/ProductDetail\.jsx'\)/);
 
   assert.doesNotMatch(desktopPolish, /product-modal-card-shell\.dtb-product-page-shell/);
+  assert.match(gallery, /zIndex:\s*3, pointerEvents:\s*'none'/);
+  assert.doesNotMatch(gallery, /style=\{\{ zIndex: 2, backfaceVisibility/);
+  assert.match(quickViewCss, /product-modal-card-shell \.product-image-gallery__skeleton[\s\S]*animation:\s*none/);
 });
