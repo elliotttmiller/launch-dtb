@@ -311,7 +311,7 @@ function AppRoutes() {
   if (location.pathname === '/checkout') return routes;
 
   return (
-    <PageTransition locationKey={location.pathname}>
+    <PageTransition>
       {routes}
     </PageTransition>
   );

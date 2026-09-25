@@ -96,9 +96,11 @@ export const reducedRouteVariants = {
 // visual grammar as route navigation without replaying a full route motion.
 export const contentVariants = {
   hidden: {
-    opacity: 0,
-    y: dtbDistance.small,
-    scale: 0.998,
+    // Content can mount during data resolution or a concurrent presence
+    // change. It must never uncover the page behind it for a frame.
+    opacity: 1,
+    y: dtbDistance.micro,
+    scale: 1,
   },
   visible: {
     opacity: 1,
@@ -107,9 +109,9 @@ export const contentVariants = {
     transition: dtbTransition.standard,
   },
   exit: {
-    opacity: 0,
-    y: -dtbDistance.micro,
-    scale: 0.999,
+    opacity: 1,
+    y: 0,
+    scale: 1,
     transition: dtbTransition.exit,
   },
 };
@@ -133,7 +135,7 @@ export const staggerContainerVariants = {
 };
 
 export const staggerItemVariants = {
-  hidden: { opacity: 0, y: dtbDistance.medium },
+  hidden: { opacity: 1, y: dtbDistance.micro },
   visible: {
     opacity: 1,
     y: 0,
@@ -142,7 +144,7 @@ export const staggerItemVariants = {
 };
 
 export const surfaceVariants = {
-  hidden: { opacity: 0, y: dtbDistance.medium, scale: 0.992 },
+  hidden: { opacity: 1, y: dtbDistance.micro, scale: 1 },
   visible: {
     opacity: 1,
     y: 0,
@@ -150,9 +152,9 @@ export const surfaceVariants = {
     transition: dtbTransition.standard,
   },
   exit: {
-    opacity: 0,
-    y: dtbDistance.small,
-    scale: 0.995,
+    opacity: 1,
+    y: 0,
+    scale: 1,
     transition: dtbTransition.exit,
   },
 };
