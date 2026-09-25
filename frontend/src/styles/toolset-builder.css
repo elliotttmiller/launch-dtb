@@ -712,6 +712,22 @@
   gap: 0.25rem;
 }
 
+.dtb-toolset-product-card__brand-logo-wrap {
+  display: flex;
+  min-height: 1.65rem;
+  align-items: center;
+  margin-bottom: 0.15rem;
+}
+
+.dtb-toolset-product-card__brand-logo {
+  display: block;
+  width: auto;
+  max-width: 6.75rem;
+  max-height: 1.55rem;
+  object-fit: contain;
+  object-position: left center;
+}
+
 .dtb-toolset-product-card__brand {
   color: var(--dtb-primary);
   font-size: 0.68rem;
