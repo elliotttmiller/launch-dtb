@@ -77,14 +77,11 @@
     -->
     <style>
       #dtb-app-boot-shell{position:fixed;z-index:2147482000;inset:0;display:grid;place-items:center;min-height:100svh;background:#071426;color:#fff;opacity:1;transform:scale(1);transition:opacity 260ms cubic-bezier(.22,1,.36,1),transform 360ms cubic-bezier(.16,1,.3,1)}
-      #dtb-app-boot-shell__brand{display:grid;place-items:center;gap:18px;padding:24px}
-      #dtb-app-boot-shell__brand img{display:block;width:clamp(156px,23vw,238px);height:auto;max-height:78px;object-fit:contain;filter:drop-shadow(0 10px 24px rgba(0,0,0,.25));animation:dtb-boot-brand-enter 420ms cubic-bezier(.16,1,.3,1) both}
-      #dtb-app-boot-shell__brand::after{width:clamp(68px,8vw,96px);height:2px;content:"";border-radius:999px;background:rgba(255,255,255,.2);box-shadow:0 0 0 1px rgba(255,255,255,.04);animation:dtb-boot-line 1.2s cubic-bezier(.65,0,.35,1) infinite}
+      #dtb-app-boot-shell__logo{display:block;width:clamp(156px,23vw,238px);height:auto;max-height:78px;object-fit:contain;filter:drop-shadow(0 10px 24px rgba(0,0,0,.25));animation:dtb-boot-logo-enter 280ms cubic-bezier(.16,1,.3,1) both}
       html[data-dtb-app-mounted="true"] #dtb-app-boot-shell{opacity:0;transform:scale(1.012);pointer-events:none}
       html.dtb-checkout-route-booting #dtb-app-boot-shell{display:none}
-      @keyframes dtb-boot-brand-enter{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-      @keyframes dtb-boot-line{0%,100%{transform:scaleX(.35);opacity:.35}50%{transform:scaleX(1);opacity:1}}
-      @media (prefers-reduced-motion:reduce){#dtb-app-boot-shell{transition-duration:1ms}#dtb-app-boot-shell__brand img,#dtb-app-boot-shell__brand::after{animation:none}}
+      @keyframes dtb-boot-logo-enter{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+      @media (prefers-reduced-motion:reduce){#dtb-app-boot-shell{transition-duration:1ms}#dtb-app-boot-shell__logo{animation:none}}
       #dtb-checkout-route-loader{position:fixed;z-index:2147483000;inset:0;display:none;min-height:100vh;background:#f8fafc;color:#0f172a;align-items:center;justify-content:center}
       html.dtb-checkout-route-booting #dtb-checkout-route-loader{display:flex}
       .dtb-checkout-route-loader__content{display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
@@ -128,9 +125,7 @@
   </head>
   <body>
     <div id="dtb-app-boot-shell" aria-hidden="true">
-      <div id="dtb-app-boot-shell__brand">
-        <img src="https://drywalltoolbox.com/logos/logo-white.svg" alt="" width="440" height="120" />
-      </div>
+      <img id="dtb-app-boot-shell__logo" src="https://drywalltoolbox.com/logos/logo-white.svg" alt="" width="440" height="120" />
     </div>
     <div id="dtb-checkout-route-loader" aria-live="polite" role="status">
       <div class="dtb-checkout-route-loader__content">

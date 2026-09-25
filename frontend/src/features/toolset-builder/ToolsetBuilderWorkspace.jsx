@@ -347,9 +347,6 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
             <h1>{workflow.label}</h1>
             <p>Customize your setup. Configure each required tool before review.</p>
           </div>
-          <div className="dtb-toolset-mode" aria-label="Builder mode">
-            <span className="is-active">Guided</span><span>Expert</span>
-          </div>
         </div>
       </header>
 

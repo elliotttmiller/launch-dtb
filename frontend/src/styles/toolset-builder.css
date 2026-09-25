@@ -1767,9 +1767,6 @@
 .dtb-toolset-workspace__title-row { display:flex; align-items:end; justify-content:space-between; gap:1.5rem; }
 .dtb-toolset-workspace__title-row h1 { margin:0; font-size:clamp(2rem,3.2vw,2.65rem); }
 .dtb-toolset-workspace__title-row p { margin:.35rem 0 0; color:#627897; font-size:1rem; }
-.dtb-toolset-mode { display:flex; padding:3px; border:1px solid #dbe3ef; border-radius:.75rem; background:#fff; box-shadow:0 5px 14px rgba(23,54,98,.05); }
-.dtb-toolset-mode span { min-width:4.15rem; padding:.5rem .85rem; border-radius:.5rem; color:#667995; font-size:.8rem; font-weight:650; text-align:center; }
-.dtb-toolset-mode .is-active { background:var(--dtb-primary); color:#fff; box-shadow:0 4px 10px rgba(34,85,238,.25); }
 .dtb-toolset-workspace__top {
   display: flex;
   min-height: 2.5rem;
