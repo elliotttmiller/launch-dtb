@@ -575,7 +575,7 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.5rem;
   padding: 0.9rem 1rem 1rem;
 }
 
@@ -589,7 +589,7 @@
   display: flex;
   min-height: 1.35rem;
   align-items: center;
-  margin: 0 0 0.42rem;
+  margin: 0 0 0.62rem;
 }
 
 .dtb-toolset-product-card__brand-logo {
@@ -625,7 +625,7 @@
 }
 
 .dtb-toolset-product-card__identity h3 + .dtb-toolset-product-card__sku {
-  margin-top: 0.42rem;
+  margin-top: 0.16rem;
 }
 
 .dtb-toolset-product-card__sku {
@@ -640,7 +640,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin-top: 0.15rem;
+  margin-top: 0.04rem;
 }
 
 .dtb-toolset-product-card__commerce strong {
