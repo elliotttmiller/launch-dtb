@@ -1,26 +1,29 @@
-/* Shared breadcrumb component (components/shared/Breadcrumb.jsx). Adapted
-   from the CodeFronts "Minimalist CSS Breadcrumb with Custom SVG Separators"
-   pattern (MIT — https://codefronts.com/navigation/css-breadcrumbs/retro-terminal-path/):
-   the divider is a CSS-generated SVG chevron recolored via mask-image so it
-   always matches the surrounding text color, no JS needed. Colors/sizes
-   swapped for this project's tokens (storefront-tokens.css); the original
-   demo's page-centering wrapper styles (min-height:100vh, place-items:center,
-   etc.) were showcase-only and are not part of the reusable component.
-   Replaces the old `.dtb-product-breadcrumb` (plain "›" character
-   separator), previously duplicated inline in CategoryHero.jsx and
-   ProductDetailPage.jsx. */
+/* Shared storefront breadcrumb + removable active-filter trail.
+   Adapted from CodeFronts "E-Commerce Filter & Attribute Breadcrumb Navigation
+   Component" (MIT). The demo wrapper and palette are replaced with DTB tokens;
+   the semantic path <ol> and active-filter <ul> remain intact. */
+
+.dtb-breadcrumb-bar {
+  --dtb-breadcrumb-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin: 0 0 1.1rem;
+  color: var(--dtb-muted, #64748b);
+}
 
 .dtb-breadcrumb {
-  --dtb-breadcrumb-sep: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   min-width: 0;
-  margin: 0 0 1.25rem;
 }
 
 .dtb-breadcrumb ol {
   display: flex;
+  min-width: 0;
   flex-wrap: wrap;
   align-items: center;
-  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -30,34 +33,38 @@
   display: flex;
   min-width: 0;
   align-items: center;
-  color: var(--dtb-muted, #64748b);
 }
 
-.dtb-breadcrumb li:not(:last-child)::after {
-  content: '';
-  flex: 0 0 auto;
-  width: 12px;
-  height: 12px;
-  margin: 0 var(--dtb-space-2);
-  background: currentColor;
-  -webkit-mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;
-  mask: var(--dtb-breadcrumb-sep) center / contain no-repeat;
-  opacity: 0.5;
+.dtb-breadcrumb li + li::before {
+  content: "›";
+  margin: 0 0.5rem;
+  color: color-mix(in srgb, currentColor 52%, transparent);
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.dtb-breadcrumb a,
+.dtb-breadcrumb__current {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  padding: 0.25rem 0.38rem;
+  border-radius: 0.4rem;
+  font-size: 0.79rem;
+  line-height: 1;
+  text-decoration: none;
 }
 
 .dtb-breadcrumb a {
-  flex: 0 0 auto;
-  padding: 2px 3px;
-  border-radius: 6px;
-  color: inherit;
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 150ms ease;
+  color: var(--dtb-muted, #64748b);
+  font-weight: 600;
+  transition: color 150ms ease, background-color 150ms ease;
 }
 
 .dtb-breadcrumb a:hover {
   color: var(--dtb-primary, #2255ee);
+  background: color-mix(in srgb, var(--dtb-primary, #2255ee) 6%, transparent);
 }
 
 .dtb-breadcrumb a:focus-visible {
@@ -65,26 +72,166 @@
   outline-offset: 2px;
 }
 
-.dtb-breadcrumb li[aria-current='page'] {
-  min-width: 0;
-  color: var(--dtb-text, #0f172a);
-}
-
 .dtb-breadcrumb__current {
+  max-width: min(38vw, 24rem);
   overflow: hidden;
-  font-size: 0.8rem;
-  font-weight: 650;
+  color: var(--dtb-text, #0f172a);
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.dtb-breadcrumb-filters {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dtb-breadcrumb-filter-chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.48rem;
+  padding: 0.34rem 0.4rem 0.34rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--dtb-primary, #2255ee) 18%, var(--dtb-border, #d7e0ec));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dtb-primary, #2255ee) 7%, var(--dtb-surface, #fff));
+  color: var(--dtb-text-soft, #334155);
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.dtb-breadcrumb-filter-chip > span {
+  min-width: 0;
+  max-width: min(30vw, 15rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtb-breadcrumb-filter-chip button {
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 1.35rem;
+  border: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--dtb-text-soft, #334155) 76%, transparent);
+  cursor: pointer;
+  -webkit-mask: var(--dtb-breadcrumb-x) center / 0.78rem no-repeat;
+  mask: var(--dtb-breadcrumb-x) center / 0.78rem no-repeat;
+  transition: transform 150ms ease, background-color 180ms ease;
+}
+
+.dtb-breadcrumb-filter-chip button:hover,
+.dtb-breadcrumb-filter-chip button:focus-visible {
+  transform: scale(1.13);
+  background: var(--dtb-primary, #2255ee);
+}
+
+.dtb-breadcrumb-filter-chip:has(button:hover),
+.dtb-breadcrumb-filter-chip:has(button:focus-visible) {
+  border-color: color-mix(in srgb, var(--dtb-primary, #2255ee) 30%, var(--dtb-border, #d7e0ec));
+  background: color-mix(in srgb, var(--dtb-primary, #2255ee) 11%, var(--dtb-surface, #fff));
+  color: var(--dtb-primary-strong, #153fa8);
+}
+
+.dtb-breadcrumb-filter-chip button:focus-visible {
+  outline: 2px solid var(--dtb-primary, #2255ee);
+  outline-offset: 2px;
+}
+
+/* Inverse treatment for breadcrumbs rendered inside dark merchandising heroes. */
+.dtb-breadcrumb-bar--inverse {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__current {
+  color: #fff;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a {
+  opacity: 0.82;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:hover,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:focus-visible,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb__current {
+  opacity: 1;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb a:focus-visible {
+  outline-color: #fff;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip button {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip button:hover,
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip button:focus-visible {
+  background: #fff;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip:has(button:hover),
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip:has(button:focus-visible) {
+  border-color: rgba(255, 255, 255, 0.36);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.dtb-breadcrumb-bar--inverse .dtb-breadcrumb-filter-chip button:focus-visible {
+  outline-color: #fff;
+}
+
 @media (max-width: 767px) {
-  .dtb-breadcrumb {
-    margin-bottom: 0.75rem;
+  .dtb-breadcrumb-bar {
+    gap: 0.5rem 0.75rem;
+    margin-bottom: 0.8rem;
   }
 
   .dtb-breadcrumb a,
   .dtb-breadcrumb__current {
-    font-size: 0.76rem;
+    min-height: 1.65rem;
+    font-size: 0.74rem;
+  }
+
+  .dtb-breadcrumb li + li::before {
+    margin-inline: 0.34rem;
+  }
+
+  .dtb-breadcrumb-filter-chip {
+    min-height: 1.85rem;
+    padding-left: 0.62rem;
+    font-size: 0.7rem;
+  }
+
+  .dtb-breadcrumb-filter-chip > span {
+    max-width: 62vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dtb-breadcrumb a,
+  .dtb-breadcrumb-filter-chip,
+  .dtb-breadcrumb-filter-chip button {
+    transition: none;
   }
 }
