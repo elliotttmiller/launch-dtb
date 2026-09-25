@@ -21,6 +21,7 @@ import { apiClient } from '../api/client.js';
 const INIT = { product: null, variations: [], relatedProducts: [], computed: null, status: 'idle', error: null };
 const DETAIL_CACHE_TTL = 2 * 60 * 1000;
 const detailCache = new Map();
+const detailInflight = new Map();
 
 function cacheKey(slug) {
   return String(slug || '').trim().toLowerCase();
@@ -39,6 +40,32 @@ function getCachedDetail(slug) {
 function setCachedDetail(slug, data) {
   if (!slug || !data?.product) return;
   detailCache.set(cacheKey(slug), { data, cachedAt: Date.now() });
+}
+
+export function preloadProductDetail(slug) {
+  const key = cacheKey(slug);
+  if (!key) return Promise.resolve(null);
+
+  const cached = getCachedDetail(key);
+  if (cached?.product) return Promise.resolve(cached);
+
+  if (!detailInflight.has(key)) {
+    const encodedSlug = encodeURIComponent(slug);
+    const url = `/wp-json/dtb/v1/catalog/products/${encodedSlug}/detail`;
+    detailInflight.set(
+      key,
+      apiClient(url)
+        .then((data) => {
+          if (data?.product) setCachedDetail(key, data);
+          return data;
+        })
+        .finally(() => {
+          detailInflight.delete(key);
+        }),
+    );
+  }
+
+  return detailInflight.get(key);
 }
 
 function reducer(_state, action) {
@@ -102,10 +129,7 @@ export function useProductDetail(slug) {
       dispatch({ type: 'reset' });
     }
 
-    const encodedSlug = encodeURIComponent(slug);
-    const url = `/wp-json/dtb/v1/catalog/products/${encodedSlug}/detail`;
-
-    apiClient(url)
+    preloadProductDetail(slug)
       .then((data) => {
         if (cancelled) return;
         if (!data || !data.product) {
