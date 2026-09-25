@@ -55,6 +55,7 @@ final class DTB_CatalogProductNormalizer {
 			(string) ( $meta[ DTB_ProductMeta::TOOL_FAMILY ] ?? '' ),
 			$builder['slots'],
 			$category['key'],
+			$display_cat['key'],
 			(string) ( $wc['name'] ?? '' ),
 			$is_parts
 		);

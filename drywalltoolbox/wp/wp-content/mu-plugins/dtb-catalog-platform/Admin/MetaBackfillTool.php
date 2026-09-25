@@ -199,15 +199,21 @@ final class DTB_MetaBackfillTool {
 		$is_parts    = self::is_parts_product( $wc_cats, $wc_product );
 		$product_kind = $is_parts ? 'part' : 'tool';
 
-		// Resolve tool family.
-		$existing_family = (string) get_post_meta( $post_id, DTB_ProductMeta::TOOL_FAMILY, true );
-		$builder_slots   = DTB_CatalogProductNormalizer::decode_csv_or_array(
+		// Resolve tool family. Broad category keys are not sufficient for
+		// multi-family buckets such as taping, finishing, corner, handles, or
+		// mudboxes; pass the canonical display category as stronger evidence.
+		$existing_family     = (string) get_post_meta( $post_id, DTB_ProductMeta::TOOL_FAMILY, true );
+		$builder_slots       = DTB_CatalogProductNormalizer::decode_csv_or_array(
 			(string) get_post_meta( $post_id, DTB_ProductMeta::BUILDER_SLOTS, true )
+		);
+		$display_category_key = DTB_CategoryNormalizer::canonical_display_slug(
+			(string) get_post_meta( $post_id, DTB_ProductMeta::DISPLAY_CATEGORY_KEY, true )
 		);
 		$tool_family = DTB_ToolFamilyResolver::resolve(
 			$existing_family,
 			$builder_slots,
 			$category['key'],
+			$display_category_key,
 			$wc_product->get_name(),
 			$is_parts
 		);

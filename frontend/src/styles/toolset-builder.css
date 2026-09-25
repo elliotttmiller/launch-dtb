@@ -901,7 +901,7 @@
   font-weight: 750;
 }
 
-.dtb-toolset-summary__items {
+.dtb-toolset-summary__selection-list {
   display: flex;
   max-height: 27rem;
   flex-direction: column;
@@ -1169,7 +1169,7 @@
     position: static;
   }
 
-  .dtb-toolset-summary__items {
+  .dtb-toolset-summary__selection-list {
     max-height: none;
   }
 }
@@ -1659,7 +1659,7 @@
 .dtb-toolset-product-card__body { gap: .72rem; padding: .85rem; }
 .dtb-toolset-summary { position: sticky; top: calc(var(--dtb-header-height) + 1rem); border-radius: var(--dtb-radius-md); box-shadow: none; }
 .dtb-toolset-summary__head { padding: 1.1rem 1rem; }
-.dtb-toolset-summary__items { max-height: min(38vh, 30rem); }
+.dtb-toolset-summary__selection-list { max-height: min(38vh, 30rem); }
 .dtb-toolset-summary__item { grid-template-columns: 3.5rem minmax(0, 1fr) auto; }
 .dtb-toolset-summary__media {
   display: grid;
@@ -1672,6 +1672,149 @@
   color: var(--dtb-muted);
 }
 .dtb-toolset-summary__media img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Summary rail: compact, resilient geometry for long catalog names/SKUs.
+ * The rail remains presentation-only; pricing and selection authority are
+ * unchanged. */
+.dtb-toolset-workspace__layout {
+  grid-template-columns: minmax(12.5rem, 14rem) minmax(0, 1fr) minmax(20.5rem, 23rem);
+}
+
+.dtb-toolset-summary {
+  min-width: 0;
+}
+
+.dtb-toolset-summary__head {
+  align-items: center;
+  padding: 1rem 1.05rem;
+}
+
+.dtb-toolset-summary__selection-list {
+  scrollbar-gutter: stable;
+}
+
+.dtb-toolset-summary__empty {
+  padding: 1.15rem 1.05rem 1.25rem;
+  line-height: 1.5;
+}
+
+.dtb-toolset-summary__item {
+  grid-template-columns: 3.25rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.85rem 0.8rem 0.85rem 1rem;
+}
+
+.dtb-toolset-summary__media {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.dtb-toolset-summary__identity {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.dtb-toolset-summary__category {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.62rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtb-toolset-summary__name {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dtb-text);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dtb-toolset-summary__meta {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.08rem;
+}
+
+.dtb-toolset-summary__meta small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dtb-muted);
+  font-size: 0.65rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dtb-toolset-summary__price {
+  flex: 0 0 auto;
+  color: var(--dtb-text);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 720;
+  white-space: nowrap;
+}
+
+.dtb-toolset-summary__remove {
+  display: inline-grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  align-self: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dtb-muted);
+  cursor: pointer;
+  transition: background-color var(--dtb-motion-standard), color var(--dtb-motion-standard);
+}
+
+.dtb-toolset-summary__remove:hover {
+  background: var(--dtb-surface-muted);
+  color: var(--dtb-danger);
+}
+
+.dtb-toolset-summary__remove:focus-visible {
+  outline: 2px solid var(--dtb-primary);
+  outline-offset: 2px;
+}
+
+.dtb-toolset-summary__totals {
+  padding: 1rem 1.05rem 0.9rem;
+  border-top: 1px solid var(--dtb-border);
+}
+
+.dtb-toolset-summary__totals > div {
+  gap: 0.75rem;
+}
+
+.dtb-toolset-summary__totals > div span {
+  min-width: 0;
+}
+
+.dtb-toolset-summary__totals > div strong {
+  flex: 0 0 auto;
+  font-size: 1.22rem;
+  white-space: nowrap;
+}
+
+.dtb-toolset-summary > .dtb-toolset-primary-action {
+  width: calc(100% - 2.1rem);
+  margin: 0 1.05rem 1.05rem;
+}
 
 @media (max-width: 79.99rem) {
   .dtb-toolset-workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

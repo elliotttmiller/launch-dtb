@@ -151,30 +151,31 @@ function ToolsetSummary({
         <span>{completion.completed}/{completion.total}</span>
       </div>
 
-      <div className="dtb-toolset-summary__items">
+      <div className="dtb-toolset-summary__selection-list">
         {items.length === 0 ? (
           <p className="dtb-toolset-summary__empty">Choose your first tool to begin the set.</p>
         ) : items.map((item) => (
-          <div className="dtb-toolset-summary__item" key={item.capabilityId + ':' + item.key}>
+          <article className="dtb-toolset-summary__item" key={item.capabilityId + ':' + item.key}>
             <span className="dtb-toolset-summary__media" aria-hidden="true">
               {item.image ? <img src={item.image} alt="" loading="lazy" decoding="async" /> : <PackageOpen size={19} />}
             </span>
-            <div>
+            <div className="dtb-toolset-summary__identity">
               <span className="dtb-toolset-summary__category">{item.capabilityLabel}</span>
-              <strong>{selectionLabel(item)}</strong>
-              {item.sku ? <small>SKU {item.sku}</small> : null}
+              <strong className="dtb-toolset-summary__name">{selectionLabel(item)}</strong>
+              <div className="dtb-toolset-summary__meta">
+                {item.sku ? <small>SKU {item.sku}</small> : <span />}
+                <span className="dtb-toolset-summary__price">{formatCurrency(item.price)}</span>
+              </div>
             </div>
-            <div className="dtb-toolset-summary__item-actions">
-              <span>{formatCurrency(item.price)}</span>
-              <button
-                type="button"
-                onClick={() => onRemove(item.capabilityId, item.key)}
-                aria-label={'Remove ' + selectionLabel(item)}
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            </div>
-          </div>
+            <button
+              type="button"
+              className="dtb-toolset-summary__remove"
+              onClick={() => onRemove(item.capabilityId, item.key)}
+              aria-label={'Remove ' + selectionLabel(item)}
+            >
+              <X size={15} aria-hidden="true" />
+            </button>
+          </article>
         ))}
       </div>
 
