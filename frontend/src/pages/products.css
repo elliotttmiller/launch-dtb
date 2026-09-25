@@ -5,11 +5,79 @@
 /* The /products route owns this merchandising shell only. Catalog data,
    filtering, sorting, cards, and navigation remain in ProductsCatalogPlatform. */
 .dtb-products-breadcrumb-shell {
-  width: calc(100% - (2 * var(--dtb-viewport-gutter)));
-  margin: 0 auto;
-  padding: 1rem 0 0.85rem;
+  position: absolute;
+  top: 0;
+  left: clamp(2.05rem, 2.35vw, 2.55rem);
+  z-index: 4;
+  width: min(calc(58% - clamp(2.05rem, 2.35vw, 2.55rem)), 46rem);
+  min-height: 2.75rem;
+  padding: 0.58rem 0 0.3rem;
 }
 
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-bar {
+  margin: 0;
+  gap: 0.4rem 0.65rem;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb ol {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li:first-child {
+  flex: 0 0 auto;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb li + li::before {
+  margin-inline: 0.38rem;
+  font-size: 0.76rem;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb a,
+.dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
+  min-height: 1.55rem;
+  padding: 0.18rem;
+  font-size: clamp(0.68rem, 0.72vw, 0.76rem);
+  line-height: 1;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb a {
+  font-weight: 560;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
+  max-width: 15rem;
+  font-weight: 700;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-filters {
+  gap: 0.34rem;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-filter-chip {
+  min-height: 1.55rem;
+  padding: 0.22rem 0.28rem 0.22rem 0.54rem;
+  font-size: 0.67rem;
+  font-weight: 650;
+}
+
+.dtb-products-breadcrumb-shell .dtb-breadcrumb-filter-chip button {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-basis: 1.05rem;
+  -webkit-mask-size: 0.62rem;
+  mask-size: 0.62rem;
+}
 .dtb-products-breadcrumb-shell .dtb-breadcrumb-bar {
   margin: 0;
 }
@@ -267,7 +335,18 @@
 
 @media (max-width: 600px) {
   .dtb-products-breadcrumb-shell {
-    padding: 0.75rem 0 0.55rem;
+    left: 1.25rem;
+    width: calc(100% - 2.5rem);
+    min-height: 2.6rem;
+    padding: 0.55rem 0 0.3rem;
+  }
+
+  .dtb-products-breadcrumb-shell .dtb-breadcrumb ol {
+    flex-wrap: wrap;
+  }
+
+  .dtb-products-breadcrumb-shell .dtb-breadcrumb__current {
+    max-width: 52vw;
   }
 
   .dtb-products-hero__inner {
