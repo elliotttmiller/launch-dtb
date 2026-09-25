@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { X, ChevronDown, Sliders, Check } from 'lucide-react';
+import { X, ChevronDown, Sliders } from 'lucide-react';
 import '../../styles/filter-panel.css';
 
 const VISIBLE_ITEM_LIMIT = 8;
@@ -356,7 +356,6 @@ function FilterCheckboxGroup({ title, items, selectedIds, onToggle }) {
                     <span className="shrink-0 text-xs text-slate-400">{item.count}</span>
                   )}
                 </span>
-                {isSelected && <Check size={14} className="shrink-0 text-primary-600" aria-hidden="true" />}
               </label>
             </li>
           );
