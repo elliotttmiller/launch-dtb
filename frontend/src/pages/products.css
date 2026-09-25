@@ -60,17 +60,6 @@
   box-shadow: 0 0 0 1px rgba(22, 133, 255, 0.04), 0 5px 14px rgba(8, 120, 255, 0.14);
 }
 
-.dtb-products-hero__content::after {
-  content: '';
-  position: absolute;
-  top: clamp(2.08rem, 2.48vw, 2.62rem);
-  left: clamp(2.05rem, 2.35vw, 2.55rem);
-  width: clamp(4.25rem, 5vw, 5.5rem);
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #0878ff 0 24%, #4d9cff 24% 54%, rgba(77, 156, 255, 0.08) 100%);
-  box-shadow: 0 2px 8px rgba(8, 120, 255, 0.08);
-}
 
 .dtb-products-hero__eyebrow-row {
   display: flex;
@@ -98,13 +87,27 @@
 }
 
 .dtb-products-hero__title {
+  position: relative;
   margin: 0;
+  padding-top: clamp(0.9rem, 1.15vw, 1.15rem);
   color: #071a38;
   font-family: var(--dtb-font-display, var(--dtb-font-ui));
   font-size: clamp(2.75rem, 3.55vw, 3.7rem);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.05em;
+}
+
+.dtb-products-hero__title::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(4.25rem, 5vw, 5.5rem);
+  height: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, #0878ff 50%, transparent 100%);
 }
 
 .dtb-products-hero__description {
