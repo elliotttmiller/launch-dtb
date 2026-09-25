@@ -18,16 +18,15 @@ function formatFilterLabel(value = '') {
 function PartsHero({ activeFilters = [], onRemoveFilter = null }) {
   return (
     <>
-      <div className="dtb-parts-breadcrumb-shell">
-        <Breadcrumb
-          items={[{ label: 'Home', path: '/' }, { label: 'Parts' }]}
-          activeFilters={activeFilters}
-          onRemoveFilter={onRemoveFilter}
-        />
-      </div>
-
       <header className="dtb-parts-hero" aria-labelledby="dtb-parts-hero-title">
         <div className="dtb-parts-hero__inner">
+          <div className="dtb-parts-breadcrumb-shell">
+            <Breadcrumb
+              items={[{ label: 'Home', path: '/' }, { label: 'Parts' }]}
+              activeFilters={activeFilters}
+              onRemoveFilter={onRemoveFilter}
+            />
+          </div>
           <div className="dtb-parts-hero__content">
             <hr className="dtb-parts-hero__divider" aria-hidden="true" />
             <h1 id="dtb-parts-hero-title" className="dtb-parts-hero__title">Parts</h1>
