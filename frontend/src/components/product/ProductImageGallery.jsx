@@ -308,20 +308,25 @@ export default function ProductImageGallery({ product }) {
   const images = useMemo(() => imageMeta.map((image) => image.src), [imageMeta]);
   const imageSetKey = useMemo(() => images.map((image) => imageIdentity(image)).join('|'), [images]);
   const resetKey = `${product?.id ?? ''}|${product?.sku ?? ''}|${parentId ?? ''}`;
-  const stablePrimaryRef = useRef({ resetKey, image: imageMeta[0] || null });
-  if (stablePrimaryRef.current.resetKey !== resetKey) {
-    stablePrimaryRef.current = { resetKey, image: imageMeta[0] || null };
-  } else if (!stablePrimaryRef.current.image && imageMeta[0]) {
-    stablePrimaryRef.current.image = imageMeta[0];
+  const stableGalleryRef = useRef({ resetKey, images: imageMeta });
+  const stableGalleryHasOnlyPlaceholder = (
+    stableGalleryRef.current.images.length === 1
+    && imageIdentity(stableGalleryRef.current.images[0]?.src) === imageIdentity(PLACEHOLDER_IMAGE)
+  );
+  const nextGalleryHasRealImage = (
+    imageMeta.length > 0
+    && imageIdentity(imageMeta[0]?.src) !== imageIdentity(PLACEHOLDER_IMAGE)
+  );
+
+  if (stableGalleryRef.current.resetKey !== resetKey) {
+    stableGalleryRef.current = { resetKey, images: imageMeta };
+  } else if (stableGalleryHasOnlyPlaceholder && nextGalleryHasRealImage) {
+    // A placeholder is not a valid painted media contract. Permit the first
+    // real image to replace it, then freeze the gallery for this identity.
+    stableGalleryRef.current = { resetKey, images: imageMeta };
   }
 
-  const stableImageMeta = useMemo(() => {
-    if (!stablePrimaryRef.current.image || imageMeta.length === 0) return imageMeta;
-    const primary = stablePrimaryRef.current.image;
-    const primaryKey = imageIdentity(primary.src);
-    const rest = imageMeta.filter((image, index) => index !== 0 && imageIdentity(image.src) !== primaryKey);
-    return [primary, ...rest];
-  }, [imageMeta, resetKey]);
+  const stableImageMeta = stableGalleryRef.current.images;
 
   const stableImages = useMemo(
     () => stableImageMeta.map((image) => image.src),
@@ -683,7 +688,7 @@ export default function ProductImageGallery({ product }) {
 
               {stableImages.length <= 8 && (
                 <div className="absolute bottom-3 left-3 right-16 flex items-center gap-1.5 z-10 pointer-events-none">
-                  {images.map((_, index) => (
+                  {stableImages.map((_, index) => (
                     <span
                       key={index}
                       className={`product-image-gallery__dot ${index === activeIndex ? 'product-image-gallery__dot--active' : ''}`}
