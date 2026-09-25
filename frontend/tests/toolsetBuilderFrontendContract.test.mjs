@@ -31,6 +31,7 @@ test('toolset builder reads canonical catalog data and does not call legacy tool
 
   assert.match(api, /fetchCatalogProducts/);
   assert.match(api, /toolFamily/);
+  assert.match(api, /productKind:\s*'tool'/);
   assert.match(api, /isParts:\s*0/);
   assert.doesNotMatch(api, /\/toolsets(?:\/|')/);
   assert.doesNotMatch(api, /addToCart|storeAddToCart|CartContext/);
@@ -41,7 +42,11 @@ test('frontend workflow model contains no pricing, discount, shipping, or cart a
 
   assert.match(model, /TOOLSET_WORKFLOWS/);
   assert.match(model, /toolFamily:\s*'automatic_taper'/);
-  assert.match(model, /minimum:\s*1, maximum:\s*2/);
+  assert.match(model, /toolFamily:\s*'handle'/);
+  assert.match(model, /toolFamily:\s*'angle_head'/);
+  assert.match(model, /toolFamily:\s*'corner_roller'/);
+  assert.doesNotMatch(model, /flat_box_handle|angle_head_handle|corner_roller_handle/);
+  assert.match(model, /minimum:\s*1, maximum:\s*3/);
   assert.doesNotMatch(model, /savingsLabel\s*:|discount(?:Rate|Label)?\s*:|shipping\s*:|price\s*:/i);
 });
 
