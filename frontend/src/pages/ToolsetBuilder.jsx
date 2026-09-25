@@ -1,12 +1,13 @@
 import { useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   Box,
   Boxes,
+  Check,
+  ClipboardList,
   Layers3,
   Settings2,
-  Sparkles,
   WandSparkles,
 } from 'lucide-react';
 import SEOHead from '../components/shared/SEOHead.jsx';
@@ -15,6 +16,7 @@ import {
   TOOLSET_WORKFLOWS,
   getToolsetWorkflow,
 } from '../features/toolset-builder/model.js';
+import { getBrandLogo } from '../utils/brandAssets.js';
 import '../styles/toolset-builder.css';
 
 const WORKFLOW_ICONS = {
@@ -23,6 +25,15 @@ const WORKFLOW_ICONS = {
   taping: WandSparkles,
   flatbox: Box,
 };
+
+const TOOLSET_BUILDER_BRANDS = [
+  { name: 'TapeTech', slug: 'tapetech' },
+  { name: 'Columbia Tools', slug: 'columbia-tools' },
+  { name: 'Platinum Drywall Tools', slug: 'platinum-drywall-tools' },
+  { name: 'Level5', slug: 'level5' },
+  { name: 'SurPro', slug: 'surpro' },
+  { name: 'Dura-Stilts', slug: 'dura-stilts' },
+].map((brand) => ({ ...brand, logo: getBrandLogo(brand.name) }));
 
 function WorkflowCard({ workflow, onSelect }) {
   const Icon = WORKFLOW_ICONS[workflow.id] || Settings2;
@@ -55,33 +66,35 @@ function BuilderLanding({ onSelectWorkflow }) {
         <div className="dtb-container dtb-container--wide">
           <div className="dtb-toolset-hero__grid">
             <div className="dtb-toolset-hero__copy">
-              <span className="dtb-toolset-kicker">
-                <Sparkles size={15} aria-hidden="true" />
-                Universal Toolset Builder
-              </span>
-              <h1>Build the set that fits how you actually work.</h1>
+              <span className="dtb-toolset-kicker">Toolset Builder</span>
+              <h1>Build Your <em>Drywall Tool Set</em></h1>
               <p>
-                Start with a workflow, compare real catalog products by function,
-                then configure the exact tools and variations you want without
-                being forced into a manufacturer-specific kit.
+                Configure the exact setup you need. Mix compatible brands and
+                tools for a professional set built around your workflow.
               </p>
-              <div className="dtb-toolset-hero__assurances" aria-label="Builder principles">
-                <span>Live catalog products</span>
-                <span>Exact variation selection</span>
-                <span>Server validation before purchase</span>
+              <ul className="dtb-toolset-hero__assurances" aria-label="Toolset builder benefits">
+                <li><Check size={19} aria-hidden="true" /> All major brands</li>
+                <li><Check size={19} aria-hidden="true" /> Exact configurations</li>
+                <li><Check size={19} aria-hidden="true" /> Mix compatible tools</li>
+              </ul>
+              <div className="dtb-toolset-hero__actions">
+                <button type="button" className="dtb-toolset-hero__primary" onClick={() => onSelectWorkflow('full')}>
+                  Start building <ArrowRight size={19} aria-hidden="true" />
+                </button>
+                <a className="dtb-toolset-hero__secondary" href="#toolset-workflow-title">
+                  Explore workflows
+                </a>
               </div>
             </div>
 
             <div className="dtb-toolset-hero__visual" aria-hidden="true">
-              <span className="dtb-toolset-hero__visual-grid" />
-              <div className="dtb-toolset-hero__visual-card dtb-toolset-hero__visual-card--primary">
-                <Boxes size={32} />
-                <strong>One set.</strong>
-                <span>Your products.</span>
-              </div>
-              <div className="dtb-toolset-hero__visual-card dtb-toolset-hero__visual-card--secondary">
-                <Settings2 size={24} />
-                <span>Configure by tool function</span>
+              <div className="dtb-toolset-hero__visual-halo" />
+              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--taper"><WandSparkles size={80} /></div>
+              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--box"><Box size={104} /></div>
+              <div className="dtb-toolset-hero__tool dtb-toolset-hero__tool--handle"><Settings2 size={76} /></div>
+              <div className="dtb-toolset-hero__visual-card">
+                <ClipboardList size={22} />
+                <strong>Built around your workflow</strong>
               </div>
             </div>
           </div>
@@ -91,11 +104,9 @@ function BuilderLanding({ onSelectWorkflow }) {
       <section className="dtb-section dtb-toolset-workflow-section" aria-labelledby="toolset-workflow-title">
         <div className="dtb-container dtb-container--wide">
           <header className="dtb-toolset-section-heading">
-            <span className="dtb-toolset-kicker">Choose a starting workflow</span>
-            <h2 id="toolset-workflow-title">What are you building?</h2>
+            <h2 id="toolset-workflow-title">Start with a workflow</h2>
             <p>
-              The workflow organizes the experience. Brand is a filter, not the
-              structure of your set.
+              Select a proven setup, then make every tool and configuration your own.
             </p>
           </header>
 
@@ -107,6 +118,17 @@ function BuilderLanding({ onSelectWorkflow }) {
                 onSelect={onSelectWorkflow}
               />
             ))}
+          </div>
+
+          <div className="dtb-toolset-brand-rail" aria-label="Compatible major brands">
+            <span className="dtb-toolset-brand-rail__label">All major brands</span>
+            <div className="dtb-toolset-brand-rail__logos">
+              {TOOLSET_BUILDER_BRANDS.map((brand) => (
+                <Link key={brand.slug} to={`/products/brands/${brand.slug}`} aria-label={`Shop ${brand.name}`}>
+                  <img src={brand.logo} alt={brand.name} width="150" height="46" loading="lazy" decoding="async" />
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>

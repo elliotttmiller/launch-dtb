@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   PackageOpen,
@@ -30,40 +31,62 @@ function selectionLabel(item) {
   return [item?.name, item?.variationLabel].filter(Boolean).join(' · ');
 }
 
-function BuilderPreview({ workflow, selections }) {
-  const items = flattenToolsetSelections(workflow, selections);
+function BrandFilterMenu({ brands, value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const closeOnPointerOutside = (event) => {
+      if (!rootRef.current?.contains(event.target)) setOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('pointerdown', closeOnPointerOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnPointerOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [open]);
+
+  const chooseBrand = (nextBrand) => {
+    onChange(nextBrand);
+    setOpen(false);
+  };
 
   return (
-    <section className="dtb-toolset-preview" aria-labelledby="toolset-preview-title">
-      <div className="dtb-toolset-preview__head">
-        <div>
-          <span className="dtb-toolset-kicker">Live set preview</span>
-          <h2 id="toolset-preview-title">Your Tool Set</h2>
-        </div>
-        <span className="dtb-toolset-preview__count">{items.length} selected</span>
-      </div>
+    <div ref={rootRef} className="dtb-toolset-brand-filter">
+      <button
+        type="button"
+        className="dtb-toolset-brand-filter__trigger"
+        aria-expanded={open}
+        aria-controls="toolset-brand-filter-menu"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <SlidersHorizontal size={17} aria-hidden="true" />
+        <span>{value || 'All brands'}</span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
 
-      {items.length === 0 ? (
-        <div className="dtb-toolset-preview__empty">
-          <PackageOpen size={28} aria-hidden="true" />
-          <span>Your selected tools will appear here as you build.</span>
-        </div>
-      ) : (
-        <div className="dtb-toolset-preview__rail" aria-label="Selected tool preview">
-          {items.map((item) => (
-            <div className="dtb-toolset-preview__item" key={item.capabilityId + ':' + item.key}>
-              <span className="dtb-toolset-preview__image">
-                {item.image ? <img src={item.image} alt="" loading="lazy" decoding="async" /> : <PackageOpen size={22} aria-hidden="true" />}
-              </span>
-              <span className="dtb-toolset-preview__item-copy">
-                <strong>{item.capabilityLabel}</strong>
-                <span>{selectionLabel(item)}</span>
-              </span>
-            </div>
+      {open ? (
+        <div id="toolset-brand-filter-menu" className="dtb-toolset-brand-filter__menu" role="menu" aria-label="Filter by brand">
+          <button type="button" role="menuitemradio" aria-checked={!value} className={!value ? 'is-selected' : ''} onClick={() => chooseBrand('')}>
+            <span>All brands</span>
+            {!value ? <Check size={16} aria-hidden="true" /> : null}
+          </button>
+          {brands.map((brandName) => (
+            <button type="button" key={brandName} role="menuitemradio" aria-checked={value === brandName} className={value === brandName ? 'is-selected' : ''} onClick={() => chooseBrand(brandName)}>
+              <span>{brandName}</span>
+              {value === brandName ? <Check size={16} aria-hidden="true" /> : null}
+            </button>
           ))}
         </div>
-      )}
-    </section>
+      ) : null}
+    </div>
   );
 }
 
@@ -73,8 +96,7 @@ function BuilderProgress({ workflow, selections, currentIndex, onSelectStep }) {
   return (
     <nav className="dtb-toolset-progress" aria-label="Toolset builder progress">
       <div className="dtb-toolset-progress__summary">
-        <span>{completion.completed} of {completion.total} categories complete</span>
-        <span>{completion.percent}%</span>
+        <span>{completion.completed} / {completion.total} configured</span>
       </div>
       <div className="dtb-toolset-progress__bar" aria-hidden="true">
         <span style={{ width: completion.percent + '%' }} />
@@ -94,7 +116,11 @@ function BuilderProgress({ workflow, selections, currentIndex, onSelectStep }) {
                 <span className="dtb-toolset-progress__number">
                   {complete ? <Check size={14} aria-hidden="true" /> : index + 1}
                 </span>
-                <span>{capability.label}</span>
+                <span className="dtb-toolset-progress__step-copy">
+                  <strong>{capability.label}</strong>
+                  <small>{complete ? 'Selected' : current ? 'In progress' : 'Required'}</small>
+                </span>
+                <ChevronRight size={16} aria-hidden="true" />
               </button>
             </li>
           );
@@ -120,8 +146,7 @@ function ToolsetSummary({
     <aside className="dtb-toolset-summary" aria-labelledby="toolset-summary-title">
       <div className="dtb-toolset-summary__head">
         <div>
-          <span className="dtb-toolset-kicker">Configuration</span>
-          <h2 id="toolset-summary-title">{workflow.shortLabel}</h2>
+          <h2 id="toolset-summary-title">Your Tool Set</h2>
         </div>
         <span>{completion.completed}/{completion.total}</span>
       </div>
@@ -131,6 +156,9 @@ function ToolsetSummary({
           <p className="dtb-toolset-summary__empty">Choose your first tool to begin the set.</p>
         ) : items.map((item) => (
           <div className="dtb-toolset-summary__item" key={item.capabilityId + ':' + item.key}>
+            <span className="dtb-toolset-summary__media" aria-hidden="true">
+              {item.image ? <img src={item.image} alt="" loading="lazy" decoding="async" /> : <PackageOpen size={19} />}
+            </span>
             <div>
               <span className="dtb-toolset-summary__category">{item.capabilityLabel}</span>
               <strong>{selectionLabel(item)}</strong>
@@ -155,7 +183,7 @@ function ToolsetSummary({
           <span>Estimated subtotal</span>
           <strong>{formatCurrency(estimatedSubtotal)}</strong>
         </div>
-        <p>Final price, availability, compatibility, shipping, and tax are confirmed by the server and WooCommerce before purchase.</p>
+        <p>Price and availability are confirmed before purchase.</p>
       </div>
 
       <button
@@ -184,9 +212,8 @@ function ReviewSet({ workflow, selections, onBackToBuilder }) {
           <ArrowLeft size={17} aria-hidden="true" />
           Continue editing
         </button>
-        <span className="dtb-toolset-kicker">Review configuration</span>
         <h1 id="toolset-review-title">{workflow.label}</h1>
-        <p>Verify every selected product and variation before the final server-side compatibility and cart validation step.</p>
+        <p>Review your selected products and configurations.</p>
       </div>
 
       <div className="dtb-toolset-review__grid">
@@ -208,8 +235,8 @@ function ReviewSet({ workflow, selections, onBackToBuilder }) {
 
         <aside className="dtb-toolset-review__checkout">
           <ShieldCheck size={28} aria-hidden="true" />
-          <h2>Server validation comes next</h2>
-          <p>This frontend does not create a second cart or trust browser-calculated compatibility. The production cart action will be enabled only after the backend validates the complete set.</p>
+          <h2>Ready for validation</h2>
+          <p>We’ll confirm your complete set before it is added to cart.</p>
           <div className="dtb-toolset-review__subtotal">
             <span>Estimated subtotal</span>
             <strong>{formatCurrency(estimatedSubtotal)}</strong>
@@ -309,28 +336,37 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
 
   return (
     <div className="dtb-toolset-workspace">
-      <BuilderProgress
-        workflow={workflow}
-        selections={selections}
-        currentIndex={currentIndex}
-        onSelectStep={setStep}
-      />
-
-      <BuilderPreview workflow={workflow} selections={selections} />
+      <header className="dtb-toolset-workspace__heading">
+        <nav className="dtb-toolset-breadcrumb" aria-label="Breadcrumb">
+          <button type="button" onClick={onChangeWorkflow}>Toolset Builder</button>
+          <span aria-hidden="true">/</span>
+          <span>{workflow.label}</span>
+        </nav>
+        <div className="dtb-toolset-workspace__title-row">
+          <div>
+            <h1>{workflow.label}</h1>
+            <p>Customize your setup. Configure each required tool before review.</p>
+          </div>
+          <div className="dtb-toolset-mode" aria-label="Builder mode">
+            <span className="is-active">Guided</span><span>Expert</span>
+          </div>
+        </div>
+      </header>
 
       <div className="dtb-toolset-workspace__layout">
+        <BuilderProgress
+          workflow={workflow}
+          selections={selections}
+          currentIndex={currentIndex}
+          onSelectStep={setStep}
+        />
+
         <section className="dtb-toolset-catalog" aria-labelledby="toolset-capability-title">
           <header className="dtb-toolset-catalog__head">
-            <button type="button" className="dtb-toolset-text-action" onClick={onChangeWorkflow}>
-              <ArrowLeft size={17} aria-hidden="true" />
-              Change workflow
-            </button>
-
             <div className="dtb-toolset-catalog__title-row">
               <div>
-                <span className="dtb-toolset-kicker">Step {currentIndex + 1} of {workflow.capabilities.length}</span>
-                <h1 id="toolset-capability-title">{capability.label}</h1>
-                <p>{capability.description}</p>
+                <h2 id="toolset-capability-title">Select {capability.label}</h2>
+                <p>Choose {capability.minimum === capability.maximum ? capability.minimum : `${capability.minimum}–${capability.maximum}`} {capability.label.toLowerCase()}.</p>
               </div>
               <span className="dtb-toolset-catalog__requirement">
                 {capability.minimum === capability.maximum
@@ -354,31 +390,21 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
               <button type="submit">Search</button>
             </form>
 
-            <label className="dtb-toolset-brand-filter">
-              <SlidersHorizontal size={17} aria-hidden="true" />
-              <span className="sr-only">Filter by brand</span>
-              <select
-                value={brand}
-                onChange={(event) => {
-                  setBrand(event.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="">All brands</option>
-                {availableBrands.map((brandName) => (
-                  <option key={brandName} value={brandName}>{brandName}</option>
-                ))}
-              </select>
-            </label>
+            <BrandFilterMenu
+              brands={availableBrands}
+              value={brand}
+              onChange={(nextBrand) => {
+                setBrand(nextBrand);
+                setPage(1);
+              }}
+            />
           </div>
 
-          <div className="dtb-toolset-catalog__status">
-            <span>
-              {selectedCount} selected
-              {capability.maximum > 1 ? ' · up to ' + capability.maximum : ''}
-            </span>
-            {!canAddMore ? <strong>Selection limit reached</strong> : null}
-          </div>
+          {!canAddMore ? (
+            <div className="dtb-toolset-catalog__status">
+              <strong>Selection limit reached</strong>
+            </div>
+          ) : null}
 
           {loading ? (
             <div className="dtb-toolset-product-grid" aria-busy="true" aria-label="Loading products">
@@ -400,7 +426,7 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
             <div className="dtb-toolset-catalog__message">
               <PackageOpen size={30} aria-hidden="true" />
               <h2>No matching products</h2>
-              <p>Try clearing the brand filter or search. Catalog classification is the source for what appears here.</p>
+              <p>Try another search or clear the brand filter.</p>
               {(brand || search) ? (
                 <button
                   type="button"

@@ -11,7 +11,7 @@ async function read(relativePath) {
   return readFile(path.join(root, relativePath), 'utf8');
 }
 
-test('toolset builder is lazy-routed and exposed through storefront navigation', async () => {
+test('toolset builder remains lazy-routed while temporarily absent from storefront navigation', async () => {
   const [app, routes, header] = await Promise.all([
     read('src/App.jsx'),
     read('src/routing/routeModules.js'),
@@ -22,8 +22,8 @@ test('toolset builder is lazy-routed and exposed through storefront navigation',
   assert.match(routes, /pathname === '\/toolset-builder'\) return 'toolsetBuilder'/);
   assert.match(app, /const ToolsetBuilder = createLazyRoute\('toolsetBuilder'\)/);
   assert.match(app, /<Route path="\/toolset-builder" element={<ToolsetBuilder \/>} \/>/);
-  assert.match(header, /to: '\/toolset-builder', label: 'Toolset Builder'/);
-  assert.match(header, /id: 'toolset-builder'[\s\S]*landingTo: '\/toolset-builder'/);
+  assert.doesNotMatch(header, /to: '\/toolset-builder', label: 'Toolset Builder'/);
+  assert.doesNotMatch(header, /id: 'toolset-builder'[\s\S]*landingTo: '\/toolset-builder'/);
 });
 
 test('toolset builder reads canonical catalog data and does not call legacy toolset templates', async () => {
@@ -48,8 +48,8 @@ test('frontend workflow model contains no pricing, discount, shipping, or cart a
 test('workspace preserves server validation boundary and final cart mutation remains disabled', async () => {
   const workspace = await read('src/features/toolset-builder/ToolsetBuilderWorkspace.jsx');
 
-  assert.match(workspace, /Final price, availability, compatibility, shipping, and tax are confirmed by the server and WooCommerce before purchase/);
-  assert.match(workspace, /The production cart action will be enabled only after the backend validates the complete set/);
+  assert.match(workspace, /Price and availability are confirmed before purchase/);
+  assert.match(workspace, /We’ll confirm your complete set before it is added to cart/);
   assert.match(workspace, /<button type="button" className="dtb-toolset-primary-action" disabled>[\s\S]*Add set to cart/);
   assert.doesNotMatch(workspace, /useCart|addToCart|storeAddToCart/);
 });

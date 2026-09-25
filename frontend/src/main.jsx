@@ -100,7 +100,7 @@ function AppBootMarker() {
 
         const bootShell = document.getElementById('dtb-app-boot-shell');
         if (bootShell) {
-          removeTimer = window.setTimeout(() => bootShell.remove(), 180);
+          removeTimer = window.setTimeout(() => bootShell.remove(), 320);
         }
       });
     });

@@ -18,9 +18,10 @@
  */
 import { Helmet } from 'react-helmet-async';
 import { absoluteSiteUrl, canonicalSiteUrl } from '../../utils/siteUrl.js';
+import { DTB_LOGO_BLACK_URL } from '../../utils/dtbLogoAssets.js';
 
 const SITE_NAME      = 'Drywall Toolbox';
-const DEFAULT_OG_IMG = absoluteSiteUrl('/logo-black.svg');
+const DEFAULT_OG_IMG = DTB_LOGO_BLACK_URL;
 const MAX_DESC_LEN   = 160;
 const SEARCH_INDEXING_ENABLED =
   process.env.REACT_APP_ENV === 'production' && process.env.REACT_APP_SEARCH_INDEXING !== '0';

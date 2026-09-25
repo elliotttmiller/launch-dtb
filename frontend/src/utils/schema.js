@@ -6,6 +6,7 @@
  */
 
 import { absoluteSiteUrl, canonicalSiteUrl, PUBLIC_SITE_URL } from './siteUrl.js';
+import { DTB_LOGO_BLACK_URL } from './dtbLogoAssets.js';
 
 const SITE_URL  = PUBLIC_SITE_URL;
 const SITE_NAME = 'Drywall Toolbox';
@@ -167,7 +168,7 @@ export function buildOrganizationSchema() {
     '@type':      'Organization',
     name:         SITE_NAME,
     url:          SITE_URL,
-    logo:         absoluteSiteUrl('/logo-black.svg'),
+    logo:         DTB_LOGO_BLACK_URL,
     description:  'Professional drywall tools and equipment from top brands. Shop automatic taping tools, mud boxes, finishing tools, and more.',
     contactPoint: {
       '@type':            'ContactPoint',

@@ -1,6 +1,6 @@
 import './calculator-report.css'
 
-import dtbLogoWhite from '@assets/brand/dtb-logo-white.svg'
+import { DTB_LOGO_WHITE_URL } from '../../../utils/dtbLogoAssets.js'
 
 export default function CalculatorReport({ report }) {
   const projectMeta = [
@@ -19,7 +19,7 @@ export default function CalculatorReport({ report }) {
         <div className="dtb-report-brand">
           <img
             className="dtb-report-logo"
-            src={dtbLogoWhite}
+            src={DTB_LOGO_WHITE_URL}
             alt="Drywall Toolbox"
             loading="eager"
             decoding="sync"

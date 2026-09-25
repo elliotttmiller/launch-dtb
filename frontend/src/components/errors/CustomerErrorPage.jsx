@@ -2,7 +2,7 @@ import { ArrowLeft, Headphones, Home, RefreshCw, Search, ShieldAlert, WifiOff } 
 import { useParams } from 'react-router-dom';
 import SEOHead from '../shared/SEOHead.jsx';
 import { getCustomerErrorContent } from '../../utils/customerErrors.js';
-import dtbLogoWhite from '@assets/brand/dtb-logo-white.svg';
+import { DTB_LOGO_WHITE_URL } from '../../utils/dtbLogoAssets.js';
 import '../../styles/customer-error.css';
 
 const APP_BASE = (process.env.PUBLIC_URL || '').replace(/\/+$/, '');
@@ -32,7 +32,7 @@ export default function CustomerErrorPage({
       <div className="customer-error-page__pattern" aria-hidden="true" />
       <section className="customer-error-card">
         <a className="customer-error-card__brand" href={appHref('/')} aria-label="Drywall Toolbox home">
-          <img src={dtbLogoWhite} alt="Drywall Toolbox" />
+          <img src={DTB_LOGO_WHITE_URL} alt="Drywall Toolbox" />
         </a>
 
         <div className="customer-error-card__content">

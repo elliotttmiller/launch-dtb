@@ -7,7 +7,10 @@
  * authorities remain in responsive-foundation.css and storefront-motion.css.
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+
 .dtb-toolset-page {
+  --dtb-toolset-font: "Nunito", ui-sans-serif, system-ui, sans-serif;
   background: var(--dtb-page-bg);
 }
 
@@ -575,6 +578,8 @@
 }
 
 .dtb-toolset-search input {
+  min-width: 0;
+  flex: 1 1 auto;
   width: 100%;
   min-height: calc(var(--dtb-control-height) - 2px);
   border: 0;
@@ -584,6 +589,8 @@
 }
 
 .dtb-toolset-search button {
+  min-width: 5.75rem;
+  flex: 0 0 auto;
   align-self: stretch;
   padding-inline: 1rem;
   border: 0;
@@ -593,6 +600,7 @@
   cursor: pointer;
   font-size: var(--dtb-text-sm);
   font-weight: 750;
+  white-space: nowrap;
 }
 
 .dtb-toolset-brand-filter {
@@ -890,7 +898,7 @@
 
 .dtb-toolset-catalog__message {
   display: flex;
-  min-height: 18rem;
+  min-height: 12rem;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -1461,4 +1469,449 @@
   .dtb-toolset-product-card:hover {
     transform: none;
   }
+}
+
+/* Toolset Builder redesign: landing and guided workspace follow the same
+ * open, workshop-forward visual language while retaining the catalog flow. */
+.dtb-toolset-page {
+  background: #f7f9fd;
+}
+
+.dtb-toolset-hero {
+  color: #071a38;
+  background:
+    linear-gradient(90deg, #ffffff 0%, #ffffff 43%, rgba(238, 244, 255, 0.84) 68%, #dceaff 100%);
+}
+
+.dtb-toolset-hero .dtb-toolset-kicker {
+  color: #315682;
+}
+
+.dtb-toolset-hero__grid {
+  min-height: clamp(28rem, 43vw, 34rem);
+  grid-template-columns: minmax(0, 0.92fr) minmax(25rem, 1.08fr);
+  gap: clamp(2rem, 5vw, 6rem);
+  padding-block: clamp(3.25rem, 7vw, 5.5rem);
+}
+
+.dtb-toolset-hero__copy h1 {
+  max-width: 11ch;
+  margin: 0.8rem 0 1rem;
+  color: #071a38;
+  font-size: clamp(3rem, 5.25vw, 5.3rem);
+  line-height: 0.94;
+}
+
+.dtb-toolset-hero__copy h1 em {
+  color: var(--dtb-primary);
+  font-style: normal;
+}
+
+.dtb-toolset-hero__copy > p {
+  max-width: 39rem;
+  color: #415778;
+  font-size: clamp(1rem, 1.3vw, 1.2rem);
+  line-height: 1.45;
+}
+
+.dtb-toolset-hero__assurances {
+  display: grid;
+  gap: 0.55rem;
+  margin: 1.35rem 0 1.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.dtb-toolset-hero__assurances li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: #263f65;
+  font-weight: 700;
+}
+
+.dtb-toolset-hero__assurances svg { color: var(--dtb-primary); }
+
+.dtb-toolset-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.dtb-toolset-hero__primary,
+.dtb-toolset-hero__secondary {
+  display: inline-flex;
+  min-height: 3.2rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding-inline: 1.35rem;
+  border-radius: var(--dtb-radius-sm);
+  font-size: 0.98rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.dtb-toolset-hero__primary {
+  border: 1px solid var(--dtb-primary);
+  background: var(--dtb-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.dtb-toolset-hero__secondary {
+  border: 1px solid #4d82e7;
+  background: #fff;
+  color: #123b82;
+}
+
+.dtb-toolset-hero__visual {
+  min-height: 25rem;
+}
+
+.dtb-toolset-hero__visual-halo {
+  position: absolute;
+  inset: 2rem 0 0;
+  border-radius: 56% 44% 42% 58%;
+  background: radial-gradient(circle at 55% 55%, rgba(255,255,255,.92), rgba(116,166,244,.24) 42%, transparent 70%);
+}
+
+.dtb-toolset-hero__tool {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(12, 37, 79, 0.14);
+  box-shadow: 0 24px 48px rgba(34, 76, 137, 0.2);
+  color: #fff;
+}
+
+.dtb-toolset-hero__tool--taper {
+  top: 2.2rem; right: 6%; width: 15rem; height: 6.4rem;
+  border-radius: 1rem; background: linear-gradient(135deg, #101d31, #344a6a);
+  transform: rotate(-12deg);
+}
+
+.dtb-toolset-hero__tool--box {
+  right: 27%; bottom: 1.2rem; width: 13.5rem; height: 10.5rem;
+  border-radius: 0.9rem; background: linear-gradient(135deg, #0759d9, #042f7f);
+  transform: rotate(5deg);
+}
+
+.dtb-toolset-hero__tool--handle {
+  right: 1%; bottom: 3.4rem; width: 7rem; height: 13rem;
+  border-radius: 4rem; background: linear-gradient(135deg, #d5a047, #8d5c1f);
+  transform: rotate(17deg);
+}
+
+.dtb-toolset-hero__visual-card {
+  right: 0.5rem;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  width: min(17rem, 52%);
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(21, 64, 130, 0.16);
+  border-radius: var(--dtb-radius-md);
+  background: rgba(255,255,255,.95);
+  box-shadow: 0 14px 36px rgba(20, 56, 108, .16);
+  color: #153a78;
+  font-size: var(--dtb-text-sm);
+}
+
+.dtb-toolset-section-heading { max-width: 43rem; }
+.dtb-toolset-section-heading h2 { margin: 0 0 0.5rem; color: #071a38; }
+
+.dtb-toolset-workflow-section { background: #fff; }
+.dtb-toolset-workflow-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+.dtb-toolset-workflow-card { min-height: 12.25rem; padding: 1.2rem; grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+.dtb-toolset-workflow-card__icon { width: 3.5rem; height: 3.5rem; border-radius: 50%; }
+.dtb-toolset-workflow-card__arrow { display: none; }
+.dtb-toolset-workflow-card__meta { margin-top: auto; }
+
+.dtb-toolset-brand-rail {
+  display: grid;
+  grid-template-columns: minmax(8rem, .28fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.75rem;
+  margin-top: 2.75rem;
+  padding: 1.2rem 0 0;
+  border-top: 1px solid var(--dtb-border);
+  color: #29466f;
+}
+.dtb-toolset-brand-rail__label {
+  font-size: .72rem;
+  font-weight: 750;
+  letter-spacing: .1em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+.dtb-toolset-brand-rail__logos {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(.85rem, 2vw, 2rem);
+}
+.dtb-toolset-brand-rail__logos a {
+  display: grid;
+  min-width: 0;
+  min-height: 3.2rem;
+  place-items: center;
+  border-radius: var(--dtb-radius-sm);
+  transition: background-color var(--dtb-motion-standard), transform var(--dtb-motion-standard);
+}
+.dtb-toolset-brand-rail__logos a:hover { background: var(--dtb-surface-subtle); transform: translateY(-1px); }
+.dtb-toolset-brand-rail__logos img { display: block; width: 100%; max-width: 9.4rem; height: 2.25rem; object-fit: contain; }
+
+/* Type is a deliberate application of the global Geist authority. The page
+ * does not introduce a feature font or rely on browser default weights. */
+.dtb-toolset-page,
+.dtb-toolset-page *,
+.dtb-toolset-page *::before,
+.dtb-toolset-page *::after,
+.dtb-toolset-page button,
+.dtb-toolset-page input,
+.dtb-toolset-page select {
+  font-family: var(--dtb-toolset-font) !important;
+}
+.dtb-toolset-page :is(h1, h2, h3, .dtb-toolset-workflow-card__label, .dtb-toolset-summary__head h2) {
+  font-family: var(--dtb-toolset-font) !important;
+  font-kerning: normal;
+}
+.dtb-toolset-page :is(h1, h2) { font-weight: 700; letter-spacing: -.04em; line-height: 1.03; }
+.dtb-toolset-page h3 { font-weight: 650; letter-spacing: -.024em; line-height: 1.25; }
+.dtb-toolset-page :is(p, li, .dtb-toolset-workflow-card__description, .dtb-toolset-catalog__title-row p) {
+  font-weight: 460;
+  letter-spacing: -.012em;
+}
+.dtb-toolset-page :is(.dtb-toolset-kicker, .dtb-toolset-progress__summary, .dtb-toolset-progress__step, .dtb-toolset-product-card__brand, .dtb-toolset-summary__category) {
+  font-weight: 700;
+  letter-spacing: .045em;
+}
+.dtb-toolset-page :is(.dtb-toolset-primary-action, .dtb-toolset-secondary-action, .dtb-toolset-product-card__select, .dtb-toolset-product-card__options-toggle, .dtb-toolset-search button) {
+  font-weight: 680;
+  letter-spacing: -.015em;
+}
+
+/* Custom menu: native select menus cannot be styled consistently or carry
+ * the visual selected state used by this workspace. */
+.dtb-toolset-brand-filter {
+  position: relative;
+  display: block;
+  min-width: 11rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.dtb-toolset-brand-filter__trigger {
+  display: flex;
+  width: 100%;
+  min-height: var(--dtb-control-height);
+  align-items: center;
+  gap: .6rem;
+  padding: 0 .85rem;
+  border: 1px solid var(--dtb-border-strong);
+  border-radius: var(--dtb-radius-md);
+  background: var(--dtb-surface);
+  color: var(--dtb-text);
+  cursor: pointer;
+  font-size: var(--dtb-text-sm);
+  font-weight: 650;
+  text-align: left;
+}
+.dtb-toolset-brand-filter__trigger > span { min-width: 0; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dtb-toolset-brand-filter__trigger > svg:last-child { transition: transform var(--dtb-motion-standard); }
+.dtb-toolset-brand-filter__trigger[aria-expanded="true"] { border-color: var(--dtb-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dtb-primary) 12%, transparent); }
+.dtb-toolset-brand-filter__trigger[aria-expanded="true"] > svg:last-child { transform: rotate(180deg); }
+.dtb-toolset-brand-filter__menu {
+  position: absolute;
+  z-index: calc(var(--dtb-z-sticky) + 1);
+  top: calc(100% + .5rem);
+  right: 0;
+  display: grid;
+  width: max(100%, 14rem);
+  max-height: min(20rem, 50vh);
+  padding: .35rem;
+  overflow-y: auto;
+  border: 1px solid var(--dtb-border);
+  border-radius: var(--dtb-radius-md);
+  background: var(--dtb-surface);
+  box-shadow: 0 18px 42px rgba(18, 43, 84, .18);
+}
+.dtb-toolset-brand-filter__menu button {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .5rem .65rem;
+  border: 0;
+  border-radius: var(--dtb-radius-sm);
+  background: transparent;
+  color: var(--dtb-text-soft);
+  cursor: pointer;
+  font-size: var(--dtb-text-sm);
+  font-weight: 560;
+  text-align: left;
+}
+.dtb-toolset-brand-filter__menu button:hover,
+.dtb-toolset-brand-filter__menu button:focus-visible { background: var(--dtb-primary-soft); color: var(--dtb-primary-strong); outline: 0; }
+.dtb-toolset-brand-filter__menu button.is-selected { color: var(--dtb-primary-strong); font-weight: 700; }
+.dtb-toolset-brand-filter__menu button svg { color: var(--dtb-primary); }
+
+.dtb-toolset-builder-section { background: #f5f8fd; }
+.dtb-toolset-workspace__heading { margin-bottom: 1.35rem; }
+.dtb-toolset-breadcrumb { display:flex; gap:.7rem; align-items:center; margin-bottom:.75rem; color:#71819b; font-size:.82rem; }
+.dtb-toolset-breadcrumb button { padding:0; border:0; background:transparent; color:#526987; cursor:pointer; font:inherit; }
+.dtb-toolset-workspace__title-row { display:flex; align-items:end; justify-content:space-between; gap:1.5rem; }
+.dtb-toolset-workspace__title-row h1 { margin:0; font-size:clamp(2rem,3.2vw,2.65rem); }
+.dtb-toolset-workspace__title-row p { margin:.35rem 0 0; color:#627897; font-size:1rem; }
+.dtb-toolset-mode { display:flex; padding:3px; border:1px solid #dbe3ef; border-radius:.75rem; background:#fff; box-shadow:0 5px 14px rgba(23,54,98,.05); }
+.dtb-toolset-mode span { min-width:4.15rem; padding:.5rem .85rem; border-radius:.5rem; color:#667995; font-size:.8rem; font-weight:650; text-align:center; }
+.dtb-toolset-mode .is-active { background:var(--dtb-primary); color:#fff; box-shadow:0 4px 10px rgba(34,85,238,.25); }
+.dtb-toolset-workspace__top {
+  display: flex;
+  min-height: 2.5rem;
+  align-items: center;
+}
+.dtb-toolset-workspace__top .back-button.dtb-product-nav-back {
+  min-height: 2.5rem;
+  padding: .45rem .8rem .45rem .65rem;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #26466f;
+}
+.dtb-toolset-workspace__top .back-button.dtb-product-nav-back:hover {
+  border-color: rgba(34,85,238,.14);
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 8px 22px rgba(22,55,107,.08);
+  color: var(--dtb-primary-strong);
+}
+.dtb-toolset-workspace__layout {
+  grid-template-columns: minmax(12.5rem, 14rem) minmax(0, 1fr) minmax(18rem, 21rem);
+  gap: 1.35rem;
+}
+.dtb-toolset-progress {
+  position: sticky;
+  top: calc(var(--dtb-header-height) + 1rem);
+  padding: .35rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.dtb-toolset-progress__summary { margin: 0 0 .65rem; color: #10284f; font-size: .88rem; font-weight: 720; }
+.dtb-toolset-progress__bar { height: .25rem; background: #dbe5f3; }
+.dtb-toolset-progress__steps { display: grid; gap: .22rem; margin: .85rem 0 0; overflow: visible; padding: 0; }
+.dtb-toolset-progress__steps li + li { border: 0; }
+.dtb-toolset-progress__step {
+  width: 100%;
+  min-height: 2.9rem;
+  justify-content: flex-start;
+  gap: .62rem;
+  padding: .4rem .5rem;
+  border: 1px solid transparent;
+  border-radius: .65rem;
+  color: #59708e;
+  background: transparent;
+  font-size: .79rem;
+  font-weight: 620;
+  letter-spacing: -.01em;
+  white-space: normal;
+  text-align: left;
+  transition: background-color var(--dtb-motion-standard), border-color var(--dtb-motion-standard), color var(--dtb-motion-standard), box-shadow var(--dtb-motion-standard);
+}
+.dtb-toolset-progress__step-copy { display:grid; min-width:0; flex:1; gap:.1rem; }
+.dtb-toolset-progress__step-copy strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:inherit; font-weight:700; }
+.dtb-toolset-progress__step-copy small { color:#7890ad; font-size:.68rem; font-weight:540; }
+.dtb-toolset-progress__step > svg { color:#8ba0b9; }
+.dtb-toolset-progress__step.is-current > svg { color:var(--dtb-primary); }
+.dtb-toolset-progress__step:hover { background: rgba(255,255,255,.72); color: #183f7b; }
+.dtb-toolset-progress__step.is-current {
+  width: 100%;
+  margin: 0;
+  padding-inline: .5rem;
+  border-color: rgba(34,85,238,.2);
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(31,72,130,.08);
+  color: var(--dtb-primary-strong);
+}
+.dtb-toolset-progress__step.is-complete:not(.is-current) { color: #267143; }
+.dtb-toolset-progress__number {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex: 0 0 1.8rem;
+  border-radius: .55rem;
+  background: #e9eff7;
+  color: #5a7190;
+  font-size: .73rem;
+  font-weight: 720;
+}
+.dtb-toolset-progress__step.is-current .dtb-toolset-progress__number { background: var(--dtb-primary); color: #fff; }
+.dtb-toolset-progress__step.is-complete:not(.is-current) .dtb-toolset-progress__number { background: #e8f6ed; color: #238047; }
+
+.dtb-toolset-catalog { padding: clamp(1.1rem, 2.2vw, 1.65rem); border-radius: var(--dtb-radius-md); }
+.dtb-toolset-catalog__head { gap: 1.1rem; }
+.dtb-toolset-catalog__title-row h2 { margin:0; font-size:clamp(1.8rem,2.5vw,2.25rem); }
+.dtb-toolset-catalog__title-row p { margin:.35rem 0 0; color:#617794; font-size:.9rem; }
+.dtb-toolset-catalog__controls { margin-top: 1.7rem; }
+.dtb-toolset-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .9rem; }
+.dtb-toolset-product-card { border-radius: var(--dtb-radius-md); }
+.dtb-toolset-product-card__media { aspect-ratio:1 / .83; background:#f7f9fc; }
+.dtb-toolset-product-card__body { padding: .8rem .9rem .9rem; }
+.dtb-toolset-product-card__brand { color:var(--dtb-primary); font-size:.67rem; }
+.dtb-toolset-product-card__identity h3 { min-height:2.45em; font-size:.92rem; }
+.dtb-toolset-product-card__select { border-radius:.45rem; }
+.dtb-toolset-product-card__body { gap: .72rem; padding: .85rem; }
+.dtb-toolset-summary { position: sticky; top: calc(var(--dtb-header-height) + 1rem); border-radius: var(--dtb-radius-md); box-shadow: none; }
+.dtb-toolset-summary__head { padding: 1.1rem 1rem; }
+.dtb-toolset-summary__items { max-height: min(38vh, 30rem); }
+.dtb-toolset-summary__item { grid-template-columns: 3.5rem minmax(0, 1fr) auto; }
+.dtb-toolset-summary__media {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--dtb-radius-sm);
+  background: var(--dtb-surface-subtle);
+  color: var(--dtb-muted);
+}
+.dtb-toolset-summary__media img { width: 100%; height: 100%; object-fit: contain; }
+
+@media (max-width: 79.99rem) {
+  .dtb-toolset-workflow-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dtb-toolset-workspace__layout { grid-template-columns: minmax(11.5rem, 13rem) minmax(0, 1fr); }
+  .dtb-toolset-summary { grid-column: 2; position: static; }
+}
+
+@media (max-width: 63.99rem) {
+  .dtb-toolset-workspace__title-row { align-items:flex-start; flex-direction:column; }
+  .dtb-toolset-hero__grid { grid-template-columns: minmax(0, 1fr); }
+  .dtb-toolset-hero__visual { min-height: 18rem; max-width: 38rem; width: 100%; }
+  .dtb-toolset-workspace__layout { grid-template-columns: minmax(0, 1fr); }
+  .dtb-toolset-progress { position: static; }
+  .dtb-toolset-progress__steps { display: flex; overflow-x: auto; }
+  .dtb-toolset-progress__steps li + li { border-top: 0; }
+  .dtb-toolset-progress__step { width: auto; min-height: var(--dtb-touch-target); white-space: nowrap; }
+  .dtb-toolset-progress__step.is-current { width: auto; margin-inline: 0; }
+  .dtb-toolset-summary { grid-column: auto; }
+}
+
+@media (max-width: 47.99rem) {
+  .dtb-toolset-hero { background: #fff; }
+  .dtb-toolset-hero__grid { padding-block: 2.5rem 1.5rem; gap: 1rem; }
+  .dtb-toolset-hero__copy h1 { font-size: clamp(2.8rem, 14vw, 4rem); }
+  .dtb-toolset-hero__visual { min-height: 14rem; }
+  .dtb-toolset-hero__tool--taper { top: 1.2rem; width: 11rem; height: 4.5rem; }
+  .dtb-toolset-hero__tool--box { width: 10rem; height: 7.5rem; }
+  .dtb-toolset-hero__tool--handle { width: 4.5rem; height: 9rem; }
+  .dtb-toolset-workflow-grid { grid-template-columns: minmax(0, 1fr); }
+  .dtb-toolset-workflow-card { min-height: 0; }
+  .dtb-toolset-brand-rail { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+  .dtb-toolset-brand-rail__logos { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; }
+  .dtb-toolset-brand-rail__logos img { max-width: 7.4rem; height: 1.9rem; }
+  .dtb-toolset-product-grid { grid-template-columns: minmax(0, 1fr); }
 }
