@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import Breadcrumb from '../shared/Breadcrumb.jsx';
 import { dedupeCatalogBrandEntries } from '../../utils/catalogFacets.js';
 import { resolveProductBrandLogo } from '../../utils/brandLogoAssets.js';
 import { resolveFeaturedBrandPresentation } from '../../utils/brandSelectorPresentation.js';
@@ -27,31 +28,28 @@ export default function ProductsBrandSelector({ brands, onSelectBrand, showHero 
 
   return (
     <div className="products-brand-selector">
-      {showHero && <header className="products-brand-selector__hero">
+      {showHero && <header className="products-brand-selector__hero" aria-labelledby="dtb-brands-hero-title">
+        <div className="products-brand-selector__breadcrumb-shell">
+          <Breadcrumb items={[{ label: 'Home', path: '/' }, { label: 'Brands' }]} />
+        </div>
+
         <div className="products-brand-selector__hero-content">
-          <div className="products-brand-selector__hero-heading">
-            <div className="products-brand-selector__eyebrow-row">
-              <span className="products-brand-selector__eyebrow">Brands</span>
-              <span className="products-brand-selector__eyebrow-rule" aria-hidden="true" />
-            </div>
-            <h1 className="products-brand-selector__title">Shop by Brand</h1>
-            <p className="products-brand-selector__description">
-              Professional drywall tools from the brands you trust.<br className="products-brand-selector__description-break" />
-              Browse tools, replacement parts, and equipment by manufacturer.
-            </p>
+          <div className="products-brand-selector__eyebrow-row">
+            <span className="products-brand-selector__eyebrow">Brands</span>
+            <span className="products-brand-selector__eyebrow-rule" aria-hidden="true" />
           </div>
+          <h1 id="dtb-brands-hero-title" className="products-brand-selector__title">
+            Shop the brands professionals rely on.
+          </h1>
+          <p className="products-brand-selector__description">
+            Browse professional drywall tools, replacement parts, and equipment by manufacturer.
+          </p>
         </div>
 
         <div className="products-brand-selector__hero-art" aria-hidden="true">
           <span className="products-brand-selector__slash products-brand-selector__slash--one" />
           <span className="products-brand-selector__slash products-brand-selector__slash--two" />
           <span className="products-brand-selector__slash products-brand-selector__slash--three" />
-          <div className="products-brand-selector__statement">
-            <span>The brands</span>
-            <span>professionals</span>
-            <span>count on.</span>
-            <span className="products-brand-selector__statement-rule" />
-          </div>
         </div>
       </header>}
 
