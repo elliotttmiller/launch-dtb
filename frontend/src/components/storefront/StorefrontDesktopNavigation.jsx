@@ -494,8 +494,8 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const shellTransition = reducedMotion
     ? 'none'
     : shellOpen
-      ? 'opacity 220ms cubic-bezier(0.22, 1, 0.36, 1), transform 285ms cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0s'
-      : 'opacity 190ms cubic-bezier(0.4, 0, 1, 1), transform 230ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 230ms';
+      ? 'opacity 160ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s'
+      : 'opacity 140ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 140ms';
 
   return (
     <nav
@@ -556,9 +556,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
               opacity: shellOpen ? 1 : 0,
               visibility: shellOpen ? 'visible' : 'hidden',
               pointerEvents: shellOpen ? 'auto' : 'none',
-              transform: shellOpen
-                ? 'translateX(-50%) translateY(0) scale(1)'
-                : 'translateX(-50%) translateY(-5px) scale(0.996)',
+              transform: 'translateX(-50%)',
               transition: shellTransition,
             }}
           >
