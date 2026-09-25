@@ -1773,6 +1773,32 @@
 .dtb-toolset-product-card__body { padding: .8rem .9rem .9rem; }
 .dtb-toolset-product-card__brand { color:var(--dtb-primary); font-size:.67rem; }
 .dtb-toolset-product-card__identity h3 { min-height:2.55em; font-size:1.08rem; line-height:1.22; }
+/* Product-card vertical rhythm: content-driven rather than reserving title rows.
+ * Keep brand -> title breathing room, then bind SKU/price tightly to identity. */
+.dtb-toolset-product-card__identity h3 {
+  min-height: 0;
+  margin-top: 0;
+  font-size: 1.08rem;
+  line-height: 1.22;
+}
+
+.dtb-toolset-product-card__brand-logo-wrap {
+  margin-bottom: 0.72rem;
+}
+
+.dtb-toolset-product-card__identity h3 + .dtb-toolset-product-card__sku {
+  margin-top: 0.22rem;
+}
+
+.dtb-toolset-product-card__body {
+  gap: 0.38rem;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.dtb-toolset-product-card__commerce {
+  margin-top: 0.08rem;
+}
+
 .dtb-toolset-product-card__select { border-radius:.45rem; }
 .dtb-toolset-product-card__body { gap: .7rem; padding: .9rem 1rem 1rem; }
 .dtb-toolset-summary { position: sticky; top: calc(var(--dtb-header-height) + 1rem); border-radius: var(--dtb-radius-md); box-shadow: none; }
