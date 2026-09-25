@@ -195,6 +195,9 @@ test('Quick View content does not re-own document geometry or cold-load after in
 
   assert.doesNotMatch(desktopPolish, /product-modal-card-shell\.dtb-product-page-shell/);
   assert.match(gallery, /zIndex:\s*3, pointerEvents:\s*'none'/);
+  assert.match(gallery, /stableGalleryRef = useRef/);
+  assert.match(gallery, /stableGalleryHasOnlyPlaceholder/);
+  assert.match(gallery, /const stableImageMeta = stableGalleryRef\.current\.images/);
   assert.doesNotMatch(gallery, /style=\{\{ zIndex: 2, backfaceVisibility/);
   assert.match(quickViewCss, /product-modal-card-shell \.product-image-gallery__skeleton[\s\S]*animation:\s*none/);
 });
