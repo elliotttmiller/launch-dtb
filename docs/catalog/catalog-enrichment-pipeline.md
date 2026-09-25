@@ -76,6 +76,8 @@ Cross-cutting display values such as `predator_family`, `toolsets` without `prod
 
 `scripts/catalog/catalog_taxonomy_policy.py` owns the deterministic catalog-tooling policy. `scripts/catalog/normalize_official_taxonomy.py` previews/applies only mutation-safe results. The runtime `DTB_CategoryNormalizer` remains the application-side resolver and must stay semantically aligned. The React storefront consumes backend category/display-category DTOs; it does not own classification truth.
 
+Runtime tool-family resolution is intentionally stricter than broad category classification. Broad categories such as `taping`, `finishing`, `corner`, `handles`, and `mudboxes` contain multiple functional tool families and therefore must not directly imply `_dtb_tool_family`. The runtime resolver may use explicit tool-family meta, builder-slot evidence, exact one-to-one display categories, narrow one-to-one broad categories, and finally bounded name heuristics. In particular, only the canonical `automatic_tapers` display class may deterministically imply `automatic_taper`; toolsets, nail spotters, and semi-automatic tapers/banjos must not enter the Automatic Taper Toolset Builder slot.
+
 ## Taxonomy finding classes
 
 The audit separates taxonomy findings by mutation safety:
