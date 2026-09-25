@@ -192,7 +192,7 @@ export const productModalTransition = {
 };
 
 export const productModalBackdropTransition = {
-  duration: dtbDuration.normal,
+  duration: dtbDuration.fast,
   ease: dtbEase.exit,
 };
 
