@@ -541,7 +541,7 @@
   justify-content: center;
   overflow: hidden;
   border-bottom: 1px solid var(--dtb-border);
-  background: var(--dtb-surface-subtle);
+  background: #fff;
 }
 
 .dtb-toolset-product-card__media > img {
@@ -2462,7 +2462,7 @@
     aspect-ratio: 1 / 0.92;
     border-right: 0;
     border-bottom: 1px solid var(--dtb-border);
-    background: #f7f9fc;
+    background: #fff;
   }
 
   .dtb-toolset-product-card__media > img {
