@@ -2215,3 +2215,400 @@
     width: 4rem;
   }
 }
+
+
+/* Mobile builder density refinement
+ * Keep the guided flow compact beneath the mobile storefront header and render
+ * builder products with the same two-up shopping-card rhythm used elsewhere. */
+@media (max-width: 47.99rem) {
+  .dtb-toolset-builder-section {
+    padding-top: 0;
+  }
+
+  .dtb-toolset-workspace__heading {
+    margin-bottom: 0.55rem;
+    background: #fff;
+    border-bottom: 1px solid var(--dtb-border);
+  }
+
+  .dtb-toolset-workspace__heading > .dtb-breadcrumb-bar {
+    width: 100%;
+    padding: 0.5rem var(--dtb-viewport-gutter) 0.15rem;
+  }
+
+  .dtb-toolset-workspace__heading .dtb-breadcrumb a,
+  .dtb-toolset-workspace__heading .dtb-breadcrumb__current {
+    min-height: 1.35rem;
+    padding-block: 0.1rem;
+    font-size: 0.66rem;
+  }
+
+  .dtb-toolset-workspace__hero {
+    min-height: 0;
+    border: 0;
+    background: #fff;
+  }
+
+  .dtb-toolset-workspace__hero-content {
+    min-height: 0;
+    padding: 0.55rem var(--dtb-viewport-gutter) 0.8rem;
+  }
+
+  .dtb-toolset-workspace__hero-content::before,
+  .dtb-toolset-workspace__hero-content::after,
+  .dtb-toolset-workspace__hero-art,
+  .dtb-toolset-workspace__eyebrow-row {
+    display: none;
+  }
+
+  .dtb-toolset-workspace__hero-content h1 {
+    width: 100%;
+    margin: 0;
+    color: #071a38;
+    font-size: clamp(1.35rem, 6vw, 1.7rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+  }
+
+  .dtb-toolset-workspace__hero-content > p {
+    width: 100%;
+    max-width: 40ch;
+    margin: 0.3rem 0 0;
+    color: #607795;
+    font-size: 0.78rem;
+    line-height: 1.38;
+  }
+
+  .dtb-toolset-workspace__layout {
+    display: block;
+  }
+
+  .dtb-toolset-progress {
+    position: relative;
+    top: auto;
+    z-index: 5;
+    margin: 0;
+    padding: 0.65rem var(--dtb-viewport-gutter) 0.55rem;
+    border-bottom: 1px solid var(--dtb-border);
+    background: #f7f9fd;
+    box-shadow: none;
+  }
+
+  .dtb-toolset-progress__summary {
+    margin: 0 0 0.4rem;
+    color: #10284f;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .dtb-toolset-progress__bar {
+    height: 0.2rem;
+    margin-bottom: 0.5rem;
+    background: #dfe7f3;
+  }
+
+  .dtb-toolset-progress__steps {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(8.6rem, 42vw);
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0 0 0.15rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    overscroll-behavior-inline: contain;
+  }
+
+  .dtb-toolset-progress__steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dtb-toolset-progress__steps li {
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .dtb-toolset-progress__step,
+  .dtb-toolset-progress__step.is-current {
+    width: 100%;
+    min-height: 3.15rem;
+    margin: 0;
+    gap: 0.5rem;
+    padding: 0.38rem 0.5rem;
+    border-radius: 0.7rem;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dtb-toolset-progress__step.is-current {
+    border-color: rgba(34, 85, 238, 0.22);
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(31, 72, 130, 0.06);
+  }
+
+  .dtb-toolset-progress__number {
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-basis: 1.75rem;
+    border-radius: 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .dtb-toolset-progress__step-copy {
+    gap: 0.05rem;
+  }
+
+  .dtb-toolset-progress__step-copy strong {
+    font-size: 0.72rem;
+    line-height: 1.15;
+  }
+
+  .dtb-toolset-progress__step-copy small {
+    font-size: 0.61rem;
+    line-height: 1.15;
+  }
+
+  .dtb-toolset-progress__step > svg {
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-left: auto;
+  }
+
+  .dtb-toolset-catalog {
+    margin: 0;
+    padding: 0.85rem var(--dtb-viewport-gutter) 1rem;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dtb-toolset-catalog__head {
+    gap: 0.7rem;
+  }
+
+  .dtb-toolset-catalog__title-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.65rem;
+  }
+
+  .dtb-toolset-catalog__title-row h2 {
+    margin: 0;
+    font-size: clamp(1.35rem, 6vw, 1.65rem);
+    line-height: 1.08;
+  }
+
+  .dtb-toolset-catalog__title-row p {
+    margin-top: 0.28rem;
+    font-size: 0.76rem;
+    line-height: 1.35;
+  }
+
+  .dtb-toolset-catalog__requirement {
+    min-height: 1.8rem;
+    padding-inline: 0.6rem;
+    font-size: 0.65rem;
+  }
+
+  .dtb-toolset-catalog__controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+  }
+
+  .dtb-toolset-search,
+  .dtb-toolset-brand-filter {
+    min-height: 2.65rem;
+    border-radius: 0.75rem;
+  }
+
+  .dtb-toolset-search button {
+    min-height: 2.55rem;
+    padding-inline: 0.85rem;
+  }
+
+  .dtb-toolset-brand-filter__trigger {
+    min-height: 2.65rem;
+  }
+
+  .dtb-toolset-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+    align-items: stretch;
+  }
+
+  .dtb-toolset-product-card {
+    display: flex;
+    min-width: 0;
+    height: 100%;
+    flex-direction: column;
+    overflow: visible;
+    border-radius: 0.8rem;
+    box-shadow: none;
+    transform: none;
+  }
+
+  .dtb-toolset-product-card:hover {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .dtb-toolset-product-card__media {
+    min-height: 0;
+    aspect-ratio: 1 / 0.92;
+    border-right: 0;
+    border-bottom: 1px solid var(--dtb-border);
+    background: #f7f9fc;
+  }
+
+  .dtb-toolset-product-card__media > img {
+    padding: 0.45rem;
+  }
+
+  .dtb-toolset-product-card__selected-badge {
+    top: 0.35rem;
+    right: 0.35rem;
+    min-height: 1.45rem;
+    gap: 0.15rem;
+    padding-inline: 0.4rem;
+    font-size: 0.56rem;
+  }
+
+  .dtb-toolset-product-card__selected-badge svg {
+    width: 0.65rem;
+    height: 0.65rem;
+  }
+
+  .dtb-toolset-product-card__body {
+    flex: 1;
+    gap: 0.38rem;
+    padding: 0.58rem 0.62rem 0.65rem;
+  }
+
+  .dtb-toolset-product-card__brand-logo-wrap {
+    min-height: 0.95rem;
+    margin: 0 0 0.3rem;
+  }
+
+  .dtb-toolset-product-card__brand-logo {
+    max-width: 4.5rem;
+    max-height: 0.9rem;
+  }
+
+  .dtb-toolset-product-card__brand {
+    font-size: 0.56rem;
+  }
+
+  .dtb-toolset-product-card__identity h3 {
+    font-size: 0.78rem;
+    line-height: 1.22;
+    letter-spacing: -0.018em;
+    -webkit-line-clamp: 3;
+  }
+
+  .dtb-toolset-product-card__identity h3 + .dtb-toolset-product-card__sku {
+    margin-top: 0.1rem;
+  }
+
+  .dtb-toolset-product-card__sku {
+    font-size: 0.59rem;
+    line-height: 1.2;
+  }
+
+  .dtb-toolset-product-card__commerce {
+    margin-top: auto;
+    align-items: baseline;
+    gap: 0.3rem;
+  }
+
+  .dtb-toolset-product-card__commerce strong {
+    font-size: 0.82rem;
+  }
+
+  .dtb-toolset-product-card__stock {
+    font-size: 0.56rem;
+  }
+
+  .dtb-toolset-product-card__select,
+  .dtb-toolset-product-card__options-toggle {
+    min-height: 2.25rem;
+    border-radius: 0.6rem;
+    font-size: 0.68rem;
+    line-height: 1.15;
+  }
+
+  .dtb-toolset-product-card__options-toggle {
+    padding-inline: 0.55rem;
+  }
+
+  .dtb-toolset-product-card__options-toggle svg {
+    width: 0.85rem;
+    height: 0.85rem;
+  }
+
+  .dtb-toolset-product-card__variation {
+    gap: 0.35rem;
+  }
+
+  .dtb-toolset-product-card__variation-menu {
+    width: min(17rem, calc(100vw - (2 * var(--dtb-viewport-gutter))));
+    max-height: 17rem;
+    overflow-y: auto;
+  }
+
+  .dtb-toolset-product-grid > .dtb-toolset-product-card:nth-child(even) .dtb-toolset-product-card__variation-menu {
+    right: 0;
+    left: auto;
+  }
+
+  .dtb-toolset-product-card__variation-menu > button {
+    min-height: 2.7rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .dtb-toolset-product-card__variation-option-copy strong {
+    font-size: 0.68rem;
+  }
+
+  .dtb-toolset-product-card__variation-option-copy small,
+  .dtb-toolset-product-card__variation-option-price {
+    font-size: 0.6rem;
+  }
+
+  .dtb-toolset-product-skeleton {
+    min-height: 14rem;
+    border-radius: 0.8rem;
+  }
+
+  .dtb-toolset-summary {
+    margin-top: 0.8rem;
+  }
+
+  .dtb-toolset-step-actions {
+    margin-top: 0.8rem;
+  }
+}
+
+@media (max-width: 23rem) {
+  .dtb-toolset-product-grid {
+    gap: 0.42rem;
+  }
+
+  .dtb-toolset-product-card__body {
+    padding-inline: 0.5rem;
+  }
+
+  .dtb-toolset-product-card__identity h3 {
+    font-size: 0.72rem;
+  }
+
+  .dtb-toolset-product-card__commerce {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.08rem;
+  }
+}
