@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, PackageCheck, RefreshCw } from 'lucide-react';
+import { Check, ChevronDown, Layers3, PackageCheck, RefreshCw, Trash2 } from 'lucide-react';
 import { fetchToolsetVariations, normalizeToolsetSelection } from '../../api/toolsetBuilderApi.js';
 import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
 import ProductCardImage from '../../components/product/ProductCardImage.jsx';
@@ -33,6 +33,18 @@ function variationLabel(variation) {
     || variation?.variationLabel
     || variation?.sku
     || 'Option';
+}
+
+function variationImage(variation, fallback = '') {
+  const candidate = variation?.media?.variationImages?.[0]
+    || variation?.media?.images?.[0]
+    || variation?.images?.[0]
+    || variation?.media?.image
+    || variation?.image
+    || fallback;
+
+  if (typeof candidate === 'string') return candidate;
+  return candidate?.src || candidate?.url || fallback;
 }
 
 export default function ToolsetBuilderProductCard({
@@ -199,7 +211,7 @@ export default function ToolsetBuilderProductCard({
         <div className="dtb-toolset-product-card__commerce">
           <strong>{formatCurrency(price)}</strong>
           <span className={'dtb-toolset-product-card__stock ' + (isOutOfStock ? 'is-out' : 'is-in')}>
-            {isOutOfStock ? 'Out of stock' : 'Available'}
+            {isOutOfStock ? 'Out of stock' : 'In Stock'}
           </span>
         </div>
 
@@ -212,6 +224,7 @@ export default function ToolsetBuilderProductCard({
               aria-expanded={variationOpen}
               aria-controls={'toolset-variation-menu-' + product.id}
             >
+              <Layers3 className="dtb-toolset-product-card__options-icon" size={17} aria-hidden="true" />
               <span>
                 {activeVariation
                   ? variationLabel(activeVariation) + ' · ' + formatCurrency(activeVariation?.price?.value ?? activeVariation?.price ?? null)
@@ -246,6 +259,7 @@ export default function ToolsetBuilderProductCard({
                   const stock = variation?.inventory?.stockStatus || variation?.stockStatus || 'instock';
                   const priceValue = variation?.price?.value ?? variation?.price ?? null;
                   const selected = String(id) === String(selectedVariationId);
+                  const optionImage = variationImage(variation, image);
                   return (
                     <button
                       type="button"
@@ -256,13 +270,18 @@ export default function ToolsetBuilderProductCard({
                       disabled={stock === 'outofstock'}
                       onClick={() => chooseVariation(id)}
                     >
+                      <span className="dtb-toolset-product-card__variation-option-media" aria-hidden="true">
+                        {optionImage ? <img src={optionImage} alt="" loading="lazy" decoding="async" /> : <PackageCheck size={18} />}
+                      </span>
                       <span className="dtb-toolset-product-card__variation-option-copy">
                         <strong>{variationLabel(variation)}</strong>
-                        {variation?.sku ? <small>{variation.sku}</small> : null}
+                        {variation?.sku ? <small>SKU {variation.sku}</small> : null}
                       </span>
                       <span className="dtb-toolset-product-card__variation-option-price">
                         {formatCurrency(priceValue)}
-                        {selected ? <Check size={16} aria-hidden="true" /> : null}
+                      </span>
+                      <span className={'dtb-toolset-product-card__variation-radio' + (selected ? ' is-selected' : '')} aria-hidden="true">
+                        <span />
                       </span>
                     </button>
                   );
@@ -288,7 +307,8 @@ export default function ToolsetBuilderProductCard({
             disabled={(atMaximum && !isSelected) || isOutOfStock}
             onClick={handleSimpleSelect}
           >
-            {isSelected ? 'Remove selection' : atMaximum ? 'Selection limit reached' : 'Select tool'}
+            {isSelected ? <Trash2 size={16} aria-hidden="true" /> : null}
+            <span>{isSelected ? 'Remove selection' : atMaximum ? 'Selection limit reached' : 'Select tool'}</span>
           </button>
         )}
       </div>
