@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, PackageCheck, RefreshCw } from 'lucide-react';
 import { fetchToolsetVariations, normalizeToolsetSelection } from '../../api/toolsetBuilderApi.js';
 import { resolveBrandLogo } from '../../utils/brandLogoAssets.js';
+import ProductCardImage from '../../components/product/ProductCardImage.jsx';
 
 function formatCurrency(value) {
   const number = Number(value);
@@ -153,13 +154,15 @@ export default function ToolsetBuilderProductCard({
     <article className={'dtb-toolset-product-card' + (isSelected ? ' is-selected' : '') + (variationOpen ? ' is-config-open' : '')}>
       <div className="dtb-toolset-product-card__media">
         {image ? (
-          <img
+          <ProductCardImage
+            product={product}
             src={image}
-            alt=""
-            width="420"
-            height="320"
-            loading="lazy"
-            decoding="async"
+            alt={product?.name || 'Tool'}
+            className="dtb-toolset-product-card__image"
+            padding="0"
+            fit="contain"
+            preferThumbnail
+            eager={false}
           />
         ) : (
           <span className="dtb-toolset-product-card__media-placeholder" aria-hidden="true">
