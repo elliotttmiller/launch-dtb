@@ -32,6 +32,21 @@ function selectionLabel(item) {
   return [item?.name, item?.variationLabel].filter(Boolean).join(' · ');
 }
 
+function capabilityInstruction(capability) {
+  const minimum = Number(capability?.minimum || 0);
+  const maximum = Number(capability?.maximum || minimum);
+  const label = String(capability?.label || 'tool').toLowerCase();
+
+  if (minimum === maximum && minimum === 1) {
+    const singular = label.endsWith('s') ? label.slice(0, -1) : label;
+    return `Choose one ${singular} to get started.`;
+  }
+  if (minimum === maximum) {
+    return `Choose ${minimum} ${label} to continue.`;
+  }
+  return `Choose ${minimum}–${maximum} ${label} to continue.`;
+}
+
 function BrandFilterMenu({ brands, value, onChange }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
@@ -96,16 +111,14 @@ function BuilderProgress({ workflow, selections, currentIndex, onSelectStep }) {
 
   return (
     <nav className="dtb-toolset-progress" aria-label="Toolset builder progress">
-      <div className="dtb-toolset-progress__summary">
-        <span>{completion.completed} / {completion.total} configured</span>
-      </div>
-      <div className="dtb-toolset-progress__bar" aria-hidden="true">
-        <span style={{ width: completion.percent + '%' }} />
-      </div>
       <ol className="dtb-toolset-progress__steps">
         {workflow.capabilities.map((capability, index) => {
           const complete = isCapabilityComplete(capability, selections);
           const current = index === currentIndex;
+          const requirement = Number(capability.minimum || 0) > 0
+            ? `Choose ${capability.minimum}`
+            : 'Optional';
+
           return (
             <li key={capability.id}>
               <button
@@ -119,7 +132,8 @@ function BuilderProgress({ workflow, selections, currentIndex, onSelectStep }) {
                 </span>
                 <span className="dtb-toolset-progress__step-copy">
                   <strong>{capability.label}</strong>
-                  <small>{complete ? 'Selected' : current ? 'In progress' : 'Required'}</small>
+                  <small className="dtb-toolset-progress__step-requirement">{requirement}</small>
+                  <small className="dtb-toolset-progress__step-state">{complete ? 'Selected' : current ? 'In progress' : 'Required'}</small>
                 </span>
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
@@ -127,6 +141,14 @@ function BuilderProgress({ workflow, selections, currentIndex, onSelectStep }) {
           );
         })}
       </ol>
+      <div className="dtb-toolset-progress__meter">
+        <div className="dtb-toolset-progress__bar" aria-hidden="true">
+          <span style={{ width: completion.percent + '%' }} />
+        </div>
+        <div className="dtb-toolset-progress__summary">
+          <span>{completion.completed} / {completion.total} configured</span>
+        </div>
+      </div>
     </nav>
   );
 }
@@ -336,6 +358,19 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
   const completeCurrentCapability = isCapabilityComplete(capability, selections);
   const selectedCount = getCapabilitySelectionCount(selections, capability.id);
   const canAddMore = selectedCount < capability.maximum;
+  const selectedItems = flattenToolsetSelections(workflow, selections);
+  const estimatedSubtotal = selectedItems.reduce((sum, item) => (
+    Number.isFinite(Number(item.price)) ? sum + Number(item.price) : sum
+  ), 0);
+
+  const advanceStep = () => {
+    if (!completeCurrentCapability) return;
+    if (currentIndex >= workflow.capabilities.length - 1) {
+      setReviewing(true);
+      return;
+    }
+    setStep(currentIndex + 1);
+  };
 
   return (
     <div className="dtb-toolset-workspace">
@@ -384,7 +419,7 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
             <div className="dtb-toolset-catalog__title-row">
               <div>
                 <h2 id="toolset-capability-title">Select {capability.label}</h2>
-                <p>Choose {capability.minimum === capability.maximum ? capability.minimum : `${capability.minimum}–${capability.maximum}`} {capability.label.toLowerCase()}.</p>
+                <p>{capabilityInstruction(capability)}</p>
               </div>
               <span className="dtb-toolset-catalog__requirement">
                 {capability.minimum === capability.maximum
@@ -510,13 +545,7 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
               type="button"
               className="dtb-toolset-primary-action"
               disabled={!completeCurrentCapability}
-              onClick={() => {
-                if (currentIndex >= workflow.capabilities.length - 1) {
-                  setReviewing(true);
-                } else {
-                  setStep(currentIndex + 1);
-                }
-              }}
+              onClick={advanceStep}
             >
               {currentIndex >= workflow.capabilities.length - 1 ? 'Review set' : 'Next category'}
               <ArrowRight size={17} aria-hidden="true" />
@@ -531,6 +560,26 @@ export default function ToolsetBuilderWorkspace({ workflow, onChangeWorkflow }) 
           onRemove={removeSelection}
           onReview={() => setReviewing(true)}
         />
+      </div>
+
+      <div className="dtb-toolset-mobile-bar" aria-label="Toolset build summary">
+        <div className="dtb-toolset-mobile-bar__progress">
+          <span>{completion.completed} of {completion.total} configured</span>
+          <div aria-hidden="true"><span style={{ width: completion.percent + '%' }} /></div>
+        </div>
+        <div className="dtb-toolset-mobile-bar__subtotal">
+          <span>Set Subtotal</span>
+          <strong>{formatCurrency(estimatedSubtotal)}</strong>
+        </div>
+        <button
+          type="button"
+          className="dtb-toolset-mobile-bar__continue"
+          disabled={!completeCurrentCapability}
+          onClick={advanceStep}
+        >
+          <span>{currentIndex >= workflow.capabilities.length - 1 ? 'Review Set' : 'Continue to Next Step'}</span>
+          <ArrowRight size={18} aria-hidden="true" />
+        </button>
       </div>
     </div>
   );
