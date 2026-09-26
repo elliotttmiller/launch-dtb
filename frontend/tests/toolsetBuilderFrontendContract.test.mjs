@@ -87,3 +87,14 @@ test('builder styling replaces the legacy tsb prototype and includes responsive 
   assert.match(styles, /@media \(prefers-reduced-motion: reduce\)/);
   assert.doesNotMatch(styles, /:root\s*\{/);
 });
+
+
+test('mobile builder uses compact two-column shopping-card layout and global product image primitive', async () => {
+  const css = await read('src/styles/toolset-builder.css');
+  const productCard = await read('src/features/toolset-builder/ToolsetBuilderProductCard.jsx');
+
+  assert.match(css, /@media \(max-width: 47\.99rem\)[\s\S]*\.dtb-toolset-product-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(css, /\.dtb-toolset-workspace__hero-content h1[\s\S]*font-size:\s*clamp\(1\.35rem, 6vw, 1\.7rem\)/);
+  assert.match(css, /\.dtb-toolset-progress__steps[\s\S]*grid-auto-flow:\s*column/);
+  assert.match(productCard, /ProductCardImage/);
+});
