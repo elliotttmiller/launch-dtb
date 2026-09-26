@@ -96,5 +96,7 @@ test('mobile builder uses compact two-column shopping-card layout and global pro
   assert.match(css, /@media \(max-width: 47\.99rem\)[\s\S]*\.dtb-toolset-product-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(css, /\.dtb-toolset-workspace__hero-content h1[\s\S]*font-size:\s*clamp\(1\.35rem, 6vw, 1\.7rem\)/);
   assert.match(css, /\.dtb-toolset-progress__steps[\s\S]*grid-auto-flow:\s*column/);
+  assert.match(css, /\.dtb-toolset-product-card__variation-menu\s*\{[\s\S]*width:\s*min\(13\.25rem,/);
+  assert.match(css, /\.dtb-toolset-product-card__variation-menu > button\s*\{[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
   assert.match(productCard, /ProductCardImage/);
 });
