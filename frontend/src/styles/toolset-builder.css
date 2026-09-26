@@ -2555,9 +2555,12 @@
   }
 
   .dtb-toolset-product-card__variation-menu {
-    width: min(17rem, calc(100vw - (2 * var(--dtb-viewport-gutter))));
+    width: min(13.25rem, calc(100vw - (2 * var(--dtb-viewport-gutter))));
     max-height: 17rem;
+    padding: 0.28rem;
     overflow-y: auto;
+    border-radius: 0.72rem;
+    box-shadow: 0 14px 34px rgba(18, 43, 84, 0.16);
   }
 
   .dtb-toolset-product-grid > .dtb-toolset-product-card:nth-child(even) .dtb-toolset-product-card__variation-menu {
@@ -2566,17 +2569,31 @@
   }
 
   .dtb-toolset-product-card__variation-menu > button {
-    min-height: 2.7rem;
-    padding: 0.5rem 0.6rem;
+    display: grid;
+    min-height: 2.55rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.46rem 0.52rem;
+  }
+
+  .dtb-toolset-product-card__variation-option-copy {
+    gap: 0.08rem;
   }
 
   .dtb-toolset-product-card__variation-option-copy strong {
     font-size: 0.68rem;
+    line-height: 1.15;
   }
 
-  .dtb-toolset-product-card__variation-option-copy small,
+  .dtb-toolset-product-card__variation-option-copy small {
+    font-size: 0.59rem;
+    line-height: 1.15;
+  }
+
   .dtb-toolset-product-card__variation-option-price {
-    font-size: 0.6rem;
+    justify-self: end;
+    font-size: 0.61rem;
   }
 
   .dtb-toolset-product-skeleton {
