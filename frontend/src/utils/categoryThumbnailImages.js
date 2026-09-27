@@ -1,10 +1,5 @@
 const CATEGORY_THUMBNAIL_ROOT = '/wp-content/uploads/2026/categories/thumbnails';
 
-const CATEGORY_THUMBNAIL_URL_BY_SLUG = {
-  'corner-finishers': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/categories/thumbnails/corner-finishers.webp',
-  'powered-compound-applicators': 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/media/tapetech_14tt_01.webp',
-};
-
 // Existing media filenames are retained as assets. Canonical taxonomy slugs
 // resolve to the closest current image without making media filenames a
 // classification authority.
@@ -42,8 +37,17 @@ const CATEGORY_THUMBNAIL_SLUGS = new Set([
 ]);
 
 const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
+  // Curated replacement art retains its supplied filename and intrinsic
+  // dimensions. This map keeps taxonomy identity (the slug) separate from
+  // media identity, including the supplied `corner-finshers` filename.
+  'automatic-tapers': 'automatic-tapers',
+  'powered-compound-applicators': 'powered-compound-applicator',
+  'compound-applicators': 'compound-applicators',
+  'compound-tubes': 'compound-tube',
+  'corner-finishers': 'corner-finshers',
+  'finishing-boxes': 'finishing-box',
+  'flat-boxes': 'finishing-box',
   'corner-applicators-angle-boxes': 'corner-boxes',
-  'compound-tubes': 'compound-tubes',
   'applicator-heads': 'compound-applicators',
   'corner-flushers': 'corner-flushers',
   'corner-rollers': 'corner-rollers',
@@ -77,12 +81,9 @@ export function resolveCategoryThumbnail(category) {
     .toLowerCase()
     .replace(/_/g, '-');
 
-  if (CATEGORY_THUMBNAIL_URL_BY_SLUG[slug]) {
-    return CATEGORY_THUMBNAIL_URL_BY_SLUG[slug];
-  }
-
-  const thumbnailSlug = CATEGORY_THUMBNAIL_FILE_BY_SLUG[slug] || slug;
-  if (CATEGORY_THUMBNAIL_SLUGS.has(thumbnailSlug)) {
+  const configuredThumbnail = CATEGORY_THUMBNAIL_FILE_BY_SLUG[slug];
+  const thumbnailSlug = configuredThumbnail || slug;
+  if (configuredThumbnail || CATEGORY_THUMBNAIL_SLUGS.has(thumbnailSlug)) {
     return `${CATEGORY_THUMBNAIL_ROOT}/${thumbnailSlug}.webp`;
   }
 
