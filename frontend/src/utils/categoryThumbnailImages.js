@@ -1,4 +1,4 @@
-const CATEGORY_THUMBNAIL_ROOT = '/wp-content/uploads/2026/categories/thumbnails';
+const CATEGORY_THUMBNAIL_ROOT = 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/categories/thumbnails';
 
 // Existing media filenames are retained as assets. Canonical taxonomy slugs
 // resolve to the closest current image without making media filenames a
@@ -41,13 +41,13 @@ const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
   // dimensions. This map keeps taxonomy identity (the slug) separate from
   // media identity, including the supplied `corner-finshers` filename.
   'automatic-tapers': 'automatic-tapers',
-  'powered-compound-applicators': 'powered-compound-applicator',
+  'powered-compound-applicators': 'powered-compound-applicators',
   'compound-applicators': 'compound-applicators',
-  'compound-tubes': 'compound-tube',
+  'compound-tubes': 'compound-tubes',
   'corner-finishers': 'corner-finshers',
   'finishing-boxes': 'finishing-box',
   'flat-boxes': 'finishing-box',
-  'corner-applicators-angle-boxes': 'corner-boxes',
+  'corner-applicators-angle-boxes': 'corner-applicators',
   'applicator-heads': 'compound-applicators',
   'corner-flushers': 'corner-flushers',
   'corner-rollers': 'corner-rollers',
@@ -60,7 +60,7 @@ const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
 
   // Historical URL/term compatibility.
   'angle-boxes': 'corner-boxes',
-  'angle-boxes-corner-applicators': 'corner-boxes',
+  'angle-boxes-corner-applicators': 'corner-applicators',
   'angle-heads-corner-finishers': 'angle-heads',
   'automatic-tool-sets': 'automatic-taping-tool-sets',
   'corner-tool-handles': 'fixed-handles',
