@@ -53,7 +53,7 @@ const CATEGORY_THUMBNAIL_FILE_BY_SLUG = {
   'corner-rollers': 'corner-rollers',
   'loading-compound-pumps': 'loading-pumps',
   'goosenecks-box-fillers-adapters': 'box-fillers',
-  'handles-extensions': 'extendable-handles',
+  'handles-extensions': 'handles-extensions',
   'tool-sets-kits': 'automatic-taping-tool-sets',
   'tool-storage-cases': 'automatic-taping-tool-cases',
   'semi-automatic-tapers-banjos': 'semi-automatic-tapers',
