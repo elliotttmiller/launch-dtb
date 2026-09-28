@@ -36,7 +36,10 @@
 }
 
 .dtb-breadcrumb li + li::before {
-  content: "›";
+  /* Use the CSS code point rather than a literal UTF-8 glyph. SiteGround's
+     static CSS response does not declare a character set, so literal glyphs
+     can otherwise be decoded as mojibake (for example, `â€º`). */
+  content: "\203A";
   margin: 0 0.5rem;
   color: color-mix(in srgb, currentColor 52%, transparent);
   font-size: 0.92rem;
@@ -55,6 +58,60 @@
   font-size: 0.79rem;
   line-height: 1;
   text-decoration: none;
+}
+
+/* Compact is a deliberate presentation variant for breadcrumbs that sit in
+   constrained hero chrome. Route styles own placement only; this keeps the
+   type scale, spacing, truncation and filter-chip treatment identical. */
+.dtb-breadcrumb-bar--compact {
+  gap: 0.4rem 0.65rem;
+  margin: 0;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb ol {
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb li {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb li:first-child {
+  flex: 0 0 auto;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb li + li::before {
+  margin-inline: 0.38rem;
+  font-size: 0.76rem;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb a,
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb__current {
+  min-height: 1.55rem;
+  padding: 0.18rem;
+  font-size: clamp(0.68rem, 0.72vw, 0.76rem);
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb__current {
+  max-width: 15rem;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb-filters {
+  gap: 0.34rem;
+}
+
+.dtb-breadcrumb-bar--compact .dtb-breadcrumb-filter-chip {
+  min-height: 1.55rem;
+  padding: 0.22rem 0.28rem 0.22rem 0.54rem;
+  font-size: 0.67rem;
+  font-weight: 650;
 }
 
 .dtb-breadcrumb a,
@@ -230,6 +287,14 @@
 
   .dtb-breadcrumb li + li::before {
     margin-inline: 0.34rem;
+  }
+
+  .dtb-breadcrumb-bar--compact .dtb-breadcrumb ol {
+    flex-wrap: wrap;
+  }
+
+  .dtb-breadcrumb-bar--compact .dtb-breadcrumb__current {
+    max-width: 52vw;
   }
 
   .dtb-breadcrumb-filter-chip {

@@ -29,6 +29,7 @@ function ProductsHero({ activeFilters = [], onRemoveFilter = null }) {
               items={[{ label: 'Home', path: '/' }, { label: 'All Products' }]}
               activeFilters={activeFilters}
               onRemoveFilter={onRemoveFilter}
+              className="dtb-breadcrumb-bar--compact"
             />
           </div>
           <div className="dtb-products-hero__content">

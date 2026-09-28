@@ -26,6 +26,7 @@ function PartsHero({ activeFilters = [], onRemoveFilter = null }) {
               items={[{ label: 'Home', path: '/' }, { label: 'Parts' }]}
               activeFilters={activeFilters}
               onRemoveFilter={onRemoveFilter}
+              className="dtb-breadcrumb-bar--compact"
             />
           </div>
           <div className="dtb-parts-hero__content">

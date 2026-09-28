@@ -75,7 +75,7 @@ export default function CategoryHero({ category, breadcrumbs = [], activeFilters
         <div className="dtb-category-hero-card">
           <div className="dtb-category-hero__breadcrumb-stage">
             <div className="dtb-category-hero__breadcrumb-content">
-              <Breadcrumb items={breadcrumbs} activeFilters={activeFilters} onRemoveFilter={onRemoveFilter} tone="inverse" />
+              <Breadcrumb items={breadcrumbs} activeFilters={activeFilters} onRemoveFilter={onRemoveFilter} tone="inverse" className="dtb-breadcrumb-bar--compact" />
             </div>
             <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
               <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />

@@ -37,63 +37,6 @@
   padding: 0.7rem 0 0.3rem;
 }
 
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb-bar {
-  margin: 0;
-  gap: 0.4rem 0.65rem;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb {
-  min-width: 0;
-  overflow: hidden;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb ol {
-  min-width: 0;
-  flex-wrap: nowrap;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb li {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb li:first-child {
-  flex: 0 0 auto;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb li + li::before {
-  margin-inline: 0.38rem;
-  font-size: 0.76rem;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb a,
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb__current {
-  min-height: 1.55rem;
-  padding: 0.18rem;
-  font-size: clamp(0.68rem, 0.72vw, 0.76rem);
-  line-height: 1;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb a {
-  font-weight: 560;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb__current {
-  max-width: 15rem;
-  font-weight: 700;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb-filters {
-  gap: 0.34rem;
-}
-
-.dtb-parts-breadcrumb-shell .dtb-breadcrumb-filter-chip {
-  min-height: 1.55rem;
-  padding: 0.22rem 0.28rem 0.22rem 0.54rem;
-  font-size: 0.67rem;
-  font-weight: 650;
-}
-
 .dtb-parts-hero__content {
   position: relative;
   z-index: 3;
@@ -227,14 +170,6 @@
     width: calc(100% - (2 * var(--dtb-viewport-gutter)));
     min-height: 2.6rem;
     padding-top: 0.55rem;
-  }
-
-  .dtb-parts-breadcrumb-shell .dtb-breadcrumb ol {
-    flex-wrap: wrap;
-  }
-
-  .dtb-parts-breadcrumb-shell .dtb-breadcrumb__current {
-    max-width: 52vw;
   }
 
   .dtb-parts-hero__media {

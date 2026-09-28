@@ -32,7 +32,7 @@ export default function ProductsBrandSelector({ brands, onSelectBrand, showHero 
       {showHero && <header className="products-brand-selector__hero" aria-labelledby="dtb-brands-hero-title">
         <div className="products-brand-selector__hero-inner">
           <div className="products-brand-selector__breadcrumb-shell">
-            <Breadcrumb items={[{ label: 'Home', path: '/' }, { label: 'Brands' }]} />
+            <Breadcrumb items={[{ label: 'Home', path: '/' }, { label: 'Brands' }]} className="dtb-breadcrumb-bar--compact" />
           </div>
 
           <div className="products-brand-selector__hero-content">
