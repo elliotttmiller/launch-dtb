@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import CategoryMerchandising from './CategoryMerchandising.jsx';
+import ToolSetsKitsExperience from './ToolSetsKitsExperience.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
 import '../../styles/category-hero.css';
 import '../../styles/category-hero-refinements.css';
@@ -45,7 +46,7 @@ export function CategoryHeroSkeleton() {
  * merchandising is an additive presentation layer over the same authoritative
  * category metadata; it never defines taxonomy or product truth.
  */
-export default function CategoryHero({ category, breadcrumbs = [], activeFilters = [], onRemoveFilter = null }) {
+export default function CategoryHero({ category, breadcrumbs = [], activeFilters = [], onRemoveFilter = null, products = [] }) {
   const resolvedHero = resolveCategoryHeroImage(category || {});
   const heroCacheKey = resolvedHero.src || '';
   const [heroReady, setHeroReady] = useState(() => !heroCacheKey || READY_CATEGORY_HERO_IMAGES.has(heroCacheKey));
@@ -63,6 +64,10 @@ export default function CategoryHero({ category, breadcrumbs = [], activeFilters
   }, [heroCacheKey]);
 
   if (!category) return <CategoryHeroSkeleton />;
+
+  if (category.slug === 'tool-sets-kits') {
+    return <ToolSetsKitsExperience category={category} breadcrumbs={breadcrumbs} products={products} />;
+  }
 
   const { label, description, parent } = category;
   const displayDescription = description

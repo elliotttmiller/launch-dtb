@@ -692,6 +692,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
                 activeFilters={activeBreadcrumbFilters}
                 onRemoveFilter={removeBreadcrumbFilter}
                 productCount={total}
+                products={mappedProducts}
               />
               {Array.isArray(categoryMeta.children) && categoryMeta.children.length > 0 && (
                 <ShopByToolType categories={categoryToolTypes} onOpenFilters={() => setShowFilters(true)} />
