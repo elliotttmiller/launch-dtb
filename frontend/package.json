@@ -10,7 +10,6 @@
     "build:siteground-root": "cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-public-env-safe.cjs pre && cross-env APP_ENV=production PUBLIC_URL=/ webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=production PUBLIC_URL=/ node scripts/assert-build-routing.cjs && cross-env APP_ENV=production node scripts/assert-public-env-safe.cjs post",
     "build:staging": "cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-public-env-safe.cjs pre && cross-env APP_ENV=staging PUBLIC_URL=/staging webpack --config webpack.config.cjs --mode production && cross-env APP_ENV=staging PUBLIC_URL=/staging node scripts/assert-build-routing.cjs && cross-env APP_ENV=staging node scripts/assert-public-env-safe.cjs post",
     "clean:build-cache": "node scripts/clean-build-artifacts.cjs cache",
-    "reviews-server": "node server/index.js",
     "lint": "eslint src",
     "test:catalog-navigation": "node --test tests/catalogNavigationContract.test.mjs",
     "test:contractor-shopping": "node --test tests/contractorShoppingContract.test.mjs",
@@ -29,18 +28,14 @@
     "@stripe/react-stripe-js": "^6.3.0",
     "@stripe/stripe-js": "^9.4.0",
     "axios": "^1.7.9",
-    "cors": "^2.8.5",
     "dompurify": "^3.0.6",
-    "express": "^4.18.2",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.563.0",
     "match-sorter": "^8.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-helmet-async": "^3.0.0",
-    "react-router-dom": "^7.13.0",
-    "socket.io": "^4.8.1",
-    "socket.io-client": "^4.8.1"
+    "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",

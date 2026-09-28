@@ -37,6 +37,7 @@ if ( is_admin() ) {
 }
 
 require_once __DIR__ . '/Rest/OrderRestController.php';
+require_once __DIR__ . '/Rest/ProductReviewController.php';
 
 DTB_ToolsetCartItemData::register();
 DTB_ToolsetOrderLineMeta::register();
