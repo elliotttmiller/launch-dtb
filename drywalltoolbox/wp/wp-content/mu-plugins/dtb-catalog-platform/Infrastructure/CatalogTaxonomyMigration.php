@@ -10,7 +10,12 @@ defined( 'ABSPATH' ) || exit;
 final class DTB_CatalogTaxonomyMigration {
 
 	private const OPTION_VERSION = 'dtb_catalog_taxonomy_migration_version';
-	private const VERSION        = 1;
+	/*
+	 * Version 1 could complete before a later catalog import recreated the
+	 * historical `goosenecks` term. Bump the idempotent migration so existing
+	 * installations reconcile that live legacy term on their next init.
+	 */
+	private const VERSION        = 2;
 	private const BATCH_SIZE     = 100;
 
 	public static function maybe_run(): void {

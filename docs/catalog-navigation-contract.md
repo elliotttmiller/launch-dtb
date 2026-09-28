@@ -184,7 +184,7 @@ The frontend renders the same backend-owned groups and children for desktop and 
 
 WooCommerce treats unescaped commas in `Categories` as separators between separate terms. Canonical category labels containing a comma must therefore escape it as `\,` in the official CSV. The canonical Goosenecks path is serialized as `Taping & Finishing Tools > Goosenecks\, Box Fillers & Adapters` while its human-facing term name remains `Goosenecks, Box Fillers & Adapters`.
 
-Runtime taxonomy migration version `1` idempotently renames the historical `goosenecks` child, merges product relationships and media from any pre-existing canonical/legacy terms, removes the accidental top-level `box-fillers-adapters` split term, and invalidates catalog caches. The migration version is recorded only after every required mutation succeeds.
+Runtime taxonomy migration version `2` idempotently renames the historical `goosenecks` child, merges product relationships and media from any pre-existing canonical/legacy terms, removes the accidental top-level `box-fillers-adapters` split term, and invalidates catalog caches. Version `2` replays the migration for installations where an import recreated the legacy term after version `1` had completed. The migration version is recorded only after every required mutation succeeds.
 
 ## Runtime compatibility
 
