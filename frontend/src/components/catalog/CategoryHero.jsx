@@ -3,8 +3,8 @@ import Breadcrumb from '../shared/Breadcrumb.jsx';
 import CategoryMerchandising from './CategoryMerchandising.jsx';
 import ToolSetsKitsExperience from './ToolSetsKitsExperience.jsx';
 import { resolveCategoryHeroImage } from '../../utils/categoryHeroImages.js';
+import { resolveCategoryHeroPresentation } from '../../constants/categoryHeroPresentation.js';
 import '../../styles/category-hero.css';
-import '../../styles/category-hero-refinements.css';
 
 const READY_CATEGORY_HERO_IMAGES = new Set();
 
@@ -12,10 +12,12 @@ function CategoryHeroSkeletonCard() {
   return (
     <div className="dtb-category-hero-card dtb-category-hero-card--skeleton" aria-hidden="true">
       <div className="dtb-category-hero-card__skeleton-content">
+        <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
         <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--eyebrow" />
         <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--title" />
         <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--copy" />
         <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--copy-short" />
+        <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--rule" />
       </div>
       <div className="dtb-category-hero-card__skeleton-media">
         <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--media" />
@@ -27,27 +29,31 @@ function CategoryHeroSkeletonCard() {
 export function CategoryHeroSkeleton() {
   return (
     <div className="dtb-category-hero dtb-category-hero--loading mb-5 sm:mb-6" role="status" aria-label="Loading category">
-      <div className="dtb-category-hero__breadcrumb-skeleton" aria-hidden="true">
-        <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
-      </div>
       <CategoryHeroSkeletonCard />
     </div>
   );
 }
 
 /**
- * Hero/landing block for the dedicated `/category/:slug` route. Renders
- * above the shared catalog engine (search/filter/grid) — it never owns
- * product data itself, only the category term metadata passed in.
+ * Hero/landing block for the dedicated `/category/:slug` route.
  *
- * Presentation is standardized across every category route: content occupies
- * the left side of one bounded hero surface and dedicated category artwork
- * fills the right-side media viewport without stretching. Contractor-intent
- * merchandising is an additive presentation layer over the same authoritative
- * category metadata; it never defines taxonomy or product truth.
+ * The hero owns presentation only. WooCommerce/category metadata remains the
+ * authority for taxonomy and product truth. Media composition is selected from
+ * a bounded set of frontend presentation modes so differently shaped category
+ * artwork can share one stable responsive hero contract.
  */
-export default function CategoryHero({ category, breadcrumbs = [], activeFilters = [], onRemoveFilter = null, products = [], brands = [], onAddToCart, onOpenProduct }) {
+export default function CategoryHero({
+  category,
+  breadcrumbs = [],
+  activeFilters = [],
+  onRemoveFilter = null,
+  products = [],
+  brands = [],
+  onAddToCart,
+  onOpenProduct,
+}) {
   const resolvedHero = resolveCategoryHeroImage(category || {});
+  const mediaPresentation = resolveCategoryHeroPresentation(category?.slug);
   const heroCacheKey = resolvedHero.src || '';
   const [heroReady, setHeroReady] = useState(() => !heroCacheKey || READY_CATEGORY_HERO_IMAGES.has(heroCacheKey));
 
@@ -66,7 +72,16 @@ export default function CategoryHero({ category, breadcrumbs = [], activeFilters
   if (!category) return <CategoryHeroSkeleton />;
 
   if (category.slug === 'tool-sets-kits') {
-    return <ToolSetsKitsExperience category={category} breadcrumbs={breadcrumbs} products={products} brands={brands} onAddToCart={onAddToCart} onOpenProduct={onOpenProduct} />;
+    return (
+      <ToolSetsKitsExperience
+        category={category}
+        breadcrumbs={breadcrumbs}
+        products={products}
+        brands={brands}
+        onAddToCart={onAddToCart}
+        onOpenProduct={onOpenProduct}
+      />
+    );
   }
 
   const { label, description, parent } = category;
@@ -78,43 +93,38 @@ export default function CategoryHero({ category, breadcrumbs = [], activeFilters
     <>
       <div className={`dtb-category-hero mb-5 sm:mb-6${heroReady ? ' is-ready' : ' is-loading'}`}>
         <div className="dtb-category-hero-card">
-          <div className="dtb-category-hero__breadcrumb-stage">
-            <div className="dtb-category-hero__breadcrumb-content">
-              <Breadcrumb items={breadcrumbs} activeFilters={activeFilters} onRemoveFilter={onRemoveFilter} tone="inverse" className="dtb-breadcrumb-bar--compact" />
-            </div>
-            <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
-              <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
-            </div>
-          </div>
-
           <div className="dtb-category-hero-card__loading-layer" aria-hidden="true">
             <CategoryHeroSkeletonCard />
           </div>
 
           <div className="dtb-category-hero-card__content">
-            <span className="dtb-category-hero-card__corner-accent" aria-hidden="true" />
-            <span className="dtb-category-hero-card__dot-field" aria-hidden="true" />
-            <span className="dtb-category-hero-card__divider" aria-hidden="true">
-              <span className="dtb-category-hero-card__divider-main">
-                <span className="dtb-category-hero-card__divider-blue-foot" />
-              </span>
-              <span className="dtb-category-hero-card__divider-rail dtb-category-hero-card__divider-rail--left" />
-              <span className="dtb-category-hero-card__divider-rail dtb-category-hero-card__divider-rail--right" />
-              <span className="dtb-category-hero-card__divider-pin" />
-            </span>
+            <div className="dtb-category-hero__breadcrumb-stage">
+              <div className="dtb-category-hero__breadcrumb-content">
+                <Breadcrumb
+                  items={breadcrumbs}
+                  activeFilters={activeFilters}
+                  onRemoveFilter={onRemoveFilter}
+                  tone="inverse"
+                  className="dtb-breadcrumb-bar--compact"
+                />
+              </div>
+              <div className="dtb-category-hero__breadcrumb-loading" aria-hidden="true">
+                <span className="dtb-category-hero-shimmer dtb-category-hero-shimmer--breadcrumb" />
+              </div>
+            </div>
 
             <div className="dtb-category-hero-card__copy">
               {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
               <h1 className="dtb-category-hero-card__title">{label}</h1>
               <p className="dtb-category-hero-card__description">{displayDescription}</p>
               <span className="dtb-category-hero-card__rule" aria-hidden="true" />
-              <p className="dtb-category-hero-card__tagline">Trusted Tools. Stronger Results.</p>
             </div>
           </div>
 
           <CategoryHeroMedia
             key={`${resolvedHero.src}|${resolvedHero.srcSet}`}
             resolvedHero={resolvedHero}
+            presentation={mediaPresentation}
             initiallyReady={heroReady}
             onReady={handleHeroReady}
           />
@@ -126,7 +136,7 @@ export default function CategoryHero({ category, breadcrumbs = [], activeFilters
   );
 }
 
-function CategoryHeroMedia({ resolvedHero, initiallyReady, onReady }) {
+function CategoryHeroMedia({ resolvedHero, presentation, initiallyReady, onReady }) {
   const [activeHero, setActiveHero] = useState(() => ({
     src: resolvedHero.src,
     srcSet: resolvedHero.srcSet,
@@ -180,16 +190,17 @@ function CategoryHeroMedia({ resolvedHero, initiallyReady, onReady }) {
   };
 
   return (
-    <div className="dtb-category-hero-card__media">
+    <div className="dtb-category-hero-card__media" data-presentation={presentation}>
       <img
         src={activeHero.src}
         srcSet={activeHero.srcSet || undefined}
-        sizes={activeHero.srcSet ? '(min-width: 1280px) 52vw, (min-width: 768px) 50vw, 100vw' : undefined}
+        sizes={activeHero.srcSet ? '(min-width: 1280px) 57vw, (min-width: 768px) 56vw, 100vw' : undefined}
         alt=""
         className={`dtb-category-hero-card__image${imageReady ? ' is-ready' : ''}`}
         loading="eager"
         fetchPriority="high"
         decoding="async"
+        draggable="false"
         onLoad={(event) => commitReady(event.currentTarget)}
         onError={handleHeroError}
       />
