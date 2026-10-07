@@ -1,12 +1,16 @@
 /**
  * DTB Commerce — Orders page module styles
  *
+ * Operator-focused order fulfillment workbench. WooCommerce remains the
+ * commerce authority; these styles affect presentation only.
+ *
  * @package drywall-toolbox
  */
 
 .dtb-orders-workbench {
 	display: grid;
 	gap: 1rem;
+	min-width: 0;
 }
 
 .dtb-orders-type-filter {
@@ -16,33 +20,269 @@
 	gap: 8px;
 }
 
-.dtb-orders-overview-grid {
+.dtb-orders-status-strip {
 	display: grid;
-	gap: 1rem;
-	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 1px;
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+	margin: 0 0 14px;
+	overflow: hidden;
+	border: 1px solid var(--dtb-border, #dfe5ec);
+	border-radius: 10px;
+	background: var(--dtb-border, #dfe5ec);
 }
 
-.dtb-orders-line-items {
-	grid-column: 1 / -1;
+.dtb-orders-status-strip > div {
+	display: grid;
+	gap: 5px;
+	min-width: 0;
+	padding: 11px 13px;
+	background: #fff;
+}
+
+.dtb-orders-status-strip span {
+	color: #64748b;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+.dtb-orders-status-strip strong {
+	overflow: hidden;
+	color: #172033;
+	font-size: 13px;
+	font-weight: 650;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.dtb-orders-next-action {
+	margin: 0 0 14px;
+}
+
+.dtb-orders-overview-grid,
+.dtb-orders-fulfillment {
+	display: grid;
+	align-items: start;
+	gap: 14px;
+	grid-template-columns: minmax(0, 1fr) minmax(250px, 320px);
+}
+
+.dtb-orders-overview-main {
+	min-width: 0;
+}
+
+.dtb-orders-overview-rail,
+.dtb-orders-fulfillment__rail {
+	display: grid;
+	gap: 14px;
+	min-width: 0;
+}
+
+.dtb-orders-fulfillment {
+	grid-template-columns: minmax(250px, 320px) minmax(0, 1fr);
+}
+
+.dtb-orders-line-items,
+.dtb-orders-pick-card {
+	min-width: 0;
+}
+
+.dtb-orders-card-kicker {
+	color: #667085;
+	font-size: 11px;
+	font-weight: 500;
+	text-transform: none;
+	letter-spacing: 0;
+}
+
+.dtb-orders-items-wrap {
+	max-width: 100%;
+	overflow-x: auto;
 }
 
 .dtb-orders-items {
 	border-collapse: collapse;
 	width: 100%;
+	min-width: 760px;
 }
 
 .dtb-orders-items th,
 .dtb-orders-items td {
 	border-bottom: 1px solid var(--dtb-border, #e5e7eb);
-	padding: .625rem .5rem;
+	padding: 12px 10px;
 	text-align: left;
+	vertical-align: top;
 }
 
-.dtb-orders-items th:nth-child(2),
-.dtb-orders-items td:nth-child(2),
+.dtb-orders-items th {
+	color: #667085;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
 .dtb-orders-items th:nth-child(3),
-.dtb-orders-items td:nth-child(3) {
+.dtb-orders-items td:nth-child(3),
+.dtb-orders-items th:nth-child(4),
+.dtb-orders-items td:nth-child(4),
+.dtb-orders-items th:nth-child(5),
+.dtb-orders-items td:nth-child(5) {
 	text-align: right;
+}
+
+.dtb-orders-items tbody tr:last-child > td {
+	border-bottom: 0;
+}
+
+.dtb-orders-item {
+	display: grid;
+	align-items: start;
+	gap: 10px;
+	grid-template-columns: 52px minmax(0, 1fr);
+	min-width: 280px;
+}
+
+.dtb-orders-item__media {
+	width: 52px;
+	height: 52px;
+}
+
+.dtb-orders-item__image {
+	display: block;
+	width: 50px;
+	height: 50px;
+	object-fit: contain;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	background: #fff;
+}
+
+.dtb-orders-item__image--empty {
+	background: #f8fafc;
+}
+
+.dtb-orders-item__identity {
+	min-width: 0;
+	padding-top: 1px;
+}
+
+.dtb-orders-item__identity strong {
+	display: block;
+	color: #172033;
+	font-size: 13px;
+	line-height: 1.35;
+}
+
+.dtb-orders-item__meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 5px 8px;
+	margin-top: 5px;
+}
+
+.dtb-orders-sku,
+.dtb-orders-variant {
+	color: #667085;
+	font-size: 11px;
+	line-height: 1.35;
+}
+
+.dtb-orders-sku {
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.dtb-orders-item__sku,
+.dtb-orders-kit code {
+	font-size: 11px;
+	font-weight: 650;
+	white-space: nowrap;
+}
+
+.dtb-orders-item__qty {
+	font-weight: 700;
+}
+
+.dtb-orders-kit {
+	margin: 10px 0 0 62px;
+	border: 1px solid #dce4ee;
+	border-radius: 8px;
+	background: #f8fafc;
+}
+
+.dtb-orders-kit summary {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 7px 10px;
+	padding: 8px 10px;
+	cursor: pointer;
+	color: #24324a;
+	font-size: 11px;
+	font-weight: 650;
+}
+
+.dtb-orders-kit__summary {
+	color: #64748b;
+	font-weight: 500;
+}
+
+.dtb-orders-kit-source {
+	margin-left: auto;
+	padding: 2px 6px;
+	border-radius: 999px;
+	background: #e8f1ff;
+	color: #2457d6;
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: .03em;
+	text-transform: uppercase;
+}
+
+.dtb-orders-kit-source--fallback {
+	background: #fff4df;
+	color: #8a5600;
+}
+
+.dtb-orders-kit__body {
+	overflow-x: auto;
+	border-top: 1px solid #e2e8f0;
+	background: #fff;
+}
+
+.dtb-orders-kit table {
+	width: 100%;
+	min-width: 420px;
+	border-collapse: collapse;
+}
+
+.dtb-orders-kit th,
+.dtb-orders-kit td {
+	padding: 7px 9px;
+	border-bottom: 1px solid #edf1f5;
+	font-size: 11px;
+	text-align: left !important;
+	vertical-align: middle;
+}
+
+.dtb-orders-kit th {
+	color: #667085;
+	font-size: 9px;
+	letter-spacing: .05em;
+	text-transform: uppercase;
+}
+
+.dtb-orders-kit tr:last-child td {
+	border-bottom: 0;
+}
+
+.dtb-orders-kit__qty {
+	width: 44px;
+	color: #172033;
+	font-size: 12px !important;
+	font-weight: 800;
+	text-align: center !important;
 }
 
 .dtb-orders-command-bar {
@@ -73,8 +313,60 @@
 	padding-top: .35rem;
 }
 
+@media (max-width: 1180px) {
+	.dtb-orders-status-strip {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.dtb-orders-overview-grid,
+	.dtb-orders-fulfillment {
+		grid-template-columns: 1fr;
+	}
+
+	.dtb-orders-overview-rail,
+	.dtb-orders-fulfillment__rail {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.dtb-orders-overview-rail .dtb-wb-card:first-child {
+		grid-column: 1 / -1;
+	}
+}
+
+@media (max-width: 760px) {
+	.dtb-orders-status-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.dtb-orders-overview-rail,
+	.dtb-orders-fulfillment__rail {
+		grid-template-columns: 1fr;
+	}
+
+	.dtb-orders-kit {
+		margin-left: 0;
+	}
+}
+
 @media (max-width: 640px) {
+	.dtb-orders-status-strip {
+		grid-template-columns: 1fr;
+	}
+
 	.dtb-orders-workbench .dtb-wb-action-row {
 		grid-template-columns: 1fr;
+	}
+
+	.dtb-orders-items {
+		min-width: 680px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dtb-orders-workbench *,
+	.dtb-orders-workbench *::before,
+	.dtb-orders-workbench *::after {
+		scroll-behavior: auto !important;
+		transition-duration: .01ms !important;
 	}
 }
