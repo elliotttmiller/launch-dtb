@@ -16,9 +16,9 @@
 }
 
 .dtb-catalog-category-layout > .dtb-category-hero {
-  width: calc(100% + (2 * var(--dtb-viewport-gutter)));
+  width: calc(100% + var(--dtb-viewport-gutter) + var(--dtb-viewport-gutter));
   max-width: none;
-  transform: translateX(calc(-1 * var(--dtb-viewport-gutter)));
+  transform: translateX(calc(0px - var(--dtb-viewport-gutter)));
 }
 
 .dtb-category-hero-card {
@@ -104,7 +104,7 @@
 
 .dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-loading {
   opacity: 0;
-  transform: translateY(calc(-1 * var(--dtb-motion-distance-micro)));
+  transform: translateY(calc(0px - var(--dtb-motion-distance-micro)));
 }
 
 .dtb-category-hero-card__copy {
@@ -230,7 +230,7 @@
       var(--dtb-category-image-y),
       0
     )
-    scale(calc(var(--dtb-category-image-scale) * 0.99));
+    scale(0.99);
   filter: saturate(0.98) contrast(0.995);
   transition:
     opacity var(--dtb-motion-duration-overlay) var(--dtb-motion-ease-standard),
@@ -436,9 +436,6 @@
       clamp(0.25rem, 0.9vw, 1rem);
   }
 
-  .dtb-category-hero-card__media {
-    margin-left: calc(-0.3 * var(--dtb-category-seam));
-  }
 
   .dtb-category-hero-card__media::after {
     right: 10%;
@@ -467,8 +464,8 @@
 
 @media (max-width: 767px) {
   .dtb-catalog-category-layout > .dtb-category-hero {
-    width: calc(100% + (2 * var(--dtb-viewport-gutter)));
-    transform: translateX(calc(-1 * var(--dtb-viewport-gutter)));
+    width: calc(100% + var(--dtb-viewport-gutter) + var(--dtb-viewport-gutter));
+    transform: translateX(calc(0px - var(--dtb-viewport-gutter)));
   }
 
   .dtb-category-hero-card__content,
