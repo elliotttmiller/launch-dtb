@@ -13,6 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/Cart/ToolsetCartItemData.php';
 require_once __DIR__ . '/Orders/ToolsetOrderLineMeta.php';
+require_once __DIR__ . '/Orders/OrderLineProvenance.php';
 require_once __DIR__ . '/Services/OrderTypeService.php';
 require_once __DIR__ . '/Services/OrderAdminQueryService.php';
 require_once __DIR__ . '/Validation/CheckoutValidator.php';
@@ -41,6 +42,7 @@ require_once __DIR__ . '/Rest/ProductReviewController.php';
 
 DTB_ToolsetCartItemData::register();
 DTB_ToolsetOrderLineMeta::register();
+DTB_OrderLineProvenance::register();
 DTB_CheckoutFieldPolicy::register();
 DTB_CheckoutTaxReadiness::register();
 DTB_CheckoutTaxPresentation::register();
