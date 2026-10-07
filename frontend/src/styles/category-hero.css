@@ -1,21 +1,82 @@
 /* Category page hero ("/category/:slug") + Shop by Tool Type row.
-   Built from the shared design tokens in storefront-tokens.css. */
+   This is the single visual authority for the category hero. Shared tokens and
+   motion semantics come from storefront-tokens.css / storefront-motion.css. */
 
 .dtb-category-hero {
-  --dtb-category-hero-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --dtb-category-hero-fade: 320ms;
-  --dtb-category-hero-reveal: 420ms;
+  --dtb-category-copy-width: 43%;
+  --dtb-category-media-width: 57%;
+  --dtb-category-seam: clamp(1.5rem, 2.2vw, 2.25rem);
+  --dtb-category-hero-navy: #062956;
+  --dtb-category-hero-navy-deep: #031f43;
+  --dtb-category-hero-copy-muted: #d8e7f7;
+}
+
+.dtb-catalog-category-layout {
+  padding-top: 0 !important;
+}
+
+.dtb-catalog-category-layout > .dtb-category-hero {
+  width: calc(100% + (2 * var(--dtb-viewport-gutter)));
+  max-width: none;
+  transform: translateX(calc(-1 * var(--dtb-viewport-gutter)));
+}
+
+.dtb-category-hero-card {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: 0;
+  background: var(--dtb-surface-subtle, #f8fafc);
+  box-shadow: none;
+  isolation: isolate;
+}
+
+.dtb-category-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 74% 76%, rgba(203, 216, 232, 0.38), transparent 34%),
+    linear-gradient(108deg, #f7faff 0%, #ffffff 70%, #f7faff 100%);
+}
+
+.dtb-category-hero-card__content,
+.dtb-category-hero-card__media,
+.dtb-category-hero-card__skeleton-content,
+.dtb-category-hero-card__skeleton-media {
+  position: relative;
+  min-width: 0;
+}
+
+.dtb-category-hero-card__content {
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--dtb-space-4) var(--dtb-viewport-gutter) var(--dtb-space-5);
+  color: #fff;
+  background:
+    radial-gradient(circle at 84% 12%, rgba(34, 119, 224, 0.22), transparent 34%),
+    linear-gradient(112deg, var(--dtb-category-hero-navy-deep) 0%, var(--dtb-category-hero-navy) 62%, #0754a3 100%);
 }
 
 .dtb-category-hero__breadcrumb-stage {
   position: relative;
-  min-height: 27px;
+  z-index: 3;
+  display: flex;
+  min-height: 1.65rem;
+  align-items: center;
+  margin-bottom: clamp(1rem, 1.4vw, 1.35rem);
 }
 
 .dtb-category-hero__breadcrumb-content,
 .dtb-category-hero__breadcrumb-loading {
   transition:
-    opacity var(--dtb-category-hero-fade) ease,
+    opacity var(--dtb-category-hero-fade) var(--dtb-motion-ease-standard),
     transform var(--dtb-category-hero-reveal) var(--dtb-category-hero-ease);
 }
 
@@ -29,7 +90,7 @@
 
 .dtb-category-hero.is-loading .dtb-category-hero__breadcrumb-content {
   opacity: 0;
-  transform: translateY(3px);
+  transform: translateY(var(--dtb-motion-distance-micro));
 }
 
 .dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-content {
@@ -43,33 +104,147 @@
 
 .dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-loading {
   opacity: 0;
-  transform: translateY(-2px);
+  transform: translateY(calc(-1 * var(--dtb-motion-distance-micro)));
 }
 
-.dtb-category-hero__breadcrumb-skeleton {
-  display: flex;
-  min-height: 27px;
-  align-items: center;
-}
-
-/* One continuous hero surface. The frontend owns all decoration; category
-   artwork remains transparent, isolated product media with no baked scene. */
-.dtb-category-hero-card {
+.dtb-category-hero-card__copy {
   position: relative;
+  z-index: 2;
   display: flex;
+  min-width: 0;
   flex-direction: column;
-  width: 100%;
-  overflow: hidden;
-  border: 1px solid rgba(203, 213, 225, 0.78);
-  border-radius: 14px;
-  background:
-    linear-gradient(104deg, #f7fbff 0%, #fbfdff 37%, #ffffff 59%, #f8fafc 100%);
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.025),
-    0 8px 24px rgba(15, 23, 42, 0.045);
-  isolation: isolate;
+  align-items: flex-start;
 }
 
+.dtb-category-hero-card__eyebrow {
+  color: #d8ebff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.dtb-category-hero-card__title {
+  max-width: 14ch;
+  margin: 0.42rem 0 0;
+  color: #fff;
+  font-size: clamp(2rem, 2.4vw, 2.75rem);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.dtb-category-hero-card__description {
+  display: -webkit-box;
+  max-width: 46ch;
+  margin: 0.72rem 0 0;
+  overflow: hidden;
+  color: var(--dtb-category-hero-copy-muted);
+  font-size: clamp(0.84rem, 0.9vw, 0.95rem);
+  font-weight: 500;
+  line-height: 1.45;
+  text-wrap: pretty;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.dtb-category-hero-card__rule {
+  display: block;
+  width: 3rem;
+  height: 2px;
+  margin-top: 1rem;
+  border-radius: var(--dtb-radius-pill);
+  background: #69b9ff;
+}
+
+.dtb-category-hero-card__media {
+  z-index: 1;
+  order: -1;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 2 / 1;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--dtb-space-3) var(--dtb-space-4) var(--dtb-space-2);
+  background: transparent;
+  --dtb-category-image-scale: 1.06;
+  --dtb-category-image-x: 0%;
+  --dtb-category-image-y: 0%;
+}
+
+.dtb-category-hero-card__media::after {
+  content: '';
+  position: absolute;
+  right: 8%;
+  bottom: 8%;
+  left: 8%;
+  z-index: -1;
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(100, 116, 139, 0.17), rgba(148, 163, 184, 0.07) 48%, transparent 74%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.dtb-category-hero-card__media[data-presentation='wide'] {
+  --dtb-category-image-scale: 1.04;
+  --dtb-category-image-x: -2%;
+  --dtb-category-image-y: 1%;
+}
+
+.dtb-category-hero-card__media[data-presentation='tall'] {
+  --dtb-category-image-scale: 1.14;
+  --dtb-category-image-x: -3%;
+  --dtb-category-image-y: 3%;
+}
+
+.dtb-category-hero-card__media[data-presentation='compact'] {
+  --dtb-category-image-scale: 1.12;
+  --dtb-category-image-x: -3%;
+  --dtb-category-image-y: 3%;
+}
+
+.dtb-category-hero-card__media[data-presentation='oversized'] {
+  --dtb-category-image-scale: 1.18;
+  --dtb-category-image-x: -3%;
+  --dtb-category-image-y: 4%;
+}
+
+.dtb-category-hero-card__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: contain;
+  object-position: 50% 100%;
+  opacity: 0;
+  transform:
+    translate3d(
+      calc(var(--dtb-category-image-x) + var(--dtb-motion-distance-small)),
+      var(--dtb-category-image-y),
+      0
+    )
+    scale(calc(var(--dtb-category-image-scale) * 0.99));
+  filter: saturate(0.98) contrast(0.995);
+  transition:
+    opacity var(--dtb-motion-duration-overlay) var(--dtb-motion-ease-standard),
+    transform var(--dtb-motion-duration-overlay) var(--dtb-motion-ease-emphasized),
+    filter var(--dtb-motion-duration-elevated) var(--dtb-motion-ease-standard);
+}
+
+.dtb-category-hero-card__image.is-ready {
+  opacity: 1;
+  transform: translate3d(var(--dtb-category-image-x), var(--dtb-category-image-y), 0) scale(var(--dtb-category-image-scale));
+  filter: saturate(1) contrast(1);
+}
+
+/* Loading reserves the exact resolved hero geometry. */
 .dtb-category-hero-card__loading-layer {
   position: absolute;
   inset: 0;
@@ -77,7 +252,7 @@
   pointer-events: none;
   opacity: 1;
   transition:
-    opacity var(--dtb-category-hero-fade) ease,
+    opacity var(--dtb-category-hero-fade) var(--dtb-motion-ease-standard),
     visibility 0s linear var(--dtb-category-hero-fade);
 }
 
@@ -89,202 +264,47 @@
 .dtb-category-hero-card__loading-layer > .dtb-category-hero-card--skeleton {
   height: 100%;
   border: 0;
-  border-radius: inherit;
   box-shadow: none;
 }
 
-.dtb-category-hero-card__content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  justify-content: center;
-  padding: 1.25rem 1.25rem 1.2rem;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(7px);
-  transition:
-    opacity var(--dtb-category-hero-fade) ease 70ms,
-    transform var(--dtb-category-hero-reveal) var(--dtb-category-hero-ease) 40ms;
-}
-
-.dtb-category-hero.is-ready .dtb-category-hero-card__content {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.dtb-category-hero-card__copy {
-  position: relative;
-  z-index: 3;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.dtb-category-hero-card__corner-accent,
-.dtb-category-hero-card__dot-field,
-.dtb-category-hero-card__divider {
-  position: absolute;
-  pointer-events: none;
-  user-select: none;
-}
-
-.dtb-category-hero-card__corner-accent {
-  top: 0;
-  left: 0;
-  z-index: 1;
-  width: 4.9rem;
-  height: 8.1rem;
-  background: linear-gradient(145deg, #2255ee 0%, #2f72e8 100%);
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  opacity: 0.93;
-}
-
-.dtb-category-hero-card__dot-field {
-  top: 0;
-  left: 2.7rem;
-  z-index: 0;
-  width: 8.8rem;
-  height: 8.8rem;
-  background-image: radial-gradient(circle, rgba(59, 130, 246, 0.23) 1px, transparent 1.15px);
-  background-size: 7px 7px;
-  mask-image: linear-gradient(135deg, #000 0%, rgba(0, 0, 0, 0.85) 45%, transparent 88%);
-  opacity: 0.65;
-}
-
-.dtb-category-hero-card__divider {
-  display: none;
-}
-
-.dtb-category-hero-card__eyebrow {
-  color: var(--color-primary-600, #2255ee);
-  font-size: 0.68rem;
-  font-weight: 850;
-  letter-spacing: 0.085em;
-  line-height: 1.15;
-  text-transform: uppercase;
-}
-
-.dtb-category-hero-card__title {
-  margin: 0.54rem 0 0;
-  color: var(--dtb-text, #0f172a);
-  font-size: clamp(1.85rem, 4.25vw, 2.5rem);
-  font-weight: 900;
-  letter-spacing: -0.04em;
-  line-height: 0.98;
-}
-
-.dtb-category-hero-card__description {
-  display: -webkit-box;
-  max-width: 47ch;
-  margin: 0.74rem 0 0;
-  overflow: hidden;
-  color: var(--dtb-muted, #52657d);
-  font-size: clamp(0.84rem, 1vw, 0.94rem);
-  font-weight: 500;
-  line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-}
-
-.dtb-category-hero-card__rule {
-  display: block;
-  width: 3.2rem;
-  height: 3px;
-  margin-top: 1.35rem;
-  border-radius: 999px;
-  background: var(--color-primary-600, #2255ee);
-}
-
-.dtb-category-hero-card__tagline {
-  margin: 1rem 0 0;
-  color: #71829a;
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.26em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-/* Media paints no independent scene or surface. Transparent category artwork
-   reveals the card's shared white/silver background. */
-.dtb-category-hero-card__media {
-  order: -1;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  aspect-ratio: 16 / 9;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: transparent;
-}
-
-/* Isolated hero artwork must remain fully visible and undistorted. */
-.dtb-category-hero-card__image {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  object-fit: contain;
-  object-position: 50% 50%;
-  opacity: 0;
-  transform: translateY(5px) scale(0.992);
-  transition:
-    opacity 360ms ease 45ms,
-    transform 480ms var(--dtb-category-hero-ease) 20ms;
-}
-
-.dtb-category-hero-card__image.is-ready {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Full-footprint loading state. The skeleton deliberately occupies the exact
-   hero geometry so metadata resolution never causes layout shift. */
 .dtb-category-hero-card--skeleton {
   isolation: isolate;
   box-shadow: none;
 }
 
-.dtb-category-hero-card__skeleton-content,
-.dtb-category-hero-card__skeleton-media {
-  position: relative;
-  z-index: 1;
-}
-
 .dtb-category-hero-card__skeleton-content {
+  z-index: 2;
   display: flex;
   min-width: 0;
   flex-direction: column;
   justify-content: center;
   gap: 0.72rem;
-  padding: 1.25rem 1.25rem 1.2rem;
+  padding: var(--dtb-space-4) var(--dtb-viewport-gutter) var(--dtb-space-5);
+  background: linear-gradient(112deg, #09284d 0%, #0a3769 100%);
 }
 
 .dtb-category-hero-card__skeleton-media {
+  z-index: 1;
   order: -1;
   display: flex;
   width: 100%;
   min-width: 0;
-  aspect-ratio: 16 / 9;
-  align-items: center;
+  aspect-ratio: 2 / 1;
+  align-items: flex-end;
   justify-content: center;
-  padding: 1.1rem;
+  padding: var(--dtb-space-3) var(--dtb-space-4) var(--dtb-space-2);
 }
 
 .dtb-category-hero-shimmer {
   position: relative;
   display: block;
   overflow: hidden;
-  border-radius: 999px;
-  background: #e9eef5;
+  border-radius: var(--dtb-radius-pill);
+  background: rgba(226, 232, 240, 0.8);
+}
+
+.dtb-category-hero-card__skeleton-content .dtb-category-hero-shimmer {
+  background: rgba(194, 218, 242, 0.19);
 }
 
 .dtb-category-hero-shimmer::after {
@@ -295,50 +315,192 @@
   background: linear-gradient(
     100deg,
     transparent 18%,
-    rgba(255, 255, 255, 0.42) 40%,
-    rgba(255, 255, 255, 0.78) 50%,
-    rgba(255, 255, 255, 0.42) 60%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 255, 255, 0.12) 60%,
     transparent 82%
   );
-  animation: dtb-category-hero-shimmer 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: dtb-category-hero-shimmer var(--dtb-motion-shimmer-duration) var(--dtb-motion-ease-exit) infinite;
 }
 
 .dtb-category-hero-shimmer--breadcrumb {
-  width: clamp(150px, 18vw, 230px);
-  height: 11px;
+  width: clamp(9.5rem, 18vw, 14rem);
+  height: 0.7rem;
 }
 
 .dtb-category-hero-shimmer--eyebrow {
-  width: min(42%, 170px);
-  height: 10px;
+  width: min(42%, 10.5rem);
+  height: 0.62rem;
 }
 
 .dtb-category-hero-shimmer--title {
-  width: min(82%, 410px);
-  height: clamp(28px, 3vw, 38px);
-  border-radius: 10px;
+  width: min(82%, 25rem);
+  height: clamp(1.8rem, 3vw, 2.4rem);
+  border-radius: var(--dtb-radius-sm);
 }
 
 .dtb-category-hero-shimmer--copy {
-  width: min(86%, 430px);
-  height: 12px;
+  width: min(86%, 27rem);
+  height: 0.72rem;
 }
 
 .dtb-category-hero-shimmer--copy-short {
-  width: min(62%, 310px);
-  height: 12px;
+  width: min(62%, 19rem);
+  height: 0.72rem;
+}
+
+.dtb-category-hero-shimmer--rule {
+  width: 3rem;
+  height: 2px;
+  margin-top: 0.3rem;
 }
 
 .dtb-category-hero-shimmer--media {
-  width: 84%;
-  height: 76%;
-  border-radius: 18px;
+  width: 78%;
+  height: 70%;
+  margin-bottom: 3%;
+  border-radius: var(--dtb-radius-lg);
   background: rgba(221, 228, 238, 0.72);
 }
 
 @keyframes dtb-category-hero-shimmer {
   100% {
     transform: translateX(115%);
+  }
+}
+
+@media (min-width: 768px) {
+  .dtb-category-hero-card,
+  .dtb-category-hero-card--skeleton {
+    display: grid;
+    grid-template-columns: minmax(0, var(--dtb-category-copy-width)) minmax(0, var(--dtb-category-media-width));
+    height: clamp(15.5rem, 16vw, 17.5rem);
+    min-height: 15.5rem;
+  }
+
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
+    grid-column: 1;
+    grid-row: 1;
+    padding:
+      clamp(1.15rem, 1.5vw, 1.4rem)
+      clamp(2rem, 3.2vw, 3.75rem)
+      clamp(1.35rem, 1.7vw, 1.7rem);
+  }
+
+  .dtb-category-hero-card__content {
+    width: calc(100% + var(--dtb-category-seam));
+    clip-path: polygon(0 0, 100% 0, calc(100% - var(--dtb-category-seam)) 100%, 0 100%);
+  }
+
+  .dtb-category-hero-card__content::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    width: var(--dtb-category-seam);
+    pointer-events: none;
+    background: linear-gradient(
+      108deg,
+      transparent 0 46%,
+      rgba(93, 177, 251, 0.98) 47% 54%,
+      rgba(228, 244, 255, 0.98) 55% 59%,
+      transparent 60%
+    );
+  }
+
+  .dtb-category-hero__breadcrumb-stage {
+    width: calc(100% - var(--dtb-category-seam));
+    margin-bottom: clamp(0.75rem, 1vw, 1rem);
+  }
+
+  .dtb-category-hero-card__copy {
+    width: min(calc(100% - var(--dtb-category-seam)), 34rem);
+  }
+
+  .dtb-category-hero-card__media,
+  .dtb-category-hero-card__skeleton-media {
+    order: initial;
+    grid-column: 2;
+    grid-row: 1;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    padding:
+      clamp(0.55rem, 0.8vw, 0.8rem)
+      clamp(1.25rem, 2.6vw, 3rem)
+      clamp(0.45rem, 0.65vw, 0.65rem)
+      clamp(0.25rem, 0.9vw, 1rem);
+  }
+
+  .dtb-category-hero-card__media {
+    margin-left: calc(-0.3 * var(--dtb-category-seam));
+  }
+
+  .dtb-category-hero-card__media::after {
+    right: 10%;
+    bottom: 7%;
+    left: 2%;
+    height: 16%;
+  }
+
+  .dtb-category-hero-card__title {
+    font-size: clamp(2rem, 2.4vw, 2.75rem);
+  }
+}
+
+@media (min-width: 1280px) {
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
+    padding-left: clamp(2.8rem, 3.6vw, 4.4rem);
+    padding-right: clamp(2.1rem, 2.8vw, 3.4rem);
+  }
+
+  .dtb-category-hero-card__media,
+  .dtb-category-hero-card__skeleton-media {
+    padding-right: clamp(2.5rem, 4vw, 5rem);
+  }
+}
+
+@media (max-width: 767px) {
+  .dtb-catalog-category-layout > .dtb-category-hero {
+    width: calc(100% + (2 * var(--dtb-viewport-gutter)));
+    transform: translateX(calc(-1 * var(--dtb-viewport-gutter)));
+  }
+
+  .dtb-category-hero-card__content,
+  .dtb-category-hero-card__skeleton-content {
+    order: 2;
+  }
+
+  .dtb-category-hero-card__media,
+  .dtb-category-hero-card__skeleton-media {
+    order: 1;
+  }
+
+  .dtb-category-hero-card__title {
+    max-width: 16ch;
+    font-size: clamp(1.8rem, 8.6vw, 2.35rem);
+  }
+
+  .dtb-category-hero-card__media {
+    --dtb-category-image-scale: 1.03;
+  }
+
+  .dtb-category-hero-card__media[data-presentation='tall'],
+  .dtb-category-hero-card__media[data-presentation='compact'] {
+    --dtb-category-image-scale: 1.08;
+  }
+
+  .dtb-category-hero-card__media[data-presentation='oversized'] {
+    --dtb-category-image-scale: 1.1;
+  }
+
+  .dtb-category-hero__breadcrumb-stage {
+    margin-bottom: var(--dtb-space-3);
   }
 }
 
@@ -382,11 +544,14 @@
   flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(203, 213, 225, 0.74);
-  border-radius: 10px;
-  background: var(--dtb-surface, #fff);
+  border-radius: var(--dtb-radius-md);
+  background: var(--dtb-surface);
   box-shadow: 0 3px 9px rgba(15, 23, 42, 0.055);
   text-decoration: none;
-  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+  transition:
+    border-color var(--dtb-motion-fast),
+    box-shadow var(--dtb-motion-fast),
+    transform var(--dtb-motion-fast);
 }
 
 .dtb-tool-type-tile:hover {
@@ -396,7 +561,7 @@
 }
 
 .dtb-tool-type-tile:focus-visible {
-  outline: 2px solid var(--color-primary-600, #2255ee);
+  outline: 2px solid var(--dtb-focus);
   outline-offset: 2px;
 }
 
@@ -422,11 +587,11 @@
 }
 
 .dtb-tool-type-tile__icon {
-  color: var(--color-primary-600, #2255ee);
+  color: var(--dtb-primary);
 }
 
 .dtb-tool-type-tile--no-image .dtb-tool-type-tile__media {
-  background: var(--dtb-surface-muted, #eef2f7);
+  background: var(--dtb-surface-muted);
 }
 
 .dtb-tool-type-tile__label {
@@ -434,7 +599,7 @@
   min-height: 2.05em;
   padding: 0.18rem 0.85rem 0;
   overflow: hidden;
-  color: var(--dtb-text, #0f172a);
+  color: var(--dtb-text);
   font-size: 0.75rem;
   font-weight: 800;
   line-height: 1.18;
@@ -446,61 +611,13 @@
 .dtb-tool-type-tile__count {
   margin-top: auto;
   padding: 0.2rem 0.85rem 0.72rem;
-  color: var(--dtb-muted, #64748b);
+  color: var(--dtb-muted);
   font-size: 0.69rem;
   font-weight: 550;
   line-height: 1.2;
 }
 
 @media (min-width: 768px) {
-  .dtb-category-hero-card {
-    display: grid;
-    grid-template-columns: minmax(0, 48%) minmax(0, 52%);
-    height: clamp(15rem, 19vw, 22.75rem);
-    min-height: 0;
-  }
-
-  .dtb-category-hero-card__content,
-  .dtb-category-hero-card__skeleton-content {
-    grid-column: 1;
-    grid-row: 1;
-    padding: clamp(1.35rem, 2.15vw, 1.8rem) clamp(1.75rem, 3.2vw, 3rem);
-  }
-
-  .dtb-category-hero-card__title {
-    font-size: clamp(1.95rem, 2.8vw, 2.55rem);
-  }
-
-  .dtb-category-hero-card__divider {
-    top: -15%;
-    right: -4.4rem;
-    z-index: 1;
-    display: block;
-    width: 9.5rem;
-    height: 130%;
-    transform: skewX(-28deg);
-    border-left: 1.2rem solid rgba(219, 232, 248, 0.62);
-    border-right: 2.6rem solid rgba(236, 243, 251, 0.72);
-    opacity: 0.94;
-  }
-
-  .dtb-category-hero-card__media,
-  .dtb-category-hero-card__skeleton-media {
-    order: initial;
-    grid-column: 2;
-    grid-row: 1;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    aspect-ratio: auto;
-    padding: 0.2rem clamp(0.6rem, 1.15vw, 1rem) 0.2rem 0;
-  }
-
-  .dtb-category-hero-shimmer--media {
-    width: 88%;
-    height: 72%;
-  }
-
   .dtb-tool-type-rail {
     grid-auto-columns: clamp(168px, 14vw, 198px);
     gap: 0.86rem;
@@ -508,86 +625,15 @@
 }
 
 @media (min-width: 1280px) {
-  .dtb-category-hero-card__content,
-  .dtb-category-hero-card__skeleton-content {
-    padding-left: clamp(2.35rem, 4vw, 3.8rem);
-    padding-right: clamp(1.8rem, 2.7vw, 2.7rem);
-  }
-
-  .dtb-category-hero-card__corner-accent {
-    width: 5.3rem;
-    height: 8.6rem;
-  }
-
-  .dtb-category-hero-card__dot-field {
-    left: 3rem;
-    width: 9.5rem;
-    height: 9.2rem;
-  }
-
-  .dtb-category-hero-card__tagline {
-    font-size: 0.64rem;
-  }
-
   .dtb-tool-type-rail {
     grid-auto-columns: clamp(176px, 12.5vw, 198px);
   }
 }
 
 @media (min-width: 1536px) {
-  .dtb-category-hero-card {
-    grid-template-columns: minmax(0, 46%) minmax(0, 54%);
-  }
-
-  .dtb-category-hero-card__divider {
-    right: -5.2rem;
-  }
-
   .dtb-tool-type-rail {
     grid-auto-columns: clamp(182px, 11.5vw, 204px);
     gap: 0.95rem;
-  }
-}
-
-@media (max-width: 767px) {
-  .dtb-category-hero-card__content,
-  .dtb-category-hero-card__skeleton-content {
-    order: 1;
-  }
-
-  .dtb-category-hero-card__content {
-    padding-top: 1.7rem;
-  }
-
-  .dtb-category-hero-card__media,
-  .dtb-category-hero-card__skeleton-media {
-    padding: 0.65rem 0.8rem 0;
-  }
-
-  .dtb-category-hero-card__corner-accent {
-    width: 3.5rem;
-    height: 5.2rem;
-  }
-
-  .dtb-category-hero-card__dot-field {
-    left: 1.8rem;
-    width: 6.5rem;
-    height: 6.5rem;
-    opacity: 0.45;
-  }
-
-  .dtb-category-hero-card__rule {
-    margin-top: 1rem;
-  }
-
-  .dtb-category-hero-card__tagline {
-    margin-top: 0.8rem;
-    font-size: 0.56rem;
-    letter-spacing: 0.2em;
-  }
-
-  .dtb-tool-type-section .storefront-section__head {
-    align-items: flex-end;
   }
 }
 
@@ -595,7 +641,6 @@
   .dtb-category-hero__breadcrumb-content,
   .dtb-category-hero__breadcrumb-loading,
   .dtb-category-hero-card__loading-layer,
-  .dtb-category-hero-card__content,
   .dtb-category-hero-card__image,
   .dtb-tool-type-tile {
     transition: none;
@@ -605,10 +650,8 @@
     animation: none;
   }
 
-  .dtb-category-hero.is-ready .dtb-category-hero__breadcrumb-content,
-  .dtb-category-hero.is-ready .dtb-category-hero-card__content,
   .dtb-category-hero-card__image.is-ready {
-    transform: none;
+    transform: translate3d(var(--dtb-category-image-x), var(--dtb-category-image-y), 0) scale(var(--dtb-category-image-scale));
   }
 
   .dtb-tool-type-tile:hover {
