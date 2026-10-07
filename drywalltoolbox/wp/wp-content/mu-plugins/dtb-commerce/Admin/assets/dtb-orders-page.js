@@ -134,20 +134,86 @@
 		return '';
 	}
 
+	function renderItemMeta( item ) {
+		var bits = [];
+		if ( item.sku ) {
+			bits.push( '<span class="dtb-orders-sku">SKU ' + WB.escapeHtml( item.sku ) + '</span>' );
+		}
+		( Array.isArray( item.variation_meta ) ? item.variation_meta : [] ).forEach( function ( meta ) {
+			if ( ! meta || ! meta.value ) { return; }
+			bits.push( '<span class="dtb-orders-variant">' + WB.escapeHtml( meta.label || 'Option' ) + ': ' + WB.escapeHtml( meta.value ) + '</span>' );
+		} );
+		return bits.join( '' );
+	}
+
+	function renderKitComponents( item ) {
+		var components = Array.isArray( item.components ) ? item.components : [];
+		if ( ! components.length ) { return ''; }
+
+		var sourceNote = item.components_source === 'catalog_current'
+			? '<span class="dtb-orders-kit-source dtb-orders-kit-source--fallback">Current catalog fallback</span>'
+			: '<span class="dtb-orders-kit-source">Ordered kit snapshot</span>';
+		var html = '<details class="dtb-orders-kit" open>';
+		html += '<summary><span>Pick kit components</span><span class="dtb-orders-kit__summary">' + WB.escapeHtml( String( item.component_units || components.length ) ) + ' total units</span>' + sourceNote + '</summary>';
+		html += '<div class="dtb-orders-kit__body"><table><thead><tr><th>Pick</th><th>SKU</th><th>Component</th></tr></thead><tbody>';
+		components.forEach( function ( component ) {
+			html += '<tr>';
+			html += '<td class="dtb-orders-kit__qty">' + WB.escapeHtml( String( component.total_quantity || component.quantity || 1 ) ) + '</td>';
+			html += '<td><code>' + WB.escapeHtml( component.sku || '—' ) + '</code></td>';
+			html += '<td>' + WB.escapeHtml( component.name || 'Component' ) + '</td>';
+			html += '</tr>';
+		} );
+		html += '</tbody></table></div></details>';
+		return html;
+	}
+
 	function renderItems( items, currency ) {
 		items = Array.isArray( items ) ? items : [];
 		if ( ! items.length ) {
 			return '<div class="dtb-wb-empty">No line items.</div>';
 		}
-		var html = '<table class="dtb-orders-items"><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>';
+
+		var html = '<div class="dtb-orders-items-wrap"><table class="dtb-orders-items"><thead><tr><th>Product</th><th>SKU</th><th>Pick qty</th><th>Unit</th><th>Total</th></tr></thead><tbody>';
 		items.forEach( function ( item ) {
-			html += '<tr>';
-			html += '<td>' + WB.escapeHtml( item.name || 'Item' ) + '</td>';
-			html += '<td>' + WB.escapeHtml( item.quantity || 0 ) + '</td>';
-			html += '<td>' + WB.escapeHtml( WB.formatMoney( item.total || 0, currency ) ) + '</td>';
+			var image = item.image
+				? '<img class="dtb-orders-item__image" src="' + WB.escapeHtml( item.image ) + '" alt="' + WB.escapeHtml( item.image_alt || item.name || '' ) + '" loading="lazy">'
+				: '<span class="dtb-orders-item__image dtb-orders-item__image--empty" aria-hidden="true"></span>';
+			html += '<tr class="dtb-orders-item-row">';
+			html += '<td><div class="dtb-orders-item"><div class="dtb-orders-item__media">' + image + '</div><div class="dtb-orders-item__identity"><strong>' + WB.escapeHtml( item.name || 'Item' ) + '</strong><div class="dtb-orders-item__meta">' + renderItemMeta( item ) + '</div></div></div>';
+			html += renderKitComponents( item ) + '</td>';
+			html += '<td><code class="dtb-orders-item__sku">' + WB.escapeHtml( item.sku || '—' ) + '</code></td>';
+			html += '<td class="dtb-orders-item__qty">' + WB.escapeHtml( String( item.quantity || 0 ) ) + '</td>';
+			html += '<td>' + WB.escapeHtml( WB.formatMoney( item.unit_price || 0, currency ) ) + '</td>';
+			html += '<td><strong>' + WB.escapeHtml( WB.formatMoney( item.total || 0, currency ) ) + '</strong></td>';
 			html += '</tr>';
 		} );
-		html += '</tbody></table>';
+		html += '</tbody></table></div>';
+		return html;
+	}
+
+	function renderFulfillmentPanel( payload, record, currency ) {
+		var tracking = record.tracking || {};
+		var integrations = payload.integrations || {};
+		var veeqo = integrations.veeqo || {};
+		var html = '<div class="dtb-orders-fulfillment">';
+		html += '<div class="dtb-orders-fulfillment__rail">';
+		html += '<div class="dtb-wb-card"><div class="dtb-wb-card__title">Fulfillment</div><div class="dtb-wb-card__body">';
+		html += WB.renderKeyValue( 'State', WB.escapeHtml( record.fulfillment_substate || 'pending' ) );
+		html += WB.renderKeyValue( 'Veeqo', WB.escapeHtml( veeqo.label || veeqo.status || veeqo.state || 'Not synced' ) );
+		html += WB.renderKeyValue( 'Carrier', WB.escapeHtml( tracking.carrier || '—' ) );
+		if ( tracking.tracking_number ) {
+			var trackingValue = tracking.tracking_url
+				? '<a href="' + WB.escapeHtml( tracking.tracking_url ) + '" target="_blank" rel="noopener">' + WB.escapeHtml( tracking.tracking_number ) + ' ↗</a>'
+				: WB.escapeHtml( tracking.tracking_number );
+			html += WB.renderKeyValue( 'Tracking', trackingValue );
+		} else {
+			html += WB.renderKeyValue( 'Tracking', '—' );
+		}
+		html += '</div></div>';
+		html += renderAddress( 'Ship to', record.shipping || {} );
+		html += '</div>';
+		html += '<div class="dtb-wb-card dtb-orders-pick-card"><div class="dtb-wb-card__title"><span>Pick list</span><span class="dtb-orders-card-kicker">SKU-first fulfillment view</span></div><div class="dtb-wb-card__body">' + renderItems( record.line_items, currency ) + '</div></div>';
+		html += '</div>';
 		return html;
 	}
 
@@ -320,8 +386,8 @@
 		var footer = footerEl();
 		if ( ! body ) { return; }
 
-		var tabs = [ 'overview', 'customer', 'linked', 'timeline', 'actions' ];
-		var tabLabels = { overview: 'Overview', customer: 'Customer', linked: 'Linked', timeline: 'Timeline', actions: 'Actions' };
+		var tabs = [ 'overview', 'fulfillment', 'customer', 'linked', 'timeline', 'actions' ];
+		var tabLabels = { overview: 'Overview', fulfillment: 'Fulfillment', customer: 'Customer', linked: 'Linked', timeline: 'Timeline', actions: 'Actions' };
 
 		var html = '<div class="dtb-orders-workbench">';
 		html += '<nav class="dtb-modal-tabs" role="tablist">';
@@ -333,24 +399,38 @@
 		var issuesHtml = renderRecordIssues( payload.integrations || {} );
 
 		html += '<div class="dtb-modal-tab-panel dtb-modal-tab-panel--active" data-dtb-tab="overview">';
-		html += '<div class="dtb-orders-overview-grid">';
 		if ( issuesHtml ) { html += issuesHtml; }
+		html += '<div class="dtb-orders-status-strip">';
+		html += '<div><span>Status</span><strong>' + WB.renderStatusBadge( workflow.status || record.status, workflow.label || record.status_label ) + '</strong></div>';
+		html += '<div><span>Order total</span><strong>' + WB.escapeHtml( WB.formatMoney( record.total || 0, currency ) ) + '</strong></div>';
+		html += '<div><span>Payment</span><strong>' + WB.escapeHtml( record.payment_method_title || record.payment_method || '—' ) + '</strong></div>';
+		html += '<div><span>Fulfillment</span><strong>' + WB.escapeHtml( record.fulfillment_substate || 'pending' ) + '</strong></div>';
+		html += '<div><span>Created</span><strong>' + WB.escapeHtml( WB.formatDateFull( record.date_created ) ) + '</strong></div>';
+		html += '</div>';
+		if ( intelligence.next_best_action ) {
+			html += '<div class="dtb-wb-note dtb-wb-note--info dtb-orders-next-action"><strong>Next best action:</strong> ' + WB.escapeHtml( intelligence.next_best_action ) + '</div>';
+		}
+		html += '<div class="dtb-orders-overview-grid">';
+		html += '<div class="dtb-orders-overview-main">';
+		html += '<div class="dtb-wb-card dtb-orders-line-items"><div class="dtb-wb-card__title"><span>Order items</span><span class="dtb-orders-card-kicker">SKU and kit contents</span></div><div class="dtb-wb-card__body">' + renderItems( record.line_items, currency ) + '</div></div>';
+		html += '</div>';
+		html += '<aside class="dtb-orders-overview-rail">';
 		html += '<div class="dtb-wb-card"><div class="dtb-wb-card__title">Order</div><div class="dtb-wb-card__body">';
 		html += WB.renderKeyValue( 'Order', '#' + WB.escapeHtml( record.id || '' ) );
-		html += WB.renderKeyValue( 'Status', WB.renderStatusBadge( workflow.status || record.status, workflow.label || record.status_label ) );
 		html += WB.renderKeyValue( 'Payment', WB.escapeHtml( record.payment_method_title || record.payment_method || '—' ) );
-		html += WB.renderKeyValue( 'Fulfillment', WB.escapeHtml( record.fulfillment_substate || '—' ) );
-		html += WB.renderKeyValue( 'Total', WB.escapeHtml( WB.formatMoney( record.total || 0, currency ) ) );
-		html += WB.renderKeyValue( 'Created', WB.escapeHtml( WB.formatDateFull( record.date_created ) ) );
-		if ( intelligence.next_best_action ) {
-			html += '<div class="dtb-wb-note dtb-wb-note--info">' + WB.escapeHtml( intelligence.next_best_action ) + '</div>';
+		html += WB.renderKeyValue( 'Subtotal', WB.escapeHtml( WB.formatMoney( record.subtotal || 0, currency ) ) );
+		if ( Number( record.discount_total || 0 ) > 0 ) {
+			html += WB.renderKeyValue( 'Discount', '−' + WB.escapeHtml( WB.formatMoney( record.discount_total || 0, currency ) ) );
 		}
+		html += WB.renderKeyValue( 'Shipping', WB.escapeHtml( WB.formatMoney( record.shipping_total || 0, currency ) ) );
+		html += WB.renderKeyValue( 'Tax', WB.escapeHtml( WB.formatMoney( record.total_tax || 0, currency ) ) );
+		html += WB.renderKeyValue( 'Total', '<strong>' + WB.escapeHtml( WB.formatMoney( record.total || 0, currency ) ) + '</strong>' );
 		html += '</div></div>';
+		html += renderAddress( 'Ship to', record.shipping || {} );
 		html += renderAddress( 'Billing', record.billing || {} );
-		html += renderAddress( 'Shipping', record.shipping || {} );
-		html += '<div class="dtb-wb-card dtb-orders-line-items"><div class="dtb-wb-card__title">Line Items</div><div class="dtb-wb-card__body">' + renderItems( record.line_items, currency ) + '</div></div>';
-		html += '</div></div>';
+		html += '</aside></div></div>';
 
+		html += '<div class="dtb-modal-tab-panel" data-dtb-tab="fulfillment" hidden>' + renderFulfillmentPanel( payload, record, currency ) + '</div>';
 		html += '<div class="dtb-modal-tab-panel" data-dtb-tab="customer" hidden>' + WB.renderCustomerRail( payload.customer || {} ) + '</div>';
 		html += '<div class="dtb-modal-tab-panel" data-dtb-tab="linked" hidden>' + WB.renderLinkedRecords( linked ) + '</div>';
 		html += '<div class="dtb-modal-tab-panel" data-dtb-tab="timeline" hidden>' + WB.renderTimeline( payload.timeline || [] ) + '</div>';
