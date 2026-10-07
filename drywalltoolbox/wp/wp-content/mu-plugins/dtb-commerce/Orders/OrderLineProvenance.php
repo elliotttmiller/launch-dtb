@@ -182,6 +182,20 @@ final class DTB_OrderLineProvenance {
 			: [];
 
 		$variant = sanitize_text_field( (string) ( $client['_dtb_schematic_variant'] ?? '' ) );
+		if ( '' !== $variant && function_exists( 'dtb_schematic_shared_variant_options' ) ) {
+			$allowed_variants = [];
+			foreach ( (array) dtb_schematic_shared_variant_options( $record->canonical_id ) as $option ) {
+				if ( is_array( $option ) ) {
+					$key = sanitize_text_field( (string) ( $option['key'] ?? '' ) );
+					if ( '' !== $key ) {
+						$allowed_variants[] = $key;
+					}
+				}
+			}
+			if ( ! empty( $allowed_variants ) && ! in_array( $variant, $allowed_variants, true ) ) {
+				$variant = '';
+			}
+		}
 
 		return array_filter(
 			[
