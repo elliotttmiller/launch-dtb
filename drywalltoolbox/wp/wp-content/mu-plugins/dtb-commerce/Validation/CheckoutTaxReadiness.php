@@ -21,6 +21,7 @@ final class DTB_CheckoutTaxReadiness {
 		add_filter( 'option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shop_base' ], 20 );
 		add_filter( 'default_option_woocommerce_tax_based_on', [ __CLASS__, 'tax_based_on_shop_base' ], 20 );
 		add_action( 'admin_notices', [ __CLASS__, 'admin_notice' ] );
+		add_action( 'woocommerce_checkout_validate_order_before_payment', [ __CLASS__, 'validate_order_before_payment' ], 20, 2 );
 	}
 
 	/**
@@ -38,6 +39,55 @@ final class DTB_CheckoutTaxReadiness {
 		return 'base';
 	}
 
+	/**
+	 * Fail closed before payment when a taxable Store API order has no applicable
+	 * WooCommerce rate for the configured shop-base tax location.
+	 *
+	 * WooCommerce remains authoritative for rate calculation. DTB only prevents a
+	 * taxable order from being paid when Woo has no rate with which to calculate.
+	 *
+	 * @param WC_Order $order  Checkout order assembled by WooCommerce.
+	 * @param WP_Error $errors Mutable validation error bag.
+	 */
+	public static function validate_order_before_payment( $order, $errors ): void {
+		if ( ! $order instanceof WC_Order || ! $errors instanceof WP_Error ) {
+			return;
+		}
+
+		$tax_classes = self::taxable_order_classes( $order );
+		if ( empty( $tax_classes ) ) {
+			return;
+		}
+
+		if ( ! function_exists( 'wc_tax_enabled' ) || ! wc_tax_enabled() ) {
+			$errors->add(
+				'dtb_checkout_tax_unavailable',
+				__( 'Tax calculation is temporarily unavailable. Please contact Drywall Toolbox before completing payment.', 'drywall-toolbox' )
+			);
+			return;
+		}
+
+		$missing_classes = [];
+		foreach ( $tax_classes as $tax_class ) {
+			if ( ! self::has_applicable_rate_for_class( $tax_class ) ) {
+				$missing_classes[] = $tax_class;
+			}
+		}
+
+		if ( empty( $missing_classes ) ) {
+			return;
+		}
+
+		$errors->add(
+			'dtb_checkout_tax_unavailable',
+			__( 'Tax calculation is temporarily unavailable. Please contact Drywall Toolbox before completing payment.', 'drywall-toolbox' ),
+			[
+				'status'              => 503,
+				'missing_tax_classes' => array_values( $missing_classes ),
+			]
+		);
+	}
+
 	public static function admin_notice(): void {
 		if ( ! is_admin() || ! current_user_can( 'manage_woocommerce' ) || ! class_exists( 'WooCommerce' ) ) {
 			return;
@@ -50,29 +100,84 @@ final class DTB_CheckoutTaxReadiness {
 			return;
 		}
 
-		if ( ! self::has_minnesota_standard_rate() ) {
-			echo '<div class="notice notice-warning"><p>'
-				. esc_html__( 'Drywall Toolbox checkout uses WooCommerce as the only tax authority and sources tax from the shop base address (Minnesota) on every order, but no applicable Standard tax rate was found for United States / Minnesota. Configure the Minnesota rate in WooCommerce Settings > Tax before accepting orders.', 'drywall-toolbox' )
-				. '</p></div>';
+		if ( ! self::has_applicable_rate_for_class( '' ) ) {
+			$location = self::shop_base_tax_location();
+			$settings_url = admin_url( 'admin.php?page=wc-settings&tab=tax&section=standard' );
+			echo '<div class="notice notice-error"><p>'
+				. esc_html(
+					sprintf(
+						/* translators: 1: country/state, 2: postcode. */
+						__( 'Drywall Toolbox checkout is configured to calculate tax from the shop base, but WooCommerce has no applicable Standard tax rate for %1$s %2$s. Taxable checkout is blocked before payment until a rate is configured.', 'drywall-toolbox' ),
+						trim( (string) $location['country'] . ':' . (string) $location['state'], ':' ),
+						(string) $location['postcode']
+					)
+				)
+				. ' <a href="' . esc_url( $settings_url ) . '">'
+				. esc_html__( 'Configure WooCommerce tax rates', 'drywall-toolbox' )
+				. '</a></p></div>';
 		}
 	}
 
 	/**
-	 * Read-only readiness probe for an operator-managed Minnesota Standard rate.
+	 * Resolve the exact WooCommerce shop-base location used by the DTB tax policy.
+	 *
+	 * @return array{country:string,state:string,postcode:string,city:string}
 	 */
-	private static function has_minnesota_standard_rate(): bool {
+	private static function shop_base_tax_location(): array {
+		$base = function_exists( 'wc_get_base_location' ) ? (array) wc_get_base_location() : [];
+		return [
+			'country'  => strtoupper( sanitize_text_field( (string) ( $base['country'] ?? '' ) ) ),
+			'state'    => strtoupper( sanitize_text_field( (string) ( $base['state'] ?? '' ) ) ),
+			'postcode' => sanitize_text_field( (string) get_option( 'woocommerce_store_postcode', '' ) ),
+			'city'     => sanitize_text_field( (string) get_option( 'woocommerce_store_city', '' ) ),
+		];
+	}
+
+	/**
+	 * Return distinct WooCommerce tax classes used by taxable order products.
+	 *
+	 * An empty string is the Standard tax class and must be preserved.
+	 *
+	 * @return string[]
+	 */
+	private static function taxable_order_classes( WC_Order $order ): array {
+		$classes = [];
+
+		foreach ( $order->get_items( 'line_item' ) as $item ) {
+			if ( ! $item instanceof WC_Order_Item_Product ) {
+				continue;
+			}
+
+			$product = $item->get_product();
+			if ( ! $product instanceof WC_Product || ! $product->is_taxable() ) {
+				continue;
+			}
+
+			$classes[] = sanitize_title( (string) $item->get_tax_class() );
+		}
+
+		return array_values( array_unique( $classes ) );
+	}
+
+	/**
+	 * Check whether WooCommerce can match at least one rate for a tax class at the
+	 * authoritative shop-base location.
+	 */
+	private static function has_applicable_rate_for_class( string $tax_class ): bool {
 		if ( ! class_exists( 'WC_Tax' ) ) {
 			return false;
 		}
 
+		$location = self::shop_base_tax_location();
+
 		try {
 			$rates = WC_Tax::find_rates(
 				[
-					'country'   => 'US',
-					'state'     => 'MN',
-					'postcode'  => '',
-					'city'      => '',
-					'tax_class' => '',
+					'country'   => $location['country'],
+					'state'     => $location['state'],
+					'postcode'  => $location['postcode'],
+					'city'      => $location['city'],
+					'tax_class' => sanitize_title( $tax_class ),
 				]
 			);
 		} catch ( Throwable $error ) {
