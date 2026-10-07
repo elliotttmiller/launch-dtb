@@ -158,6 +158,7 @@ Layer order: base, dropdown, sticky, overlay, drawer, dialog, toast. Drawers and
 - Use Lucide-style outline icons: simple geometry, consistent stroke, typically 16–24px.
 - Icons support comprehension; they never replace a critical text label unless the meaning is universal and an accessible name is supplied.
 - Product photography uses neutral backgrounds, preserves the whole tool or part, and avoids decorative crops that obscure form or compatibility.
+- Category hero artwork uses transparent WebP on a consistent virtual canvas. Authoring should tightly bound the visible product group, preserve 5–8% safe area, align products to a consistent optical baseline, avoid baked scene backgrounds, and keep shadows contained within the canvas. The frontend may use only the bounded presentation modes defined by the category hero contract to compensate for broad shape classes; source-media normalization remains preferred over per-category CSS.
 - Schematics remain technical, high-contrast, zoomable documents; hotspots are precise targets, not decorative markers.
 - Preserve authentic manufacturer brand marks and product-media provenance.
 
