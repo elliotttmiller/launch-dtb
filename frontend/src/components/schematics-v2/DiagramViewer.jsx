@@ -46,7 +46,7 @@ function clampOffset(offset, scale, containerSize, boundsSize) {
   };
 }
 
-export default function DiagramViewer({ page, parts, onSelectPart, activePart, onCloseActivePart }) {
+export default function DiagramViewer({ page, parts, schematicContext, onSelectPart, activePart, onCloseActivePart }) {
   const containerRef = useRef(null);
   const wrapRef = useRef(null);
   const imgRef = useRef(null);
@@ -401,6 +401,12 @@ export default function DiagramViewer({ page, parts, onSelectPart, activePart, o
         <SchematicPartDialog
           key={activePart.part_ref}
           part={activePart}
+          schematicContext={{
+            ...(schematicContext || {}),
+            pageId: page?.page_id || '',
+            pageNumber: page?.page_number || '',
+            pageLabel: page?.label || '',
+          }}
           anchorRect={anchorRect}
           wrapRef={wrapRef}
           isMobile={isMobile}
