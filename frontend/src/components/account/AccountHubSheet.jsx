@@ -410,7 +410,7 @@ export default function AccountHubSheet({ isOpen, onClose, user, onLogin, onRegi
     >
       <button type="button" className="account-hub__backdrop" onClick={closeSheet} aria-label="Close account hub" tabIndex={-1} />
 
-      <section ref={sheetRef} className={`account-hub__sheet${user ? '' : ' account-hub__sheet--guest'}`}>
+      <section ref={sheetRef} className={`dtb-side-sheet__panel account-hub__sheet${user ? '' : ' account-hub__sheet--guest'}`}>
         <header className="account-hub__drawer-header">
           <span className="account-hub__drawer-icon" aria-hidden="true"><User size={18} strokeWidth={2.2} /></span>
           <div className="account-hub__drawer-copy">

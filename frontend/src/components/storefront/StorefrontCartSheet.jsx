@@ -394,7 +394,7 @@ export default function StorefrontCartSheet({
       inert={!isOpen ? true : undefined}
     >
       <aside
-        className="cart-panel storefront-cart-sheet"
+        className="cart-panel dtb-side-sheet__panel storefront-cart-sheet"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal={isOpen ? 'true' : 'false'}

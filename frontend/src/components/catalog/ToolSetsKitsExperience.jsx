@@ -6,12 +6,12 @@ import '../../styles/tool-sets-kits-experience.css';
 
 const IMAGE_ROOT = 'https://drywalltoolbox.com/wp/wp-content/uploads/2026/categories/thumbnails';
 const SYSTEMS = [
-  ['Complete Automatic Systems', 'Taping, loading, flat finishing, and corner finishing in one coordinated setup.', '/images/toolsets/complete-system.webp'],
-  ['Taping Sets', 'Automatic taper plus the equipment required to load and run it.', '/images/toolsets/taping.webp'],
-  ['Flat Finishing Sets', 'Finishing boxes, compatible handles, and loading equipment.', '/images/toolsets/flat-finishing.webp'],
-  ['Corner Finishing Sets', 'Rollers, applicators, corner finishers, and compatible handles.', '/images/toolsets/corner-finishing.webp'],
-  ['Starter / Upgrade Sets', 'Focused systems for contractors moving beyond hand tools.', '/images/toolsets/starter-upgrade.webp'],
-  ['Production Crew Sets', 'Broader systems for high-volume professional finishing.', '/images/toolsets/production.webp'],
+  ['Complete Automatic Systems', 'Taping, loading, flat finishing, and corner finishing in one coordinated setup.'],
+  ['Taping Sets', 'Automatic taper plus the equipment required to load and run it.'],
+  ['Flat Finishing Sets', 'Finishing boxes, compatible handles, and loading equipment.'],
+  ['Corner Finishing Sets', 'Rollers, applicators, corner finishers, and compatible handles.'],
+  ['Starter / Upgrade Sets', 'Focused systems for contractors moving beyond hand tools.'],
+  ['Production Crew Sets', 'Broader systems for high-volume professional finishing.'],
 ];
 
 function productImage(product) {
@@ -50,7 +50,6 @@ export default function ToolSetsKitsExperience({ category, breadcrumbs = [], pro
             <li><UsersRound aria-hidden="true" /><span>Trusted by professionals</span></li>
           </ul>
         </div>
-        <div className="dtb-toolsets-hero__art" aria-hidden="true"><img src="/images/tool-sets-kits-hero.png" alt="" /></div>
       </div>
 
       <div className="dtb-toolsets-content">
@@ -60,9 +59,8 @@ export default function ToolSetsKitsExperience({ category, breadcrumbs = [], pro
           <span>Find the right tool set for your crew, your workflow, and your finish goals.</span>
         </header>
         <div className="dtb-toolsets-system-grid">
-          {SYSTEMS.map(([title, description, image], index) => (
+          {SYSTEMS.map(([title, description]) => (
             <a className="dtb-toolsets-system" href="#dtb-category-filters" key={title}>
-              <img src={image} alt="" loading={index > 1 ? 'lazy' : 'eager'} />
               <div className="dtb-toolsets-system__body"><div className="dtb-toolsets-system__copy"><h3>{title}</h3><p>{description}</p></div><span className="dtb-toolsets-system__action"><ArrowRight aria-hidden="true" /></span></div>
             </a>
           ))}

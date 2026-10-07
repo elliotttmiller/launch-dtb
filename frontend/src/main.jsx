@@ -38,6 +38,7 @@ import './styles/storefront-motion.css';
 
 /* Final and exclusive cross-route responsive authority. */
 import './styles/unified-responsive.css';
+import './styles/side-sheet.css';
 
 import App from './App.jsx';
 import ErrorBoundary from './components/system/AppErrorBoundary.jsx';

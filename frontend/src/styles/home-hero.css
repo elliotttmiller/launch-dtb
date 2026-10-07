@@ -285,8 +285,7 @@
 }
 
 .home-hero__button--secondary:where(:hover, :focus-visible) { color: #fff; }
-.home-hero-nav__item:focus-visible,
-.home-hero-brands__link:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
+.home-hero-nav__item:focus-visible { outline: 3px solid var(--color-primary-600, #2255ee); outline-offset: 3px; }
 .home-hero__button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
 /* Trust bar remains outside .home-hero__stage because the stage clips its
@@ -392,66 +391,6 @@
   white-space: nowrap;
 }
 
-.home-hero-brands {
-  min-height: 218px;
-  padding: 64px clamp(48px, 6vw, 112px) 34px;
-  background: #fff;
-}
-
-.home-hero-brands__title {
-  margin: 0 0 27px;
-  color: #53617a;
-  font-size: 12px;
-  font-weight: 780;
-  line-height: 1;
-  letter-spacing: 0.15em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.home-hero-brands__viewport {
-  display: block;
-  width: 100%;
-  max-width: 1540px;
-  margin: 0 auto;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-}
-
-.home-hero-brands__track {
-  display: flex;
-  align-items: center;
-  width: max-content;
-  gap: clamp(10px, 1.4vw, 20px);
-  animation: home-hero-brands-scroll 34s linear infinite;
-}
-
-.home-hero-brands__link--clone { display: flex; }
-
-.home-hero-brands__link {
-  min-width: 0;
-  height: 48px;
-  padding: var(--dtb-space-1) var(--dtb-space-5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  opacity: 0.98;
-  transition: opacity 150ms ease, transform 150ms ease;
-}
-
-.home-hero-brands__link:hover { opacity: 1; transform: translateY(-1px); }
-
-.home-hero-brands__link img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 154px;
-  max-height: 34px;
-  object-fit: contain;
-}
-
 @keyframes home-hero-drift {
   from { transform: translate3d(-2%, -2%, 0) scale(0.98); }
   to { transform: translate3d(5%, 4%, 0) scale(1.08); }
@@ -492,8 +431,6 @@
 
   .home-hero-nav__track::-webkit-scrollbar { display: none; }
   .home-hero-nav__item { flex: 0 0 190px; padding-inline: 18px; }
-  .home-hero-brands { padding-inline: 32px; }
-  .home-hero-brands__link { padding-inline: 18px; }
 }
 
 @media (min-width: 901px) and (max-width: 1199px) {
@@ -576,49 +513,6 @@
   .home-hero-nav__copy { align-items: center; gap: 4px; }
   .home-hero-nav__label { white-space: normal; font-size: 12px; }
   .home-hero-nav__description { white-space: normal; font-size: 10px; text-align: center; }
-
-  .home-hero-brands {
-    min-height: 0;
-    padding: 34px var(--dtb-space-5) var(--dtb-space-5);
-    overflow: hidden;
-  }
-
-  .home-hero-brands__title {
-    margin-bottom: var(--dtb-space-5);
-    font-size: 10px;
-    line-height: 1.4;
-  }
-
-  .home-hero-brands__viewport {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
-  }
-
-  .home-hero-brands__track {
-    display: flex;
-    align-items: center;
-    width: max-content;
-    gap: 12px;
-    animation: home-hero-brands-scroll 30s linear infinite;
-  }
-
-  .home-hero-brands__link--clone { display: flex; }
-
-  .home-hero-brands__link {
-    width: auto;
-    height: 38px;
-    min-width: 0;
-    flex: 0 0 auto;
-    padding: var(--dtb-space-1) var(--dtb-space-5);
-  }
-
-  .home-hero-brands__link img {
-    max-width: min(100%, 116px);
-    max-height: 29px;
-  }
 }
 
 @media (max-width: 640px) {
@@ -742,77 +636,6 @@
     white-space: normal;
     text-overflow: ellipsis;
   }
-
-  .home-hero-brands {
-    min-height: 0;
-    padding: 34px var(--dtb-space-4) var(--dtb-space-5);
-    overflow: hidden;
-  }
-
-  .home-hero-brands__title {
-    padding-inline: var(--dtb-space-1);
-    margin-bottom: var(--dtb-space-5);
-    font-size: 10px;
-    line-height: 1.4;
-  }
-
-  .home-hero-brands__viewport {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-  }
-
-  .home-hero-brands__track {
-    display: flex;
-    align-items: center;
-    width: max-content;
-    gap: 8px;
-    padding: 0;
-    animation: home-hero-brands-scroll 24s linear infinite;
-  }
-
-  .home-hero-brands__link--clone { display: flex; }
-
-  .home-hero-brands__link {
-    width: auto;
-    height: 38px;
-    min-width: 0;
-    flex: 0 0 auto;
-    padding: var(--dtb-space-1) var(--dtb-space-4);
-  }
-
-  .home-hero-brands__link img {
-    max-width: min(100%, 104px);
-    max-height: 29px;
-  }
-}
-
-@keyframes home-hero-brands-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-@media (max-width: 1199px) {
-  .home-hero-brands__viewport {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-  }
-
-  .home-hero-brands__track {
-    display: flex;
-    align-items: center;
-    width: max-content;
-    gap: 12px;
-    animation: home-hero-brands-scroll 28s linear infinite;
-  }
-
-  .home-hero-brands__link--clone { display: flex; }
-  .home-hero-brands__link { flex: 0 0 auto; }
 }
 
 @media (max-width: 900px) {
@@ -869,8 +692,7 @@
   .home-hero-cutout::after,
   .home-hero-nav__icon,
   .home-hero-nav__label,
-  .home-hero-nav__description,
-  .home-hero-brands__link {
+  .home-hero-nav__description {
     transition: none;
   }
 
@@ -891,11 +713,6 @@
   .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__icon { color: var(--home-hero-blue); }
   .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__label { color: #111827; }
   .home-hero-nav__item:where(:hover, :focus) .home-hero-nav__description { color: #63708a; }
-
-  .home-hero-brands__link:hover {
-    opacity: 0.98;
-    transform: none;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -911,13 +728,5 @@
   .home-hero-nav__item::after,
   .home-hero-nav__icon,
   .home-hero-nav__label,
-  .home-hero-nav__description,
-  .home-hero-brands__link { transition: none; }
-
-  .home-hero-brands__track {
-    animation: none;
-    overflow: hidden;
-  }
-
-  .home-hero-brands__link--clone { display: none; }
+  .home-hero-nav__description { transition: none; }
 }

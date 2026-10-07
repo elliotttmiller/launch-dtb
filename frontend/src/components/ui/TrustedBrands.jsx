@@ -1,125 +1,162 @@
-/**
- * ui/TrustedBrands.jsx — IndoUI-style infinite-scroll brand marquee
- *
- * Props:
- *   brands  [{ name, src, to }]
- *   title   string (optional eyebrow)
- *   speed   number (animation duration in seconds, default 30)
- *
- * Uses pure CSS keyframe animation — no external library.
- * Double-renders the brand list for seamless infinite loop.
- */
-
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { getBrandLogo } from '../../utils/brandAssets.js';
 
-function getBaseOpacity({ dark, transparent }) {
-  if (dark) return 0.58;
-  if (transparent) return 0.82;
-  return 0.72;
+const MIN_LOOPS = 2;
+
+function normalizeBrands(brands) {
+  return brands
+    .map((brand) => {
+      const name = String(brand?.name || '').trim();
+      const src = String(brand?.src || brand?.logo || getBrandLogo(name) || '').trim();
+      const to = String(brand?.to || brand?.href || '').trim();
+      return { name, src, to };
+    })
+    .filter(({ name }) => name);
 }
 
-function BrandLogo({ brand, dark = false, transparent = false }) {
-  const baseOpacity = getBaseOpacity({ dark, transparent });
-  return (
-    <Link
-      to={brand.to}
-      aria-label={brand.name}
-      className="dtb-trusted-brand-link"
-      style={{
-        textDecoration: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '0 clamp(26px, 6vw, 48px)',
-        flexShrink: 0,
-        minWidth: 'clamp(132px, 28vw, 190px)',
-        '--dtb-brand-base-opacity': baseOpacity,
-      }}
-    >
-      <img
-        src={brand.src}
-        alt={brand.name}
-        loading="lazy"
-        decoding="async"
-        style={{
-          height: 'clamp(24px, 4vw, 38px)',
-          maxWidth: '140px',
-          width: 'auto',
-          objectFit: 'contain',
-          filter: transparent ? 'drop-shadow(0 2px 10px rgba(255,255,255,0.10))' : 'none',
-        }}
-      />
+function BrandItem({ brand, clone = false, depthDelay = 0 }) {
+  const content = (
+    <>
+      {brand.src ? <img src={brand.src} alt={clone ? '' : brand.name} width="160" height="48" loading="lazy" decoding="async" /> : <span>{brand.name}</span>}
+    </>
+  );
+  const itemProps = {
+    className: 'dtb-trusted-brand-link',
+    style: { '--dtb-brand-depth-delay': `${depthDelay}s` },
+    'aria-hidden': clone || undefined,
+    tabIndex: clone ? -1 : undefined,
+  };
+
+  return brand.to ? (
+    <Link {...itemProps} to={brand.to} aria-label={clone ? undefined : `Shop ${brand.name}`}>
+      {content}
     </Link>
+  ) : (
+    <span {...itemProps} aria-label={clone ? undefined : brand.name}>
+      {content}
+    </span>
   );
 }
 
-export default function TrustedBrands({ brands = [], title = 'Trusted Brands', speed = 30, dark = false, transparent = false }) {
-  if (!brands.length) return null;
+export default function TrustedBrands({
+  brands = [],
+  title = 'Trusted Brands',
+  speed = 32,
+  dark = false,
+  transparent = false,
+  className = '',
+}) {
+  const normalizedBrands = useMemo(() => normalizeBrands(Array.isArray(brands) ? brands : []), [brands]);
+  const sectionId = useId();
+  const viewportRef = useRef(null);
+  const laneRef = useRef(null);
+  const [reducedMotion, setReducedMotion] = useState(() =>
+    typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  const [loopCount, setLoopCount] = useState(() => reducedMotion ? 1 : MIN_LOOPS);
+  const [depthDelays, setDepthDelays] = useState([]);
+  const [paused, setPaused] = useState(false);
 
-  const bg = transparent
-    ? 'transparent'
-    : dark
-      ? 'radial-gradient(circle at 50% 0%, rgba(29,78,216,0.32) 0%, transparent 55%), radial-gradient(circle at 50% 110%, rgba(56,189,248,0.13) 0%, transparent 55%), #070d1c'
-      : '#f8fafc';
-  const fadeColor = dark || transparent ? '#070d1c' : '#f8fafc';
-  const titleColor = dark || transparent ? 'rgba(226,232,240,0.75)' : 'rgba(15,23,42,0.35)';
-  const isLight = !dark && !transparent;
+  useEffect(() => {
+    const query = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+    if (!query) return undefined;
+    const sync = () => setReducedMotion(query.matches);
+    sync();
+    query.addEventListener?.('change', sync);
+    return () => query.removeEventListener?.('change', sync);
+  }, []);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const lane = laneRef.current;
+    if (!viewport || !lane || normalizedBrands.length < 2) return undefined;
+
+    const measure = () => {
+      const firstItem = lane.firstElementChild;
+      if (!firstItem) return;
+
+      const itemWidth = firstItem.offsetWidth;
+      const gap = Number.parseFloat(window.getComputedStyle(lane).columnGap) || 0;
+      const pitch = itemWidth + gap;
+      const viewportWidth = viewport.clientWidth;
+      if (!pitch || !viewportWidth) return;
+
+      const loopCountNext = reducedMotion
+        ? 1
+        : Math.max(1, Math.ceil((viewportWidth + pitch) / (normalizedBrands.length * pitch)));
+      setLoopCount((current) => current === loopCountNext ? current : loopCountNext);
+
+      const itemCount = normalizedBrands.length * loopCountNext;
+      const laneWidth = Math.max(1, (itemCount * pitch) - gap);
+      const duration = Math.max(18, Number(speed) || 32);
+      setDepthDelays(Array.from({ length: itemCount }, (_, index) => {
+        const center = (index * pitch) + (itemWidth / 2);
+        const crossingFraction = (center - (viewportWidth / 2)) / laneWidth;
+        return (0.5 - crossingFraction) * duration;
+      }));
+    };
+
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    if (lane.firstElementChild) observer.observe(lane.firstElementChild);
+    return () => observer.disconnect();
+  }, [normalizedBrands.length, reducedMotion, speed]);
+
+  if (!normalizedBrands.length) return null;
+
+  const loops = Array.from({ length: normalizedBrands.length < 2 || reducedMotion ? 1 : loopCount }, (_, loopIndex) =>
+    normalizedBrands.map((brand, brandIndex) => ({
+      ...brand,
+      key: `${brand.to || brand.name}-${loopIndex}-${brandIndex}`,
+      depthDelay: depthDelays[(loopIndex * normalizedBrands.length) + brandIndex] || 0,
+    }))
+  ).flat();
+  const duration = `${Math.max(18, Number(speed) || 32)}s`;
+  const classes = [
+    'dtb-ui-trusted-brands',
+    normalizedBrands.length < 2 ? 'is-static' : '',
+    dark ? 'dtb-ui-trusted-brands--dark' : '',
+    transparent ? 'dtb-ui-trusted-brands--transparent' : '',
+    paused ? 'is-paused' : '',
+    className,
+  ].filter(Boolean).join(' ');
 
   return (
     <section
-      className="dtb-ui-trusted-brands"
-      style={{
-        background: bg,
-        borderTop:    isLight ? '1px solid var(--machined-border)' : 'none',
-        borderBottom: isLight ? '1px solid var(--machined-border)' : 'none',
-        padding: isLight
-          ? 'clamp(1.5rem, 3vw, 2.5rem) 0'
-          : 'clamp(1rem, 2vw, 1.75rem) 0 clamp(2rem, 4vw, 3rem)',
-        overflow: 'hidden',
-      }}
+      className={classes}
+      aria-labelledby={title ? `${sectionId}-title` : undefined}
+      aria-label={title ? undefined : 'Trusted brands'}
+      style={{ '--dtb-brand-loop-duration': duration }}
     >
-      {title && (
-        <p
-          style={{
-            textAlign: 'center',
-            fontSize: '0.65rem',
-            fontWeight: 800,
-            letterSpacing: '0.14em',
-            textTransform: 'uppercase',
-            color: titleColor,
-            fontFamily: !isLight ? 'var(--font-mono, monospace)' : undefined,
-            margin: '0 0 clamp(1rem, 2vw, 1.5rem)',
-          }}
-        >
-          {title}
-        </p>
+      {(title || normalizedBrands.length > 1) && (
+        <div className="dtb-ui-trusted-brands__heading">
+          {title && <h2 id={`${sectionId}-title`} className="dtb-ui-trusted-brands__title">{title}</h2>}
+          {normalizedBrands.length > 1 && (
+            <button
+              type="button"
+              className="dtb-ui-trusted-brands__motion-control"
+              aria-controls={`${sectionId}-viewport`}
+              aria-label={paused ? 'Resume trusted brands carousel' : 'Pause trusted brands carousel'}
+              onClick={() => setPaused((value) => !value)}
+            >
+              {paused ? 'Resume motion' : 'Pause motion'}
+            </button>
+          )}
+        </div>
       )}
 
-      <div style={{ position: 'relative', overflow: 'hidden' }}>
-        <div style={{
-          position: 'absolute', left: 0, top: 0, bottom: 0, width: '80px', zIndex: 2,
-          background: `linear-gradient(to right, ${fadeColor} 0%, transparent 100%)`,
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', right: 0, top: 0, bottom: 0, width: '80px', zIndex: 2,
-          background: `linear-gradient(to left, ${fadeColor} 0%, transparent 100%)`,
-          pointerEvents: 'none',
-        }} />
-
-        <div
-          className="dtb-brands-track"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'clamp(12px, 2vw, 24px)',
-            width: 'max-content',
-            animation: `dtb-marquee ${speed}s linear infinite`,
-          }}
-        >
-          {[...brands, ...brands].map((brand, i) => (
-            <BrandLogo key={`${brand.name}-${i}`} brand={brand} dark={dark} transparent={transparent} />
-          ))}
+      <div className="dtb-ui-trusted-brands__viewport" id={`${sectionId}-viewport`} ref={viewportRef}>
+        <div className="dtb-ui-trusted-brands__track">
+          <div className="dtb-ui-trusted-brands__lane" ref={laneRef}>
+            {loops.map((brand) => <BrandItem key={brand.key} brand={brand} depthDelay={brand.depthDelay} />)}
+          </div>
+          <div className="dtb-ui-trusted-brands__lane dtb-ui-trusted-brands__lane--clone" aria-hidden="true">
+            {loops.map((brand) => <BrandItem key={`${brand.key}-clone`} brand={brand} clone depthDelay={brand.depthDelay} />)}
+          </div>
         </div>
       </div>
     </section>
