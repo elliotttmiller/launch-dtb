@@ -146,6 +146,54 @@
 		return bits.join( '' );
 	}
 
+	function renderPurchaseContext( item ) {
+		var provenance = item.provenance || {};
+		var catalog = item.catalog_context || {};
+		var bits = [];
+
+		if ( provenance.source === 'schematic' ) {
+			var title = provenance.schematic_title || provenance.schematic_id || 'Schematic';
+			var location = [];
+			if ( provenance.page_label ) {
+				location.push( provenance.page_label );
+			} else if ( provenance.page_number ) {
+				location.push( 'Page ' + provenance.page_number );
+			}
+			if ( provenance.part_ref ) {
+				location.push( 'Part ' + provenance.part_ref );
+			}
+			bits.push(
+				'<div class="dtb-orders-source dtb-orders-source--schematic">' +
+				'<span class="dtb-orders-source__badge">Schematic purchase</span>' +
+				'<strong>' + WB.escapeHtml( title ) + '</strong>' +
+				( location.length ? '<span>' + WB.escapeHtml( location.join( ' · ' ) ) + '</span>' : '' ) +
+				'</div>'
+			);
+		} else if ( item.catalog_resolution === 'legacy_name_match' ) {
+			bits.push(
+				'<div class="dtb-orders-source dtb-orders-source--recovered">' +
+				'<span class="dtb-orders-source__badge">Legacy catalog match</span>' +
+				'<span>Original order lacked a WooCommerce product reference; current catalog identity was recovered by an exact product-name match.</span>' +
+				'</div>'
+			);
+		}
+
+		var facts = [];
+		if ( item.brand ) { facts.push( 'Brand: ' + item.brand ); }
+		if ( item.mpn && item.mpn !== item.sku ) { facts.push( 'MPN: ' + item.mpn ); }
+		if ( item.product_kind && item.product_kind !== 'product' ) { facts.push( 'Type: ' + item.product_kind.replace( /_/g, ' ' ) ); }
+		if ( catalog.schematic_group && provenance.source !== 'schematic' ) {
+			facts.push( 'Catalog schematic groups: ' + catalog.schematic_group );
+		}
+		if ( facts.length ) {
+			bits.push( '<div class="dtb-orders-item__facts">' + facts.map( function ( fact ) {
+				return '<span>' + WB.escapeHtml( fact ) + '</span>';
+			} ).join( '' ) + '</div>' );
+		}
+
+		return bits.join( '' );
+	}
+
 	function renderKitComponents( item ) {
 		var components = Array.isArray( item.components ) ? item.components : [];
 		if ( ! components.length ) { return ''; }
@@ -179,7 +227,7 @@
 				? '<img class="dtb-orders-item__image" src="' + WB.escapeHtml( item.image ) + '" alt="' + WB.escapeHtml( item.image_alt || item.name || '' ) + '" loading="lazy">'
 				: '<span class="dtb-orders-item__image dtb-orders-item__image--empty" aria-hidden="true"></span>';
 			html += '<tr class="dtb-orders-item-row">';
-			html += '<td><div class="dtb-orders-item"><div class="dtb-orders-item__media">' + image + '</div><div class="dtb-orders-item__identity"><strong>' + WB.escapeHtml( item.name || 'Item' ) + '</strong><div class="dtb-orders-item__meta">' + renderItemMeta( item ) + '</div></div></div>';
+			html += '<td><div class="dtb-orders-item"><div class="dtb-orders-item__media">' + image + '</div><div class="dtb-orders-item__identity"><strong>' + WB.escapeHtml( item.name || 'Item' ) + '</strong><div class="dtb-orders-item__meta">' + renderItemMeta( item ) + '</div>' + renderPurchaseContext( item ) + '</div></div>';
 			html += renderKitComponents( item ) + '</td>';
 			html += '<td><code class="dtb-orders-item__sku">' + WB.escapeHtml( item.sku || '—' ) + '</code></td>';
 			html += '<td class="dtb-orders-item__qty">' + WB.escapeHtml( String( item.quantity || 0 ) ) + '</td>';
