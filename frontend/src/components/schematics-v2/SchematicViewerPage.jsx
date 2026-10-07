@@ -156,6 +156,13 @@ export default function SchematicViewerPage({
           <DiagramViewer
             page={activePage}
             parts={detail.parts}
+            schematicContext={{
+              id: detail.id,
+              title: detail.title,
+              brand: detail.brand?.name || detail.brand?.id || '',
+              category: detail.category?.name || detail.category?.id || '',
+              variant: variantNavigation.activeId || '',
+            }}
             onSelectPart={handleSelectPart}
             activePart={activePart}
             onCloseActivePart={handleCloseActivePart}

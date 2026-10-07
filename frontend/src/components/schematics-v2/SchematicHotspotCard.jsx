@@ -105,7 +105,7 @@ function resolveHotspotProductUrl(wcProduct, fallbackUrl = '') {
   return fallback.startsWith('/products/') ? fallback : '';
 }
 
-export default function SchematicHotspotCard({ part, onClose, onAddToCart, addingToCart }) {
+export default function SchematicHotspotCard({ part, schematicContext, onClose, onAddToCart, addingToCart }) {
   const { addToCart } = useCart();
   const [localAdding, setLocalAdding] = useState(false);
 
@@ -181,6 +181,14 @@ export default function SchematicHotspotCard({ part, onClose, onAddToCart, addin
         sku: wcProduct.sku || part.sku || part.mpn,
         image: primaryImage,
         permalink: effectiveProductUrl,
+        metadata: [
+          { key: '_dtb_source_surface', value: 'schematic' },
+          { key: '_dtb_schematic_id', value: schematicContext?.id || '' },
+          { key: '_dtb_schematic_page_id', value: schematicContext?.pageId || '' },
+          { key: '_dtb_schematic_page_number', value: String(schematicContext?.pageNumber || '') },
+          { key: '_dtb_schematic_part_ref', value: part.part_ref || '' },
+          { key: '_dtb_schematic_variant', value: schematicContext?.variant || '' },
+        ].filter((entry) => entry.value),
       }, 1);
       onClose?.();
     } finally {

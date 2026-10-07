@@ -58,7 +58,7 @@ function stopDialogPointerPropagation(event) {
   event.stopPropagation();
 }
 
-export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobile, onClose }) {
+export default function SchematicPartDialog({ part, schematicContext, anchorRect, wrapRef, isMobile, onClose }) {
   const cardRef = useRef(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
@@ -99,7 +99,7 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
           onPointerUp={stopDialogPointerPropagation}
           style={{ zIndex: 1002, pointerEvents: 'auto' }}
         >
-          <SchematicHotspotCard part={part} onClose={onClose} />
+          <SchematicHotspotCard part={part} schematicContext={schematicContext} onClose={onClose} />
         </div>
       </>
     );
@@ -122,7 +122,7 @@ export default function SchematicPartDialog({ part, anchorRect, wrapRef, isMobil
         pointerEvents: 'auto',
       }}
     >
-      <SchematicHotspotCard part={part} onClose={onClose} />
+      <SchematicHotspotCard part={part} schematicContext={schematicContext} onClose={onClose} />
     </div>
   );
 }
