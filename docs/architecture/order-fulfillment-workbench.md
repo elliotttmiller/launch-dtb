@@ -57,3 +57,24 @@ The workbench remains read-oriented except for existing authorized order actions
 The existing admin REST authorization remains authoritative. Fulfillment projections do not expose protected order-item metadata directly; only allowlisted derived fields are returned.
 
 Order actions continue to use capability checks and queue-backed/idempotent mutation paths. No new public endpoint, order-creation path, payment path, fulfillment writer, or external integration authority is introduced.
+
+
+## Purchase provenance and legacy catalog recovery
+
+Order-line provenance is stored on the WooCommerce line item because one order can contain products added from different storefront surfaces. It is not duplicated as an order-level source of truth.
+
+For schematic-origin purchases, the React schematic viewer sends only stable identifiers through Store API extension metadata. The backend re-resolves the schematic, page, part, and WooCommerce product before persisting protected order-item metadata. Browser-supplied schematic titles, brands, categories, and product identity are never trusted as authoritative.
+
+New schematic-origin order lines preserve:
+
+- source surface;
+- canonical schematic ID/title/brand/category;
+- page ID/number/label;
+- canonical part reference/SKU/title;
+- validated shared schematic variant when applicable.
+
+New orders also snapshot stable fulfillment-facing catalog identity including ordered SKU, MPN, brand, product kind, tool family, and product/variation IDs. These snapshots preserve operator context if catalog records are later changed or removed.
+
+Legacy line items whose WooCommerce product ID is missing may be read-enriched only when the current catalog contains exactly one product with the exact historical order-item name. The order itself is never rewritten. The admin UI labels this as a **Legacy catalog match** so operators can distinguish recovered present-day catalog identity from historical order provenance.
+
+Current catalog schematic groups shown for a legacy recovered item are compatibility context only. They must never be represented as proof that the customer purchased from a particular schematic.
