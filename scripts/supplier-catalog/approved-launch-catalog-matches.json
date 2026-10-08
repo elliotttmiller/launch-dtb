@@ -1,4 +1,4 @@
-﻿{
+{
   "schema_version": 1,
   "matches": [
     {
@@ -17,30 +17,6 @@
       "supplier_brand": "TapeTech",
       "supplier_sku": "85TT",
       "catalog_sku": "85T",
-      "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
-    },
-    {
-      "supplier_brand": "Columbia Tools",
-      "supplier_sku": "3BBH",
-      "catalog_sku": "3BH",
-      "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
-    },
-    {
-      "supplier_brand": "Columbia Tools",
-      "supplier_sku": "42BBH",
-      "catalog_sku": "42BH",
-      "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
-    },
-    {
-      "supplier_brand": "Columbia Tools",
-      "supplier_sku": "5BBH",
-      "catalog_sku": "5BH",
-      "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
-    },
-    {
-      "supplier_brand": "Columbia Tools",
-      "supplier_sku": "6BBH",
-      "catalog_sku": "6BH",
       "reason": "User-approved exact product-name match; supplier and catalog identifiers intentionally differ."
     },
     {
@@ -189,6 +165,32 @@
       "catalog_sku": "CR1",
       "reason": "User-approved match (Head Casting); adjacent/near-match SKU with slightly different descriptor between supplier and catalog — flagged as lower confidence than the CT71/76TT/8000TT/COBCR/3CSF matches. Cost of goods populated from tsw-costs.csv: $93.08.",
       "confidence": "lower"
+    }
+  ],
+  "rejected_matches": [
+    {
+      "supplier_brand": "Columbia Tools",
+      "supplier_sku": "3BBH",
+      "catalog_sku": "3BH",
+      "reason": "Rejected 2026-10-08: TSW Product Data - DTB Brands.csv identifies 3BBH as a 36-inch bent handle; catalog 3BH is a 3-foot 180-grip flat box handle. They are distinct models."
+    },
+    {
+      "supplier_brand": "Columbia Tools",
+      "supplier_sku": "42BBH",
+      "catalog_sku": "42BH",
+      "reason": "Rejected 2026-10-08: TSW Product Data - DTB Brands.csv identifies 42BBH as a 42-inch bent handle; catalog 42BH is a 42-inch flat box handle. They are distinct models."
+    },
+    {
+      "supplier_brand": "Columbia Tools",
+      "supplier_sku": "5BBH",
+      "catalog_sku": "5BH",
+      "reason": "Rejected 2026-10-08: TSW Product Data - DTB Brands.csv identifies 5BBH as a 60-inch bent handle; catalog 5BH is a 5-foot 180-grip flat box handle. They are distinct models."
+    },
+    {
+      "supplier_brand": "Columbia Tools",
+      "supplier_sku": "6BBH",
+      "catalog_sku": "6BH",
+      "reason": "Rejected 2026-10-08: TSW Product Data - DTB Brands.csv identifies 6BBH as a 72-inch bent handle; catalog 6BH is a 6-foot 180-grip flat box handle. They are distinct models."
     }
   ]
 }

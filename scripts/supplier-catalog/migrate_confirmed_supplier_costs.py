@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project exact or reviewed TSW descriptions and costs into the launch catalog."""
+"""Project confirmed TSW costs and, optionally, descriptions into the launch catalog."""
 
 from __future__ import annotations
 
@@ -27,10 +27,12 @@ from official_catalog_schema import (  # noqa: E402
 
 DEFAULT_CATALOG = ROOT / "products" / "launch" / "official" / "dtb_official_catalog.csv"
 DEFAULT_SOURCE = HERE / "results" / "cost" / "tsw-costs.csv"
+DEFAULT_IDENTITY = ROOT / "docs" / "reference" / "data" / "TSW" / "TSW Product Data - DTB Brands.csv"
 DEFAULT_APPROVALS = HERE / "approved-launch-catalog-matches.json"
 DEFAULT_GAPS = DEFAULT_CATALOG.with_name("dtb_official_catalog.include-gaps.json")
 DEFAULT_REPORT = HERE / "results" / "cost" / "tsw-supplier-cost-migration-report.json"
 COST_FIELD = "Cost of goods"
+BRIKPANEL_COST_FIELD = "Meta: _brikpanel_cogs"
 DESCRIPTION_FIELD = "Description"
 IDENTIFIER_FIELDS = ("SKU", "Meta: schema_mpn", "Meta: _dtb_manufacturer_sku", "Meta: _dtb_mpn", "meta:model")
 
@@ -128,6 +130,27 @@ def load_approvals(path: Path) -> dict[tuple[str, str], str]:
     return result
 
 
+def load_identity_crosswalk(path: Path) -> dict[tuple[str, str], str]:
+    """Map cleaned TSW brand/SKU pairs to the exact supplier SKU identifier."""
+    fields, rows = read_csv(path)
+    required = {"brand", "sku", "supplier_sku"}
+    if missing := sorted(required - set(fields)):
+        raise MigrationError(f"{path}: missing TSW identity fields: {', '.join(missing)}")
+    result: dict[tuple[str, str], str] = {}
+    for row_number, row in enumerate(rows, start=2):
+        key = (normalize_brand(row["brand"]), normalize_identifier(row["sku"]))
+        supplier_sku = clean(row["supplier_sku"])
+        if not all(key) or not supplier_sku:
+            continue
+        previous = result.get(key)
+        if previous and exact_identifier(previous) != exact_identifier(supplier_sku):
+            raise MigrationError(
+                f"{path}:{row_number}: conflicting supplier SKU crosswalk for {row['brand']} / {row['sku']}"
+            )
+        result[key] = supplier_sku
+    return result
+
+
 def catalog_candidates(rows: list[dict[str, str]]) -> tuple[
     dict[tuple[str, str], set[str]], dict[tuple[str, str], set[str]],
     dict[tuple[str, str], set[str]], dict[str, dict[str, str]]
@@ -165,6 +188,7 @@ def resolve_targets(
     normalized_index: dict[tuple[str, str], set[str]],
     by_sku: dict[str, dict[str, str]],
     approvals: dict[tuple[str, str], str],
+    identity_crosswalk: dict[tuple[str, str], str] | None = None,
 ) -> tuple[dict[str, dict[str, str]], dict[str, object]]:
     candidates: dict[str, list[dict[str, str]]] = defaultdict(list)
     ambiguous_sources: list[dict[str, str]] = []
@@ -183,6 +207,32 @@ def resolve_targets(
         elif len(exact) > 1:
             ambiguous_sources.append({"supplier_brand": product["brand"], "supplier_sku": product["sku"], "candidate_catalog_skus": sorted(exact)})
             continue
+        elif identity_crosswalk and key in identity_crosswalk:
+            supplier_sku = exact_identifier(identity_crosswalk[key])
+            identity_matches = sku_index.get((key[0], supplier_sku), set())
+            if not identity_matches:
+                identity_matches = exact_index.get((key[0], supplier_sku), set())
+            if len(identity_matches) == 1:
+                target = next(iter(identity_matches))
+                basis = "exact_tsw_supplier_sku_crosswalk"
+            elif len(identity_matches) > 1:
+                ambiguous_sources.append({
+                    "supplier_brand": product["brand"],
+                    "supplier_sku": product["sku"],
+                    "candidate_catalog_skus": sorted(identity_matches),
+                })
+                continue
+            elif key in approvals:
+                target = approvals[key]
+                if target not in by_sku:
+                    raise MigrationError(f"Reviewed mapping target does not exist: {product['brand']} / {product['sku']} -> {target}")
+                catalog_brand = normalize_brand(by_sku[target].get("Brands") or by_sku[target].get("Meta: _dtb_brand"))
+                if catalog_brand != key[0]:
+                    raise MigrationError(f"Reviewed mapping crosses brand boundary: {product['brand']} / {product['sku']} -> {target}")
+                basis = "reviewed_explicit_mapping"
+            else:
+                unmatched_source.append({"supplier_brand": product["brand"], "supplier_sku": product["sku"]})
+                continue
         elif key in approvals:
             target = approvals[key]
             if target not in by_sku:
@@ -252,23 +302,28 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--source", type=Path, default=DEFAULT_SOURCE)
+    parser.add_argument("--identity", type=Path, default=DEFAULT_IDENTITY, help="TSW product identity crosswalk for distributor-prefixed SKUs")
     parser.add_argument("--approvals", type=Path, default=DEFAULT_APPROVALS)
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
-    parser.add_argument("--apply", action="store_true", help="Write matched TSW descriptions and costs; otherwise preview")
+    parser.add_argument("--costs-only", action="store_true", help="Update native and BrikPanel COGS fields without changing descriptions")
+    parser.add_argument("--apply", action="store_true", help="Write matched TSW costs and, unless --costs-only is set, descriptions")
     args = parser.parse_args()
     catalog_path = args.catalog.resolve()
     validate_catalog(catalog_path, DEFAULT_GAPS)
     before = sha256(catalog_path)
     fields, rows = read_csv(catalog_path)
-    for field in (COST_FIELD, DESCRIPTION_FIELD):
+    required_fields = (COST_FIELD, BRIKPANEL_COST_FIELD) if args.costs_only else (COST_FIELD, BRIKPANEL_COST_FIELD, DESCRIPTION_FIELD)
+    for field in required_fields:
         if field not in fields:
             raise MigrationError(f"Official catalog is missing required field {field!r}")
     source, duplicate_rows = load_source(args.source.resolve())
     approvals = load_approvals(args.approvals.resolve())
+    identity_crosswalk = load_identity_crosswalk(args.identity.resolve())
     sku_index, exact_index, normalized_index, by_sku = catalog_candidates(rows)
-    resolved, resolution_report = resolve_targets(source, sku_index, exact_index, normalized_index, by_sku, approvals)
+    resolved, resolution_report = resolve_targets(source, sku_index, exact_index, normalized_index, by_sku, approvals, identity_crosswalk)
 
     cost_changes = 0
+    brikpanel_cost_changes = 0
     description_changes = 0
     for row in rows:
         desired = resolved.get(clean(row.get("SKU")))
@@ -277,11 +332,14 @@ def main() -> int:
         if (row.get(COST_FIELD) or "").strip() != desired["cost"]:
             row[COST_FIELD] = desired["cost"]
             cost_changes += 1
-        if (row.get(DESCRIPTION_FIELD) or "").strip() != desired["description"]:
+        if (row.get(BRIKPANEL_COST_FIELD) or "").strip() != desired["cost"]:
+            row[BRIKPANEL_COST_FIELD] = desired["cost"]
+            brikpanel_cost_changes += 1
+        if not args.costs_only and (row.get(DESCRIPTION_FIELD) or "").strip() != desired["description"]:
             row[DESCRIPTION_FIELD] = desired["description"]
             description_changes += 1
 
-    changed = cost_changes + description_changes > 0
+    changed = cost_changes + brikpanel_cost_changes + description_changes > 0
     backup = None
     if args.apply and changed:
         if sha256(catalog_path) != before:
@@ -292,16 +350,20 @@ def main() -> int:
 
     row_skus = {clean(row.get("SKU")) for row in rows}
     report: dict[str, object] = {
-        "schema_version": 2,
+        "schema_version": 3,
         "mode": "apply" if args.apply else "preview",
+        "costs_only": args.costs_only,
         "catalog": str(catalog_path),
         "source": str(args.source.resolve()),
+        "identity_crosswalk": str(args.identity.resolve()),
+        "identity_crosswalk_sha256": sha256(args.identity.resolve()),
         "source_unique_brand_sku_rows": len(source),
         "source_duplicate_identical_rows_collapsed": duplicate_rows,
         "confirmed_catalog_targets": len(resolved),
         "catalog_rows": len(rows),
         "catalog_rows_without_resolved_tsw_match": len(row_skus - set(resolved)),
         "costs_changed": cost_changes,
+        "brikpanel_cogs_changed": brikpanel_cost_changes,
         "descriptions_changed": description_changes,
         "catalog_rows_with_resolved_source_data": len(resolved),
         "catalog_rows_without_tsw_cost_or_description_source": len(rows) - len(resolved),

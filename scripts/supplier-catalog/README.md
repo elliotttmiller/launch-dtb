@@ -155,15 +155,26 @@ scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\migrate_c
 ```
 
 Apply the reviewed exact/reconciled projection with the explicit `--apply` flag.
-The migrator writes TSW `product_description_html` to WooCommerce's `Description`
-field and `supplier_cost` to the `Cost of goods` CSV field (the `cogs_value`
-property when WooCommerce Cost of Goods Sold is enabled). It prefers one unique,
-brand-scoped exact match across protected identifiers, then uses only an explicit
-reviewed mapping when no exact identifier match exists. Duplicate identical
-supplier rows are collapsed; ambiguous source identities and conflicting supplier
-records targeting one catalog SKU are reported and left unchanged. The audit
-report records matched, unmatched, and conflicting rows without copying cost or
-description payloads into the report.
+The migrator writes TSW `supplier_cost` to both WooCommerce's `Cost of goods` CSV
+field (`cogs_value` when native Cost of Goods Sold is enabled) and BrikPanel's
+`Meta: _brikpanel_cogs` field. It can also write supplier descriptions to
+WooCommerce's `Description` field. Use `--costs-only` to update the two cost
+fields without changing descriptions. `--identity` accepts the TSW product-data
+crosswalk, which maps a cleaned cost SKU to its exact distributor `supplier_sku`
+when the official catalog retains the distributor prefix. Matching prefers a
+unique brand-scoped protected identifier, then that exact TSW crosswalk, then an
+explicit reviewed mapping. Duplicate identical supplier rows are collapsed;
+ambiguous source identities and conflicting supplier records targeting one
+catalog SKU are reported and left unchanged. The audit report records matched,
+unmatched, and conflicting rows without copying cost or description payloads
+into the report.
+
+The identity crosswalk is not a name-matching rule. It is valid only when the
+TSW cleaned SKU uniquely identifies a TSW product row and that row's exact
+`supplier_sku` uniquely resolves to a brand-compatible catalog identifier.
+Mappings that contradict product names or dimensions must be removed from the
+reviewed mapping file and retained as rejected evidence, not used to force a
+cost or description onto a different product.
 
 The official catalog and Veeqo export can only receive source-backed values for
 products present in `tsw-costs.csv` and resolvable by these rules. Products with
@@ -171,6 +182,15 @@ no source row or unresolved identity remain unchanged and are listed in the
 report; do not fill their cost or description by inference. The Veeqo projection
 uses the official catalog `Description` and `Cost of goods` fields for
 `description` and `cost_price` respectively.
+
+The current full catalog COG reconciliation is emitted to
+`results/cost/official-catalog-cogs-reconciliation.csv` and its summary to
+`results/cost/official-catalog-cogs-reconciliation.json`. It accounts for all
+simple products, variations, and variable parents, distinguishing source-verified
+costs from existing costs that were not matched to the inspected source files,
+unverified BrikPanel-only values, and products with no verified cost source.
+The row-level file records the source SKU and match basis for verified values;
+it does not treat an unverified existing cost as incorrect or change it.
 
 ## TSW shipping and product specifications
 
