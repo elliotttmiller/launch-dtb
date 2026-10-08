@@ -137,23 +137,40 @@ Reviewed identifier exceptions are stored explicitly in
 `approved-launch-catalog-matches.json`; the analyzer validates that each mapping
 resolves to exactly one brand-compatible launch-catalog row.
 
+If multiple confirmed TSW rows resolve to one catalog SKU, duplicate targets are
+blocked from automatic shipping-spec migration. A unique direct identifier match
+retains precedence over an overlapping manual approval; other duplicate targets
+remain ambiguous for review.
+
 For focused review, every analysis run also writes three temporary subsets under
 `results/shipping/`: confirmed products, products with no match, and products requiring
 review. Each subset retains the complete analysis schema and is regenerated from
 the authoritative analysis statuses.
 
-After confirmed mappings have been reviewed, project their supplier costs into
-the launch catalog with:
+Preview TSW description and supplier-cost reconciliation against protected
+catalog identifiers and explicit reviewed mappings with:
 
 ```powershell
 scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\migrate_confirmed_supplier_costs.py
 ```
 
-The migration uses WooCommerce core's `Cost of goods` CSV field, which maps to
-the product `cogs_value` property when the Cost of Goods Sold feature is enabled.
-It updates only unique confirmed catalog SKUs, fails closed on missing or
-duplicate targets and conflicting costs, and writes an audit report under
-`results/cost/`.
+Apply the reviewed exact/reconciled projection with the explicit `--apply` flag.
+The migrator writes TSW `product_description_html` to WooCommerce's `Description`
+field and `supplier_cost` to the `Cost of goods` CSV field (the `cogs_value`
+property when WooCommerce Cost of Goods Sold is enabled). It prefers one unique,
+brand-scoped exact match across protected identifiers, then uses only an explicit
+reviewed mapping when no exact identifier match exists. Duplicate identical
+supplier rows are collapsed; ambiguous source identities and conflicting supplier
+records targeting one catalog SKU are reported and left unchanged. The audit
+report records matched, unmatched, and conflicting rows without copying cost or
+description payloads into the report.
+
+The official catalog and Veeqo export can only receive source-backed values for
+products present in `tsw-costs.csv` and resolvable by these rules. Products with
+no source row or unresolved identity remain unchanged and are listed in the
+report; do not fill their cost or description by inference. The Veeqo projection
+uses the official catalog `Description` and `Cost of goods` fields for
+`description` and `cost_price` respectively.
 
 ## TSW shipping and product specifications
 
@@ -180,8 +197,10 @@ scripts\supplier-catalog\.venv\Scripts\python scripts\supplier-catalog\migrate_c
 
 Apply the validated projection with the explicit `--apply` flag. The migrator
 updates only the WooCommerce `Weight (lbs)`, `Length (in)`, `Width (in)`, and
-`Height (in)` fields for unique confirmed catalog SKUs. Blank supplier
-measurements never erase catalog values, and exact zero measurements are treated
-as unavailable source sentinels and counted in the report. Negative, nonnumeric,
-or nonfinite measurements, duplicate targets, or missing targets stop the run. An audit report is written to
-`results/shipping/tsw-shipping-spec-migration-report.json`.
+`Height (in)` fields for unique confirmed catalog SKUs. Positive TSW values
+replace catalog values; blank or zero TSW measurements clear unsupported values
+for that exact confirmed product. Zero is an unavailable measurement sentinel,
+not a physical shipping specification. Negative, nonnumeric, or nonfinite
+measurements, duplicate targets, or missing targets stop the run. The audit also
+reports catalog rows with no confirmed TSW identity match, by brand. An audit
+report is written to `results/shipping/tsw-shipping-spec-migration-report.json`.

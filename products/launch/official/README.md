@@ -6,9 +6,25 @@
 
 - The official CSV owns canonical launch product content and identifiers represented in the export.
 - SKU, MPN/manufacturer SKU, GTIN, brand identity, taxonomy identity, compatibility relationships, and external IDs are protected business data.
-- Veeqo remains authoritative for inventory, allocation, fulfillment, shipping, and tracking.
+- Veeqo remains authoritative for inventory, allocation, fulfillment, shipping, and tracking. The official catalog does not seed Veeqo stock quantities or stock value.
 - Pricing follows WooCommerce/runtime pricing ownership; enrichment does not create another price authority.
 - Derived research, comparison, and run-report files are not canonical product truth.
+
+## Veeqo launch product import
+
+Build the product setup import from the canonical catalog with:
+
+```powershell
+.\scripts\catalog\rebuild-veeqo-inventory-import.ps1 -Apply
+```
+
+The generated `veeqo_inventory.csv` includes every official catalog row and SKU regardless of WooCommerce publish status or product type. Variable parents and variations retain their source titles/options, and draft rows are included. The CSV intentionally omits stock quantities, Veeqo product IDs, and export-only stock-value columns; it creates product records without asserting starting inventory.
+
+WooCommerce is the retail-price authority. When a catalog row has no regular or active sale price, the Veeqo import projection writes `0.00` to `sales_price` as an explicit placeholder for later pricing work. This placeholder exists only in the generated Veeqo CSV and does not write or assert a WooCommerce catalog price. The generator reports the placeholder count and a short SKU sample; replace these values with reviewed prices before treating them as customer-facing retail prices.
+
+WooCommerce remains the price and checkout-tax authority. The Veeqo `tax_rate` import field is populated with Minnesota's 6.875% state general sales-tax rate as a decimal (`0.06875`), from the Minnesota Department of Revenue's [Taxes and Rates guide](https://www.revenue.state.mn.us/guide/taxes-and-rates). Minnesota transaction tax can also include applicable local taxes, and the final tax calculation remains transaction/destination-specific in WooCommerce.
+
+The Veeqo product `description` and `cost_price` are projected from the official catalog's `Description` and `Cost of goods` fields. TSW supplier evidence may populate those fields only after a unique brand-scoped identifier match or an explicit reviewed mapping; unmatched or conflicting products remain unchanged.
 
 ## One official catalog run
 

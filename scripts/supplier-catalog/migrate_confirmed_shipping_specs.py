@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Project confirmed TSW shipping measurements into the canonical launch catalog."""
+"""Synchronize confirmed TSW shipping measurements into the canonical launch catalog."""
 
 from __future__ import annotations
 
@@ -71,7 +71,7 @@ def normalize_measurement(value: str, *, supplier_sku: str, field: str) -> tuple
 
 def load_confirmed_specs(
     path: Path,
-) -> tuple[dict[str, dict[str, str]], Counter[str], Counter[str], Counter[str]]:
+) -> tuple[dict[str, dict[str, str]], Counter[str], Counter[str], Counter[str], Counter[str]]:
     fields, rows = read_csv(path)
     required = {"match_status", "confidence", "supplier_sku", "catalog_sku", *MEASUREMENT_FIELDS}
     if missing := sorted(required - set(fields)):
@@ -80,6 +80,7 @@ def load_confirmed_specs(
     specs: dict[str, dict[str, str]] = {}
     statuses: Counter[str] = Counter()
     populated: Counter[str] = Counter()
+    source_blanks: Counter[str] = Counter()
     suppressed_zeroes: Counter[str] = Counter()
     for row_number, row in enumerate(rows, start=2):
         status = row["match_status"].strip()
@@ -95,6 +96,8 @@ def load_confirmed_specs(
 
         measurements = {}
         for supplier_field, catalog_field in MEASUREMENT_FIELDS.items():
+            if not row[supplier_field].strip():
+                source_blanks[catalog_field] += 1
             value, suppressed_zero = normalize_measurement(
                 row[supplier_field], supplier_sku=supplier_sku, field=supplier_field
             )
@@ -109,7 +112,7 @@ def load_confirmed_specs(
 
     if not specs:
         raise MigrationError(f"{path}: no confirmed mappings found")
-    return specs, statuses, populated, suppressed_zeroes
+    return specs, statuses, populated, source_blanks, suppressed_zeroes
 
 
 def write_csv_atomic(path: Path, fields: list[str], rows: list[dict[str, str]]) -> None:
@@ -180,7 +183,7 @@ def main() -> int:
         raise MigrationError("Catalog, confirmed input, and report paths must be distinct")
 
     before_sha256 = sha256(catalog_path)
-    specs, statuses, populated, suppressed_zeroes = load_confirmed_specs(confirmed_path)
+    specs, statuses, populated, source_blanks, suppressed_zeroes = load_confirmed_specs(confirmed_path)
     fields, rows = read_csv(catalog_path)
     required_catalog_fields = {"SKU", *MEASUREMENT_FIELDS.values()}
     if missing := sorted(required_catalog_fields - set(fields)):
@@ -198,6 +201,7 @@ def main() -> int:
 
     field_updates: Counter[str] = Counter()
     field_unchanged: Counter[str] = Counter()
+    field_clears: Counter[str] = Counter()
     changed_skus: list[str] = []
     for row in rows:
         sku = (row.get("SKU") or "").strip()
@@ -206,9 +210,15 @@ def main() -> int:
             continue
         product_changed = False
         for field, value in desired.items():
-            if not value:
-                continue
             current = (row.get(field) or "").strip()
+            if not value:
+                if current:
+                    row[field] = ""
+                    field_clears[field] += 1
+                    product_changed = True
+                else:
+                    field_unchanged[field] += 1
+                continue
             if measurements_equal(current, value):
                 field_unchanged[field] += 1
                 continue
@@ -218,23 +228,43 @@ def main() -> int:
         if product_changed:
             changed_skus.append(sku)
 
-    if args.apply:
+    if args.apply and changed_skus:
         backup_path = create_catalog_backup(catalog_path)
         write_csv_atomic(catalog_path, fields, rows)
         validate_catalog(catalog_path, DEFAULT_GAPS)
     else:
         backup_path = None
     after_sha256 = sha256(catalog_path)
+    catalog_rows_by_brand: Counter[str] = Counter()
+    confirmed_rows_by_brand: Counter[str] = Counter()
+    for row in rows:
+        brand = (row.get("Brands") or "").strip() or "(blank brand)"
+        catalog_rows_by_brand[brand] += 1
+        if (row.get("SKU") or "").strip() in specs:
+            confirmed_rows_by_brand[brand] += 1
+    coverage_by_brand = {
+        brand: {
+            "catalog_rows": total,
+            "confirmed_tsw_rows": confirmed_rows_by_brand[brand],
+            "without_confirmed_tsw_match": total - confirmed_rows_by_brand[brand],
+        }
+        for brand, total in sorted(catalog_rows_by_brand.items())
+    }
     report = {
-        "schema_version": 1,
+        "schema_version": 2,
         "mode": "applied" if args.apply else "preview",
         "catalog": str(catalog_path),
         "confirmed_source": str(confirmed_path),
         "confirmed_rows": len(specs),
+        "catalog_rows": len(rows),
+        "catalog_rows_without_confirmed_tsw_match": len(rows) - len(specs),
+        "catalog_tsw_coverage_by_brand": coverage_by_brand,
         "confirmed_statuses": dict(sorted(statuses.items())),
         "source_measurements_populated": dict(sorted(populated.items())),
+        "source_measurements_blank": dict(sorted(source_blanks.items())),
         "source_zero_measurements_suppressed": dict(sorted(suppressed_zeroes.items())),
         "field_updates": dict(sorted(field_updates.items())),
+        "field_clears_for_blank_or_zero_source_values": dict(sorted(field_clears.items())),
         "field_values_already_current": dict(sorted(field_unchanged.items())),
         "products_changed": len(changed_skus),
         "changed_catalog_skus": changed_skus,
@@ -245,7 +275,8 @@ def main() -> int:
     write_report_atomic(report_path, report)
     print(
         f"{'Applied' if args.apply else 'Previewed'} shipping specs for {len(specs)} confirmed products: "
-        f"{len(changed_skus)} products, {sum(field_updates.values())} fields changed"
+        f"{len(changed_skus)} products, {sum(field_updates.values())} fields set from TSW, "
+        f"{sum(field_clears.values())} fields cleared because TSW is blank or zero"
     )
     return 0
 

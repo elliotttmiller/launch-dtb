@@ -171,7 +171,7 @@ def load_catalog(path: Path) -> list[CatalogRecord]:
 
 def load_approvals(path: Path) -> dict[tuple[str, str], dict[str, str]]:
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = json.loads(path.read_text(encoding="utf-8-sig"))
     except (OSError, json.JSONDecodeError) as exc:
         raise AnalysisError(f"Cannot read approved matches {path}: {exc}") from exc
     if not isinstance(payload, dict) or payload.get("schema_version") != 1 or not isinstance(payload.get("matches"), list):
@@ -273,6 +273,21 @@ def analyze(suppliers: list[dict[str, str]], catalog: list[CatalogRecord], appro
     applicable_unused = sorted(k for k in set(approvals) - used if k[0] in {brand_key(s["brand"]) for s in suppliers})
     if applicable_unused:
         raise AnalysisError("Approved mappings do not resolve to current supplier rows: " + ", ".join(f"{b}/{s}" for b, s in applicable_unused))
+    by_target: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in output:
+        if row["match_status"] in CONFIRMED and row["catalog_sku"]:
+            by_target[ident(row["catalog_sku"])].append(row)
+    for target, matches in by_target.items():
+        if len(matches) < 2:
+            continue
+        exact = [row for row in matches if row["match_status"] == "matched_identifier"]
+        demote = [row for row in matches if row["match_status"] == "approved_manual_match"] if len(exact) == 1 else matches
+        for row in demote:
+            row["match_status"] = "ambiguous_identifier"
+            row["confidence"] = "blocked"
+            note = f"Multiple TSW records resolve to catalog SKU {row['catalog_sku']}; exact identifier precedence requires manual review."
+            existing_note = str(row.get("review_notes") or "").strip()
+            row["review_notes"] = f"{existing_note} {note}".strip()
     return sorted(output, key=lambda r: (str(r["match_status"]), str(r["supplier_brand"]).casefold(), str(r["supplier_sku"]).casefold()))
 
 def write_csv(path: Path, rows: list[dict[str, object]]) -> None:
