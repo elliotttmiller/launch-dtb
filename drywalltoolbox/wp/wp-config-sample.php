@@ -105,11 +105,22 @@ define( 'WP_MAX_MEMORY_LIMIT', '512M' );
  * Keep resource IDs at 0 until each live identifier is verified. Keep webhook
  * verification disabled unless Veeqo's live signing contract is verified.
  */
-// Define DTB_VEEQO_API_KEY only after obtaining a rotated production key.
-// Let verified resource IDs persist through the Veeqo settings workflow rather
-// than defining guessed IDs here.
+// Keep Veeqo credentials and verified resource IDs in the ignored wp-config.php
+// used for the target environment. Never place production secrets in this sample.
+// define( 'DTB_VEEQO_API_KEY', 'replace-with-a-server-side-key' );
+// define( 'DTB_VEEQO_CHANNEL_ID', 0 );
+// define( 'DTB_VEEQO_WAREHOUSE_ID', 0 );
+// define( 'DTB_VEEQO_DELIVERY_METHOD_ID', 0 );
+// define( 'DTB_VEEQO_WEBHOOK_SECRET', 'replace-with-a-server-side-secret' );
 define( 'DTB_VEEQO_ENABLE_VERIFIED_WEBHOOKS', false );
 define( 'DTB_VEEQO_DEBUG', false );
+
+/**
+ * Native Veeqo kit writes are disabled by default in new installations.
+ * Enable only in the protected production wp-config.php after verifying the
+ * operator authorization and duplicate-operation safeguards on that server.
+ */
+define( 'DTB_VEEQO_KIT_WRITES_ENABLED', false );
 
 /**
  * Production-safe debug defaults.
@@ -128,6 +139,21 @@ define( 'SCRIPT_DEBUG', false );
  */
 // QuickBooks remains unconfigured until a reviewed production or sandbox
 // connection is intentionally enabled with newly issued provider credentials.
+define( 'DTB_QBO_ENVIRONMENT', 'sandbox' );
+// Leave credentials undefined here so operator-managed settings are not shadowed.
+// define( 'DTB_QBO_CLIENT_ID', 'replace-with-client-id' );
+// define( 'DTB_QBO_CLIENT_SECRET', 'replace-with-server-side-client-secret' );
+// define( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN', 'replace-with-sandbox-token' );
+
+/**
+ * Deployment integration. Supply secrets only in the ignored environment config.
+ */
+// define( 'DTB_DEPLOYMENT_WEBHOOK_SECRET', 'replace-with-server-side-secret' );
+// define( 'DTB_GITHUB_DEPLOYMENT_TOKEN', 'replace-with-server-side-token' );
+// Optional overrides; the integration has code-owned defaults.
+// define( 'DTB_GITHUB_REPO_OWNER', '' );
+// define( 'DTB_GITHUB_REPO_NAME', '' );
+// define( 'DTB_GITHUB_RELEASE_WORKFLOW_FILE', '' );
 
 /* That's all, stop editing! Happy publishing. */
 
