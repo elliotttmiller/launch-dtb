@@ -58,7 +58,6 @@ export default function TrustedBrands({
   );
   const [loopCount, setLoopCount] = useState(() => reducedMotion ? 1 : MIN_LOOPS);
   const [depthDelays, setDepthDelays] = useState([]);
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const query = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -121,7 +120,6 @@ export default function TrustedBrands({
     normalizedBrands.length < 2 ? 'is-static' : '',
     dark ? 'dtb-ui-trusted-brands--dark' : '',
     transparent ? 'dtb-ui-trusted-brands--transparent' : '',
-    paused ? 'is-paused' : '',
     className,
   ].filter(Boolean).join(' ');
 
@@ -132,20 +130,9 @@ export default function TrustedBrands({
       aria-label={title ? undefined : 'Trusted brands'}
       style={{ '--dtb-brand-loop-duration': duration }}
     >
-      {(title || normalizedBrands.length > 1) && (
+      {title && (
         <div className="dtb-ui-trusted-brands__heading">
           {title && <h2 id={`${sectionId}-title`} className="dtb-ui-trusted-brands__title">{title}</h2>}
-          {normalizedBrands.length > 1 && (
-            <button
-              type="button"
-              className="dtb-ui-trusted-brands__motion-control"
-              aria-controls={`${sectionId}-viewport`}
-              aria-label={paused ? 'Resume trusted brands carousel' : 'Pause trusted brands carousel'}
-              onClick={() => setPaused((value) => !value)}
-            >
-              {paused ? 'Resume motion' : 'Pause motion'}
-            </button>
-          )}
         </div>
       )}
 
