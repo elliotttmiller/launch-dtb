@@ -115,6 +115,9 @@ final class DTB_Veeqo_Admin_Read_Model {
 		$settings = (array) get_option( 'woocommerce_dtb_veeqo_settings', [] );
 		$fields   = [ 'channel_id', 'warehouse_id', 'delivery_method_id' ];
 		foreach ( $fields as $field ) {
+			if ( ! array_key_exists( $field, $input ) ) {
+				continue; // Omitted or server-locked controls must not erase stored IDs.
+			}
 			$constant = 'DTB_VEEQO_' . strtoupper( $field );
 			if ( defined( $constant ) && (int) constant( $constant ) > 0 ) {
 				continue;
