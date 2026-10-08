@@ -12,7 +12,8 @@ Veeqo/
 │   └── VeeqoAdminPage.php
 ├── Rest/
 │   ├── VeeqoAdminController.php
-│   └── VeeqoCompatibilityController.php
+│   ├── VeeqoCompatibilityController.php
+│   └── VeeqoKitReadController.php
 ├── Services/
 │   ├── VeeqoAdminReadModel.php
 │   └── VeeqoOperationStore.php
@@ -210,3 +211,14 @@ docs/veeqo-operations-admin.md
 docs/architecture/veeqo-woocommerce-integration-audit.md
 docs/architecture/veeqo-control-center-deployment.md
 ```
+
+## Native kit inspection (staged; read-only)
+
+The DTB Veeqo kit inspection controller is loaded by `dtb-integrations/bootstrap.php` and exposes only protected operator REST operations:
+
+- `GET /wp-json/dtb/v1/veeqo/admin/kits/{kit_id}` — fetches a Veeqo native kit through the existing server-side Veeqo API helper, returning a narrow projection of kit identity and component IDs/quantities.
+- `POST /wp-json/dtb/v1/veeqo/admin/kits/validate` — checks the shape of `{ "parent_sellable_id": 123, "components": [{ "sellable_id": 456, "quantity": 1 }] }` without calling Veeqo or mutating any state.
+
+Both routes require an authenticated WordPress operator with `manage_woocommerce`; cookie-authenticated REST clients must supply the normal WordPress REST nonce. Neither route implements a public MCP transport or grants ChatGPT an additional MCP tool. MCP tool publication would require a separate, explicitly authorized DTB MCP ability/transport registration and verification of its authentication and permissions boundary.
+
+Do not expose native kit creation or component mutation until exact live SKU identity, open-order eligibility, rate/retry handling, authorization, idempotent reconciliation, inventory semantics, and readback checks are validated. The 27-toolset manifest is business intent, not executable approval. Existing order and inventory flows must remain unchanged.
