@@ -49,29 +49,36 @@ function dtb_veeqo_production_readiness(): array {
  * @return array{channels:array<int,array<string,mixed>>,warehouses:array<int,array<string,mixed>>,delivery_methods:array<int,array<string,mixed>>,errors:string[]}
  */
 function dtb_veeqo_production_discover_resources(): array {
-	$result = [ 'channels' => [], 'warehouses' => [], 'delivery_methods' => [], 'errors' => [] ];
+	$result = [ 'channels' => [], 'warehouses' => [], 'delivery_methods' => [], 'errors' => [], 'channels_discovered' => false, 'direct_channel_ids' => [] ];
 	if ( ! dtb_veeqo_production_api_key_configured() || ! function_exists( 'dtb_veeqo_request' ) ) {
 		$result['errors'][] = 'Veeqo API credential is not configured server-side.';
 		return $result;
 	}
 
-	$channels = dtb_veeqo_request( 'GET', '/channels', [ 'type_code' => 'direct' ] );
+	$channels = dtb_veeqo_request( 'GET', '/channels', [ 'page' => '1', 'page_size' => '100' ] );
 	if ( empty( $channels['ok'] ) || ! is_array( $channels['data'] ?? null ) ) {
 		$result['errors'][] = dtb_veeqo_production_discovery_error( 'Direct channels', $channels );
 	} else {
 		foreach ( $channels['data'] as $channel ) {
-			if ( ! is_array( $channel ) || 'direct' !== (string) ( $channel['type_code'] ?? '' ) || absint( $channel['id'] ?? 0 ) <= 0 ) {
+			if ( ! is_array( $channel ) || absint( $channel['id'] ?? 0 ) <= 0 ) {
 				continue;
+			}
+			$type = sanitize_key( (string) ( $channel['type_code'] ?? '' ) );
+			if ( 'direct' === $type ) {
+				$result['direct_channel_ids'][] = absint( $channel['id'] );
 			}
 			$result['channels'][] = [
 				'id'       => absint( $channel['id'] ),
-				'name'     => sanitize_text_field( (string) ( $channel['name'] ?? 'Direct channel' ) ),
+				'name'     => sanitize_text_field( (string) ( $channel['name'] ?? 'Veeqo channel' ) ),
+				'type_code'=> $type,
+				'order_export_eligible' => 'direct' === $type,
 				'currency' => sanitize_text_field( (string) ( $channel['currency_code'] ?? '' ) ),
 				'state'    => sanitize_key( (string) ( $channel['state'] ?? '' ) ),
 			];
 		}
-		if ( empty( $result['channels'] ) ) {
-			$result['errors'][] = 'No eligible Direct sales channel was found in Veeqo. Verify that a Direct channel exists and that the integration user can access it.';
+		$result['channels_discovered'] = ! empty( $result['channels'] );
+		if ( empty( $result['direct_channel_ids'] ) ) {
+			$result['errors'][] = 'Veeqo channels were discovered, but no verified Direct channel is available for DTB API order creation. Existing WooCommerce channels are visible but cannot be selected for order export.';
 		}
 	}
 
@@ -157,7 +164,7 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 		$constant_name = 'DTB_VEEQO_' . strtoupper( $field );
 		$constant_id   = defined( $constant_name ) ? absint( constant( $constant_name ) ) : 0;
 		$candidates    = (array) $resources[ $resource_key ];
-		$valid_ids     = array_values( array_filter( array_map( static fn( array $item ): int => absint( $item['id'] ?? 0 ), $candidates ) ) );
+		$valid_ids     = 'channel_id' === $field ? (array) $resources['direct_channel_ids'] : array_values( array_filter( array_map( static fn( array $item ): int => absint( $item['id'] ?? 0 ), $candidates ) ) );
 		$current_id    = $constant_id > 0 ? $constant_id : absint( $settings[ $field ] ?? 0 );
 		// A failed or empty discovery is not evidence that an existing ID is invalid.
 		// Preserve the ID for a later validation rather than overwriting configuration.
@@ -193,6 +200,8 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 		'ready'                => empty( $errors ) && ! empty( $readiness['ready'] ),
 		'errors'               => array_values( array_unique( array_map( 'sanitize_text_field', $errors ) ) ),
 		'channel_candidates'   => $resources['channels'],
+		'channels_discovered' => $resources['channels_discovered'],
+		'eligible_order_channels' => count( $resources['direct_channel_ids'] ),
 		'warehouse_candidates' => $resources['warehouses'],
 		'delivery_candidates'  => $resources['delivery_methods'],
 		'readiness'            => $readiness,
