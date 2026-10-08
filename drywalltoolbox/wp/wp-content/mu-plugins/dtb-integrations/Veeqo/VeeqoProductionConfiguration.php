@@ -70,6 +70,9 @@ function dtb_veeqo_production_discover_resources(): array {
 				'state'    => sanitize_key( (string) ( $channel['state'] ?? '' ) ),
 			];
 		}
+		if ( empty( $result['channels'] ) ) {
+			$result['errors'][] = 'No eligible Veeqo Direct channel was returned. Configure or verify a Direct sales channel in Veeqo, then run discovery again.';
+		}
 	}
 
 	$warehouses = dtb_veeqo_request( 'GET', '/warehouses', [ 'page_size' => '100', 'page' => '1' ] );
@@ -123,6 +126,11 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 		$constant_id   = defined( $constant_name ) ? absint( constant( $constant_name ) ) : 0;
 		$candidates    = (array) $resources[ $resource_key ];
 		$valid_ids     = array_values( array_filter( array_map( static fn( array $item ): int => absint( $item['id'] ?? 0 ), $candidates ) ) );
+		// Discovery failures must never erase previously selected operational IDs.
+		// A retry can validate them once the provider returns a usable resource list.
+		if ( empty( $valid_ids ) ) {
+			continue;
+		}
 		$current_id    = $constant_id > 0 ? $constant_id : absint( $settings[ $field ] ?? 0 );
 
 		if ( $current_id > 0 && ! in_array( $current_id, $valid_ids, true ) ) {
