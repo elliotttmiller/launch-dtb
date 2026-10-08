@@ -17,7 +17,17 @@ function dtb_veeqo_production_api_key_configured(): bool {
 	return defined( 'DTB_VEEQO_API_KEY' ) && '' !== trim( (string) DTB_VEEQO_API_KEY );
 }
 
-function dtb_veeqo_production_readiness(): array {
+function dtb_veeqo_production_readiness( ?array $verified_channel_ids = null ): array {
+	if ( null === $verified_channel_ids ) {
+		$diagnostics = (array) get_option( DTB_VEEQO_CONFIGURATION_DIAGNOSTICS_OPTION, [] );
+		$verified_channel_ids = [];
+		foreach ( (array) ( $diagnostics['channel_candidates'] ?? [] ) as $candidate ) {
+			if ( is_array( $candidate ) && 'direct' === (string) ( $candidate['type_code'] ?? '' ) ) {
+				$verified_channel_ids[] = absint( $candidate['id'] ?? 0 );
+			}
+		}
+	}
+
 	$config  = function_exists( 'dtb_veeqo_config' ) ? dtb_veeqo_config() : [];
 	$missing = [];
 	if ( ! dtb_veeqo_production_api_key_configured() ) {
@@ -25,6 +35,9 @@ function dtb_veeqo_production_readiness(): array {
 	}
 	if ( absint( $config['channel_id'] ?? 0 ) <= 0 ) {
 		$missing[] = 'channel_id';
+	}
+	if ( absint( $config['channel_id'] ?? 0 ) > 0 && ! in_array( absint( $config['channel_id'] ), $verified_channel_ids, true ) ) {
+		$missing[] = 'verified_direct_channel';
 	}
 	if ( absint( $config['warehouse_id'] ?? 0 ) <= 0 ) {
 		$missing[] = 'warehouse_id';
@@ -194,7 +207,7 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 		update_option( 'woocommerce_dtb_veeqo_settings', $settings, false );
 		unset( $GLOBALS['_dtb_veeqo_config'] );
 	}
-	$readiness = dtb_veeqo_production_readiness();
+	$readiness = dtb_veeqo_production_readiness( (array) $resources['direct_channel_ids'] );
 	$diagnostics = [
 		'checked_at'           => gmdate( 'c' ),
 		'ready'                => empty( $errors ) && ! empty( $readiness['ready'] ),
