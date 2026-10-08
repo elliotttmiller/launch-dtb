@@ -85,3 +85,16 @@ test('full-bleed category band no longer depends on negative margins', async () 
   assert.match(layoutBlock, /transform:\s*translateX/);
   assert.doesNotMatch(layoutBlock, /margin-left|margin-right|margin-inline/);
 });
+
+
+test('mobile category merchandising remains unified and anchors to the existing product listing', async () => {
+  const hero = await readHeroSource();
+  const css = await readHeroStyles();
+  const page = await readFile(new URL('src/pages/ProductsCatalogPlatform.jsx', frontendRoot), 'utf8');
+  assert.match(hero, /href="#dtb-category-products"/);
+  assert.match(page, /id=\{isCategoryPageRoute \? "dtb-category-products" : undefined\}/);
+  assert.match(css, /\.dtb-category-hero-card__content\s*\{\s*display:\s*contents;/);
+  assert.match(css, /\.dtb-category-hero-card__copy\s*\{\s*order:\s*1;/);
+  assert.match(css, /\.dtb-category-hero-card__media\s*\{\s*order:\s*2;/);
+  assert.match(css, /\.dtb-category-hero__breadcrumb-stage\s*\{\s*order:\s*3;/);
+});

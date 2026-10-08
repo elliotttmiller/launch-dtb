@@ -117,6 +117,7 @@ export default function CategoryHero({
               {eyebrow && <span className="dtb-category-hero-card__eyebrow">{eyebrow}</span>}
               <h1 className="dtb-category-hero-card__title">{label}</h1>
               <p className="dtb-category-hero-card__description">{displayDescription}</p>
+              <a className="dtb-category-hero-card__shop-link" href="#dtb-category-products">Shop Products <span aria-hidden="true">→</span></a>
               <span className="dtb-category-hero-card__rule" aria-hidden="true" />
             </div>
           </div>

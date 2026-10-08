@@ -642,7 +642,7 @@ export default function ProductsCatalogPlatform({ forceProductGrid = false, titl
 
   const productGridContent = (
     <>
-      <div className={`dtb-product-grid dtb-product-grid--${displayMode}${mappedProducts.length === 1 ? ' dtb-product-grid--single' : ''}`}>
+      <div id={isCategoryPageRoute ? "dtb-category-products" : undefined} className={`dtb-product-grid dtb-product-grid--${displayMode}${mappedProducts.length === 1 ? ' dtb-product-grid--single' : ''}`}>
         {mappedProducts.map((product, index) => {
           const cardProduct = getCardDisplayProduct(product);
           return <ProductShoppingCard key={product.id} product={product} cardProduct={cardProduct} variant={displayMode} hasSelectedVariation={Boolean(product.is_variable && cardProduct?.parent_id)} onOpenModal={() => openModal(product)} onAddToCart={() => handleAddToCart(cardProduct || product, 1)} index={index} />;
