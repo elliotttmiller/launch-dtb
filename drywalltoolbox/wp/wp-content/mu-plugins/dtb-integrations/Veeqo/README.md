@@ -210,3 +210,18 @@ docs/veeqo-operations-admin.md
 docs/architecture/veeqo-woocommerce-integration-audit.md
 docs/architecture/veeqo-control-center-deployment.md
 ```
+
+
+## Native kit MCP abilities
+
+The DTB composition root loads `Services/VeeqoKitImportService.php`, `Rest/VeeqoKitReadController.php`, and `Rest/VeeqoKitMcpAbilities.php` (all three are required in the deployed MU-plugin tree). WordPress 6.9+ registers the category `dtb-veeqo-kits` and abilities:
+
+- `dtb-veeqo-kits/import-preview`: read-only exact-ID/SKU and BOM validation; returns a fingerprint.
+- `dtb-veeqo-kits/import-convert`: one-shot destructive conversion, requiring `approved_fingerprint` and `confirm_conversion: true`.
+- `dtb-veeqo-kits/read`: read-only `/kits/{kit_id}` inspection.
+
+Each ability requires authenticated WordPress `manage_woocommerce`. The convert ability delegates entirely to the existing guarded service, which independently requires `DTB_VEEQO_KIT_WRITES_ENABLED === true`, reserves a parent-specific operation before provider POST, prevents retries of uncertain outcomes, and checks the resulting kit against the intended BOM. An MCP client must obtain explicit user approval before conversion. A fingerprint is an exact BOM integrity check, **not** proof that a particular operator approved a specific conversion; the caller's authenticated approval workflow supplies that control.
+
+Do not expose the Veeqo API key, circumvent this service through the native Veeqo MCP connector, or convert an unreviewed manifest. A failure after upstream POST requires reconciliation, not retry. The Veeqo MCP API-key bearer authentication is separate from WordPress ability authentication.
+
+Operational verification: discover the three abilities through the WordPress Abilities API; inspect each schema; test invalid preview payloads for a 400 rejection; preview a reviewed, known-good parent and its components; obtain explicit approval; convert exactly once; inspect the resulting native kit and its component quantities in Veeqo. Neither discovery nor an invalid-payload test proves conversion readiness or authorizes a provider write.
