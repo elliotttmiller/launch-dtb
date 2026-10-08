@@ -128,7 +128,13 @@ export default function HomeHero({ brands = [] }) {
         <div className="home-hero__ambient" aria-hidden="true" />
         <div className="home-hero__scrim" aria-hidden="true" />
 
-        <div className="home-hero__content-shell" id="home-hero-panel" role="tabpanel" aria-live="polite">
+        <div
+          className="home-hero__content-shell"
+          id="home-hero-panel"
+          role="tabpanel"
+          aria-labelledby={`home-hero-tab-${activeCampaign.id}`}
+          aria-live="polite"
+        >
           <AnimatePresence initial={false} mode="wait" custom={direction}>
             <Motion.div
               className="home-hero__content"
@@ -179,6 +185,7 @@ export default function HomeHero({ brands = [] }) {
                   type="button"
                   key={campaign.id}
                   ref={(node) => { tabRefs.current[index] = node; }}
+                  id={`home-hero-tab-${campaign.id}`}
                   className={`home-hero-campaigns__tab${isActive ? ' is-active' : ''}`}
                   role="tab"
                   aria-selected={isActive}
