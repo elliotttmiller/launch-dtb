@@ -46,20 +46,31 @@ function dtb_system_manager_render_integration_settings_tab(): void {
  * @param string $value    Current stored value (plaintext).
  * @param bool   $is_secret Password-masked field; blank submit means "keep existing."
  */
-function dtb_integration_settings_field( string $label, string $name, string $value, bool $is_secret = false, string $placeholder = '' ): string {
+function dtb_integration_settings_field( string $label, string $name, string $value, bool $is_secret = false, string $placeholder = '', bool $disabled = false, ?bool $secret_is_set = null ): string {
 	$type = $is_secret ? 'password' : 'text';
 	$val  = $is_secret ? '' : esc_attr( $value );
+	$has_secret = null === $secret_is_set ? '' !== $value : $secret_is_set;
 	$ph   = $is_secret
-		? ( '' !== $value ? __( 'Already set — leave blank to keep', 'drywall-toolbox' ) : __( 'Not set', 'drywall-toolbox' ) )
+		? ( $has_secret ? __( 'Already set — leave blank to keep', 'drywall-toolbox' ) : __( 'Not set', 'drywall-toolbox' ) )
 		: esc_attr( $placeholder );
+	$disabled_attr = $disabled ? ' disabled aria-disabled="true"' : '';
 
 	return sprintf(
-		'<label class="dtb-settings-field"><span>%s</span><input type="%s" name="%s" value="%s" placeholder="%s" autocomplete="off"></label>',
+		'<label class="dtb-settings-field"><span>%s</span><input type="%s" name="%s" value="%s" placeholder="%s" autocomplete="off"%s></label>',
 		esc_html( $label ),
 		esc_attr( $type ),
 		esc_attr( $name ),
 		$val,
-		esc_attr( $ph )
+		esc_attr( $ph ),
+		$disabled_attr
+	);
+}
+
+function dtb_integration_settings_managed_hint( string $name ): string {
+	return sprintf(
+		'<p class="description dtb-settings-field__managed" data-dtb-managed-field="%1$s">%2$s</p>',
+		esc_attr( $name ),
+		esc_html__( 'Managed by server wp-config.php. Change it in the protected server configuration; this form cannot override it.', 'drywall-toolbox' )
 	);
 }
 
@@ -97,7 +108,13 @@ function dtb_integration_settings_render_quickbooks_card(): void {
 	$cfg      = function_exists( 'dtb_qbo_config' ) ? dtb_qbo_config() : [ 'client_id' => '', 'client_secret' => '', 'environment' => 'production', 'realm_id' => '' ];
 	$stored   = function_exists( 'dtb_qbo_settings_option' ) ? dtb_qbo_settings_option() : [];
 	$enabled  = function_exists( 'dtb_qbo_enabled' ) && dtb_qbo_enabled();
-	$stripe_set = '' !== ( function_exists( 'dtb_qbo_stripe_restricted_key' ) ? dtb_qbo_stripe_restricted_key() : '' );
+	$environment = (string) $cfg['environment'];
+	$environment_constant = defined( 'DTB_QBO_ENVIRONMENT' );
+	$client_id_constant = defined( 'DTB_QBO_CLIENT_ID' );
+	$client_secret_constant = defined( 'DTB_QBO_CLIENT_SECRET' );
+	$stripe_key_constant = defined( 'DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY' );
+	$stripe_key_set = '' !== ( function_exists( 'dtb_qbo_stripe_restricted_key' ) ? dtb_qbo_stripe_restricted_key() : '' );
+	$active_webhook_set = class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured();
 
 	$badge = dtb_admin_ui_badge(
 		$enabled ? __( 'Connected', 'drywall-toolbox' ) : __( 'Not Connected', 'drywall-toolbox' ),
@@ -108,29 +125,53 @@ function dtb_integration_settings_render_quickbooks_card(): void {
 		'sandbox' === $cfg['environment'] ? 'warning' : 'primary'
 	);
 	$badge .= ' ' . dtb_admin_ui_badge(
-		$stripe_set ? __( 'Settlement Key Set', 'drywall-toolbox' ) : __( 'Settlement Key Missing', 'drywall-toolbox' ),
-		$stripe_set ? 'success' : 'danger'
+		$active_webhook_set ? __( 'Webhook Verifier Set', 'drywall-toolbox' ) : __( 'Webhook Verifier Missing', 'drywall-toolbox' ),
+		$active_webhook_set ? 'success' : 'danger'
 	);
 
-	$fields  = dtb_integration_settings_field( __( 'Client ID', 'drywall-toolbox' ), 'client_id', (string) $cfg['client_id'] );
-	$fields .= dtb_integration_settings_field( __( 'Client Secret', 'drywall-toolbox' ), 'client_secret', (string) $cfg['client_secret'], true );
+	$fields  = dtb_integration_settings_field( __( 'Client ID', 'drywall-toolbox' ), 'client_id', (string) $cfg['client_id'], false, '', $client_id_constant );
+	if ( $client_id_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'client_id' );
+	}
+	$fields .= dtb_integration_settings_field( __( 'Client Secret', 'drywall-toolbox' ), 'client_secret', (string) ( $stored['client_secret'] ?? '' ), true, '', $client_secret_constant, '' !== (string) $cfg['client_secret'] );
+	if ( $client_secret_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'client_secret' );
+	}
 	$fields .= sprintf(
-		'<label class="dtb-settings-field"><span>%s</span><select name="environment"><option value="sandbox" %s>%s</option><option value="production" %s>%s</option></select></label>',
+		'<label class="dtb-settings-field"><span>%s</span><select name="environment"%s><option value="sandbox" %s>%s</option><option value="production" %s>%s</option></select></label>',
 		esc_html__( 'Environment', 'drywall-toolbox' ),
-		selected( $cfg['environment'], 'sandbox', false ),
+		$environment_constant ? ' disabled aria-disabled="true"' : '',
+		selected( $environment, 'sandbox', false ),
 		esc_html__( 'Sandbox', 'drywall-toolbox' ),
-		selected( $cfg['environment'], 'production', false ),
+		selected( $environment, 'production', false ),
 		esc_html__( 'Production', 'drywall-toolbox' )
 	);
-	$fields .= dtb_integration_settings_field( __( 'Sandbox Webhook Verifier Token', 'drywall-toolbox' ), 'sandbox_webhook_verifier_token', (string) ( $stored['sandbox_webhook_verifier_token'] ?? '' ), true );
-	$fields .= dtb_integration_settings_field( __( 'Production Webhook Verifier Token', 'drywall-toolbox' ), 'production_webhook_verifier_token', (string) ( $stored['production_webhook_verifier_token'] ?? '' ), true );
-	$fields .= dtb_integration_settings_field( __( 'Stripe Restricted Reporting Key', 'drywall-toolbox' ), 'stripe_restricted_key', (string) ( $stored['stripe_restricted_key'] ?? '' ), true );
+	if ( $environment_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'environment' );
+	}
+	$sandbox_webhook_constant = defined( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN' ) || defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' );
+	$production_webhook_constant = defined( 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN' ) || defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' );
+	$sandbox_verifier_value = defined( 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN' ) ? DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN : ( defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ? DTB_QBO_WEBHOOK_VERIFIER_TOKEN : ( $stored['sandbox_webhook_verifier_token'] ?? '' ) );
+	$production_verifier_value = defined( 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN' ) ? DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN : ( defined( 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ) ? DTB_QBO_WEBHOOK_VERIFIER_TOKEN : ( $stored['production_webhook_verifier_token'] ?? '' ) );
+	$fields .= dtb_integration_settings_field( __( 'Sandbox Webhook Verifier Token', 'drywall-toolbox' ), 'sandbox_webhook_verifier_token', (string) ( $stored['sandbox_webhook_verifier_token'] ?? '' ), true, '', $sandbox_webhook_constant, '' !== trim( (string) $sandbox_verifier_value ) );
+	if ( $sandbox_webhook_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'sandbox_webhook_verifier_token' );
+	}
+	$fields .= dtb_integration_settings_field( __( 'Production Webhook Verifier Token', 'drywall-toolbox' ), 'production_webhook_verifier_token', (string) ( $stored['production_webhook_verifier_token'] ?? '' ), true, '', $production_webhook_constant, '' !== trim( (string) $production_verifier_value ) );
+	if ( $production_webhook_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'production_webhook_verifier_token' );
+	}
+	$fields .= dtb_integration_settings_field( __( 'Stripe Restricted Reporting Key', 'drywall-toolbox' ), 'stripe_restricted_key', (string) ( $stored['stripe_restricted_key'] ?? '' ), true, '', $stripe_key_constant, $stripe_key_set );
+	if ( $stripe_key_constant ) {
+		$fields .= dtb_integration_settings_managed_hint( 'stripe_restricted_key' );
+	}
 
 	$help = sprintf(
 		/* translators: %s: realm ID or em dash */
 		esc_html__( 'Realm ID (set automatically after Connect, via the Overview tab): %s. Any field left blank here keeps its current value.', 'drywall-toolbox' ),
 		'<code>' . esc_html( '' !== $cfg['realm_id'] ? $cfg['realm_id'] : '—' ) . '</code>'
 	);
+	$help .= ' ' . esc_html__( 'The Stripe restricted reporting key is only used by settlement import; it is separate from QuickBooks connection and webhook readiness.', 'drywall-toolbox' );
 
 	dtb_integration_settings_card_shell( 'quickbooks', __( 'QuickBooks', 'drywall-toolbox' ), $badge, $fields, $help );
 }
@@ -231,6 +272,7 @@ function dtb_integration_settings_render_script(): void {
 	$i18n = [
 		'saving' => __( 'Saving…', 'drywall-toolbox' ),
 		'saveFailed' => __( 'Save failed.', 'drywall-toolbox' ),
+		'refreshing' => __( 'Saved. Refreshing the effective settings…', 'drywall-toolbox' ),
 	];
 	?>
 	<script>
@@ -252,6 +294,7 @@ function dtb_integration_settings_render_script(): void {
 			var messageEl = form.querySelector( '[data-dtb-settings-message]' );
 			var fields    = {};
 			form.querySelectorAll( '[name]' ).forEach( function ( input ) {
+				if ( input.disabled ) return;
 				fields[ input.name ] = input.type === 'checkbox' ? input.checked : input.value;
 			} );
 
@@ -266,6 +309,10 @@ function dtb_integration_settings_render_script(): void {
 				form.querySelectorAll( 'input[type="password"]' ).forEach( function ( input ) {
 					input.value = '';
 				} );
+				if ( data.reload_required ) {
+					if ( messageEl ) messageEl.textContent = data.message || i18n.refreshing;
+					window.setTimeout( function () { window.location.reload(); }, 500 );
+				}
 			} ).catch( function ( err ) {
 				if ( messageEl ) messageEl.textContent = ( err && err.message ) || i18n.saveFailed;
 			} ).finally( function () {

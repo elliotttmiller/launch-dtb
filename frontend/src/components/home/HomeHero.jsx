@@ -2,8 +2,6 @@ import { useCallback, useRef, useState } from 'react';
 import { AnimatePresence, m as Motion, useReducedMotion } from 'framer-motion';
 import HomeHeroBrands from './HomeHeroBrands';
 import HomeHeroButton from './HomeHeroButton';
-import HomeHeroQuickLinks from './HomeHeroQuickLinks';
-import HomeHeroTrustBar from './HomeHeroTrustBar';
 import { HOME_HERO_CAMPAIGNS, HOME_HERO_CAMPAIGN_COUNT } from './homeHeroCampaigns.js';
 import {
   homeHeroContentVariants,
@@ -213,8 +211,6 @@ export default function HomeHero({ brands = [] }) {
         </nav>
       </div>
 
-      <HomeHeroTrustBar />
-      <HomeHeroQuickLinks />
       <HomeHeroBrands brands={brands} />
     </section>
   );

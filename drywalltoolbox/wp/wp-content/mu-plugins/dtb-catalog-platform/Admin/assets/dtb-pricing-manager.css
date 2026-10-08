@@ -6,6 +6,12 @@ body.dtb-admin-screen.dtb-brikpanel-components .dtb-pricing-admin {
 	gap: 16px;
 }
 
+.dtb-pricing-sync {
+	margin: 0 0 12px;
+	color: #5b6472;
+	font-size: 12px;
+}
+
 body.dtb-admin-screen.dtb-brikpanel-components .dtb-pricing-status:empty {
 	display: none;
 }

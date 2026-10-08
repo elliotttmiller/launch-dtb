@@ -43,6 +43,7 @@ function dtb_pricing_manager_render_page(): void {
 
 	echo '<div class="dtb-pricing-admin" data-dtb-pricing-root data-active-tab="' . esc_attr( $active_tab ) . '">';
 	echo '<div class="dtb-pricing-status" data-pricing-message role="status" aria-live="polite"></div>';
+	echo '<p class="dtb-pricing-sync" data-pricing-sync role="status" aria-live="polite">' . esc_html__( 'Connected to the live WooCommerce catalog. Refreshes every 30 seconds while this page is open.', 'drywall-toolbox' ) . '</p>';
 
 	if ( 'products' === $active_tab ) {
 		dtb_pricing_manager_render_products_tab();

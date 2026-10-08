@@ -24,7 +24,29 @@ function dtb_pricing_invalidate_index(): void {
 
 add_action( 'woocommerce_update_product', 'dtb_pricing_invalidate_index', 10, 0 );
 add_action( 'woocommerce_update_product_variation', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_new_product', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_new_product_variation', 'dtb_pricing_invalidate_index', 10, 0 );
 add_action( 'woocommerce_delete_product', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_trash_product', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'woocommerce_untrash_product', 'dtb_pricing_invalidate_index', 10, 0 );
+add_action( 'added_post_meta', 'dtb_pricing_invalidate_product_meta', 10, 3 );
+add_action( 'updated_post_meta', 'dtb_pricing_invalidate_product_meta', 10, 4 );
+add_action( 'deleted_post_meta', 'dtb_pricing_invalidate_product_meta', 10, 4 );
+add_action( 'set_object_terms', 'dtb_pricing_invalidate_product_terms', 10, 6 );
+
+/** Invalidate pricing snapshots when WooCommerce or another editor changes catalog metadata. */
+function dtb_pricing_invalidate_product_meta( int $meta_id, int $object_id, string $meta_key, mixed $meta_value = null ): void {
+	if ( in_array( get_post_type( $object_id ), [ 'product', 'product_variation' ], true ) ) {
+		dtb_pricing_invalidate_index();
+	}
+}
+
+/** Invalidate policy snapshots when product brand or category assignments change. */
+function dtb_pricing_invalidate_product_terms( mixed $object_ids, mixed $terms, mixed $tt_ids, string $taxonomy ): void {
+	if ( in_array( $taxonomy, [ 'product_brand', 'product_cat' ], true ) ) {
+		dtb_pricing_invalidate_index();
+	}
+}
 
 /** Convert a WooCommerce decimal price into exact integer minor units. */
 function dtb_pricing_money_minor_units( mixed $value ): ?int {

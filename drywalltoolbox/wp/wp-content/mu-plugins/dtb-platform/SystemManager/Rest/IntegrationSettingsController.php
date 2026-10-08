@@ -72,6 +72,54 @@ function dtb_integration_settings_merge( array $spec, array $stored, array $subm
 }
 
 function dtb_integration_settings_save_quickbooks( array $fields ): array {
+	$managed_constants = [
+		'client_id'                         => [ 'DTB_QBO_CLIENT_ID' ],
+		'client_secret'                     => [ 'DTB_QBO_CLIENT_SECRET' ],
+		'environment'                       => [ 'DTB_QBO_ENVIRONMENT' ],
+		'sandbox_webhook_verifier_token'    => [ 'DTB_QBO_SANDBOX_WEBHOOK_VERIFIER_TOKEN', 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ],
+		'production_webhook_verifier_token' => [ 'DTB_QBO_PRODUCTION_WEBHOOK_VERIFIER_TOKEN', 'DTB_QBO_WEBHOOK_VERIFIER_TOKEN' ],
+		'stripe_restricted_key'             => [ 'DTB_STRIPE_ACCOUNTING_RESTRICTED_KEY' ],
+	];
+	$blocked = [];
+	foreach ( $managed_constants as $field => $constants ) {
+		if ( ! array_key_exists( $field, $fields ) ) {
+			continue;
+		}
+		$constant = '';
+		foreach ( $constants as $candidate ) {
+			if ( defined( $candidate ) ) {
+				$constant = $candidate;
+				break;
+			}
+		}
+		if ( '' === $constant ) {
+			continue;
+		}
+		if ( ! is_scalar( $fields[ $field ] ) ) {
+			$blocked[] = $field;
+			unset( $fields[ $field ] );
+			continue;
+		}
+		$submitted = trim( (string) $fields[ $field ] );
+		$effective  = trim( (string) constant( $constant ) );
+		$is_secret = ! in_array( $field, [ 'client_id', 'environment' ], true );
+		if ( $is_secret && '' === $submitted ) {
+			unset( $fields[ $field ] );
+			continue;
+		}
+		if ( ! hash_equals( $effective, $submitted ) ) {
+			$blocked[] = $field;
+		}
+		unset( $fields[ $field ] );
+	}
+	if ( $blocked ) {
+		return [
+			'ok'      => false,
+			'status'  => 409,
+			'message' => 'These settings are managed by server wp-config.php and were not changed: ' . implode( ', ', $blocked ) . '. Update the protected server configuration, then refresh this page.',
+		];
+	}
+
 	$spec = [
 		'client_id'                       => 'text',
 		'client_secret'                   => 'secret',
@@ -90,7 +138,18 @@ function dtb_integration_settings_save_quickbooks( array $fields ): array {
 
 	update_option( 'dtb_qbo_settings', $merged, false );
 
-	return [ 'ok' => true, 'message' => 'QuickBooks settings saved.' ];
+	$status = function_exists( 'dtb_qbo_status' ) ? dtb_qbo_status() : [];
+	return [
+		'ok'              => true,
+		'reload_required' => true,
+		'message'         => 'QuickBooks settings saved. The page will refresh to show effective settings. If credentials or environment changed, reconnect QuickBooks before accounting sync resumes.',
+		'effective'       => [
+			'environment'            => function_exists( 'dtb_qbo_environment' ) ? dtb_qbo_environment() : '',
+			'credentials_configured' => ! empty( $status['credentials_configured'] ),
+			'connected'              => ! empty( $status['connected'] ),
+			'webhook_verifier_set'   => class_exists( 'DTB_QuickBooksWebhookController' ) && DTB_QuickBooksWebhookController::verifier_configured(),
+		],
+	];
 }
 
 function dtb_integration_settings_save_veeqo( array $fields ): array {
@@ -209,5 +268,6 @@ function dtb_integration_settings_route_save( WP_REST_Request $request ): WP_RES
 		] );
 	}
 
-	return new WP_REST_Response( $result, ! empty( $result['ok'] ) ? 200 : 500 );
+	$status = ! empty( $result['ok'] ) ? 200 : (int) ( $result['status'] ?? 500 );
+	return new WP_REST_Response( $result, $status );
 }

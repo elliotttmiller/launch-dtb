@@ -167,9 +167,9 @@ Missing MAP is never converted to zero and never guessed.
 
 ## Runtime application
 
-The browser is not pricing authority. Selected/bulk operations send product identity plus the expected current regular price. The server reloads the fresh WooCommerce object, recomputes policy and recommendation, checks for concurrent price changes, and only then writes through WooCommerce CRUD.
+The browser is not pricing authority. Selected/bulk operations send product identity plus the expected current regular price. The server reloads the fresh WooCommerce object, recomputes policy and recommendation, checks for concurrent price changes, and only then writes through WooCommerce CRUD. The open workspace refreshes its active view every 30 seconds and when returning to a stale tab. Catalog CRUD saves, product metadata changes, product creation/deletion/trash transitions, and pricing-policy taxonomy changes invalidate the short-lived read index immediately.
 
-The WooCommerce pre-save hook applies the hard floor again immediately before persistence. Product writes clear relevant product transients and invalidate the two-minute pricing read index.
+The WooCommerce pre-save hook applies the hard floor again immediately before persistence. Product writes clear relevant product transients and invalidate the two-minute pricing read index. The index is a derived cache only; WooCommerce remains the live price, cost, and product authority.
 
 ## Optimize All Eligible Products
 

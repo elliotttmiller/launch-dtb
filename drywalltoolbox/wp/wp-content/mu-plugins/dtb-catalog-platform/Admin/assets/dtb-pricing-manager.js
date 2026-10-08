@@ -5,10 +5,13 @@
 	const config = window.dtbAdminConfig;
 	const activeTab = root.dataset.activeTab || 'products';
 	const message = root.querySelector('[data-pricing-message]');
+	const syncStatus = root.querySelector('[data-pricing-sync]');
 	const currency = config.currencySymbol || '$';
 	let summary = null;
 	let refreshActiveView = async () => {};
 	let lastFocused = null;
+	let lastSyncAt = 0;
+	let refreshing = false;
 
 	const escapeHtml = (value) => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 	const money = (value) => value === null || value === undefined || value === '' || Number.isNaN(Number(value)) ? '—' : `${currency}${Number(value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -199,8 +202,34 @@
 		await render();
 	};
 
+	const refreshLiveCatalog = async () => {
+		if (refreshing || document.visibilityState !== 'visible') return;
+		if (activeTab === 'optimizer' && root.querySelector('[data-optimizer-row]:checked')) return;
+		refreshing = true;
+		try {
+			await refreshActiveView();
+			lastSyncAt = Date.now();
+			if (syncStatus) syncStatus.textContent = `Live WooCommerce catalog · Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(lastSyncAt)}`;
+		} catch (error) {
+			setMessage(`Live catalog refresh failed: ${error.message}`, 'error');
+		} finally {
+			refreshing = false;
+		}
+	};
+
 	(async () => {
-		try { if (activeTab === 'products') await initProducts(); else if (activeTab === 'optimizer') await initOptimizer(); else await initData(); }
+		try {
+			if (activeTab === 'products') await initProducts(); else if (activeTab === 'optimizer') await initOptimizer(); else await initData();
+			lastSyncAt = Date.now();
+			if (syncStatus) syncStatus.textContent = `Live WooCommerce catalog · Updated ${new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', second: '2-digit' }).format(lastSyncAt)}`;
+			window.setInterval(refreshLiveCatalog, 30000);
+			document.addEventListener('visibilitychange', () => {
+				if (document.visibilityState === 'visible' && Date.now() - lastSyncAt >= 30000) refreshLiveCatalog();
+			});
+			window.addEventListener('focus', () => {
+				if (Date.now() - lastSyncAt >= 30000) refreshLiveCatalog();
+			});
+		}
 		catch (error) { setMessage(error.message || 'Catalog Pricing could not be initialized.', 'error'); }
 	})();
 })();
