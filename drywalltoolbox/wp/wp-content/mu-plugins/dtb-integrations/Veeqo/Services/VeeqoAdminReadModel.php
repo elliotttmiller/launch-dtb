@@ -74,6 +74,8 @@ final class DTB_Veeqo_Admin_Read_Model {
 			: [];
 		return [
 			'api_key_configured' => function_exists( 'dtb_veeqo_production_api_key_configured' ) && dtb_veeqo_production_api_key_configured(),
+			'channels_discovered' => ! empty( $diagnostics['channels_discovered'] ),
+			'order_channels_eligible' => absint( $diagnostics['eligible_order_channels'] ?? 0 ),
 			'channel_id'         => absint( $config['channel_id'] ?? 0 ),
 			'warehouse_id'       => absint( $config['warehouse_id'] ?? 0 ),
 			'delivery_method_id' => absint( $config['delivery_method_id'] ?? 0 ),
@@ -89,14 +91,27 @@ final class DTB_Veeqo_Admin_Read_Model {
 				'errors'     => array_values( array_map( 'sanitize_text_field', (array) ( $diagnostics['errors'] ?? [] ) ) ),
 			],
 			'candidates'          => [
-				'channels'         => self::sanitize_candidates( (array) ( $diagnostics['channel_candidates'] ?? [] ) ),
+				'channels'         => self::sanitize_candidates( (array) ( $diagnostics['channel_candidates'] ?? [] ), true ),
 				'warehouses'       => self::sanitize_candidates( (array) ( $diagnostics['warehouse_candidates'] ?? [] ) ),
 				'delivery_methods' => self::sanitize_candidates( (array) ( $diagnostics['delivery_candidates'] ?? [] ) ),
 			],
 		];
 	}
 
-	public static function save_settings( array $input ): array {
+	public static function save_settings( array $input ) {
+		if ( array_key_exists( 'channel_id', $input ) && absint( $input['channel_id'] ) > 0 ) {
+			$diagnostics = (array) get_option( 'dtb_veeqo_configuration_diagnostics', [] );
+			$eligible = [];
+			foreach ( (array) ( $diagnostics['channel_candidates'] ?? [] ) as $candidate ) {
+				if ( is_array( $candidate ) && 'direct' === (string) ( $candidate['type_code'] ?? '' ) ) {
+					$eligible[] = absint( $candidate['id'] ?? 0 );
+				}
+			}
+			if ( ! in_array( absint( $input['channel_id'] ), $eligible, true ) ) {
+				return new WP_Error( 'veeqo_channel_not_eligible', 'The selected channel has not been validated as a Direct channel for API order export. Discover resources and select an eligible channel.', [ 'status' => 422 ] );
+			}
+		}
+
 		$settings = (array) get_option( 'woocommerce_dtb_veeqo_settings', [] );
 		$fields   = [ 'channel_id', 'warehouse_id', 'delivery_method_id' ];
 		foreach ( $fields as $field ) {
@@ -402,13 +417,18 @@ final class DTB_Veeqo_Admin_Read_Model {
 		];
 	}
 
-	private static function sanitize_candidates( array $items ): array {
+	private static function sanitize_candidates( array $items, bool $include_channel_type = false ): array {
 		$rows = [];
 		foreach ( $items as $item ) {
 			if ( ! is_array( $item ) || absint( $item['id'] ?? 0 ) <= 0 ) {
 				continue;
 			}
-			$rows[] = [ 'id' => absint( $item['id'] ), 'name' => sanitize_text_field( (string) ( $item['name'] ?? 'Veeqo resource' ) ) ];
+			$row = [ 'id' => absint( $item['id'] ), 'name' => sanitize_text_field( (string) ( $item['name'] ?? 'Veeqo resource' ) ) ];
+			if ( $include_channel_type ) {
+				$row['type_code'] = sanitize_key( (string) ( $item['type_code'] ?? '' ) );
+				$row['order_export_eligible'] = 'direct' === $row['type_code'];
+			}
+			$rows[] = $row;
 		}
 		return $rows;
 	}
