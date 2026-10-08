@@ -11,7 +11,6 @@ function ToolTypeTile({ category }) {
   const [imageFailed, setImageFailed] = useState(false);
   const image = resolveCategoryThumbnail(category);
   const hasImage = Boolean(image) && !imageFailed;
-  const count = Number(category?.count || 0);
   const description = String(category?.description || '').replace(/<[^>]*>/g, '').trim();
 
   return (
@@ -35,11 +34,6 @@ function ToolTypeTile({ category }) {
       </span>
       <span className="dtb-tool-type-tile__label">{category.name}</span>
       {description && <span className="dtb-tool-type-tile__description">{description}</span>}
-      {count > 0 && (
-        <span className="dtb-tool-type-tile__count">
-          {count.toLocaleString()} product{count === 1 ? '' : 's'}
-        </span>
-      )}
     </Link>
   );
 }
