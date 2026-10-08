@@ -57,7 +57,7 @@ function dtb_veeqo_production_discover_resources(): array {
 
 	$channels = dtb_veeqo_request( 'GET', '/channels', [ 'type_code' => 'direct' ] );
 	if ( empty( $channels['ok'] ) || ! is_array( $channels['data'] ?? null ) ) {
-		$result['errors'][] = 'Unable to load Veeqo Direct channels.';
+		$result['errors'][] = dtb_veeqo_production_discovery_error( 'Direct channels', $channels );
 	} else {
 		foreach ( $channels['data'] as $channel ) {
 			if ( ! is_array( $channel ) || 'direct' !== (string) ( $channel['type_code'] ?? '' ) || absint( $channel['id'] ?? 0 ) <= 0 ) {
@@ -74,7 +74,7 @@ function dtb_veeqo_production_discover_resources(): array {
 
 	$warehouses = dtb_veeqo_request( 'GET', '/warehouses', [ 'page_size' => '100', 'page' => '1' ] );
 	if ( empty( $warehouses['ok'] ) || ! is_array( $warehouses['data'] ?? null ) ) {
-		$result['errors'][] = 'Unable to load Veeqo warehouses.';
+		$result['errors'][] = dtb_veeqo_production_discovery_error( 'warehouses', $warehouses );
 	} else {
 		foreach ( $warehouses['data'] as $warehouse ) {
 			if ( ! is_array( $warehouse ) || absint( $warehouse['id'] ?? 0 ) <= 0 || ! empty( $warehouse['deleted_at'] ) ) {
@@ -89,7 +89,7 @@ function dtb_veeqo_production_discover_resources(): array {
 
 	$methods = dtb_veeqo_request( 'GET', '/delivery_methods', [ 'page_size' => '100', 'page' => '1' ] );
 	if ( empty( $methods['ok'] ) || ! is_array( $methods['data'] ?? null ) ) {
-		$result['errors'][] = 'Unable to load Veeqo delivery methods.';
+		$result['errors'][] = dtb_veeqo_production_discovery_error( 'delivery methods', $methods );
 	} else {
 		foreach ( $methods['data'] as $method ) {
 			if ( ! is_array( $method ) || absint( $method['id'] ?? 0 ) <= 0 ) {
@@ -102,6 +102,38 @@ function dtb_veeqo_production_discover_resources(): array {
 		}
 	}
 	return $result;
+}
+
+/**
+ * Build an actionable, secret-free resource-discovery error for the admin UI.
+ *
+ * @param string               $resource Human-readable Veeqo resource name.
+ * @param array<string, mixed> $response Normalized Veeqo client response.
+ * @return string Secret-free diagnostic suitable for the admin UI.
+ */
+function dtb_veeqo_production_discovery_error( string $resource, array $response ): string {
+	$status = absint( $response['status'] ?? 0 );
+
+	if ( 401 === $status ) {
+		return sprintf( 'Veeqo rejected the configured API key while loading %s (HTTP 401). Install a valid server-side key.', $resource );
+	}
+	if ( 403 === $status ) {
+		return sprintf( 'Veeqo denied access to %s (HTTP 403). Check the API key account permissions.', $resource );
+	}
+	if ( 429 === $status ) {
+		return sprintf( 'Veeqo rate-limited %s discovery (HTTP 429). Wait before retrying.', $resource );
+	}
+	if ( $status >= 500 ) {
+		return sprintf( 'Veeqo could not serve %s discovery (HTTP %d). Retry after the provider recovers.', $resource, $status );
+	}
+	if ( $status >= 200 && $status < 300 ) {
+		return sprintf( 'Veeqo returned an unexpected response while loading %s (HTTP %d).', $resource, $status );
+	}
+	if ( $status > 0 ) {
+		return sprintf( 'Unable to load Veeqo %s (HTTP %d).', $resource, $status );
+	}
+
+	return sprintf( 'Unable to reach Veeqo while loading %s. Check server outbound HTTPS connectivity and retry.', $resource );
 }
 
 /**

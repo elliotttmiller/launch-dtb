@@ -433,7 +433,19 @@
   async function testConnection() {
     setBusy(true); clearNotice();
     try { await request('/connection/test',{method:'POST'}); notice('Veeqo connection and operational resource mappings validated.'); await ensureOverview(); if(state.view==='settings') await loadSettings(); else if(state.view==='overview') await loadOverview(); }
-    catch(error){ notice(error.message||'Veeqo validation failed.','error'); }
+    catch(error){
+      let message=error.message||'Veeqo validation failed.';
+      try {
+        const settings=await request('/settings');
+        const errors=settings.last_validation&&Array.isArray(settings.last_validation.errors)?settings.last_validation.errors:[];
+        if(errors.length) message=errors.join(' ');
+        if(state.view==='settings') await loadSettings();
+      } catch(diagnosticError) {
+        const detail=diagnosticError&&diagnosticError.message?diagnosticError.message:'';
+        if(detail) message=`${message} Could not refresh validation findings: ${detail}`;
+      }
+      notice(message,'error');
+    }
     finally{ setBusy(false); }
   }
 
