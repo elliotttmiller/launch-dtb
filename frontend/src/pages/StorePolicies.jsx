@@ -61,6 +61,20 @@ const POLICY_CARDS = [
     to: '/contact',
     action: 'Get help',
   },
+  {
+    Icon: FileText,
+    title: 'Terms of Service & EULA',
+    text: 'Website, commerce, and authorized use of the QuickBooks accounting integration.',
+    to: '/terms-of-service/',
+    action: 'Read terms',
+  },
+  {
+    Icon: ShieldCheck,
+    title: 'Privacy Policy',
+    text: 'How Drywall Toolbox handles information, including its QuickBooks accounting integration.',
+    to: '/privacy-policy/',
+    action: 'Read privacy policy',
+  },
 ];
 
 function PolicyPill({ children }) {

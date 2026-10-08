@@ -85,6 +85,8 @@ const ShippingPolicy = createLazyRoute('shippingPolicy');
 const ReturnPortal = createLazyRoute('returnPortal');
 const StorePolicies = createLazyRoute('storePolicies');
 const ReturnPolicy = createLazyRoute('returnPolicy');
+const TermsOfService = createLazyRoute('termsOfService');
+const PrivacyPolicy = createLazyRoute('privacyPolicy');
 const ToolsetBuilder = createLazyRoute('toolsetBuilder');
 const TechnicalSpecificationsPreview = createLazyRoute('technicalSpecificationsPreview');
 
@@ -278,6 +280,8 @@ function AppRoutes() {
         <Route path="/returns/status/:id" element={<ReturnStatus />} />
         <Route path="/return-policy" element={<ReturnPolicy />} />
         <Route path="/policies" element={<StorePolicies />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/toolset-builder" element={<ToolsetBuilder />} />
         <Route path="/preview/technical-specifications" element={<TechnicalSpecificationsPreview />} />
         <Route path="/cart" element={<Cart />} />

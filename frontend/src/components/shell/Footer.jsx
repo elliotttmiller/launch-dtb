@@ -87,8 +87,8 @@ export default function Footer() {
           <div>
             <p className="dtb-footer-template__copyright">© 2026 Drywall Toolbox. All rights reserved.</p>
             <nav className="dtb-footer-template__legal" aria-label="Legal">
-              <Link className="dtb-footer-template__link" to="/policies">Privacy</Link>
-              <Link className="dtb-footer-template__link" to="/policies">Terms</Link>
+              <Link className="dtb-footer-template__link" to="/privacy-policy/">Privacy</Link>
+              <Link className="dtb-footer-template__link" to="/terms-of-service/">Terms</Link>
             </nav>
           </div>
 

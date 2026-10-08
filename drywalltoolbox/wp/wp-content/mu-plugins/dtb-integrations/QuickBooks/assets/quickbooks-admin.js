@@ -76,7 +76,7 @@
 				['Reconciled', m.reconciled_count || 0, 'exact QBO matches'], ['Exceptions', m.exception_count || 0, 'requires review'],
 			]);
 			const connection = data.connection || {};
-			host.innerHTML = `${table(ledgerColumns, data.latest || [])}<div class="dtb-qbo-health-grid dtb-qbo-overview-health"><article><span>QuickBooks connection</span><strong>${connection.status?.connected ? 'Connected' : 'Disconnected'}</strong><small>${esc(connection.company?.name || 'No company verified')}</small></article><article><span>Accounting readiness</span><strong>${connection.readiness?.ready ? 'Ready' : 'Blocked'}</strong><small>${esc(Object.values(connection.readiness?.checks || {}).filter((check)=>!check.complete).map((check)=>check.label).join(', ') || 'All prerequisites verified')}</small></article><article><span>Controls</span><strong>${esc(String(connection.status?.environment || config.environment || '').toUpperCase())}</strong><button class="button" data-qbo-action="test">Test connection</button>${connection.status?.connected ? '' : '<button class="button button-primary" data-qbo-action="connect">Connect</button>'}</article></div>`;
+			host.innerHTML = `${table(ledgerColumns, data.latest || [])}<div class="dtb-qbo-health-grid dtb-qbo-overview-health"><article><span>QuickBooks connection</span><strong>${connection.status?.connected ? 'Connected' : 'Disconnected'}</strong><small>${esc(connection.company?.name || 'No company verified')}</small></article><article><span>Accounting readiness</span><strong>${connection.readiness?.ready ? 'Ready' : 'Blocked'}</strong><small>${esc(Object.values(connection.readiness?.checks || {}).filter((check)=>!check.complete).map((check)=>check.label).join(', ') || 'All prerequisites verified')}</small></article><article><span>Controls</span><strong>${esc(String(connection.status?.environment || config.environment || '').toUpperCase())}</strong><button class="button" data-qbo-action="test">Test connection</button>${connection.status?.connected ? '<button class="button button-secondary" data-qbo-action="disconnect">Disconnect</button>' : '<button class="button button-primary" data-qbo-action="connect">Connect / reconnect</button>'}</article></div>`;
 		} else if (['transactions','exceptions','settlement','audit'].includes(view)) {
 			host.innerHTML = table(ledgerColumns, data.rows || []);
 			renderPagination(data);
@@ -171,6 +171,11 @@
 		if (action?.dataset.qboAction === 'discover') return api('/items/discover', {}).then(() => { alert('Service item mappings verified.', 'success'); load(); }).catch((error) => alert(error.message, 'error'));
 		if (action?.dataset.qboAction === 'test') return api('/test', {}).then(() => alert('QuickBooks connection verified.', 'success')).catch((error) => alert(error.message, 'error'));
 		if (action?.dataset.qboAction === 'connect') return api('/connect', {}).then((result) => { if (result.authorization_url) window.location.assign(result.authorization_url); }).catch((error) => alert(error.message, 'error'));
+		if (action?.dataset.qboAction === 'disconnect') {
+			if (!window.confirm(config.labels.confirmDisconnect)) return;
+			setBusy(true);
+			return api('/disconnect', { confirm: true }).then(() => { alert('QuickBooks disconnected. Existing accounting records were retained.', 'success'); setBusy(false); return load(); }).catch((error) => alert(error.message, 'error')).finally(() => setBusy(false));
+		}
 	});
 	q('[data-qbo-saved-view]')?.addEventListener('change', (event) => {
 		const value = event.target.value;
