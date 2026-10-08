@@ -6,9 +6,10 @@ const repoRoot = new URL('../../', import.meta.url);
 const frontendRoot = new URL('frontend/', repoRoot);
 
 const HERO_COMPONENT = new URL('src/components/home/HomeHero.jsx', frontendRoot);
+const HERO_CAMPAIGNS = new URL('src/components/home/homeHeroCampaigns.js', frontendRoot);
 const HERO_STYLES = new URL('src/styles/home-hero.css', frontendRoot);
-const DESKTOP_HERO = new URL('src/assets/media/home/home-hero-desktop.webp', frontendRoot);
-const MOBILE_HERO = new URL('src/assets/media/home/home-hero-mobile.webp', frontendRoot);
+const DESKTOP_HERO = new URL('src/assets/media/home/home-hero-desktop-1600.webp', frontendRoot);
+const MOBILE_HERO = new URL('src/assets/media/home/home-hero-mobile-640.webp', frontendRoot);
 
 async function readHeroSource() {
   return readFile(HERO_COMPONENT, 'utf8');
@@ -18,54 +19,83 @@ async function readHeroStyles() {
   return readFile(HERO_STYLES, 'utf8');
 }
 
-test('HomeHero owns one semantic hero and uses browser-native art direction', async () => {
+test('HomeHero preserves browser-native responsive art direction and LCP priority', async () => {
   const source = await readHeroSource();
 
-  assert.match(source, /home-hero-desktop\.webp/);
-  assert.match(source, /home-hero-mobile\.webp/);
+  assert.match(source, /home-hero-desktop-1600\.webp/);
+  assert.match(source, /home-hero-mobile-640\.webp/);
   assert.match(source, /<picture className="home-hero__media" aria-hidden="true">/);
   assert.match(source, /media="\(max-width: 640px\)"/);
   assert.match(source, /srcSet=\{homeHeroMobileUrl\}/);
   assert.match(source, /src=\{homeHeroDesktopUrl\}/);
   assert.match(source, /type="image\/webp"/);
-
-  assert.doesNotMatch(source, /home-hero\.webp/);
-  assert.doesNotMatch(source, /window\.innerWidth|matchMedia\(|useMediaQuery|isMobile/);
-});
-
-test('HomeHero marks the above-the-fold image as the LCP-priority resource', async () => {
-  const source = await readHeroSource();
-
   assert.match(source, /alt=""/);
   assert.match(source, /decoding="async"/);
   assert.match(source, /loading="eager"/);
   assert.match(source, /fetchPriority="high"/);
   assert.match(source, /draggable="false"/);
+
+  assert.doesNotMatch(source, /window\.innerWidth|matchMedia\(|useMediaQuery|isMobile/);
 });
 
-test('Home hero artwork remains full-bleed and focal positioning stays in CSS', async () => {
-  const css = await readHeroStyles();
+test('homepage campaigns are presentation-only navigation to existing storefront routes', async () => {
+  const source = await readFile(HERO_CAMPAIGNS, 'utf8');
 
-  assert.match(css, /\.home-hero__media\s*\{[\s\S]*?inset:\s*0;[\s\S]*?width:\s*100%;[\s\S]*?height:\s*100%;[\s\S]*?\}/);
-  assert.match(css, /\.home-hero__media-image\s*\{[\s\S]*?object-fit:\s*cover;[\s\S]*?object-position:\s*68% 50%;[\s\S]*?\}/);
-  assert.match(css, /@media \(min-width: 901px\) and \(max-width: 1199px\)[\s\S]*?object-position:\s*72% 50%;/);
-  assert.match(css, /@media \(min-width: 641px\) and \(max-width: 900px\)[\s\S]*?object-position:\s*73% 50%;/);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?object-position:\s*64% 50%;/);
+  for (const id of ['tools', 'parts', 'builder', 'repairs']) {
+    assert.match(source, new RegExp(`id: '${id}'`));
+  }
 
-  const mediaBlock = css.match(/\.home-hero__media\s*\{[\s\S]*?\}/)?.[0] ?? '';
-  assert.doesNotMatch(mediaBlock, /mask-image|transform:|right:\s*-|width:\s*58%|object-fit:\s*contain/);
+  for (const route of ['/all-products', '/products/brands', '/parts', '/schematics', '/toolset-builder', '/repairs/start', '/repairs']) {
+    assert.match(source, new RegExp(route.replaceAll('/', '\\/')));
+  }
+
+  assert.doesNotMatch(source, /price|inventory|order|payment|checkout/i);
 });
 
-test('hero presentation keeps image, ambient, scrim, and content as separate layers', async () => {
+test('campaign navigation is manual, keyboard accessible, touch navigable, and reduced-motion aware', async () => {
+  const source = await readHeroSource();
+
+  assert.match(source, /role="tablist"/);
+  assert.match(source, /role="tab"/);
+  assert.match(source, /aria-selected=\{isActive\}/);
+  assert.match(source, /ArrowRight/);
+  assert.match(source, /ArrowLeft/);
+  assert.match(source, /event\.key === 'Home'/);
+  assert.match(source, /event\.key === 'End'/);
+  assert.match(source, /SWIPE_THRESHOLD_PX/);
+  assert.match(source, /useReducedMotion\(\)/);
+  assert.match(source, /AnimatePresence/);
+
+  // Campaign content should not rotate behind the shopper or require a
+  // separate pause control. Movement happens only after explicit interaction.
+  assert.doesNotMatch(source, /setInterval|setTimeout\([^)]*selectCampaign|autoplay/i);
+});
+
+test('hero presentation keeps stable media, atmosphere, scrim, content, and navigation layers', async () => {
   const css = await readHeroStyles();
 
   assert.match(css, /\.home-hero__media\s*\{[\s\S]*?z-index:\s*0;/);
   assert.match(css, /\.home-hero__ambient\s*\{[\s\S]*?z-index:\s*1;/);
   assert.match(css, /\.home-hero__scrim\s*\{[\s\S]*?z-index:\s*2;/);
-  assert.match(css, /\.home-hero__content\s*\{[\s\S]*?z-index:\s*3;/);
+  assert.match(css, /\.home-hero__content-shell\s*\{[\s\S]*?z-index:\s*3;/);
+  assert.match(css, /\.home-hero-campaigns\s*\{[\s\S]*?z-index:\s*4;/);
+
+  assert.match(css, /\.home-hero__media-image\s*\{[\s\S]*?object-fit:\s*cover;[\s\S]*?object-position:\s*68% 50%;/);
+  assert.match(css, /@media \(min-width: 901px\) and \(max-width: 1199px\)[\s\S]*?object-position:\s*72% 50%;/);
+  assert.match(css, /@media \(min-width: 641px\) and \(max-width: 900px\)[\s\S]*?object-position:\s*73% 50%;/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?object-position:\s*64% 50%;/);
 });
 
-test('responsive hero source assets exist and remain below the current regression ceiling', async () => {
+test('hero styling provides fluid desktop/mobile composition and reduced-motion fallback', async () => {
+  const css = await readHeroStyles();
+
+  assert.match(css, /height:\s*clamp\(520px, 36vw, 620px\)/);
+  assert.match(css, /\.home-hero-campaigns__rail\s*\{[\s\S]*?backdrop-filter:\s*blur\(18px\)/);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?height:\s*clamp\(510px, 132vw, 585px\)/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test('compressed responsive hero assets remain bounded for above-the-fold delivery', async () => {
   const [desktop, mobile] = await Promise.all([
     stat(DESKTOP_HERO),
     stat(MOBILE_HERO),
@@ -73,9 +103,6 @@ test('responsive hero source assets exist and remain below the current regressio
 
   assert.ok(desktop.size > 0, 'desktop hero must not be empty');
   assert.ok(mobile.size > 0, 'mobile hero must not be empty');
-
-  // This is a regression ceiling, not the final performance target. The assets
-  // should be recompressed further after visual QA without changing this media contract.
-  assert.ok(desktop.size <= 1_300_000, `desktop hero is unexpectedly large: ${desktop.size} bytes`);
-  assert.ok(mobile.size <= 1_300_000, `mobile hero is unexpectedly large: ${mobile.size} bytes`);
+  assert.ok(desktop.size <= 250_000, `desktop hero is unexpectedly large: ${desktop.size} bytes`);
+  assert.ok(mobile.size <= 250_000, `mobile hero is unexpectedly large: ${mobile.size} bytes`);
 });
