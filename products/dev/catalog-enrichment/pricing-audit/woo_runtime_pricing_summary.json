@@ -1,0 +1,72 @@
+{
+  "retrieved_at_utc": "2026-10-08T02:42:34Z",
+  "endpoint": "https://drywalltoolbox.com/wp-json/wc/store/v1/products",
+  "retrieval": "Read-only public WooCommerce Store API GET; catalog_visibility=any; per_page=100; pages checked against X-WP-Total and X-WP-TotalPages.",
+  "authority": "WooCommerce Store API prices are the current public storefront projection. The official CSV is the reviewed repository/import source. Neither is substituted for the other.",
+  "canonical_catalog_path": "products/launch/official/dtb_official_catalog.csv",
+  "canonical_catalog_sha256": "f5953424b92da51d4970d361544d4a79b5444b1659d7a227b4f185249c4766d9",
+  "published_catalog_limit": "Store API returns published catalog data; drafts/private products are outside this public snapshot. catalog_visibility=any includes published hidden/catalog/search visibility where exposed.",
+  "canonical_rows": 840,
+  "canonical_by_type": {
+    "variable": 106,
+    "variation": 314,
+    "simple": 420
+  },
+  "woo_public_rows": 758,
+  "woo_public_by_type": {
+    "simple": 339,
+    "variation": 313,
+    "variable": 106
+  },
+  "woo_pages": {
+    "simple": {
+      "total": 339,
+      "pages": 4,
+      "received": 339
+    },
+    "variation": {
+      "total": 313,
+      "pages": 4,
+      "received": 313
+    },
+    "variable": {
+      "total": 106,
+      "pages": 2,
+      "received": 106
+    }
+  },
+  "canonical_price_owner_target_rows": 734,
+  "woo_price_owner_rows": 652,
+  "reconciliation_rows": 734,
+  "reconciliation_status_counts": {
+    "PRICE MATCH": 490,
+    "PRICE MATCH - REVIEW SOURCE FIELDS": 159,
+    "NOT PURCHASABLE - REVIEW PRICE": 1,
+    "NOT IN PUBLIC STORE": 82,
+    "CANONICAL PRICE MISSING": 2
+  },
+  "finding_counts": {
+    "CANONICAL_MISSING_REGULAR_PRICE": 3,
+    "CANONICAL_NOT_PUBLISHED": 82,
+    "CANONICAL_SALE_NOT_BELOW_REGULAR": 171,
+    "NOT_RETURNED_BY_PUBLIC_STORE_API": 82,
+    "VARIABLE_PARENT_RANGE_NOT_A_PRICE_OWNER": 106
+  },
+  "runtime_skus_without_official_match": 0,
+  "official_skus_without_public_runtime_match": 82,
+  "products": {
+    "snapshot": "products/dev/catalog-enrichment/pricing-audit/woo_runtime_pricing_snapshot.csv",
+    "reconciliation": "products/dev/catalog-enrichment/pricing-audit/woo_runtime_price_reconciliation.csv"
+  },
+  "excluded_variable_parent_rows": 106,
+  "reconciliation_scope": "Simple and variation products only; variable family parents excluded from product rows.",
+  "reconciliation_method": "Only active public price owners are compared; blank canonical prices are source-data gaps, and non-purchasable products are excluded from price-difference claims.",
+  "canonical_missing_price_rows": [
+    "340925",
+    "340926"
+  ],
+  "non_purchasable_review_rows": [
+    "DSS3864US"
+  ],
+  "not_in_public_store_rows": 82
+}
