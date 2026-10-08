@@ -397,7 +397,14 @@
     const settings = await request('/settings');
     const view = qs('#dtb-veeqo-view');
     const candidates = settings.candidates || {};
-    view.innerHTML = `<div class="dtb-veeqo-grid"><div><section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Operational mappings</h2><p>Credentials remain server-side. Only non-secret resource identities are editable here.</p></div></div><div class="dtb-veeqo-panel-body"><form id="dtb-veeqo-settings-form" class="dtb-veeqo-form">${settingsField('channel_id','Direct channel',settings.channel_id,candidates.channels,settings.sources&&settings.sources.channel_id,'Used for API-created Veeqo orders.')}${settingsField('warehouse_id','Fulfillment warehouse',settings.warehouse_id,candidates.warehouses,settings.sources&&settings.sources.warehouse_id,'Authoritative inventory and fulfillment location.')}${settingsField('delivery_method_id','Default delivery method',settings.delivery_method_id,candidates.delivery_methods,settings.sources&&settings.sources.delivery_method_id,'Order projection mapping; not live checkout carrier rating.')}<div class="dtb-veeqo-actions"><button type="submit" class="dtb-veeqo-button is-primary" data-write-action>Save operational settings</button><button type="button" class="dtb-veeqo-button" data-action="test-connection" data-write-action>Discover and validate</button></div></form></div></section></div><aside><section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Security boundary</h2></div></div><div class="dtb-veeqo-panel-body">${readinessRows({ order_projection_ready: settings.readiness&&settings.readiness.ready, inventory_ready: settings.readiness&&settings.readiness.ready, webhooks_enabled: false }, settings, { stale:false })}<p class="dtb-veeqo-secondary">The API key is never rendered, returned by REST, or stored by this form. Configure DTB_VEEQO_API_KEY on the server.</p></div></section>${settings.last_validation&&settings.last_validation.errors&&settings.last_validation.errors.length?`<section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><h2>Validation findings</h2></div><div class="dtb-veeqo-panel-body">${settings.last_validation.errors.map((error)=>`<div class="dtb-veeqo-notice is-warning"><span>${esc(error)}</span></div>`).join('')}</div></section>`:''}</aside></div>`;
+    const missing = (settings.readiness && settings.readiness.missing) || [];
+    const setupSummary = !settings.api_key_configured
+      ? 'Server-side API credential is missing.'
+      : missing.includes('channel_id') && !(candidates.channels || []).length
+        ? 'API credential detected. No eligible Direct channel was discovered. Verify Veeqo sales channels and retry discovery.'
+        : missing.length ? 'Select missing operational resources, save, and validate.'
+          : 'Configured resources are present. Run validation to verify them.';
+    view.innerHTML = `<div class="dtb-veeqo-grid"><div><div class="dtb-veeqo-notice is-warning" role="status"><strong>Connection setup</strong><span>${esc(setupSummary)}</span></div><section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Operational mappings</h2><p>Credentials remain server-side. Only non-secret resource identities are editable here.</p></div></div><div class="dtb-veeqo-panel-body"><form id="dtb-veeqo-settings-form" class="dtb-veeqo-form">${settingsField('channel_id','Direct channel',settings.channel_id,candidates.channels,settings.sources&&settings.sources.channel_id,'Used for API-created Veeqo orders.')}${settingsField('warehouse_id','Fulfillment warehouse',settings.warehouse_id,candidates.warehouses,settings.sources&&settings.sources.warehouse_id,'Authoritative inventory and fulfillment location.')}${settingsField('delivery_method_id','Default delivery method',settings.delivery_method_id,candidates.delivery_methods,settings.sources&&settings.sources.delivery_method_id,'Order projection mapping; not live checkout carrier rating.')}<div class="dtb-veeqo-actions"><button type="submit" class="dtb-veeqo-button is-primary" data-write-action>Save operational settings</button><button type="button" class="dtb-veeqo-button" data-action="test-connection" data-write-action>Discover and validate</button></div></form></div></section></div><aside><section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><div><h2>Security boundary</h2></div></div><div class="dtb-veeqo-panel-body">${readinessRows({ order_projection_ready: settings.readiness&&settings.readiness.ready, inventory_ready: settings.readiness&&settings.readiness.ready, webhooks_enabled: false }, settings, { stale:false })}<p class="dtb-veeqo-secondary">The API key is never rendered, returned by REST, or stored by this form. Configure DTB_VEEQO_API_KEY on the server.</p></div></section>${settings.last_validation&&settings.last_validation.errors&&settings.last_validation.errors.length?`<section class="dtb-veeqo-panel"><div class="dtb-veeqo-panel-header"><h2>Validation findings</h2></div><div class="dtb-veeqo-panel-body">${settings.last_validation.errors.map((error)=>`<div class="dtb-veeqo-notice is-warning"><span>${esc(error)}</span></div>`).join('')}</div></section>`:''}</aside></div>`;
     bindCommonActions();
     const form = qs('#dtb-veeqo-settings-form');
     if (form) form.addEventListener('submit', saveSettings);
@@ -406,7 +413,7 @@
   function settingsField(name, label, value, candidates, source, description) {
     const locked = source === 'server_constant';
     const rows = Array.isArray(candidates) ? candidates : [];
-    const input = rows.length ? `<select name="${esc(name)}" ${locked?'disabled':''}><option value="0">Select a Veeqo resource</option>${rows.map((item)=>`<option value="${Number(item.id)}" ${Number(value)===Number(item.id)?'selected':''}>${esc(item.name)} (#${Number(item.id)})</option>`).join('')}</select>` : `<input type="number" min="0" name="${esc(name)}" value="${Number(value||0)}" ${locked?'disabled':''}>`;
+    const input = rows.length ? `<select id="dtb-${esc(name)}" name="${esc(name)}" ${locked?'disabled':''}><option value="0">Select a Veeqo resource</option>${rows.map((item)=>`<option value="${Number(item.id)}" ${Number(value)===Number(item.id)?'selected':''}>${esc(item.name)} (#${Number(item.id)})</option>`).join('')}</select>` : `<input id="dtb-${esc(name)}" type="number" min="0" name="${esc(name)}" value="${Number(value||0)}" ${locked?'disabled':''}>`;
     return `<div class="dtb-veeqo-field"><label for="dtb-${esc(name)}">${esc(label)}<span class="dtb-veeqo-field-description">${esc(description)}</span></label><div>${input}<span class="dtb-veeqo-field-description">Source: ${esc(source||'wordpress_option')}${locked?' — change the server constant to modify.':''}</span></div></div>`;
   }
 
@@ -432,24 +439,29 @@
 
   async function testConnection() {
     setBusy(true); clearNotice();
-    try { await request('/connection/test',{method:'POST'}); notice('Veeqo connection and operational resource mappings validated.'); await ensureOverview(); if(state.view==='settings') await loadSettings(); else if(state.view==='overview') await loadOverview(); }
-    catch(error){
-      let message=error.message||'Veeqo validation failed.';
-      try {
-        const settings=await request('/settings');
-        const errors=settings.last_validation&&Array.isArray(settings.last_validation.errors)?settings.last_validation.errors:[];
-        if(errors.length) message=errors.join(' ');
-        if(state.view==='settings') await loadSettings();
-      } catch(diagnosticError) {
-        const detail=diagnosticError&&diagnosticError.message?diagnosticError.message:'';
-        if(detail) message=`${message} Could not refresh validation findings: ${detail}`;
+    try {
+      const result = await request('/connection/test', { method: 'POST' });
+      await ensureOverview();
+      if (state.view === 'settings') await loadSettings();
+      else if (state.view === 'overview') await loadOverview();
+      if (result.success) {
+        notice('Veeqo connection and operational resource mappings validated.');
+      } else {
+        const diagnostics = result.diagnostics || {};
+        const errors = Array.isArray(diagnostics.errors) ? diagnostics.errors : [];
+        const missing = (diagnostics.readiness && diagnostics.readiness.missing) || [];
+        notice(errors[0] || (missing.length ? 'Missing required settings: ' + missing.join(', ') : 'Veeqo configuration is incomplete.'), 'warning');
       }
-      notice(message,'error');
-    }
-    finally{ setBusy(false); }
+    } catch (error) {
+      notice(error.message || 'Veeqo validation could not complete.', 'error');
+    } finally { setBusy(false); }
   }
 
   async function queueInventory(dryRun) {
+    if (!dryRun && !(state.overview && state.overview.readiness && state.overview.readiness.inventory_ready)) {
+      notice('Inventory configuration is not ready. Complete setup before applying stock changes.', 'warning');
+      return;
+    }
     if (!dryRun && !window.confirm((config.labels&&config.labels.confirmReconcile)||'Apply Veeqo inventory to WooCommerce?')) return;
     setBusy(true); clearNotice();
     try { const response=await request('/inventory/reconcile',{method:'POST',data:{dry_run:dryRun}}); notice(response.message||'Inventory operation queued.'); const operation=response.operation; if(operation&&operation.operation_id) pollOperation(operation.operation_id,true); if(state.view==='operations') await loadOperations(); }
