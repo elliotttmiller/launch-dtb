@@ -1,65 +1,80 @@
 {
   "source": "products/launch/official/dtb_official_catalog.csv",
-  "source_sha256": "f5953424b92da51d4970d361544d4a79b5444b1659d7a227b4f185249c4766d9",
-  "scope": "Canonical launch CSV simple products and variations, reconciled against public WooCommerce Store API snapshot retrieved 2026-10-08T02:42:34Z. Variable family parents are excluded.",
-  "pricing_basis": "Regular price, sale price, cost of goods, and populated MAP in the official catalog. Effective current price is sale price when valid and populated, otherwise regular price.",
-  "limits": "Public Store API does not expose private/draft products or native WooCommerce COGS/MAP. COGS and MAP findings use canonical CSV values only. Competitor observations are a separate dated evidence set and were not refreshed in this audit.",
-  "catalog_rows": 840,
+  "source_sha256": "09b4008ff8727b467b0b2fa9ccf82ee950b7ef7e074e4a4fe51c990b05822f69",
+  "scope": "All 1134 canonical launch CSV records across all publication states; simple products and variations included (1028 price-owner rows), variable parent rows excluded.",
+  "pricing_basis": "Regular price, sale price, cost of goods, and populated MAP from the current official catalog. Effective current price is populated sale price when present, otherwise regular price.",
+  "limits": "WooCommerce comparison uses a retained public Store API snapshot retrieved 2026-10-08T02:42:34Z; 652 SKUs have runtime rows, 82 older catalog SKUs were absent from that snapshot, and 294 current catalog SKUs were added beyond its comparison scope. Current storefront state for those new SKUs is unverified. COGS and MAP are canonical CSV values; competitor observations were not refreshed.",
+  "catalog_rows": 1134,
   "excluded_variable_parent_rows": 106,
-  "included_price_owner_rows": 734,
+  "included_price_owner_rows": 1028,
   "brands": {
     "Columbia Tools": {
+      "rows": 515,
+      "Tools": 100,
+      "Parts": 415,
+      "Unclassified": 0,
       "COST_AT_OR_ABOVE_EFFECTIVE_PRICE": 27,
       "EFFECTIVE_BELOW_MAP": 2,
-      "Parts": 359,
-      "SALE_NOT_BELOW_REGULAR": 158,
-      "Tools": 100,
-      "rows": 459
+      "MISSING_REGULAR_PRICE": 56,
+      "SALE_NOT_BELOW_REGULAR": 158
     },
     "Dura-Stilts": {
-      "MISSING_COST": 1,
-      "MISSING_REGULAR_PRICE": 1,
+      "rows": 4,
       "Tools": 4,
-      "rows": 4
+      "Parts": 0,
+      "Unclassified": 0,
+      "MISSING_COST": 1,
+      "MISSING_REGULAR_PRICE": 1
     },
     "LEVEL5": {
+      "rows": 47,
       "Tools": 47,
-      "rows": 47
+      "Parts": 0,
+      "Unclassified": 0
     },
     "Platinum Drywall Tools": {
-      "Tools": 36,
-      "rows": 36
+      "rows": 60,
+      "Tools": 38,
+      "Parts": 22,
+      "Unclassified": 0,
+      "MISSING_COST": 19,
+      "MISSING_REGULAR_PRICE": 2
     },
     "SurPro": {
+      "rows": 20,
       "Tools": 20,
-      "rows": 20
+      "Parts": 0,
+      "Unclassified": 0
     },
     "TapeTech": {
-      "Parts": 1,
-      "SALE_NOT_BELOW_REGULAR": 1,
+      "rows": 299,
       "Tools": 84,
-      "rows": 85
+      "Parts": 215,
+      "Unclassified": 0,
+      "MISSING_REGULAR_PRICE": 214,
+      "SALE_NOT_BELOW_REGULAR": 1
     },
     "USG Sheetrock Tools": {
+      "rows": 83,
+      "Tools": 2,
+      "Parts": 0,
+      "Unclassified": 81,
       "MISSING_CATEGORY": 81,
       "MISSING_COST": 82,
       "MISSING_REGULAR_PRICE": 2,
-      "Tools": 2,
-      "UNCLASSIFIED_PRODUCT_KIND": 81,
-      "Unclassified": 81,
-      "rows": 83
+      "UNCLASSIFIED_PRODUCT_KIND": 81
     }
   },
   "overall_flags": {
     "COST_AT_OR_ABOVE_EFFECTIVE_PRICE": 27,
     "EFFECTIVE_BELOW_MAP": 2,
     "MISSING_CATEGORY": 81,
-    "MISSING_COST": 83,
-    "MISSING_REGULAR_PRICE": 3,
+    "MISSING_COST": 102,
+    "MISSING_REGULAR_PRICE": 275,
     "SALE_NOT_BELOW_REGULAR": 159,
     "UNCLASSIFIED_PRODUCT_KIND": 81
   },
-  "findings_sku_count": 266,
+  "findings_sku_count": 555,
   "unclassified_sku_count": 81,
   "output_files": [
     "all_brands_pricing_audit.csv",
@@ -72,21 +87,20 @@
     "tapetech_pricing_audit.csv",
     "usg-sheetrock-tools_pricing_audit.csv"
   ],
-  "category_grouping": "Tools grouped by canonical Meta: _dtb_display_category_key; parts grouped by canonical Meta: _dtb_schematic_group tool-family references and labeled Parts - Schematic Group. Rows with no authoritative classification remain explicitly unclassified.",
+  "category_grouping": "Tools grouped by canonical display-category metadata. Parts use schematic groups when present, otherwise the official Replacement Parts category. Missing classifications remain explicitly unclassified. Blank rows separate brand/category sections for readability.",
   "category_counts": {
     "Applicator Heads": 19,
     "Automatic Tapers": 7,
     "Compound Tubes": 17,
     "Corner Applicators & Angle Boxes": 7,
     "Corner Finishers": 15,
-    "Corner Flushers": 26,
+    "Corner Flushers": 27,
     "Corner Rollers": 14,
-    "Flat Boxes": 40,
+    "Flat Boxes": 41,
     "Goosenecks & Box Fillers": 14,
     "Handles & Extensions": 66,
     "Loading & Compound Pumps": 10,
     "Nail Spotters": 8,
-    "Powered Compound Applicators": 3,
     "Parts - Schematic Group: 180 Grip Box Handle": 15,
     "Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle": 5,
     "Parts - Schematic Group: Angle Head": 25,
@@ -123,13 +137,15 @@
     "Parts - Schematic Group: Matrix Handle": 37,
     "Parts - Schematic Group: Matrix Handle / Hydra Reach Box Handle": 2,
     "Parts - Schematic Group: Tool Type Not Classified": 2,
+    "Powered Compound Applicators": 3,
+    "Replacement Parts": 292,
     "Semi-Automatic Tapers & Banjos": 3,
     "Stilts": 26,
     "Tool Sets & Kits": 16,
     "Tool Storage & Cases": 2,
     "Unclassified - Catalog Category Missing": 81
   },
-  "brand_product_rows": 734,
+  "brand_product_rows": 1028,
   "variable_parent_rows_excluded_from_pricing_csvs": 106,
   "outputs": [
     "all_brands_pricing_audit.csv",
@@ -145,11 +161,13 @@
     "woo_runtime_pricing_snapshot.csv"
   ],
   "live_pricing_reconciliation": {
-    "PRICE MATCH": 490,
-    "PRICE MATCH - REVIEW SOURCE FIELDS": 159,
-    "NOT PURCHASABLE - REVIEW PRICE": 1,
+    "CANONICAL PRICE MISSING": 2,
     "NOT IN PUBLIC STORE": 82,
-    "CANONICAL PRICE MISSING": 2
+    "NOT IN SNAPSHOT": 294,
+    "NOT PURCHASABLE - REVIEW PRICE": 1,
+    "PRICE MATCH": 456,
+    "PRICE MATCH - REVIEW SOURCE FIELDS": 180,
+    "PRICE MISMATCH - REVIEW": 13
   },
   "live_pricing_snapshot_utc": "2026-10-08T02:42:34Z",
   "canonical_price_gaps_with_live_price": [
@@ -161,5 +179,24 @@
   "not_in_public_store_rows": 82,
   "non_purchasable_review_skus": [
     "DSS3864US"
-  ]
+  ],
+  "runtime_evidence_coverage": {
+    "snapshot_file": "woo_runtime_pricing_snapshot.csv",
+    "reconciliation_file": "woo_runtime_price_reconciliation.csv",
+    "snapshot_utc": "2026-10-08T02:42:34Z",
+    "rows_with_retained_runtime_data": 652,
+    "current_audit_rows": 1028,
+    "new_rows_not_in_retained_snapshot": 294,
+    "current_price_differences_against_retained_snapshot": 13,
+    "status": "Retained snapshot is historical evidence; newly added SKUs are labeled NOT IN SNAPSHOT, not as currently absent from WooCommerce."
+  },
+  "prior_audit_comparison": {
+    "prior_rows_compared": 734,
+    "changed_price_field_counts": {
+      "Current": 13,
+      "Regular": 34,
+      "Sale": 34
+    },
+    "changed_sku_count": 34
+  }
 }

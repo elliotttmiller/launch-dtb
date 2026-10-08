@@ -8,11 +8,11 @@ Columbia UHMW Mud Applicator - Inside 90°,IA90,91.99,101.19,91.99,60.09,Applica
 Columbia UHMW Mud Applicator - L-Trim,FMH,91.99,101.19,91.99,60.09,Applicator Heads,COL-UHMW-MUD-APPLICATOR,,Columbia Tools
 Columbia UHMW Mud Applicator - Outside 90°,OA90,91.99,101.19,91.99,60.09,Applicator Heads,COL-UHMW-MUD-APPLICATOR,,Columbia Tools
 Columbia UHMW Mud Applicator - Outside 90° 325,OA90-325,91.93,101.12,91.93,58.01,Applicator Heads,COL-UHMW-MUD-APPLICATOR,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Automatic Taper - Sawed Off 39""",STAPER,1649.29,1814.22,1649.29,1166.49,Automatic Tapers,COL-AUTOMATIC-TAPER,,Columbia Tools
 "Columbia Automatic Taper - Standard 53""",TAPER,1649.29,1814.22,1649.29,1166.49,Automatic Tapers,COL-AUTOMATIC-TAPER,,Columbia Tools
 Columbia One Predator Taper,PTAPER,1838.55,2022.41,1838.55,1458.91,Automatic Tapers,,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Cam Lock Tube - 24""",CLT24,257.99,283.79,257.99,189.66,Compound Tubes,COL-CAM-LOCK-TUBE,,Columbia Tools
 "Columbia Cam Lock Tube - 32""",CLT32,268.99,295.89,268.99,195.8,Compound Tubes,COL-CAM-LOCK-TUBE,,Columbia Tools
 "Columbia Cam Lock Tube - 42""",CLT42,280.99,309.09,280.99,208.13,Compound Tubes,COL-CAM-LOCK-TUBE,,Columbia Tools
@@ -23,15 +23,15 @@ Columbia One Predator Taper,PTAPER,1838.55,2022.41,1838.55,1458.91,Automatic Tap
 "Columbia Compound Tube - 55""",CMT55,232.99,256.29,232.99,153.95,Compound Tubes,COL-COMPOUND-TUBE,,Columbia Tools
 Columbia Predator Camlock Tube,PCLT42,368.05,404.86,368.05,242.69,Compound Tubes,,,Columbia Tools
 "Columbia Predator Compound Tube 42""",PCMT42,274.93,302.42,274.93,181.28,Compound Tubes,,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Throttle Corner Flusher Box - 7""",7CFB,313.99,345.39,313.99,210.29,Corner Applicators & Angle Boxes,COL-THROTTLE-CORNER-FLUSHER-BOX,,Columbia Tools
 "Columbia Throttle Corner Flusher Box - 8""",8CFB,324.99,357.49,324.99,227.37,Corner Applicators & Angle Boxes,COL-THROTTLE-CORNER-FLUSHER-BOX,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Angle Head - 2""",2AH,410.99,452.09,410.99,268.93,Corner Finishers,COL-ANGLE-HEAD,,Columbia Tools
 "Columbia Angle Head - 2.5""",2.5AH,421.99,464.19,421.99,277.45,Corner Finishers,COL-ANGLE-HEAD,,Columbia Tools
 "Columbia Angle Head - 3""",3AH,443.99,488.39,443.99,285.99,Corner Finishers,COL-ANGLE-HEAD,,Columbia Tools
 "Columbia Angle Head - 3.5""",3.5AH,454.99,500.49,454.99,320.14,Corner Finishers,COL-ANGLE-HEAD,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Combo Flusher - 2.5""",2.5CSF,163.99,180.39,163.99,117.01,Corner Flushers,COL-COMBO-FLUSHER,,Columbia Tools
 "Columbia Combo Flusher - 3""",3CSF,168.99,185.89,168.99,120.69,Corner Flushers,COL-COMBO-FLUSHER,,Columbia Tools
 "Columbia Combo Flusher - 3"" Widetrack",3WTCSF,196.25,215.88,196.25,120.69,Corner Flushers,COL-COMBO-FLUSHER,,Columbia Tools
@@ -46,14 +46,14 @@ Columbia Predator Camlock Tube,PCLT42,368.05,404.86,368.05,242.69,Compound Tubes
 "Columbia Standard Flusher - 3"" Widetrack",3WTSF,127.99,140.79,127.99,75.12,Corner Flushers,COL-STANDARD-FLUSHER,,Columbia Tools
 "Columbia Standard Flusher - 3.5""",3.5SF,133.99,147.39,133.99,77.59,Corner Flushers,COL-STANDARD-FLUSHER,,Columbia Tools
 "Columbia Standard Flusher - 4""",4SF,140.60,154.66,140.60,68.25,Corner Flushers,COL-STANDARD-FLUSHER,,Columbia Tools
-
+,,,,,,,,,
 Columbia Corner Cobra,CC,368.00,404.80,368,245.62,Corner Rollers,,,Columbia Tools
 Columbia Corner Roller,CR,162.75,179.03,162.75,104.43,Corner Rollers,,EFFECTIVE_BELOW_MAP,Columbia Tools
 Columbia Outside Corner Roller - Bullnose,CBNCR,87.00,95.70,87,55.12,Corner Rollers,COL-OUTSIDE-CORNER-ROLLER,,Columbia Tools
 Columbia Outside Corner Roller - European,COBCRE,79.06,86.97,79.06,52.97,Corner Rollers,COL-OUTSIDE-CORNER-ROLLER,,Columbia Tools
 Columbia Outside Corner Roller - Standard,COBCR,87.00,95.70,87,52.97,Corner Rollers,COL-OUTSIDE-CORNER-ROLLER,,Columbia Tools
 Columbia Outside Corner Roller - Wide,COBCRW,87.00,95.70,87,55.12,Corner Rollers,COL-OUTSIDE-CORNER-ROLLER,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Automatic Fat Boy Box - 10""",10FBBA,492.99,542.29,492.99,317.93,Flat Boxes,COL-AUTOMATIC-FAT-BOY-BOX,,Columbia Tools
 "Columbia Automatic Fat Boy Box - 12""",12FBBA,502.99,553.29,502.99,324.25,Flat Boxes,COL-AUTOMATIC-FAT-BOY-BOX,,Columbia Tools
 "Columbia Automatic Fat Boy Box - 8""",8FBBA,481.99,530.19,481.99,313.52,Flat Boxes,COL-AUTOMATIC-FAT-BOY-BOX,,Columbia Tools
@@ -71,13 +71,13 @@ Columbia Outside Corner Roller - Wide,COBCRW,87.00,95.70,87,55.12,Corner Rollers
 "Columbia Flat Finisher Box - 5.5""",5.5FFB,367.99,404.79,367.99,252.99,Flat Boxes,COL-FLAT-FINISHER-BOX,,Columbia Tools
 "Columbia Flat Finisher Box - 7""",7FFB,378.99,416.89,378.99,255.24,Flat Boxes,COL-FLAT-FINISHER-BOX,,Columbia Tools
 "Columbia Flat Finisher Box - 8""",8FFB,389.99,428.99,389.99,256.12,Flat Boxes,COL-FLAT-FINISHER-BOX,,Columbia Tools
-
+,,,,,,,,,
 Columbia Box Filler - Standard,BF,75.99,83.59,75.99,41.82,Goosenecks & Box Fillers,COL-BOX-FILLER,,Columbia Tools
 Columbia Box Filler - Tall Boy,TBBF,75.99,83.59,75.99,41.82,Goosenecks & Box Fillers,COL-BOX-FILLER,,Columbia Tools
 Columbia Gooseneck - Standard,GN,108.99,119.89,108.99,68.28,Goosenecks & Box Fillers,COL-GOOSENECK,,Columbia Tools
 Columbia Gooseneck - Tall Boy,TBGN,146.00,160.60,146,99,Goosenecks & Box Fillers,COL-GOOSENECK,,Columbia Tools
 Columbia Powerfill 5 Gallon Taper Gooseneck Fill Tube,CPFGN,275.00,302.50,275.00,160.99,Goosenecks & Box Fillers,,,Columbia Tools
-
+,,,,,,,,,
 Columbia 180° Grip Flat Box Handle - 3',3BH,189.99,208.99,189.99,127.21,Handles & Extensions,COL-180-GRIP-FLAT-BOX-HANDLE,,Columbia Tools
 Columbia 180° Grip Flat Box Handle - 4',4BH,210.99,232.09,210.99,130.59,Handles & Extensions,COL-180-GRIP-FLAT-BOX-HANDLE,,Columbia Tools
 "Columbia 180° Grip Flat Box Handle - 42""",42BH,205.99,226.59,205.99,128.92,Handles & Extensions,COL-180-GRIP-FLAT-BOX-HANDLE,,Columbia Tools
@@ -97,16 +97,23 @@ Columbia One Handle - Stubby,C1HS,49.44,54.38,49.44,26,Handles & Extensions,COL-
 Columbia Predator One Handle - 4' Fixed,PC1H,95.79,105.37,95.79,57.33,Handles & Extensions,COL-PREDATOR-ONE-HANDLE,,Columbia Tools
 Columbia Predator One Handle - Extendable 3'-5',PC1HEXT,169.70,186.67,169.70,115.39,Handles & Extensions,COL-PREDATOR-ONE-HANDLE,,Columbia Tools
 Columbia Predator One Handle - Long Extendable 4'-8',PCHXL,216.15,237.77,216.15,142.51,Handles & Extensions,COL-PREDATOR-ONE-HANDLE,,Columbia Tools
-
+,,,,,,,,,
 Columbia Hot Mud Pump - CDN,HMP-C,380.00,418.00,380.00,247,Loading & Compound Pumps,COL-HOT-MUD-PUMP,,Columbia Tools
 Columbia Hot Mud Pump - Standard,HMP,410.99,452.09,410.99,277.45,Loading & Compound Pumps,COL-HOT-MUD-PUMP,,Columbia Tools
 Columbia Hot Mud Pump - Tall Boy,TBMP,492.99,542.29,492.99,367.22,Loading & Compound Pumps,COL-HOT-MUD-PUMP,,Columbia Tools
 Columbia PowerFill 3.5 Pro Series Cordless Loading Pump,CPFP,1473.00,1620.30,1473.00,990.71,Loading & Compound Pumps,,,Columbia Tools
 Columbia Predator Mud Pump,PHMP,496.42,546.06,496.42,327.49,Loading & Compound Pumps,,,Columbia Tools
-
+,,,,,,,,,
 "Columbia Nail Spotter - 2""",2NS,297.99,327.79,297.99,189.8,Nail Spotters,COL-NAIL-SPOTTER,,Columbia Tools
 "Columbia Nail Spotter - 3""",3NS,308.99,339.89,308.99,198.35,Nail Spotters,COL-NAIL-SPOTTER,,Columbia Tools
-
+,,,,,,,,,
+Columbia Semi Automatic Taper,SAT,244.50,268.95,244.50,166.26,Semi-Automatic Tapers & Banjos,,,Columbia Tools
+,,,,,,,,,
+Columbia Commando Set,SACS,1157.93,1273.72,1157.93,718.35,Tool Sets & Kits,,,Columbia Tools
+,,,,,,,,,
+Columbia Road Case,RC,1020.99,1123.09,1020.99,658.08,Tool Storage & Cases,,,Columbia Tools
+Columbia Semi-Automatic Tool Case,TCS,203.50,223.85,203.50,138.38,Tool Storage & Cases,,,Columbia Tools
+,,,,,,,,,
 "1/16 X 1/2"" Cotter Pin",FA202,1.00,1.00,1.00,0.65,Parts - Schematic Group: 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "1/4-28 x 1/4"" Set Screw",FA302,2.15,2.37,2.15,0.89,Parts - Schematic Group: 180 Grip Box Handle,,,Columbia Tools
 "10-24 x 7/8"" Pan Slot",FA276,1.05,1.16,1.05,0.32,Parts - Schematic Group: 180 Grip Box Handle,,,Columbia Tools
@@ -122,13 +129,13 @@ Lower Brake Lever,BH4,26.00,26.00,26.00,15.32,Parts - Schematic Group: 180 Grip 
 Lower Mounting Bracket,BH3,32.00,32.00,32.00,20.8,Parts - Schematic Group: 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Plate,BH2,45.84,50.42,45.84,22.92,Parts - Schematic Group: 180 Grip Box Handle,,,Columbia Tools
 Strap Connecting Pin,BH11,3.00,3.00,3.00,5.17,Parts - Schematic Group: 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR|COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
-
+,,,,,,,,,
 "10-24 X 1/4"" Socket Hand Set",FA312,2.15,2.37,2.15,0.89,Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle,,,Columbia Tools
 "FA311 1/4-28 X 1/2"" Socket Head",FA311,2.00,2.00,2.00,1.3,Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Hinge Pin,BH6,10.00,10.00,10.00,7.31,Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Mounting Plate,BH1,30.00,30.00,30.00,37.15,Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR|COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
 Upper Mounting Bracket,BH5,10.54,11.59,10.54,5.43,Parts - Schematic Group: 180 Grip Box Handle / Hydra Reach Box Handle,,,Columbia Tools
-
+,,,,,,,,,
 "6-32 X 1/4"" Flat Slot",FA227,2.00,2.00,2.00,1.3,Parts - Schematic Group: Angle Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "6-32 X 1/8"" Binder Slot",FA236,1.00,1.00,1.00,0.65,Parts - Schematic Group: Angle Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "6-32 X 1/8"" Set Screw",FA235,2.00,2.00,2.00,1.3,Parts - Schematic Group: Angle Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -154,7 +161,7 @@ Spring Housing,AH1A,12.18,13.40,12.18,5.2,Parts - Schematic Group: Angle Head,,,
 "Top Blade - 3.5""",AH3-3.5,36.34,39.97,36.34,18.72,Parts - Schematic Group: Angle Head,AH3,,Columbia Tools
 "Top Retainer Corner Clip - 3.5""",AH8A,7.00,7.00,7.00,6.34,Parts - Schematic Group: Angle Head,AH8-CLIP,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Top Retainer Corner Clip - Standard,AH8,6.78,7.46,6.78,3.84,Parts - Schematic Group: Angle Head,AH8-CLIP,,Columbia Tools
-
+,,,,,,,,,
 1/4 - 20 Hex Nut,CT109,6.40,7.04,6.4,2.72,Parts - Schematic Group: Automatic Taper Body,,,Columbia Tools
 "1/4 x 1/2"" Flathead Socket",FA295,1.05,1.16,1.05,0.32,Parts - Schematic Group: Automatic Taper Body,,,Columbia Tools
 1/4-20 Hex Nut,FA291,2.00,2.00,2.00,1.3,Parts - Schematic Group: Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -178,7 +185,7 @@ Rollers,CT125,4.70,5.17,4.7,1.93,Parts - Schematic Group: Automatic Taper Body,,
 Spool Retaining Spring,CT119,6.00,6.00,6.00,3.49,Parts - Schematic Group: Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Strap,CT116A,21.94,24.13,21.94,11.64,Parts - Schematic Group: Automatic Taper Body,,,Columbia Tools
 Tape Spool,CT120,27.00,27.00,27.00,15.51,Parts - Schematic Group: Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 #6 Star Washer,FA230,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "1/16 x 1/4"" Split Pin",FA200,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "1/16 x 3/4"" Cotter Pin",FA203,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -257,28 +264,28 @@ Toe Kicker,CT53,26.38,29.02,26.38,13.59,Parts - Schematic Group: Automatic Taper
 Toe Kicker Caple Retainer Clip,CT92A,3.78,4.16,3.78,1.56,Parts - Schematic Group: Automatic Taper Head,,,Columbia Tools
 Wafer Bushing - Left,CT4,1.88,2.07,1.88,1.3,Parts - Schematic Group: Automatic Taper Head,CT-WAFER-BUSHING,,Columbia Tools
 Wafer Bushing - Right,CT5,1.88,2.07,1.88,0.77,Parts - Schematic Group: Automatic Taper Head,CT-WAFER-BUSHING,,Columbia Tools
-
+,,,,,,,,,
 "8-32 x 1/4"" Fillister Slot",FA257,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head / 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "8-32 x 3/4"" Truss Slot",FA265,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head / 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "6-32 x 1/2"" Fillister Slot",FA245,1.00,1.00,1.00,0.41,Parts - Schematic Group: Automatic Taper Head / Angle Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 4-40 Nyloc Nut,FA207,2.00,2.00,2.00,1.63,Parts - Schematic Group: Automatic Taper Head / Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "4-40 x 1/8"" Binder Slot",FA2,1.65,1.65,1.65,0.32,Parts - Schematic Group: Automatic Taper Head / Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "4-40 x 3/4"" Hex Bolt",FA220,1.10,1.21,1.1,0.32,Parts - Schematic Group: Automatic Taper Head / Automatic Taper Body,,,Columbia Tools
 Cable,CT72,10.00,10.00,10.00,6.5,Parts - Schematic Group: Automatic Taper Head / Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 #8 Flat Washer,FA253,1.05,1.16,1.05,0.32,Parts - Schematic Group: Automatic Taper Head / Corner Flusher Box,,,Columbia Tools
 "4-40 x 1/4"" Binder Slot",FA213,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "4-40 x 1/2"" Fillister Slot",FA219,1.05,1.16,1.05,0.65,Parts - Schematic Group: Automatic Taper Head / Corner Flusher Box / Automatic Taper Body,,,Columbia Tools
-
+,,,,,,,,,
 8-32 Nyloc Nut,FA254,2.00,2.00,2.00,1.3,Parts - Schematic Group: Automatic Taper Head / Hinged Nailspotter,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 #6 Flat Washer,FA228,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head / Hinged Nailspotter / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 #6 Lock Washer,FA229,1.00,1.00,1.00,0.65,Parts - Schematic Group: Automatic Taper Head / Matrix Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "1/4 -20 x 1/2"" Hex Bolt",FA296,1.00,1.10,1,0.41,Parts - Schematic Group: Corner Flusher Box,,,Columbia Tools
 "5/16-18 x 3/4"" Thumb Screw",CFB10,7.30,8.03,7.3,3.9,Parts - Schematic Group: Corner Flusher Box,,,Columbia Tools
 "8-32 X 3/8"" Socket Screw",FA261,2.00,2.00,2.00,0.43,Parts - Schematic Group: Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -295,9 +302,9 @@ Hinge Bushing (Plastic Washer),CFB15A,2.75,3.03,2.75,5.53,Parts - Schematic Grou
 Mud Supply Valve Unit,CFB6,32.18,35.40,32.18,17.07,Parts - Schematic Group: Corner Flusher Box,,,Columbia Tools
 "Side Plate - 7""",CFB3-7,43.84,48.22,43.84,26,Parts - Schematic Group: Corner Flusher Box,CFB3,,Columbia Tools
 "Side Plate - 8""",CFB3-8,43.84,48.22,43.84,26,Parts - Schematic Group: Corner Flusher Box,CFB3,,Columbia Tools
-
+,,,,,,,,,
 "8-32 x 1/2"" Socket",FA262,2.00,2.00,2.00,1.11,Parts - Schematic Group: Corner Flusher Box / Corner Roller,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "1/4"" X 3/4"" Split Pin",FA288,2.36,2.60,2.36,1.46,Parts - Schematic Group: Corner Roller,,,Columbia Tools
 "1/4-20 x 1 1/2"" Pan Phillips",FA299,4.00,4.00,4.00,2.6,Parts - Schematic Group: Corner Roller,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Bearing Sleeve,CR-3,9.45,10.40,9.45,12.99,Parts - Schematic Group: Corner Roller,,COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
@@ -307,7 +314,7 @@ Handle Mounting Swivel,CR6,17.68,19.45,17.68,9.11,Parts - Schematic Group: Corne
 Head Casting,CR1,58.50,64.35,58.5,93.08,Parts - Schematic Group: Corner Roller,,COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
 Roller,CR2,20.64,22.70,20.64,7.8,Parts - Schematic Group: Corner Roller,,,Columbia Tools
 Swivel Coupling Pin,CR12,5.38,5.92,5.38,2.4,Parts - Schematic Group: Corner Roller,,,Columbia Tools
-
+,,,,,,,,,
 10-24 Wing Nut,FA272,2.00,2.00,2.00,1.3,Parts - Schematic Group: Flat Finishing Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "10-24 x 7/8"" Hex Bolt",FA275,2.15,2.37,2.15,0.89,Parts - Schematic Group: Flat Finishing Box,,,Columbia Tools
 4-40 X 3/8” Fillister Slot,FA216,2.00,2.00,2.00,1.3,Parts - Schematic Group: Flat Finishing Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -347,29 +354,29 @@ Shoe - Left,FFB7A,3.00,3.00,3.00,27.92,Parts - Schematic Group: Flat Finishing B
 Shoe - Right,FFB7,3.00,3.00,3.00,27.92,Parts - Schematic Group: Flat Finishing Box,FFB7-SHOE,SALE_NOT_BELOW_REGULAR|COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
 Stainless Steel Backing Washer,FFB4B,5.20,5.72,5.2,2.6,Parts - Schematic Group: Flat Finishing Box,,,Columbia Tools
 Stainless Steel Washer,FFB4A,6.10,6.71,6.1,3.25,Parts - Schematic Group: Flat Finishing Box,,,Columbia Tools
-
+,,,,,,,,,
 #10 Flat Washer,FA268,1.00,1.00,1.00,0.32,Parts - Schematic Group: Flat Finishing Box / 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 6-32 Nyloc Nut,FA233,2.00,2.00,2.00,0.79,Parts - Schematic Group: Flat Finishing Box / Automatic Taper Head,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 8-32X 1/4 Half Dog Set,FA258,2.00,2.00,2.00,1.3,Parts - Schematic Group: Flat Finishing Box / Automatic Taper Head / Angle Head / Matrix Handle / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "6-32 X 1/4"" Binder Slot",FA239,1.00,1.00,1.00,0.65,Parts - Schematic Group: Flat Finishing Box / Automatic Taper Head / Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "6-32 X 3/16"" Fillister Slot",FA238,2.00,2.00,2.00,1.3,Parts - Schematic Group: Flat Finishing Box / Automatic Taper Head / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "6-32 X 3/8"" Binder Slot",FA241,1.00,1.00,1.00,0.65,Parts - Schematic Group: Flat Finishing Box / Automatic Taper Head / Hinged Nailspotter / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 6-32 Hex Nut,FA232,2.10,2.31,2.1,0.89,Parts - Schematic Group: Flat Finishing Box / Corner Flusher Box,,,Columbia Tools
-
+,,,,,,,,,
 #10 Belleville Washer,FA280,1.05,1.16,1.05,0.32,Parts - Schematic Group: Flat Finishing Box / Hinged Nailspotter / Corner Flusher Box,,,Columbia Tools
 "6-32 x 3/8"" Hex Bolt",FA231,1.55,1.71,1.55,0.64,Parts - Schematic Group: Flat Finishing Box / Hinged Nailspotter / Corner Flusher Box,,,Columbia Tools
 "6-32 X 5/8"" Hex Bolt",FA247,1.95,2.15,1.95,0.8,Parts - Schematic Group: Flat Finishing Box / Hinged Nailspotter / Corner Flusher Box,,,Columbia Tools
 Door Stop,FFB32,3.00,3.00,3.00,1.95,Parts - Schematic Group: Flat Finishing Box / Hinged Nailspotter / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Thumb Release Clip Screw,FFB32A,2.00,2.00,2.00,8.13,Parts - Schematic Group: Flat Finishing Box / Hinged Nailspotter / Corner Flusher Box,,SALE_NOT_BELOW_REGULAR|COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
-
+,,,,,,,,,
 10-24 Nyloc Nut,FA271,2.00,2.00,2.00,1.3,Parts - Schematic Group: Flat Finishing Box / Hot Mud Pump / Hinged Nailspotter,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "4-40 x 3/8"" Flat Slot",FA218,1.00,1.00,1.00,0.65,Parts - Schematic Group: Hinged Nailspotter,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "Blade - 2""",HNS7-2,26.90,29.59,26.9,14.95,Parts - Schematic Group: Hinged Nailspotter,HNS7,,Columbia Tools
 "Blade - 3""",HNS7-3,26.90,29.59,26.9,14.95,Parts - Schematic Group: Hinged Nailspotter,HNS7,,Columbia Tools
@@ -388,9 +395,9 @@ Pivot,HNS18,4.00,4.00,4.00,2.6,Parts - Schematic Group: Hinged Nailspotter,,SALE
 Roll Pin,HNS12A,8.01,8.81,8.01,3.9,Parts - Schematic Group: Hinged Nailspotter,,,Columbia Tools
 Roll Pin Bushing,HNS13,4.78,5.26,4.78,6.47,Parts - Schematic Group: Hinged Nailspotter,,COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
 Wedge,HNS20,20.44,22.48,20.44,14.63,Parts - Schematic Group: Hinged Nailspotter,,,Columbia Tools
-
+,,,,,,,,,
 #8 Star Washer,FA252,1.15,1.27,1.15,0.32,Parts - Schematic Group: Hinged Nailspotter / Hydra Reach Box Handle,,,Columbia Tools
-
+,,,,,,,,,
 "#10 x 3/4"" Fender Washer",FA270,2.10,2.31,2.1,0.89,Parts - Schematic Group: Hot Mud Pump,,,Columbia Tools
 "1/2"" x 7/8"" Flat Washer",FA3,2.50,2.50,2.50,0.89,Parts - Schematic Group: Hot Mud Pump,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "1/4"" x 1/2"" Flat Washer",FA286,1.00,1.00,1.00,0.65,Parts - Schematic Group: Hot Mud Pump,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -430,14 +437,14 @@ Pump Cylinder,HP1,60.26,66.29,60.26,33.8,Parts - Schematic Group: Hot Mud Pump,,
 Pump Flapper Valve,MP3,4.70,5.17,4.7,2.6,Parts - Schematic Group: Hot Mud Pump,,,Columbia Tools
 Pump Handle,MP7,105.42,115.96,105.42,56.55,Parts - Schematic Group: Hot Mud Pump,,,Columbia Tools
 Sleeve,MP39,3.28,3.61,3.28,9.59,Parts - Schematic Group: Hot Mud Pump,,COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
-
+,,,,,,,,,
 "8-32X3/16"" Set Screw",FA249,2.00,2.00,2.00,1.3,Parts - Schematic Group: Hot Mud Pump / Automatic Taper Body,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 FA292 1/4-20 Nyloc Jam Nut,FA292,1.93,2.12,1.93,0.81,Parts - Schematic Group: Hot Mud Pump / Automatic Taper Body,,,Columbia Tools
-
+,,,,,,,,,
 "8-32 x 3/8"" Pan Slot",FA260,1.00,1.00,1.00,0.65,Parts - Schematic Group: Hot Mud Pump / Hinged Nailspotter / 180 Grip Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "8-32 X 3/16"" Pan Slot",FA256,1.00,1.00,1.00,0.32,Parts - Schematic Group: Hot Mud Pump / Matrix Handle / Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 "1/4-28-3/8"" Socket Set Screw",FA320,2.00,2.00,2.00,1.3,Parts - Schematic Group: Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "10-32 X 1/2"" Flat Socket Head",FA316,2.00,2.00,2.00,1.3,Parts - Schematic Group: Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Bleeder Screw,HH16A,17.00,17.00,17.00,11.05,Parts - Schematic Group: Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -458,7 +465,7 @@ Piston Housing,HH16,26.00,26.00,26.00,17.55,Parts - Schematic Group: Hydra Reach
 Piston O-Ring,HH23,2.00,2.00,2.00,1.3,Parts - Schematic Group: Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Top Cap,HH10A,2.00,2.00,2.00,1.3,Parts - Schematic Group: Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 Upper Mounting Bracket,HH2,77.48,85.23,77.48,42.9,Parts - Schematic Group: Hydra Reach Box Handle,,,Columbia Tools
-
+,,,,,,,,,
 "1/4"" SS E-Clip",FA379,4.00,4.00,4.00,1.71,Parts - Schematic Group: Matrix Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "1/8"" SS E-Clip",FA380,4.00,4.00,4.00,1.71,Parts - Schematic Group: Matrix Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
 "10-32 x 1/4"" SS Set Screw",FA382,1.00,1.00,1.00,0.65,Parts - Schematic Group: Matrix Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
@@ -496,15 +503,65 @@ Release Clip Pin,HH31,16.36,18.00,16.36,8.42,Parts - Schematic Group: Matrix Han
 Release Clip Washer,HH32,27.26,29.99,27.26,14.3,Parts - Schematic Group: Matrix Handle,,,Columbia Tools
 Rlease Trigger Spring,HH33,7.30,8.03,7.3,7.64,Parts - Schematic Group: Matrix Handle,,COST_AT_OR_ABOVE_EFFECTIVE_PRICE,Columbia Tools
 Small Nyliner Bushing,MH20,3.00,3.00,3.00,1.95,Parts - Schematic Group: Matrix Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 Handle Grip,HH35,9.45,10.40,9.45,4.55,Parts - Schematic Group: Matrix Handle / Hydra Reach Box Handle,,,Columbia Tools
 Handle Tube,HH8,44.00,44.00,44.00,29.25,Parts - Schematic Group: Matrix Handle / Hydra Reach Box Handle,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
+,,,,,,,,,
 Angle Head Adapter,AHA,24.87,24.87,24.87,14.56,Parts - Schematic Group: Tool Type Not Classified,,SALE_NOT_BELOW_REGULAR,Columbia Tools
-
-Columbia Semi Automatic Taper,SAT,244.50,268.95,244.50,166.26,Semi-Automatic Tapers & Banjos,,,Columbia Tools
-
-Columbia Commando Set,SACS,1157.93,1273.72,1157.93,718.35,Tool Sets & Kits,,,Columbia Tools
-
-Columbia Road Case,RC,1020.99,1123.09,1020.99,658.08,Tool Storage & Cases,,,Columbia Tools
-Columbia Semi-Automatic Tool Case,TCS,203.50,223.85,203.50,138.38,Tool Storage & Cases,,,Columbia Tools
+,,,,,,,,,
+Columbia #8 Belleville Washer,FA278,,,,0.33,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 1/16"" X 3/8"" Split Pin",FA201,,,,0.32,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 1/4"" Plastic Washer",FA285,,,,0.77,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia 1/4-20 Nyloc Nut,FA290,,,,0.89,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia 10-24 X 1-1/2 Pan Slot,FA314,,,,0.31,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia 10-24 X 1-1/4in Hex Bolt,FA279,,,,0.80,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia 10-32 X Nyloc Jam Nut-2 per pack,FA281,,,,0.89,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 2"" Angle Head Carbide Blade",AH32,,,,18.72,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 2"" Angle Head Frame Tension Spring",AH72,,,,0.79,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 2.5"" Angle Head Carbide Blade",AH325,,,,18.72,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 2.5"" Angle Head Frame Tension Spring",AH725,,,,0.79,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 3"" Angle Head Carbide Blade",AH33,,,,18.72,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 3"" Angle Head Tension Spring",AH73,,,,0.79,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 3.5"" Angle Head Carbide Blade",AH335,,,,18.72,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 3.5"" Angle Head Frame Tension Spring",AH735,,,,0.79,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 33/64 X 7/8"" Flat Washer",FA308,,,,0.89,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 4-40 x 1/8"" Binder Slot",FA208,,,,0.32,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 5-40 X 3/8"" Bind Head Screw",FA222,,,,0.32,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 7"" Angle Box Door Gasket",CFB77,,,,23.27,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 7"" Pressure Door",CFB47,,,,7.76,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 8"" Door Gasket for Angle Box",CFB78,,,,23.27,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 8"" Pressure Door",CFB48,,,,7.76,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 8"" Roll Face",CFB28,,,,27.15,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia 8-32 X 1"" Flat Head Screw",FA266,,,,0.13,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Ball Spring Long Flusher,CF4L,,,,4.24,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Bead Wheel Bushing,FFB43,,,,1.49,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Cable Pulley Guide,CTA84,,,,7.76,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Compound Tube Box Filler,CLTBF,,,,49.27,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Cover Plate Assembly,CTA87CL,,,,112.28,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Cover Plate Cork Seal,CT87CS,,,,4.25,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Direct Plate - Flusher,CF1B,,,,9.53,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Hinge Seal,CFB1A,,,,2.32,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia ONE Angle Box Door Adaptor,CFB8A,,,,27.15,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Removable Cover Plate Attachment Block,CT34R,,,,3.39,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Removable Cover Plate Pin,CTA99,,,,8.21,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia Replacement 12"" Blade for Tomahawk",SB212,,,,19.09,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Retaining Quick Release Spring Clip,CT118A,,,,3.49,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Retaining Quick Release Spring Shaft,CT123,,,,6.21,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+"Columbia Split Pin 1/4"" X 2""",FA289,,,,1.21,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Brass Bracket,CT22,,,,12.41,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Control Valve,CT95,,,,4.67,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Crimping Arm Bushing Right,CT10,,,,2.91,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Crimping Arm Right,CT49,,,,34.88,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Cutter Block,CT41,,,,0.97,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Gasket New Style End Ring,CT115A,,,,1.16,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Mud Shut Off Lever Arm,CT93,,,,31.03,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Mud Shut Off Upper Plate,CT94,,,,2.72,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Reinforcing Rod,CT23,,,,4.67,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Separation Plate,CT17,,,,10.85,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Shaft Guide Roller Bushing,CT128A,,,,15.51,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Side Plate Right,CT6,,,,18.63,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Side Plate Support Left,CT7,,,,35.29,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Side Plate Support Right,CT8,,,,35.29,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Strap,CT122A,,,,11.64,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+Columbia Taper Tape Advance Release Bracket,CT12,,,,4.27,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools
+CTTMH9,MH9,,,,10.31,Replacement Parts,,MISSING_REGULAR_PRICE,Columbia Tools

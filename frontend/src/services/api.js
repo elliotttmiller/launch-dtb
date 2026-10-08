@@ -1,16 +1,9 @@
 /**
  * src/services/api.js
  *
- * Centralized WooCommerce REST API module.
- *
- * Authentication: WooCommerce Application Passwords (more secure than consumer keys for client-side).
- * Env vars are injected at build time by webpack DefinePlugin:
- *   REACT_APP_WC_BASE_URL        – WooCommerce REST API base
- *                                   e.g. https://elliottm4.sg-host.com/wp-json/wc/v3
- *   REACT_APP_WC_AUTH_USER       – WooCommerce Application Password username
- *   REACT_APP_WC_AUTH_PASS       – WooCommerce Application Password password
- *
- * WooCommerce REST API docs: https://woocommerce.github.io/woocommerce-rest-api-docs/
+ * Product normalization and compatibility helpers for the storefront.
+ * Reads are routed through the same-origin DTB WooCommerce proxy; browser code
+ * never receives WooCommerce REST credentials.
  */
 
 import { apiClient } from '../api/client.js';
@@ -62,22 +55,6 @@ const BRAND_ALIASES = {
   'asgard':                    'Asgard',
   'graco':                     'Graco',
 };
-
-// Build-time env vars (REACT_APP_WC_AUTH_USER / REACT_APP_WC_AUTH_PASS) are baked
-// in by webpack DefinePlugin.  If the deploy predates dotenv being wired up,
-// they will be empty strings.
-//
-// client.js runs a runtime bootstrap: it fetches /wp-json/dtb/v1/config and
-// patches wcClient.defaults.headers.common['Authorization'] when it resolves.
-//
-// We MUST read the Authorization header lazily (at call time, not at module
-// load time) so we pick up whatever client.js has patched in.  Reading it
-// once at module init would always get the empty pre-bootstrap value.
-//
-// Resolution order:
-//   1. wcClient.defaults.headers.common['Authorization']  (patched by bootstrap)
-//   2. build-time REACT_APP_WC_AUTH_USER env var
-//   3. build-time REACT_APP_WC_AUTH_PASS env var
 
 // ─── Normalizer ──────────────────────────────────────────────────────────────
 //

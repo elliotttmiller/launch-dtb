@@ -141,12 +141,6 @@ module.exports = (envFlags, argv) => {
     'process.env.NODE_ENV':              JSON.stringify(isDev ? 'development' : 'production'),
     'process.env.PUBLIC_URL':            JSON.stringify(publicPath),
 
-    // WooCommerce REST API (CRA-style — legacy compat)
-    'process.env.REACT_APP_WP_BASE_URL':        JSON.stringify(env('REACT_APP_WP_BASE_URL')),
-    'process.env.REACT_APP_WC_BASE_URL':        JSON.stringify(env('REACT_APP_WC_BASE_URL')),
-    'process.env.REACT_APP_WC_AUTH_USER':       JSON.stringify(env('REACT_APP_WC_AUTH_USER')),
-    'process.env.REACT_APP_WC_AUTH_PASS':       JSON.stringify(env('REACT_APP_WC_AUTH_PASS')),
-
     // import.meta.env shims — Webpack DefinePlugin replaces these at compile time.
     // All variables follow the REACT_APP_* convention (process.env.REACT_APP_*).
     'import.meta.env.BASE_URL':                         JSON.stringify(publicPath),
@@ -155,39 +149,23 @@ module.exports = (envFlags, argv) => {
     'import.meta.env.PROD':                             JSON.stringify(!isDev),
 
     // Headless WP + WooCommerce architecture
-    'process.env.REACT_APP_WP_API_BASE':                JSON.stringify(env('REACT_APP_WP_API_BASE')),
-    'process.env.REACT_APP_WC_API_BASE':                JSON.stringify(env('REACT_APP_WC_API_BASE')),
-    'process.env.REACT_APP_JWT_ENDPOINT':               JSON.stringify(env('REACT_APP_JWT_ENDPOINT')),
+    'process.env.REACT_APP_WP_BASE_URL':                JSON.stringify(env('REACT_APP_WP_BASE_URL')),
     'process.env.REACT_APP_SITE_URL':                   JSON.stringify(env('REACT_APP_SITE_URL')),
     'process.env.REACT_APP_APP_ENV':                    JSON.stringify(env('REACT_APP_APP_ENV') || appEnv),
-
-    // WooCommerce legacy compat (previously VITE_WOOCOMMERCE_*)
-    'process.env.REACT_APP_WOOCOMMERCE_STORE_URL':      JSON.stringify(env('REACT_APP_WOOCOMMERCE_STORE_URL')),
-    'process.env.REACT_APP_WOOCOMMERCE_CONSUMER_KEY':   JSON.stringify(env('REACT_APP_WOOCOMMERCE_CONSUMER_KEY')),
-    'process.env.REACT_APP_WOOCOMMERCE_CONSUMER_SECRET':JSON.stringify(env('REACT_APP_WOOCOMMERCE_CONSUMER_SECRET')),
 
     // ─── Headless WooCommerce proxy (drywall/v1) ──────────────────────────────
     // Read from the environment-specific .env file loaded above.
     'process.env.REACT_APP_API_BASE_URL':               JSON.stringify(env('REACT_APP_API_BASE_URL')),
-    'process.env.REACT_APP_DTB_API_BASE':               JSON.stringify(env('REACT_APP_DTB_API_BASE')),
     'process.env.REACT_APP_STORE_API_BASE':             JSON.stringify(env('REACT_APP_STORE_API_BASE')),
-    'process.env.REACT_APP_JWT_AUTH_ENDPOINT':          JSON.stringify(env('REACT_APP_JWT_AUTH_ENDPOINT')),
     'process.env.REACT_APP_ENV':                        JSON.stringify(env('REACT_APP_ENV') || appEnv),
     'process.env.REACT_APP_REWARDS_ENABLED':            JSON.stringify(env('REACT_APP_REWARDS_ENABLED')),
     'process.env.REACT_APP_CATALOG_SNAPSHOTS_ENABLED':  JSON.stringify(env('REACT_APP_CATALOG_SNAPSHOTS_ENABLED')),
     'process.env.REACT_APP_DTB_CATALOG_PLATFORM':       JSON.stringify(env('REACT_APP_DTB_CATALOG_PLATFORM')),
-    'process.env.REACT_APP_GOOGLE_MAPS_PLACES_API_KEY': JSON.stringify(env('REACT_APP_GOOGLE_MAPS_PLACES_API_KEY')),
     'process.env.REACT_APP_SEARCH_INDEXING':            JSON.stringify(env('REACT_APP_SEARCH_INDEXING')),
-    'process.env.REACT_APP_GOOGLE_SSO_URL':             JSON.stringify(env('REACT_APP_GOOGLE_SSO_URL')),
-    'process.env.REACT_APP_AUTH_GOOGLE_URL':            JSON.stringify(env('REACT_APP_AUTH_GOOGLE_URL')),
-    'process.env.REACT_APP_APPLE_SSO_URL':              JSON.stringify(env('REACT_APP_APPLE_SSO_URL')),
-    'process.env.REACT_APP_AUTH_APPLE_URL':             JSON.stringify(env('REACT_APP_AUTH_APPLE_URL')),
 
     // Build timestamp — set once at config evaluation time (not per-module).
     'process.env.BUILD_TIMESTAMP':                      JSON.stringify(new Date().toISOString()),
 
-    // Founding-member promo window (ISO-8601 date string, e.g. "2026-06-01T00:00:00Z")
-    'process.env.REACT_APP_STORE_LAUNCH_DATE':          JSON.stringify(env('REACT_APP_STORE_LAUNCH_DATE')),
   };
 
   // ─── Inline asset manifest plugin ───────────────────────────────────────
