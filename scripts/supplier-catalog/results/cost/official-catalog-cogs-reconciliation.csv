@@ -630,8 +630,8 @@ variation,4-600P,LEVEL5 Entry to Automatic Finishing Set - With Automatic Taper,
 variation,4-602,LEVEL5 Entry to Automatic Finishing Set - Tools Only,LEVEL5,LV5-ENTRY-FINISHING-SET,1676.86,1676.86,LEVEL5,LEVEL5,4-602,1676.86,brand_scoped_exact_sku,SOURCE_VERIFIED_MATCH,true,true
 simple,4-630,LEVEL5 The Starter Taping Set,LEVEL5,,1477.81,1477.81,LEVEL5,LEVEL5,4-630,1477.81,brand_scoped_exact_sku,SOURCE_VERIFIED_MATCH,true,true
 simple,4-677P,LEVEL5 The Ultimate Taping & Finishing Set,LEVEL5,,4439.85,4439.85,LEVEL5,LEVEL5,4-677P,4439.85,brand_scoped_exact_sku,SOURCE_VERIFIED_MATCH,true,true
-simple,PT-BF,Platinum Box Filler Attachment,Platinum Drywall Tools,,31.85,31.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-GN,Platinum Gooseneck,Platinum Drywall Tools,,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+simple,PT-BF,Platinum Box Filler Attachment,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-GN,Platinum Gooseneck,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,H-03,Ball Grip,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,FB-26-12,Flat Box Door Wiper,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,FB-26-10,"Platinum 10"" Flat Box Door Rubber Wiper Gasket – 2nd Generation",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
@@ -646,59 +646,59 @@ simple,CP-2,Platinum Compound Pump Foot Bracket,Platinum Drywall Tools,,,,,,,,,N
 simple,CP-7,Platinum Compound Pump Handle Pin – CP-7,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CP-39,Platinum Compound Pump Handle with Ball Knob,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CP-56,Platinum Compound Pump Intake Screen,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
-simple,CP-32,Platinum Compound Pump Large Nut – CP-32,Platinum Drywall Tools,,1.52,1.52,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,CP-1,Platinum Compound Pump Large O-Ring – CP-1,Platinum Drywall Tools,,0.15,0.15,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+simple,CP-32,Platinum Compound Pump Large Nut – CP-32,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,CP-1,Platinum Compound Pump Large O-Ring – CP-1,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CP-11,Platinum Compound Pump Latch – Quick-Release Cylinder Clamp,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CP-50,Platinum Compound Pump Nylon-Insert Lock Nut,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
-simple,CP-48,Platinum Compound Pump Piston Cup – CP-48,Platinum Drywall Tools,,1.21,1.21,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+simple,CP-48,Platinum Compound Pump Piston Cup – CP-48,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CP-59,Platinum Compound Pump Screen Wing Nut,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
-simple,CP-26,Platinum Compound Pump U-Cup Seal – CP-26,Platinum Drywall Tools,,0.75,0.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,CP-45,Platinum Compound Pump Valve Disc – CP-45,Platinum Drywall Tools,,0.92,0.92,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-AICA,Platinum 4 Wheel Inside Angle / Corner Applicator,Platinum Drywall Tools,,30.35,30.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-FA,"Platinum 4"" Flat Applicator",Platinum Drywall Tools,,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+simple,CP-26,Platinum Compound Pump U-Cup Seal – CP-26,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,CP-45,Platinum Compound Pump Valve Disc – CP-45,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-AICA,Platinum 4 Wheel Inside Angle / Corner Applicator,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-FA,"Platinum 4"" Flat Applicator",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-90-APPLICATOR,Platinum 90° Corner Applicator,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-ICA,Platinum 90° Corner Applicator - Inside,Platinum Drywall Tools,PT-90-APPLICATOR,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-OCA,Platinum 90° Corner Applicator - Outside,Platinum Drywall Tools,PT-90-APPLICATOR,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-ICA,Platinum 90° Corner Applicator - Inside,Platinum Drywall Tools,PT-90-APPLICATOR,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-OCA,Platinum 90° Corner Applicator - Outside,Platinum Drywall Tools,PT-90-APPLICATOR,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-CT,Platinum Compound Tube,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-CT24,"Platinum Compound Tube - 24""",Platinum Drywall Tools,PT-CT,97.5,97.5,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CT36,"Platinum Compound Tube - 36""",Platinum Drywall Tools,PT-CT,100.75,100.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CT42,"Platinum Compound Tube - 42""",Platinum Drywall Tools,PT-CT,104,104,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-CA8,"Platinum 8"" Corner Applicator",Platinum Drywall Tools,,103.35,103.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-CT24,"Platinum Compound Tube - 24""",Platinum Drywall Tools,PT-CT,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CT36,"Platinum Compound Tube - 36""",Platinum Drywall Tools,PT-CT,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CT42,"Platinum Compound Tube - 42""",Platinum Drywall Tools,PT-CT,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-CA8,"Platinum 8"" Corner Applicator",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-CF,Platinum Angle Head Corner Finisher with Wheels,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-CF2.5,"Platinum Angle Head Corner Finisher with Wheels - 2.5""",Platinum Drywall Tools,PT-CF,155.35,155.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-3CF,"Platinum Angle Head Corner Finisher with Wheels - 3""",Platinum Drywall Tools,PT-CF,161.85,161.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CF3.5,"Platinum Angle Head Corner Finisher with Wheels - 3.5""",Platinum Drywall Tools,PT-CF,168.35,168.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-CF2.5,"Platinum Angle Head Corner Finisher with Wheels - 2.5""",Platinum Drywall Tools,PT-CF,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-3CF,"Platinum Angle Head Corner Finisher with Wheels - 3""",Platinum Drywall Tools,PT-CF,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CF3.5,"Platinum Angle Head Corner Finisher with Wheels - 3.5""",Platinum Drywall Tools,PT-CF,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,CF3,"Platinum 3"" Corner Flusher",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-SSCF,Platinum Stainless Steel Corner Flusher,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-3.5CF,"Platinum Stainless Steel Corner Flusher - 3.5""",Platinum Drywall Tools,PT-SSCF,52,52,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-2.5CF,"Platinum Stainless Steel Corner Flusher - 2.5""",Platinum Drywall Tools,PT-SSCF,48.75,48.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-3.5CF,"Platinum Stainless Steel Corner Flusher - 3.5""",Platinum Drywall Tools,PT-SSCF,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-2.5CF,"Platinum Stainless Steel Corner Flusher - 2.5""",Platinum Drywall Tools,PT-SSCF,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-CORNER-ROLLER,Platinum Corner Roller,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-CRE,Platinum Corner Roller - ECO Inside,Platinum Drywall Tools,PT-CORNER-ROLLER,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CR,Platinum Corner Roller - Inside,Platinum Drywall Tools,PT-CORNER-ROLLER,51.99,51.99,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-OCR,Platinum Corner Roller - Outside 90°,Platinum Drywall Tools,PT-CORNER-ROLLER,45.49,45.49,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-CRE,Platinum Corner Roller - ECO Inside,Platinum Drywall Tools,PT-CORNER-ROLLER,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CR,Platinum Corner Roller - Inside,Platinum Drywall Tools,PT-CORNER-ROLLER,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-OCR,Platinum Corner Roller - Outside 90°,Platinum Drywall Tools,PT-CORNER-ROLLER,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 simple,PT-FB12,"12"" Flat Finishing Box",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-FB,Platinum Flat Finishing Box,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-10FB,"Platinum Flat Finishing Box - 10""",Platinum Drywall Tools,PT-FB,126.75,126.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-12FB,"Platinum Flat Finishing Box - 12""",Platinum Drywall Tools,PT-FB,133.25,133.25,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-14FB,"Platinum Flat Finishing Box - 14""",Platinum Drywall Tools,PT-FB,139.75,139.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-8FB,"Platinum Flat Finishing Box - 8""",Platinum Drywall Tools,PT-FB,120.25,120.25,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-10FB,"Platinum Flat Finishing Box - 10""",Platinum Drywall Tools,PT-FB,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-12FB,"Platinum Flat Finishing Box - 12""",Platinum Drywall Tools,PT-FB,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-14FB,"Platinum Flat Finishing Box - 14""",Platinum Drywall Tools,PT-FB,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-8FB,"Platinum Flat Finishing Box - 8""",Platinum Drywall Tools,PT-FB,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-CORNER-HANDLE-50,"Platinum 50"" Corner Tool Handle",Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-CFH50,"Platinum 50"" Corner Tool Handle - Angle Head",Platinum Drywall Tools,PT-CORNER-HANDLE-50,31.85,31.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CAH50,"Platinum 50"" Corner Tool Handle - Corner Box",Platinum Drywall Tools,PT-CORNER-HANDLE-50,31.85,31.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-CRH50,"Platinum 50"" Corner Tool Handle - Corner Roller",Platinum Drywall Tools,PT-CORNER-HANDLE-50,38.35,38.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-EXT3IN1-1,Platinum Extendable Angle Head Handle,Platinum Drywall Tools,,48.75,48.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-EBH,"Platinum Extendable Flat Box Handle 40"" – 64""",Platinum Drywall Tools,,109.85,109.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-CFH50,"Platinum 50"" Corner Tool Handle - Angle Head",Platinum Drywall Tools,PT-CORNER-HANDLE-50,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CAH50,"Platinum 50"" Corner Tool Handle - Corner Box",Platinum Drywall Tools,PT-CORNER-HANDLE-50,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-CRH50,"Platinum 50"" Corner Tool Handle - Corner Roller",Platinum Drywall Tools,PT-CORNER-HANDLE-50,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-EXT3IN1-1,Platinum Extendable Angle Head Handle,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-EBH,"Platinum Extendable Flat Box Handle 40"" – 64""",Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-BH,Platinum Flat Box Handle,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-BH34,"Platinum Flat Box Handle - 34""",Platinum Drywall Tools,PT-BH,58.5,58.5,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-BH42,"Platinum Flat Box Handle - 42""",Platinum Drywall Tools,PT-BH,61.75,61.75,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-BH54,"Platinum Flat Box Handle - 54""",Platinum Drywall Tools,PT-BH,65,65,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,,40.3,40.3,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-CP,Platinum Drywall Pump w/Filler,Platinum Drywall Tools,,174.85,174.85,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-BH34,"Platinum Flat Box Handle - 34""",Platinum Drywall Tools,PT-BH,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-BH42,"Platinum Flat Box Handle - 42""",Platinum Drywall Tools,PT-BH,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-BH54,"Platinum Flat Box Handle - 54""",Platinum Drywall Tools,PT-BH,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-MNBH,Platinum Mini Box Handle,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-CP,Platinum Drywall Pump w/Filler,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,PT-NS,Platinum Nail Spotter,Platinum Drywall Tools,,,,,,,,,NOT_A_PRICE_OWNER,false,false
-variation,PT-2NS,"Platinum Nail Spotter - 2""",Platinum Drywall Tools,PT-NS,104,104,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-variation,PT-3NS,"Platinum Nail Spotter - 3""",Platinum Drywall Tools,PT-NS,104,104,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-TP,Platinum Semi Automatic Drywall Taper,Platinum Drywall Tools,,94.25,94.25,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
-simple,PT-FIN,Platinum Drywall Starter Finishing Set,Platinum Drywall Tools,,909.35,909.35,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
+variation,PT-2NS,"Platinum Nail Spotter - 2""",Platinum Drywall Tools,PT-NS,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+variation,PT-3NS,"Platinum Nail Spotter - 3""",Platinum Drywall Tools,PT-NS,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-TP,Platinum Semi Automatic Drywall Taper,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
+simple,PT-FIN,Platinum Drywall Starter Finishing Set,Platinum Drywall Tools,,,,,,,,,NO_VERIFIED_COST_SOURCE,false,false
 variable,SP-S1-A,SurPro S1 Aluminum Drywall Stilts,SurPro,,,,,,,,,NOT_A_PRICE_OWNER,false,false
 variation,S1-A-1624,"SurPro S1 Aluminum Drywall Stilts - 16""-24""",SurPro,SP-S1-A,209.3,209.3,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
 variation,S1-A-2030,"SurPro S1 Aluminum Drywall Stilts - 20""-30""",SurPro,SP-S1-A,215.15,215.15,,,,,,EXISTING_COST_NOT_MATCHED_TO_INSPECTED_SOURCES,false,false
