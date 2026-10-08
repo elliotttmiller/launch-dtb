@@ -108,6 +108,14 @@ Supported workflows:
 
 The control center intentionally does not expose unverified direct stock-adjustment, picking/packing, label-purchase, allocation, or shipment-write endpoints. Those provider mutations require independently verified upstream contracts, dedicated idempotency and compensation, and controlled acceptance testing.
 
+## Connection configuration diagnostics
+
+The Control Center validates the server-only `DTB_VEEQO_API_KEY` and discovers Direct channels, warehouses, and delivery methods. An authenticated request returning an incomplete setup is a successful **diagnostic request**, not a completed connection: the protected connection-test route responds with HTTP 200 and `success: false` plus redacted findings. Transport and unavailable-service failures remain errors.
+
+When discovery returns no eligible Direct channels, configuration remains incomplete and the operator must verify the Direct channel in Veeqo. An empty or failed resource discovery must not erase a previously saved channel, warehouse, or delivery-method ID. It also cannot count as verification of that existing ID. The Control Center must show actionable findings and keep real inventory reconciliation gated by inventory readiness.
+
+Only validated resource identities should be used for order projection. A verified API key alone is not evidence that orders, inventory projections, or background synchronization are operational.
+
 ## Inventory projection
 
 Veeqo inventory is authoritative only for the explicitly configured warehouse. The canonical worker:
