@@ -15,6 +15,7 @@ Veeqo/
 │   ├── VeeqoCompatibilityController.php
 │   └── VeeqoKitReadController.php
 ├── Services/
+│   ├── VeeqoKitImportService.php
 │   ├── VeeqoAdminReadModel.php
 │   └── VeeqoOperationStore.php
 ├── assets/
@@ -222,3 +223,18 @@ The DTB Veeqo kit inspection controller is loaded by `dtb-integrations/bootstrap
 Both routes require an authenticated WordPress operator with `manage_woocommerce`; cookie-authenticated REST clients must supply the normal WordPress REST nonce. Neither route implements a public MCP transport or grants ChatGPT an additional MCP tool. MCP tool publication would require a separate, explicitly authorized DTB MCP ability/transport registration and verification of its authentication and permissions boundary.
 
 Do not expose native kit creation or component mutation until exact live SKU identity, open-order eligibility, rate/retry handling, authorization, idempotent reconciliation, inventory semantics, and readback checks are validated. The 27-toolset manifest is business intent, not executable approval. Existing order and inventory flows must remain unchanged.
+
+## Native kit import (feature-gated implementation)
+
+The kit importer is part of `dtb-integrations` and reuses the existing Veeqo API transport. It does not create WooCommerce products or alter checkout, inventory reconciliation, fulfillment, or accounting projections.
+
+Two additional authenticated `manage_woocommerce` REST operations are registered:
+
+- `POST /wp-json/dtb/v1/veeqo/admin/kits/import/preview`: validates a supplied exact parent ID/SKU and 1–25 distinct component ID/SKU/quantity tuples, reading every identity from Veeqo; returns a SHA-256 BOM fingerprint without changing state.
+- `POST /wp-json/dtb/v1/veeqo/admin/kits/import/convert`: requires the same payload and the returned `approved_fingerprint`. Always rejects writes unless `DTB_VEEQO_KIT_WRITES_ENABLED === true` is separately configured after review.
+
+Request shape: `{ "parent_sellable_id": 123, "parent_sku": "KIT-SKU", "components": [{ "sellable_id": 456, "sku": "PART-SKU", "quantity": 1 }] }`. The conversion endpoint takes an additional `approved_fingerprint` field.
+
+Conversion writes an operation-intent option using atomic `add_option` before its single upstream `POST /kits` call. Every retry for that parent is blocked, including after a timeout or process failure. It then reads `GET /kits/{kit_id}`, verifies the returned parent SKU/type and exact component quantities, and only marks the operation verified when the readback matches. Failed or uncertain records are deliberately not auto-cleared; reconciliation must happen first. Never use a retrying queue for this non-idempotent conversion.
+
+**Not yet verified:** the live account-specific `GET /sellables/{id}` response semantics, whether native conversion preserves Veeqo sellable identity, open-order/allocations compatibility, WordPress permissions versus MCP tool permissions, live endpoint smoke tests, and the native kit mutation/refinement path. Do not enable the write flag or production-deploy the converting route until those gates pass. This implementation does not register an MCP ability by itself: DTB MCP's ability registry is implemented by its separately installed plugin, which must be examined before publication. This code is deliberately staged for review without production kit mutation.
