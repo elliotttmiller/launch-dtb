@@ -70,6 +70,9 @@ function dtb_veeqo_production_discover_resources(): array {
 				'state'    => sanitize_key( (string) ( $channel['state'] ?? '' ) ),
 			];
 		}
+		if ( empty( $result['channels'] ) ) {
+			$result['errors'][] = 'No eligible Direct sales channel was found in Veeqo. Verify that a Direct channel exists and that the integration user can access it.';
+		}
 	}
 
 	$warehouses = dtb_veeqo_request( 'GET', '/warehouses', [ 'page_size' => '100', 'page' => '1' ] );
@@ -156,6 +159,14 @@ function dtb_veeqo_production_validate_configuration( bool $persist = true ): ar
 		$candidates    = (array) $resources[ $resource_key ];
 		$valid_ids     = array_values( array_filter( array_map( static fn( array $item ): int => absint( $item['id'] ?? 0 ), $candidates ) ) );
 		$current_id    = $constant_id > 0 ? $constant_id : absint( $settings[ $field ] ?? 0 );
+		// A failed or empty discovery is not evidence that an existing ID is invalid.
+		// Preserve the ID for a later validation rather than overwriting configuration.
+		if ( empty( $valid_ids ) ) {
+			if ( $current_id > 0 ) {
+				$errors[] = sprintf( 'Cannot verify configured %s because no eligible resources were returned.', $field );
+			}
+			continue;
+		}
 
 		if ( $current_id > 0 && ! in_array( $current_id, $valid_ids, true ) ) {
 			$errors[] = sprintf( 'Configured %s %d was not returned by Veeqo.', $field, $current_id );
