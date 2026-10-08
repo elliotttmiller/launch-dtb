@@ -206,6 +206,21 @@ def validate_catalog(catalog_path: Path, gap_audit_path: Path) -> dict[str, obje
         if kind not in ALLOWED_TYPES:
             errors.append(f"{sku or f'line {line}'}: unsupported Type {kind!r}")
 
+        stock_status = (row.get("In stock?") or "").strip()
+        stock_quantity = (row.get("Stock") or "").strip()
+        backorders = (row.get("Backorders allowed?") or "").strip()
+        if stock_status not in {"0", "1"}:
+            errors.append(f"{sku}: In stock? must be 0 or 1, found {stock_status!r}")
+        if backorders not in {"0", "1", "notify"}:
+            errors.append(f"{sku}: invalid Backorders allowed? value {backorders!r}")
+        if kind in {"simple", "variation"}:
+            if not stock_quantity.isdigit():
+                errors.append(f"{sku}: sellable product requires a non-negative integer Stock quantity")
+            elif stock_status != ("1" if int(stock_quantity) > 0 else "0"):
+                errors.append(f"{sku}: In stock? does not match its Stock quantity")
+        elif kind == "variable" and stock_quantity:
+            errors.append(f"{sku}: variable parent stock must be managed by its variations")
+
         brand = (row.get("Brands") or "").strip()
         brand_values = {
             "Brands": brand,

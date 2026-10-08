@@ -38,7 +38,18 @@ final class DTB_Veeqo_Admin_Inventory_Workspace {
 			'mapping'        => 'mapping_status',
 		];
 		$order_column = $order_map[ $orderby ] ?? $order_map['sku'];
-		$where        = [ "p.post_type IN ('product','product_variation')", "p.post_status NOT IN ('trash','auto-draft')", "lookup.sku <> ''" ];
+		$sellable_product_filter = "(p.post_type = 'product_variation' OR (p.post_type = 'product' AND EXISTS (
+			SELECT 1
+			FROM {$wpdb->term_relationships} product_type_relationship
+			INNER JOIN {$wpdb->term_taxonomy} product_type_taxonomy
+				ON product_type_taxonomy.term_taxonomy_id = product_type_relationship.term_taxonomy_id
+			INNER JOIN {$wpdb->terms} product_type_term
+				ON product_type_term.term_id = product_type_taxonomy.term_id
+			WHERE product_type_relationship.object_id = p.ID
+				AND product_type_taxonomy.taxonomy = 'product_type'
+				AND product_type_term.slug = 'simple'
+		)))";
+		$where        = [ $sellable_product_filter, "p.post_status NOT IN ('trash','auto-draft')", "lookup.sku <> ''" ];
 		$params       = [];
 
 		if ( '' !== $search ) {

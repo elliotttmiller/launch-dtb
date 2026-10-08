@@ -324,41 +324,52 @@ function dtb_veeqo_inventory_reconcile_page( int $page = 1, int $per_page = DTB_
 				continue;
 			}
 
-			$entry = dtb_veeqo_inventory_stock_entry_for_warehouse( $sellable, $warehouse_id );
-			if ( null === $entry ) {
-				$report['missing_warehouse_entries'][] = $sku;
-				continue;
-			}
-
-			$stock = dtb_veeqo_inventory_normalize_stock_entry( $entry );
-			if ( null === $stock ) {
-				$report['invalid_stock_entries'][] = $sku;
-				continue;
-			}
-
 			$product = wc_get_product( $product_id );
 			if ( ! $product instanceof WC_Product || trim( (string) $product->get_sku() ) !== $sku || ! in_array( $product->get_type(), [ 'simple', 'variation' ], true ) ) {
 				$report['unmapped_skus'][] = $sku;
 				continue;
 			}
 
-			$sellable_id   = absint( $sellable['id'] ?? 0 );
-			$needs_meta    = $sellable_id > 0 && (
-				absint( $product->get_meta( '_veeqo_sellable_id', true ) ) !== $sellable_id
-				|| (string) $product->get_meta( '_veeqo_mapped_sku', true ) !== $sku
-			);
-			$target_status = $stock['infinite'] || $stock['available'] > 0
-				? 'instock'
-				: ( $product->backorders_allowed() ? 'onbackorder' : 'outofstock' );
-			$needs_stock   = $stock['infinite']
+			$sellable_id = absint( $sellable['id'] ?? 0 );
+			if ( $sellable_id <= 0 ) {
+				$report['unmapped_skus'][] = $sku;
+				continue;
+			}
+
+			// Product identity is established by the exact, unique SKU match above.
+			// A missing/invalid warehouse row blocks stock projection only; it must
+			// not block saving the independently verified Veeqo sellable identity.
+			$needs_meta = absint( $product->get_meta( '_veeqo_sellable_id', true ) ) !== $sellable_id
+				|| (string) $product->get_meta( '_veeqo_mapped_sku', true ) !== $sku;
+
+			$entry = dtb_veeqo_inventory_stock_entry_for_warehouse( $sellable, $warehouse_id );
+			if ( null === $entry ) {
+				$report['missing_warehouse_entries'][] = $sku;
+				$stock = null;
+			} else {
+				$stock = dtb_veeqo_inventory_normalize_stock_entry( $entry );
+				if ( null === $stock ) {
+					$report['invalid_stock_entries'][] = $sku;
+				}
+			}
+
+			$target_status = null === $stock
+				? null
+				: ( $stock['infinite'] || $stock['available'] > 0
+					? 'instock'
+					: ( $product->backorders_allowed() ? 'onbackorder' : 'outofstock' ) );
+			$needs_stock   = null !== $stock && ( $stock['infinite']
 				? ( $product->managing_stock() || ! $product->is_in_stock() )
-				: ( ! $product->managing_stock() || (int) $product->get_stock_quantity() !== $stock['available'] || $product->get_stock_status() !== $target_status );
+				: ( ! $product->managing_stock() || (int) $product->get_stock_quantity() !== $stock['available'] || $product->get_stock_status() !== $target_status ) );
 
 			if ( $needs_meta ) {
 				$report['mapped']++;
 			}
 
 			if ( ! $needs_meta && ! $needs_stock ) {
+				if ( null === $stock ) {
+					continue;
+				}
 				$report['unchanged']++;
 				continue;
 			}
@@ -373,10 +384,10 @@ function dtb_veeqo_inventory_reconcile_page( int $page = 1, int $per_page = DTB_
 				$product->update_meta_data( '_veeqo_mapped_sku', $sku );
 			}
 
-			if ( $stock['infinite'] ) {
+			if ( null !== $stock && $stock['infinite'] ) {
 				$product->set_manage_stock( false );
 				$product->set_stock_status( 'instock' );
-			} else {
+			} elseif ( null !== $stock ) {
 				$product->set_manage_stock( true );
 				$product->set_stock_quantity( $stock['available'] );
 				$product->set_stock_status( $target_status );
@@ -386,7 +397,7 @@ function dtb_veeqo_inventory_reconcile_page( int $page = 1, int $per_page = DTB_
 			wc_delete_product_transients( $product_id );
 
 			$parent_id = absint( $product->get_parent_id() );
-			if ( $parent_id > 0 ) {
+			if ( $needs_stock && $parent_id > 0 ) {
 				$report['parent_ids'][ $parent_id ] = $parent_id;
 			}
 		}

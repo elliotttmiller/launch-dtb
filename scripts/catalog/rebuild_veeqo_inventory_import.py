@@ -23,12 +23,14 @@ from official_catalog_schema import CatalogValidationError, validate_catalog  # 
 
 DEFAULT_CATALOG = ROOT / "products/launch/official/dtb_official_catalog.csv"
 DEFAULT_OUTPUT = ROOT / "products/launch/official/veeqo_inventory.csv"
+DEFAULT_STOCK_OUTPUT = ROOT / "products/launch/official/veeqo_stock_levels.csv"
 DEFAULT_GAPS = ROOT / "products/launch/official/dtb_official_catalog.include-gaps.json"
 MN_STATE_TAX_RATE = Decimal("0.06875")
+STOCK_HEADERS = ("SKU", "total-qty")
 HEADERS = (
     "sku_code", "product_title", "variant_title", "sales_price", "tax_rate",
     "cost_price", "description", "brand", "upc_code", "image_url", "weight",
-    "weight_unit", "width", "depth", "height", "dimensions_unit", "variant_options",
+    "weight_unit", "width", "depth", "height", "dimensions_unit", "variant_options", "total_qty",
 )
 
 
@@ -96,6 +98,11 @@ def build_rows(catalog: list[dict[str, str]], today: date) -> tuple[list[dict[st
             raise ValueError(f"{sku}: unsupported WooCommerce type {kind!r}")
         if not sku:
             raise ValueError("Official catalog row has no SKU")
+        stock_quantity = (row.get("Stock") or "").strip()
+        if kind in {"simple", "variation"} and not stock_quantity.isdigit():
+            raise ValueError(f"{sku}: Veeqo import requires a non-negative integer opening Stock quantity")
+        if kind == "variable" and stock_quantity:
+            raise ValueError(f"{sku}: variable parent stock must be carried by its variation SKUs")
         if kind == "variation":
             parent_sku = (row.get("Parent") or "").strip()
             parent = by_sku.get(parent_sku)
@@ -144,6 +151,11 @@ def build_rows(catalog: list[dict[str, str]], today: date) -> tuple[list[dict[st
             "height": optional_decimal(row, "Height (in)", sku),
             "dimensions_unit": "in" if any((row.get(field) or "").strip() for field in ("Length (in)", "Width (in)", "Height (in)")) else "",
             "variant_options": variant_options,
+            # Veeqo's documented product CSV importer maps total_qty to the
+            # selected warehouse's stock quantity. Variable parents are not
+            # sellable stock units; simple products and variations carry the
+            # catalog's explicit opening quantity.
+            "total_qty": stock_quantity if kind in {"simple", "variation"} else "",
         }
         result.append(record)
     skus = [row["sku_code"] for row in result]
@@ -171,14 +183,32 @@ def write_atomic(path: Path, rows: list[dict[str, str]]) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def write_stock_atomic(path: Path, rows: list[dict[str, str]]) -> None:
+    """Write Veeqo's stock-level-only import shape for a warehouse upload."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    os.close(fd)
+    temporary = Path(temporary_name)
+    try:
+        with temporary.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=STOCK_HEADERS, extrasaction="raise", lineterminator="\r\n")
+            writer.writeheader()
+            writer.writerows(rows)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--catalog", type=Path, default=DEFAULT_CATALOG)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--stock-output", type=Path, default=DEFAULT_STOCK_OUTPUT)
     parser.add_argument("--apply", action="store_true", help="Write the generated CSV; otherwise preview only")
     args = parser.parse_args()
     catalog_path = args.catalog.resolve()
     output_path = args.output.resolve()
+    stock_output_path = args.stock_output.resolve()
     if not catalog_path.is_file():
         raise ValueError(f"Official catalog does not exist: {catalog_path}")
     try:
@@ -187,7 +217,15 @@ def main() -> int:
         raise ValueError(f"Official catalog structural validation failed: {exc}") from exc
     catalog = load_catalog(catalog_path)
     rows, counts = build_rows(catalog, date.today())
+    stock_rows = [
+        {"SKU": row["sku_code"], "total-qty": row["total_qty"]}
+        for row in rows
+        if row["total_qty"] != ""
+    ]
+    if len({row["SKU"] for row in stock_rows}) != len(stock_rows):
+        raise ValueError("Veeqo stock-level projection contains duplicate SKUs")
     changed = not output_path.is_file() or output_path.read_bytes() != _serialize(rows)
+    stock_changed = not stock_output_path.is_file() or stock_output_path.read_bytes() != _serialize_stock(stock_rows)
     summary = {
         "mode": "apply" if args.apply else "preview",
         "catalog_rows": len(catalog),
@@ -195,12 +233,18 @@ def main() -> int:
         "all_catalog_rows_included": counts["output_rows"] == len(catalog),
         "zero_placeholder_sales_price_rows": counts["placeholder_price_rows"],
         "zero_placeholder_sales_price_sku_sample": counts["placeholder_price_skus"][:20],
-        "inventory_fields_included": False,
+        "inventory_fields_included": True,
+        "stock_quantity_rows": sum(1 for row in rows if row["total_qty"] != ""),
+        "stock_levels_output": str(stock_output_path),
+        "stock_levels_rows": len(stock_rows),
+        "stock_levels_would_change": stock_changed,
         "tax_rate": str(MN_STATE_TAX_RATE),
         "would_change_file": changed,
     }
     if args.apply and changed:
         write_atomic(output_path, rows)
+    if args.apply and stock_changed:
+        write_stock_atomic(stock_output_path, stock_rows)
     print(json.dumps(summary, sort_keys=True))
     return 0
 
@@ -210,6 +254,16 @@ def _serialize(rows: list[dict[str, str]]) -> bytes:
 
     buffer = StringIO(newline="")
     writer = csv.DictWriter(buffer, fieldnames=HEADERS, extrasaction="raise", lineterminator="\r\n")
+    writer.writeheader()
+    writer.writerows(rows)
+    return buffer.getvalue().encode("utf-8")
+
+
+def _serialize_stock(rows: list[dict[str, str]]) -> bytes:
+    from io import StringIO
+
+    buffer = StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=STOCK_HEADERS, extrasaction="raise", lineterminator="\r\n")
     writer.writeheader()
     writer.writerows(rows)
     return buffer.getvalue().encode("utf-8")

@@ -104,7 +104,7 @@
     view.innerHTML = `
       <section class="dtb-veeqo-inventory-workspace">
         <div class="dtb-veeqo-inventory-summary" aria-label="Inventory summary">
-          ${metric('Total variants', summary.total, `${fmt(summary.inStock)} in stock`, 'info')}
+          ${metric('Sellable SKUs', summary.total, `${fmt(summary.inStock)} in stock`, 'info')}
           ${metric('In stock', summary.inStock, 'Available for checkout', 'success', 'instock')}
           ${metric('Low stock', summary.lowStock, 'At or below threshold', 'warning', 'lowstock')}
           ${metric('Out of stock', summary.outOfStock, 'Unavailable for checkout', 'danger', 'outofstock')}
@@ -125,7 +125,7 @@
             <div class="dtb-veeqo-sort-control"><span>Sort</span>${select('sort_control', `${state.orderby}:${state.order}`, [
               ['sku:asc','SKU A–Z'],['sku:desc','SKU Z–A'],['name:asc','Product A–Z'],['name:desc','Product Z–A'],['available:desc','Available high to low'],['available:asc','Available low to high'],['updated:desc','Recently updated'],['mapping:asc','Mapping status']
             ])}</div>
-            <span class="dtb-veeqo-results-meta">${fmt(state.data.total)} variants</span>
+            <span class="dtb-veeqo-results-meta">${fmt(state.data.total)} sellable SKUs</span>
             ${select('per_page', state.per_page, [[25,'25 rows'],[50,'50 rows'],[100,'100 rows']])}
           </div>
         </div>
@@ -200,7 +200,7 @@
     const first = Math.max(1, page - 2);
     const last = Math.min(pages, page + 2);
     for (let i = first; i <= last; i += 1) pageButtons.push(`<button type="button" class="dtb-veeqo-page-button ${i === page ? 'is-active' : ''}" data-page="${i}" ${i === page ? 'aria-current="page"' : ''}>${i}</button>`);
-    return `<div class="dtb-veeqo-inventory-pagination"><span>Showing ${fmt(start)}–${fmt(end)} of ${fmt(state.data.total)} variants</span><div class="dtb-veeqo-page-controls"><button type="button" class="dtb-veeqo-page-button" data-page="${Math.max(1,page-1)}" ${page <= 1 ? 'disabled' : ''} aria-label="Previous page">‹</button>${pageButtons.join('')}<button type="button" class="dtb-veeqo-page-button" data-page="${Math.min(pages,page+1)}" ${page >= pages ? 'disabled' : ''} aria-label="Next page">›</button></div></div>`;
+    return `<div class="dtb-veeqo-inventory-pagination"><span>Showing ${fmt(start)}–${fmt(end)} of ${fmt(state.data.total)} sellable SKUs</span><div class="dtb-veeqo-page-controls"><button type="button" class="dtb-veeqo-page-button" data-page="${Math.max(1,page-1)}" ${page <= 1 ? 'disabled' : ''} aria-label="Previous page">‹</button>${pageButtons.join('')}<button type="button" class="dtb-veeqo-page-button" data-page="${Math.min(pages,page+1)}" ${page >= pages ? 'disabled' : ''} aria-label="Next page">›</button></div></div>`;
   }
 
   function bind() {

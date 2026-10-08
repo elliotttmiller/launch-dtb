@@ -6,7 +6,7 @@
 
 - The official CSV owns canonical launch product content and identifiers represented in the export.
 - SKU, MPN/manufacturer SKU, GTIN, brand identity, taxonomy identity, compatibility relationships, and external IDs are protected business data.
-- Veeqo remains authoritative for inventory, allocation, fulfillment, shipping, and tracking. The official catalog does not seed Veeqo stock quantities or stock value.
+- Veeqo remains authoritative for inventory, allocation, fulfillment, shipping, and tracking. The official catalog's `Stock` field is an opening stock import value only; after initial setup, use Veeqo as the live quantity authority.
 - Pricing follows WooCommerce/runtime pricing ownership; enrichment does not create another price authority.
 - Derived research, comparison, and run-report files are not canonical product truth.
 
@@ -18,7 +18,11 @@ Build the product setup import from the canonical catalog with:
 .\scripts\catalog\rebuild-veeqo-inventory-import.ps1 -Apply
 ```
 
-The generated `veeqo_inventory.csv` includes every official catalog row and SKU regardless of WooCommerce publish status or product type. Variable parents and variations retain their source titles/options, and draft rows are included. The CSV intentionally omits stock quantities, Veeqo product IDs, and export-only stock-value columns; it creates product records without asserting starting inventory.
+The generated `veeqo_inventory.csv` includes every official catalog row and SKU regardless of WooCommerce publish status or product type. Variable parents and variations retain their source titles/options, and draft rows are included. `total_qty` carries the catalog's opening quantity for simple products and variations; variable parent rows leave it blank because stock is tracked at the sellable child SKU. The current launch baseline is 10 units per simple/variation SKU, within the requested 10–100 opening range. Import this file with the correct Veeqo warehouse/location selected. After this initial stock load, Veeqo owns current quantity; do not treat the catalog or product-setup CSV as a live stock feed. Product IDs and export-only stock-value columns remain omitted.
+
+The same build also creates `veeqo_stock_levels.csv`, a stock-only upload with Veeqo's `SKU` and `total-qty` columns. In Veeqo, choose **Inventory → Import**, select the intended location and **Stock levels only**, then map these two columns to SKU and Stock Quantity, review, and submit. This live warehouse import is a separate operator action; generating the file does not alter Veeqo.
+
+The official WooCommerce CSV sets `Stock` to 10 and `In stock?` to `1` on each simple product and variation. WooCommerce's CSV importer uses a numeric `Stock` value to enable per-product stock management. Variable parents leave `Stock` blank and inherit availability from their managed variations. Backorders remain disabled. If the actual counted opening quantity differs from this explicitly selected launch baseline, replace the baseline with the warehouse count before importing either CSV.
 
 WooCommerce is the retail-price authority. When a catalog row has no regular or active sale price, the Veeqo import projection writes `0.00` to `sales_price` as an explicit placeholder for later pricing work. This placeholder exists only in the generated Veeqo CSV and does not write or assert a WooCommerce catalog price. The generator reports the placeholder count and a short SKU sample; replace these values with reviewed prices before treating them as customer-facing retail prices.
 

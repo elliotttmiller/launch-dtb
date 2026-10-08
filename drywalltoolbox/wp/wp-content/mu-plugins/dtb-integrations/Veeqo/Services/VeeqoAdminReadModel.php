@@ -154,7 +154,18 @@ final class DTB_Veeqo_Admin_Read_Model {
 		];
 		$order_column = $order_map[ $orderby ] ?? $order_map['sku'];
 
-		$where  = [ "p.post_type IN ('product','product_variation')", "p.post_status NOT IN ('trash','auto-draft')", "lookup.sku <> ''" ];
+		$sellable_product_filter = "(p.post_type = 'product_variation' OR (p.post_type = 'product' AND EXISTS (
+			SELECT 1
+			FROM {$wpdb->term_relationships} product_type_relationship
+			INNER JOIN {$wpdb->term_taxonomy} product_type_taxonomy
+				ON product_type_taxonomy.term_taxonomy_id = product_type_relationship.term_taxonomy_id
+			INNER JOIN {$wpdb->terms} product_type_term
+				ON product_type_term.term_id = product_type_taxonomy.term_id
+			WHERE product_type_relationship.object_id = p.ID
+				AND product_type_taxonomy.taxonomy = 'product_type'
+				AND product_type_term.slug = 'simple'
+		)))";
+		$where  = [ $sellable_product_filter, "p.post_status NOT IN ('trash','auto-draft')", "lookup.sku <> ''" ];
 		$params = [];
 		if ( '' !== $search ) {
 			$like     = '%' . $wpdb->esc_like( $search ) . '%';
@@ -237,6 +248,17 @@ final class DTB_Veeqo_Admin_Read_Model {
 	public static function inventory_summary(): array {
 		global $wpdb;
 		$sellable_meta = "(SELECT post_id, MAX(meta_value) AS meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_veeqo_sellable_id' GROUP BY post_id)";
+		$sellable_product_filter = "(p.post_type = 'product_variation' OR (p.post_type = 'product' AND EXISTS (
+			SELECT 1
+			FROM {$wpdb->term_relationships} product_type_relationship
+			INNER JOIN {$wpdb->term_taxonomy} product_type_taxonomy
+				ON product_type_taxonomy.term_taxonomy_id = product_type_relationship.term_taxonomy_id
+			INNER JOIN {$wpdb->terms} product_type_term
+				ON product_type_term.term_id = product_type_taxonomy.term_id
+			WHERE product_type_relationship.object_id = p.ID
+				AND product_type_taxonomy.taxonomy = 'product_type'
+				AND product_type_term.slug = 'simple'
+		)))";
 		$sql = "SELECT
 			COUNT(*) AS total,
 			SUM(CASE WHEN lookup.stock_status = 'instock' THEN 1 ELSE 0 END) AS in_stock,
@@ -246,7 +268,7 @@ final class DTB_Veeqo_Admin_Read_Model {
 			FROM {$wpdb->posts} p
 			INNER JOIN {$wpdb->prefix}wc_product_meta_lookup lookup ON lookup.product_id = p.ID
 			LEFT JOIN {$sellable_meta} sellable ON sellable.post_id = p.ID
-			WHERE p.post_type IN ('product','product_variation') AND p.post_status NOT IN ('trash','auto-draft') AND lookup.sku <> ''";
+			WHERE {$sellable_product_filter} AND p.post_status NOT IN ('trash','auto-draft') AND lookup.sku <> ''";
 		$row = (array) $wpdb->get_row( $wpdb->prepare( $sql, self::LOW_STOCK_THRESHOLD ), ARRAY_A );
 		return [
 			'total'        => absint( $row['total'] ?? 0 ),
