@@ -15,7 +15,7 @@ function normalizeBrands(brands) {
     .filter(({ name }) => name);
 }
 
-function BrandItem({ brand, clone = false, depthDelay = 0 }) {
+function BrandItem({ brand, clone = false }) {
   const content = (
     <>
       {brand.src ? <img src={brand.src} alt={clone ? '' : brand.name} width="160" height="48" loading="lazy" decoding="async" /> : <span>{brand.name}</span>}
@@ -23,7 +23,6 @@ function BrandItem({ brand, clone = false, depthDelay = 0 }) {
   );
   const itemProps = {
     className: 'dtb-trusted-brand-link',
-    style: { '--dtb-brand-depth-delay': `${depthDelay}s` },
     'aria-hidden': clone || undefined,
     tabIndex: clone ? -1 : undefined,
   };
@@ -57,7 +56,6 @@ export default function TrustedBrands({
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
   const [loopCount, setLoopCount] = useState(() => reducedMotion ? 1 : MIN_LOOPS);
-  const [depthDelays, setDepthDelays] = useState([]);
 
   useEffect(() => {
     const query = window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -88,14 +86,6 @@ export default function TrustedBrands({
         : Math.max(1, Math.ceil((viewportWidth + pitch) / (normalizedBrands.length * pitch)));
       setLoopCount((current) => current === loopCountNext ? current : loopCountNext);
 
-      const itemCount = normalizedBrands.length * loopCountNext;
-      const laneWidth = Math.max(1, (itemCount * pitch) - gap);
-      const duration = Math.max(18, Number(speed) || 32);
-      setDepthDelays(Array.from({ length: itemCount }, (_, index) => {
-        const center = (index * pitch) + (itemWidth / 2);
-        const crossingFraction = (center - (viewportWidth / 2)) / laneWidth;
-        return (0.5 - crossingFraction) * duration;
-      }));
     };
 
     measure();
@@ -103,7 +93,7 @@ export default function TrustedBrands({
     observer.observe(viewport);
     if (lane.firstElementChild) observer.observe(lane.firstElementChild);
     return () => observer.disconnect();
-  }, [normalizedBrands.length, reducedMotion, speed]);
+  }, [normalizedBrands.length, reducedMotion]);
 
   if (!normalizedBrands.length) return null;
 
@@ -111,7 +101,6 @@ export default function TrustedBrands({
     normalizedBrands.map((brand, brandIndex) => ({
       ...brand,
       key: `${brand.to || brand.name}-${loopIndex}-${brandIndex}`,
-      depthDelay: depthDelays[(loopIndex * normalizedBrands.length) + brandIndex] || 0,
     }))
   ).flat();
   const duration = `${Math.max(18, Number(speed) || 32)}s`;
@@ -139,10 +128,10 @@ export default function TrustedBrands({
       <div className="dtb-ui-trusted-brands__viewport" id={`${sectionId}-viewport`} ref={viewportRef}>
         <div className="dtb-ui-trusted-brands__track">
           <div className="dtb-ui-trusted-brands__lane" ref={laneRef}>
-            {loops.map((brand) => <BrandItem key={brand.key} brand={brand} depthDelay={brand.depthDelay} />)}
+            {loops.map((brand) => <BrandItem key={brand.key} brand={brand} />)}
           </div>
           <div className="dtb-ui-trusted-brands__lane dtb-ui-trusted-brands__lane--clone" aria-hidden="true">
-            {loops.map((brand) => <BrandItem key={`${brand.key}-clone`} brand={brand} clone depthDelay={brand.depthDelay} />)}
+            {loops.map((brand) => <BrandItem key={`${brand.key}-clone`} brand={brand} clone />)}
           </div>
         </div>
       </div>
