@@ -241,3 +241,59 @@ export const productModalMobileVariants = {
     transition: dtbTransition.exit,
   },
 };
+
+
+// Homepage campaign hero motion. The stage itself stays geometrically stable;
+// only bounded content inside the stage moves. This avoids full-viewport
+// compositor shifts while still giving manual campaign changes clear direction.
+export const homeHeroContentVariants = {
+  enter: (direction = 1) => ({
+    opacity: 0,
+    x: direction >= 0 ? dtbDistance.medium : -dtbDistance.medium,
+  }),
+  center: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      ...dtbTransition.slow,
+      staggerChildren: 0.05,
+      delayChildren: 0.025,
+    },
+  },
+  exit: (direction = 1) => ({
+    opacity: 0,
+    x: direction >= 0 ? -dtbDistance.small : dtbDistance.small,
+    transition: dtbTransition.exit,
+  }),
+};
+
+export const homeHeroItemVariants = {
+  enter: {
+    opacity: 0,
+    y: dtbDistance.small,
+  },
+  center: {
+    opacity: 1,
+    y: 0,
+    transition: dtbTransition.emphasized,
+  },
+  exit: {
+    opacity: 0,
+    y: -dtbDistance.micro,
+    transition: dtbTransition.exit,
+  },
+};
+
+export const reducedHomeHeroContentVariants = {
+  enter: { opacity: 0, x: 0 },
+  center: { opacity: 1, x: 0, transition: reducedTransition },
+  exit: { opacity: 0, x: 0, transition: reducedTransition },
+};
+
+export const reducedHomeHeroItemVariants = {
+  enter: { opacity: 0, y: 0 },
+  center: { opacity: 1, y: 0, transition: reducedTransition },
+  exit: { opacity: 0, y: 0, transition: reducedTransition },
+};
+
+export const homeHeroNavigationTransition = dtbSpring.gentle;
