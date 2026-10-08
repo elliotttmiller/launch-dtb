@@ -32,6 +32,34 @@ final class DTB_Veeqo_Kit_Read_Controller {
 			'permission_callback' => [ __CLASS__, 'authorize' ],
 			'callback'            => [ __CLASS__, 'validate' ],
 		] );
+		register_rest_route( self::NS, '/veeqo/admin/kits/import/preview', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'permission_callback' => [ __CLASS__, 'authorize' ],
+			'callback'            => [ __CLASS__, 'import_preview' ],
+		] );
+		register_rest_route( self::NS, '/veeqo/admin/kits/import/convert', [
+			'methods'             => WP_REST_Server::CREATABLE,
+			'permission_callback' => [ __CLASS__, 'authorize' ],
+			'callback'            => [ __CLASS__, 'import_convert' ],
+		] );
+	}
+
+	public static function import_preview( WP_REST_Request $request ) {
+		$data = $request->get_json_params();
+		return DTB_Veeqo_Kit_Import_Service::preview( is_array( $data ) ? $data : [] );
+	}
+
+	public static function import_convert( WP_REST_Request $request ) {
+		$data = $request->get_json_params();
+		if ( ! is_array( $data ) || ! is_string( $data['approved_fingerprint'] ?? null ) ) {
+			return new WP_Error( 'dtb_kit_approval_required', 'Exact approved BOM fingerprint is required.', [ 'status' => 400 ] );
+		}
+		$fingerprint = $data['approved_fingerprint'];
+		unset( $data['approved_fingerprint'] );
+		if ( ! preg_match( '/^[a-f0-9]{64}$/D', $fingerprint ) ) {
+			return new WP_Error( 'dtb_kit_approval_invalid', 'Invalid BOM fingerprint.', [ 'status' => 400 ] );
+		}
+		return DTB_Veeqo_Kit_Import_Service::convert( $data, $fingerprint );
 	}
 
 	public static function authorize(): bool {
