@@ -87,6 +87,9 @@ final class DTB_Veeqo_Kit_MCP_Abilities {
 		$convert['required'][] = 'approved_fingerprint';
 		$convert['required'][] = 'confirm_conversion';
 		self::register_one( 'import-convert', 'Convert Native Veeqo Kit', 'Destructive one-shot import. Requires explicit operator confirmation and exact preview fingerprint; never retry an uncertain outcome.', $convert, 'convert', false );
+		self::register_one( 'integration-health', 'Read DTB Veeqo Integration Health', 'Read-only redacted DTB integration readiness, inventory freshness, and module diagnostics. Does not verify every provider operation.', [
+			'type' => 'object', 'properties' => [], 'additionalProperties' => false,
+		], 'health', true );
 		self::register_one( 'read', 'Read Native Veeqo Kit', 'Inspect the native Veeqo kit and component quantities after conversion.', [
 			'type' => 'object',
 			'properties' => [ 'kit_id' => [ 'type' => 'integer', 'minimum' => 1 ] ],
@@ -128,5 +131,15 @@ final class DTB_Veeqo_Kit_MCP_Abilities {
 		$response = DTB_Veeqo_Kit_Read_Controller::read( $request );
 		return $response instanceof WP_REST_Response ? $response->get_data() : $response;
 	}
+	public static function health( $input ) {
+		if ( ! self::allowed() ) {
+			return new WP_Error( 'dtb_kit_forbidden', 'Permission denied.', [ 'status' => 403 ] );
+		}
+		if ( ! class_exists( 'DTB_VeeqoHealthCheck' ) ) {
+			return new WP_Error( 'dtb_veeqo_health_unavailable', 'Veeqo health service is unavailable.', [ 'status' => 503 ] );
+		}
+		return DTB_VeeqoHealthCheck::run();
+	}
+
 }
 DTB_Veeqo_Kit_MCP_Abilities::init();
