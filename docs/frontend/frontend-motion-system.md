@@ -230,3 +230,15 @@ This test supplements browser profiling; it does not prove runtime frame pacing.
 New Framer Motion code should consume semantic transitions/variants from `dtbMotion.js`. New CSS should use `--dtb-motion-*` tokens.
 
 When modifying bespoke motion, migrate it to the nearest semantic transition instead of adding one-off timings. Feature-specific motion is acceptable only where the interaction cannot be represented by route, async, content, surface, overlay, direct-manipulation, or exit semantics.
+
+## Homepage campaign hero
+
+The homepage hero is a stable full-bleed stage with manual campaign navigation. `frontend/src/components/home/HomeHero.jsx` owns interaction state; `homeHeroCampaigns.js` contains presentation copy and route destinations only. It must not become an authority for catalog, pricing, inventory, repair, order, or payment state.
+
+The hero intentionally does not auto-advance. Campaign changes occur only after explicit tab, keyboard, or horizontal touch/pen swipe interaction. This preserves reading time and avoids adding pause/stop chrome solely to satisfy moving-content accessibility requirements.
+
+Motion is bounded to the campaign content and active navigation indicator. The stage, responsive `<picture>`, scrim, trust strip, quick links, and surrounding document geometry remain stable. `dtbMotion.js` owns `homeHeroContentVariants`, `homeHeroItemVariants`, reduced-motion equivalents, and the navigation spring.
+
+The current responsive artwork remains the LCP authority until campaign-specific media is produced. Future hero assets must preserve browser-native `<picture>` art direction, a stable text-safe composition, compressed responsive sources, and the existing media/content layer separation rather than introducing JavaScript viewport branching.
+
+`frontend/tests/homeHeroResponsiveMediaContract.test.mjs` protects this contract, including responsive art direction, LCP priority, explicit manual navigation semantics, reduced-motion support, layer ordering, and compressed asset bounds.
