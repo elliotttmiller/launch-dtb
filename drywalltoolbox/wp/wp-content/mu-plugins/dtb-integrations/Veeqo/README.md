@@ -116,6 +116,14 @@ When discovery returns no eligible Direct channels, configuration remains incomp
 
 Only validated resource identities should be used for order projection. A verified API key alone is not evidence that orders, inventory projections, or background synchronization are operational.
 
+## Channel discovery and order-export authorization
+
+The operator connection test discovers and classifies available Veeqo sales channels, including `woocommerce` channels. Discovery success is not order-export authorization. The existing DTB `POST /orders` contract is limited to a previously discovered `direct` channel. A WooCommerce-type Veeqo channel may be displayed in the Control Center but must not be silently promoted to an API order-creation channel. A positive, unverified channel ID is insufficient to enable queued order export.
+
+The server-side Veeqo API key, warehouse mapping, and delivery-method identity remain separate from channel classification. Discovery failures retain existing resource IDs for later verification. The Control Center shows the provider channel type and prevents selecting unsupported channels for order export. The order worker also fails closed when its configured channel lacks verified Direct classification.
+
+The WooCommerce store URL in Veeqo is provider-managed and should be reviewed for canonical HTTPS configuration separately; this change never modifies it. Before enabling WooCommerce-channel order creation, independently verify the upstream order-creation contract and duplicate-order safeguards.
+
 ## Inventory projection
 
 Veeqo inventory is authoritative only for the explicitly configured warehouse. The canonical worker:
