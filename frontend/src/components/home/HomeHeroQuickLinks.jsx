@@ -18,13 +18,9 @@ export default function HomeHeroQuickLinks() {
     <nav className="home-hero-nav" aria-label="Explore Drywall Toolbox">
       <div className="home-hero-nav__track">
         {QUICK_LINKS.map(({ id, label, description, to, Icon }) => (
-          <Link
-            key={id}
-            to={to}
-            className="home-hero-cutout home-hero-nav__item"
-          >
+          <Link key={id} to={to} className="home-hero-nav__item">
             <span className="home-hero-nav__icon" aria-hidden="true">
-              <Icon size={30} strokeWidth={1.9} />
+              <Icon size={19} strokeWidth={1.9} />
             </span>
             <span className="home-hero-nav__copy">
               <span className="home-hero-nav__label">{label}</span>
