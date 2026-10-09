@@ -188,6 +188,10 @@ Desktop Quick View is a large overlay surface and follows stricter lifecycle rul
 
 These rules apply to catalog, homepage/product rails, search, and cart Quick View entry points.
 
+## Product gallery media handoff
+
+The active product gallery image is an eager-loaded visual target, including when advancing to an image other than index zero. A deferred `loading="lazy"` hint must not stall the currently selected image. The gallery maintains its reserved media bed/skeleton until that image's source-specific load state resolves; its entrance must not begin from transparent while it is undecoded. The skeleton identity is tied to the image URL, not the ordinal index, because different product/variation media may occupy the same index. Gallery timing consumes canonical JavaScript motion values instead of declaring an independent easing curve. This is a bounded image transition and must not introduce a full-page fade.
+
 ## Responsive contract
 
 Motion semantics are shared across breakpoints. Mobile differences are limited to interaction geometry where the interaction itself differs.
