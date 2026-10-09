@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Breadcrumb from '../shared/Breadcrumb.jsx';
 import CategoryMerchandising from './CategoryMerchandising.jsx';
 import ToolSetsKitsExperience from './ToolSetsKitsExperience.jsx';
@@ -144,8 +144,12 @@ function CategoryHeroMedia({ resolvedHero, presentation, initiallyReady, onReady
     failed: false,
   }));
   const [imageReady, setImageReady] = useState(() => Boolean(initiallyReady));
+  const pendingFrameRef = useRef(0);
+  const mediaGenerationRef = useRef(0);
 
   useEffect(() => {
+    mediaGenerationRef.current += 1;
+    window.cancelAnimationFrame(pendingFrameRef.current);
     setActiveHero({
       src: resolvedHero.src,
       srcSet: resolvedHero.srcSet,
@@ -158,25 +162,40 @@ function CategoryHeroMedia({ resolvedHero, presentation, initiallyReady, onReady
     if (!activeHero.src || activeHero.failed) onReady('');
   }, [activeHero.failed, activeHero.src, onReady]);
 
+  useEffect(() => () => {
+    mediaGenerationRef.current += 1;
+    window.cancelAnimationFrame(pendingFrameRef.current);
+  }, []);
+
   if (!activeHero.src || activeHero.failed) return null;
 
   const commitReady = (image) => {
+    const generation = mediaGenerationRef.current;
+    const source = activeHero.src;
     const finish = () => {
+      if (generation !== mediaGenerationRef.current || !image.isConnected) return;
       setImageReady(true);
-      onReady(activeHero.src);
+      onReady(source);
+    };
+    const scheduleFinish = () => {
+      if (generation !== mediaGenerationRef.current) return;
+      window.cancelAnimationFrame(pendingFrameRef.current);
+      pendingFrameRef.current = window.requestAnimationFrame(finish);
     };
 
     if (typeof image?.decode === 'function') {
       image.decode().catch(() => {}).finally(() => {
-        window.requestAnimationFrame(finish);
+        scheduleFinish();
       });
       return;
     }
 
-    window.requestAnimationFrame(finish);
+    scheduleFinish();
   };
 
   const handleHeroError = () => {
+    mediaGenerationRef.current += 1;
+    window.cancelAnimationFrame(pendingFrameRef.current);
     if (resolvedHero.fallbackSrc && activeHero.src !== resolvedHero.fallbackSrc) {
       setImageReady(false);
       setActiveHero({
