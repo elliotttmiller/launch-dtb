@@ -188,6 +188,12 @@ Desktop Quick View is a large overlay surface and follows stricter lifecycle rul
 
 These rules apply to catalog, homepage/product rails, search, and cart Quick View entry points.
 
+## Product card image decode continuity
+
+`ProductCardImage` keeps a static image bed in the existing fixed media geometry until the current image has completed decoding. Both network load and already-cached load converge on the same decode path; source changes cancel stale pending decode completions, and valid images whose `decode()` rejects may still display when natural dimensions confirm they loaded. The image itself uses only the canonical 220 ms opacity handoff; no individual card translation or stagger is applied on image resolution. This avoids many independent card images sliding into view while scrolling.
+
+These rules apply to storefront product cards across grids and horizontal rails, without changing catalog data or fetch ownership.
+
 ## Product gallery media handoff
 
 The active product gallery image is an eager-loaded visual target, including when advancing to an image other than index zero. A deferred `loading="lazy"` hint must not stall the currently selected image. The gallery maintains its reserved media bed/skeleton until that image's source-specific load state resolves; its entrance must not begin from transparent while it is undecoded. The skeleton identity is tied to the image URL, not the ordinal index, because different product/variation media may occupy the same index. Gallery timing consumes canonical JavaScript motion values instead of declaring an independent easing curve. This is a bounded image transition and must not introduce a full-page fade.
