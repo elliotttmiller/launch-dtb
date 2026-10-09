@@ -198,6 +198,10 @@ These rules apply to storefront product cards across grids and horizontal rails,
 
 The active product gallery image is an eager-loaded visual target, including when advancing to an image other than index zero. A deferred `loading="lazy"` hint must not stall the currently selected image. The gallery maintains its reserved media bed/skeleton until that image's source-specific load state resolves; its entrance must not begin from transparent while it is undecoded. The skeleton identity is tied to the image URL, not the ordinal index, because different product/variation media may occupy the same index. Gallery timing consumes canonical JavaScript motion values instead of declaring an independent easing curve. This is a bounded image transition and must not introduce a full-page fade.
 
+## Hero media continuity
+
+Homepage hero image stages remain painted from the first render rather than fading an entire media column in before its eager-loaded image has decoded. Category hero media use image-specific readiness and a reserved skeleton stage; pending decode callbacks and animation frames must be invalidated when the source changes or the component unmounts so stale responses cannot reveal a newly selected image. Category layout, artwork composition and shop CTAs remain owned by their existing feature styles and components. Do not replace either hero with an unconditional page-level opacity animation.
+
 ## Responsive contract
 
 Motion semantics are shared across breakpoints. Mobile differences are limited to interaction geometry where the interaction itself differs.

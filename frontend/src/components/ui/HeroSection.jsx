@@ -12,8 +12,6 @@ import {
   reducedContentVariants,
   staggerContainerVariants,
   staggerItemVariants,
-  dtbTransition,
-  reducedTransition,
 } from '../../motion/dtbMotion.js';
 
 export default function HeroSection({
@@ -81,14 +79,11 @@ export default function HeroSection({
         </Motion.div>
 
         {imageSrc && (
-          <Motion.div
-            className="dtb-ui-hero__image-col"
-            initial={{ opacity: 0, y: reduceMotion ? 0 : 8, scale: reduceMotion ? 1 : 0.998 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={reduceMotion ? reducedTransition : dtbTransition.emphasized}
-          >
+          <div className="dtb-ui-hero__image-col">
+            {/* Keep the LCP image's stage continuously painted. An entrance
+                fade beginning before decoding can expose a blank hero frame. */}
             <img src={imageSrc} alt={imageAlt} loading="eager" fetchPriority="high" decoding="async" />
-          </Motion.div>
+          </div>
         )}
       </div>
 
