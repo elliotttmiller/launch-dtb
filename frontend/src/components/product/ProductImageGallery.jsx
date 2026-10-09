@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
 import { apiClient } from '../../api/client.js';
 import '../../styles/product-image-gallery-refinements.css';
+import { dtbEase, dtbTransition } from '../../motion/dtbMotion.js';
 
 const LIGHTBOX_Z_INDEX = 10010;
 const parentGalleryCache = new Map();
@@ -16,8 +17,8 @@ const slideVariants = {
 };
 
 const slideTransition = {
-  duration: 0.42,
-  ease: [0.22, 1, 0.36, 1],
+  duration: dtbTransition.emphasized.duration,
+  ease: dtbEase.standard,
 };
 
 // Used when the image set changes because a different variation/product was
@@ -32,7 +33,7 @@ const fadeVariants = {
   exit: { opacity: 0 },
 };
 
-const fadeTransition = { duration: 0.2, ease: [0.4, 0, 0.2, 1] };
+const fadeTransition = dtbTransition.async;
 
 const LB_NAV_BTN_CLASS = 'product-image-gallery__lb-btn product-image-gallery__lb-btn--nav absolute top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-11 h-11';
 
@@ -625,12 +626,12 @@ export default function ProductImageGallery({ product }) {
           <AnimatePresence>
             {!isActiveImageLoaded && (
               <Motion.div
-                key={`skeleton-${activeIndex}`}
+                key={`skeleton-${activeImageKey}`}
                 className="product-image-gallery__skeleton absolute inset-0"
                 style={{ zIndex: 3, pointerEvents: 'none' }}
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                transition={reduceMotion ? { duration: 0 } : dtbTransition.async}
               />
             )}
           </AnimatePresence>
@@ -644,11 +645,15 @@ export default function ProductImageGallery({ product }) {
               alt={`${product?.name || 'Product'} — image ${activeIndex + 1} of ${stableImages.length}`}
               custom={direction}
               variants={galleryVariants}
-              initial="enter"
+              // Do not animate an undecoded image from transparent: the media bed
+              // remains painted until loading has finished, including cache hits.
+              initial={isActiveImageLoaded ? 'enter' : false}
               animate="center"
               exit="exit"
               transition={galleryTransition}
-              loading={activeIndex === 0 ? 'eager' : 'lazy'}
+              // The active image is always immediately visible; only offscreen
+              // thumbnails/adjacent preloads should use deferred loading.
+              loading="eager"
               fetchPriority={activeIndex === 0 ? 'high' : undefined}
               decoding="async"
               draggable={false}
