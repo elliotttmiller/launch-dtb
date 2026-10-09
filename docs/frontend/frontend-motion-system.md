@@ -159,6 +159,7 @@ Avoid sequential replacement chains such as route spinner → page spinner → s
 Desktop has a larger composited paint surface than mobile and therefore uses stricter large-surface rules:
 
 - Do not apply a transform or persistent `will-change` to the complete desktop route tree.
+- Desktop mega-menu first-mount opening must paint a hidden opacity frame before the shared sheet eases into view; a freshly mounted fully opaque panel cannot animate its initial entrance. The sheet uses canonical emphasized opacity timing for entry and fast exit timing. Opening motion never translates or scales the large fixed sheet.
 - Desktop mega-menu taxonomy switching is atomic. The open sheet remains painted while its rendered panel changes; there is no fade-to-zero or multi-frame blank interval between menu tabs.
 - The desktop mega-menu keeps a constant centering transform and may animate opacity only. Do not scale or vertically translate the full 1000–1240 px fixed sheet during routine open/close.
 - Desktop navigation must use explicit transitioned properties. `transition: all` is prohibited on primary navigation controls.
