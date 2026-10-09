@@ -8,7 +8,6 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { PLACEHOLDER_IMAGE } from '../../constants/images.js';
 
 const PLACEHOLDER = PLACEHOLDER_IMAGE;
-const EASE_OUT_EXPO = 'cubic-bezier(0.22, 1, 0.36, 1)';
 
 const resolveImage = (product, src) => {
   if (src) return src;
@@ -71,28 +70,46 @@ export default function ProductCardImage({
   const loaded = loadedSrc === imgSrc;
   const effectiveSrcSet = imgSrc === PLACEHOLDER ? undefined : (srcSet || product?.image_srcset || undefined);
 
-  // When an image is already in the browser cache the browser fires onLoad
-  // synchronously while the <img> src is being set — before React has committed
-  // the element and attached its synthetic event listener. That means onLoad is
-  // silently missed, loadedSrc stays null, loaded stays false, and the image
-  // remains invisible at opacity:0 forever on repeat visits.
-  // Guard: after the src changes, schedule a microtask to check img.complete.
+  // Keep the media bed visible until the active source is decoded, whether
+  // delivered from cache or network. Cancel stale decode completions when a
+  // reused card receives a different product image.
   useEffect(() => {
-    const el = imgRef.current;
-    if (!el || !el.complete) return;
-    // Image was already decoded from the browser cache before React attached
-    // the synthetic onLoad listener — fire the same state transitions that
-    // onLoad/onError would have triggered, but deferred via queueMicrotask so
-    // we are not calling setState synchronously inside the effect body.
-    queueMicrotask(() => {
-      if (el.naturalWidth === 0) {
-        if (imgSrc !== PLACEHOLDER) setFailedState({ key: initialSrc, src: initialSrc });
-        else setLoadedState({ key: initialSrc, src: PLACEHOLDER });
-      } else {
+    const image = imgRef.current;
+    if (!image) return undefined;
+    let cancelled = false;
+
+    const settle = async () => {
+      if (!image.complete) return;
+      if (image.naturalWidth === 0) {
+        if (!cancelled) {
+          if (imgSrc !== PLACEHOLDER) setFailedState({ key: initialSrc, src: initialSrc });
+          else setLoadedState({ key: initialSrc, src: PLACEHOLDER });
+        }
+        return;
+      }
+
+      try {
+        if (typeof image.decode === 'function') await image.decode();
+      } catch {
+        // Decode can reject after a valid resource has loaded. Keep its
+        // natural dimensions as the fallback signal rather than hiding it.
+      }
+
+      if (!cancelled && image === imgRef.current && image.naturalWidth > 0) {
         setLoadedState({ key: initialSrc, src: imgSrc });
       }
-    });
-  }, [imgSrc, initialSrc]); // re-run whenever the resolved src changes
+    };
+
+    image.addEventListener('load', settle);
+    image.addEventListener('error', settle);
+    if (image.complete) void settle();
+
+    return () => {
+      cancelled = true;
+      image.removeEventListener('load', settle);
+      image.removeEventListener('error', settle);
+    };
+  }, [imgSrc, initialSrc]);
 
   return (
     <div style={{ position: 'absolute', inset: padding }}>
@@ -108,7 +125,7 @@ export default function ProductCardImage({
           // animated gradients from flashing while a catalog grid resolves.
           animation: 'none',
           opacity: loaded ? 0 : 1,
-          transition: `opacity 200ms ${EASE_OUT_EXPO}`,
+          transition: `opacity var(--dtb-motion-duration-async, 220ms) var(--dtb-motion-ease-standard)`,
           borderRadius: 'inherit',
           zIndex: 0,
         }}
@@ -134,21 +151,12 @@ export default function ProductCardImage({
           objectFit: fit,
           objectPosition: position,
           opacity: loaded ? 1 : 0,
-          transform: loaded ? 'translateY(0)' : 'translateY(6px)',
           transition: loaded
-            ? `opacity 350ms ${EASE_OUT_EXPO}, transform 350ms ${EASE_OUT_EXPO}`
+            ? `opacity var(--dtb-motion-duration-async, 220ms) var(--dtb-motion-ease-standard)`
             : 'none',
-          transitionDelay: loaded ? '50ms' : '0ms',
           zIndex: 1,
         }}
-        onLoad={() => setLoadedState({ key: initialSrc, src: imgSrc })}
-        onError={() => {
-          if (imgSrc !== PLACEHOLDER) {
-            setFailedState({ key: initialSrc, src: initialSrc });
-            return;
-          }
-          setLoadedState({ key: initialSrc, src: PLACEHOLDER });
-        }}
+
       />
     </div>
   );
