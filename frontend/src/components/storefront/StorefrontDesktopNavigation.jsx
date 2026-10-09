@@ -400,6 +400,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const dropdownItems = desktopItems.filter((item) => item.hasDropdown || RESILIENT_DROPDOWN_IDS.has(item.id) || item.items?.length);
   const dropdownItemsById = new Map(dropdownItems.map((item) => [item.id, item]));
   const [renderedMenuId, setRenderedMenuId] = useState(() => openMenuId || null);
+  const [sheetVisible, setSheetVisible] = useState(false);
   const [mountedMenuIds, setMountedMenuIds] = useState(() => new Set(openMenuId ? [openMenuId] : []));
   const openTimerRef = useRef(null);
   const closeTimerRef = useRef(null);
@@ -485,6 +486,17 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
     }
   }, [openMenuId, renderedMenuId]);
 
+  // A newly mounted panel must paint one hidden frame before opening.
+  // Switching taxonomy while already open does not restart the entrance.
+  useEffect(() => {
+    if (!shellOpen) {
+      setSheetVisible(false);
+      return undefined;
+    }
+    const frame = window.requestAnimationFrame(() => setSheetVisible(true));
+    return () => window.cancelAnimationFrame(frame);
+  }, [shellOpen]);
+
   useEffect(() => () => {
     clearTimer(openTimerRef);
     clearTimer(closeTimerRef);
@@ -494,8 +506,8 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
   const shellTransition = reducedMotion
     ? 'none'
     : shellOpen
-      ? 'opacity 160ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0s'
-      : 'opacity 140ms cubic-bezier(0.4, 0, 1, 1), visibility 0s linear 140ms';
+      ? 'opacity var(--dtb-motion-duration-elevated, 360ms) var(--dtb-motion-ease-emphasized), visibility 0s linear 0s'
+      : 'opacity var(--dtb-motion-duration-fast, 180ms) var(--dtb-motion-ease-exit), visibility 0s linear var(--dtb-motion-duration-fast, 180ms)';
 
   return (
     <nav
@@ -553,7 +565,7 @@ export default function StorefrontDesktopNavigation({ items, openMenuId, onOpen,
             }}
             style={{
               '--mega-panel-width': '1240px',
-              opacity: shellOpen ? 1 : 0,
+              opacity: sheetVisible && shellOpen ? 1 : 0,
               visibility: shellOpen ? 'visible' : 'hidden',
               pointerEvents: shellOpen ? 'auto' : 'none',
               transform: 'translateX(-50%)',
