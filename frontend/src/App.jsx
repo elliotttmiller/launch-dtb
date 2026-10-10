@@ -158,8 +158,11 @@ function ScrollToTop() {
       return undefined;
     }
 
+    // Reset only route-owned scroll regions. Generic overflow utilities also
+    // occur inside drawers, rails and nested widgets; resetting all of them
+    // interrupts native momentum and causes unexpected jumps on mobile.
     const scrollNestedContainers = () => {
-      document.querySelectorAll('[data-route-scroll-container], [data-scroll-container], .overflow-y-auto, .overflow-auto').forEach((element) => {
+      document.querySelectorAll('[data-route-scroll-container]').forEach((element) => {
         if (!(element instanceof HTMLElement)) return;
         const style = window.getComputedStyle(element);
         if (!/(auto|scroll)/.test(`${style.overflowY} ${style.overflow}`)) return;
