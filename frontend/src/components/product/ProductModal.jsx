@@ -67,7 +67,6 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
       const state = bodyLockStateRef.current;
       if (!state) return;
       body.style.overflow = state.overflow;
-      body.style.touchAction = state.touchAction;
       body.style.paddingRight = state.paddingRight;
       body.classList.remove('dtb-product-modal-open');
       bodyLockStateRef.current = null;
@@ -85,12 +84,10 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
 
         bodyLockStateRef.current = {
           overflow: body.style.overflow,
-          touchAction: body.style.touchAction,
           paddingRight: body.style.paddingRight,
         };
 
         body.style.overflow = 'hidden';
-        if (isMobile) body.style.touchAction = 'none';
         if (scrollbarWidth > 0) {
           body.style.paddingRight = `${computedPaddingRight + scrollbarWidth}px`;
         }
@@ -117,7 +114,6 @@ export default function ProductModal({ isOpen, product, onClose, children }) {
     const state = bodyLockStateRef.current;
     if (!state || typeof document === 'undefined') return;
     document.body.style.overflow = state.overflow;
-    document.body.style.touchAction = state.touchAction;
     document.body.style.paddingRight = state.paddingRight;
     document.body.classList.remove('dtb-product-modal-open');
     bodyLockStateRef.current = null;
