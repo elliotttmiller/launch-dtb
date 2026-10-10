@@ -203,6 +203,10 @@ The active product gallery image is an eager-loaded visual target, including whe
 
 Homepage hero image stages remain painted from the first render rather than fading an entire media column in before its eager-loaded image has decoded. Category hero media use image-specific readiness and a reserved skeleton stage; pending decode callbacks and animation frames must be invalidated when the source changes or the component unmounts so stale responses cannot reveal a newly selected image. Category layout, artwork composition and shop CTAs remain owned by their existing feature styles and components. Do not replace either hero with an unconditional page-level opacity animation.
 
+## Mobile Quick View touch and scroll ownership
+
+The product Quick View retains its owning modal body's overflow lock and scrollbar compensation while open, but must not apply `touch-action: none` to `<body>`. Touch-action is constrained through ancestors and can prevent vertical momentum scrolling within the modal itself. The modal scroll shell handles vertical native scrolling; the gallery thumbnail strip owns horizontal `pan-x` gestures. Never suppress native document or modal panning with broad touch handlers merely to prevent backdrop scroll. Confirm this contract on iOS Safari and Android Chrome, including nested horizontal gestures and modal close/reopen.
+
 ## Mobile native scrolling and route ownership
 
 Native browser touch/momentum scrolling is the default for the document, catalog rails and independently scrollable overlays. Do not intercept `touchmove`/wheel events or install JavaScript-based smoothing on the root scroll shell. Route changes reset only explicitly marked `[data-route-scroll-container]` elements; generic overflow utility classes are not a route-scroll ownership signal, because they also appear in drawers, product widgets and other independently scrollable components. History POP restoration and hash navigation remain synchronous and use `behavior: 'auto'`, without delayed animated correction. Any scroll-locked modal must preserve the underlying document position and release locks at the owning modal lifecycle boundary.
