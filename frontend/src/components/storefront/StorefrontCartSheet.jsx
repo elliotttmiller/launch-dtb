@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, X, Package, Minus, Plus, ArrowRight, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react';
 import { useCart } from '../../context/CartContext.jsx';
@@ -11,6 +11,7 @@ import ProductModal from '../product/ProductModal.jsx';
 const ProductDetail = lazy(() => import('../product/ProductDetail.jsx'));
 import { getProduct, getProductVariations } from '../../services/api.js';
 import { getVariationSelectionMap } from '../../utils/variationSelection.js';
+import { buildCartProductUrl } from '../../utils/variationUrl.js';
 
 const CART_QTY_SYNC_DELAY_MS = 260;
 const MAX_CART_QUANTITY = 99;
@@ -104,6 +105,7 @@ export default function StorefrontCartSheet({
   isMutating = false,
 }) {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
   const overlayRef = useRef(null);
   const closeButtonRef = useRef(null);
   const previouslyFocusedRef = useRef(null);
@@ -119,6 +121,9 @@ export default function StorefrontCartSheet({
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const productModalClearTimerRef = useRef(null);
   const [productModalLoadingKey, setProductModalLoadingKey] = useState('');
+  const [navigatingKey, setNavigatingKey] = useState('');
+  const [navigationError, setNavigationError] = useState('');
+  const navigationPendingRef = useRef(false);
 
   const setItemSyncing = useCallback((key, isSyncing) => {
     if (!key) return;
@@ -226,6 +231,41 @@ export default function StorefrontCartSheet({
       setIsProductModalOpen(true);
     }
   }, [productModalLoadingKey]);
+
+  const handleNavigateProduct = useCallback(async (item) => {
+    const key = getCartItemKey(item);
+    if (!item || !key || navigationPendingRef.current) return;
+
+    navigationPendingRef.current = true;
+    setNavigatingKey(key);
+    setNavigationError('');
+
+    try {
+      const parentId = toNumericId(item.parent_id);
+      const itemId = toNumericId(item.id);
+      if (!parentId && !itemId) throw new Error('Missing product identity.');
+
+      // WooCommerce cart lines may refer to a child variation as item.id.
+      // Resolve the parent before constructing the canonical storefront route.
+      const resolved = await getProduct(parentId || itemId);
+      if (!resolved) throw new Error('Product not found.');
+      const resolvedParentId = toNumericId(resolved.parent_id);
+      const parent = resolvedParentId ? await getProduct(resolvedParentId) : resolved;
+      const variationId = parentId || resolvedParentId
+        ? toNumericId(item.variation_id) || itemId
+        : null;
+      const destination = buildCartProductUrl(parent, variationId);
+      if (!destination) throw new Error('Product URL unavailable.');
+
+      handleClose();
+      navigate(destination);
+    } catch {
+      setNavigationError(`Could not open "${item.name || 'this product'}". Please try again.`);
+    } finally {
+      navigationPendingRef.current = false;
+      setNavigatingKey('');
+    }
+  }, [handleClose, navigate]);
 
   const handleRemove = useCallback(async (key) => {
     if (!key || removingKey === key || isClearing) return;
@@ -450,6 +490,7 @@ export default function StorefrontCartSheet({
                 const isSyncing = syncingKeys.has(key);
                 const isRemoving = removingKey === key;
                 const isPreviewLoading = productModalLoadingKey === key;
+                const isNavigating = navigatingKey === key;
                 const skuText = getCartItemSku(item);
                 const lineTotal = ((Number(item.price) || 0) * quantity).toFixed(2);
 
@@ -458,7 +499,7 @@ export default function StorefrontCartSheet({
                     key={key}
                     className={`scs-item${isSyncing ? ' scs-item--syncing' : ''}${isRemoving ? ' scs-item--removing' : ''}${isPreviewLoading ? ' scs-item--preview-loading' : ''}`}
                     role="listitem"
-                    aria-busy={isSyncing || isRemoving || isPreviewLoading || isClearing ? 'true' : 'false'}
+                    aria-busy={isSyncing || isRemoving || isPreviewLoading || isNavigating || isClearing ? 'true' : 'false'}
                   >
                     <button
                       type="button"
@@ -477,9 +518,9 @@ export default function StorefrontCartSheet({
                         <button
                           type="button"
                           className="scs-item-name scs-item-name-button"
-                          onClick={() => handleOpenProduct(item)}
-                          disabled={isRemoving || isPreviewLoading || isClearing}
-                          aria-label={`View ${item.name} details`}
+                          onClick={() => handleNavigateProduct(item)}
+                          disabled={isRemoving || isPreviewLoading || isNavigating || isClearing}
+                          aria-label={`View ${item.name} product page`}
                         >
                           {item.name}
                         </button>
@@ -532,6 +573,7 @@ export default function StorefrontCartSheet({
               })}
             </ul>
           )}
+          {navigationError ? <p className="scs-navigation-error" role="alert">{navigationError}</p> : null}
         </div>
 
         {cartItems.length > 0 && (

@@ -79,3 +79,13 @@ export function resolveInitialVariation(variantParam, variations) {
 
   return null;
 }
+
+/** Return the canonical storefront PDP URL for a resolved WooCommerce parent. */
+export function buildCartProductUrl(parentProduct, variationId = null) {
+  const slug = typeof parentProduct?.slug === 'string' ? parentProduct.slug.trim() : '';
+  // Only an actual parent product slug may be used as the route segment.
+  if (!slug || parentProduct?.parent_id || ['/', '?', '#'].some((part) => slug.includes(part))) return null;
+  const id = Number(variationId);
+  const safeVariationId = Number.isSafeInteger(id) && id > 0 ? id : null;
+  return `/products/${encodeURIComponent(slug)}${buildVariantSearch('', safeVariationId)}`;
+}
