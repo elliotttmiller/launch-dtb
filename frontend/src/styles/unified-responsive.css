@@ -231,15 +231,10 @@ body,
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
-  /* The product-detail quick-view modal sets `touch-action: none` on
-     <body> while open (see ProductModal.jsx) to block background scroll.
-     Touch-action is intersected down the ancestor chain, so without an
-     explicit carve-out here the thumbnail strip inherits `none` and loses
-     native horizontal scroll clamping — touches on it then fall through
-     to no defined gesture, which reads as "draggable anywhere" instead of
-     a normal bounded horizontal scroller. Restrict the carve-out to the
-     horizontal axis only so vertical modal scroll/dismiss gestures are
-     unaffected. */
+  /* The thumbnail rail owns horizontal gestures. The modal's body
+     overflow lock must not disable native touch panning on its descendants.
+     Restrict this rail to horizontal panning so vertical gestures still reach
+     the modal's scrolling surface. */
   touch-action: pan-x;
 }
 
