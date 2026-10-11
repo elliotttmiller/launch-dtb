@@ -73,13 +73,40 @@ function dtb_catalog_operations_render_context_navigation(): void {
 		return;
 	}
 
-	echo '<nav class="dtb-catalog-operations-nav" aria-label="' . esc_attr__( 'Catalog Operations', 'drywall-toolbox' ) . '"><strong>' . esc_html__( 'Catalog Operations:', 'drywall-toolbox' ) . '</strong> ';
-	foreach ( $pages as $slug => [ $capability, $label ] ) {
-		if ( ! current_user_can( $capability ) ) {
+	$groups = [
+		[ 'label' => __( 'Products', 'drywall-toolbox' ), 'primary' => 'dtb-catalog-operations', 'items' => [ 'dtb-catalog-operations', 'dtb-catalog-health', 'dtb-product-mapping', 'dtb-parts-manager' ] ],
+		[ 'label' => __( 'Pricing', 'drywall-toolbox' ), 'primary' => 'dtb-pricing-manager', 'items' => [ 'dtb-pricing-manager' ] ],
+		[ 'label' => __( 'Media & Content', 'drywall-toolbox' ), 'primary' => 'dtb-image-sync', 'items' => [ 'dtb-image-sync', 'dtb-seo-tools' ] ],
+		[ 'label' => __( 'Data & Maintenance', 'drywall-toolbox' ), 'primary' => 'dtb-import-export', 'items' => [ 'dtb-import-export', 'dtb-inventory-intelligence' ] ],
+	];
+
+	echo '<nav class="dtb-catalog-operations-nav" aria-label="' . esc_attr__( 'Catalog Operations', 'drywall-toolbox' ) . '">';
+	echo '<span class="dtb-catalog-operations-nav__heading">' . esc_html__( 'Catalog', 'drywall-toolbox' ) . '</span>';
+	foreach ( $groups as $group ) {
+		$allowed = array_values( array_filter( $group['items'], static fn( string $slug ): bool => current_user_can( $pages[ $slug ][0] ) ) );
+		if ( ! $allowed ) {
 			continue;
 		}
-		$class = $slug === $current ? 'button button-primary' : 'button';
-		echo '<a class="' . esc_attr( $class ) . '" href="' . esc_url( admin_url( 'admin.php?page=' . $slug ) ) . '">' . esc_html( $label ) . '</a> ';
+		$target = in_array( $group['primary'], $allowed, true ) ? $group['primary'] : $allowed[0];
+		$active = in_array( $current, $group['items'], true );
+		echo '<a class="dtb-catalog-operations-nav__group' . ( $active ? ' is-active' : '' ) . '"' . ( $active ? ' aria-current="page"' : '' ) . ' href="' . esc_url( admin_url( 'admin.php?page=' . $target ) ) . '">' . esc_html( $group['label'] ) . '</a>';
+	}
+	$active_group = null;
+	foreach ( $groups as $group ) {
+		if ( in_array( $current, $group['items'], true ) ) {
+			$active_group = $group;
+			break;
+		}
+	}
+	if ( $active_group && count( $active_group['items'] ) > 1 ) {
+		echo '<div class="dtb-catalog-operations-nav__details" aria-label="' . esc_attr__( 'Related utilities', 'drywall-toolbox' ) . '">';
+		foreach ( $active_group['items'] as $slug ) {
+			if ( ! current_user_can( $pages[ $slug ][0] ) ) {
+				continue;
+			}
+			echo '<a' . ( $current === $slug ? ' aria-current="page" class="is-active"' : '' ) . ' href="' . esc_url( admin_url( 'admin.php?page=' . $slug ) ) . '">' . esc_html( $pages[ $slug ][1] ) . '</a>';
+		}
+		echo '</div>';
 	}
 	echo '</nav>';
 }
@@ -94,7 +121,7 @@ function dtb_catalog_operations_render_page(): void {
 
 	dtb_admin_shell_open( [
 		'title'    => __( 'Catalog Operations', 'drywall-toolbox' ),
-		'subtitle' => __( 'One workspace for catalog health, data transfer, relationships, parts, media, pricing, and SEO.', 'drywall-toolbox' ),
+		'subtitle' => __( 'Find products, review pricing, manage media, and maintain catalog data from one workspace.', 'drywall-toolbox' ),
 		'section'  => 'tools',
 		'page'     => 'dtb-catalog-operations',
 		'template' => 'dashboard',
